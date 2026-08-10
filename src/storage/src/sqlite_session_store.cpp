@@ -121,11 +121,19 @@ SessionStore::SessionStore(QString connection_name)
     : connection_name_(std::move(connection_name)) {}
 
 SessionStore::~SessionStore() {
+    closeConnection();
+}
+
+void SessionStore::closeConnection() {
+    if (connection_name_.isEmpty()) {
+        return;
+    }
+    const auto connection_name = std::exchange(connection_name_, {});
     if (database_.isValid()) {
         database_.close();
         database_ = QSqlDatabase{};
     }
-    QSqlDatabase::removeDatabase(connection_name_);
+    QSqlDatabase::removeDatabase(connection_name);
 }
 
 std::expected<std::unique_ptr<SessionStore>, StoreError>
@@ -140,7 +148,9 @@ SessionStore::open(const QString& database_path) {
         QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), store->connection_name_);
     store->database_.setDatabaseName(database_path);
     if (!store->database_.open()) {
-        return fail(StoreErrorCode::OpenFailed, store->database_.lastError().text());
+        const auto message = store->database_.lastError().text();
+        store->closeConnection();
+        return fail(StoreErrorCode::OpenFailed, message);
     }
 
     if (auto configured = store->configure(); !configured) {

@@ -113,6 +113,7 @@ class SessionStore final {
     [[nodiscard]] std::expected<void, StoreError> beginImmediate();
     [[nodiscard]] std::expected<void, StoreError> commit();
     void rollback();
+    void closeConnection();
 
     QString connection_name_;
     QSqlDatabase database_;
