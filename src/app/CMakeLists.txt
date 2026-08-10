@@ -2,6 +2,8 @@ qt_add_library(
     appellate_application STATIC
     session_controller.cpp
     session_controller.hpp
+    workflow_session_controller.cpp
+    workflow_session_controller.hpp
 )
 add_library(appellate::application ALIAS appellate_application)
 target_include_directories(
