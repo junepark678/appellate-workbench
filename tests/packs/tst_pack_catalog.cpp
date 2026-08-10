@@ -86,8 +86,7 @@ class PackCatalogTest final : public QObject {
 [[nodiscard]] auto buildArchive(const QString& root, const QString& stem, const QString& pack_id,
                                 const QString& version, const QString& display_name,
                                 const std::vector<PackRevision>& dependencies = {},
-                                bool include_blob = false)
-    -> std::expected<PackRevision, QString> {
+                                bool include_blob = false) -> std::expected<PackRevision, QString> {
     const auto source = QDir(root).filePath(QStringLiteral("sources/") + stem);
     const auto archive_directory = QDir(root).filePath(QStringLiteral("exports"));
     if (!QDir{}.mkpath(QDir(source).filePath(QStringLiteral("judges"))) ||
@@ -118,6 +117,7 @@ class PackCatalogTest final : public QObject {
                      {QStringLiteral("follow_up_depth"), 0.5},
                      {QStringLiteral("hypothetical_frequency"), 0.4},
                      {QStringLiteral("concession_recall"), 0.6},
+                     {QStringLiteral("record_pin_demand"), 0.7},
                      {QStringLiteral("time_strictness"), 0.5},
                      {QStringLiteral("issue_focus"),
                       QJsonArray{QJsonObject{
@@ -129,8 +129,16 @@ class PackCatalogTest final : public QObject {
                  QJsonObject{
                      {QStringLiteral("register"), QStringLiteral("formal")},
                      {QStringLiteral("cadence"), QStringLiteral("measured")},
+                     {QStringLiteral("question_framing"), QStringLiteral("direct")},
+                     {QStringLiteral("address_convention"), QStringLiteral("counsel")},
                      {QStringLiteral("verbosity"), 0.5},
                      {QStringLiteral("sentence_complexity"), 0.5},
+                     {QStringLiteral("question_phrases"),
+                      QJsonArray{QStringLiteral("address the question")}},
+                     {QStringLiteral("interruption_phrases"),
+                      QJsonArray{QStringLiteral("pause there")}},
+                     {QStringLiteral("clarification_phrases"),
+                      QJsonArray{QStringLiteral("clarify that point")}},
                  }},
             })
             .toJson(QJsonDocument::Compact);
@@ -161,27 +169,24 @@ class PackCatalogTest final : public QObject {
         }
         const auto record_id = pack_id + QStringLiteral(".record.main");
         const auto record =
-            QJsonDocument(QJsonObject{
-                              {QStringLiteral("schema_version"), 1},
-                              {QStringLiteral("resource_kind"), QStringLiteral("record")},
-                              {QStringLiteral("resource_id"), record_id},
-                              {QStringLiteral("caption"), QStringLiteral("Synthetic record")},
-                              {QStringLiteral("docket_entries"),
-                               QJsonArray{QJsonObject{
-                                   {QStringLiteral("entry_id"),
-                                    pack_id + QStringLiteral(".entry.document")},
-                                   {QStringLiteral("entry_number"), 1},
-                                   {QStringLiteral("filed_on"),
-                                    QStringLiteral("2026-08-11")},
-                                   {QStringLiteral("title"),
-                                    QStringLiteral("Synthetic order")},
-                                   {QStringLiteral("asset_path"),
-                                    QStringLiteral("objects/document.pdf")},
-                                   {QStringLiteral("asset_sha256"), pdf_digest},
-                                   {QStringLiteral("page_count"), 1},
-                                   {QStringLiteral("sealed"), false},
-                               }}},
-                          })
+            QJsonDocument(
+                QJsonObject{
+                    {QStringLiteral("schema_version"), 1},
+                    {QStringLiteral("resource_kind"), QStringLiteral("record")},
+                    {QStringLiteral("resource_id"), record_id},
+                    {QStringLiteral("caption"), QStringLiteral("Synthetic record")},
+                    {QStringLiteral("docket_entries"),
+                     QJsonArray{QJsonObject{
+                         {QStringLiteral("entry_id"), pack_id + QStringLiteral(".entry.document")},
+                         {QStringLiteral("entry_number"), 1},
+                         {QStringLiteral("filed_on"), QStringLiteral("2026-08-11")},
+                         {QStringLiteral("title"), QStringLiteral("Synthetic order")},
+                         {QStringLiteral("asset_path"), QStringLiteral("objects/document.pdf")},
+                         {QStringLiteral("asset_sha256"), pdf_digest},
+                         {QStringLiteral("page_count"), 1},
+                         {QStringLiteral("sealed"), false},
+                     }}},
+                })
                 .toJson(QJsonDocument::Compact);
         if (!writeAll(QDir(source).filePath(QStringLiteral("records/main.json")), record)) {
             return std::unexpected(QStringLiteral("cannot write record"));
@@ -213,7 +218,7 @@ class PackCatalogTest final : public QObject {
                                QJsonObject{{QStringLiteral("id"),
                                             QStringLiteral("workbench.pack.voice-style")},
                                            {QStringLiteral("version"), 1}},
-                          }},
+                           }},
                           {QStringLiteral("dependencies"), dependency_array},
                           {QStringLiteral("blobs"), blobs},
                           {QStringLiteral("contents"), contents},
@@ -402,20 +407,17 @@ void PackCatalogTest::materializesStableBlobForExactRevision() {
     QVERIFY(QFileInfo(installed_object).isFile());
     QVERIFY(!QFileInfo(installed_object).isSymLink());
 
-    const auto first =
-        (*catalog)->materializeBlob(*revision, "objects/document.pdf");
+    const auto first = (*catalog)->materializeBlob(*revision, "objects/document.pdf");
     QVERIFY(first.has_value());
     QCOMPARE(first->local_path, installed_object);
     QCOMPARE(QString::fromStdString(first->descriptor.path),
              QStringLiteral("objects/document.pdf"));
     QCOMPARE(QString::fromStdString(first->descriptor.media_type),
              QStringLiteral("application/pdf"));
-    QCOMPARE(first->descriptor.byte_size,
-             static_cast<std::uint64_t>(testPdf().size()));
+    QCOMPARE(first->descriptor.byte_size, static_cast<std::uint64_t>(testPdf().size()));
     QCOMPARE(QString::fromStdString(first->descriptor.sha256), expected_digest);
 
-    const auto second =
-        (*catalog)->materializeBlob(*revision, "objects/document.pdf");
+    const auto second = (*catalog)->materializeBlob(*revision, "objects/document.pdf");
     QVERIFY(second.has_value());
     QCOMPARE(*second, *first);
     QFile opened(second->local_path);
@@ -424,12 +426,10 @@ void PackCatalogTest::materializesStableBlobForExactRevision() {
 
     auto wrong_revision = *revision;
     wrong_revision.digest.front() = wrong_revision.digest.front() == '0' ? '1' : '0';
-    const auto wrong =
-        (*catalog)->materializeBlob(wrong_revision, "objects/document.pdf");
+    const auto wrong = (*catalog)->materializeBlob(wrong_revision, "objects/document.pdf");
     QVERIFY(!wrong.has_value());
     QCOMPARE(wrong.error().code, CatalogErrorCode::NotFound);
-    const auto unknown =
-        (*catalog)->materializeBlob(*revision, "objects/unknown.pdf");
+    const auto unknown = (*catalog)->materializeBlob(*revision, "objects/unknown.pdf");
     QVERIFY(!unknown.has_value());
     QCOMPARE(unknown.error().code, CatalogErrorCode::NotFound);
 }
@@ -447,16 +447,14 @@ void PackCatalogTest::rehydratesMissingBlobButNeverOverwritesCorruption() {
                 ->installArchive(archivePath(temporary.path(), QStringLiteral("rehydrate")),
                                  QStringLiteral("2026-08-11T05:00:00Z"))
                 .has_value());
-    const auto initial =
-        (*catalog)->materializeBlob(*revision, "objects/document.pdf");
+    const auto initial = (*catalog)->materializeBlob(*revision, "objects/document.pdf");
     QVERIFY(initial.has_value());
     QVERIFY(QFile::remove(initial->local_path));
-    const auto interrupted = QDir((*catalog)->blobObjectsDirectory())
-                                 .filePath(QStringLiteral(".blob-interrupted.tmp"));
+    const auto interrupted =
+        QDir((*catalog)->blobObjectsDirectory()).filePath(QStringLiteral(".blob-interrupted.tmp"));
     QVERIFY(writeAll(interrupted, QByteArray("partial")));
 
-    const auto rehydrated =
-        (*catalog)->materializeBlob(*revision, "objects/document.pdf");
+    const auto rehydrated = (*catalog)->materializeBlob(*revision, "objects/document.pdf");
     QVERIFY(rehydrated.has_value());
     QCOMPARE(rehydrated->local_path, initial->local_path);
     QVERIFY(QFileInfo::exists(interrupted));
@@ -469,8 +467,7 @@ void PackCatalogTest::rehydratesMissingBlobButNeverOverwritesCorruption() {
     QVERIFY(corrupt.open(QIODevice::WriteOnly | QIODevice::Truncate));
     QCOMPARE(corrupt.write("corrupt"), qint64{7});
     corrupt.close();
-    const auto refused =
-        (*catalog)->materializeBlob(*revision, "objects/document.pdf");
+    const auto refused = (*catalog)->materializeBlob(*revision, "objects/document.pdf");
     QVERIFY(!refused.has_value());
     QCOMPARE(refused.error().code, CatalogErrorCode::CorruptCatalog);
     QFile unchanged(rehydrated->local_path);
@@ -481,8 +478,7 @@ void PackCatalogTest::rehydratesMissingBlobButNeverOverwritesCorruption() {
     QVERIFY(QFile::remove(rehydrated->local_path));
     QVERIFY(QFile::link(archivePath(temporary.path(), QStringLiteral("rehydrate")),
                         rehydrated->local_path));
-    const auto linked =
-        (*catalog)->materializeBlob(*revision, "objects/document.pdf");
+    const auto linked = (*catalog)->materializeBlob(*revision, "objects/document.pdf");
     QVERIFY(!linked.has_value());
     QCOMPARE(linked.error().code, CatalogErrorCode::CorruptCatalog);
 }
@@ -490,14 +486,12 @@ void PackCatalogTest::rehydratesMissingBlobButNeverOverwritesCorruption() {
 void PackCatalogTest::deduplicatesBlobsAndRequiresVerifiedArchives() {
     QTemporaryDir temporary;
     QVERIFY(temporary.isValid());
-    const auto first =
-        buildArchive(temporary.path(), QStringLiteral("first-blob"),
-                     QStringLiteral("test.pack.first-blob"), QStringLiteral("1.0.0"),
-                     QStringLiteral("First Blob Composite"), {}, true);
-    const auto second =
-        buildArchive(temporary.path(), QStringLiteral("second-blob"),
-                     QStringLiteral("test.pack.second-blob"), QStringLiteral("1.0.0"),
-                     QStringLiteral("Second Blob Composite"), {}, true);
+    const auto first = buildArchive(temporary.path(), QStringLiteral("first-blob"),
+                                    QStringLiteral("test.pack.first-blob"), QStringLiteral("1.0.0"),
+                                    QStringLiteral("First Blob Composite"), {}, true);
+    const auto second = buildArchive(
+        temporary.path(), QStringLiteral("second-blob"), QStringLiteral("test.pack.second-blob"),
+        QStringLiteral("1.0.0"), QStringLiteral("Second Blob Composite"), {}, true);
     QVERIFY(first.has_value());
     QVERIFY(second.has_value());
     auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
@@ -510,10 +504,8 @@ void PackCatalogTest::deduplicatesBlobsAndRequiresVerifiedArchives() {
                                    QStringLiteral("2026-08-11T07:00:00Z"));
     QVERIFY(installed_first.has_value());
     QVERIFY(installed_second.has_value());
-    const auto first_blob =
-        (*catalog)->materializeBlob(*first, "objects/document.pdf");
-    const auto second_blob =
-        (*catalog)->materializeBlob(*second, "objects/document.pdf");
+    const auto first_blob = (*catalog)->materializeBlob(*first, "objects/document.pdf");
+    const auto second_blob = (*catalog)->materializeBlob(*second, "objects/document.pdf");
     QVERIFY(first_blob.has_value());
     QVERIFY(second_blob.has_value());
     QCOMPARE(first_blob->local_path, second_blob->local_path);
@@ -526,8 +518,7 @@ void PackCatalogTest::deduplicatesBlobsAndRequiresVerifiedArchives() {
         QDir((*catalog)->archivesDirectory())
             .filePath(installed_first->archive_sha256 + QStringLiteral(".awpack"));
     QVERIFY(QFile::remove(first_archive));
-    const auto intact_without_archive =
-        (*catalog)->materializeBlob(*first, "objects/document.pdf");
+    const auto intact_without_archive = (*catalog)->materializeBlob(*first, "objects/document.pdf");
     QVERIFY(intact_without_archive.has_value());
     QCOMPARE(intact_without_archive->local_path, first_blob->local_path);
     QVERIFY(QFile::remove(first_blob->local_path));
@@ -536,8 +527,7 @@ void PackCatalogTest::deduplicatesBlobsAndRequiresVerifiedArchives() {
     QVERIFY(!missing_object_and_archive.has_value());
     QCOMPARE(missing_object_and_archive.error().code, CatalogErrorCode::CorruptCatalog);
 
-    const auto rehydrated =
-        (*catalog)->materializeBlob(*second, "objects/document.pdf");
+    const auto rehydrated = (*catalog)->materializeBlob(*second, "objects/document.pdf");
     QVERIFY(rehydrated.has_value());
 
     const auto second_archive =
@@ -554,22 +544,20 @@ void PackCatalogTest::deduplicatesBlobsAndRequiresVerifiedArchives() {
     const auto missing_object_and_corrupt_archive =
         (*catalog)->materializeBlob(*second, "objects/document.pdf");
     QVERIFY(!missing_object_and_corrupt_archive.has_value());
-    QCOMPARE(missing_object_and_corrupt_archive.error().code,
-             CatalogErrorCode::CorruptCatalog);
+    QCOMPARE(missing_object_and_corrupt_archive.error().code, CatalogErrorCode::CorruptCatalog);
 }
 
 void PackCatalogTest::refusesInstallOverCorruptBlobObject() {
     QTemporaryDir temporary;
     QVERIFY(temporary.isValid());
-    const auto revision = buildArchive(
-        temporary.path(), QStringLiteral("blocked"), QStringLiteral("test.pack.blocked"),
-        QStringLiteral("1.0.0"), QStringLiteral("Blocked Composite"), {}, true);
+    const auto revision = buildArchive(temporary.path(), QStringLiteral("blocked"),
+                                       QStringLiteral("test.pack.blocked"), QStringLiteral("1.0.0"),
+                                       QStringLiteral("Blocked Composite"), {}, true);
     QVERIFY(revision.has_value());
     auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
     QVERIFY(catalog.has_value());
     const auto object_path =
-        QDir((*catalog)->blobObjectsDirectory())
-            .filePath(QString::fromLatin1(sha256(testPdf())));
+        QDir((*catalog)->blobObjectsDirectory()).filePath(QString::fromLatin1(sha256(testPdf())));
     QVERIFY(writeAll(object_path, QByteArray("untrusted")));
     const auto installed =
         (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("blocked")),
@@ -587,13 +575,12 @@ void PackCatalogTest::refusesInstallOverCorruptBlobObject() {
 void PackCatalogTest::detectsTamperedBlobDescriptor() {
     QTemporaryDir temporary;
     QVERIFY(temporary.isValid());
-    const auto revision = buildArchive(
-        temporary.path(), QStringLiteral("tampered-descriptor"),
-        QStringLiteral("test.pack.tampered-descriptor"), QStringLiteral("1.0.0"),
-        QStringLiteral("Tampered Descriptor Composite"), {}, true);
+    const auto revision =
+        buildArchive(temporary.path(), QStringLiteral("tampered-descriptor"),
+                     QStringLiteral("test.pack.tampered-descriptor"), QStringLiteral("1.0.0"),
+                     QStringLiteral("Tampered Descriptor Composite"), {}, true);
     QVERIFY(revision.has_value());
-    const auto catalog_root =
-        QDir(temporary.path()).filePath(QStringLiteral("catalog"));
+    const auto catalog_root = QDir(temporary.path()).filePath(QStringLiteral("catalog"));
     QString object_path;
     {
         auto catalog = PackCatalog::open(catalog_root);
@@ -603,8 +590,7 @@ void PackCatalogTest::detectsTamperedBlobDescriptor() {
                         archivePath(temporary.path(), QStringLiteral("tampered-descriptor")),
                         QStringLiteral("2026-08-11T09:00:00Z"))
                     .has_value());
-        const auto blob =
-            (*catalog)->materializeBlob(*revision, "objects/document.pdf");
+        const auto blob = (*catalog)->materializeBlob(*revision, "objects/document.pdf");
         QVERIFY(blob.has_value());
         object_path = blob->local_path;
     }
@@ -615,8 +601,7 @@ void PackCatalogTest::detectsTamperedBlobDescriptor() {
 
     auto catalog = PackCatalog::open(catalog_root);
     QVERIFY(catalog.has_value());
-    const auto result =
-        (*catalog)->materializeBlob(*revision, "objects/document.pdf");
+    const auto result = (*catalog)->materializeBlob(*revision, "objects/document.pdf");
     QVERIFY(!result.has_value());
     QCOMPARE(result.error().code, CatalogErrorCode::CorruptCatalog);
     QFile unchanged(object_path);
@@ -631,8 +616,7 @@ void PackCatalogTest::migratesV1BlobDescriptors() {
         temporary.path(), QStringLiteral("migration"), QStringLiteral("test.pack.migration"),
         QStringLiteral("1.0.0"), QStringLiteral("Migration Composite"), {}, true);
     QVERIFY(revision.has_value());
-    const auto catalog_root =
-        QDir(temporary.path()).filePath(QStringLiteral("catalog"));
+    const auto catalog_root = QDir(temporary.path()).filePath(QStringLiteral("catalog"));
     QString archive_path;
     {
         auto catalog = PackCatalog::open(catalog_root);
@@ -646,16 +630,14 @@ void PackCatalogTest::migratesV1BlobDescriptors() {
     }
     QVERIFY(executeCatalogSql(
         catalog_root,
-        {QStringLiteral("DELETE FROM pack_blob_sets"),
-         QStringLiteral("DELETE FROM pack_blobs"),
+        {QStringLiteral("DELETE FROM pack_blob_sets"), QStringLiteral("DELETE FROM pack_blobs"),
          QStringLiteral("DELETE FROM catalog_migrations WHERE version = 2")}));
 
     auto migrated = PackCatalog::open(catalog_root);
     QVERIFY(migrated.has_value());
     QCOMPARE((*migrated)->schemaVersion(), 2);
     QVERIFY(QFile::remove(archive_path));
-    const auto blob =
-        (*migrated)->materializeBlob(*revision, "objects/document.pdf");
+    const auto blob = (*migrated)->materializeBlob(*revision, "objects/document.pdf");
     QVERIFY(blob.has_value());
     QFile opened(blob->local_path);
     QVERIFY(opened.open(QIODevice::ReadOnly));

@@ -13,9 +13,13 @@ or judicial-outcome prediction.
 ## Decision
 
 The MVP ships fictional or composite bench profiles only. A profile may configure observable
-interaction: issue-focus weights, directness, formality, preamble and question length,
+interaction: issue-focus weights, directness, formality, question length,
 interruption rate, follow-up depth, hypothetical frequency, concession recall, record-pin
 demands, and time strictness.
+
+The version-1 contract deliberately has no standalone preamble-length value. Bounded lead-phrase
+inventories and question framing control the rendered preamble, so the schema does not carry an
+inert personality scalar.
 
 Profiles declare a court role and compatible jurisdictions. A bench contains one or more
 typed seats; incompatible roles are rejected. Engine code never branches on a profile ID.

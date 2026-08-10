@@ -37,6 +37,7 @@ constexpr quint64 maximum_blob_bytes = 512ULL * 1024ULL * 1024ULL;
 constexpr quint64 maximum_total_blob_bytes = 3ULL * 1024ULL * 1024ULL * 1024ULL;
 constexpr qsizetype maximum_issue_focus_items = 32;
 constexpr qsizetype maximum_jurisdictions = 64;
+constexpr qsizetype maximum_voice_phrases = 8;
 constexpr qsizetype blob_stream_buffer_bytes = 64 * 1024;
 constexpr qsizetype pdf_tail_bytes = 1024;
 
@@ -223,6 +224,65 @@ struct KindDefinition final {
     return std::nullopt;
 }
 
+[[nodiscard]] auto parseQuestionFraming(const QString& value)
+    -> std::optional<model::QuestionFraming> {
+    if (value == QStringLiteral("direct")) {
+        return model::QuestionFraming::Direct;
+    }
+    if (value == QStringLiteral("socratic")) {
+        return model::QuestionFraming::Socratic;
+    }
+    if (value == QStringLiteral("narrative")) {
+        return model::QuestionFraming::Narrative;
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto parseAddressConvention(const QString& value)
+    -> std::optional<model::CounselAddress> {
+    if (value == QStringLiteral("counsel")) {
+        return model::CounselAddress::Counsel;
+    }
+    if (value == QStringLiteral("advocate")) {
+        return model::CounselAddress::Advocate;
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] bool isVoicePhrase(const QString& phrase) {
+    return !phrase.isEmpty() && phrase.size() <= 128 && phrase.toUtf8().size() <= 128 &&
+           phrase.trimmed() == phrase && std::ranges::all_of(phrase, [](QChar character) {
+               return (character.isPrint() || character == u' ') && character != u'{' &&
+                      character != u'}';
+           });
+}
+
+[[nodiscard]] auto parseVoicePhrases(const QJsonValue& value)
+    -> std::optional<std::vector<std::string>> {
+    if (!value.isArray()) {
+        return std::nullopt;
+    }
+    const auto phrases = value.toArray();
+    if (phrases.isEmpty() || phrases.size() > maximum_voice_phrases) {
+        return std::nullopt;
+    }
+    QSet<QString> seen;
+    std::vector<std::string> result;
+    result.reserve(static_cast<std::size_t>(phrases.size()));
+    for (const auto& value_item : phrases) {
+        if (!value_item.isString()) {
+            return std::nullopt;
+        }
+        const auto phrase = value_item.toString();
+        if (!isVoicePhrase(phrase) || seen.contains(phrase)) {
+            return std::nullopt;
+        }
+        seen.insert(phrase);
+        result.push_back(phrase.toUtf8().toStdString());
+    }
+    return result;
+}
+
 [[nodiscard]] auto kindDefinition(const QString& kind) -> std::optional<KindDefinition> {
     if (kind == QStringLiteral("argument_config")) {
         return KindDefinition{model::ResourceKind::ArgumentConfig,
@@ -344,12 +404,13 @@ struct KindDefinition final {
         "directness",        "formality",
         "question_length",   "interruption_frequency",
         "follow_up_depth",   "hypothetical_frequency",
-        "concession_recall", "time_strictness",
+        "concession_recall", "record_pin_demand",
+        "time_strictness",
     };
     if (!hasExactKeys(interaction,
                       {"directness", "formality", "question_length", "interruption_frequency",
                        "follow_up_depth", "hypothetical_frequency", "concession_recall",
-                       "time_strictness", "issue_focus"}) ||
+                       "record_pin_demand", "time_strictness", "issue_focus"}) ||
         !interaction.value(QStringLiteral("issue_focus")).isArray()) {
         return fail(ErrorCode::InvalidJudgeProfile,
                     QStringLiteral("Invalid interaction fields in %1").arg(name));
@@ -389,8 +450,21 @@ struct KindDefinition final {
     const auto voice = object.value(QStringLiteral("voice")).toObject();
     const auto register_style = parseRegister(voice.value(QStringLiteral("register")).toString());
     const auto cadence = parseCadence(voice.value(QStringLiteral("cadence")).toString());
-    if (!hasExactKeys(voice, {"register", "cadence", "verbosity", "sentence_complexity"}) ||
-        !register_style || !cadence || !isUnitInterval(voice.value(QStringLiteral("verbosity"))) ||
+    const auto framing =
+        parseQuestionFraming(voice.value(QStringLiteral("question_framing")).toString());
+    const auto address =
+        parseAddressConvention(voice.value(QStringLiteral("address_convention")).toString());
+    auto question_phrases = parseVoicePhrases(voice.value(QStringLiteral("question_phrases")));
+    auto interruption_phrases =
+        parseVoicePhrases(voice.value(QStringLiteral("interruption_phrases")));
+    auto clarification_phrases =
+        parseVoicePhrases(voice.value(QStringLiteral("clarification_phrases")));
+    if (!hasExactKeys(voice, {"register", "cadence", "question_framing", "address_convention",
+                              "verbosity", "sentence_complexity", "question_phrases",
+                              "interruption_phrases", "clarification_phrases"}) ||
+        !register_style || !cadence || !framing || !address || !question_phrases ||
+        !interruption_phrases || !clarification_phrases ||
+        !isUnitInterval(voice.value(QStringLiteral("verbosity"))) ||
         !isUnitInterval(voice.value(QStringLiteral("sentence_complexity")))) {
         return fail(ErrorCode::InvalidJudgeProfile,
                     QStringLiteral("Invalid voice fields in %1").arg(name));
@@ -409,14 +483,20 @@ struct KindDefinition final {
             interaction.value(QStringLiteral("follow_up_depth")).toDouble(),
             interaction.value(QStringLiteral("hypothetical_frequency")).toDouble(),
             interaction.value(QStringLiteral("concession_recall")).toDouble(),
+            interaction.value(QStringLiteral("record_pin_demand")).toDouble(),
             interaction.value(QStringLiteral("time_strictness")).toDouble(),
             std::move(focus),
         },
         model::VoiceStyle{
             *register_style,
             *cadence,
+            *framing,
+            *address,
             voice.value(QStringLiteral("verbosity")).toDouble(),
             voice.value(QStringLiteral("sentence_complexity")).toDouble(),
+            std::move(*question_phrases),
+            std::move(*interruption_phrases),
+            std::move(*clarification_phrases),
         },
     };
 }

@@ -10,8 +10,8 @@ not a claim about a real judge and not a merits model.
 
 Each profile declares:
 
-- `court_role`: district or appellate;
-- compatible court IDs or an explicit fictional wildcard;
+- `court_roles`: one or both of district and appellate;
+- one or more explicit compatible jurisdiction IDs;
 - profile schema version and source kind;
 - interaction controls and issue-focus weights.
 
@@ -22,15 +22,22 @@ and a profile restricted to another jurisdiction cannot silently enter a Fourth 
 
 All continuous controls are finite values in `[0, 1]`. Version 1 supports:
 
-- directness, formality, preamble length, and question length;
+- directness, formality, and question length;
 - interruption frequency and follow-up depth;
 - hypothetical frequency and concession recall;
 - record-pin demand and time strictness;
 - normalized weights for jurisdiction, preservation, standard of review, record, remedy,
   limiting principle, and merits issues declared by the case.
 
-Controls influence a deterministic planner through documented weights and a recorded seed.
-They never select facts outside the permitted case graph.
+Structured voice data supplies cadence, register, question framing, address convention,
+verbosity, sentence complexity, and one to eight distinct literal phrases for each of questions,
+interruptions, and clarifications. Braces and control characters are rejected rather than treated
+as an open-ended template language. Version 1 has no separate preamble-length control: bounded
+lead phrases and question framing are the operative preamble controls.
+
+Controls influence the deterministic planner and renderer. They never select facts outside the
+permitted case graph. A record-pin demand can be planned only when the selected issue has a
+permitted record-page anchor.
 
 ## Typed bench acts
 
@@ -44,7 +51,9 @@ concession confirmation, interruption, time notice, and yielding the floor.
 
 ## Invariants
 
-- The same pinned inputs, seed, and advocate acts produce the same typed bench-act sequence.
+- The same pinned definitions and advocate acts produce the same typed bench-act sequence.
 - Renderers may vary prose only within the selected act and permitted source anchors.
 - Profile-only changes do not alter legal state or authored disposition.
 - Engine and renderer code contain no branch keyed to a particular profile ID.
+- Profile IDs and display names are excluded from the behavior digest; every operative control,
+  enum, phrase inventory, seat, and compatibility boundary is covered.

@@ -5,6 +5,7 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QPlainTextEdit>
 #include <QScrollArea>
 #include <QSignalBlocker>
 #include <QStringList>
@@ -30,6 +31,25 @@ namespace {
 
 [[nodiscard]] QString utf8(std::string_view value) {
     return QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
+}
+
+[[nodiscard]] QString phraseText(const std::vector<std::string>& phrases) {
+    QStringList lines;
+    lines.reserve(static_cast<qsizetype>(phrases.size()));
+    for (const auto& phrase : phrases) {
+        lines.push_back(utf8(phrase));
+    }
+    return lines.join(u'\n');
+}
+
+[[nodiscard]] std::vector<std::string> phrasesFrom(const QPlainTextEdit& control) {
+    const auto lines = control.toPlainText().split(u'\n', Qt::KeepEmptyParts);
+    std::vector<std::string> result;
+    result.reserve(static_cast<std::size_t>(lines.size()));
+    for (const auto& line : lines) {
+        result.push_back(line.toUtf8().toStdString());
+    }
+    return result;
 }
 
 } // namespace
@@ -88,6 +108,9 @@ BenchProfileEditor::BenchProfileEditor(QWidget* parent) : QWidget(parent) {
     concession_recall_ = addUnitControl(*interaction_layout, QStringLiteral("Concession &recall"),
                                         QStringLiteral("concessionRecallControl"),
                                         QStringLiteral("Concession recall"));
+    record_pin_demand_ = addUnitControl(*interaction_layout, QStringLiteral("Record-&pin demand"),
+                                        QStringLiteral("recordPinDemandControl"),
+                                        QStringLiteral("Record pin demand"));
     time_strictness_ =
         addUnitControl(*interaction_layout, QStringLiteral("&Time strictness"),
                        QStringLiteral("timeStrictnessControl"), QStringLiteral("Time strictness"));
@@ -128,12 +151,50 @@ BenchProfileEditor::BenchProfileEditor(QWidget* parent) : QWidget(parent) {
     cadence_label->setBuddy(voice_cadence_);
     voice_layout->addRow(cadence_label, voice_cadence_);
 
+    question_framing_ = new QComboBox(voice_group);
+    question_framing_->setObjectName(QStringLiteral("questionFramingControl"));
+    question_framing_->setAccessibleName(QStringLiteral("Question framing"));
+    question_framing_->addItem(QStringLiteral("Direct"),
+                               static_cast<int>(model::QuestionFraming::Direct));
+    question_framing_->addItem(QStringLiteral("Socratic"),
+                               static_cast<int>(model::QuestionFraming::Socratic));
+    question_framing_->addItem(QStringLiteral("Narrative"),
+                               static_cast<int>(model::QuestionFraming::Narrative));
+    auto* framing_label = new QLabel(QStringLiteral("Question fra&ming"), voice_group);
+    framing_label->setObjectName(QStringLiteral("questionFramingLabel"));
+    framing_label->setAccessibleName(QStringLiteral("Question framing label"));
+    framing_label->setBuddy(question_framing_);
+    voice_layout->addRow(framing_label, question_framing_);
+
+    address_convention_ = new QComboBox(voice_group);
+    address_convention_->setObjectName(QStringLiteral("addressConventionControl"));
+    address_convention_->setAccessibleName(QStringLiteral("Address convention"));
+    address_convention_->addItem(QStringLiteral("Counsel"),
+                                 static_cast<int>(model::CounselAddress::Counsel));
+    address_convention_->addItem(QStringLiteral("Advocate"),
+                                 static_cast<int>(model::CounselAddress::Advocate));
+    auto* address_label = new QLabel(QStringLiteral("&Address convention"), voice_group);
+    address_label->setObjectName(QStringLiteral("addressConventionLabel"));
+    address_label->setAccessibleName(QStringLiteral("Address convention label"));
+    address_label->setBuddy(address_convention_);
+    voice_layout->addRow(address_label, address_convention_);
+
     verbosity_ =
         addUnitControl(*voice_layout, QStringLiteral("&Verbosity"),
                        QStringLiteral("verbosityControl"), QStringLiteral("Voice verbosity"));
     sentence_complexity_ = addUnitControl(*voice_layout, QStringLiteral("Sentence comple&xity"),
                                           QStringLiteral("sentenceComplexityControl"),
                                           QStringLiteral("Sentence complexity"));
+    question_phrases_ = addPhraseControl(*voice_layout, QStringLiteral("Question p&hrases"),
+                                         QStringLiteral("questionPhrasesControl"),
+                                         QStringLiteral("Question phrases, one per line"));
+    interruption_phrases_ = addPhraseControl(*voice_layout, QStringLiteral("Interruption phr&ases"),
+                                             QStringLiteral("interruptionPhrasesControl"),
+                                             QStringLiteral("Interruption phrases, one per line"));
+    clarification_phrases_ =
+        addPhraseControl(*voice_layout, QStringLiteral("Clarification phrase&s"),
+                         QStringLiteral("clarificationPhrasesControl"),
+                         QStringLiteral("Clarification phrases, one per line"));
     controls_layout->addWidget(voice_group);
 
     auto* focus_group = new QGroupBox(QStringLiteral("Issue-focus weights"), controls_widget);
@@ -154,12 +215,13 @@ BenchProfileEditor::BenchProfileEditor(QWidget* parent) : QWidget(parent) {
                                             Qt::TextSelectableByMouse);
     outer_layout->addWidget(preview_label_);
 
-    const std::array<QDoubleSpinBox*, 10> scalar_controls{
-        directness_,        formality_,
-        question_length_,   interruption_frequency_,
-        follow_up_depth_,   hypothetical_frequency_,
-        concession_recall_, time_strictness_,
-        verbosity_,         sentence_complexity_,
+    const std::array<QDoubleSpinBox*, 11> scalar_controls{
+        directness_,          formality_,
+        question_length_,     interruption_frequency_,
+        follow_up_depth_,     hypothetical_frequency_,
+        concession_recall_,   record_pin_demand_,
+        time_strictness_,     verbosity_,
+        sentence_complexity_,
     };
     for (auto* control : scalar_controls) {
         connect(control, &QDoubleSpinBox::valueChanged, this, [this](double) { refreshPreview(); });
@@ -168,7 +230,33 @@ BenchProfileEditor::BenchProfileEditor(QWidget* parent) : QWidget(parent) {
             [this](int) { refreshPreview(); });
     connect(voice_cadence_, &QComboBox::currentIndexChanged, this,
             [this](int) { refreshPreview(); });
+    connect(question_framing_, &QComboBox::currentIndexChanged, this,
+            [this](int) { refreshPreview(); });
+    connect(address_convention_, &QComboBox::currentIndexChanged, this,
+            [this](int) { refreshPreview(); });
+    for (auto* phrases : {question_phrases_, interruption_phrases_, clarification_phrases_}) {
+        connect(phrases, &QPlainTextEdit::textChanged, this, [this]() { refreshPreview(); });
+    }
     rebuildTabOrder();
+}
+
+QPlainTextEdit* BenchProfileEditor::addPhraseControl(QFormLayout& layout, const QString& label,
+                                                     const QString& object_name,
+                                                     const QString& accessible_name) {
+    auto* control = new QPlainTextEdit(this);
+    control->setObjectName(object_name);
+    control->setAccessibleName(accessible_name);
+    control->setAccessibleDescription(
+        QStringLiteral("Enter between one and eight distinct literal phrases, one per line."));
+    control->setTabChangesFocus(true);
+    control->setFocusPolicy(Qt::StrongFocus);
+    control->setMinimumHeight(72);
+    auto* field_label = new QLabel(label, this);
+    field_label->setObjectName(object_name + QStringLiteral("Label"));
+    field_label->setAccessibleName(accessible_name + QStringLiteral(" label"));
+    field_label->setBuddy(control);
+    layout.addRow(field_label, control);
+    return control;
 }
 
 QDoubleSpinBox* BenchProfileEditor::addUnitControl(QFormLayout& layout, const QString& label,
@@ -198,12 +286,15 @@ auto BenchProfileEditor::loadProfile(const model::JudgeProfile& profile)
 
     loaded_profile_ = profile;
     const std::array blockers{
-        QSignalBlocker(directness_),        QSignalBlocker(formality_),
-        QSignalBlocker(question_length_),   QSignalBlocker(interruption_frequency_),
-        QSignalBlocker(follow_up_depth_),   QSignalBlocker(hypothetical_frequency_),
-        QSignalBlocker(concession_recall_), QSignalBlocker(time_strictness_),
-        QSignalBlocker(voice_register_),    QSignalBlocker(voice_cadence_),
-        QSignalBlocker(verbosity_),         QSignalBlocker(sentence_complexity_),
+        QSignalBlocker(directness_),           QSignalBlocker(formality_),
+        QSignalBlocker(question_length_),      QSignalBlocker(interruption_frequency_),
+        QSignalBlocker(follow_up_depth_),      QSignalBlocker(hypothetical_frequency_),
+        QSignalBlocker(concession_recall_),    QSignalBlocker(record_pin_demand_),
+        QSignalBlocker(time_strictness_),      QSignalBlocker(voice_register_),
+        QSignalBlocker(voice_cadence_),        QSignalBlocker(question_framing_),
+        QSignalBlocker(address_convention_),   QSignalBlocker(verbosity_),
+        QSignalBlocker(sentence_complexity_),  QSignalBlocker(question_phrases_),
+        QSignalBlocker(interruption_phrases_), QSignalBlocker(clarification_phrases_),
     };
     static_cast<void>(blockers);
 
@@ -214,13 +305,21 @@ auto BenchProfileEditor::loadProfile(const model::JudgeProfile& profile)
     follow_up_depth_->setValue(profile.interaction.follow_up_depth);
     hypothetical_frequency_->setValue(profile.interaction.hypothetical_frequency);
     concession_recall_->setValue(profile.interaction.concession_recall);
+    record_pin_demand_->setValue(profile.interaction.record_pin_demand);
     time_strictness_->setValue(profile.interaction.time_strictness);
     voice_register_->setCurrentIndex(
         voice_register_->findData(static_cast<int>(profile.voice.register_style)));
     voice_cadence_->setCurrentIndex(
         voice_cadence_->findData(static_cast<int>(profile.voice.cadence)));
+    question_framing_->setCurrentIndex(
+        question_framing_->findData(static_cast<int>(profile.voice.question_framing)));
+    address_convention_->setCurrentIndex(
+        address_convention_->findData(static_cast<int>(profile.voice.address_convention)));
     verbosity_->setValue(profile.voice.verbosity);
     sentence_complexity_->setValue(profile.voice.sentence_complexity);
+    question_phrases_->setPlainText(phraseText(profile.voice.question_phrases));
+    interruption_phrases_->setPlainText(phraseText(profile.voice.interruption_phrases));
+    clarification_phrases_->setPlainText(phraseText(profile.voice.clarification_phrases));
     rebuildIssueFocusControls(profile.interaction.issue_focus);
     updateIdentityLabel();
     refreshPreview();
@@ -252,12 +351,20 @@ auto BenchProfileEditor::profile() const -> std::expected<model::JudgeProfile, B
     edited.interaction.follow_up_depth = follow_up_depth_->value();
     edited.interaction.hypothetical_frequency = hypothetical_frequency_->value();
     edited.interaction.concession_recall = concession_recall_->value();
+    edited.interaction.record_pin_demand = record_pin_demand_->value();
     edited.interaction.time_strictness = time_strictness_->value();
     edited.voice.register_style =
         static_cast<model::VoiceRegister>(voice_register_->currentData().toInt());
     edited.voice.cadence = static_cast<model::VoiceCadence>(voice_cadence_->currentData().toInt());
+    edited.voice.question_framing =
+        static_cast<model::QuestionFraming>(question_framing_->currentData().toInt());
+    edited.voice.address_convention =
+        static_cast<model::CounselAddress>(address_convention_->currentData().toInt());
     edited.voice.verbosity = verbosity_->value();
     edited.voice.sentence_complexity = sentence_complexity_->value();
+    edited.voice.question_phrases = phrasesFrom(*question_phrases_);
+    edited.voice.interruption_phrases = phrasesFrom(*interruption_phrases_);
+    edited.voice.clarification_phrases = phrasesFrom(*clarification_phrases_);
     edited.interaction.issue_focus.clear();
     edited.interaction.issue_focus.reserve(issue_focus_rows_.size());
     for (const auto& row : issue_focus_rows_) {
@@ -311,6 +418,8 @@ QDoubleSpinBox* BenchProfileEditor::interactionControl(InteractionControl contro
         return hypothetical_frequency_;
     case InteractionControl::ConcessionRecall:
         return concession_recall_;
+    case InteractionControl::RecordPinDemand:
+        return record_pin_demand_;
     case InteractionControl::TimeStrictness:
         return time_strictness_;
     }
@@ -321,10 +430,28 @@ QComboBox* BenchProfileEditor::voiceRegisterControl() const noexcept { return vo
 
 QComboBox* BenchProfileEditor::voiceCadenceControl() const noexcept { return voice_cadence_; }
 
+QComboBox* BenchProfileEditor::questionFramingControl() const noexcept { return question_framing_; }
+
+QComboBox* BenchProfileEditor::addressConventionControl() const noexcept {
+    return address_convention_;
+}
+
 QDoubleSpinBox* BenchProfileEditor::verbosityControl() const noexcept { return verbosity_; }
 
 QDoubleSpinBox* BenchProfileEditor::sentenceComplexityControl() const noexcept {
     return sentence_complexity_;
+}
+
+QPlainTextEdit* BenchProfileEditor::questionPhrasesControl() const noexcept {
+    return question_phrases_;
+}
+
+QPlainTextEdit* BenchProfileEditor::interruptionPhrasesControl() const noexcept {
+    return interruption_phrases_;
+}
+
+QPlainTextEdit* BenchProfileEditor::clarificationPhrasesControl() const noexcept {
+    return clarification_phrases_;
 }
 
 QDoubleSpinBox* BenchProfileEditor::issueFocusControl(std::string_view topic_id) const noexcept {
@@ -369,16 +496,26 @@ void BenchProfileEditor::refreshPreview() {
         return;
     }
 
-    const auto direct_opening = directness_->value() >= 0.5
-                                    ? QStringLiteral("Identify the record support")
-                                    : QStringLiteral("Would you explain the record support");
-    const auto formality_phrase =
-        formality_->value() >= 0.5 ? QStringLiteral("Counsel, %1") : QStringLiteral("Please %1");
-    QString sample = formality_phrase.arg(direct_opening.toLower());
+    const auto lead = question_phrases_->toPlainText().section(u'\n', 0, 0);
+    QString sample = address_convention_->currentText() + QStringLiteral(", ") + lead;
+    switch (static_cast<model::QuestionFraming>(question_framing_->currentData().toInt())) {
+    case model::QuestionFraming::Direct:
+        sample += QStringLiteral(": Identify the record support");
+        break;
+    case model::QuestionFraming::Socratic:
+        sample += QStringLiteral("; help the court understand: where is the record support");
+        break;
+    case model::QuestionFraming::Narrative:
+        sample += QStringLiteral("; walk us through: where the record supplies support");
+        break;
+    }
     if (question_length_->value() >= 0.5) {
         sample += QStringLiteral(" and connect it to the governing standard of review");
     }
-    sample += u'?';
+    sample +=
+        voice_cadence_->currentData().toInt() == static_cast<int>(model::VoiceCadence::Clipped)
+            ? QStringLiteral(".")
+            : QStringLiteral("; answer directly.");
 
     QStringList focus;
     focus.reserve(static_cast<qsizetype>(issue_focus_rows_.size()));
@@ -386,13 +523,17 @@ void BenchProfileEditor::refreshPreview() {
         focus.push_back(
             QStringLiteral("%1=%2").arg(utf8(row.topic_id)).arg(row.control->value(), 0, 'f', 3));
     }
-    preview_label_->setText(
+    auto preview =
         QStringLiteral("Fictional/composite structured preview — register=%1; cadence=%2; "
-                       "directness=%3; formality=%4; question-length=%5; interruptions=%6; "
-                       "follow-up=%7; hypotheticals=%8; concession-recall=%9; "
-                       "time-strictness=%10; verbosity=%11; sentence-complexity=%12; "
-                       "issue-focus=[%13]. Sample: %14")
-            .arg(voice_register_->currentText().toLower(), voice_cadence_->currentText().toLower())
+                       "framing=%3; address=%4; directness=%5; formality=%6; "
+                       "question-length=%7; interruptions=%8; follow-up=%9; "
+                       "hypotheticals=%10; concession-recall=%11; record-pin=%12; "
+                       "time-strictness=%13; verbosity=%14; sentence-complexity=%15; "
+                       "phrase-counts=%16/%17/%18; issue-focus=[%19]. Sample: %20")
+            .arg(voice_register_->currentText().toLower())
+            .arg(voice_cadence_->currentText().toLower())
+            .arg(question_framing_->currentText().toLower())
+            .arg(address_convention_->currentText().toLower())
             .arg(directness_->value(), 0, 'f', 3)
             .arg(formality_->value(), 0, 'f', 3)
             .arg(question_length_->value(), 0, 'f', 3)
@@ -400,10 +541,16 @@ void BenchProfileEditor::refreshPreview() {
             .arg(follow_up_depth_->value(), 0, 'f', 3)
             .arg(hypothetical_frequency_->value(), 0, 'f', 3)
             .arg(concession_recall_->value(), 0, 'f', 3)
+            .arg(record_pin_demand_->value(), 0, 'f', 3)
             .arg(time_strictness_->value(), 0, 'f', 3)
             .arg(verbosity_->value(), 0, 'f', 3)
             .arg(sentence_complexity_->value(), 0, 'f', 3)
-            .arg(focus.join(QStringLiteral(", ")), sample));
+            .arg(question_phrases_->toPlainText().split(u'\n').size())
+            .arg(interruption_phrases_->toPlainText().split(u'\n').size())
+            .arg(clarification_phrases_->toPlainText().split(u'\n').size())
+            .arg(focus.join(QStringLiteral(", ")))
+            .arg(sample);
+    preview_label_->setText(std::move(preview));
 }
 
 void BenchProfileEditor::updateIdentityLabel() {
@@ -418,12 +565,15 @@ void BenchProfileEditor::updateIdentityLabel() {
 
 void BenchProfileEditor::rebuildTabOrder() {
     std::vector<QWidget*> controls{
-        directness_,        formality_,
-        question_length_,   interruption_frequency_,
-        follow_up_depth_,   hypothetical_frequency_,
-        concession_recall_, time_strictness_,
-        voice_register_,    voice_cadence_,
-        verbosity_,         sentence_complexity_,
+        directness_,           formality_,
+        question_length_,      interruption_frequency_,
+        follow_up_depth_,      hypothetical_frequency_,
+        concession_recall_,    record_pin_demand_,
+        time_strictness_,      voice_register_,
+        voice_cadence_,        question_framing_,
+        address_convention_,   verbosity_,
+        sentence_complexity_,  question_phrases_,
+        interruption_phrases_, clarification_phrases_,
     };
     controls.reserve(controls.size() + issue_focus_rows_.size());
     for (const auto& row : issue_focus_rows_) {

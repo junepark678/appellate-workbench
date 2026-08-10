@@ -26,6 +26,17 @@ enum class VoiceCadence {
     Expansive,
 };
 
+enum class QuestionFraming {
+    Direct,
+    Socratic,
+    Narrative,
+};
+
+enum class CounselAddress {
+    Counsel,
+    Advocate,
+};
+
 struct ProfileCompatibility final {
     std::vector<CourtRole> court_roles;
     std::vector<std::string> jurisdiction_ids;
@@ -48,6 +59,7 @@ struct InteractionStyle final {
     double follow_up_depth{};
     double hypothetical_frequency{};
     double concession_recall{};
+    double record_pin_demand{};
     double time_strictness{};
     std::vector<IssueFocus> issue_focus;
 
@@ -57,8 +69,13 @@ struct InteractionStyle final {
 struct VoiceStyle final {
     VoiceRegister register_style{VoiceRegister::Formal};
     VoiceCadence cadence{VoiceCadence::Measured};
+    QuestionFraming question_framing{QuestionFraming::Direct};
+    CounselAddress address_convention{CounselAddress::Counsel};
     double verbosity{};
     double sentence_complexity{};
+    std::vector<std::string> question_phrases;
+    std::vector<std::string> interruption_phrases;
+    std::vector<std::string> clarification_phrases;
 
     friend bool operator==(const VoiceStyle&, const VoiceStyle&) = default;
 };

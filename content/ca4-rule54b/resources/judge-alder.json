@@ -13,11 +13,22 @@
     "follow_up_depth": 0.86,
     "hypothetical_frequency": 0.34,
     "concession_recall": 0.91,
+    "record_pin_demand": 0.92,
     "time_strictness": 0.78,
     "issue_focus": [
       {"topic_id": "ca4r54b.issue.rule54b-finality", "weight": 0.95},
       {"topic_id": "ca4r54b.issue.notice-timeliness", "weight": 0.25}
     ]
   },
-  "voice": {"register": "formal", "cadence": "clipped", "verbosity": 0.3, "sentence_complexity": 0.52}
+  "voice": {
+    "register": "formal",
+    "cadence": "clipped",
+    "question_framing": "direct",
+    "address_convention": "counsel",
+    "verbosity": 0.3,
+    "sentence_complexity": 0.52,
+    "question_phrases": ["answer the jurisdictional point", "state the limiting rule"],
+    "interruption_phrases": ["stop there", "before you leave that premise"],
+    "clarification_phrases": ["be exact", "clarify the procedural posture"]
+  }
 }

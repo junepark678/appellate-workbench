@@ -2,7 +2,7 @@
   "schema_version": 1,
   "resource_kind": "judge_profile",
   "resource_id": "example.judge.fictional",
-  "display_name": "Judge Rowan",
+  "display_name": "Composite Jurist Rowan",
   "profile_class": "fictional_composite",
   "compatibility": {
     "court_roles": ["appellate"],
@@ -16,6 +16,7 @@
     "follow_up_depth": 0.8,
     "hypothetical_frequency": 0.55,
     "concession_recall": 0.9,
+    "record_pin_demand": 0.88,
     "time_strictness": 0.65,
     "issue_focus": [
       {
@@ -27,7 +28,12 @@
   "voice": {
     "register": "formal",
     "cadence": "measured",
+    "question_framing": "direct",
+    "address_convention": "counsel",
     "verbosity": 0.5,
-    "sentence_complexity": 0.6
+    "sentence_complexity": 0.6,
+    "question_phrases": ["address the threshold question", "identify the governing rule"],
+    "interruption_phrases": ["pause at that premise", "before you move on"],
+    "clarification_phrases": ["clarify your position", "state the distinction precisely"]
   }
 }

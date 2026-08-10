@@ -49,6 +49,51 @@ constexpr std::chrono::seconds maximum_argument_time{24 * 60 * 60};
     return std::isfinite(value) && value >= 0.0 && value <= 1.0;
 }
 
+[[nodiscard]] bool validUtf8(std::string_view value) {
+    std::size_t index = 0;
+    while (index < value.size()) {
+        const auto lead = static_cast<std::uint8_t>(value[index]);
+        if (lead <= 0x7fU) {
+            ++index;
+            continue;
+        }
+        std::size_t continuation_count = 0;
+        std::uint32_t code_point = 0;
+        std::uint32_t minimum = 0;
+        if ((lead & 0xe0U) == 0xc0U) {
+            continuation_count = 1;
+            code_point = lead & 0x1fU;
+            minimum = 0x80U;
+        } else if ((lead & 0xf0U) == 0xe0U) {
+            continuation_count = 2;
+            code_point = lead & 0x0fU;
+            minimum = 0x800U;
+        } else if ((lead & 0xf8U) == 0xf0U) {
+            continuation_count = 3;
+            code_point = lead & 0x07U;
+            minimum = 0x10000U;
+        } else {
+            return false;
+        }
+        if (value.size() - index - 1 < continuation_count) {
+            return false;
+        }
+        for (std::size_t offset = 1; offset <= continuation_count; ++offset) {
+            const auto continuation = static_cast<std::uint8_t>(value[index + offset]);
+            if ((continuation & 0xc0U) != 0x80U) {
+                return false;
+            }
+            code_point = (code_point << 6U) | (continuation & 0x3fU);
+        }
+        if (code_point < minimum || code_point > 0x10ffffU ||
+            (code_point >= 0xd800U && code_point <= 0xdfffU)) {
+            return false;
+        }
+        index += continuation_count + 1;
+    }
+    return true;
+}
+
 [[nodiscard]] bool validEnum(model::CourtRole value) {
     switch (value) {
     case model::CourtRole::District:
@@ -181,8 +226,16 @@ template <typename Range, typename Projection>
 
 [[nodiscard]] bool validPhrases(const std::vector<std::string>& phrases) {
     return !phrases.empty() && phrases.size() <= maximum_phrases &&
-           std::ranges::all_of(phrases,
-                               [](const std::string& phrase) { return boundedText(phrase, 128); });
+           hasUniqueValues(
+               phrases, [](const std::string& phrase) -> const std::string& { return phrase; }) &&
+           std::ranges::all_of(phrases, [](const std::string& phrase) {
+               return boundedText(phrase, 128) && validUtf8(phrase) && phrase.front() != ' ' &&
+                      phrase.back() != ' ' &&
+                      std::ranges::none_of(phrase, [](unsigned char character) {
+                          return character < 0x20U || character == 0x7fU || character == '{' ||
+                                 character == '}';
+                      });
+           });
 }
 
 [[nodiscard]] bool compatible(const model::JudgeProfile& profile,
@@ -197,11 +250,12 @@ template <typename Range, typename Projection>
     const auto& compatibility = profile.compatibility;
     const auto& style = profile.interaction;
     const auto& voice = profile.voice;
-    return boundedText(profile.id) && boundedText(profile.display_name) &&
-           validEnum(profile.profile_class) &&
+    return boundedText(profile.id) && validUtf8(profile.id) && boundedText(profile.display_name) &&
+           validUtf8(profile.display_name) && validEnum(profile.profile_class) &&
            profile.profile_class == model::ProfileClass::FictionalComposite &&
            !compatibility.court_roles.empty() &&
            compatibility.court_roles.size() <= maximum_compatibility_roles &&
+           hasUniqueValues(compatibility.court_roles, [](model::CourtRole role) { return role; }) &&
            std::ranges::all_of(compatibility.court_roles,
                                [](model::CourtRole role) { return validEnum(role); }) &&
            !compatibility.jurisdiction_ids.empty() &&
@@ -213,7 +267,8 @@ template <typename Range, typename Projection>
            unitInterval(style.directness) && unitInterval(style.formality) &&
            unitInterval(style.question_length) && unitInterval(style.interruption_frequency) &&
            unitInterval(style.follow_up_depth) && unitInterval(style.hypothetical_frequency) &&
-           unitInterval(style.concession_recall) && unitInterval(style.time_strictness) &&
+           unitInterval(style.concession_recall) && unitInterval(style.record_pin_demand) &&
+           unitInterval(style.time_strictness) && !style.issue_focus.empty() &&
            style.issue_focus.size() <= maximum_issue_focus_entries &&
            hasUniqueValues(style.issue_focus, &model::IssueFocus::topic_id) &&
            std::ranges::all_of(style.issue_focus,
@@ -221,7 +276,10 @@ template <typename Range, typename Projection>
                                    return boundedText(focus.topic_id) && unitInterval(focus.weight);
                                }) &&
            validEnum(voice.register_style) && validEnum(voice.cadence) &&
-           unitInterval(voice.verbosity) && unitInterval(voice.sentence_complexity);
+           validEnum(voice.question_framing) && validEnum(voice.address_convention) &&
+           unitInterval(voice.verbosity) && unitInterval(voice.sentence_complexity) &&
+           validPhrases(voice.question_phrases) && validPhrases(voice.interruption_phrases) &&
+           validPhrases(voice.clarification_phrases);
 }
 
 [[nodiscard]] auto validateBench(const model::BenchConfiguration& bench)
@@ -237,10 +295,7 @@ template <typename Range, typename Projection>
     for (const auto& seat : bench.seats) {
         has_presiding_seat = has_presiding_seat || seat.id == bench.presiding_seat_id;
         if (!boundedText(seat.id) || !validStyle(seat.profile) ||
-            !compatible(seat.profile, bench) || !validEnum(seat.voice.framing) ||
-            !validEnum(seat.voice.address) || !validPhrases(seat.voice.question_phrases) ||
-            !validPhrases(seat.voice.interruption_phrases) ||
-            !validPhrases(seat.voice.clarification_phrases)) {
+            !compatible(seat.profile, bench)) {
             return fail(ErrorCode::InvalidDefinition,
                         "bench seat is incompatible or has an invalid structured style");
         }
@@ -448,7 +503,7 @@ void addStrings(Sha256& digest, const std::vector<std::string>& values) {
 
 [[nodiscard]] std::string digestBehaviorUnchecked(const model::BenchConfiguration& bench) {
     Sha256 digest;
-    digest.addText("appellate.behavior-definition.v1");
+    digest.addText("appellate.behavior-definition.v2");
     digest.addText(bench.jurisdiction_id);
     addEnum(digest, bench.court_role);
     digest.addUint64(static_cast<std::uint64_t>(bench.seats.size()));
@@ -470,6 +525,7 @@ void addStrings(Sha256& digest, const std::vector<std::string>& values) {
         digest.addDouble(interaction.follow_up_depth);
         digest.addDouble(interaction.hypothetical_frequency);
         digest.addDouble(interaction.concession_recall);
+        digest.addDouble(interaction.record_pin_demand);
         digest.addDouble(interaction.time_strictness);
         digest.addUint64(static_cast<std::uint64_t>(interaction.issue_focus.size()));
         for (const auto& focus : interaction.issue_focus) {
@@ -479,13 +535,13 @@ void addStrings(Sha256& digest, const std::vector<std::string>& values) {
 
         addEnum(digest, profile.voice.register_style);
         addEnum(digest, profile.voice.cadence);
+        addEnum(digest, profile.voice.question_framing);
+        addEnum(digest, profile.voice.address_convention);
         digest.addDouble(profile.voice.verbosity);
         digest.addDouble(profile.voice.sentence_complexity);
-        addEnum(digest, seat.voice.framing);
-        addEnum(digest, seat.voice.address);
-        addStrings(digest, seat.voice.question_phrases);
-        addStrings(digest, seat.voice.interruption_phrases);
-        addStrings(digest, seat.voice.clarification_phrases);
+        addStrings(digest, profile.voice.question_phrases);
+        addStrings(digest, profile.voice.interruption_phrases);
+        addStrings(digest, profile.voice.clarification_phrases);
     }
     digest.addText(bench.presiding_seat_id);
     return digest.finish();
@@ -910,7 +966,7 @@ struct SeatTurn final {
                     10.0));
     const auto structure = static_cast<std::uint64_t>(voice.register_style) * 3U +
                            static_cast<std::uint64_t>(voice.cadence) * 5U +
-                           static_cast<std::uint64_t>(seat.voice.framing) * 7U +
+                           static_cast<std::uint64_t>(voice.question_framing) * 7U +
                            static_cast<std::uint64_t>(kind) * 11U;
     return static_cast<std::size_t>((sequence + scaled + structure) % bound);
 }
@@ -922,7 +978,8 @@ selectGrounding(const model::ArgumentIssue& issue, const model::BenchSeat& seat,
         return {};
     }
     const auto requested =
-        1 + static_cast<std::size_t>(std::floor(seat.profile.voice.verbosity * 3.0));
+        1 + static_cast<std::size_t>(std::floor(
+                (seat.profile.voice.verbosity + seat.profile.interaction.question_length) * 1.5));
     const auto wanted = std::min(requested, issue.grounding.size());
     std::vector<model::ArgumentGroundingRef> selected;
     selected.reserve(wanted);
@@ -949,14 +1006,14 @@ selectGrounding(const model::ArgumentIssue& issue, const model::BenchSeat& seat,
                                                          model::BenchActKind kind) {
     switch (kind) {
     case model::BenchActKind::Interruption:
-        return &seat.voice.interruption_phrases;
+        return &seat.profile.voice.interruption_phrases;
     case model::BenchActKind::ClarificationRequest:
-        return &seat.voice.clarification_phrases;
+        return &seat.profile.voice.clarification_phrases;
     case model::BenchActKind::Question:
     case model::BenchActKind::FollowUp:
     case model::BenchActKind::Hypothetical:
     case model::BenchActKind::RecordPinDemand:
-        return &seat.voice.question_phrases;
+        return &seat.profile.voice.question_phrases;
     case model::BenchActKind::TimeExpired:
         return nullptr;
     }
@@ -1012,7 +1069,7 @@ groundingSummary(const std::vector<model::ArgumentGroundingRef>& grounding, bool
                                   const model::GroundedQuestion& question, std::uint64_t sequence)
     -> std::expected<std::string, Error> {
     const auto* phrases = phrasesFor(seat, kind);
-    const auto address = counselAddress(seat.voice.address);
+    const auto address = counselAddress(seat.profile.voice.address_convention);
     if (phrases == nullptr || !address.has_value()) {
         return fail(ErrorCode::InvalidDefinition, "question renderer style is invalid");
     }
@@ -1021,7 +1078,7 @@ groundingSummary(const std::vector<model::ArgumentGroundingRef>& grounding, bool
         return fail(ErrorCode::InvalidDefinition, "question renderer inventory is empty");
     }
     std::string rendered = std::string(*address) + ", " + (*phrases)[*phrase_index];
-    switch (seat.voice.framing) {
+    switch (seat.profile.voice.question_framing) {
     case model::QuestionFraming::Direct:
         rendered += ": " + question.prompt;
         break;
@@ -1084,13 +1141,15 @@ groundingSummary(const std::vector<model::ArgumentGroundingRef>& grounding, bool
 
 [[nodiscard]] auto renderExpiration(const model::BenchSeat& seat, model::OralArgumentPhase phase,
                                     bool rebuttal_remains) -> std::expected<std::string, Error> {
-    const auto address = counselAddress(seat.voice.address);
+    const auto address = counselAddress(seat.profile.voice.address_convention);
     if (!address.has_value()) {
         return fail(ErrorCode::InvalidDefinition, "expiration renderer style is invalid");
     }
     std::string rendered = std::string(*address) + ", your ";
     rendered += phase == model::OralArgumentPhase::Principal ? "principal" : "rebuttal";
-    rendered += " time has expired";
+    rendered += seat.profile.interaction.time_strictness >= 0.5
+                    ? " time has expired"
+                    : " allotted time has now concluded";
     rendered += rebuttal_remains ? "; rebuttal time remains." : ".";
     return rendered;
 }
@@ -1171,6 +1230,7 @@ groundingSummary(const std::vector<model::ArgumentGroundingRef>& grounding, bool
     if (answer.classification_confidence < configuration.classification_confidence_threshold) {
         kind = model::BenchActKind::ClarificationRequest;
     } else if (answer.kind == model::CounselActKind::RecordClaim && hasRecordPage(*issue) &&
+               turn->seat->profile.interaction.record_pin_demand >= 0.5 &&
                std::ranges::none_of(answer.cited_grounding_ids, [&](const std::string& id) {
                    const auto found =
                        std::ranges::find(issue->grounding, id, &model::ArgumentGroundingRef::id);

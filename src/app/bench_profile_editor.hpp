@@ -13,6 +13,7 @@ class QComboBox;
 class QDoubleSpinBox;
 class QFormLayout;
 class QLabel;
+class QPlainTextEdit;
 
 namespace appellate::ui {
 
@@ -24,6 +25,7 @@ enum class InteractionControl {
     FollowUpDepth,
     HypotheticalFrequency,
     ConcessionRecall,
+    RecordPinDemand,
     TimeStrictness,
 };
 
@@ -47,8 +49,13 @@ class BenchProfileEditor final : public QWidget {
     [[nodiscard]] QDoubleSpinBox* interactionControl(InteractionControl control) const noexcept;
     [[nodiscard]] QComboBox* voiceRegisterControl() const noexcept;
     [[nodiscard]] QComboBox* voiceCadenceControl() const noexcept;
+    [[nodiscard]] QComboBox* questionFramingControl() const noexcept;
+    [[nodiscard]] QComboBox* addressConventionControl() const noexcept;
     [[nodiscard]] QDoubleSpinBox* verbosityControl() const noexcept;
     [[nodiscard]] QDoubleSpinBox* sentenceComplexityControl() const noexcept;
+    [[nodiscard]] QPlainTextEdit* questionPhrasesControl() const noexcept;
+    [[nodiscard]] QPlainTextEdit* interruptionPhrasesControl() const noexcept;
+    [[nodiscard]] QPlainTextEdit* clarificationPhrasesControl() const noexcept;
     [[nodiscard]] QDoubleSpinBox* issueFocusControl(std::string_view topic_id) const noexcept;
 
   private:
@@ -60,6 +67,9 @@ class BenchProfileEditor final : public QWidget {
     [[nodiscard]] QDoubleSpinBox* addUnitControl(QFormLayout& layout, const QString& label,
                                                  const QString& object_name,
                                                  const QString& accessible_name);
+    [[nodiscard]] QPlainTextEdit* addPhraseControl(QFormLayout& layout, const QString& label,
+                                                   const QString& object_name,
+                                                   const QString& accessible_name);
     void rebuildIssueFocusControls(const std::vector<model::IssueFocus>& focus);
     void refreshPreview();
     void updateIdentityLabel();
@@ -77,11 +87,17 @@ class BenchProfileEditor final : public QWidget {
     QDoubleSpinBox* follow_up_depth_{};
     QDoubleSpinBox* hypothetical_frequency_{};
     QDoubleSpinBox* concession_recall_{};
+    QDoubleSpinBox* record_pin_demand_{};
     QDoubleSpinBox* time_strictness_{};
     QComboBox* voice_register_{};
     QComboBox* voice_cadence_{};
+    QComboBox* question_framing_{};
+    QComboBox* address_convention_{};
     QDoubleSpinBox* verbosity_{};
     QDoubleSpinBox* sentence_complexity_{};
+    QPlainTextEdit* question_phrases_{};
+    QPlainTextEdit* interruption_phrases_{};
+    QPlainTextEdit* clarification_phrases_{};
     std::vector<IssueFocusRow> issue_focus_rows_;
 };
 

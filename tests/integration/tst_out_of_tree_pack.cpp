@@ -131,7 +131,19 @@ void OutOfTreePackTest::drivesBuiltInWorkflowFromInstalledArchive() {
     QCOMPARE(argument.bench.id.value, std::string("example.bench.fictional"));
     QCOMPARE(argument.bench.seats.size(), std::size_t{1});
     QCOMPARE(argument.bench.seats.front().profile_id.value, std::string("example.judge.fictional"));
-    QCOMPARE(argument.bench.seats.front().profile.display_name, std::string("Judge Rowan"));
+    const auto& runtime_profile = argument.bench.seats.front().profile;
+    QCOMPARE(runtime_profile.display_name, std::string("Composite Jurist Rowan"));
+    QCOMPARE(runtime_profile.interaction.record_pin_demand, 0.88);
+    QCOMPARE(runtime_profile.voice.question_framing, model::QuestionFraming::Direct);
+    QCOMPARE(runtime_profile.voice.address_convention, model::CounselAddress::Counsel);
+    QCOMPARE(runtime_profile.voice.question_phrases,
+             std::vector<std::string>(
+                 {"address the threshold question", "identify the governing rule"}));
+    QCOMPARE(runtime_profile.voice.interruption_phrases,
+             std::vector<std::string>({"pause at that premise", "before you move on"}));
+    QCOMPARE(
+        runtime_profile.voice.clarification_phrases,
+        std::vector<std::string>({"clarify your position", "state the distinction precisely"}));
 
     const auto initial = initialState(runtime_case);
     const auto command = noticeCommand();

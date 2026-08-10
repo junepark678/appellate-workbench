@@ -72,7 +72,7 @@
       "kind": "judge_profile",
       "schema_version": 1,
       "path": "resources/judge-profile.json",
-      "sha256": "9a0afb89154abc5a265f029f6768acd4677a751d3cfe75878f8d568ccda6dec2"
+      "sha256": "fd327954c748e02524723dd219a83c3e5e06dd58562402eed4517063f0d4cbd5"
     },
     {
       "id": "example.procedure.fictional",

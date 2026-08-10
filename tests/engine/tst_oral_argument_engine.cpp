@@ -21,9 +21,11 @@ class OralArgumentEngineTest final : public QObject {
     void modelsInterruptionsHypotheticalsRecordPinsAndConcessions();
     void expiresPrincipalAndRebuttalClocksAndReplays();
     void structuredStylesDifferWithoutChangingLegalPins();
+    void behaviorDigestCoversOperativeProfileDataButNotIdentity();
     void rejectsMutatedDefinitionsAtEveryBoundary();
     void rejectsForgedReplaySeedsAndDefinitionSwaps();
     void enforcesBoundsEnumsAndPositiveElapsed();
+    void recordPinDemandControlChangesPlanning();
     void recordClaimsWithoutRecordPagesDoNotDemandPins();
     void boundsSingleSeatFollowUpChains();
 };
@@ -45,14 +47,20 @@ using namespace std::chrono_literals;
             0.9,
             0.1,
             0.9,
+            0.95,
             0.9,
             {model::IssueFocus{"issue.redressability", 1.0}},
         },
         model::VoiceStyle{
             model::VoiceRegister::Technical,
             model::VoiceCadence::Clipped,
+            model::QuestionFraming::Direct,
+            model::CounselAddress::Counsel,
             0.25,
             0.3,
+            {"state the limiting rule", "answer the point"},
+            {"stop there", "before you continue"},
+            {"be precise", "clarify that answer"},
         },
     };
 }
@@ -71,35 +79,21 @@ using namespace std::chrono_literals;
             0.0,
             0.9,
             0.2,
+            0.2,
             0.4,
             {model::IssueFocus{"issue.record", 1.0}},
         },
         model::VoiceStyle{
             model::VoiceRegister::Formal,
             model::VoiceCadence::Expansive,
+            model::QuestionFraming::Narrative,
+            model::CounselAddress::Advocate,
             0.9,
             0.9,
+            {"develop the governing principle", "place the issue in context"},
+            {"let us pause at that premise"},
+            {"help us understand your position", "draw the distinction carefully"},
         },
-    };
-}
-
-[[nodiscard]] model::BenchVoiceConfiguration clippedVoice() {
-    return model::BenchVoiceConfiguration{
-        model::QuestionFraming::Direct,
-        model::CounselAddress::Counsel,
-        {"state the limiting rule", "answer the point"},
-        {"stop there", "before you continue"},
-        {"be precise", "clarify that answer"},
-    };
-}
-
-[[nodiscard]] model::BenchVoiceConfiguration expansiveVoice() {
-    return model::BenchVoiceConfiguration{
-        model::QuestionFraming::Narrative,
-        model::CounselAddress::Advocate,
-        {"develop the governing principle", "place the issue in context"},
-        {"let us pause at that premise"},
-        {"help us understand your position", "draw the distinction carefully"},
     };
 }
 
@@ -107,12 +101,10 @@ using namespace std::chrono_literals;
     model::BenchSeat presiding{
         "seat.presiding",
         clipped_presides ? clippedProfile() : expansiveProfile(),
-        clipped_presides ? clippedVoice() : expansiveVoice(),
     };
     model::BenchSeat second{
         "seat.second",
         clipped_presides ? expansiveProfile() : clippedProfile(),
-        clipped_presides ? expansiveVoice() : clippedVoice(),
     };
     return model::BenchConfiguration{
         "us.ca4",
@@ -122,12 +114,11 @@ using namespace std::chrono_literals;
     };
 }
 
-[[nodiscard]] model::BenchConfiguration singleSeatBench(model::JudgeProfile profile,
-                                                        model::BenchVoiceConfiguration voice) {
+[[nodiscard]] model::BenchConfiguration singleSeatBench(model::JudgeProfile profile) {
     return model::BenchConfiguration{
         "us.ca4",
         model::CourtRole::Appellate,
-        {model::BenchSeat{"seat.presiding", std::move(profile), std::move(voice)}},
+        {model::BenchSeat{"seat.presiding", std::move(profile)}},
         "seat.presiding",
     };
 }
@@ -213,7 +204,7 @@ configuration(const model::BenchConfiguration& bench, const model::ArgumentGroun
 void OralArgumentEngineTest::validatesOneToManyCompatibleBenches() {
     const auto available = grounding();
 
-    const auto one = singleSeatBench(clippedProfile(), clippedVoice());
+    const auto one = singleSeatBench(clippedProfile());
     const auto one_config = configuration(one, available);
     QVERIFY(engine::initializeOralArgument(one_config, one, available).has_value());
     const auto one_behavior_digest = engine::behaviorDefinitionDigest(one);
@@ -221,15 +212,37 @@ void OralArgumentEngineTest::validatesOneToManyCompatibleBenches() {
     QVERIFY(one_behavior_digest.has_value());
     QVERIFY(available_grounding_digest.has_value());
     QCOMPARE(*one_behavior_digest,
-             std::string("25b9f6e96bb764a3c70240c43b23e900478e3b2736104ef880550333275ffb6d"));
+             std::string("184c5564c5a7e363105d771c58fc36afe8d3feec73b409401254637f544710f6"));
     QCOMPARE(*available_grounding_digest,
              std::string("b1b695e2cd34b689e1b3f39e1530d65e1d598de848c8a9e610405eadfba93ad8"));
 
+    auto district_profile = clippedProfile("fictional.district");
+    district_profile.display_name = "District Composite";
+    district_profile.compatibility.court_roles = {model::CourtRole::District};
+    district_profile.compatibility.jurisdiction_ids = {"us.vaed"};
+    const model::BenchConfiguration district{
+        "us.vaed",
+        model::CourtRole::District,
+        {model::BenchSeat{"seat.district", std::move(district_profile)}},
+        "seat.district",
+    };
+    const auto district_config = configuration(district, available);
+    QVERIFY(engine::initializeOralArgument(district_config, district, available).has_value());
+
     auto three = twoSeatBench();
-    three.seats.push_back(
-        model::BenchSeat{"seat.third", expansiveProfile("fictional.third"), expansiveVoice()});
+    three.seats.push_back(model::BenchSeat{"seat.third", expansiveProfile("fictional.third")});
     const auto three_config = configuration(three, available);
     QVERIFY(engine::initializeOralArgument(three_config, three, available).has_value());
+
+    auto future_en_banc = one;
+    for (int index = 1; index < 9; ++index) {
+        future_en_banc.seats.push_back(model::BenchSeat{
+            "seat.en-banc-" + std::to_string(index),
+            clippedProfile("fictional.en-banc-" + std::to_string(index)),
+        });
+    }
+    const auto en_banc_config = configuration(future_en_banc, available);
+    QVERIFY(engine::initializeOralArgument(en_banc_config, future_en_banc, available).has_value());
 
     auto empty = one;
     empty.seats.clear();
@@ -249,7 +262,7 @@ void OralArgumentEngineTest::validatesOneToManyCompatibleBenches() {
 }
 
 void OralArgumentEngineTest::lowConfidenceAnswerProducesGroundedClarificationAndExactReplay() {
-    const auto bench = singleSeatBench(clippedProfile(), clippedVoice());
+    const auto bench = singleSeatBench(clippedProfile());
     const auto available = grounding();
     const auto config = configuration(bench, available);
     const auto initial = engine::initializeOralArgument(config, bench, available);
@@ -281,7 +294,7 @@ void OralArgumentEngineTest::lowConfidenceAnswerProducesGroundedClarificationAnd
 void OralArgumentEngineTest::modelsInterruptionsHypotheticalsRecordPinsAndConcessions() {
     const auto available = grounding();
 
-    const auto clipped = singleSeatBench(clippedProfile(), clippedVoice());
+    const auto clipped = singleSeatBench(clippedProfile());
     const auto clipped_config = configuration(clipped, available);
     const auto clipped_started = startedState(clipped_config, clipped, available);
     QVERIFY(clipped_started.has_value());
@@ -292,7 +305,7 @@ void OralArgumentEngineTest::modelsInterruptionsHypotheticalsRecordPinsAndConces
     QCOMPARE(interruption->bench.kind, model::BenchActKind::Interruption);
     QVERIFY(interruption->bench.question->parent_act_sequence.has_value());
 
-    const auto expansive = singleSeatBench(expansiveProfile(), expansiveVoice());
+    const auto expansive = singleSeatBench(expansiveProfile());
     const auto expansive_config = configuration(expansive, available);
     const auto expansive_started = startedState(expansive_config, expansive, available);
     QVERIFY(expansive_started.has_value());
@@ -332,7 +345,7 @@ void OralArgumentEngineTest::modelsInterruptionsHypotheticalsRecordPinsAndConces
 }
 
 void OralArgumentEngineTest::expiresPrincipalAndRebuttalClocksAndReplays() {
-    const auto bench = singleSeatBench(clippedProfile(), clippedVoice());
+    const auto bench = singleSeatBench(clippedProfile());
     const auto available = grounding();
     const auto config = configuration(bench, available, 10s, 5s);
     const auto initial = engine::initializeOralArgument(config, bench, available);
@@ -417,20 +430,122 @@ void OralArgumentEngineTest::structuredStylesDifferWithoutChangingLegalPins() {
     QCOMPARE(clipped_after->principal_remaining, expansive_after->principal_remaining);
     QCOMPARE(clipped_after->legal_state_digest, expansive_after->legal_state_digest);
     QCOMPARE(clipped_after->authored_disposition_id, expansive_after->authored_disposition_id);
+    QVERIFY(clipped_after->transcript != expansive_after->transcript);
+    const auto clipped_replay = engine::replayOralArgument(
+        clipped_config, clipped_bench, available, *clipped_initial, clipped_after->journal);
+    const auto expansive_replay = engine::replayOralArgument(
+        expansive_config, expansive_bench, available, *expansive_initial, expansive_after->journal);
+    QVERIFY(clipped_replay.has_value());
+    QVERIFY(expansive_replay.has_value());
+    QCOMPARE(*clipped_replay, *clipped_after);
+    QCOMPARE(*expansive_replay, *expansive_after);
 
     auto renamed = clipped_bench;
     renamed.seats.front().profile.id = "fictional.renamed-with-identical-style";
     renamed.seats.front().profile.display_name = "Renamed Composite";
+    const auto renamed_digest = engine::behaviorDefinitionDigest(renamed);
+    QVERIFY(renamed_digest.has_value());
+    QCOMPARE(*renamed_digest, clipped_config.behavior_definition_digest);
     const auto renamed_initial = engine::initializeOralArgument(clipped_config, renamed, available);
     QVERIFY(renamed_initial.has_value());
     const auto renamed_opening =
         engine::planOpeningQuestion(clipped_config, renamed, available, *renamed_initial);
     QVERIFY(renamed_opening.has_value());
     QVERIFY(*renamed_opening == *clipped_opening);
+
+    auto voice_only = clipped_bench;
+    voice_only.seats.front().profile.voice.question_phrases = {
+        "focus on the exact boundary",
+        "identify the necessary premise",
+    };
+    voice_only.seats.front().profile.voice.question_framing = model::QuestionFraming::Socratic;
+    const auto voice_config = configuration(voice_only, available);
+    QCOMPARE(voice_config.legal_state_digest, clipped_config.legal_state_digest);
+    QCOMPARE(voice_config.authored_disposition_id, clipped_config.authored_disposition_id);
+    QVERIFY(voice_config.behavior_definition_digest != clipped_config.behavior_definition_digest);
+    const auto voice_initial = engine::initializeOralArgument(voice_config, voice_only, available);
+    QVERIFY(voice_initial.has_value());
+    const auto voice_opening =
+        engine::planOpeningQuestion(voice_config, voice_only, available, *voice_initial);
+    QVERIFY(voice_opening.has_value());
+    QVERIFY(voice_opening->bench.rendered_utterance != clipped_opening->bench.rendered_utterance);
+    QCOMPARE(voice_initial->legal_state_digest, clipped_initial->legal_state_digest);
+    QCOMPARE(voice_initial->authored_disposition_id, clipped_initial->authored_disposition_id);
+}
+
+void OralArgumentEngineTest::behaviorDigestCoversOperativeProfileDataButNotIdentity() {
+    const auto bench = singleSeatBench(clippedProfile());
+    const auto baseline = engine::behaviorDefinitionDigest(bench);
+    QVERIFY(baseline.has_value());
+
+    const auto changes_digest = [&bench, &baseline](auto mutate) {
+        auto changed = bench;
+        mutate(changed.seats.front().profile);
+        const auto digest = engine::behaviorDefinitionDigest(changed);
+        return digest.has_value() && *digest != *baseline;
+    };
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.compatibility.court_roles.push_back(model::CourtRole::District);
+    }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.compatibility.jurisdiction_ids.push_back("us.ca9");
+    }));
+    QVERIFY(
+        changes_digest([](model::JudgeProfile& profile) { profile.interaction.directness = 0.1; }));
+    QVERIFY(
+        changes_digest([](model::JudgeProfile& profile) { profile.interaction.formality = 0.1; }));
+    QVERIFY(changes_digest(
+        [](model::JudgeProfile& profile) { profile.interaction.question_length = 0.8; }));
+    QVERIFY(changes_digest(
+        [](model::JudgeProfile& profile) { profile.interaction.interruption_frequency = 0.1; }));
+    QVERIFY(changes_digest(
+        [](model::JudgeProfile& profile) { profile.interaction.follow_up_depth = 0.1; }));
+    QVERIFY(changes_digest(
+        [](model::JudgeProfile& profile) { profile.interaction.hypothetical_frequency = 0.8; }));
+    QVERIFY(changes_digest(
+        [](model::JudgeProfile& profile) { profile.interaction.concession_recall = 0.1; }));
+    QVERIFY(changes_digest(
+        [](model::JudgeProfile& profile) { profile.interaction.record_pin_demand = 0.1; }));
+    QVERIFY(changes_digest(
+        [](model::JudgeProfile& profile) { profile.interaction.time_strictness = 0.1; }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.interaction.issue_focus.front().weight = 0.2;
+    }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.voice.register_style = model::VoiceRegister::Plain;
+    }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.voice.cadence = model::VoiceCadence::Measured;
+    }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.voice.question_framing = model::QuestionFraming::Socratic;
+    }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.voice.address_convention = model::CounselAddress::Advocate;
+    }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) { profile.voice.verbosity = 0.8; }));
+    QVERIFY(changes_digest(
+        [](model::JudgeProfile& profile) { profile.voice.sentence_complexity = 0.8; }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.voice.question_phrases.front() = "test the boundary";
+    }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.voice.interruption_phrases.front() = "pause on that premise";
+    }));
+    QVERIFY(changes_digest([](model::JudgeProfile& profile) {
+        profile.voice.clarification_phrases.front() = "clarify the exact point";
+    }));
+
+    auto renamed = bench;
+    renamed.seats.front().profile.id = "fictional.identity-only-change";
+    renamed.seats.front().profile.display_name = "Identity-only Composite";
+    const auto renamed_digest = engine::behaviorDefinitionDigest(renamed);
+    QVERIFY(renamed_digest.has_value());
+    QCOMPARE(*renamed_digest, *baseline);
 }
 
 void OralArgumentEngineTest::rejectsMutatedDefinitionsAtEveryBoundary() {
-    const auto bench = singleSeatBench(clippedProfile(), clippedVoice());
+    const auto bench = singleSeatBench(clippedProfile());
     const auto available = grounding();
     const auto config = configuration(bench, available);
     const auto initial = engine::initializeOralArgument(config, bench, available);
@@ -475,7 +590,7 @@ void OralArgumentEngineTest::rejectsMutatedDefinitionsAtEveryBoundary() {
 }
 
 void OralArgumentEngineTest::rejectsForgedReplaySeedsAndDefinitionSwaps() {
-    const auto bench = singleSeatBench(clippedProfile(), clippedVoice());
+    const auto bench = singleSeatBench(clippedProfile());
     const auto available = grounding();
     const auto config = configuration(bench, available);
     const auto initial = engine::initializeOralArgument(config, bench, available);
@@ -522,7 +637,7 @@ void OralArgumentEngineTest::rejectsForgedReplaySeedsAndDefinitionSwaps() {
 }
 
 void OralArgumentEngineTest::enforcesBoundsEnumsAndPositiveElapsed() {
-    const auto bench = singleSeatBench(clippedProfile(), clippedVoice());
+    const auto bench = singleSeatBench(clippedProfile());
     const auto available = grounding();
     const auto config = configuration(bench, available);
     const auto initial = engine::initializeOralArgument(config, bench, available);
@@ -534,7 +649,21 @@ void OralArgumentEngineTest::enforcesBoundsEnumsAndPositiveElapsed() {
     invalid_bench.court_role = static_cast<model::CourtRole>(255);
     QVERIFY(!engine::initializeOralArgument(config, invalid_bench, available).has_value());
     invalid_bench = bench;
-    invalid_bench.seats.front().voice.framing = static_cast<model::QuestionFraming>(255);
+    invalid_bench.seats.front().profile.voice.question_framing =
+        static_cast<model::QuestionFraming>(255);
+    QVERIFY(!engine::behaviorDefinitionDigest(invalid_bench).has_value());
+    invalid_bench = bench;
+    invalid_bench.seats.front().profile.voice.address_convention =
+        static_cast<model::CounselAddress>(255);
+    QVERIFY(!engine::behaviorDefinitionDigest(invalid_bench).has_value());
+    invalid_bench = bench;
+    invalid_bench.seats.front().profile.voice.question_phrases = {"duplicate", "duplicate"};
+    QVERIFY(!engine::behaviorDefinitionDigest(invalid_bench).has_value());
+    invalid_bench = bench;
+    invalid_bench.seats.front().profile.voice.interruption_phrases = {"unknown {template}"};
+    QVERIFY(!engine::behaviorDefinitionDigest(invalid_bench).has_value());
+    invalid_bench = bench;
+    invalid_bench.seats.front().profile.voice.clarification_phrases.clear();
     QVERIFY(!engine::behaviorDefinitionDigest(invalid_bench).has_value());
     invalid_bench = bench;
     invalid_bench.seats.front().profile.profile_class = static_cast<model::ProfileClass>(255);
@@ -573,9 +702,8 @@ void OralArgumentEngineTest::enforcesBoundsEnumsAndPositiveElapsed() {
 
     auto excessive_bench = bench;
     for (int index = 1; index < 33; ++index) {
-        excessive_bench.seats.push_back(
-            model::BenchSeat{"seat." + std::to_string(index),
-                             clippedProfile("fictional." + std::to_string(index)), clippedVoice()});
+        excessive_bench.seats.push_back(model::BenchSeat{
+            "seat." + std::to_string(index), clippedProfile("fictional." + std::to_string(index))});
     }
     QVERIFY(!engine::behaviorDefinitionDigest(excessive_bench).has_value());
 
@@ -603,6 +731,40 @@ void OralArgumentEngineTest::enforcesBoundsEnumsAndPositiveElapsed() {
                  .has_value());
 }
 
+void OralArgumentEngineTest::recordPinDemandControlChangesPlanning() {
+    const auto available = grounding();
+    auto demanding_profile = clippedProfile("fictional.record-demanding");
+    demanding_profile.interaction.interruption_frequency = 0.0;
+    demanding_profile.interaction.hypothetical_frequency = 0.0;
+    demanding_profile.interaction.record_pin_demand = 1.0;
+    auto restrained_profile = demanding_profile;
+    restrained_profile.id = "fictional.record-restrained";
+    restrained_profile.display_name = "Record-restrained Composite";
+    restrained_profile.interaction.record_pin_demand = 0.0;
+
+    const auto demanding = singleSeatBench(std::move(demanding_profile));
+    const auto restrained = singleSeatBench(std::move(restrained_profile));
+    const auto demanding_config = configuration(demanding, available);
+    const auto restrained_config = configuration(restrained, available);
+    const auto demanding_started = startedState(demanding_config, demanding, available);
+    const auto restrained_started = startedState(restrained_config, restrained, available);
+    QVERIFY(demanding_started.has_value());
+    QVERIFY(restrained_started.has_value());
+
+    const auto record_claim = answer(model::CounselActKind::RecordClaim);
+    const auto demand = engine::decideCounselAnswer(demanding_config, demanding, available,
+                                                    *demanding_started, record_claim);
+    const auto restraint = engine::decideCounselAnswer(restrained_config, restrained, available,
+                                                       *restrained_started, record_claim);
+    QVERIFY(demand.has_value());
+    QVERIFY(restraint.has_value());
+    QCOMPARE(demand->bench.kind, model::BenchActKind::RecordPinDemand);
+    QVERIFY(restraint->bench.kind != model::BenchActKind::RecordPinDemand);
+    QCOMPARE(demanding_started->legal_state_digest, restrained_started->legal_state_digest);
+    QCOMPARE(demanding_started->authored_disposition_id,
+             restrained_started->authored_disposition_id);
+}
+
 void OralArgumentEngineTest::recordClaimsWithoutRecordPagesDoNotDemandPins() {
     auto available = grounding();
     available.issues.resize(1);
@@ -610,7 +772,7 @@ void OralArgumentEngineTest::recordClaimsWithoutRecordPagesDoNotDemandPins() {
     std::erase_if(references, [](const model::ArgumentGroundingRef& reference) {
         return reference.kind == model::GroundingKind::RecordPage;
     });
-    const auto bench = singleSeatBench(clippedProfile(), clippedVoice());
+    const auto bench = singleSeatBench(clippedProfile());
     const auto config = configuration(bench, available);
     const auto started = startedState(config, bench, available);
     QVERIFY(started.has_value());
@@ -632,7 +794,7 @@ void OralArgumentEngineTest::boundsSingleSeatFollowUpChains() {
     profile.interaction.hypothetical_frequency = 0.0;
     profile.interaction.concession_recall = 0.0;
     profile.interaction.follow_up_depth = 1.0;
-    const auto bench = singleSeatBench(std::move(profile), clippedVoice());
+    const auto bench = singleSeatBench(std::move(profile));
     const auto available = grounding();
     auto config = configuration(bench, available);
     config.maximum_follow_up_depth = 2;

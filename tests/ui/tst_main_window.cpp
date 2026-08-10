@@ -198,7 +198,7 @@ void MainWindowTest::loadsValidAuthoringDirectory() {
         window.courtSummaryLabel()->text().contains(QStringLiteral("Fictional Court of Appeals")));
     QVERIFY(window.procedureSummaryLabel()->text().contains(QStringLiteral("civil appeal")));
     QVERIFY(window.recordSummaryLabel()->text().contains(QStringLiteral("1 docket entry")));
-    QVERIFY(window.benchSummaryLabel()->text().contains(QStringLiteral("Judge Rowan")));
+    QVERIFY(window.benchSummaryLabel()->text().contains(QStringLiteral("Composite Jurist Rowan")));
     QVERIFY(window.errorLabel()->text().isEmpty());
 
     const auto profile = window.profileEditor()->profile();

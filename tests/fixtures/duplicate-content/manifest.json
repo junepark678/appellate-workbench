@@ -11,14 +11,14 @@
       "kind": "judge_profile",
       "schema_version": 1,
       "path": "judges/measured.json",
-      "sha256": "5b668e9e2c4f588b715bd4750f341b3fe74df7f2c08840ae89752feb936baf43"
+      "sha256": "0fb808320b8b19b2c99159322f3dc1678953e84aa8d42d1ab4b2a2e072b624b3"
     },
     {
       "id": "example.judge.measured",
       "kind": "judge_profile",
       "schema_version": 1,
       "path": "judges/measured.json",
-      "sha256": "5b668e9e2c4f588b715bd4750f341b3fe74df7f2c08840ae89752feb936baf43"
+      "sha256": "0fb808320b8b19b2c99159322f3dc1678953e84aa8d42d1ab4b2a2e072b624b3"
     }
   ]
 }

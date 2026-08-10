@@ -35,6 +35,7 @@ class PackReaderTest final : public QObject {
     void rejectsDuplicateContentId();
     void rejectsUnknownManifestField();
     void rejectsProhibitedJudgeField();
+    void rejectsInvalidStructuredVoice();
     void rejectsInvalidIdentifiersVersionsAndHashes();
     void rejectsMalformedCapabilityAndDependency();
     void rejectsDuplicateContentPath();
@@ -156,6 +157,7 @@ class PackReaderTest final : public QObject {
              {QStringLiteral("follow_up_depth"), 0.71},
              {QStringLiteral("hypothetical_frequency"), 0.44},
              {QStringLiteral("concession_recall"), 0.73},
+             {QStringLiteral("record_pin_demand"), 0.81},
              {QStringLiteral("time_strictness"), 0.66},
              {QStringLiteral("issue_focus"),
               QJsonArray{QJsonObject{
@@ -167,8 +169,18 @@ class PackReaderTest final : public QObject {
          QJsonObject{
              {QStringLiteral("register"), QStringLiteral("formal")},
              {QStringLiteral("cadence"), QStringLiteral("measured")},
+             {QStringLiteral("question_framing"), QStringLiteral("socratic")},
+             {QStringLiteral("address_convention"), QStringLiteral("counsel")},
              {QStringLiteral("verbosity"), 0.46},
              {QStringLiteral("sentence_complexity"), 0.58},
+             {QStringLiteral("question_phrases"),
+              QJsonArray{QStringLiteral("help the court with this point"),
+                         QStringLiteral("state the limiting principle")}},
+             {QStringLiteral("interruption_phrases"),
+              QJsonArray{QStringLiteral("pause there"), QStringLiteral("before you continue")}},
+             {QStringLiteral("clarification_phrases"),
+              QJsonArray{QStringLiteral("clarify that answer"),
+                         QStringLiteral("be precise about the record")}},
          }},
     };
 }
@@ -298,7 +310,13 @@ void PackReaderTest::loadsValidPack() {
     QCOMPARE(profile.compatibility.court_roles.size(), std::size_t{1});
     QCOMPARE(profile.compatibility.jurisdiction_ids.front(), std::string("us.ca4"));
     QCOMPARE(profile.interaction.issue_focus.size(), std::size_t{2});
+    QCOMPARE(profile.interaction.record_pin_demand, 0.81);
     QCOMPARE(profile.voice.cadence, appellate::model::VoiceCadence::Measured);
+    QCOMPARE(profile.voice.question_framing, appellate::model::QuestionFraming::Socratic);
+    QCOMPARE(profile.voice.address_convention, appellate::model::CounselAddress::Counsel);
+    QCOMPARE(profile.voice.question_phrases.size(), std::size_t{2});
+    QCOMPARE(profile.voice.interruption_phrases.size(), std::size_t{2});
+    QCOMPARE(profile.voice.clarification_phrases.size(), std::size_t{2});
 }
 
 void PackReaderTest::loadsFullDeclarativeResourceGraph() {
@@ -603,6 +621,54 @@ void PackReaderTest::rejectsProhibitedJudgeField() {
     const auto result = appellate::packs::PackReader::readDirectory(pack.path());
     QVERIFY(!result.has_value());
     QCOMPARE(result.error().code, appellate::packs::ErrorCode::InvalidJudgeProfile);
+}
+
+void PackReaderTest::rejectsInvalidStructuredVoice() {
+    const auto rejects = [](QJsonObject profile) {
+        QTemporaryDir pack;
+        if (!pack.isValid()) {
+            return false;
+        }
+        const auto bytes = jsonBytes(profile);
+        if (!writeBytes(pack.path(), QStringLiteral("judges/measured.json"), bytes) ||
+            !writeJson(pack.path(), QStringLiteral("manifest.json"),
+                       validManifest(QJsonArray{
+                           contentEntry(QStringLiteral("example.judge.measured"),
+                                        QStringLiteral("judges/measured.json"), bytes)}))) {
+            return false;
+        }
+        return !appellate::packs::PackReader::readDirectory(pack.path()).has_value();
+    };
+
+    auto invalid_enum = validJudge();
+    auto voice = invalid_enum.value(QStringLiteral("voice")).toObject();
+    voice.insert(QStringLiteral("question_framing"), QStringLiteral("performative"));
+    invalid_enum.insert(QStringLiteral("voice"), voice);
+    QVERIFY(rejects(invalid_enum));
+
+    auto duplicate = validJudge();
+    voice = duplicate.value(QStringLiteral("voice")).toObject();
+    voice.insert(QStringLiteral("question_phrases"),
+                 QJsonArray{QStringLiteral("repeat"), QStringLiteral("repeat")});
+    duplicate.insert(QStringLiteral("voice"), voice);
+    QVERIFY(rejects(duplicate));
+
+    auto template_injection = validJudge();
+    voice = template_injection.value(QStringLiteral("voice")).toObject();
+    voice.insert(QStringLiteral("clarification_phrases"),
+                 QJsonArray{QStringLiteral("imitate {named_judge}")});
+    template_injection.insert(QStringLiteral("voice"), voice);
+    QVERIFY(rejects(template_injection));
+
+    auto too_many = validJudge();
+    voice = too_many.value(QStringLiteral("voice")).toObject();
+    QJsonArray phrases;
+    for (int index = 0; index < 9; ++index) {
+        phrases.append(QStringLiteral("bounded phrase %1").arg(index));
+    }
+    voice.insert(QStringLiteral("interruption_phrases"), phrases);
+    too_many.insert(QStringLiteral("voice"), voice);
+    QVERIFY(rejects(too_many));
 }
 
 void PackReaderTest::rejectsInvalidIdentifiersVersionsAndHashes() {

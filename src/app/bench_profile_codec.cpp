@@ -34,6 +34,8 @@ constexpr qsizetype maximum_id_characters = 160;
 constexpr qsizetype maximum_display_name_characters = 128;
 constexpr qsizetype maximum_jurisdictions = 64;
 constexpr qsizetype maximum_issue_focus_items = 32;
+constexpr qsizetype maximum_voice_phrases = 8;
+constexpr qsizetype maximum_voice_phrase_characters = 128;
 constexpr int maximum_json_depth = 32;
 
 [[nodiscard]] auto fail(BenchProfileErrorCode code, QString message)
@@ -467,6 +469,129 @@ class RawJsonScanner final {
     return std::nullopt;
 }
 
+[[nodiscard]] auto parseQuestionFraming(QStringView value)
+    -> std::optional<model::QuestionFraming> {
+    if (value == u"direct") {
+        return model::QuestionFraming::Direct;
+    }
+    if (value == u"socratic") {
+        return model::QuestionFraming::Socratic;
+    }
+    if (value == u"narrative") {
+        return model::QuestionFraming::Narrative;
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto encodeQuestionFraming(model::QuestionFraming value) -> std::optional<QString> {
+    switch (value) {
+    case model::QuestionFraming::Direct:
+        return QStringLiteral("direct");
+    case model::QuestionFraming::Socratic:
+        return QStringLiteral("socratic");
+    case model::QuestionFraming::Narrative:
+        return QStringLiteral("narrative");
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto parseAddressConvention(QStringView value)
+    -> std::optional<model::CounselAddress> {
+    if (value == u"counsel") {
+        return model::CounselAddress::Counsel;
+    }
+    if (value == u"advocate") {
+        return model::CounselAddress::Advocate;
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto encodeAddressConvention(model::CounselAddress value) -> std::optional<QString> {
+    switch (value) {
+    case model::CounselAddress::Counsel:
+        return QStringLiteral("counsel");
+    case model::CounselAddress::Advocate:
+        return QStringLiteral("advocate");
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] bool isVoicePhrase(QStringView phrase) {
+    return !phrase.isEmpty() && phrase.size() <= maximum_voice_phrase_characters &&
+           phrase.toUtf8().size() <= maximum_voice_phrase_characters &&
+           phrase.trimmed() == phrase && !containsNull(phrase) &&
+           std::ranges::all_of(phrase, [](QChar character) {
+               return (character.isPrint() || character == u' ') && character != u'{' &&
+                      character != u'}';
+           });
+}
+
+[[nodiscard]] auto validateVoicePhrases(const std::vector<std::string>& phrases, QStringView field)
+    -> std::expected<void, BenchProfileError> {
+    if (phrases.empty() || phrases.size() > static_cast<std::size_t>(maximum_voice_phrases)) {
+        return fail(BenchProfileErrorCode::OutOfRange,
+                    QStringLiteral("%1 must contain 1 to 8 phrases").arg(field));
+    }
+    QSet<QString> seen;
+    for (const auto& phrase : phrases) {
+        if (!roundTripsUtf8(phrase)) {
+            return fail(BenchProfileErrorCode::InvalidField,
+                        QStringLiteral("%1 contains invalid UTF-8").arg(field));
+        }
+        const auto text = QString::fromUtf8(phrase.data(), static_cast<qsizetype>(phrase.size()));
+        if (!isVoicePhrase(text)) {
+            return fail(BenchProfileErrorCode::InvalidField,
+                        QStringLiteral("%1 contains an invalid phrase or template").arg(field));
+        }
+        if (seen.contains(text)) {
+            return fail(BenchProfileErrorCode::IncompatibleProfile,
+                        QStringLiteral("%1 contains duplicate phrases").arg(field));
+        }
+        seen.insert(text);
+    }
+    return {};
+}
+
+[[nodiscard]] QJsonArray encodeVoicePhrases(const std::vector<std::string>& phrases) {
+    QJsonArray result;
+    for (const auto& phrase : phrases) {
+        result.append(QString::fromUtf8(phrase));
+    }
+    return result;
+}
+
+[[nodiscard]] auto readVoicePhrases(const QJsonObject& object, QStringView key)
+    -> std::expected<std::vector<std::string>, BenchProfileError> {
+    const auto value = object.value(key);
+    if (!value.isArray()) {
+        return fail(BenchProfileErrorCode::InvalidField,
+                    QStringLiteral("profile.voice.%1 must be an array").arg(key));
+    }
+    const auto array = value.toArray();
+    if (array.isEmpty() || array.size() > maximum_voice_phrases) {
+        return fail(BenchProfileErrorCode::OutOfRange,
+                    QStringLiteral("profile.voice.%1 must contain 1 to 8 phrases").arg(key));
+    }
+    std::vector<std::string> result;
+    result.reserve(static_cast<std::size_t>(array.size()));
+    QSet<QString> seen;
+    for (const auto& item : array) {
+        if (!item.isString() || !isVoicePhrase(item.toString())) {
+            return fail(
+                BenchProfileErrorCode::InvalidField,
+                QStringLiteral("profile.voice.%1 contains an invalid phrase or template").arg(key));
+        }
+        const auto phrase = item.toString();
+        if (seen.contains(phrase)) {
+            return fail(BenchProfileErrorCode::IncompatibleProfile,
+                        QStringLiteral("profile.voice.%1 contains duplicate phrases").arg(key));
+        }
+        seen.insert(phrase);
+        result.push_back(phrase.toUtf8().toStdString());
+    }
+    return result;
+}
+
 [[nodiscard]] auto filesystemPath(const QString& path) -> std::filesystem::path {
 #ifdef Q_OS_WIN
     return std::filesystem::path(path.toStdWString());
@@ -532,19 +657,37 @@ auto BenchProfileCodec::validate(const model::JudgeProfile& profile)
 
     const auto& interaction = profile.interaction;
     const std::array values{
-        interaction.directness,        interaction.formality,
-        interaction.question_length,   interaction.interruption_frequency,
-        interaction.follow_up_depth,   interaction.hypothetical_frequency,
-        interaction.concession_recall, interaction.time_strictness,
-        profile.voice.verbosity,       profile.voice.sentence_complexity,
+        interaction.directness,
+        interaction.formality,
+        interaction.question_length,
+        interaction.interruption_frequency,
+        interaction.follow_up_depth,
+        interaction.hypothetical_frequency,
+        interaction.concession_recall,
+        interaction.record_pin_demand,
+        interaction.time_strictness,
+        profile.voice.verbosity,
+        profile.voice.sentence_complexity,
     };
     if (!std::ranges::all_of(values, isUnitInterval)) {
         return fail(BenchProfileErrorCode::OutOfRange,
                     QStringLiteral("Interaction and voice values must be between 0 and 1"));
     }
-    if (!encodeRegister(profile.voice.register_style) || !encodeCadence(profile.voice.cadence)) {
+    if (!encodeRegister(profile.voice.register_style) || !encodeCadence(profile.voice.cadence) ||
+        !encodeQuestionFraming(profile.voice.question_framing) ||
+        !encodeAddressConvention(profile.voice.address_convention)) {
         return fail(BenchProfileErrorCode::IncompatibleProfile,
-                    QStringLiteral("Voice register and cadence must use schema-v1 values"));
+                    QStringLiteral("Structured voice enums must use schema-v1 values"));
+    }
+    for (const auto& [phrases, field] :
+         std::array<std::pair<const std::vector<std::string>*, QStringView>, 3>{
+             std::pair{&profile.voice.question_phrases, QStringView{u"question_phrases"}},
+             std::pair{&profile.voice.interruption_phrases, QStringView{u"interruption_phrases"}},
+             std::pair{&profile.voice.clarification_phrases, QStringView{u"clarification_phrases"}},
+         }) {
+        if (const auto valid = validateVoicePhrases(*phrases, field); !valid) {
+            return std::unexpected(valid.error());
+        }
     }
 
     const auto& focus = interaction.issue_focus;
@@ -610,6 +753,7 @@ auto BenchProfileCodec::encode(const model::JudgeProfile& profile)
              {QStringLiteral("interruption_frequency"), interaction.interruption_frequency},
              {QStringLiteral("issue_focus"), focus},
              {QStringLiteral("question_length"), interaction.question_length},
+             {QStringLiteral("record_pin_demand"), interaction.record_pin_demand},
              {QStringLiteral("time_strictness"), interaction.time_strictness},
          }},
         {QStringLiteral("profile_class"), QStringLiteral("fictional_composite")},
@@ -619,6 +763,16 @@ auto BenchProfileCodec::encode(const model::JudgeProfile& profile)
         {QStringLiteral("voice"),
          QJsonObject{
              {QStringLiteral("cadence"), *encodeCadence(profile.voice.cadence)},
+             {QStringLiteral("address_convention"),
+              *encodeAddressConvention(profile.voice.address_convention)},
+             {QStringLiteral("clarification_phrases"),
+              encodeVoicePhrases(profile.voice.clarification_phrases)},
+             {QStringLiteral("interruption_phrases"),
+              encodeVoicePhrases(profile.voice.interruption_phrases)},
+             {QStringLiteral("question_framing"),
+              *encodeQuestionFraming(profile.voice.question_framing)},
+             {QStringLiteral("question_phrases"),
+              encodeVoicePhrases(profile.voice.question_phrases)},
              {QStringLiteral("register"), *encodeRegister(profile.voice.register_style)},
              {QStringLiteral("sentence_complexity"), profile.voice.sentence_complexity},
              {QStringLiteral("verbosity"), profile.voice.verbosity},
@@ -757,7 +911,7 @@ auto BenchProfileCodec::decode(QByteArrayView document)
             exactKeys(interaction,
                       {u"directness", u"formality", u"question_length", u"interruption_frequency",
                        u"follow_up_depth", u"hypothetical_frequency", u"concession_recall",
-                       u"time_strictness", u"issue_focus"},
+                       u"record_pin_demand", u"time_strictness", u"issue_focus"},
                       u"profile.interaction");
         !keys) {
         return std::unexpected(keys.error());
@@ -771,9 +925,10 @@ auto BenchProfileCodec::decode(QByteArrayView document)
     const auto hypothetical =
         readUnit(interaction, u"hypothetical_frequency", u"profile.interaction");
     const auto concession = readUnit(interaction, u"concession_recall", u"profile.interaction");
+    const auto record_pin = readUnit(interaction, u"record_pin_demand", u"profile.interaction");
     const auto time_strictness = readUnit(interaction, u"time_strictness", u"profile.interaction");
     if (!directness || !formality || !question_length || !interruption || !follow_up ||
-        !hypothetical || !concession || !time_strictness) {
+        !hypothetical || !concession || !record_pin || !time_strictness) {
         const auto message = QStringLiteral("All interaction controls must be between 0 and 1");
         return fail(BenchProfileErrorCode::OutOfRange, message);
     }
@@ -821,22 +976,41 @@ auto BenchProfileCodec::decode(QByteArrayView document)
     }
     const auto voice = root.value(u"voice").toObject();
     if (const auto keys =
-            exactKeys(voice, {u"register", u"cadence", u"verbosity", u"sentence_complexity"},
+            exactKeys(voice,
+                      {u"register", u"cadence", u"question_framing", u"address_convention",
+                       u"verbosity", u"sentence_complexity", u"question_phrases",
+                       u"interruption_phrases", u"clarification_phrases"},
                       u"profile.voice");
         !keys) {
         return std::unexpected(keys.error());
     }
-    if (!voice.value(u"register").isString() || !voice.value(u"cadence").isString()) {
+    if (!voice.value(u"register").isString() || !voice.value(u"cadence").isString() ||
+        !voice.value(u"question_framing").isString() ||
+        !voice.value(u"address_convention").isString()) {
         return fail(BenchProfileErrorCode::InvalidField,
-                    QStringLiteral("Voice register and cadence must be strings"));
+                    QStringLiteral("Structured voice enums must be strings"));
     }
     const auto register_style = parseRegister(voice.value(u"register").toString());
     const auto cadence = parseCadence(voice.value(u"cadence").toString());
+    const auto framing = parseQuestionFraming(voice.value(u"question_framing").toString());
+    const auto address = parseAddressConvention(voice.value(u"address_convention").toString());
     const auto verbosity = readUnit(voice, u"verbosity", u"profile.voice");
     const auto sentence_complexity = readUnit(voice, u"sentence_complexity", u"profile.voice");
-    if (!register_style || !cadence || !verbosity || !sentence_complexity) {
+    auto question_phrases = readVoicePhrases(voice, u"question_phrases");
+    auto interruption_phrases = readVoicePhrases(voice, u"interruption_phrases");
+    auto clarification_phrases = readVoicePhrases(voice, u"clarification_phrases");
+    if (!register_style || !cadence || !framing || !address || !verbosity || !sentence_complexity) {
         return fail(BenchProfileErrorCode::IncompatibleProfile,
                     QStringLiteral("Voice controls must use schema-v1 values"));
+    }
+    if (!question_phrases) {
+        return std::unexpected(question_phrases.error());
+    }
+    if (!interruption_phrases) {
+        return std::unexpected(interruption_phrases.error());
+    }
+    if (!clarification_phrases) {
+        return std::unexpected(clarification_phrases.error());
     }
 
     model::JudgeProfile result{
@@ -852,10 +1026,13 @@ auto BenchProfileCodec::decode(QByteArrayView document)
             *follow_up,
             *hypothetical,
             *concession,
+            *record_pin,
             *time_strictness,
             std::move(focus),
         },
-        model::VoiceStyle{*register_style, *cadence, *verbosity, *sentence_complexity},
+        model::VoiceStyle{*register_style, *cadence, *framing, *address, *verbosity,
+                          *sentence_complexity, std::move(*question_phrases),
+                          std::move(*interruption_phrases), std::move(*clarification_phrases)},
     };
     if (const auto valid = validate(result); !valid) {
         return std::unexpected(valid.error());

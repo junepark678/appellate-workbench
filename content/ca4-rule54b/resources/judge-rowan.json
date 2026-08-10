@@ -13,11 +13,22 @@
     "follow_up_depth": 0.76,
     "hypothetical_frequency": 0.72,
     "concession_recall": 0.79,
+    "record_pin_demand": 0.61,
     "time_strictness": 0.63,
     "issue_focus": [
       {"topic_id": "ca4r54b.issue.rule54b-finality", "weight": 0.85},
       {"topic_id": "ca4r54b.issue.merits-not-reached", "weight": 0.55}
     ]
   },
-  "voice": {"register": "technical", "cadence": "measured", "verbosity": 0.56, "sentence_complexity": 0.72}
+  "voice": {
+    "register": "technical",
+    "cadence": "measured",
+    "question_framing": "socratic",
+    "address_convention": "advocate",
+    "verbosity": 0.56,
+    "sentence_complexity": 0.72,
+    "question_phrases": ["help us test that principle", "reconcile the two predicates"],
+    "interruption_phrases": ["let us pause at that assumption"],
+    "clarification_phrases": ["draw the distinction carefully", "specify what follows"]
+  }
 }

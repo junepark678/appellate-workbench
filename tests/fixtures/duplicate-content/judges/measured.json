@@ -16,6 +16,7 @@
     "follow_up_depth": 0.71,
     "hypothetical_frequency": 0.44,
     "concession_recall": 0.73,
+    "record_pin_demand": 0.81,
     "time_strictness": 0.66,
     "issue_focus": [
       {
@@ -31,7 +32,12 @@
   "voice": {
     "register": "formal",
     "cadence": "measured",
+    "question_framing": "socratic",
+    "address_convention": "counsel",
     "verbosity": 0.46,
-    "sentence_complexity": 0.58
+    "sentence_complexity": 0.58,
+    "question_phrases": ["help the court with this point", "state the limiting principle"],
+    "interruption_phrases": ["pause there", "before you continue"],
+    "clarification_phrases": ["clarify that answer", "be precise about the record"]
   }
 }

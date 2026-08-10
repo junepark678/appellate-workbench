@@ -40,32 +40,9 @@ struct ArgumentGrounding final {
     friend bool operator==(const ArgumentGrounding&, const ArgumentGrounding&) = default;
 };
 
-enum class QuestionFraming {
-    Direct,
-    Socratic,
-    Narrative,
-};
-
-enum class CounselAddress {
-    Counsel,
-    Advocate,
-};
-
-struct BenchVoiceConfiguration final {
-    QuestionFraming framing{QuestionFraming::Direct};
-    CounselAddress address{CounselAddress::Counsel};
-    std::vector<std::string> question_phrases;
-    std::vector<std::string> interruption_phrases;
-    std::vector<std::string> clarification_phrases;
-
-    friend bool operator==(const BenchVoiceConfiguration&,
-                           const BenchVoiceConfiguration&) = default;
-};
-
 struct BenchSeat final {
     std::string id;
     JudgeProfile profile;
-    BenchVoiceConfiguration voice;
 
     friend bool operator==(const BenchSeat&, const BenchSeat&) = default;
 };
