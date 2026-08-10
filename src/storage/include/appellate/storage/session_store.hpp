@@ -19,6 +19,8 @@ enum class StoreErrorCode {
     StaleSequence,
     ConstraintViolation,
     QueryFailed,
+    BackupFailed,
+    RestoreFailed,
 };
 
 struct StoreError final {
@@ -111,6 +113,11 @@ class SessionStore final {
 
     [[nodiscard]] std::expected<SessionSnapshot, StoreError>
     loadSession(const QString& session_id) const;
+
+    [[nodiscard]] std::expected<void, StoreError> backupTo(const QString& backup_path) const;
+
+    [[nodiscard]] static std::expected<void, StoreError>
+    restoreBackup(const QString& backup_path, const QString& destination_path);
 
     [[nodiscard]] int schemaVersion() const;
 

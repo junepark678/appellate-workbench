@@ -1,5 +1,7 @@
 #include "appellate/storage/session_store.hpp"
 
+#include <QFile>
+#include <QFileInfo>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QTemporaryDir>
@@ -31,6 +33,8 @@ class SessionStoreTest final : public QObject {
     void rollsBackDuplicateCommand();
     void rejectsInvalidAndDuplicateAssetReferencesWithoutWrites();
     void rollsBackDuplicateStoredAssetReference();
+    void backsUpAndRestoresConsistentSnapshot();
+    void rejectsCorruptRestoreWithoutCreatingDestination();
 };
 
 [[nodiscard]] bool createFutureDatabase(const QString& path) {
@@ -280,6 +284,66 @@ void SessionStoreTest::rollsBackDuplicateStoredAssetReference() {
     QCOMPARE(snapshot->sequence, 2);
     QCOMPARE(snapshot->events.size(), std::size_t{2});
     QCOMPARE(snapshot->asset_references.size(), std::size_t{3});
+}
+
+void SessionStoreTest::backsUpAndRestoresConsistentSnapshot() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto live_path = temporary.filePath(QStringLiteral("live.sqlite"));
+    const auto backup_path = temporary.filePath(QStringLiteral("backup.sqlite"));
+    const auto restored_path = temporary.filePath(QStringLiteral("restored.sqlite"));
+    {
+        auto store = SessionStore::open(live_path);
+        QVERIFY(store.has_value());
+        QVERIFY((*store)
+                    ->createSession(QStringLiteral("session-1"), QStringLiteral("engine-1"),
+                                    QStringLiteral("2026-08-11T00:00:00Z"), pins())
+                    .has_value());
+        QVERIFY((*store)
+                    ->append(QStringLiteral("session-1"), 0,
+                             acceptedFiling(QStringLiteral("command-1")))
+                    .has_value());
+        const auto backup = (*store)->backupTo(backup_path);
+        if (!backup.has_value()) {
+            QFAIL(qPrintable(backup.error().message));
+        }
+        const auto duplicate_backup = (*store)->backupTo(backup_path);
+        QVERIFY(!duplicate_backup.has_value());
+        QCOMPARE(duplicate_backup.error().code, StoreErrorCode::BackupFailed);
+    }
+
+    const auto restored = SessionStore::restoreBackup(backup_path, restored_path);
+    if (!restored.has_value()) {
+        QFAIL(qPrintable(restored.error().message));
+    }
+    const auto overwrite = SessionStore::restoreBackup(backup_path, restored_path);
+    QVERIFY(!overwrite.has_value());
+    QCOMPARE(overwrite.error().code, StoreErrorCode::RestoreFailed);
+
+    auto store = SessionStore::open(restored_path);
+    QVERIFY(store.has_value());
+    const auto snapshot = (*store)->loadSession(QStringLiteral("session-1"));
+    QVERIFY(snapshot.has_value());
+    QCOMPARE(snapshot->sequence, qint64{1});
+    QCOMPARE(snapshot->events.size(), std::size_t{1});
+    QCOMPARE(snapshot->docket.size(), std::size_t{1});
+    QCOMPARE(snapshot->asset_references.size(), std::size_t{2});
+}
+
+void SessionStoreTest::rejectsCorruptRestoreWithoutCreatingDestination() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto corrupt_path = temporary.filePath(QStringLiteral("corrupt.sqlite"));
+    const auto destination_path = temporary.filePath(QStringLiteral("destination.sqlite"));
+    QFile corrupt(corrupt_path);
+    QVERIFY(corrupt.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+    QCOMPARE(corrupt.write("not a database"), qint64{14});
+    corrupt.close();
+
+    const auto restored = SessionStore::restoreBackup(corrupt_path, destination_path);
+    QVERIFY(!restored.has_value());
+    QCOMPARE(restored.error().code, StoreErrorCode::RestoreFailed);
+    QVERIFY(!QFileInfo::exists(destination_path));
 }
 
 } // namespace

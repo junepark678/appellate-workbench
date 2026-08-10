@@ -1,15 +1,27 @@
 #include "appellate/storage/session_store.hpp"
 
+#include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QSet>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QUuid>
 #include <QVariant>
+#include <QTemporaryFile>
 
+#include <array>
+#include <cerrno>
 #include <limits>
 #include <ranges>
 #include <utility>
+
+#if defined(Q_OS_UNIX)
+#include <fcntl.h>
+#include <unistd.h>
+#elif defined(Q_OS_WIN)
+#include <io.h>
+#endif
 
 namespace appellate::storage {
 namespace {
@@ -17,6 +29,7 @@ namespace {
 constexpr auto current_schema_version = 1;
 constexpr qsizetype maximum_asset_purpose_length = 128;
 constexpr std::size_t maximum_asset_references_per_batch = 4096;
+constexpr qsizetype backup_buffer_bytes = 64 * 1024;
 
 [[nodiscard]] auto fail(StoreErrorCode code, QString message) -> std::unexpected<StoreError> {
     return std::unexpected(StoreError{code, std::move(message)});
@@ -62,6 +75,89 @@ constexpr std::size_t maximum_asset_references_per_batch = 4096;
         return queryFailure(code, query, action);
     }
     return {};
+}
+
+[[nodiscard]] bool syncFile(QFileDevice& file) {
+    if (!file.flush()) {
+        return false;
+    }
+    const auto handle = file.handle();
+    if (handle < 0) {
+        return false;
+    }
+#if defined(Q_OS_UNIX)
+    int result{};
+    do {
+        result = ::fsync(static_cast<int>(handle));
+    } while (result != 0 && errno == EINTR);
+    return result == 0;
+#elif defined(Q_OS_WIN)
+    return ::_commit(static_cast<int>(handle)) == 0;
+#else
+    return true;
+#endif
+}
+
+[[nodiscard]] bool syncDirectory(const QString& directory) {
+#if defined(Q_OS_UNIX)
+    auto flags = O_RDONLY;
+#ifdef O_DIRECTORY
+    flags |= O_DIRECTORY;
+#endif
+#ifdef O_CLOEXEC
+    flags |= O_CLOEXEC;
+#endif
+    const auto encoded = QFile::encodeName(directory);
+    const auto descriptor = ::open(encoded.constData(), flags);
+    if (descriptor < 0) {
+        return false;
+    }
+    int result{};
+    do {
+        result = ::fsync(descriptor);
+    } while (result != 0 && errno == EINTR);
+    const auto saved_errno = errno;
+    static_cast<void>(::close(descriptor));
+    errno = saved_errno;
+    return result == 0;
+#else
+    Q_UNUSED(directory);
+    return true;
+#endif
+}
+
+[[nodiscard]] auto verifyDatabase(const QString& path, StoreErrorCode failure_code)
+    -> std::expected<void, StoreError> {
+    const auto connection =
+        QStringLiteral("appellate-verify-%1").arg(QUuid::createUuid().toString(QUuid::Id128));
+    std::expected<void, StoreError> result;
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        database.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+        database.setDatabaseName(path);
+        if (!database.open()) {
+            result = fail(failure_code, database.lastError().text());
+        } else {
+            QSqlQuery integrity(database);
+            if (!integrity.exec(QStringLiteral("PRAGMA integrity_check")) || !integrity.next() ||
+                integrity.value(0).toString() != QStringLiteral("ok")) {
+                result = queryFailure(failure_code, integrity,
+                                      QStringLiteral("verify database integrity"));
+            } else {
+                QSqlQuery schema(database);
+                if (!schema.exec(QStringLiteral(
+                        "SELECT COALESCE(MAX(version), 0) FROM schema_migrations")) ||
+                    !schema.next() || schema.value(0).toInt() != current_schema_version) {
+                    result = queryFailure(failure_code, schema,
+                                          QStringLiteral("verify database schema"));
+                }
+            }
+            database.close();
+        }
+        database = QSqlDatabase{};
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return result;
 }
 
 [[nodiscard]] auto migrationSql(int version) -> std::expected<QByteArray, StoreError> {
@@ -472,6 +568,125 @@ SessionStore::loadSession(const QString& session_id) const {
             AssetReference{assets.value(0).toString(), assets.value(1).toString()});
     }
     return snapshot;
+}
+
+std::expected<void, StoreError> SessionStore::backupTo(const QString& backup_path) const {
+    if (backup_path.isEmpty()) {
+        return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Backup path is empty"));
+    }
+    const auto absolute_backup = QFileInfo(backup_path).absoluteFilePath();
+    const auto database_path = QFileInfo(database_.databaseName()).absoluteFilePath();
+    const QFileInfo destination(absolute_backup);
+    if (absolute_backup == database_path || destination.exists() || destination.isSymLink()) {
+        return fail(StoreErrorCode::BackupFailed,
+                    QStringLiteral("Backup destination must be a new file"));
+    }
+    const auto parent = destination.absolutePath();
+    if (!QDir{}.mkpath(parent) || QFileInfo(parent).isSymLink()) {
+        return fail(StoreErrorCode::BackupFailed,
+                    QStringLiteral("Backup directory is unsafe or cannot be created"));
+    }
+
+    QSqlQuery checkpoint(database_);
+    if (!checkpoint.exec(QStringLiteral("PRAGMA wal_checkpoint(FULL)"))) {
+        return queryFailure(StoreErrorCode::BackupFailed, checkpoint,
+                            QStringLiteral("checkpoint session database"));
+    }
+    checkpoint.finish();
+    QSqlQuery backup(database_);
+    backup.prepare(QStringLiteral("VACUUM INTO ?"));
+    backup.addBindValue(absolute_backup);
+    if (!backup.exec()) {
+        return queryFailure(StoreErrorCode::BackupFailed, backup,
+                            QStringLiteral("create consistent database backup"));
+    }
+    if (!QFile::setPermissions(absolute_backup,
+                               QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
+        return fail(StoreErrorCode::BackupFailed,
+                    QStringLiteral("Cannot restrict backup permissions"));
+    }
+    QFile backup_file(absolute_backup);
+    if (!backup_file.open(QIODevice::ReadOnly) || !syncFile(backup_file) ||
+        !syncDirectory(parent)) {
+        return fail(StoreErrorCode::BackupFailed,
+                    QStringLiteral("Cannot durably flush database backup"));
+    }
+    backup_file.close();
+    return verifyDatabase(absolute_backup, StoreErrorCode::BackupFailed);
+}
+
+std::expected<void, StoreError>
+SessionStore::restoreBackup(const QString& backup_path, const QString& destination_path) {
+    if (backup_path.isEmpty() || destination_path.isEmpty()) {
+        return fail(StoreErrorCode::InvalidArgument,
+                    QStringLiteral("Backup and restore paths are required"));
+    }
+    const QFileInfo source_info(backup_path);
+    const QFileInfo destination_info(destination_path);
+    if (!source_info.isFile() || source_info.isSymLink() || destination_info.exists() ||
+        destination_info.isSymLink() ||
+        source_info.absoluteFilePath() == destination_info.absoluteFilePath()) {
+        return fail(StoreErrorCode::RestoreFailed,
+                    QStringLiteral("Restore source must be a real backup and destination new"));
+    }
+    if (const auto verified =
+            verifyDatabase(source_info.absoluteFilePath(), StoreErrorCode::RestoreFailed);
+        !verified) {
+        return verified;
+    }
+
+    const auto parent = destination_info.absolutePath();
+    if (!QDir{}.mkpath(parent) || QFileInfo(parent).isSymLink()) {
+        return fail(StoreErrorCode::RestoreFailed,
+                    QStringLiteral("Restore directory is unsafe or cannot be created"));
+    }
+    QFile source(source_info.absoluteFilePath());
+    if (!source.open(QIODevice::ReadOnly)) {
+        return fail(StoreErrorCode::RestoreFailed, QStringLiteral("Cannot read backup"));
+    }
+    QTemporaryFile staged(QDir(parent).filePath(QStringLiteral(".restore-XXXXXX.tmp")));
+    staged.setAutoRemove(true);
+    if (!staged.open()) {
+        return fail(StoreErrorCode::RestoreFailed,
+                    QStringLiteral("Cannot create staged restore"));
+    }
+    std::array<char, backup_buffer_bytes> buffer{};
+    while (true) {
+        const auto read = source.read(buffer.data(), static_cast<qint64>(buffer.size()));
+        if (read < 0) {
+            return fail(StoreErrorCode::RestoreFailed,
+                        QStringLiteral("Cannot read complete backup"));
+        }
+        if (read == 0) {
+            break;
+        }
+        if (staged.write(buffer.data(), read) != read) {
+            return fail(StoreErrorCode::RestoreFailed,
+                        QStringLiteral("Cannot write staged restore"));
+        }
+    }
+    if (!syncFile(staged)) {
+        return fail(StoreErrorCode::RestoreFailed,
+                    QStringLiteral("Cannot durably flush staged restore"));
+    }
+    const auto staged_path = staged.fileName();
+    staged.close();
+    if (const auto verified = verifyDatabase(staged_path, StoreErrorCode::RestoreFailed);
+        !verified) {
+        return verified;
+    }
+    if (!QFile::setPermissions(staged_path,
+                               QFileDevice::ReadOwner | QFileDevice::WriteOwner) ||
+        !QFile::rename(staged_path, destination_info.absoluteFilePath())) {
+        return fail(StoreErrorCode::RestoreFailed,
+                    QStringLiteral("Cannot atomically commit restored database"));
+    }
+    staged.setAutoRemove(false);
+    if (!syncDirectory(parent)) {
+        return fail(StoreErrorCode::RestoreFailed,
+                    QStringLiteral("Cannot durably flush restore directory"));
+    }
+    return {};
 }
 
 int SessionStore::schemaVersion() const {
