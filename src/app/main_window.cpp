@@ -4,6 +4,8 @@
 #include "appellate/packs/pack_reader.hpp"
 #include "bench_profile_codec.hpp"
 #include "bench_profile_editor.hpp"
+#include "installed_record_controller.hpp"
+#include "record_workspace.hpp"
 
 #include <QAction>
 #include <QComboBox>
@@ -26,6 +28,7 @@
 #include <QStandardPaths>
 #include <QStatusBar>
 #include <QStringList>
+#include <QTabWidget>
 #include <QVBoxLayout>
 #include <QVariant>
 #include <QWidget>
@@ -131,7 +134,12 @@ MainWindow::MainWindow(const QString& source_path, const QString& catalog_root, 
 MainWindow::~MainWindow() = default;
 
 void MainWindow::buildUi() {
-    auto* container = new QWidget(this);
+    workspace_tabs_ = new QTabWidget(this);
+    workspace_tabs_->setObjectName(QStringLiteral("workspaceTabs"));
+    workspace_tabs_->setAccessibleName(QStringLiteral("Case browser and verified record tabs"));
+    workspace_tabs_->setDocumentMode(true);
+
+    auto* container = new QWidget(workspace_tabs_);
     container->setObjectName(QStringLiteral("packBrowserShell"));
     auto* outer_layout = new QVBoxLayout(container);
 
@@ -241,7 +249,20 @@ void MainWindow::buildUi() {
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 3);
     outer_layout->addWidget(splitter, 1);
-    setCentralWidget(container);
+
+    browser_tab_index_ = workspace_tabs_->addTab(container, QStringLiteral("&Cases and profiles"));
+    workspace_tabs_->setTabToolTip(
+        browser_tab_index_, QStringLiteral("Browse the loaded pack, cases, and bench profiles"));
+
+    record_workspace_ = new RecordWorkspace(workspace_tabs_);
+    record_workspace_->setObjectName(QStringLiteral("installedRecordWorkspace"));
+    record_workspace_->setAccessibleName(QStringLiteral("Verified installed case record"));
+    record_tab_index_ = workspace_tabs_->addTab(record_workspace_, QStringLiteral("&Record"));
+    workspace_tabs_->setTabToolTip(
+        record_tab_index_,
+        QStringLiteral("Review PDFs materialized from the selected installed pack"));
+    workspace_tabs_->setTabEnabled(record_tab_index_, false);
+    setCentralWidget(workspace_tabs_);
 
     connect(case_list_, &QListWidget::currentRowChanged, this,
             [this](int row) { updateCaseSelection(row); });
@@ -266,6 +287,13 @@ void MainWindow::buildFileMenu() {
                     QStringLiteral("Install pack archive"),
                     QStringLiteral("Install and load a local .awpack archive"));
     install_archive_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+O")));
+
+    open_record_action_ = file_menu->addAction(QStringLiteral("Open Selected &Record"));
+    configureAction(
+        *open_record_action_, QStringLiteral("openSelectedRecordAction"),
+        QStringLiteral("Open selected installed case record"),
+        QStringLiteral("Verify and open every record PDF from the selected installed pack"));
+    open_record_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+R")));
     file_menu->addSeparator();
 
     import_profile_action_ =
@@ -312,6 +340,8 @@ void MainWindow::buildFileMenu() {
             QMessageBox::critical(this, QStringLiteral("Pack Rejected"), loaded.error());
         }
     });
+    connect(open_record_action_, &QAction::triggered, this,
+            [this] { static_cast<void>(openSelectedRecord()); });
     connect(import_profile_action_, &QAction::triggered, this, [this] {
         const auto path =
             QFileDialog::getOpenFileName(this, QStringLiteral("Import Fictional/composite Profile"),
@@ -434,7 +464,7 @@ auto MainWindow::loadSource(const QString& source_path) -> std::expected<void, Q
         return reject(runtime.error());
     }
     commitRuntime(std::move(*runtime), absolute_path,
-                  QStringLiteral("Installed and loaded pack archive."));
+                  QStringLiteral("Installed and loaded pack archive."), std::move(*loaded));
     return {};
 }
 
@@ -484,9 +514,69 @@ auto MainWindow::exportProfile(const QString& path) -> std::expected<void, QStri
     return {};
 }
 
+auto MainWindow::openSelectedRecord() -> std::expected<void, QString> {
+    const auto reject = [this](QString message) -> std::expected<void, QString> {
+        showError(message);
+        workspace_tabs_->setCurrentIndex(browser_tab_index_);
+        return std::unexpected(std::move(message));
+    };
+    if (catalog_ == nullptr || !installed_pack_ || !runtime_pack_) {
+        return reject(QStringLiteral(
+            "A case record can be opened only from a pack installed in this device's catalog"));
+    }
+    const auto selected_row = case_list_->currentRow();
+    if (selected_row < 0 || static_cast<std::size_t>(selected_row) >= runtime_pack_->cases.size()) {
+        return reject(QStringLiteral("Select an installed-pack case before opening its record"));
+    }
+
+    const auto& selected_case = runtime_pack_->cases.at(static_cast<std::size_t>(selected_row));
+    auto candidate = std::make_unique<RecordWorkspace>();
+    candidate->setObjectName(QStringLiteral("installedRecordWorkspace"));
+    candidate->setAccessibleName(QStringLiteral("Verified installed case record"));
+    app::InstalledRecordController controller(*catalog_, *candidate);
+    const auto loaded =
+        controller.load(*installed_pack_, *runtime_pack_, selected_case.definition.id);
+    if (!loaded) {
+        return reject(
+            QStringLiteral("Installed record could not be opened: %1").arg(loaded.error().message));
+    }
+    if (loaded->definition.docket.empty()) {
+        return reject(QStringLiteral("Installed record contains no docket entry to open"));
+    }
+    const auto first_document = candidate->openDocketEntry(loaded->definition.docket.front().id);
+    if (!first_document) {
+        return reject(QStringLiteral("Installed record PDF could not be displayed: %1")
+                          .arg(first_document.error().message));
+    }
+
+    auto* previous_workspace = record_workspace_;
+    workspace_tabs_->removeTab(record_tab_index_);
+    record_workspace_ = candidate.release();
+    record_workspace_->setParent(workspace_tabs_);
+    record_tab_index_ = workspace_tabs_->insertTab(
+        record_tab_index_, record_workspace_,
+        QStringLiteral("&Record — %1").arg(utf8(selected_case.record.caption)));
+    workspace_tabs_->setTabToolTip(
+        record_tab_index_,
+        QStringLiteral("Verified record for %1").arg(utf8(selected_case.record.caption)));
+    delete previous_workspace;
+
+    record_revision_ = runtime_pack_->revision;
+    record_case_id_ = selected_case.definition.id;
+    workspace_tabs_->setTabEnabled(record_tab_index_, true);
+    workspace_tabs_->setCurrentIndex(record_tab_index_);
+    showStatus(QStringLiteral("Opened %1 verified record PDF(s) from installed storage.")
+                   .arg(static_cast<qulonglong>(loaded->assets.size())));
+    updateActionStates();
+    return {};
+}
+
 void MainWindow::commitRuntime(packs::RuntimePack runtime, const QString& source_path,
-                               const QString& success_message) {
+                               const QString& success_message,
+                               std::optional<packs::LoadedPack> installed_pack) {
+    invalidateRecordSelection();
     runtime_pack_ = std::move(runtime);
+    installed_pack_ = std::move(installed_pack);
     current_source_path_ = source_path;
 
     const auto& revision = runtime_pack_->revision;
@@ -512,8 +602,32 @@ void MainWindow::commitRuntime(packs::RuntimePack runtime, const QString& source
     updateActionStates();
 }
 
+void MainWindow::invalidateRecordSelection() {
+    record_revision_.reset();
+    record_case_id_.reset();
+    if (workspace_tabs_ != nullptr) {
+        workspace_tabs_->setTabEnabled(record_tab_index_, false);
+        workspace_tabs_->setTabText(record_tab_index_, QStringLiteral("&Record"));
+        workspace_tabs_->setCurrentIndex(browser_tab_index_);
+    }
+}
+
+bool MainWindow::selectedCaseHasLoadedRecord() const {
+    if (!record_revision_ || !record_case_id_ || !runtime_pack_ ||
+        *record_revision_ != runtime_pack_->revision || case_list_->currentRow() < 0) {
+        return false;
+    }
+    const auto selected_index = static_cast<std::size_t>(case_list_->currentRow());
+    return selected_index < runtime_pack_->cases.size() &&
+           runtime_pack_->cases.at(selected_index).definition.id == *record_case_id_;
+}
+
 void MainWindow::updateCaseSelection(int row) {
     if (!runtime_pack_ || row < 0 || static_cast<std::size_t>(row) >= runtime_pack_->cases.size()) {
+        workspace_tabs_->setTabEnabled(record_tab_index_, false);
+        if (workspace_tabs_->currentIndex() == record_tab_index_) {
+            workspace_tabs_->setCurrentIndex(browser_tab_index_);
+        }
         profile_selector_->setEnabled(false);
         profile_editor_->setEnabled(false);
         updateActionStates();
@@ -521,6 +635,11 @@ void MainWindow::updateCaseSelection(int row) {
     }
 
     const auto& runtime_case = runtime_pack_->cases.at(static_cast<std::size_t>(row));
+    const auto record_matches_selection = selectedCaseHasLoadedRecord();
+    workspace_tabs_->setTabEnabled(record_tab_index_, record_matches_selection);
+    if (!record_matches_selection && workspace_tabs_->currentIndex() == record_tab_index_) {
+        workspace_tabs_->setCurrentIndex(browser_tab_index_);
+    }
     court_summary_label_->setText(QStringLiteral("Court: %1 — %2; jurisdiction %3")
                                       .arg(utf8(runtime_case.court.name),
                                            courtRoleName(runtime_case.court.role),
@@ -639,6 +758,10 @@ void MainWindow::updateActionStates() {
     const auto has_profile = profile_editor_->isEnabled() && profile_editor_->profile().has_value();
     clone_profile_action_->setEnabled(has_profile);
     export_profile_action_->setEnabled(has_profile);
+    const auto selected_row = case_list_->currentRow();
+    open_record_action_->setEnabled(
+        catalog_ != nullptr && installed_pack_.has_value() && runtime_pack_.has_value() &&
+        selected_row >= 0 && static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size());
 }
 
 void MainWindow::showError(const QString& message) {
@@ -681,6 +804,10 @@ QComboBox* MainWindow::profileSelector() const noexcept { return profile_selecto
 
 BenchProfileEditor* MainWindow::profileEditor() const noexcept { return profile_editor_; }
 
+RecordWorkspace* MainWindow::recordWorkspace() const noexcept { return record_workspace_; }
+
+QTabWidget* MainWindow::workspaceTabs() const noexcept { return workspace_tabs_; }
+
 QAction* MainWindow::openDirectoryAction() const noexcept { return open_directory_action_; }
 
 QAction* MainWindow::installArchiveAction() const noexcept { return install_archive_action_; }
@@ -690,5 +817,7 @@ QAction* MainWindow::importProfileAction() const noexcept { return import_profil
 QAction* MainWindow::cloneProfileAction() const noexcept { return clone_profile_action_; }
 
 QAction* MainWindow::exportProfileAction() const noexcept { return export_profile_action_; }
+
+QAction* MainWindow::openRecordAction() const noexcept { return open_record_action_; }
 
 } // namespace appellate::ui

@@ -1,6 +1,7 @@
 #include "appellate/packs/pack_archive.hpp"
 #include "bench_profile_editor.hpp"
 #include "main_window.hpp"
+#include "record_workspace.hpp"
 
 #include <QAction>
 #include <QApplication>
@@ -15,6 +16,7 @@
 #include <QJsonObject>
 #include <QLabel>
 #include <QListWidget>
+#include <QTabWidget>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QVariant>
@@ -34,6 +36,8 @@ class MainWindowTest final : public QObject {
     void installsAndLoadsArchiveInInjectedCatalog();
     void malformedSourcePreservesLoadedState();
     void caseAndProfileSelectionStayInSync();
+    void installedRecordActionOpensSearchablePdf();
+    void recordFailuresPreserveLastGoodWorkspace();
     void actionsExposeAccessibleUsefulStates();
 };
 
@@ -311,6 +315,104 @@ void MainWindowTest::caseAndProfileSelectionStayInSync() {
     QVERIFY(window.benchSummaryLabel()->text().contains(QStringLiteral("Judge Willow")));
 }
 
+void MainWindowTest::installedRecordActionOpensSearchablePdf() {
+    QTemporaryDir state;
+    QVERIFY(state.isValid());
+    const auto archive_path = QDir(state.path()).filePath(QStringLiteral("fixture.awpack"));
+    const auto exported =
+        PackArchive::exportDirectory(fixture(QStringLiteral("full-resource-pack")), archive_path);
+    if (!exported) {
+        QFAIL(qPrintable(exported.error().message));
+    }
+
+    const auto catalog = QDir(state.path()).filePath(QStringLiteral("catalog"));
+    MainWindow window({}, catalog);
+    QVERIFY(!window.openRecordAction()->isEnabled());
+    const auto installed = window.loadSource(archive_path);
+    if (!installed) {
+        QFAIL(qPrintable(installed.error()));
+    }
+    window.caseList()->setCurrentRow(-1);
+    QVERIFY(!window.openRecordAction()->isEnabled());
+    window.caseList()->setCurrentRow(0);
+    QVERIFY(window.openRecordAction()->isEnabled());
+    QCOMPARE(window.openRecordAction()->shortcut(), QKeySequence(QStringLiteral("Ctrl+R")));
+    QVERIFY(!window.openRecordAction()->property("accessibleName").toString().isEmpty());
+    QVERIFY(!window.workspaceTabs()->accessibleName().isEmpty());
+
+    QVERIFY(QFile::remove(archive_path));
+    window.openRecordAction()->trigger();
+    QVERIFY2(window.errorLabel()->text().isEmpty(), qPrintable(window.errorLabel()->text()));
+
+    auto* workspace = window.recordWorkspace();
+    QVERIFY(workspace != nullptr);
+    QCOMPARE(window.workspaceTabs()->currentWidget(), workspace);
+    QVERIFY(window.workspaceTabs()->isTabEnabled(window.workspaceTabs()->indexOf(workspace)));
+    QCOMPARE(workspace->currentDocumentId(), QStringLiteral("example.record.entry-one"));
+    QCOMPARE(workspace->loadedPageCount(), 3);
+    QVERIFY(!workspace->accessibleName().isEmpty());
+    workspace->setDocumentSearch(QStringLiteral("Fictional Final Order - Page 2"));
+    QTRY_COMPARE_WITH_TIMEOUT(workspace->documentSearchResultCount(), 1, 10'000);
+}
+
+void MainWindowTest::recordFailuresPreserveLastGoodWorkspace() {
+    QTemporaryDir state;
+    QVERIFY(state.isValid());
+    const auto archive_path = QDir(state.path()).filePath(QStringLiteral("fixture.awpack"));
+    const auto exported =
+        PackArchive::exportDirectory(fixture(QStringLiteral("full-resource-pack")), archive_path);
+    if (!exported) {
+        QFAIL(qPrintable(exported.error().message));
+    }
+
+    const auto catalog = QDir(state.path()).filePath(QStringLiteral("catalog"));
+    MainWindow window({}, catalog);
+    const auto installed = window.loadSource(archive_path);
+    if (!installed) {
+        QFAIL(qPrintable(installed.error()));
+    }
+    const auto opened = window.openSelectedRecord();
+    if (!opened) {
+        QFAIL(qPrintable(opened.error()));
+    }
+    auto* const last_good_workspace = window.recordWorkspace();
+    QCOMPARE(last_good_workspace->loadedPageCount(), 3);
+    const auto last_good_document = last_good_workspace->currentDocumentId();
+
+    const auto& entry = window.currentRuntime()->cases.front().record.docket_entries.front();
+    const auto object_path = QDir(catalog).filePath(QStringLiteral("blobs/") +
+                                                    QString::fromStdString(entry.asset_sha256));
+    QVERIFY(QFileInfo(object_path).isFile());
+    QDir archives(QDir(catalog).filePath(QStringLiteral("archives")));
+    const auto installed_archives =
+        archives.entryList({QStringLiteral("*.awpack")}, QDir::Files | QDir::NoSymLinks);
+    QCOMPARE(installed_archives.size(), 1);
+    QVERIFY(QFile::remove(archives.filePath(installed_archives.front())));
+
+    QFile corrupt_object(object_path);
+    QVERIFY(corrupt_object.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    QCOMPARE(corrupt_object.write("not a valid installed PDF"), qint64{25});
+    corrupt_object.close();
+    const auto corrupt_result = window.openSelectedRecord();
+    QVERIFY(!corrupt_result.has_value());
+    QVERIFY(corrupt_result.error().contains(QStringLiteral("could not be materialized")));
+    QCOMPARE(window.recordWorkspace(), last_good_workspace);
+    QCOMPARE(last_good_workspace->loadedPageCount(), 3);
+    QCOMPARE(last_good_workspace->currentDocumentId(), last_good_document);
+    QVERIFY(
+        window.workspaceTabs()->isTabEnabled(window.workspaceTabs()->indexOf(last_good_workspace)));
+    QVERIFY(!window.errorLabel()->isHidden());
+    QVERIFY(window.errorLabel()->text().contains(QStringLiteral("Installed record")));
+
+    QVERIFY(QFile::remove(object_path));
+    const auto missing_result = window.openSelectedRecord();
+    QVERIFY(!missing_result.has_value());
+    QVERIFY(missing_result.error().contains(QStringLiteral("could not be materialized")));
+    QCOMPARE(window.recordWorkspace(), last_good_workspace);
+    QCOMPARE(last_good_workspace->loadedPageCount(), 3);
+    QCOMPARE(last_good_workspace->currentDocumentId(), last_good_document);
+}
+
 void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QTemporaryDir state;
     QVERIFY(state.isValid());
@@ -321,10 +423,11 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(window.importProfileAction()->isEnabled());
     QVERIFY(!window.cloneProfileAction()->isEnabled());
     QVERIFY(!window.exportProfileAction()->isEnabled());
+    QVERIFY(!window.openRecordAction()->isEnabled());
 
     const std::array actions{
         window.openDirectoryAction(), window.installArchiveAction(), window.importProfileAction(),
-        window.cloneProfileAction(),  window.exportProfileAction(),
+        window.cloneProfileAction(),  window.exportProfileAction(),  window.openRecordAction(),
     };
     for (const auto* action : actions) {
         QVERIFY(action != nullptr);
@@ -341,6 +444,7 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     }
     QVERIFY(window.cloneProfileAction()->isEnabled());
     QVERIFY(window.exportProfileAction()->isEnabled());
+    QVERIFY(!window.openRecordAction()->isEnabled());
     QVERIFY(!window.caseList()->accessibleName().isEmpty());
     QVERIFY(!window.profileSelector()->accessibleName().isEmpty());
     QVERIFY(window.caseList()->focusPolicy() != Qt::NoFocus);

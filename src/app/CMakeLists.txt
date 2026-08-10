@@ -72,6 +72,7 @@ target_link_libraries(
     PUBLIC
         appellate::bench_profile_ui
         appellate::packs
+        appellate::record_ui
         Qt6::Widgets
     PRIVATE
         appellate::project_warnings
