@@ -131,6 +131,18 @@ target_link_libraries(
 target_compile_features(tst_event_codec PRIVATE cxx_std_26)
 add_test(NAME event_codec COMMAND tst_event_codec)
 
+qt_add_executable(tst_workflow_codec storage/tst_workflow_codec.cpp)
+target_link_libraries(
+    tst_workflow_codec
+    PRIVATE
+        appellate::storage
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_workflow_codec PRIVATE cxx_std_26)
+add_test(NAME workflow_codec COMMAND tst_workflow_codec)
+
 qt_add_executable(tst_initiation_resume integration/tst_initiation_resume.cpp)
 target_link_libraries(
     tst_initiation_resume

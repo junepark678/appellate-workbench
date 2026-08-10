@@ -3,9 +3,11 @@ qt_add_library(
     src/asset_store.cpp
     src/event_codec.cpp
     src/sqlite_session_store.cpp
+    src/workflow_codec.cpp
     include/appellate/storage/asset_store.hpp
     include/appellate/storage/event_codec.hpp
     include/appellate/storage/session_store.hpp
+    include/appellate/storage/workflow_codec.hpp
     migrations/001_initial.sql
 )
 add_library(appellate::storage ALIAS appellate_storage)
