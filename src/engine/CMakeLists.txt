@@ -2,9 +2,11 @@ add_library(
     appellate_engine STATIC
     src/business_calendar.cpp
     src/procedure_engine.cpp
+    src/workflow_engine.cpp
     include/appellate/engine/business_calendar.hpp
     include/appellate/engine/error.hpp
     include/appellate/engine/procedure_engine.hpp
+    include/appellate/engine/workflow_engine.hpp
 )
 add_library(appellate::engine ALIAS appellate_engine)
 
