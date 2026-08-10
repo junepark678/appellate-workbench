@@ -1,5 +1,9 @@
 # Product contract
 
+The platform boundary in [ADR 0001](adr/0001-native-offline-mvp.md) is binding on this
+contract; changes that add a server, account system, browser runtime, or network requirement
+must replace that accepted decision explicitly.
+
 ## MVP promise
 
 Appellate Workbench is a single-user, local-first native workstation in which a learner can

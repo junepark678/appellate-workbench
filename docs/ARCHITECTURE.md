@@ -1,5 +1,8 @@
 # Architecture
 
+This architecture implements the accepted
+[native, offline-first MVP boundary](adr/0001-native-offline-mvp.md).
+
 ## Shape
 
 Appellate Workbench is a native Qt 6 application compiled in C++26 mode. Qt Widgets is used
