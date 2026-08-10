@@ -40,6 +40,8 @@ target_compile_features(appellate_bench_profile_ui PUBLIC cxx_std_26)
 
 qt_add_library(
     appellate_record_ui STATIC
+    installed_record_controller.cpp
+    installed_record_controller.hpp
     record_workspace.cpp
     record_workspace.hpp
 )
@@ -50,7 +52,7 @@ target_include_directories(
 )
 target_link_libraries(
     appellate_record_ui
-    PUBLIC Qt6::Core Qt6::Pdf Qt6::PdfWidgets Qt6::Widgets
+    PUBLIC appellate::packs Qt6::Core Qt6::Pdf Qt6::PdfWidgets Qt6::Widgets
     PRIVATE appellate::project_warnings appellate::project_sanitizers
 )
 target_compile_features(appellate_record_ui PUBLIC cxx_std_26)
