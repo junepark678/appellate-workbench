@@ -237,7 +237,7 @@
       "kind": "realism_review",
       "schema_version": 1,
       "path": "resources/realism-review.json",
-      "sha256": "922f5710ab2e1dd187897c54f6a5df97dd6d8d6ec8607b41172f36732b7eb692"
+      "sha256": "d58c4dd55b036a8c6aa2c82cb91a7986eae3153cbaccb6937c81838fd60ca8fa"
     },
     {
       "id": "ca4r54b.record.asterglen",
@@ -251,7 +251,7 @@
       "kind": "workflow",
       "schema_version": 1,
       "path": "resources/workflow.json",
-      "sha256": "8159a8b4d4b27b3ad0f1eba274b2acd3554830f6de69f02b2cc64077429ee572"
+      "sha256": "34ec0b3eb5fec81be844b3665a90c0cc8ffb5964813cf43722dba99288e0ce35"
     }
   ]
 }

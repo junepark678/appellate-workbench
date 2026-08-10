@@ -87,6 +87,13 @@ actor, trigger instant and court date, and deadline ID. Replay recalculates the 
 rejects a changed trigger, authority, identifier, calendar, or result. Wall-clock time is never
 read inside the engine.
 
+Court-controlled stage transitions use an explicit `AdvanceWorkflowStage` command. The command
+contains only the common header and an `advance_stage` operation ID: the pinned workflow
+definition supplies both the next stage and its versioned authority. The operation must belong to
+the current stage and authorize the command actor's court role. Filing-route `advance_operation_id`
+references are limited to operations with no court-role restriction, so a party filing cannot
+silently exercise an operation reserved to the court.
+
 ## Dependencies and compatibility
 
 Dependencies lock an exact pack ID, version, and digest. Optional or version-range dependencies

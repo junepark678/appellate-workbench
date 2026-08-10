@@ -589,7 +589,6 @@
       "required_service_role_ids": [],
       "accept_operation_id": "ca4r54b.operation.accept-notice",
       "reject_operation_id": "ca4r54b.operation.reject-notice",
-      "advance_operation_id": "ca4r54b.operation.advance-docketed",
       "reject_after_deadline": false
     },
     {
@@ -624,7 +623,6 @@
         "deadline_id": "ca4r54b.deadline.response-brief",
         "operation_id": "ca4r54b.operation.calculate-response-brief-deadline"
       },
-      "advance_operation_id": "ca4r54b.operation.advance-response-briefing",
       "reject_after_deadline": false
     },
     {
@@ -638,7 +636,6 @@
       "required_service_role_ids": ["ca4r54b.role.appellant"],
       "accept_operation_id": "ca4r54b.operation.accept-response-brief",
       "reject_operation_id": "ca4r54b.operation.reject-response-brief",
-      "advance_operation_id": "ca4r54b.operation.advance-submitted",
       "satisfies_deadline_id": "ca4r54b.deadline.response-brief",
       "reject_after_deadline": true
     }

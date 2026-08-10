@@ -214,6 +214,23 @@ target_compile_definitions(
 target_compile_features(tst_out_of_tree_pack PRIVATE cxx_std_26)
 add_test(NAME out_of_tree_pack COMMAND tst_out_of_tree_pack)
 
+qt_add_executable(tst_gold_case_trace integration/tst_gold_case_trace.cpp)
+target_link_libraries(
+    tst_gold_case_trace
+    PRIVATE
+        appellate::packs
+        appellate::engine
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_gold_case_trace
+    PRIVATE APPELLATE_GOLD_PACK="${PROJECT_SOURCE_DIR}/content/ca4-rule54b/pack"
+)
+target_compile_features(tst_gold_case_trace PRIVATE cxx_std_26)
+add_test(NAME gold_case_trace COMMAND tst_gold_case_trace)
+
 qt_add_executable(tst_bench_profile_editor ui/tst_bench_profile_editor.cpp)
 target_link_libraries(
     tst_bench_profile_editor

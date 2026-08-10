@@ -101,9 +101,18 @@ struct CalculateWorkflowDeadline final {
                            const CalculateWorkflowDeadline&) = default;
 };
 
+// Records a court-controlled transition whose destination and authority are
+// supplied exclusively by the pinned workflow definition.
+struct AdvanceWorkflowStage final {
+    WorkflowCommandHeader header;
+    WorkflowOperationId operation_id;
+
+    friend bool operator==(const AdvanceWorkflowStage&, const AdvanceWorkflowStage&) = default;
+};
+
 using WorkflowCommand =
     std::variant<SubmitWorkflowFiling, EnterWorkflowOrder, SetWorkflowSealed,
                  ScheduleWorkflowArgument, IssueWorkflowJudgment, IssueWorkflowMandate,
-                 CalculateWorkflowDeadline>;
+                 CalculateWorkflowDeadline, AdvanceWorkflowStage>;
 
 } // namespace appellate::model

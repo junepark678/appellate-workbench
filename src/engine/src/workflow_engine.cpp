@@ -378,7 +378,8 @@ template <typename Range, typename Projection>
              (accepted_deadline == nullptr ||
               accepted_deadline->opcode != model::WorkflowOpcode::CalculateDeadline)) ||
             (route.advance_operation_id.has_value() &&
-             (advance == nullptr || advance->opcode != model::WorkflowOpcode::AdvanceStage))) {
+             (advance == nullptr || advance->opcode != model::WorkflowOpcode::AdvanceStage ||
+              !advance->authorized_roles.empty()))) {
             return fail(WorkflowErrorCode::InvalidDefinition,
                         "filing route references incompatible operations");
         }
@@ -898,6 +899,25 @@ decideOrder(const model::WorkflowDefinition& workflow, const model::CaseDefiniti
         model::WorkflowDeadlinePurpose::Filing, command.header.occurred_at.court_date, due}};
 }
 
+[[nodiscard]] auto
+decideAdvance(const model::WorkflowDefinition& workflow,
+              const model::CaseDefinition& case_definition, const model::WorkflowState& state,
+              const model::AdvanceWorkflowStage& command)
+    -> std::expected<std::vector<model::WorkflowEvent>, WorkflowError> {
+    const auto operation = requireCourtOperation(workflow, case_definition, state, command,
+                                                 model::WorkflowOpcode::AdvanceStage);
+    if (!operation) {
+        return std::unexpected(operation.error());
+    }
+    if (!(**operation).next_stage_id.has_value()) {
+        return fail(WorkflowErrorCode::InvalidDefinition,
+                    "advance operation has no destination stage");
+    }
+    return std::vector<model::WorkflowEvent>{model::WorkflowStageAdvanced{
+        makeHeader(workflow, state, command.header, **operation, 0, 1), state.current_stage_id,
+        *(**operation).next_stage_id}};
+}
+
 template <typename Event>
 [[nodiscard]] auto oneEvent(const model::WorkflowDefinition& workflow,
                             const model::WorkflowState& state,
@@ -1030,6 +1050,8 @@ decideWorkflowImpl(const model::WorkflowDefinition& workflow,
                 return decideOrder(workflow, case_definition, state, concrete);
             } else if constexpr (std::same_as<Command, model::CalculateWorkflowDeadline>) {
                 return decideDeadline(workflow, case_definition, state, concrete);
+            } else if constexpr (std::same_as<Command, model::AdvanceWorkflowStage>) {
+                return decideAdvance(workflow, case_definition, state, concrete);
             } else if constexpr (std::same_as<Command, model::SetWorkflowSealed>) {
                 const auto operation = requireCourtOperation(
                     workflow, case_definition, state, concrete, model::WorkflowOpcode::SetSealed);

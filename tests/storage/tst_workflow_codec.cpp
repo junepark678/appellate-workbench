@@ -98,6 +98,8 @@ eventHeader(std::string command_id, std::string operation_id, std::uint64_t sequ
             commandHeader("test.command.deadline"),
             model::WorkflowOperationId{"test.operation.deadline"},
             model::WorkflowDeadlineId{"test.deadline.opening"}},
+        model::AdvanceWorkflowStage{commandHeader("test.command.advance"),
+                                    model::WorkflowOperationId{"test.operation.advance"}},
     };
 }
 
@@ -193,7 +195,7 @@ void WorkflowCodecTest::roundTripsEveryCommandVariant() {
         QStringLiteral("filing.submit"),  QStringLiteral("order.enter"),
         QStringLiteral("sealed.set"),     QStringLiteral("argument.schedule"),
         QStringLiteral("judgment.issue"), QStringLiteral("mandate.issue"),
-        QStringLiteral("deadline.calculate")};
+        QStringLiteral("deadline.calculate"), QStringLiteral("stage.advance")};
     const auto values = commands();
     QCOMPARE(values.size(), static_cast<std::size_t>(expected_types.size()));
     for (std::size_t index = 0; index < values.size(); ++index) {
@@ -325,6 +327,22 @@ void WorkflowCodecTest::rejectsUnknownTypesVersionsAndKeys() {
     envelope = commandObject(commands().front());
     auto payload = envelope.value(QStringLiteral("payload")).toObject();
     payload.remove(QStringLiteral("actor_id"));
+    envelope.insert(QStringLiteral("payload"), payload);
+    command = storage::decodeWorkflowCommand(compact(envelope));
+    QVERIFY(!command.has_value());
+    QCOMPARE(command.error().code, WorkflowCodecErrorCode::MissingField);
+
+    envelope = commandObject(commands().back());
+    payload = envelope.value(QStringLiteral("payload")).toObject();
+    payload.insert(QStringLiteral("next_stage_id"), QStringLiteral("test.stage.forged"));
+    envelope.insert(QStringLiteral("payload"), payload);
+    command = storage::decodeWorkflowCommand(compact(envelope));
+    QVERIFY(!command.has_value());
+    QCOMPARE(command.error().code, WorkflowCodecErrorCode::UnexpectedField);
+
+    envelope = commandObject(commands().back());
+    payload = envelope.value(QStringLiteral("payload")).toObject();
+    payload.remove(QStringLiteral("operation_id"));
     envelope.insert(QStringLiteral("payload"), payload);
     command = storage::decodeWorkflowCommand(compact(envelope));
     QVERIFY(!command.has_value());
