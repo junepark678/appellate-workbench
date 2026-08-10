@@ -22,6 +22,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(CTest)
 
+find_package(LibArchive REQUIRED)
 find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Sql Widgets)
 qt_standard_project_setup(REQUIRES 6.8)
 
