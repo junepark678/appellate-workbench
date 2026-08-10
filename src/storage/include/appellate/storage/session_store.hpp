@@ -47,12 +47,20 @@ struct DocketWrite final {
     QString status;
 };
 
+struct AssetReference final {
+    QString digest;
+    QString purpose;
+
+    friend bool operator==(const AssetReference&, const AssetReference&) = default;
+};
+
 struct CommitBatch final {
     QString command_id;
     QByteArray command_json;
     QString recorded_at_utc;
     std::vector<EventWrite> events;
     std::vector<DocketWrite> docket_changes;
+    std::vector<AssetReference> asset_references{};
 };
 
 struct StoredEvent final {
@@ -80,6 +88,7 @@ struct SessionSnapshot final {
     std::vector<RevisionPin> pins;
     std::vector<StoredEvent> events;
     std::vector<DocketEntry> docket;
+    std::vector<AssetReference> asset_references{};
 };
 
 class SessionStore final {

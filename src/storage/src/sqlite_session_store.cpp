@@ -1,17 +1,21 @@
 #include "appellate/storage/session_store.hpp"
 
+#include <QSet>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QUuid>
 #include <QVariant>
 
 #include <limits>
+#include <ranges>
 #include <utility>
 
 namespace appellate::storage {
 namespace {
 
 constexpr auto current_schema_version = 1;
+constexpr qsizetype maximum_asset_purpose_length = 128;
+constexpr std::size_t maximum_asset_references_per_batch = 4096;
 
 [[nodiscard]] auto fail(StoreErrorCode code, QString message) -> std::unexpected<StoreError> {
     return std::unexpected(StoreError{code, std::move(message)});
@@ -37,6 +41,17 @@ constexpr auto current_schema_version = 1;
         }
     }
     return true;
+}
+
+[[nodiscard]] bool validAssetPurpose(const QString& value) {
+    if (value.isEmpty() || value.size() > maximum_asset_purpose_length) {
+        return false;
+    }
+    return std::ranges::all_of(value, [](QChar character) {
+        return (character >= u'a' && character <= u'z') ||
+               (character >= u'0' && character <= u'9') || character == u'.' || character == u'_' ||
+               character == u'-' || character == u':';
+    });
 }
 
 [[nodiscard]] auto execStatement(QSqlDatabase& database, const QString& sql, StoreErrorCode code,
@@ -120,9 +135,7 @@ CREATE TABLE IF NOT EXISTS asset_references (
 SessionStore::SessionStore(QString connection_name)
     : connection_name_(std::move(connection_name)) {}
 
-SessionStore::~SessionStore() {
-    closeConnection();
-}
+SessionStore::~SessionStore() { closeConnection(); }
 
 void SessionStore::closeConnection() {
     if (connection_name_.isEmpty()) {
@@ -308,6 +321,21 @@ std::expected<qint64, StoreError> SessionStore::append(const QString& session_id
             return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Invalid docket change"));
         }
     }
+    if (batch.asset_references.size() > maximum_asset_references_per_batch) {
+        return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Too many asset references"));
+    }
+    QSet<QString> asset_reference_keys;
+    for (const auto& reference : batch.asset_references) {
+        if (!validDigest(reference.digest) || !validAssetPurpose(reference.purpose)) {
+            return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Invalid asset reference"));
+        }
+        const auto key = reference.digest + QChar::Null + reference.purpose;
+        if (asset_reference_keys.contains(key)) {
+            return fail(StoreErrorCode::InvalidArgument,
+                        QStringLiteral("Duplicate asset reference in commit batch"));
+        }
+        asset_reference_keys.insert(key);
+    }
 
     if (auto begun = beginImmediate(); !begun) {
         return std::unexpected(begun.error());
@@ -382,6 +410,20 @@ std::expected<qint64, StoreError> SessionStore::append(const QString& session_id
         }
     }
 
+    QSqlQuery asset(database_);
+    asset.prepare(QStringLiteral(
+        "INSERT INTO asset_references(session_id, digest, purpose) VALUES(?, ?, ?)"));
+    for (const auto& reference : batch.asset_references) {
+        asset.bindValue(0, session_id);
+        asset.bindValue(1, reference.digest);
+        asset.bindValue(2, reference.purpose);
+        if (!asset.exec()) {
+            rollback();
+            return queryFailure(StoreErrorCode::ConstraintViolation, asset,
+                                QStringLiteral("link session asset"));
+        }
+    }
+
     const auto new_sequence = expected_sequence + static_cast<qint64>(batch.events.size());
     QSqlQuery update(database_);
     update.prepare(
@@ -415,7 +457,7 @@ SessionStore::loadSession(const QString& session_id) const {
     }
 
     SessionSnapshot snapshot{
-        session_id, session.value(0).toString(), session.value(1).toLongLong(), {}, {}, {}};
+        session_id, session.value(0).toString(), session.value(1).toLongLong(), {}, {}, {}, {}};
 
     QSqlQuery pins(database_);
     pins.prepare(QStringLiteral(
@@ -455,6 +497,20 @@ SessionStore::loadSession(const QString& session_id) const {
         snapshot.docket.push_back(
             DocketEntry{docket.value(0).toString(), docket.value(1).toLongLong(),
                         docket.value(2).toString(), docket.value(3).toString()});
+    }
+
+    QSqlQuery assets(database_);
+    assets.prepare(
+        QStringLiteral("SELECT digest, purpose FROM asset_references WHERE session_id = ? "
+                       "ORDER BY purpose, digest"));
+    assets.addBindValue(session_id);
+    if (!assets.exec()) {
+        return queryFailure(StoreErrorCode::QueryFailed, assets,
+                            QStringLiteral("load asset references"));
+    }
+    while (assets.next()) {
+        snapshot.asset_references.push_back(
+            AssetReference{assets.value(0).toString(), assets.value(1).toString()});
     }
     return snapshot;
 }
