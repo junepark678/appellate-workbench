@@ -212,3 +212,20 @@ target_link_libraries(
 target_compile_features(tst_record_workspace PRIVATE cxx_std_26)
 add_test(NAME record_workspace COMMAND tst_record_workspace)
 set_tests_properties(record_workspace PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+qt_add_executable(tst_main_window ui/tst_main_window.cpp)
+target_link_libraries(
+    tst_main_window
+    PRIVATE
+        appellate::desktop_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_main_window
+    PRIVATE APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+)
+target_compile_features(tst_main_window PRIVATE cxx_std_26)
+add_test(NAME main_window COMMAND tst_main_window)
+set_tests_properties(main_window PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

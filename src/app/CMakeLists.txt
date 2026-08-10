@@ -53,22 +53,38 @@ target_link_libraries(
 )
 target_compile_features(appellate_record_ui PUBLIC cxx_std_26)
 
-qt_add_executable(
-    appellate-workbench
-    main.cpp
+qt_add_library(
+    appellate_desktop_ui STATIC
     main_window.cpp
     main_window.hpp
 )
+add_library(appellate::desktop_ui ALIAS appellate_desktop_ui)
+target_include_directories(
+    appellate_desktop_ui
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+target_link_libraries(
+    appellate_desktop_ui
+    PUBLIC
+        appellate::bench_profile_ui
+        appellate::packs
+        Qt6::Widgets
+    PRIVATE
+        appellate::project_warnings
+        appellate::project_sanitizers
+)
+target_compile_features(appellate_desktop_ui PUBLIC cxx_std_26)
+
+qt_add_executable(appellate-workbench main.cpp)
 
 target_link_libraries(
     appellate-workbench
     PRIVATE
-        appellate::packs
         appellate::application
+        appellate::desktop_ui
         appellate::record_ui
         appellate::project_warnings
         appellate::project_sanitizers
-        Qt6::Widgets
 )
 target_compile_features(appellate-workbench PRIVATE cxx_std_26)
 
