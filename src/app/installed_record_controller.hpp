@@ -17,6 +17,7 @@ namespace appellate::app {
 
 enum class InstalledRecordErrorCode {
     RevisionMismatch,
+    RuntimeMismatch,
     MissingCase,
     InvalidSelection,
     OrphanRecord,
@@ -55,7 +56,9 @@ struct InstalledRecordLoad final {
 };
 
 // Bridges a runtime case to the native record workspace exclusively through the installed
-// catalog. Authoring-directory paths are never accepted or resolved here.
+// catalog. Authoring-directory paths are never accepted or resolved here. `loaded_pack` must be
+// trusted output of PackReader/PackCatalog; the separately supplied runtime is equality-checked
+// against a fresh canonical projection and is never used after that check.
 class InstalledRecordController final {
   public:
     InstalledRecordController(packs::PackCatalog& catalog, ui::RecordWorkspace& workspace);

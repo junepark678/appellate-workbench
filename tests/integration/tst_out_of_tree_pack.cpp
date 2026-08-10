@@ -83,6 +83,7 @@ class OutOfTreePackTest final : public QObject {
     void rejectsRemovedLinkedResource();
     void rejectsDuplicateAndMutatedResources();
     void validatesRouteOutcomesAndAllowsCatalogSuperset();
+    void preservesRichRecordMetadataAndRejectsTampering();
 };
 
 void OutOfTreePackTest::drivesBuiltInWorkflowFromInstalledArchive() {
@@ -124,6 +125,27 @@ void OutOfTreePackTest::drivesBuiltInWorkflowFromInstalledArchive() {
     QCOMPARE(runtime_case.record.docket_entries.front().id.value,
              std::string("example.record.entry-one"));
     QCOMPARE(runtime_case.record.docket_entries.front().page_count, std::uint32_t{3});
+    QCOMPARE(runtime_case.record.dockets.size(), std::size_t{2});
+    QCOMPARE(runtime_case.record.dockets.front().id.value,
+             std::string("example.docket.district"));
+    QCOMPARE(runtime_case.record.dockets.front().type, packs::RuntimeDocketType::District);
+    QVERIFY(!runtime_case.record.dockets.front().court_id.has_value());
+    QCOMPARE(runtime_case.record.dockets.at(1).court_id->value,
+             std::string("example.court.fictional"));
+    const auto& record_entry = runtime_case.record.docket_entries.front();
+    QCOMPARE(record_entry.docket_id->value, std::string("example.docket.district"));
+    QCOMPARE(*record_entry.entry_label, std::string("ECF No. 42"));
+    QCOMPARE(*record_entry.actor, std::string("District clerk"));
+    QCOMPARE(record_entry.tags,
+             std::vector<std::string>({"appealable", "dispositive"}));
+    QCOMPARE(runtime_case.record.page_anchors.size(), std::size_t{1});
+    QCOMPARE(runtime_case.record.page_anchors.front().id.value,
+             std::string("example.record.anchor.ja2"));
+    QCOMPARE(runtime_case.record.page_anchors.front().page_number, std::uint32_t{2});
+    QCOMPARE(*runtime_case.record.page_anchors.front().citation_label, std::string("JA2"));
+    QCOMPARE(runtime_case.issues.front().record_anchor_ids.size(), std::size_t{2});
+    QCOMPARE(runtime_case.issues.front().record_anchor_ids.at(1).value,
+             std::string("example.record.anchor.ja2"));
     QCOMPARE(runtime_case.argument_configurations.size(), std::size_t{1});
 
     const auto& argument = runtime_case.argument_configurations.front();
@@ -255,6 +277,62 @@ void OutOfTreePackTest::validatesRouteOutcomesAndAllowsCatalogSuperset() {
         QVERIFY(result.error().code == packs::RuntimePackErrorCode::CrossReferenceFailure ||
                 result.error().code == packs::RuntimePackErrorCode::InvalidResource);
     }
+}
+
+void OutOfTreePackTest::preservesRichRecordMetadataAndRejectsTampering() {
+    auto loaded = packs::PackReader::readDirectory(fullPackPath());
+    QVERIFY(loaded.has_value());
+    auto record = std::ranges::find_if(
+        loaded->resources, [](const packs::ValidatedResource& resource) {
+            return resource.descriptor.kind == model::ResourceKind::Record;
+        });
+    QVERIFY(record != loaded->resources.end());
+    auto entries = record->document.value(QStringLiteral("docket_entries")).toArray();
+    auto second = entries.at(0).toObject();
+    second.insert(QStringLiteral("entry_id"), QStringLiteral("example.record.entry-two"));
+    second.insert(QStringLiteral("entry_number"), 2);
+    second.insert(QStringLiteral("entry_label"), QStringLiteral("ECF No. 42-1"));
+    second.insert(QStringLiteral("parent_entry_id"),
+                  QStringLiteral("example.record.entry-one"));
+    second.insert(QStringLiteral("relationship"), QStringLiteral("attachment"));
+    entries.push_back(second);
+    record->document.insert(QStringLiteral("docket_entries"), entries);
+
+    auto runtime = packs::loadRuntimePack(*loaded);
+    QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+    const auto& attachment = runtime->cases.front().record.docket_entries.at(1);
+    QCOMPARE(attachment.parent_entry_id->value, std::string("example.record.entry-one"));
+    QCOMPARE(*attachment.relationship, packs::RuntimeRecordEntryRelationship::Attachment);
+
+    auto cycle = *loaded;
+    auto cycle_record = std::ranges::find_if(
+        cycle.resources, [](const packs::ValidatedResource& resource) {
+            return resource.descriptor.kind == model::ResourceKind::Record;
+        });
+    auto cycle_entries = cycle_record->document.value(QStringLiteral("docket_entries")).toArray();
+    auto first = cycle_entries.at(0).toObject();
+    first.insert(QStringLiteral("parent_entry_id"),
+                 QStringLiteral("example.record.entry-two"));
+    first.insert(QStringLiteral("relationship"), QStringLiteral("component"));
+    cycle_entries.replace(0, first);
+    cycle_record->document.insert(QStringLiteral("docket_entries"), cycle_entries);
+    const auto cycle_result = packs::loadRuntimePack(cycle);
+    QVERIFY(!cycle_result.has_value());
+    QCOMPARE(cycle_result.error().code, packs::RuntimePackErrorCode::CrossReferenceFailure);
+
+    auto bad_page = *loaded;
+    auto bad_page_record = std::ranges::find_if(
+        bad_page.resources, [](const packs::ValidatedResource& resource) {
+            return resource.descriptor.kind == model::ResourceKind::Record;
+        });
+    auto anchors = bad_page_record->document.value(QStringLiteral("page_anchors")).toArray();
+    auto anchor = anchors.at(0).toObject();
+    anchor.insert(QStringLiteral("page_number"), 4);
+    anchors.replace(0, anchor);
+    bad_page_record->document.insert(QStringLiteral("page_anchors"), anchors);
+    const auto page_result = packs::loadRuntimePack(bad_page);
+    QVERIFY(!page_result.has_value());
+    QCOMPARE(page_result.error().code, packs::RuntimePackErrorCode::CrossReferenceFailure);
 }
 
 } // namespace

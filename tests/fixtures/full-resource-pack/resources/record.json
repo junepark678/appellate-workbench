@@ -3,16 +3,46 @@
   "resource_kind": "record",
   "resource_id": "example.record.fictional",
   "caption": "Example Appellant v. Example Appellee",
+  "dockets": [
+    {
+      "docket_id": "example.docket.district",
+      "docket_type": "district",
+      "court_ref": "Fictional U.S. District Court",
+      "public_docket_number": "1:25-cv-0042",
+      "caption": "Example Appellant v. Example Appellee"
+    },
+    {
+      "docket_id": "example.docket.appellate",
+      "docket_type": "appellate",
+      "court_id": "example.court.fictional",
+      "court_ref": "Fictional Court of Appeals",
+      "public_docket_number": "26-1001",
+      "caption": "Example Appellant v. Example Appellee"
+    }
+  ],
   "docket_entries": [
     {
       "entry_id": "example.record.entry-one",
       "entry_number": 1,
+      "docket_id": "example.docket.district",
+      "entry_label": "ECF No. 42",
       "filed_on": "2026-01-02",
       "title": "Final Order",
+      "actor": "District clerk",
+      "description": "Final order resolving the fictional district-court action",
+      "tags": ["appealable", "dispositive"],
       "asset_path": "objects/final-order.pdf",
       "asset_sha256": "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366",
       "page_count": 3,
       "sealed": false
+    }
+  ],
+  "page_anchors": [
+    {
+      "anchor_id": "example.record.anchor.ja2",
+      "entry_id": "example.record.entry-one",
+      "page_number": 2,
+      "citation_label": "JA2"
     }
   ]
 }

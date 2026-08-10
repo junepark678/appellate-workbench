@@ -55,6 +55,39 @@ kind, normalized path, size, media type, and digest fields.
 | `record` | Docket entries, immutable document digests, and stable page anchors | Case and asset paths |
 | `workflow` | Typed stages, roles, routes, deadlines, calendar, and authority bases | Filing catalog and authority IDs |
 
+### Record metadata and grounding
+
+The original version-1 record fields remain valid. A record may additionally declare bounded
+`dockets` and `page_anchors` arrays. Each docket has a namespaced `docket_id`, a `docket_type`
+of `district`, `appellate`, `agency`, or `original`, a human-readable `court_ref`, a
+`public_docket_number`, and a `caption`. An optional `court_id` is a strict reference to a court
+resource; `court_ref` remains required so a lower tribunal that is not otherwise modeled can be
+identified honestly.
+
+A docket entry keeps its globally unique positive integer `entry_number` and may add a
+`docket_id`, display `entry_label`, `actor`, `description`, unique bounded `tags`, and a
+`parent_entry_id`. A parent link and its `relationship` must appear together; relationships are
+limited to `attachment`, `amendment`, `supplement`, and `component`. Parent links must resolve
+within the same docket and form an acyclic graph. Display labels are unique within a docket.
+
+A page anchor requires a namespaced `anchor_id`, an `entry_id`, and a one-based `page_number`,
+and may carry a `citation_label` such as `JA40`. Anchor IDs cannot collide with record-entry IDs;
+citations are unique, entries must resolve, and pages may not exceed the entry's declared
+`page_count`. A case issue's `record_anchor_ids` may name either a record-entry ID or a declared
+page-anchor ID. The native controller converts the authored page number to the zero-based page
+index used by QtPdf, while preserving the citation for filtering and direct navigation. Sealed
+documents remain listed but the native workspace refuses both docket and page-anchor opening.
+
+When optional metadata is absent, the native projection uses `Not specified by pack`; it does
+not infer an actor, public docket number, display entry number, description, parent, or
+relationship.
+
+The installed-record controller accepts a `LoadedPack` only as trusted output of `PackReader` or
+`PackCatalog`. It rebuilds the canonical runtime projection from that loaded pack, requires exact
+equality with any separately supplied runtime value, and then uses only the rebuilt projection.
+This closes split-representation changes to sealed state, metadata, relationships, and anchors
+without requiring the source archive to remain present after catalog installation.
+
 ### Filing-route outcomes
 
 A runnable workflow declares at least one executable filing route. A filing catalog may be a

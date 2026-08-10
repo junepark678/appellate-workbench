@@ -44,7 +44,7 @@
       "kind": "case",
       "schema_version": 1,
       "path": "resources/case.json",
-      "sha256": "064a6c5b77764f4b52e399c3dc5ea539ac4a2ef041c1afc8cae5ecdc8c354b93"
+      "sha256": "2e2b3b94972a017fcb1787087e2acb3208d704455116ad08c61672ddc35a6795"
     },
     {
       "id": "example.court.fictional",
@@ -93,7 +93,7 @@
       "kind": "record",
       "schema_version": 1,
       "path": "resources/record.json",
-      "sha256": "5f751c1babe139d8255f1e50b8b0209c183ceb67d8f7a1abd7eb7af4dee952f8"
+      "sha256": "0345fe80460eeb2c32efcd1354c92b0a3a826defd12f16c4b43b57adc3e86b5c"
     },
     {
       "id": "example.workflow.fictional",

@@ -42,6 +42,36 @@ template <typename Value> using Result = std::expected<Value, RuntimePackError>;
 
 [[nodiscard]] std::string utf8(const QString& value) { return value.toUtf8().toStdString(); }
 
+[[nodiscard]] std::optional<qsizetype> unicodeScalarCount(QStringView text) {
+    qsizetype count = 0;
+    for (qsizetype index = 0; index < text.size(); ++index) {
+        const auto unit = text.at(index).unicode();
+        if (unit >= 0xD800U && unit <= 0xDBFFU) {
+            if (index + 1 >= text.size()) {
+                return std::nullopt;
+            }
+            const auto low = text.at(index + 1).unicode();
+            if (low < 0xDC00U || low > 0xDFFFU) {
+                return std::nullopt;
+            }
+            ++index;
+        } else if (unit >= 0xDC00U && unit <= 0xDFFFU) {
+            return std::nullopt;
+        }
+        ++count;
+    }
+    return count;
+}
+
+[[nodiscard]] bool isBoundedUtf8Text(const std::string& value, qsizetype maximum) {
+    if (value.empty()) {
+        return false;
+    }
+    const auto text = QString::fromUtf8(value);
+    const auto count = unicodeScalarCount(text);
+    return count.has_value() && *count <= maximum && utf8(text) == value;
+}
+
 [[nodiscard]] bool isNamespacedId(const QString& value) {
     static const QRegularExpression pattern(
         QStringLiteral(R"(^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$)"));
@@ -182,6 +212,53 @@ optionalId(const QJsonObject& object, const char* key, const std::string& path) 
         return std::unexpected(value.error());
     }
     return std::optional<std::string>{std::move(*value)};
+}
+
+[[nodiscard]] Result<std::optional<std::string>>
+optionalString(const QJsonObject& object, const char* key, const std::string& path,
+               qsizetype maximum) {
+    if (!object.contains(QLatin1StringView(key))) {
+        return std::optional<std::string>{};
+    }
+    const auto value = object.value(QLatin1StringView(key));
+    const auto text = value.toString();
+    const auto count = unicodeScalarCount(text);
+    if (!value.isString() || text.isEmpty() || !count.has_value() || *count > maximum) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + "." + key + " must be bounded nonempty text");
+    }
+    return std::optional<std::string>{utf8(text)};
+}
+
+[[nodiscard]] Result<std::vector<std::string>>
+optionalStringArray(const QJsonObject& object, const char* key, const std::string& path,
+                    qsizetype maximum_items, qsizetype maximum_text) {
+    if (!object.contains(QLatin1StringView(key))) {
+        return std::vector<std::string>{};
+    }
+    const auto values = requiredArray(object, key, path, 0, maximum_items);
+    if (!values) {
+        return std::unexpected(values.error());
+    }
+    std::vector<std::string> result;
+    result.reserve(static_cast<std::size_t>(values->size()));
+    std::unordered_set<std::string> seen;
+    for (const auto& value : *values) {
+        const auto text_value = value.toString();
+        const auto count = unicodeScalarCount(text_value);
+        if (!value.isString() || text_value.isEmpty() || !count.has_value() ||
+            *count > maximum_text) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + "." + key + " must contain bounded nonempty text");
+        }
+        auto text = utf8(text_value);
+        if (!seen.emplace(text).second) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + "." + key + " must not contain duplicates");
+        }
+        result.push_back(std::move(text));
+    }
+    return result;
 }
 
 [[nodiscard]] Result<std::vector<std::string>> idArray(const QJsonObject& object, const char* key,
@@ -913,9 +990,9 @@ struct ParsedCase final {
         for (auto& authority : *authorities) {
             authority_ids.push_back(model::AuthorityId{std::move(authority)});
         }
-        std::vector<RuntimeRecordEntryId> anchor_ids;
+        std::vector<RuntimeRecordAnchorId> anchor_ids;
         for (auto& anchor : *anchors) {
-            anchor_ids.push_back(RuntimeRecordEntryId{std::move(anchor)});
+            anchor_ids.push_back(RuntimeRecordAnchorId{std::move(anchor)});
         }
         issues.push_back(RuntimeIssue{RuntimeIssueId{*id}, *issue_title, std::move(authority_ids),
                                       std::move(anchor_ids)});
@@ -929,18 +1006,106 @@ struct ParsedCase final {
 [[nodiscard]] Result<RuntimeRecord> parseRecord(const ValidatedResource& resource) {
     const auto path = "record " + resource.descriptor.id;
     const auto caption = requiredString(resource.document, "caption", path);
+    QJsonArray docket_descriptors;
+    if (resource.document.contains(QStringLiteral("dockets"))) {
+        const auto values =
+            requiredArray(resource.document, "dockets", path, 1, 64);
+        if (!values) {
+            return std::unexpected(values.error());
+        }
+        docket_descriptors = *values;
+    }
     const auto entries =
         requiredArray(resource.document, "docket_entries", path, 1, maximum_case_items);
-    if (!caption) {
-        return std::unexpected(caption.error());
+    QJsonArray anchor_values;
+    if (resource.document.contains(QStringLiteral("page_anchors"))) {
+        const auto values =
+            requiredArray(resource.document, "page_anchors", path, 0, 32'768);
+        if (!values) {
+            return std::unexpected(values.error());
+        }
+        anchor_values = *values;
+    }
+    if (!caption || !isBoundedUtf8Text(*caption, 512)) {
+        if (!caption) {
+            return std::unexpected(caption.error());
+        }
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + ".caption exceeds its supported bound");
     }
     if (!entries) {
         return std::unexpected(entries.error());
     }
+
+    std::vector<RuntimeDocketDescriptor> runtime_dockets;
+    runtime_dockets.reserve(static_cast<std::size_t>(docket_descriptors.size()));
+    std::unordered_set<std::string> docket_ids;
+    for (qsizetype index = 0; index < docket_descriptors.size(); ++index) {
+        if (!docket_descriptors.at(index).isObject()) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + ".dockets must contain objects");
+        }
+        const auto descriptor = docket_descriptors.at(index).toObject();
+        const auto descriptor_path = path + ".dockets[" + std::to_string(index) + "]";
+        const auto id = requiredId(descriptor, "docket_id", descriptor_path);
+        const auto type_text = requiredString(descriptor, "docket_type", descriptor_path);
+        const auto court_id = optionalId(descriptor, "court_id", descriptor_path);
+        const auto court_ref = requiredString(descriptor, "court_ref", descriptor_path);
+        const auto public_number =
+            requiredString(descriptor, "public_docket_number", descriptor_path);
+        const auto docket_caption = requiredString(descriptor, "caption", descriptor_path);
+        if (!id || !type_text || !court_id || !court_ref || !public_number || !docket_caption) {
+            if (!id) {
+                return std::unexpected(id.error());
+            }
+            if (!type_text) {
+                return std::unexpected(type_text.error());
+            }
+            if (!court_id) {
+                return std::unexpected(court_id.error());
+            }
+            if (!court_ref) {
+                return std::unexpected(court_ref.error());
+            }
+            if (!public_number) {
+                return std::unexpected(public_number.error());
+            }
+            return std::unexpected(docket_caption.error());
+        }
+        RuntimeDocketType type{};
+        if (*type_text == "district") {
+            type = RuntimeDocketType::District;
+        } else if (*type_text == "appellate") {
+            type = RuntimeDocketType::Appellate;
+        } else if (*type_text == "agency") {
+            type = RuntimeDocketType::Agency;
+        } else if (*type_text == "original") {
+            type = RuntimeDocketType::Original;
+        } else {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        descriptor_path + ".docket_type is unsupported");
+        }
+        if (!docket_ids.emplace(*id).second || !isBoundedUtf8Text(*court_ref, 240) ||
+            !isBoundedUtf8Text(*public_number, 120) ||
+            !isBoundedUtf8Text(*docket_caption, 512)) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        descriptor_path + " is duplicate or exceeds its text bounds");
+        }
+        std::optional<RuntimeCourtId> typed_court;
+        if (court_id->has_value()) {
+            typed_court = RuntimeCourtId{**court_id};
+        }
+        runtime_dockets.push_back(RuntimeDocketDescriptor{
+            RuntimeDocketId{*id}, type, std::move(typed_court), *court_ref, *public_number,
+            *docket_caption});
+    }
+
     std::vector<RuntimeDocketEntry> docket;
     docket.reserve(static_cast<std::size_t>(entries->size()));
     std::unordered_set<std::string> ids;
     std::unordered_set<std::uint32_t> numbers;
+    std::unordered_set<std::string> display_labels;
+    std::unordered_map<std::string, std::size_t> entry_indexes;
     for (qsizetype index = 0; index < entries->size(); ++index) {
         if (!entries->at(index).isObject()) {
             return fail(RuntimePackErrorCode::InvalidResource,
@@ -951,24 +1116,54 @@ struct ParsedCase final {
         const auto id = requiredId(entry, "entry_id", entry_path);
         const auto number = requiredUnsigned(entry, "entry_number", entry_path, 1,
                                              std::numeric_limits<std::uint32_t>::max());
+        const auto docket_id = optionalId(entry, "docket_id", entry_path);
+        const auto entry_label = optionalString(entry, "entry_label", entry_path, 120);
         const auto filed_on = requiredDate(entry, "filed_on", entry_path);
         const auto title = requiredString(entry, "title", entry_path);
+        const auto actor = optionalString(entry, "actor", entry_path, 240);
+        const auto description = optionalString(entry, "description", entry_path, 4'096);
+        const auto tags = optionalStringArray(entry, "tags", entry_path, 32, 64);
+        const auto parent_id = optionalId(entry, "parent_entry_id", entry_path);
+        const auto relationship_text = optionalString(entry, "relationship", entry_path, 16);
         const auto asset_path = requiredPortablePath(entry, "asset_path", entry_path);
         const auto digest = requiredSha256(entry, "asset_sha256", entry_path);
         const auto pages = requiredUnsigned(entry, "page_count", entry_path, 1, 10'000);
         const auto sealed = requiredBoolean(entry, "sealed", entry_path);
-        if (!id || !number || !filed_on || !title || !asset_path || !digest || !pages || !sealed) {
+        if (!id || !number || !docket_id || !entry_label || !filed_on || !title || !actor ||
+            !description || !tags || !parent_id || !relationship_text || !asset_path || !digest ||
+            !pages || !sealed) {
             if (!id) {
                 return std::unexpected(id.error());
             }
             if (!number) {
                 return std::unexpected(number.error());
             }
+            if (!docket_id) {
+                return std::unexpected(docket_id.error());
+            }
+            if (!entry_label) {
+                return std::unexpected(entry_label.error());
+            }
             if (!filed_on) {
                 return std::unexpected(filed_on.error());
             }
             if (!title) {
                 return std::unexpected(title.error());
+            }
+            if (!actor) {
+                return std::unexpected(actor.error());
+            }
+            if (!description) {
+                return std::unexpected(description.error());
+            }
+            if (!tags) {
+                return std::unexpected(tags.error());
+            }
+            if (!parent_id) {
+                return std::unexpected(parent_id.error());
+            }
+            if (!relationship_text) {
+                return std::unexpected(relationship_text.error());
             }
             if (!asset_path) {
                 return std::unexpected(asset_path.error());
@@ -981,14 +1176,133 @@ struct ParsedCase final {
             }
             return std::unexpected(sealed.error());
         }
-        if (!ids.emplace(*id).second || !numbers.emplace(*number).second) {
+        if (!ids.emplace(*id).second || !numbers.emplace(*number).second ||
+            !isBoundedUtf8Text(*title, 512)) {
             return fail(RuntimePackErrorCode::InvalidResource,
-                        entry_path + " repeats a docket id or number");
+                        entry_path + " repeats an entry id/number or exceeds its title bound");
         }
-        docket.push_back(RuntimeDocketEntry{RuntimeRecordEntryId{*id}, *number, *filed_on, *title,
-                                            *asset_path, *digest, *pages, *sealed});
+        if (docket_id->has_value() && !docket_ids.contains(**docket_id)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        entry_path + ".docket_id is not declared by the record");
+        }
+        if (entry_label->has_value()) {
+            const auto label_key = (docket_id->has_value() ? **docket_id : std::string{}) + "\n" +
+                                   **entry_label;
+            if (!display_labels.emplace(label_key).second) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            entry_path + ".entry_label is duplicated within its docket");
+            }
+        }
+        if (parent_id->has_value() != relationship_text->has_value()) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        entry_path +
+                            " must declare parent_entry_id and relationship together");
+        }
+        std::optional<RuntimeRecordEntryRelationship> relationship;
+        if (relationship_text->has_value()) {
+            if (**relationship_text == "attachment") {
+                relationship = RuntimeRecordEntryRelationship::Attachment;
+            } else if (**relationship_text == "amendment") {
+                relationship = RuntimeRecordEntryRelationship::Amendment;
+            } else if (**relationship_text == "supplement") {
+                relationship = RuntimeRecordEntryRelationship::Supplement;
+            } else if (**relationship_text == "component") {
+                relationship = RuntimeRecordEntryRelationship::Component;
+            } else {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            entry_path + ".relationship is unsupported");
+            }
+        }
+        std::optional<RuntimeDocketId> typed_docket;
+        if (docket_id->has_value()) {
+            typed_docket = RuntimeDocketId{**docket_id};
+        }
+        std::optional<RuntimeRecordEntryId> typed_parent;
+        if (parent_id->has_value()) {
+            typed_parent = RuntimeRecordEntryId{**parent_id};
+        }
+        entry_indexes.emplace(*id, docket.size());
+        docket.push_back(RuntimeDocketEntry{
+            RuntimeRecordEntryId{*id}, *number, *filed_on, *title, *asset_path, *digest, *pages,
+            *sealed, std::move(typed_docket), std::move(*entry_label), std::move(*actor),
+            std::move(*description), std::move(*tags), std::move(typed_parent), relationship});
     }
-    return RuntimeRecord{RuntimeRecordId{resource.descriptor.id}, *caption, std::move(docket)};
+
+    std::unordered_map<std::string, std::string> parents;
+    for (const auto& entry : docket) {
+        if (!entry.parent_entry_id.has_value()) {
+            continue;
+        }
+        const auto parent = entry_indexes.find(entry.parent_entry_id->value);
+        if (parent == entry_indexes.end() || entry.parent_entry_id->value == entry.id.value) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " has an orphaned or self-referential parent entry");
+        }
+        const auto& parent_entry = docket[parent->second];
+        if (entry.docket_id != parent_entry.docket_id) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " links parent and child entries across dockets");
+        }
+        parents.emplace(entry.id.value, entry.parent_entry_id->value);
+    }
+    std::unordered_set<std::string> resolved_parent_chains;
+    for (const auto& entry : docket) {
+        std::unordered_set<std::string> chain;
+        auto current = entry.id.value;
+        while (parents.contains(current) && !resolved_parent_chains.contains(current)) {
+            if (!chain.emplace(current).second) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            path + " contains a docket-entry parent cycle");
+            }
+            current = parents.at(current);
+        }
+        resolved_parent_chains.insert(chain.begin(), chain.end());
+    }
+
+    std::vector<RuntimeRecordPageAnchor> anchors;
+    anchors.reserve(static_cast<std::size_t>(anchor_values.size()));
+    std::unordered_set<std::string> anchor_ids;
+    std::unordered_set<std::string> citation_labels;
+    for (qsizetype index = 0; index < anchor_values.size(); ++index) {
+        if (!anchor_values.at(index).isObject()) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + ".page_anchors must contain objects");
+        }
+        const auto anchor = anchor_values.at(index).toObject();
+        const auto anchor_path = path + ".page_anchors[" + std::to_string(index) + "]";
+        const auto id = requiredId(anchor, "anchor_id", anchor_path);
+        const auto entry_id = requiredId(anchor, "entry_id", anchor_path);
+        const auto page_number = requiredUnsigned(anchor, "page_number", anchor_path, 1, 10'000);
+        const auto citation = optionalString(anchor, "citation_label", anchor_path, 120);
+        if (!id || !entry_id || !page_number || !citation) {
+            if (!id) {
+                return std::unexpected(id.error());
+            }
+            if (!entry_id) {
+                return std::unexpected(entry_id.error());
+            }
+            if (!page_number) {
+                return std::unexpected(page_number.error());
+            }
+            return std::unexpected(citation.error());
+        }
+        const auto entry = entry_indexes.find(*entry_id);
+        if (!anchor_ids.emplace(*id).second || ids.contains(*id) || entry == entry_indexes.end() ||
+            *page_number > docket[entry->second].page_count) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        anchor_path +
+                            " is duplicate, ambiguous, orphaned, or outside the declared PDF");
+        }
+        if (citation->has_value() && !citation_labels.emplace(**citation).second) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        anchor_path + ".citation_label is duplicated");
+        }
+        anchors.push_back(RuntimeRecordPageAnchor{RuntimeRecordPageAnchorId{*id},
+                                                  RuntimeRecordEntryId{*entry_id}, *page_number,
+                                                  std::move(*citation)});
+    }
+    return RuntimeRecord{RuntimeRecordId{resource.descriptor.id}, *caption,
+                         std::move(runtime_dockets), std::move(docket), std::move(anchors)};
 }
 
 struct RuntimeCatalogFiling final {
@@ -1367,6 +1681,17 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
     if (!catalog) {
         return std::unexpected(catalog.error());
     }
+    for (const auto& docket : record->dockets) {
+        if (!docket.court_id.has_value()) {
+            continue;
+        }
+        const auto docket_court = index.require(docket.court_id->value,
+                                                model::ResourceKind::Court,
+                                                "record " + record->id.value);
+        if (!docket_court) {
+            return std::unexpected(docket_court.error());
+        }
+    }
     for (const auto& authority_id : court->authority_set_ids) {
         const auto authority = index.require(authority_id.value, model::ResourceKind::AuthoritySet,
                                              "court " + court->id.value);
@@ -1436,6 +1761,9 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
     std::unordered_set<std::string> record_entries;
     for (const auto& entry : record->docket_entries) {
         record_entries.insert(entry.id.value);
+    }
+    for (const auto& anchor : record->page_anchors) {
+        record_entries.insert(anchor.id.value);
     }
     for (const auto& issue : parsed_case->issues) {
         for (const auto& anchor : issue.record_anchor_ids) {

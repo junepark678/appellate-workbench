@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <expected>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -31,6 +32,22 @@ struct RuntimeRecordId final {
 struct RuntimeRecordEntryId final {
     std::string value;
     friend bool operator==(const RuntimeRecordEntryId&, const RuntimeRecordEntryId&) = default;
+};
+
+struct RuntimeDocketId final {
+    std::string value;
+    friend bool operator==(const RuntimeDocketId&, const RuntimeDocketId&) = default;
+};
+
+struct RuntimeRecordPageAnchorId final {
+    std::string value;
+    friend bool operator==(const RuntimeRecordPageAnchorId&,
+                           const RuntimeRecordPageAnchorId&) = default;
+};
+
+struct RuntimeRecordAnchorId final {
+    std::string value;
+    friend bool operator==(const RuntimeRecordAnchorId&, const RuntimeRecordAnchorId&) = default;
 };
 
 struct RuntimeFilingCatalogId final {
@@ -77,6 +94,32 @@ enum class RuntimeProceedingType {
     OriginalWrit,
 };
 
+enum class RuntimeDocketType {
+    District,
+    Appellate,
+    Agency,
+    Original,
+};
+
+enum class RuntimeRecordEntryRelationship {
+    Attachment,
+    Amendment,
+    Supplement,
+    Component,
+};
+
+struct RuntimeDocketDescriptor final {
+    RuntimeDocketId id;
+    RuntimeDocketType type{};
+    std::optional<RuntimeCourtId> court_id;
+    std::string court_ref;
+    std::string public_docket_number;
+    std::string caption;
+
+    friend bool operator==(const RuntimeDocketDescriptor&,
+                           const RuntimeDocketDescriptor&) = default;
+};
+
 struct RuntimeDocketEntry final {
     RuntimeRecordEntryId id;
     std::uint32_t entry_number{};
@@ -86,14 +129,33 @@ struct RuntimeDocketEntry final {
     std::string asset_sha256;
     std::uint32_t page_count{};
     bool sealed{};
+    std::optional<RuntimeDocketId> docket_id;
+    std::optional<std::string> entry_label;
+    std::optional<std::string> actor;
+    std::optional<std::string> description;
+    std::vector<std::string> tags;
+    std::optional<RuntimeRecordEntryId> parent_entry_id;
+    std::optional<RuntimeRecordEntryRelationship> relationship;
 
     friend bool operator==(const RuntimeDocketEntry&, const RuntimeDocketEntry&) = default;
+};
+
+struct RuntimeRecordPageAnchor final {
+    RuntimeRecordPageAnchorId id;
+    RuntimeRecordEntryId entry_id;
+    std::uint32_t page_number{};
+    std::optional<std::string> citation_label;
+
+    friend bool operator==(const RuntimeRecordPageAnchor&,
+                           const RuntimeRecordPageAnchor&) = default;
 };
 
 struct RuntimeRecord final {
     RuntimeRecordId id;
     std::string caption;
+    std::vector<RuntimeDocketDescriptor> dockets;
     std::vector<RuntimeDocketEntry> docket_entries;
+    std::vector<RuntimeRecordPageAnchor> page_anchors;
 
     friend bool operator==(const RuntimeRecord&, const RuntimeRecord&) = default;
 };
@@ -102,7 +164,7 @@ struct RuntimeIssue final {
     RuntimeIssueId id;
     std::string title;
     std::vector<model::AuthorityId> authority_ids;
-    std::vector<RuntimeRecordEntryId> record_anchor_ids;
+    std::vector<RuntimeRecordAnchorId> record_anchor_ids;
 
     friend bool operator==(const RuntimeIssue&, const RuntimeIssue&) = default;
 };

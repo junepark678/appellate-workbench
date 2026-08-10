@@ -51,6 +51,34 @@ namespace {
     return QStringLiteral("Page %1 of %2").arg(page_index + 1).arg(page_count);
 }
 
+[[nodiscard]] std::optional<qsizetype> unicodeScalarCount(QStringView text) {
+    qsizetype count = 0;
+    for (qsizetype index = 0; index < text.size(); ++index) {
+        const auto unit = text.at(index).unicode();
+        if (unit >= 0xD800U && unit <= 0xDBFFU) {
+            if (index + 1 >= text.size()) {
+                return std::nullopt;
+            }
+            const auto low = text.at(index + 1).unicode();
+            if (low < 0xDC00U || low > 0xDFFFU) {
+                return std::nullopt;
+            }
+            ++index;
+        } else if (unit >= 0xDC00U && unit <= 0xDFFFU) {
+            return std::nullopt;
+        }
+        ++count;
+    }
+    return count;
+}
+
+[[nodiscard]] bool isBoundedText(QStringView text, qsizetype maximum,
+                                 bool allow_empty = false) {
+    const auto count = unicodeScalarCount(text);
+    return count.has_value() && *count <= maximum && (allow_empty || *count > 0) &&
+           !text.contains(QChar::Null);
+}
+
 } // namespace
 
 class DocketFilterProxyModel final : public QSortFilterProxyModel {
@@ -119,9 +147,9 @@ QVariant RecordDocketModel::data(const QModelIndex& index, int role) const {
         return row.entry.description;
     }
     if (role == Qt::AccessibleTextRole) {
-        return QStringLiteral("%1, filed %2 by %3, document %4, %5")
-            .arg(row.entry.title, row.entry.filed_on.toString(Qt::ISODate), row.entry.actor,
-                 row.document_title,
+        return QStringLiteral("Docket %1, entry %2, %3, filed %4 by %5, document %6, %7")
+            .arg(row.entry.docket_label, row.entry.entry_label, row.entry.title,
+                 row.entry.filed_on.toString(Qt::ISODate), row.entry.actor, row.document_title,
                  row.sealed ? QStringLiteral("sealed") : QStringLiteral("available"));
     }
     if (role != Qt::DisplayRole) {
@@ -129,6 +157,10 @@ QVariant RecordDocketModel::data(const QModelIndex& index, int role) const {
     }
 
     switch (static_cast<Column>(index.column())) {
+    case Column::Docket:
+        return row.entry.docket_label;
+    case Column::EntryLabel:
+        return row.entry.entry_label;
     case Column::Filed:
         return row.entry.filed_on.toString(Qt::ISODate);
     case Column::Title:
@@ -150,6 +182,10 @@ QVariant RecordDocketModel::headerData(int section, Qt::Orientation orientation,
         return {};
     }
     switch (static_cast<Column>(section)) {
+    case Column::Docket:
+        return QStringLiteral("Docket");
+    case Column::EntryLabel:
+        return QStringLiteral("No.");
     case Column::Filed:
         return QStringLiteral("Filed");
     case Column::Title:
@@ -183,11 +219,16 @@ void RecordDocketModel::setRecordData(const RecordDefinition& definition) {
         const auto document = documents.value(entry.document_id);
         const QStringList search_parts{
             entry.id,
+            entry.docket_id,
+            entry.docket_label,
+            entry.entry_label,
             entry.filed_on.toString(Qt::ISODate),
             entry.title,
             entry.actor,
             entry.description,
             entry.document_id,
+            entry.parent_entry_id,
+            entry.relationship,
             entry.tags.join(u' '),
             searchableMetadata(entry.metadata),
             document.title,
@@ -403,14 +444,33 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
                     QStringLiteral("A record requires documents and docket entries"));
     }
 
+    QSet<QString> docket_descriptor_ids;
+    for (const auto& docket : definition.dockets) {
+        static const QSet<QString> docket_types{
+            QStringLiteral("district"), QStringLiteral("appellate"),
+            QStringLiteral("agency"), QStringLiteral("original")};
+        if (!isBoundedText(docket.id, 160) || !docket_types.contains(docket.type) ||
+            !isBoundedText(docket.court_id, 160, true) ||
+            !isBoundedText(docket.court_ref, 240) ||
+            !isBoundedText(docket.public_docket_number, 120) ||
+            !isBoundedText(docket.caption, 512) ||
+            docket_descriptor_ids.contains(docket.id)) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("Docket descriptors require unique IDs and complete metadata"));
+        }
+        docket_descriptor_ids.insert(docket.id);
+    }
+
     QSet<QString> document_ids;
+    QHash<QString, int> declared_page_counts;
     for (const auto& document : definition.documents) {
-        if (document.id.isEmpty() || document.title.isEmpty() ||
-            document_ids.contains(document.id)) {
+        if (!isBoundedText(document.id, 160) || !isBoundedText(document.title, 512) ||
+            document.declared_page_count < 0 || document_ids.contains(document.id)) {
             return fail(RecordWorkspaceErrorCode::InvalidDefinition,
                         QStringLiteral("Document IDs and titles must be unique and nonempty"));
         }
         document_ids.insert(document.id);
+        declared_page_counts.insert(document.id, document.declared_page_count);
         if (!document.sealed) {
             const QFileInfo file(document.file_path);
             if (!file.isFile() || file.isSymLink()) {
@@ -422,19 +482,75 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
 
     QSet<QString> docket_ids;
     QSet<QString> referenced_documents;
+    QHash<QString, const RecordDocketEntry*> entries_by_id;
     for (const auto& entry : definition.docket) {
-        if (entry.id.isEmpty() || !entry.filed_on.isValid() || entry.title.isEmpty() ||
-            entry.actor.isEmpty() || docket_ids.contains(entry.id)) {
+        if (!isBoundedText(entry.id, 160) || !entry.filed_on.isValid() ||
+            !isBoundedText(entry.title, 512) || !isBoundedText(entry.actor, 240) ||
+            !isBoundedText(entry.description, 4'096) ||
+            !isBoundedText(entry.docket_id, 160, true) ||
+            !isBoundedText(entry.docket_label, 120, true) ||
+            !isBoundedText(entry.entry_label, 120, true) ||
+            !isBoundedText(entry.parent_entry_id, 160, true) ||
+            !isBoundedText(entry.relationship, 16, true) || entry.tags.size() > 32 ||
+            docket_ids.contains(entry.id)) {
             return fail(RecordWorkspaceErrorCode::InvalidDefinition,
                         QStringLiteral("Docket entries require unique IDs and complete metadata"));
         }
+        if (std::ranges::any_of(entry.tags, [](const QString& tag) {
+                return !isBoundedText(tag, 64);
+            })) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("Docket entry tags exceed their supported bounds"));
+        }
         docket_ids.insert(entry.id);
+        entries_by_id.insert(entry.id, &entry);
+        if (!entry.docket_id.isEmpty() && !docket_descriptor_ids.contains(entry.docket_id)) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("Docket entry %1 references missing docket %2")
+                            .arg(entry.id, entry.docket_id));
+        }
         if (!document_ids.contains(entry.document_id)) {
             return fail(RecordWorkspaceErrorCode::MissingDocument,
                         QStringLiteral("Docket entry %1 references missing document %2")
                             .arg(entry.id, entry.document_id));
         }
         referenced_documents.insert(entry.document_id);
+    }
+    QHash<QString, QString> parent_by_entry;
+    static const QSet<QString> relationships{
+        QStringLiteral("attachment"), QStringLiteral("amendment"),
+        QStringLiteral("supplement"), QStringLiteral("component")};
+    for (const auto& entry : definition.docket) {
+        if (entry.parent_entry_id.isEmpty() != entry.relationship.isEmpty()) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("Parent IDs and relationships must be declared together"));
+        }
+        if (entry.parent_entry_id.isEmpty()) {
+            continue;
+        }
+        const auto parent = entries_by_id.constFind(entry.parent_entry_id);
+        if (parent == entries_by_id.constEnd() || entry.parent_entry_id == entry.id ||
+            (*parent)->docket_id != entry.docket_id ||
+            !relationships.contains(entry.relationship)) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("Parent links must resolve acyclically within one docket"));
+        }
+        parent_by_entry.insert(entry.id, entry.parent_entry_id);
+    }
+    QSet<QString> resolved_parent_chains;
+    for (const auto& entry : definition.docket) {
+        QSet<QString> chain;
+        auto current = entry.id;
+        while (parent_by_entry.contains(current) &&
+               !resolved_parent_chains.contains(current)) {
+            if (chain.contains(current)) {
+                return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                            QStringLiteral("Docket entry parent graph contains a cycle"));
+            }
+            chain.insert(current);
+            current = parent_by_entry.value(current);
+        }
+        resolved_parent_chains.unite(chain);
     }
     for (const auto& document : definition.documents) {
         if (!referenced_documents.contains(document.id)) {
@@ -445,13 +561,23 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
     }
 
     QSet<QString> anchor_ids;
+    QSet<QString> citation_labels;
     for (const auto& anchor : definition.anchors) {
-        if (anchor.id.isEmpty() || anchor.page_index < 0 || anchor_ids.contains(anchor.id) ||
-            !document_ids.contains(anchor.document_id)) {
+        if (!isBoundedText(anchor.id, 160) || !isBoundedText(anchor.document_id, 160) ||
+            !isBoundedText(anchor.citation_label, 120, true) || anchor.page_index < 0 ||
+            anchor_ids.contains(anchor.id) || document_ids.contains(anchor.id) ||
+            docket_ids.contains(anchor.id) || !document_ids.contains(anchor.document_id) ||
+            (declared_page_counts.value(anchor.document_id) > 0 &&
+             anchor.page_index >= declared_page_counts.value(anchor.document_id)) ||
+            (!anchor.citation_label.isEmpty() &&
+             citation_labels.contains(anchor.citation_label))) {
             return fail(RecordWorkspaceErrorCode::InvalidPageAnchor,
                         QStringLiteral("Record page anchor is invalid: %1").arg(anchor.id));
         }
         anchor_ids.insert(anchor.id);
+        if (!anchor.citation_label.isEmpty()) {
+            citation_labels.insert(anchor.citation_label);
+        }
     }
     return {};
 }
@@ -474,9 +600,17 @@ std::expected<void, RecordWorkspaceError> RecordWorkspace::setRecord(RecordDefin
     for (auto& anchor : definition.anchors) {
         anchors.insert(anchor.id, std::move(anchor));
     }
+    QHash<QString, QString> citation_anchors;
+    citation_anchors.reserve(anchors.size());
+    for (auto anchor = anchors.constBegin(); anchor != anchors.constEnd(); ++anchor) {
+        if (!anchor->citation_label.isEmpty()) {
+            citation_anchors.insert(anchor->citation_label, anchor.key());
+        }
+    }
 
     documents_ = std::move(documents);
     anchors_ = std::move(anchors);
+    citation_anchors_ = std::move(citation_anchors);
     docket_filter_->clear();
     document_search_->clear();
     pdf_document_->close();
@@ -529,6 +663,16 @@ std::expected<void, RecordWorkspaceError> RecordWorkspace::navigateToAnchor(QStr
                            QStringLiteral("Anchor document does not exist"));
     }
     return openDocument(document.value(), anchor->page_index);
+}
+
+std::expected<void, RecordWorkspaceError>
+RecordWorkspace::navigateToCitation(QStringView citation_label) {
+    const auto anchor = citation_anchors_.constFind(citation_label.toString());
+    if (anchor == citation_anchors_.constEnd()) {
+        return recordError(RecordWorkspaceErrorCode::InvalidPageAnchor,
+                           QStringLiteral("Record citation does not exist"));
+    }
+    return navigateToAnchor(*anchor);
 }
 
 std::expected<void, RecordWorkspaceError>

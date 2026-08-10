@@ -30,7 +30,7 @@
       "issue_id": "example.issue.preservation",
       "title": "Whether the issue was preserved",
       "authority_ids": ["example.authority.rule-one"],
-      "record_anchor_ids": ["example.record.entry-one"]
+      "record_anchor_ids": ["example.record.entry-one", "example.record.anchor.ja2"]
     }
   ],
   "authored_disposition_id": "example.operation.issue-judgment"

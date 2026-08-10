@@ -29,8 +29,21 @@ struct RecordDocument final {
     QString file_path;
     bool sealed{};
     QMap<QString, QString> metadata;
+    int declared_page_count{};
 
     friend bool operator==(const RecordDocument&, const RecordDocument&) = default;
+};
+
+struct RecordDocketDescriptor final {
+    QString id;
+    QString type;
+    QString court_id;
+    QString court_ref;
+    QString public_docket_number;
+    QString caption;
+
+    friend bool operator==(const RecordDocketDescriptor&,
+                           const RecordDocketDescriptor&) = default;
 };
 
 struct RecordDocketEntry final {
@@ -42,6 +55,11 @@ struct RecordDocketEntry final {
     QString document_id;
     QStringList tags;
     QMap<QString, QString> metadata;
+    QString docket_id;
+    QString docket_label;
+    QString entry_label;
+    QString parent_entry_id;
+    QString relationship;
 
     friend bool operator==(const RecordDocketEntry&, const RecordDocketEntry&) = default;
 };
@@ -50,6 +68,7 @@ struct RecordPageAnchor final {
     QString id;
     QString document_id;
     int page_index{};
+    QString citation_label;
 
     friend bool operator==(const RecordPageAnchor&, const RecordPageAnchor&) = default;
 };
@@ -58,6 +77,7 @@ struct RecordDefinition final {
     std::vector<RecordDocument> documents;
     std::vector<RecordDocketEntry> docket;
     std::vector<RecordPageAnchor> anchors;
+    std::vector<RecordDocketDescriptor> dockets;
 };
 
 enum class RecordWorkspaceErrorCode {
@@ -82,6 +102,8 @@ struct RecordWorkspaceError final {
 class RecordDocketModel final : public QAbstractTableModel {
   public:
     enum class Column {
+        Docket,
+        EntryLabel,
         Filed,
         Title,
         Actor,
@@ -136,6 +158,8 @@ class RecordWorkspace final : public QWidget {
     [[nodiscard]] auto openSelectedDocketEntry() -> std::expected<void, RecordWorkspaceError>;
     [[nodiscard]] auto navigateToAnchor(QStringView anchor_id)
         -> std::expected<void, RecordWorkspaceError>;
+    [[nodiscard]] auto navigateToCitation(QStringView citation_label)
+        -> std::expected<void, RecordWorkspaceError>;
     [[nodiscard]] auto goToPage(int page_index) -> std::expected<void, RecordWorkspaceError>;
 
     void setDocketFilter(const QString& query);
@@ -187,6 +211,7 @@ class RecordWorkspace final : public QWidget {
 
     QHash<QString, RecordDocument> documents_;
     QHash<QString, RecordPageAnchor> anchors_;
+    QHash<QString, QString> citation_anchors_;
     QString current_document_id_;
     std::optional<RecordWorkspaceError> last_error_;
 };

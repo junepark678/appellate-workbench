@@ -32,6 +32,7 @@ class RecordWorkspaceTest final : public QObject {
     void navigatesStableAnchorAcrossMultipagePdf();
     void refusesSealedItem();
     void rejectsMissingAndOrphanDocuments();
+    void rejectsInvalidDocketAndAnchorMetadata();
     void exposesKeyboardAccessibleControls();
     void largeDocketFilteringHasLinearWorkBudget();
 };
@@ -73,6 +74,7 @@ using appellate::ui::RecordWorkspaceErrorCode;
             sealed,
             {{QStringLiteral("court"), QStringLiteral("E.D. Virginia")},
              {QStringLiteral("record_type"), QStringLiteral("judgment")}},
+            3,
         }},
         {
             RecordDocketEntry{
@@ -84,6 +86,11 @@ using appellate::ui::RecordWorkspaceErrorCode;
                 QStringLiteral("doc.judgment"),
                 {QStringLiteral("dispositive"), QStringLiteral("appealable")},
                 {{QStringLiteral("origin"), QStringLiteral("district court")}},
+                QStringLiteral("docket.district"),
+                QStringLiteral("1:26-cv-0042"),
+                QStringLiteral("ECF No. 42"),
+                {},
+                {},
             },
             RecordDocketEntry{
                 QStringLiteral("docket.2"),
@@ -94,14 +101,23 @@ using appellate::ui::RecordWorkspaceErrorCode;
                 QStringLiteral("doc.judgment"),
                 {QStringLiteral("service")},
                 {{QStringLiteral("channel"), QStringLiteral("electronic")}},
+                QStringLiteral("docket.district"),
+                QStringLiteral("1:26-cv-0042"),
+                QStringLiteral("ECF No. 43"),
+                QStringLiteral("docket.1"),
+                QStringLiteral("attachment"),
             },
         },
         {
             RecordPageAnchor{QStringLiteral("record.judgment.p1"), QStringLiteral("doc.judgment"),
-                             0},
+                             0, QStringLiteral("JA1")},
             RecordPageAnchor{QStringLiteral("record.judgment.p3"), QStringLiteral("doc.judgment"),
-                             2},
+                             2, QStringLiteral("JA3")},
         },
+        {appellate::ui::RecordDocketDescriptor{
+            QStringLiteral("docket.district"), QStringLiteral("district"), {},
+            QStringLiteral("E.D. Virginia"), QStringLiteral("1:26-cv-0042"),
+            QStringLiteral("Example v. Example")}},
     };
 }
 
@@ -123,6 +139,8 @@ void RecordWorkspaceTest::filtersMetadataAndSearchesPdfText() {
     QCOMPARE(workspace.visibleDocketCount(), qsizetype{1});
     workspace.setDocketFilter(QStringLiteral("virginia record_type"));
     QCOMPARE(workspace.visibleDocketCount(), qsizetype{2});
+    workspace.setDocketFilter(QStringLiteral("1:26-cv-0042 ECF No. 43 attachment"));
+    QCOMPARE(workspace.visibleDocketCount(), qsizetype{1});
     workspace.setDocketFilter({});
     QCOMPARE(workspace.visibleDocketCount(), qsizetype{2});
 
@@ -167,6 +185,12 @@ void RecordWorkspaceTest::navigatesStableAnchorAcrossMultipagePdf() {
     QCOMPARE(workspace.loadedPageCount(), 3);
     QTRY_COMPARE(workspace.currentPageIndex(), 2);
 
+    QVERIFY(workspace.navigateToCitation(QStringLiteral("JA1")).has_value());
+    QTRY_COMPARE(workspace.currentPageIndex(), 0);
+    const auto missing_citation = workspace.navigateToCitation(QStringLiteral("JA404"));
+    QVERIFY(!missing_citation.has_value());
+    QCOMPARE(missing_citation.error().code, RecordWorkspaceErrorCode::InvalidPageAnchor);
+
     QVERIFY(workspace.goToPage(1).has_value());
     QTRY_COMPARE(workspace.currentPageIndex(), 1);
 }
@@ -196,7 +220,13 @@ void RecordWorkspaceTest::rejectsMissingAndOrphanDocuments() {
             QStringLiteral("doc.missing"),
             {},
             {},
+            {},
+            {},
+            {},
+            {},
+            {},
         }},
+        {},
         {},
     };
     const auto missing_result = workspace.setRecord(std::move(missing));
@@ -204,7 +234,7 @@ void RecordWorkspaceTest::rejectsMissingAndOrphanDocuments() {
     QCOMPARE(missing_result.error().code, RecordWorkspaceErrorCode::InvalidDefinition);
 
     RecordDefinition orphan{
-        {RecordDocument{QStringLiteral("doc.orphan"), QStringLiteral("Orphan"), {}, true, {}}},
+        {RecordDocument{QStringLiteral("doc.orphan"), QStringLiteral("Orphan"), {}, true, {}, 0}},
         {RecordDocketEntry{
             QStringLiteral("docket.other"),
             QDate(2026, 8, 1),
@@ -214,7 +244,13 @@ void RecordWorkspaceTest::rejectsMissingAndOrphanDocuments() {
             QStringLiteral("doc.other"),
             {},
             {},
+            {},
+            {},
+            {},
+            {},
+            {},
         }},
+        {},
         {},
     };
     const auto orphan_result = workspace.setRecord(std::move(orphan));
@@ -222,7 +258,7 @@ void RecordWorkspaceTest::rejectsMissingAndOrphanDocuments() {
     QCOMPARE(orphan_result.error().code, RecordWorkspaceErrorCode::MissingDocument);
 
     RecordDefinition true_orphan{
-        {RecordDocument{QStringLiteral("doc.orphan"), QStringLiteral("Orphan"), {}, true, {}}},
+        {RecordDocument{QStringLiteral("doc.orphan"), QStringLiteral("Orphan"), {}, true, {}, 0}},
         {RecordDocketEntry{
             QStringLiteral("docket.only"),
             QDate(2026, 8, 1),
@@ -232,14 +268,91 @@ void RecordWorkspaceTest::rejectsMissingAndOrphanDocuments() {
             QStringLiteral("doc.orphan"),
             {},
             {},
+            {},
+            {},
+            {},
+            {},
+            {},
         }},
+        {},
         {},
     };
     true_orphan.documents.push_back(
-        RecordDocument{QStringLiteral("doc.unused"), QStringLiteral("Unused"), {}, true, {}});
+        RecordDocument{QStringLiteral("doc.unused"), QStringLiteral("Unused"), {}, true, {}, 0});
     const auto true_orphan_result = workspace.setRecord(std::move(true_orphan));
     QVERIFY(!true_orphan_result.has_value());
     QCOMPARE(true_orphan_result.error().code, RecordWorkspaceErrorCode::OrphanDocument);
+}
+
+void RecordWorkspaceTest::rejectsInvalidDocketAndAnchorMetadata() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto pdf = QDir(directory.path()).filePath(QStringLiteral("record.pdf"));
+    QVERIFY(writePdf(pdf, {QStringLiteral("Page one"), QStringLiteral("Page two"),
+                           QStringLiteral("Page three")}));
+
+    RecordWorkspace workspace;
+    auto orphan_docket = basicRecord(pdf);
+    orphan_docket.docket.front().docket_id = QStringLiteral("docket.missing");
+    const auto docket_result = workspace.setRecord(std::move(orphan_docket));
+    QVERIFY(!docket_result.has_value());
+    QCOMPARE(docket_result.error().code, RecordWorkspaceErrorCode::InvalidDefinition);
+
+    auto out_of_range = basicRecord(pdf);
+    out_of_range.anchors.front().page_index = 3;
+    const auto page_result = workspace.setRecord(std::move(out_of_range));
+    QVERIFY(!page_result.has_value());
+    QCOMPARE(page_result.error().code, RecordWorkspaceErrorCode::InvalidPageAnchor);
+
+    auto duplicate_citation = basicRecord(pdf);
+    duplicate_citation.anchors.at(1).citation_label = QStringLiteral("JA1");
+    const auto citation_result = workspace.setRecord(std::move(duplicate_citation));
+    QVERIFY(!citation_result.has_value());
+    QCOMPARE(citation_result.error().code, RecordWorkspaceErrorCode::InvalidPageAnchor);
+
+    auto entry_anchor_collision = basicRecord(pdf);
+    entry_anchor_collision.anchors.front().id = QStringLiteral("docket.1");
+    const auto collision_result = workspace.setRecord(std::move(entry_anchor_collision));
+    QVERIFY(!collision_result.has_value());
+    QCOMPARE(collision_result.error().code, RecordWorkspaceErrorCode::InvalidPageAnchor);
+
+    auto unpaired_parent = basicRecord(pdf);
+    unpaired_parent.docket.at(1).relationship.clear();
+    const auto unpaired_result = workspace.setRecord(std::move(unpaired_parent));
+    QVERIFY(!unpaired_result.has_value());
+    QCOMPARE(unpaired_result.error().code, RecordWorkspaceErrorCode::InvalidDefinition);
+
+    auto orphan_parent = basicRecord(pdf);
+    orphan_parent.docket.at(1).parent_entry_id = QStringLiteral("docket.missing");
+    const auto parent_result = workspace.setRecord(std::move(orphan_parent));
+    QVERIFY(!parent_result.has_value());
+    QCOMPARE(parent_result.error().code, RecordWorkspaceErrorCode::InvalidDefinition);
+
+    auto cross_docket_parent = basicRecord(pdf);
+    cross_docket_parent.dockets.push_back(appellate::ui::RecordDocketDescriptor{
+        QStringLiteral("docket.appellate"), QStringLiteral("appellate"), {},
+        QStringLiteral("Fourth Circuit"), QStringLiteral("26-1001"),
+        QStringLiteral("Example v. Example")});
+    cross_docket_parent.docket.at(1).docket_id = QStringLiteral("docket.appellate");
+    const auto cross_docket_result = workspace.setRecord(std::move(cross_docket_parent));
+    QVERIFY(!cross_docket_result.has_value());
+    QCOMPARE(cross_docket_result.error().code, RecordWorkspaceErrorCode::InvalidDefinition);
+
+    auto cycle = basicRecord(pdf);
+    cycle.docket.front().parent_entry_id = QStringLiteral("docket.2");
+    cycle.docket.front().relationship = QStringLiteral("component");
+    const auto cycle_result = workspace.setRecord(std::move(cycle));
+    QVERIFY(!cycle_result.has_value());
+    QCOMPARE(cycle_result.error().code, RecordWorkspaceErrorCode::InvalidDefinition);
+
+    auto hangul_boundary = basicRecord(pdf);
+    hangul_boundary.docket.front().actor = QString(240, QChar(0xD55C));
+    QVERIFY(workspace.setRecord(std::move(hangul_boundary)).has_value());
+    auto hangul_overflow = basicRecord(pdf);
+    hangul_overflow.docket.front().actor = QString(241, QChar(0xD55C));
+    const auto hangul_result = workspace.setRecord(std::move(hangul_overflow));
+    QVERIFY(!hangul_result.has_value());
+    QCOMPARE(hangul_result.error().code, RecordWorkspaceErrorCode::InvalidDefinition);
 }
 
 void RecordWorkspaceTest::exposesKeyboardAccessibleControls() {
@@ -291,7 +404,8 @@ void RecordWorkspaceTest::largeDocketFilteringHasLinearWorkBudget() {
     constexpr qsizetype entry_count = 10'000;
     RecordDefinition definition{
         {RecordDocument{
-            QStringLiteral("doc.large"), QStringLiteral("Large record"), pdf, false, {}}},
+            QStringLiteral("doc.large"), QStringLiteral("Large record"), pdf, false, {}, 1}},
+        {},
         {},
         {},
     };
@@ -304,6 +418,11 @@ void RecordWorkspaceTest::largeDocketFilteringHasLinearWorkBudget() {
             QStringLiteral("Clerk"),
             QStringLiteral("search-token-%1").arg(index),
             QStringLiteral("doc.large"),
+            {},
+            {},
+            {},
+            {},
+            {},
             {},
             {},
         });

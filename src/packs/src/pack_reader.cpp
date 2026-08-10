@@ -1028,10 +1028,34 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
         case model::ResourceKind::Record: {
             QSet<QString> entries;
             QSet<int> entry_numbers;
+            QSet<QString> dockets;
+            for (const auto& value : document.value(QStringLiteral("dockets")).toArray()) {
+                const auto docket = value.toObject();
+                const auto docket_id = docket.value(QStringLiteral("docket_id")).toString();
+                if (dockets.contains(docket_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("dockets"),
+                        QStringLiteral("docket ids must be unique"));
+                }
+                dockets.insert(docket_id);
+                if (docket.contains(QStringLiteral("court_id"))) {
+                    const auto docket_court =
+                        requireKind(resource, QStringLiteral("dockets/court_id"),
+                                    docket.value(QStringLiteral("court_id")).toString(),
+                                    model::ResourceKind::Court);
+                    if (!docket_court) {
+                        return std::unexpected(docket_court.error());
+                    }
+                }
+            }
+            QHash<QString, QJsonObject> entries_by_id;
+            QHash<QString, QString> parent_by_entry;
+            QSet<QString> display_labels;
             for (const auto& value : document.value(QStringLiteral("docket_entries")).toArray()) {
                 const auto entry = value.toObject();
                 const auto entry_id = entry.value(QStringLiteral("entry_id")).toString();
                 const auto entry_number = entry.value(QStringLiteral("entry_number")).toInt();
+                const auto docket_id = entry.value(QStringLiteral("docket_id")).toString();
                 const auto asset_path = entry.value(QStringLiteral("asset_path")).toString();
                 const auto asset_digest = entry.value(QStringLiteral("asset_sha256")).toString();
                 if (entries.contains(entry_id) || entry_numbers.contains(entry_number)) {
@@ -1041,6 +1065,36 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 }
                 entries.insert(entry_id);
                 entry_numbers.insert(entry_number);
+                entries_by_id.insert(entry_id, entry);
+                if (entry.contains(QStringLiteral("docket_id")) &&
+                    !dockets.contains(docket_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("docket_entries/docket_id"),
+                        QStringLiteral("entry %1 references undeclared docket %2")
+                            .arg(entry_id, docket_id));
+                }
+                if (entry.contains(QStringLiteral("entry_label"))) {
+                    const auto label_key = docket_id + u'\n' +
+                                           entry.value(QStringLiteral("entry_label")).toString();
+                    if (display_labels.contains(label_key)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("docket_entries/entry_label"),
+                            QStringLiteral("display labels must be unique within a docket"));
+                    }
+                    display_labels.insert(label_key);
+                }
+                const auto has_parent = entry.contains(QStringLiteral("parent_entry_id"));
+                const auto has_relationship = entry.contains(QStringLiteral("relationship"));
+                if (has_parent != has_relationship) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("docket_entries/parent_entry_id"),
+                        QStringLiteral(
+                            "parent_entry_id and relationship must be declared together"));
+                }
+                if (has_parent) {
+                    parent_by_entry.insert(
+                        entry_id, entry.value(QStringLiteral("parent_entry_id")).toString());
+                }
                 const auto blob = blobs_by_path.constFind(asset_path);
                 if (blob == blobs_by_path.constEnd()) {
                     return crossReferenceFailure(
@@ -1054,6 +1108,69 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 }
                 referenced_blob_paths.insert(asset_path);
             }
+            for (auto parent = parent_by_entry.constBegin(); parent != parent_by_entry.constEnd();
+                 ++parent) {
+                if (!entries_by_id.contains(parent.value()) || parent.key() == parent.value()) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("docket_entries/parent_entry_id"),
+                        QStringLiteral("entry %1 has an orphaned or self parent").arg(parent.key()));
+                }
+                const auto child_docket = entries_by_id.value(parent.key())
+                                              .value(QStringLiteral("docket_id"));
+                const auto parent_docket = entries_by_id.value(parent.value())
+                                               .value(QStringLiteral("docket_id"));
+                if (child_docket != parent_docket) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("docket_entries/parent_entry_id"),
+                        QStringLiteral("parent and child must belong to the same docket"));
+                }
+            }
+            QSet<QString> resolved_parent_chains;
+            for (const auto& entry_id : entries) {
+                QSet<QString> chain;
+                auto current = entry_id;
+                while (parent_by_entry.contains(current) &&
+                       !resolved_parent_chains.contains(current)) {
+                    if (chain.contains(current)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("docket_entries/parent_entry_id"),
+                            QStringLiteral("docket entry parent graph contains a cycle"));
+                    }
+                    chain.insert(current);
+                    current = parent_by_entry.value(current);
+                }
+                resolved_parent_chains.unite(chain);
+            }
+            QSet<QString> page_anchor_ids;
+            QSet<QString> citation_labels;
+            for (const auto& value : document.value(QStringLiteral("page_anchors")).toArray()) {
+                const auto anchor = value.toObject();
+                const auto anchor_id = anchor.value(QStringLiteral("anchor_id")).toString();
+                const auto entry_id = anchor.value(QStringLiteral("entry_id")).toString();
+                const auto page_number = anchor.value(QStringLiteral("page_number")).toInt();
+                if (page_anchor_ids.contains(anchor_id) || entries.contains(anchor_id) ||
+                    !entries_by_id.contains(entry_id) ||
+                    page_number > entries_by_id.value(entry_id)
+                                      .value(QStringLiteral("page_count"))
+                                      .toInt()) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("page_anchors"),
+                        QStringLiteral(
+                            "anchors must be unique, unambiguous, attached, and in page range"));
+                }
+                page_anchor_ids.insert(anchor_id);
+                if (anchor.contains(QStringLiteral("citation_label"))) {
+                    const auto citation =
+                        anchor.value(QStringLiteral("citation_label")).toString();
+                    if (citation_labels.contains(citation)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("page_anchors/citation_label"),
+                            QStringLiteral("citation labels must be unique"));
+                    }
+                    citation_labels.insert(citation);
+                }
+            }
+            entries.unite(page_anchor_ids);
             record_entries.insert(id, entries);
             break;
         }

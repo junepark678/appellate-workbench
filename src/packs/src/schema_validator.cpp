@@ -489,6 +489,27 @@ struct ResolvedSchema final {
     return std::isfinite(number) && std::floor(number) == number;
 }
 
+[[nodiscard]] std::optional<qsizetype> unicodeScalarCount(QStringView text) {
+    qsizetype count = 0;
+    for (qsizetype index = 0; index < text.size(); ++index) {
+        const auto unit = text.at(index).unicode();
+        if (unit >= 0xD800U && unit <= 0xDBFFU) {
+            if (index + 1 >= text.size()) {
+                return std::nullopt;
+            }
+            const auto low = text.at(index + 1).unicode();
+            if (low < 0xDC00U || low > 0xDFFFU) {
+                return std::nullopt;
+            }
+            ++index;
+        } else if (unit >= 0xDC00U && unit <= 0xDFFFU) {
+            return std::nullopt;
+        }
+        ++count;
+    }
+    return count;
+}
+
 [[nodiscard]] auto validateNode(const QHash<QString, QJsonObject>& schemas,
                                 const QString& schema_file, const QJsonObject& schema,
                                 const QJsonValue& instance, const QString& path, qsizetype depth)
@@ -668,6 +689,11 @@ struct ResolvedSchema final {
 
     if (instance.isString()) {
         const auto string = instance.toString();
+        const auto scalar_count = unicodeScalarCount(string);
+        if (!scalar_count.has_value()) {
+            return violation(schema_file, path,
+                             QStringLiteral("string is not valid Unicode scalar text"));
+        }
         for (const auto& keyword : {QStringLiteral("minLength"), QStringLiteral("maxLength")}) {
             if (!schema.contains(keyword)) {
                 continue;
@@ -678,7 +704,7 @@ struct ResolvedSchema final {
                             QStringLiteral("%1 must be a non-negative integer in %2")
                                 .arg(keyword, schema_file));
             }
-            const auto length = static_cast<double>(string.size());
+            const auto length = static_cast<double>(*scalar_count);
             if ((keyword == QStringLiteral("minLength") && length < bound.toDouble()) ||
                 (keyword == QStringLiteral("maxLength") && length > bound.toDouble())) {
                 return violation(schema_file, path,

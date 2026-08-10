@@ -1,4 +1,5 @@
 #include "appellate/packs/pack_reader.hpp"
+#include "appellate/packs/runtime_pack.hpp"
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -28,6 +29,9 @@ class PackReaderTest final : public QObject {
     void rejectsBlobSizeBudgets();
     void rejectsUnlistedAndOrphanBlobs();
     void rejectsMissingAndMismatchedRecordBlobs();
+    void acceptsLegacyRecordWithoutOptionalMetadata();
+    void rejectsInvalidRecordMetadataGraph();
+    void validatesUnicodeScalarLength();
     void digestIncludesBlobDescriptor();
     void rejectsMalformedJson();
     void rejectsUnsupportedSchema();
@@ -133,6 +137,32 @@ class PackReaderTest final : public QObject {
     }
     manifest.insert(QStringLiteral("contents"), contents);
     return found && writeJson(root, QStringLiteral("manifest.json"), manifest);
+}
+
+[[nodiscard]] bool replaceResourceDocument(const QString& root, const QString& relative_path,
+                                           const QJsonObject& resource) {
+    const auto resource_bytes = jsonBytes(resource);
+    if (!writeBytes(root, relative_path, resource_bytes)) {
+        return false;
+    }
+    QFile manifest_file(QDir(root).filePath(QStringLiteral("manifest.json")));
+    if (!manifest_file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+    auto manifest = QJsonDocument::fromJson(manifest_file.readAll()).object();
+    manifest_file.close();
+    auto contents = manifest.value(QStringLiteral("contents")).toArray();
+    for (qsizetype index = 0; index < contents.size(); ++index) {
+        auto entry = contents.at(index).toObject();
+        if (entry.value(QStringLiteral("path")).toString() != relative_path) {
+            continue;
+        }
+        entry.insert(QStringLiteral("sha256"), sha256(resource_bytes));
+        contents.replace(index, entry);
+        manifest.insert(QStringLiteral("contents"), contents);
+        return writeJson(root, QStringLiteral("manifest.json"), manifest);
+    }
+    return false;
 }
 
 [[nodiscard]] QJsonObject validJudge(const QString& id = QStringLiteral("example.judge.measured"),
@@ -540,6 +570,185 @@ void PackReaderTest::rejectsMissingAndMismatchedRecordBlobs() {
     result = appellate::packs::PackReader::readDirectory(mismatched.path());
     QVERIFY(!result.has_value());
     QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+}
+
+void PackReaderTest::acceptsLegacyRecordWithoutOptionalMetadata() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), pack.path()));
+
+    const auto record_path = QStringLiteral("resources/record.json");
+    QFile record_file(QDir(pack.path()).filePath(record_path));
+    QVERIFY(record_file.open(QIODevice::ReadOnly));
+    auto record = QJsonDocument::fromJson(record_file.readAll()).object();
+    record_file.close();
+    record.remove(QStringLiteral("dockets"));
+    record.remove(QStringLiteral("page_anchors"));
+    auto entries = record.value(QStringLiteral("docket_entries")).toArray();
+    auto entry = entries.at(0).toObject();
+    for (const auto& field : {QStringLiteral("docket_id"), QStringLiteral("entry_label"),
+                              QStringLiteral("actor"), QStringLiteral("description"),
+                              QStringLiteral("tags")}) {
+        entry.remove(field);
+    }
+    entries.replace(0, entry);
+    record.insert(QStringLiteral("docket_entries"), entries);
+    QVERIFY(replaceResourceDocument(pack.path(), record_path, record));
+
+    const auto case_path = QStringLiteral("resources/case.json");
+    QFile case_file(QDir(pack.path()).filePath(case_path));
+    QVERIFY(case_file.open(QIODevice::ReadOnly));
+    auto case_resource = QJsonDocument::fromJson(case_file.readAll()).object();
+    case_file.close();
+    auto issues = case_resource.value(QStringLiteral("issues")).toArray();
+    auto issue = issues.at(0).toObject();
+    issue.insert(QStringLiteral("record_anchor_ids"),
+                 QJsonArray{QStringLiteral("example.record.entry-one")});
+    issues.replace(0, issue);
+    case_resource.insert(QStringLiteral("issues"), issues);
+    QVERIFY(replaceResourceDocument(pack.path(), case_path, case_resource));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error().message));
+}
+
+void PackReaderTest::rejectsInvalidRecordMetadataGraph() {
+    const auto record_path = QStringLiteral("resources/record.json");
+    for (int variant = 0; variant < 8; ++variant) {
+        QTemporaryDir pack;
+        QVERIFY(pack.isValid());
+        QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), pack.path()));
+        QFile record_file(QDir(pack.path()).filePath(record_path));
+        QVERIFY(record_file.open(QIODevice::ReadOnly));
+        auto record = QJsonDocument::fromJson(record_file.readAll()).object();
+        record_file.close();
+        auto entries = record.value(QStringLiteral("docket_entries")).toArray();
+        auto first = entries.at(0).toObject();
+        auto anchors = record.value(QStringLiteral("page_anchors")).toArray();
+        if (variant == 0) {
+            first.insert(QStringLiteral("docket_id"),
+                         QStringLiteral("example.docket.missing"));
+            entries.replace(0, first);
+            record.insert(QStringLiteral("docket_entries"), entries);
+        } else if (variant == 1) {
+            first.insert(QStringLiteral("parent_entry_id"),
+                         QStringLiteral("example.record.entry-two"));
+            entries.replace(0, first);
+            record.insert(QStringLiteral("docket_entries"), entries);
+        } else if (variant == 2) {
+            first.insert(QStringLiteral("parent_entry_id"),
+                         QStringLiteral("example.record.missing"));
+            first.insert(QStringLiteral("relationship"), QStringLiteral("attachment"));
+            entries.replace(0, first);
+            record.insert(QStringLiteral("docket_entries"), entries);
+        } else if (variant == 3) {
+            auto second = first;
+            second.insert(QStringLiteral("entry_id"),
+                          QStringLiteral("example.record.entry-two"));
+            second.insert(QStringLiteral("entry_number"), 2);
+            second.insert(QStringLiteral("entry_label"), QStringLiteral("ECF No. 42-1"));
+            second.insert(QStringLiteral("parent_entry_id"),
+                          QStringLiteral("example.record.entry-one"));
+            second.insert(QStringLiteral("relationship"), QStringLiteral("attachment"));
+            first.insert(QStringLiteral("parent_entry_id"),
+                         QStringLiteral("example.record.entry-two"));
+            first.insert(QStringLiteral("relationship"), QStringLiteral("component"));
+            entries.replace(0, first);
+            entries.push_back(second);
+            record.insert(QStringLiteral("docket_entries"), entries);
+        } else if (variant == 4) {
+            auto anchor = anchors.at(0).toObject();
+            anchor.insert(QStringLiteral("page_number"), 4);
+            anchors.replace(0, anchor);
+            record.insert(QStringLiteral("page_anchors"), anchors);
+        } else if (variant == 5) {
+            auto anchor = anchors.at(0).toObject();
+            anchor.insert(QStringLiteral("anchor_id"),
+                          QStringLiteral("example.record.entry-one"));
+            anchors.replace(0, anchor);
+            record.insert(QStringLiteral("page_anchors"), anchors);
+        } else if (variant == 6) {
+            auto dockets = record.value(QStringLiteral("dockets")).toArray();
+            auto appellate = dockets.at(1).toObject();
+            appellate.insert(QStringLiteral("court_id"),
+                             QStringLiteral("example.court.missing"));
+            dockets.replace(1, appellate);
+            record.insert(QStringLiteral("dockets"), dockets);
+        } else {
+            auto duplicate_citation = anchors.at(0).toObject();
+            duplicate_citation.insert(QStringLiteral("anchor_id"),
+                                      QStringLiteral("example.record.anchor.ja3"));
+            duplicate_citation.insert(QStringLiteral("page_number"), 3);
+            anchors.push_back(duplicate_citation);
+            record.insert(QStringLiteral("page_anchors"), anchors);
+        }
+        QVERIFY(replaceResourceDocument(pack.path(), record_path, record));
+        const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+        QVERIFY2(!result.has_value(), qPrintable(QStringLiteral("variant %1").arg(variant)));
+        QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+    }
+
+    QTemporaryDir unknown_field;
+    QVERIFY(unknown_field.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), unknown_field.path()));
+    QFile record_file(QDir(unknown_field.path()).filePath(record_path));
+    QVERIFY(record_file.open(QIODevice::ReadOnly));
+    auto record = QJsonDocument::fromJson(record_file.readAll()).object();
+    record_file.close();
+    auto entries = record.value(QStringLiteral("docket_entries")).toArray();
+    auto entry = entries.at(0).toObject();
+    entry.insert(QStringLiteral("remote_url"), QStringLiteral("https://example.invalid/order"));
+    entries.replace(0, entry);
+    record.insert(QStringLiteral("docket_entries"), entries);
+    QVERIFY(replaceResourceDocument(unknown_field.path(), record_path, record));
+    const auto result =
+        appellate::packs::PackReader::readDirectory(unknown_field.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::SchemaViolation);
+}
+
+void PackReaderTest::validatesUnicodeScalarLength() {
+    const auto record_path = QStringLiteral("resources/record.json");
+    QTemporaryDir boundary;
+    QVERIFY(boundary.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), boundary.path()));
+    QFile boundary_file(QDir(boundary.path()).filePath(record_path));
+    QVERIFY(boundary_file.open(QIODevice::ReadOnly));
+    auto boundary_record = QJsonDocument::fromJson(boundary_file.readAll()).object();
+    boundary_file.close();
+    auto boundary_entries = boundary_record.value(QStringLiteral("docket_entries")).toArray();
+    auto boundary_entry = boundary_entries.at(0).toObject();
+    boundary_entry.insert(QStringLiteral("actor"), QString(240, QChar(0xD55C)));
+    boundary_entries.replace(0, boundary_entry);
+    boundary_record.insert(QStringLiteral("docket_entries"), boundary_entries);
+    QVERIFY(replaceResourceDocument(boundary.path(), record_path, boundary_record));
+    const auto boundary_result =
+        appellate::packs::PackReader::readDirectory(boundary.path());
+    QVERIFY2(boundary_result.has_value(),
+             boundary_result ? "" : qPrintable(boundary_result.error().message));
+    const auto boundary_runtime = appellate::packs::loadRuntimePack(*boundary_result);
+    QVERIFY2(boundary_runtime.has_value(),
+             boundary_runtime ? "" : boundary_runtime.error().message.c_str());
+    QCOMPARE(*boundary_runtime->cases.front().record.docket_entries.front().actor,
+             QString(240, QChar(0xD55C)).toUtf8().toStdString());
+
+    QTemporaryDir overflow;
+    QVERIFY(overflow.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), overflow.path()));
+    QFile overflow_file(QDir(overflow.path()).filePath(record_path));
+    QVERIFY(overflow_file.open(QIODevice::ReadOnly));
+    auto overflow_record = QJsonDocument::fromJson(overflow_file.readAll()).object();
+    overflow_file.close();
+    auto overflow_entries = overflow_record.value(QStringLiteral("docket_entries")).toArray();
+    auto overflow_entry = overflow_entries.at(0).toObject();
+    overflow_entry.insert(QStringLiteral("actor"), QString(241, QChar(0xD55C)));
+    overflow_entries.replace(0, overflow_entry);
+    overflow_record.insert(QStringLiteral("docket_entries"), overflow_entries);
+    QVERIFY(replaceResourceDocument(overflow.path(), record_path, overflow_record));
+    const auto overflow_result =
+        appellate::packs::PackReader::readDirectory(overflow.path());
+    QVERIFY(!overflow_result.has_value());
+    QCOMPARE(overflow_result.error().code, appellate::packs::ErrorCode::SchemaViolation);
 }
 
 void PackReaderTest::digestIncludesBlobDescriptor() {
