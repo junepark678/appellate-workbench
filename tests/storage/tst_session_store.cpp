@@ -1,7 +1,10 @@
 #include "appellate/storage/session_store.hpp"
 
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QUuid>
 
 namespace {
 
@@ -22,12 +25,58 @@ class SessionStoreTest final : public QObject {
 
   private slots:
     void migratesFreshDatabase();
+    void refusesNewerSchemaWithoutMutation();
     void persistsAndReopensPinnedSession();
     void rejectsStaleSequenceWithoutPartialWrite();
     void rollsBackDuplicateCommand();
     void rejectsInvalidAndDuplicateAssetReferencesWithoutWrites();
     void rollsBackDuplicateStoredAssetReference();
 };
+
+[[nodiscard]] bool createFutureDatabase(const QString& path) {
+    const auto connection =
+        QStringLiteral("future-schema-%1").arg(QUuid::createUuid().toString(QUuid::Id128));
+    bool created = false;
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        database.setDatabaseName(path);
+        if (database.open()) {
+            QSqlQuery query(database);
+            created = query.exec(QStringLiteral(
+                          "CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, "
+                          "applied_at_utc TEXT NOT NULL) STRICT")) &&
+                      query.exec(QStringLiteral(
+                          "INSERT INTO schema_migrations VALUES(2, 'future')")) &&
+                      query.exec(QStringLiteral(
+                          "CREATE TABLE future_sentinel (value TEXT NOT NULL) STRICT")) &&
+                      query.exec(QStringLiteral(
+                          "INSERT INTO future_sentinel VALUES('untouched')"));
+            database.close();
+        }
+        database = QSqlDatabase{};
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return created;
+}
+
+[[nodiscard]] bool futureDatabaseIsUntouched(const QString& path) {
+    const auto connection =
+        QStringLiteral("future-check-%1").arg(QUuid::createUuid().toString(QUuid::Id128));
+    bool untouched = false;
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        database.setDatabaseName(path);
+        if (database.open()) {
+            QSqlQuery query(database);
+            untouched = query.exec(QStringLiteral("SELECT value FROM future_sentinel")) &&
+                        query.next() && query.value(0).toString() == QStringLiteral("untouched");
+            database.close();
+        }
+        database = QSqlDatabase{};
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return untouched;
+}
 
 [[nodiscard]] auto pins() -> std::vector<RevisionPin> {
     return {{QStringLiteral("example.appellate.ca4"), QStringLiteral("0.1.0"),
@@ -58,6 +107,18 @@ void SessionStoreTest::migratesFreshDatabase() {
         QFAIL(qPrintable(store.error().message));
     }
     QCOMPARE((*store)->schemaVersion(), 1);
+}
+
+void SessionStoreTest::refusesNewerSchemaWithoutMutation() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto path = temporary.filePath(QStringLiteral("future.sqlite"));
+    QVERIFY(createFutureDatabase(path));
+
+    const auto opened = SessionStore::open(path);
+    QVERIFY(!opened.has_value());
+    QCOMPARE(opened.error().code, StoreErrorCode::MigrationFailed);
+    QVERIFY(futureDatabaseIsUntouched(path));
 }
 
 void SessionStoreTest::persistsAndReopensPinnedSession() {
