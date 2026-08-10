@@ -382,7 +382,9 @@ RecordWorkspace::~RecordWorkspace() {
 
     // Qt 6.11's QPdfPageRendererPrivate destructor stops its worker thread but omits deleting the
     // QThread. Switching through the public API first performs the complete quit/wait/delete path.
-    if (auto* renderer = pdf_view_->findChild<QPdfPageRenderer*>(); renderer != nullptr) {
+    const auto renderers = pdf_view_->findChildren<QPdfPageRenderer*>(
+        QString{}, Qt::FindDirectChildrenOnly);
+    for (auto* renderer : renderers) {
         renderer->setRenderMode(QPdfPageRenderer::RenderMode::SingleThreaded);
     }
     delete pdf_view_;
