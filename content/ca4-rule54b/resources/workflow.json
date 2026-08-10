@@ -46,7 +46,7 @@
       },
       "deadline_days": 30,
       "deadline_counting": "calendar_days",
-      "authorized_role_ids": []
+      "authorized_role_ids": ["ca4r54b.role.court"]
     },
     {
       "operation_id": "ca4r54b.operation.accept-notice",
@@ -137,7 +137,7 @@
       },
       "deadline_days": 14,
       "deadline_counting": "calendar_days",
-      "authorized_role_ids": []
+      "authorized_role_ids": ["ca4r54b.role.court"]
     },
     {
       "operation_id": "ca4r54b.operation.advance-initial-requirements",
@@ -236,7 +236,7 @@
       },
       "deadline_days": 40,
       "deadline_counting": "calendar_days",
-      "authorized_role_ids": []
+      "authorized_role_ids": ["ca4r54b.role.court"]
     },
     {
       "operation_id": "ca4r54b.operation.advance-briefing",
@@ -513,7 +513,25 @@
       },
       "deadline_days": 14,
       "deadline_counting": "calendar_days",
-      "authorized_role_ids": []
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.calculate-mandate-deadline",
+      "stage_id": "ca4r54b.stage.rehearing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-41",
+          "citation": "Fed. R. App. P. 41(a)–(c) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "The mandate contains the certified judgment, any opinion, and costs direction; absent an order it issues seven days after rehearing time expires or seven days after disposition of a timely rehearing petition or stay motion, whichever is later, and is effective when issued.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule41.html"
+        },
+        "supporting": []
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": ["ca4r54b.role.court"]
     },
     {
       "operation_id": "ca4r54b.operation.advance-mandate",
@@ -587,7 +605,6 @@
       "accept_operation_id": "ca4r54b.operation.accept-initial-documents",
       "reject_operation_id": "ca4r54b.operation.reject-initial-documents",
       "deficiency_operation_id": "ca4r54b.operation.deficiency-initial-documents",
-      "advance_operation_id": "ca4r54b.operation.advance-briefing",
       "reject_after_deadline": false
     },
     {
