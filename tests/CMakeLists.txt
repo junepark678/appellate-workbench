@@ -35,6 +35,18 @@ target_compile_definitions(
 target_compile_features(tst_pack_archive PRIVATE cxx_std_26)
 add_test(NAME pack_archive COMMAND tst_pack_archive)
 
+qt_add_executable(tst_pack_catalog packs/tst_pack_catalog.cpp)
+target_link_libraries(
+    tst_pack_catalog
+    PRIVATE
+        appellate::packs
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_pack_catalog PRIVATE cxx_std_26)
+add_test(NAME pack_catalog COMMAND tst_pack_catalog)
+
 qt_add_executable(tst_procedure_engine engine/tst_procedure_engine.cpp)
 target_link_libraries(
     tst_procedure_engine

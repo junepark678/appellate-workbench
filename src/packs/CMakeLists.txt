@@ -1,9 +1,11 @@
 qt_add_library(
     appellate_packs STATIC
     src/pack_archive.cpp
+    src/pack_catalog.cpp
     src/pack_reader.cpp
     include/appellate/packs/error.hpp
     include/appellate/packs/pack_archive.hpp
+    include/appellate/packs/pack_catalog.hpp
     include/appellate/packs/pack_reader.hpp
 )
 add_library(appellate::packs ALIAS appellate_packs)
@@ -15,7 +17,7 @@ target_include_directories(
 )
 target_link_libraries(
     appellate_packs
-    PUBLIC appellate::model Qt6::Core
+    PUBLIC appellate::model Qt6::Core Qt6::Sql
     PRIVATE
         appellate::project_warnings
         appellate::project_sanitizers
