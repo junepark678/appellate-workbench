@@ -27,9 +27,11 @@ actually used by the engine.
 ## Appellate behavior floor
 
 The prior source catalog contained 53 distinct appellate filing-event definitions; 26 were
-exercised by authored expected paths. The new procedure packs must inventory all 53, classify
-each as executable, intentionally unsupported, or superseded, and exercise every event required
-by the nine shipped cases. Raw definition count alone is not an acceptance criterion.
+exercised by authored expected paths. The
+[complete event catalog and MVP treatment](APPELLATE_EVENT_CATALOG.md) accounts for every
+definition as a required port, adverse/optional port, deliberate deferral, or superseded
+state transition. The new procedure packs must exercise every event required by the nine
+shipped cases. Raw definition count alone is not an acceptance criterion.
 
 Prior profile inventories were:
 
