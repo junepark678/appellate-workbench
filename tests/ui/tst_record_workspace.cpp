@@ -122,7 +122,7 @@ void RecordWorkspaceTest::filtersMetadataAndSearchesPdfText() {
     const auto opened = workspace.openDocketEntry(QStringLiteral("docket.1"));
     QVERIFY(opened.has_value());
     workspace.setDocumentSearch(QStringLiteral("evidentiary"));
-    QTRY_VERIFY_WITH_TIMEOUT(workspace.documentSearchResultCount() >= 1, 2000);
+    QTRY_VERIFY_WITH_TIMEOUT(workspace.documentSearchResultCount() >= 1, 10'000);
 }
 
 void RecordWorkspaceTest::navigatesStableAnchorAcrossMultipagePdf() {

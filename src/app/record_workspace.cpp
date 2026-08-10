@@ -10,6 +10,7 @@
 #include <QLineEdit>
 #include <QPdfDocument>
 #include <QPdfPageNavigator>
+#include <QPdfPageRenderer>
 #include <QPdfSearchModel>
 #include <QPdfView>
 #include <QPushButton>
@@ -371,7 +372,27 @@ RecordWorkspace::RecordWorkspace(QWidget* parent) : QWidget(parent) {
     updatePageControls(-1);
 }
 
-RecordWorkspace::~RecordWorkspace() = default;
+RecordWorkspace::~RecordWorkspace() {
+    // QPdfDocument teardown can synchronously move the page navigator. Destroy the PDF objects
+    // in dependency order while the derived object is still alive: leaving QPdfView to QWidget's
+    // base destructor can invoke our navigator lambda after RecordWorkspace's lifetime has ended,
+    // and its threaded page renderer is not guaranteed to have stopped before leak checking.
+    QObject::disconnect(pdf_view_->pageNavigator(), nullptr, this, nullptr);
+    QObject::disconnect(pdf_search_model_, nullptr, this, nullptr);
+
+    // Qt 6.11's QPdfPageRendererPrivate destructor stops its worker thread but omits deleting the
+    // QThread. Switching through the public API first performs the complete quit/wait/delete path.
+    if (auto* renderer = pdf_view_->findChild<QPdfPageRenderer*>(); renderer != nullptr) {
+        renderer->setRenderMode(QPdfPageRenderer::RenderMode::SingleThreaded);
+    }
+    delete pdf_view_;
+    pdf_view_ = nullptr;
+    delete pdf_search_model_;
+    pdf_search_model_ = nullptr;
+    pdf_document_->close();
+    delete pdf_document_;
+    pdf_document_ = nullptr;
+}
 
 std::expected<void, RecordWorkspaceError>
 RecordWorkspace::validate(const RecordDefinition& definition) const {
