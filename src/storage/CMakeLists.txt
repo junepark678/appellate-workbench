@@ -21,3 +21,9 @@ target_link_libraries(
     PRIVATE appellate::project_warnings appellate::project_sanitizers
 )
 target_compile_features(appellate_storage PUBLIC cxx_std_26)
+
+qt_add_resources(
+    appellate_storage "storage_migrations"
+    PREFIX "/appellate/storage"
+    FILES migrations/001_initial.sql
+)

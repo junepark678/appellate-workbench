@@ -1,5 +1,6 @@
 #include "appellate/storage/session_store.hpp"
 
+#include <QFile>
 #include <QSet>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -63,72 +64,25 @@ constexpr std::size_t maximum_asset_references_per_batch = 4096;
     return {};
 }
 
-constexpr auto migration_v1 = R"SQL(
-CREATE TABLE IF NOT EXISTS schema_migrations (
-    version INTEGER PRIMARY KEY,
-    applied_at_utc TEXT NOT NULL
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS installed_pack_revisions (
-    pack_id TEXT NOT NULL,
-    version TEXT NOT NULL,
-    digest TEXT NOT NULL CHECK(length(digest) = 64),
-    installed_at_utc TEXT NOT NULL,
-    PRIMARY KEY (pack_id, version),
-    UNIQUE (pack_id, version, digest)
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS sessions (
-    session_id TEXT PRIMARY KEY,
-    engine_revision TEXT NOT NULL,
-    sequence INTEGER NOT NULL DEFAULT 0 CHECK(sequence >= 0),
-    created_at_utc TEXT NOT NULL
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS session_pins (
-    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    pack_id TEXT NOT NULL,
-    version TEXT NOT NULL,
-    digest TEXT NOT NULL CHECK(length(digest) = 64),
-    PRIMARY KEY (session_id, pack_id)
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS command_log (
-    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    command_id TEXT NOT NULL,
-    expected_sequence INTEGER NOT NULL CHECK(expected_sequence >= 0),
-    payload_json BLOB NOT NULL,
-    recorded_at_utc TEXT NOT NULL,
-    PRIMARY KEY (session_id, command_id)
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS event_log (
-    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    sequence INTEGER NOT NULL CHECK(sequence > 0),
-    event_type TEXT NOT NULL,
-    payload_json BLOB NOT NULL,
-    authority_id TEXT NOT NULL,
-    PRIMARY KEY (session_id, sequence)
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS docket_projection (
-    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    entry_id TEXT NOT NULL,
-    event_sequence INTEGER NOT NULL CHECK(event_sequence > 0),
-    title TEXT NOT NULL,
-    status TEXT NOT NULL,
-    PRIMARY KEY (session_id, entry_id),
-    FOREIGN KEY (session_id, event_sequence)
-        REFERENCES event_log(session_id, sequence) ON DELETE CASCADE
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS asset_references (
-    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
-    digest TEXT NOT NULL CHECK(length(digest) = 64),
-    purpose TEXT NOT NULL,
-    PRIMARY KEY (session_id, digest, purpose)
-) STRICT;
-)SQL";
+[[nodiscard]] auto migrationSql(int version) -> std::expected<QByteArray, StoreError> {
+    QFile migration(QStringLiteral(":/appellate/storage/migrations/%1_initial.sql")
+                        .arg(version, 3, 10, QLatin1Char('0')));
+    if (!migration.open(QIODevice::ReadOnly)) {
+        return fail(StoreErrorCode::MigrationFailed,
+                    QStringLiteral("Embedded migration %1 is unavailable").arg(version));
+    }
+    constexpr qint64 maximum_migration_bytes = 1024 * 1024;
+    if (migration.size() <= 0 || migration.size() > maximum_migration_bytes) {
+        return fail(StoreErrorCode::MigrationFailed,
+                    QStringLiteral("Embedded migration %1 has an invalid size").arg(version));
+    }
+    const auto bytes = migration.read(maximum_migration_bytes + 1);
+    if (bytes.size() != migration.size()) {
+        return fail(StoreErrorCode::MigrationFailed,
+                    QStringLiteral("Cannot read embedded migration %1").arg(version));
+    }
+    return bytes;
+}
 
 } // namespace
 
@@ -223,15 +177,20 @@ std::expected<void, StoreError> SessionStore::migrate() {
     }
 
     if (version < 1) {
-        const auto statements = QString::fromUtf8(migration_v1).split(u';', Qt::SkipEmptyParts);
+        const auto migration = migrationSql(1);
+        if (!migration) {
+            rollback();
+            return std::unexpected(migration.error());
+        }
+        const auto statements = QString::fromUtf8(*migration).split(u';', Qt::SkipEmptyParts);
         for (const auto& statement : statements) {
             if (statement.trimmed().isEmpty()) {
                 continue;
             }
-            QSqlQuery migration(database_);
-            if (!migration.exec(statement)) {
+            QSqlQuery migration_query(database_);
+            if (!migration_query.exec(statement)) {
                 rollback();
-                return queryFailure(StoreErrorCode::MigrationFailed, migration,
+                return queryFailure(StoreErrorCode::MigrationFailed, migration_query,
                                     QStringLiteral("apply migration 1"));
             }
         }

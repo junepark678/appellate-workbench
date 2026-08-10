@@ -1,4 +1,4 @@
-CREATE TABLE schema_migrations (
+CREATE TABLE IF NOT EXISTS schema_migrations (
     version INTEGER PRIMARY KEY,
     applied_at_utc TEXT NOT NULL
 ) STRICT;
