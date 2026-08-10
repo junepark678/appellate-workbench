@@ -229,3 +229,5 @@ target_compile_definitions(
 target_compile_features(tst_main_window PRIVATE cxx_std_26)
 add_test(NAME main_window COMMAND tst_main_window)
 set_tests_properties(main_window PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_subdirectory(content)

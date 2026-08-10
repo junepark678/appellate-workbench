@@ -1,4 +1,5 @@
 add_subdirectory(model)
+add_subdirectory(content)
 add_subdirectory(packs)
 add_subdirectory(cli)
 add_subdirectory(engine)
