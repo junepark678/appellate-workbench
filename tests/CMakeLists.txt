@@ -106,3 +106,15 @@ target_link_libraries(
 )
 target_compile_features(tst_initiation_resume PRIVATE cxx_std_26)
 add_test(NAME initiation_resume COMMAND tst_initiation_resume)
+
+qt_add_executable(tst_record_workspace ui/tst_record_workspace.cpp)
+target_link_libraries(
+    tst_record_workspace
+    PRIVATE
+        appellate::record_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_record_workspace PRIVATE cxx_std_26)
+add_test(NAME record_workspace COMMAND tst_record_workspace)

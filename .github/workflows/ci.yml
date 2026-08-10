@@ -35,7 +35,8 @@ jobs:
       - name: Install build dependencies
         run: >-
           zypper --non-interactive install --no-recommends
-          git cmake ninja gcc-c++ clang qt6-base-devel qt6-sql-sqlite libarchive-devel
+          git cmake ninja gcc-c++ clang qt6-base-devel qt6-sql-sqlite
+          qt6-pdf-devel qt6-pdfwidgets-devel libarchive-devel
 
       - name: Check out source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -66,7 +67,8 @@ jobs:
       - name: Install build dependencies
         run: >-
           zypper --non-interactive install --no-recommends
-          git cmake ninja gcc-c++ qt6-base-devel qt6-sql-sqlite libarchive-devel
+          git cmake ninja gcc-c++ qt6-base-devel qt6-sql-sqlite
+          qt6-pdf-devel qt6-pdfwidgets-devel libarchive-devel
 
       - name: Check out source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

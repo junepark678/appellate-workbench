@@ -15,6 +15,23 @@ target_link_libraries(
 )
 target_compile_features(appellate_application PUBLIC cxx_std_26)
 
+qt_add_library(
+    appellate_record_ui STATIC
+    record_workspace.cpp
+    record_workspace.hpp
+)
+add_library(appellate::record_ui ALIAS appellate_record_ui)
+target_include_directories(
+    appellate_record_ui
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+target_link_libraries(
+    appellate_record_ui
+    PUBLIC Qt6::Core Qt6::Pdf Qt6::PdfWidgets Qt6::Widgets
+    PRIVATE appellate::project_warnings appellate::project_sanitizers
+)
+target_compile_features(appellate_record_ui PUBLIC cxx_std_26)
+
 qt_add_executable(
     appellate-workbench
     main.cpp
@@ -27,6 +44,7 @@ target_link_libraries(
     PRIVATE
         appellate::packs
         appellate::application
+        appellate::record_ui
         appellate::project_warnings
         appellate::project_sanitizers
         Qt6::Widgets
