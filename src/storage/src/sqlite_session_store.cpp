@@ -1,9 +1,12 @@
 #include "appellate/storage/session_store.hpp"
 
 #include <QDir>
+#include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
 #include <QSet>
+#include <QJsonDocument>
+#include <QJsonParseError>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QUuid>
@@ -29,6 +32,10 @@ namespace {
 constexpr auto current_schema_version = 1;
 constexpr qsizetype maximum_asset_purpose_length = 128;
 constexpr std::size_t maximum_asset_references_per_batch = 4096;
+constexpr std::size_t maximum_events_per_batch = 4096;
+constexpr std::size_t maximum_docket_changes_per_batch = 4096;
+constexpr std::size_t maximum_session_pins = 128;
+constexpr qsizetype maximum_json_bytes = 1024 * 1024;
 constexpr qsizetype backup_buffer_bytes = 64 * 1024;
 
 [[nodiscard]] auto fail(StoreErrorCode code, QString message) -> std::unexpected<StoreError> {
@@ -41,7 +48,25 @@ constexpr qsizetype backup_buffer_bytes = 64 * 1024;
 }
 
 [[nodiscard]] bool validText(const QString& value) {
-    return !value.isEmpty() && value.size() <= 512;
+    return !value.isEmpty() && value.size() <= 512 && !value.contains(QChar::Null);
+}
+
+[[nodiscard]] bool validCanonicalUtc(const QString& value) {
+    if (value.size() != 20 || !value.endsWith(u'Z')) {
+        return false;
+    }
+    const auto parsed = QDateTime::fromString(value, Qt::ISODate);
+    return parsed.isValid() && parsed.offsetFromUtc() == 0 &&
+           parsed.toUTC().toString(QStringLiteral("yyyy-MM-dd'T'HH:mm:ss'Z'")) == value;
+}
+
+[[nodiscard]] bool validJsonObject(const QByteArray& value) {
+    if (value.isEmpty() || value.size() > maximum_json_bytes) {
+        return false;
+    }
+    QJsonParseError parse_error;
+    const auto document = QJsonDocument::fromJson(value, &parse_error);
+    return parse_error.error == QJsonParseError::NoError && document.isObject();
 }
 
 [[nodiscard]] bool validDigest(const QString& value) {
@@ -308,16 +333,23 @@ std::expected<void, StoreError> SessionStore::createSession(const QString& sessi
                                                             const QString& engine_revision,
                                                             const QString& created_at_utc,
                                                             const std::vector<RevisionPin>& pins) {
-    if (!validText(session_id) || !validText(engine_revision) || !validText(created_at_utc) ||
-        pins.empty()) {
+    if (!validText(session_id) || !validText(engine_revision) ||
+        !validCanonicalUtc(created_at_utc) || pins.empty() ||
+        pins.size() > maximum_session_pins) {
         return fail(
             StoreErrorCode::InvalidArgument,
             QStringLiteral("Session identity, engine revision, time, and pins are required"));
     }
+    QSet<QString> pinned_pack_ids;
     for (const auto& pin : pins) {
         if (!validText(pin.pack_id) || !validText(pin.version) || !validDigest(pin.digest)) {
             return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Invalid revision pin"));
         }
+        if (pinned_pack_ids.contains(pin.pack_id)) {
+            return fail(StoreErrorCode::InvalidArgument,
+                        QStringLiteral("Duplicate pinned pack revision"));
+        }
+        pinned_pack_ids.insert(pin.pack_id);
     }
 
     if (auto begun = beginImmediate(); !begun) {
@@ -358,23 +390,31 @@ std::expected<qint64, StoreError> SessionStore::append(const QString& session_id
                                                        qint64 expected_sequence,
                                                        const CommitBatch& batch) {
     if (!validText(session_id) || expected_sequence < 0 || !validText(batch.command_id) ||
-        batch.command_json.isEmpty() || !validText(batch.recorded_at_utc) || batch.events.empty()) {
+        !validJsonObject(batch.command_json) || !validCanonicalUtc(batch.recorded_at_utc) ||
+        batch.events.empty() || batch.events.size() > maximum_events_per_batch ||
+        batch.docket_changes.size() > maximum_docket_changes_per_batch) {
         return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Invalid commit batch"));
     }
-    if (batch.events.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
-        return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Too many events"));
+    const auto event_count = static_cast<qint64>(batch.events.size());
+    if (expected_sequence > std::numeric_limits<qint64>::max() - event_count) {
+        return fail(StoreErrorCode::InvalidArgument,
+                    QStringLiteral("Commit batch sequence would overflow"));
     }
     for (const auto& event : batch.events) {
-        if (!validText(event.event_type) || event.payload_json.isEmpty()) {
+        if (!validText(event.event_type) || !validJsonObject(event.payload_json) ||
+            !validText(event.authority_id)) {
             return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Invalid event"));
         }
     }
+    QSet<QString> docket_entry_ids;
     for (const auto& entry : batch.docket_changes) {
         if (!validText(entry.entry_id) || !validText(entry.title) || !validText(entry.status) ||
             entry.source_event_offset < 0 ||
-            entry.source_event_offset >= static_cast<qsizetype>(batch.events.size())) {
+            entry.source_event_offset >= static_cast<qsizetype>(batch.events.size()) ||
+            docket_entry_ids.contains(entry.entry_id)) {
             return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Invalid docket change"));
         }
+        docket_entry_ids.insert(entry.entry_id);
     }
     if (batch.asset_references.size() > maximum_asset_references_per_batch) {
         return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Too many asset references"));
@@ -479,7 +519,7 @@ std::expected<qint64, StoreError> SessionStore::append(const QString& session_id
         }
     }
 
-    const auto new_sequence = expected_sequence + static_cast<qint64>(batch.events.size());
+    const auto new_sequence = expected_sequence + event_count;
     QSqlQuery update(database_);
     update.prepare(
         QStringLiteral("UPDATE sessions SET sequence = ? WHERE session_id = ? AND sequence = ?"));

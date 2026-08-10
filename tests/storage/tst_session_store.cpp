@@ -8,6 +8,8 @@
 #include <QTest>
 #include <QUuid>
 
+#include <limits>
+
 namespace {
 
 using appellate::storage::AssetReference;
@@ -33,6 +35,8 @@ class SessionStoreTest final : public QObject {
     void rejectsStaleSequenceWithoutPartialWrite();
     void rollsBackDuplicateCommand();
     void rejectsInvalidAndDuplicateAssetReferencesWithoutWrites();
+    void rejectsMalformedOrUnboundedCommitDataWithoutWrites();
+    void rejectsInvalidSessionMetadataWithoutWrites();
     void rollsBackDuplicateStoredAssetReference();
     void backsUpAndRestoresConsistentSnapshot();
     void rejectsCorruptRestoreWithoutCreatingDestination();
@@ -257,6 +261,83 @@ void SessionStoreTest::rejectsInvalidAndDuplicateAssetReferencesWithoutWrites() 
     QVERIFY(snapshot->events.empty());
     QVERIFY(snapshot->docket.empty());
     QVERIFY(snapshot->asset_references.empty());
+}
+
+void SessionStoreTest::rejectsMalformedOrUnboundedCommitDataWithoutWrites() {
+    QTemporaryDir temporary;
+    auto store = SessionStore::open(temporary.filePath(QStringLiteral("sessions.sqlite")));
+    QVERIFY(store.has_value());
+    QVERIFY((*store)
+                ->createSession(QStringLiteral("session-1"), QStringLiteral("engine-1"),
+                                QStringLiteral("2026-08-11T00:00:00Z"), pins())
+                .has_value());
+
+    auto batch = acceptedFiling(QStringLiteral("malformed-command"));
+    batch.command_json = QByteArrayLiteral("not-json");
+    auto result = (*store)->append(QStringLiteral("session-1"), 0, batch);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, StoreErrorCode::InvalidArgument);
+
+    batch = acceptedFiling(QStringLiteral("oversized-command"));
+    batch.command_json = QByteArray(1024 * 1024 + 1, 'x');
+    result = (*store)->append(QStringLiteral("session-1"), 0, batch);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, StoreErrorCode::InvalidArgument);
+
+    batch = acceptedFiling(QStringLiteral("malformed-event"));
+    batch.events.front().payload_json = QByteArrayLiteral("[]");
+    result = (*store)->append(QStringLiteral("session-1"), 0, batch);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, StoreErrorCode::InvalidArgument);
+
+    batch = acceptedFiling(QStringLiteral("missing-authority"));
+    batch.events.front().authority_id.clear();
+    result = (*store)->append(QStringLiteral("session-1"), 0, batch);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, StoreErrorCode::InvalidArgument);
+
+    batch = acceptedFiling(QStringLiteral("duplicate-docket"));
+    batch.docket_changes.push_back(batch.docket_changes.front());
+    result = (*store)->append(QStringLiteral("session-1"), 0, batch);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, StoreErrorCode::InvalidArgument);
+
+    batch = acceptedFiling(QStringLiteral("overflow"));
+    result = (*store)->append(QStringLiteral("session-1"),
+                              std::numeric_limits<qint64>::max(), batch);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, StoreErrorCode::InvalidArgument);
+
+    const auto snapshot = (*store)->loadSession(QStringLiteral("session-1"));
+    QVERIFY(snapshot.has_value());
+    QCOMPARE(snapshot->sequence, qint64{0});
+    QVERIFY(snapshot->commands.empty());
+    QVERIFY(snapshot->events.empty());
+    QVERIFY(snapshot->docket.empty());
+}
+
+void SessionStoreTest::rejectsInvalidSessionMetadataWithoutWrites() {
+    QTemporaryDir temporary;
+    auto store = SessionStore::open(temporary.filePath(QStringLiteral("sessions.sqlite")));
+    QVERIFY(store.has_value());
+
+    const auto invalid_time =
+        (*store)->createSession(QStringLiteral("session-1"), QStringLiteral("engine-1"),
+                                QStringLiteral("2026-08-11T00:00:00+00:00"), pins());
+    QVERIFY(!invalid_time.has_value());
+    QCOMPARE(invalid_time.error().code, StoreErrorCode::InvalidArgument);
+
+    auto duplicate_pins = pins();
+    duplicate_pins.push_back(duplicate_pins.front());
+    const auto duplicate =
+        (*store)->createSession(QStringLiteral("session-1"), QStringLiteral("engine-1"),
+                                QStringLiteral("2026-08-11T00:00:00Z"), duplicate_pins);
+    QVERIFY(!duplicate.has_value());
+    QCOMPARE(duplicate.error().code, StoreErrorCode::InvalidArgument);
+
+    const auto missing = (*store)->loadSession(QStringLiteral("session-1"));
+    QVERIFY(!missing.has_value());
+    QCOMPARE(missing.error().code, StoreErrorCode::NotFound);
 }
 
 void SessionStoreTest::rollsBackDuplicateStoredAssetReference() {
