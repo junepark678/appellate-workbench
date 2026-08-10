@@ -1,0 +1,478 @@
+{
+  "schema_version": 1,
+  "resource_kind": "workflow",
+  "resource_id": "ca4r54b.workflow.civil-rule54b",
+  "initial_stage_id": "ca4r54b.stage.notice-window",
+  "stages": [
+    "ca4r54b.stage.notice-window",
+    "ca4r54b.stage.docketed",
+    "ca4r54b.stage.initial-requirements",
+    "ca4r54b.stage.briefing",
+    "ca4r54b.stage.submitted",
+    "ca4r54b.stage.judgment",
+    "ca4r54b.stage.rehearing",
+    "ca4r54b.stage.mandate-issued"
+  ],
+  "operations": [
+    {
+      "operation_id": "ca4r54b.operation.calculate-notice-deadline",
+      "stage_id": "ca4r54b.stage.notice-window",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.usc-2107a",
+          "citation": "28 U.S.C. § 2107(a) (2023 ed.)",
+          "source_version": "2024-01-03",
+          "proposition": "Unless another part of section 2107 applies, a civil notice of appeal must be filed within 30 days after entry of the judgment, order, or decree.",
+          "source_url": "https://www.govinfo.gov/content/pkg/USCODE-2023-title28/pdf/USCODE-2023-title28-partV-chap133-sec2107.pdf"
+        },
+        "supporting": [
+          {
+            "authority_id": "ca4r54b.authority.frap-4a1",
+            "citation": "Fed. R. App. P. 4(a)(1)(A) (Fourth Circuit rulebook Mar. 23, 2026)",
+            "source_version": "2026-03-23",
+            "proposition": "In an ordinary private-party civil case, the notice of appeal must be filed with the district clerk within 30 days after entry of the judgment or order appealed from.",
+            "source_url": "https://www.ca4.uscourts.gov/Rules/Rule04.html"
+          },
+          {
+            "authority_id": "ca4r54b.authority.frap-26a",
+            "citation": "Fed. R. App. P. 26(a), (c) (Fourth Circuit rulebook Mar. 23, 2026)",
+            "source_version": "2026-03-23",
+            "proposition": "For a period stated in days, exclude the trigger day, count intermediate weekends and legal holidays, and extend a weekend or legal-holiday last day; three additional service days do not apply to electronic service.",
+            "source_url": "https://www.ca4.uscourts.gov/rules/Rule26.html"
+          }
+        ]
+      },
+      "deadline_days": 30,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4r54b.operation.accept-notice",
+      "stage_id": "ca4r54b.stage.notice-window",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-3",
+          "citation": "Fed. R. App. P. 3(a), (c) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "An appeal as of right is taken by timely filing a notice with the district clerk; the notice identifies the appellant, the appealed judgment or order, and the court of appeals.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule03.html"
+        },
+        "supporting": []
+      },
+      "authorized_role_ids": ["ca4r54b.role.appellant"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.advance-docketed",
+      "stage_id": "ca4r54b.stage.notice-window",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-12",
+          "citation": "Fed. R. App. P. 12(a) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "After receiving the notice of appeal and district docket entries, the circuit clerk dockets the appeal under the district-court title and identifies the appellant.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule12.html"
+        },
+        "supporting": []
+      },
+      "next_stage_id": "ca4r54b.stage.docketed",
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.enter-docketing-notice",
+      "stage_id": "ca4r54b.stage.docketed",
+      "opcode": "enter_order",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-12",
+          "citation": "Fed. R. App. P. 12(a) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "After receiving the notice of appeal and district docket entries, the circuit clerk dockets the appeal under the district-court title and identifies the appellant.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule12.html"
+        },
+        "supporting": []
+      },
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.calculate-initial-deadline",
+      "stage_id": "ca4r54b.stage.docketed",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.loc-r-3b",
+          "citation": "4th Cir. Loc. R. 3(b) (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Counsel filing a direct or cross-appeal must file the court's docketing statement within 14 days after docketing, serve it, and attach any transcript order.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule03.html"
+        },
+        "supporting": [
+          {
+            "authority_id": "ca4r54b.authority.initial-documents",
+            "citation": "Fourth Circuit, Appearance, Disclosure & Docketing Statements (March 2026 page, checked Aug. 11, 2026)",
+            "source_version": "2026-08-11",
+            "proposition": "Counsel appearance, applicable corporate disclosure, and the appellant's docketing statement are ordinarily filed within 14 days after appellate docketing; the docketing statement includes the transcript order.",
+            "source_url": "https://www.ca4.uscourts.gov/appellateprocedureguide/Initial_Requirements/APG-appearancedisclosuredocketing.html"
+          }
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4r54b.operation.advance-initial-requirements",
+      "stage_id": "ca4r54b.stage.docketed",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.loc-r-3b",
+          "citation": "4th Cir. Loc. R. 3(b) (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Counsel filing a direct or cross-appeal must file the court's docketing statement within 14 days after docketing, serve it, and attach any transcript order.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule03.html"
+        },
+        "supporting": []
+      },
+      "next_stage_id": "ca4r54b.stage.initial-requirements",
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.accept-initial-documents",
+      "stage_id": "ca4r54b.stage.initial-requirements",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.initial-documents",
+          "citation": "Fourth Circuit, Appearance, Disclosure & Docketing Statements (March 2026 page, checked Aug. 11, 2026)",
+          "source_version": "2026-08-11",
+          "proposition": "Counsel appearance, applicable corporate disclosure, and the appellant's docketing statement are ordinarily filed within 14 days after appellate docketing; the docketing statement includes the transcript order.",
+          "source_url": "https://www.ca4.uscourts.gov/appellateprocedureguide/Initial_Requirements/APG-appearancedisclosuredocketing.html"
+        },
+        "supporting": [
+          {
+            "authority_id": "ca4r54b.authority.frap-10",
+            "citation": "Fed. R. App. P. 10(a), (b) and 4th Cir. Loc. R. 10 (Mar. 23, 2026)",
+            "source_version": "2026-03-23",
+            "proposition": "The appellate record consists of the district papers and exhibits, any transcript, and a certified docket; within 14 days after notice the appellant orders necessary transcript or certifies that none will be ordered.",
+            "source_url": "https://www.ca4.uscourts.gov/rules/Rule10.html"
+          }
+        ]
+      },
+      "authorized_role_ids": ["ca4r54b.role.appellant"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.calculate-opening-brief-deadline",
+      "stage_id": "ca4r54b.stage.initial-requirements",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-31",
+          "citation": "Fed. R. App. P. 31(a) and 4th Cir. Loc. R. 31 (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Absent a different order, ordinary civil briefing allows 40 days for the opening brief, 30 days after service for the response, and 21 days after service for a reply, subject to the pre-argument limit.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule31.html"
+        },
+        "supporting": [
+          {
+            "authority_id": "ca4r54b.authority.frap-26a",
+            "citation": "Fed. R. App. P. 26(a), (c) (Fourth Circuit rulebook Mar. 23, 2026)",
+            "source_version": "2026-03-23",
+            "proposition": "For a period stated in days, exclude the trigger day, count intermediate weekends and legal holidays, and extend a weekend or legal-holiday last day; three additional service days do not apply to electronic service.",
+            "source_url": "https://www.ca4.uscourts.gov/rules/Rule26.html"
+          }
+        ]
+      },
+      "deadline_days": 40,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4r54b.operation.advance-briefing",
+      "stage_id": "ca4r54b.stage.initial-requirements",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-31",
+          "citation": "Fed. R. App. P. 31(a) and 4th Cir. Loc. R. 31 (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Absent a different order, ordinary civil briefing allows 40 days for the opening brief, 30 days after service for the response, and 21 days after service for a reply, subject to the pre-argument limit.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule31.html"
+        },
+        "supporting": []
+      },
+      "next_stage_id": "ca4r54b.stage.briefing",
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.accept-opening-brief",
+      "stage_id": "ca4r54b.stage.briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-31",
+          "citation": "Fed. R. App. P. 31(a) and 4th Cir. Loc. R. 31 (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Absent a different order, ordinary civil briefing allows 40 days for the opening brief, 30 days after service for the response, and 21 days after service for a reply, subject to the pre-argument limit.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule31.html"
+        },
+        "supporting": [
+          {
+            "authority_id": "ca4r54b.authority.frap-30",
+            "citation": "Fed. R. App. P. 30(a) and 4th Cir. Loc. R. 30 (Mar. 23, 2026)",
+            "source_version": "2026-03-23",
+            "proposition": "The appendix includes relevant docket entries, pertinent pleadings and rulings, the judgment or order under review, and other record portions to which the parties direct the court.",
+            "source_url": "https://www.ca4.uscourts.gov/rules/Rule30.html"
+          },
+          {
+            "authority_id": "ca4r54b.authority.ja-pagination",
+            "citation": "Fourth Circuit Appendix Pagination & Brief Citation Guide (June 24, 2025)",
+            "source_version": "2025-06-24",
+            "proposition": "A joint appendix uses continuous Bates pagination, and briefs cite appendix pages using a recognized JA-number format without inserted suffix pages.",
+            "source_url": "https://www.ca4.uscourts.gov/docs/pdfs/appendixpagination-briefcitationguide.pdf"
+          }
+        ]
+      },
+      "authorized_role_ids": ["ca4r54b.role.appellant"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.calculate-response-brief-deadline",
+      "stage_id": "ca4r54b.stage.briefing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-31",
+          "citation": "Fed. R. App. P. 31(a) and 4th Cir. Loc. R. 31 (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Absent a different order, ordinary civil briefing allows 40 days for the opening brief, 30 days after service for the response, and 21 days after service for a reply, subject to the pre-argument limit.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule31.html"
+        },
+        "supporting": [
+          {
+            "authority_id": "ca4r54b.authority.frap-26a",
+            "citation": "Fed. R. App. P. 26(a), (c) (Fourth Circuit rulebook Mar. 23, 2026)",
+            "source_version": "2026-03-23",
+            "proposition": "For a period stated in days, exclude the trigger day, count intermediate weekends and legal holidays, and extend a weekend or legal-holiday last day; three additional service days do not apply to electronic service.",
+            "source_url": "https://www.ca4.uscourts.gov/rules/Rule26.html"
+          }
+        ]
+      },
+      "deadline_days": 30,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4r54b.operation.accept-response-brief",
+      "stage_id": "ca4r54b.stage.briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-31",
+          "citation": "Fed. R. App. P. 31(a) and 4th Cir. Loc. R. 31 (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Absent a different order, ordinary civil briefing allows 40 days for the opening brief, 30 days after service for the response, and 21 days after service for a reply, subject to the pre-argument limit.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule31.html"
+        },
+        "supporting": []
+      },
+      "authorized_role_ids": ["ca4r54b.role.appellee"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.advance-submitted",
+      "stage_id": "ca4r54b.stage.briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-34",
+          "citation": "Fed. R. App. P. 34(a)(2) and 4th Cir. Loc. R. 34(a) (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "A unanimous three-judge panel may decide without oral argument when an issue is authoritatively decided or the briefs and record adequately present it and argument would not significantly aid decision.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule34.html"
+        },
+        "supporting": []
+      },
+      "next_stage_id": "ca4r54b.stage.submitted",
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.schedule-counterfactual-argument",
+      "stage_id": "ca4r54b.stage.submitted",
+      "opcode": "schedule_argument",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-34",
+          "citation": "Fed. R. App. P. 34(a)(2) and 4th Cir. Loc. R. 34(a) (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "A unanimous three-judge panel may decide without oral argument when an issue is authoritatively decided or the briefs and record adequately present it and argument would not significantly aid decision.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule34.html"
+        },
+        "supporting": []
+      },
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.advance-judgment",
+      "stage_id": "ca4r54b.stage.submitted",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-36",
+          "citation": "Fed. R. App. P. 36(a), (b) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Appellate judgment is entered when noted on the docket, and the clerk serves the opinion or judgment and notice of the entry date that day.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule36.html"
+        },
+        "supporting": []
+      },
+      "next_stage_id": "ca4r54b.stage.judgment",
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.issue-dismissal-judgment",
+      "stage_id": "ca4r54b.stage.judgment",
+      "opcode": "issue_judgment",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frcp-54b",
+          "citation": "Fed. R. Civ. P. 54(b) (effective Dec. 1, 2025)",
+          "source_version": "2025-12-01",
+          "proposition": "In a multiple-claim or multiple-party action, entry of final judgment as to fewer than all claims or parties requires an express determination that there is no just reason for delay; otherwise the partial decision remains nonfinal and revisable.",
+          "source_url": "https://www.uscourts.gov/sites/default/files/document/federal-rules-of-civil-procedure.pdf"
+        },
+        "supporting": [
+          {
+            "authority_id": "ca4r54b.authority.usc-1291",
+            "citation": "28 U.S.C. § 1291 (2023 ed.)",
+            "source_version": "2024-01-03",
+            "proposition": "The regional courts of appeals have jurisdiction over final decisions of the United States district courts, subject to statutory exceptions.",
+            "source_url": "https://www.govinfo.gov/content/pkg/USCODE-2023-title28/pdf/USCODE-2023-title28-partIV-chap83-sec1291.pdf"
+          },
+          {
+            "authority_id": "ca4r54b.authority.kinsale",
+            "citation": "Kinsale Insurance Co. v. JDBC Holdings, Inc., 31 F.4th 870, 873–76 (4th Cir. 2022)",
+            "source_version": "2022-04-20",
+            "proposition": "Rule 54(b) certification requires an ultimate disposition of an individual claim and a case-specific no-just-reason determination; the inquiry is tilted against fragmentation, applies the Braswell considerations, and should be supported by stated findings.",
+            "source_url": "https://www.ca4.uscourts.gov/opinions/211754.P.pdf"
+          },
+          {
+            "authority_id": "ca4r54b.authority.mcpherson",
+            "citation": "McPherson v. Patton, No. 23-1938, slip op. at 4–7 (4th Cir. Oct. 15, 2024) (unpublished)",
+            "source_version": "2024-10-15",
+            "proposition": "In a nonprecedential disposition, a grant of a Rule 54(b) motion plus a partial judgment did not become final where the court omitted the express no-just-reason determination; the appeal was dismissed and remanded.",
+            "source_url": "https://www.ca4.uscourts.gov/opinions/231938.U.pdf"
+          },
+          {
+            "authority_id": "ca4r54b.authority.frap-36",
+            "citation": "Fed. R. App. P. 36(a), (b) (Fourth Circuit rulebook Mar. 23, 2026)",
+            "source_version": "2026-03-23",
+            "proposition": "Appellate judgment is entered when noted on the docket, and the clerk serves the opinion or judgment and notice of the entry date that day.",
+            "source_url": "https://www.ca4.uscourts.gov/rules/Rule36.html"
+          }
+        ]
+      },
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.advance-rehearing",
+      "stage_id": "ca4r54b.stage.judgment",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-40",
+          "citation": "Fed. R. App. P. 40(d)(1) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Unless an order changes the time, a rehearing petition is due 14 days after judgment, or 45 days in specified civil cases involving the United States or its officers or agencies.",
+          "source_url": "https://www.ca4.uscourts.gov/Rules/Rule40.html"
+        },
+        "supporting": []
+      },
+      "next_stage_id": "ca4r54b.stage.rehearing",
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.calculate-rehearing-deadline",
+      "stage_id": "ca4r54b.stage.rehearing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-40",
+          "citation": "Fed. R. App. P. 40(d)(1) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Unless an order changes the time, a rehearing petition is due 14 days after judgment, or 45 days in specified civil cases involving the United States or its officers or agencies.",
+          "source_url": "https://www.ca4.uscourts.gov/Rules/Rule40.html"
+        },
+        "supporting": [
+          {
+            "authority_id": "ca4r54b.authority.frap-26a",
+            "citation": "Fed. R. App. P. 26(a), (c) (Fourth Circuit rulebook Mar. 23, 2026)",
+            "source_version": "2026-03-23",
+            "proposition": "For a period stated in days, exclude the trigger day, count intermediate weekends and legal holidays, and extend a weekend or legal-holiday last day; three additional service days do not apply to electronic service.",
+            "source_url": "https://www.ca4.uscourts.gov/rules/Rule26.html"
+          }
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4r54b.operation.advance-mandate",
+      "stage_id": "ca4r54b.stage.rehearing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-41",
+          "citation": "Fed. R. App. P. 41(a)–(c) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "The mandate contains the certified judgment, any opinion, and costs direction; absent an order it issues seven days after rehearing time expires or seven days after disposition of a timely rehearing petition or stay motion, whichever is later, and is effective when issued.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule41.html"
+        },
+        "supporting": []
+      },
+      "next_stage_id": "ca4r54b.stage.mandate-issued",
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.issue-mandate",
+      "stage_id": "ca4r54b.stage.mandate-issued",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-41",
+          "citation": "Fed. R. App. P. 41(a)–(c) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "The mandate contains the certified judgment, any opinion, and costs direction; absent an order it issues seven days after rehearing time expires or seven days after disposition of a timely rehearing petition or stay motion, whichever is later, and is effective when issued.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule41.html"
+        },
+        "supporting": [
+          {
+            "authority_id": "ca4r54b.authority.frap-40",
+            "citation": "Fed. R. App. P. 40(d)(1) (Fourth Circuit rulebook Mar. 23, 2026)",
+            "source_version": "2026-03-23",
+            "proposition": "Unless an order changes the time, a rehearing petition is due 14 days after judgment, or 45 days in specified civil cases involving the United States or its officers or agencies.",
+            "source_url": "https://www.ca4.uscourts.gov/Rules/Rule40.html"
+          }
+        ]
+      },
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    }
+  ],
+  "filing_routes": [],
+  "calendar": {
+    "holidays": [
+      "2026-01-01",
+      "2026-01-19",
+      "2026-02-16",
+      "2026-05-25",
+      "2026-06-19",
+      "2026-07-03",
+      "2026-09-07",
+      "2026-10-12",
+      "2026-11-11",
+      "2026-11-26",
+      "2026-12-25"
+    ]
+  }
+}

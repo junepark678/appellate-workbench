@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "resource_kind": "judge_profile",
+  "resource_id": "ca4r54b.judge.composite-vale",
+  "display_name": "Composite Jurist Vale",
+  "profile_class": "fictional_composite",
+  "compatibility": {"court_roles": ["appellate"], "jurisdiction_ids": ["us.ca4"]},
+  "interaction": {
+    "directness": 0.67,
+    "formality": 0.68,
+    "question_length": 0.46,
+    "interruption_frequency": 0.31,
+    "follow_up_depth": 0.7,
+    "hypothetical_frequency": 0.48,
+    "concession_recall": 0.84,
+    "time_strictness": 0.88,
+    "issue_focus": [
+      {"topic_id": "ca4r54b.issue.rule54b-finality", "weight": 0.8},
+      {"topic_id": "ca4r54b.issue.notice-timeliness", "weight": 0.4}
+    ]
+  },
+  "voice": {"register": "plain", "cadence": "measured", "verbosity": 0.42, "sentence_complexity": 0.48}
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "resource_kind": "realism_review",
+  "resource_id": "ca4r54b.review.authoring-2026-08-11",
+  "case_id": "ca4r54b.case.asterglen",
+  "review_state": "independent_review_pending",
+  "dimensions": {
+    "procedural_law": 2,
+    "deadlines_authority": 2,
+    "record_consistency": 2,
+    "consequences": 2,
+    "oral_argument": 1,
+    "bench_differentiation": 1,
+    "provenance": 2
+  },
+  "known_uncertainty": [
+    "No independent qualified reviewer has reviewed this revision; no dimension claims level 3.",
+    "The authored court decides on the briefs; the argument configuration is explicitly counterfactual training, not a docket event.",
+    "Bench profiles are fictional composites and have not been behaviorally tested against a shipped oral-argument engine.",
+    "The record candidate omits asset_sha256 by design pending the blob-format change and therefore cannot satisfy the current record schema.",
+    "No root pack manifest, content digest, blob digest, generated PDF, or distributable pack exists.",
+    "McPherson is an unpublished, nonbinding disposition; binding grounding is Rule 54(b), 28 U.S.C. § 1291, and published Kinsale.",
+    "The Rule 54(b) abuse-of-discretion inquiry and the separateness of claims remain fact-specific; alternate supported-certification traces are expectations, not assertions about every case."
+  ]
+}

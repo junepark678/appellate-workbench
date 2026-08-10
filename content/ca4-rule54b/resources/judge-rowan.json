@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "resource_kind": "judge_profile",
+  "resource_id": "ca4r54b.judge.composite-rowan",
+  "display_name": "Composite Jurist Rowan",
+  "profile_class": "fictional_composite",
+  "compatibility": {"court_roles": ["appellate"], "jurisdiction_ids": ["us.ca4"]},
+  "interaction": {
+    "directness": 0.58,
+    "formality": 0.83,
+    "question_length": 0.64,
+    "interruption_frequency": 0.2,
+    "follow_up_depth": 0.76,
+    "hypothetical_frequency": 0.72,
+    "concession_recall": 0.79,
+    "time_strictness": 0.63,
+    "issue_focus": [
+      {"topic_id": "ca4r54b.issue.rule54b-finality", "weight": 0.85},
+      {"topic_id": "ca4r54b.issue.merits-not-reached", "weight": 0.55}
+    ]
+  },
+  "voice": {"register": "technical", "cadence": "measured", "verbosity": 0.56, "sentence_complexity": 0.72}
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "resource_kind": "form",
+  "resource_id": "ca4r54b.form.rehearing-petition",
+  "filing_id": "ca4r54b.filing.rehearing-petition",
+  "title": "Petition for Panel Rehearing or Rehearing En Banc",
+  "fields": [
+    {"field_id": "ca4r54b.field.rehearing-ground", "label": "Point overlooked or en banc ground", "value_type": "long_text", "required": true},
+    {"field_id": "ca4r54b.field.rehearing-judgment-date", "label": "Judgment or amended-decision date", "value_type": "date", "required": true},
+    {"field_id": "ca4r54b.field.rehearing-relief", "label": "Relief requested", "value_type": "long_text", "required": true}
+  ]
+}

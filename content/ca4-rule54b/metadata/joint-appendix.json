@@ -1,0 +1,98 @@
+{
+  "format": "appellate-workbench-joint-appendix-plan",
+  "format_version": 1,
+  "case_id": "ca4r54b.case.asterglen",
+  "appellate_docket": "SYN-26-1427",
+  "pagination_prefix": "JA",
+  "continuous_pagination": true,
+  "first_page": 1,
+  "last_page": 47,
+  "citation_examples": ["JA24", "JA40-41", "JA44-47"],
+  "segments": [
+    {
+      "segment_id": "ca4r54b.ja.front",
+      "title": "Cover and table of contents",
+      "source_path": "metadata/joint-appendix.json",
+      "source_pages": "generated front matter",
+      "ja_first": 1,
+      "ja_last": 4
+    },
+    {
+      "segment_id": "ca4r54b.ja.complaint",
+      "title": "Complaint and Jury Demand (ECF No. 1)",
+      "source_path": "documents/d01-complaint.md",
+      "source_pages": "1-8",
+      "ja_first": 5,
+      "ja_last": 12
+    },
+    {
+      "segment_id": "ca4r54b.ja.answer",
+      "title": "Answer, Defenses, and Counterclaim (ECF No. 8)",
+      "source_path": "documents/d08-answer-counterclaim.md",
+      "source_pages": "1-11",
+      "ja_first": 13,
+      "ja_last": 23
+    },
+    {
+      "segment_id": "ca4r54b.ja.summary-order",
+      "title": "Memorandum Order on Partial Summary Judgment (ECF No. 55)",
+      "source_path": "documents/d55-partial-summary-judgment-order.md",
+      "source_pages": "1-5",
+      "ja_first": 24,
+      "ja_last": 28
+    },
+    {
+      "segment_id": "ca4r54b.ja.rule54-motion",
+      "title": "Motion for Entry Under Rule 54(b) (ECF No. 57)",
+      "source_path": "documents/d57-rule-54b-motion.md",
+      "source_pages": "1-5",
+      "ja_first": 29,
+      "ja_last": 33
+    },
+    {
+      "segment_id": "ca4r54b.ja.rule54-response",
+      "title": "Opposition to Rule 54(b) Motion (ECF No. 58)",
+      "source_path": "documents/d58-rule-54b-response.md",
+      "source_pages": "1-6",
+      "ja_first": 34,
+      "ja_last": 39
+    },
+    {
+      "segment_id": "ca4r54b.ja.rule54-order",
+      "title": "Order Granting Rule 54(b) Motion (ECF No. 59)",
+      "source_path": "documents/d59-rule-54b-order.md",
+      "source_pages": "1 only; exclude authoring annotation",
+      "ja_first": 40,
+      "ja_last": 40
+    },
+    {
+      "segment_id": "ca4r54b.ja.partial-judgment",
+      "title": "Partial Judgment (ECF No. 60)",
+      "source_path": "documents/d60-partial-judgment.md",
+      "source_pages": "1",
+      "ja_first": 41,
+      "ja_last": 41
+    },
+    {
+      "segment_id": "ca4r54b.ja.notice",
+      "title": "Notice of Appeal (ECF No. 61)",
+      "source_path": "documents/d61-notice-of-appeal.md",
+      "source_pages": "1-2",
+      "ja_first": 42,
+      "ja_last": 43
+    },
+    {
+      "segment_id": "ca4r54b.ja.docket",
+      "title": "Certified District Docket Entries",
+      "source_path": "documents/d62-certified-district-docket.md",
+      "source_pages": "1-4",
+      "ja_first": 44,
+      "ja_last": 47
+    }
+  ],
+  "excluded_material": [
+    "The page-2 authoring annotation in documents/d59-rule-54b-order.md is not part of the operative order or appendix.",
+    "District memoranda not independently relevant to finality are omitted.",
+    "No transcript exists and none is represented in the appendix."
+  ]
+}

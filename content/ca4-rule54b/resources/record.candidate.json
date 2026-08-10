@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "resource_kind": "record",
+  "resource_id": "ca4r54b.record.asterglen",
+  "caption": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC",
+  "docket_entries": [
+    {"entry_id": "ca4r54b.record.d01", "entry_number": 1, "filed_on": "2025-03-03", "title": "Complaint and Jury Demand", "asset_path": "assets/d01-complaint.pdf", "page_count": 8, "sealed": false},
+    {"entry_id": "ca4r54b.record.d08", "entry_number": 8, "filed_on": "2025-04-07", "title": "Answer, Affirmative Defenses, and Counterclaim", "asset_path": "assets/d08-answer-counterclaim.pdf", "page_count": 11, "sealed": false},
+    {"entry_id": "ca4r54b.record.d55", "entry_number": 55, "filed_on": "2026-01-12", "title": "Memorandum Order on Partial Summary Judgment", "asset_path": "assets/d55-partial-summary-judgment-order.pdf", "page_count": 5, "sealed": false},
+    {"entry_id": "ca4r54b.record.d57", "entry_number": 57, "filed_on": "2026-01-20", "title": "Motion for Entry of Partial Final Judgment Under Rule 54(b)", "asset_path": "assets/d57-rule-54b-motion.pdf", "page_count": 5, "sealed": false},
+    {"entry_id": "ca4r54b.record.d58", "entry_number": 58, "filed_on": "2026-01-30", "title": "Opposition to Rule 54(b) Motion", "asset_path": "assets/d58-rule-54b-response.pdf", "page_count": 6, "sealed": false},
+    {"entry_id": "ca4r54b.record.d59", "entry_number": 59, "filed_on": "2026-02-04", "title": "Order Granting Rule 54(b) Motion", "asset_path": "assets/d59-rule-54b-order.pdf", "page_count": 1, "sealed": false},
+    {"entry_id": "ca4r54b.record.d60", "entry_number": 60, "filed_on": "2026-02-04", "title": "Partial Judgment", "asset_path": "assets/d60-partial-judgment.pdf", "page_count": 1, "sealed": false},
+    {"entry_id": "ca4r54b.record.d61", "entry_number": 61, "filed_on": "2026-03-03", "title": "Notice of Appeal", "asset_path": "assets/d61-notice-of-appeal.pdf", "page_count": 2, "sealed": false},
+    {"entry_id": "ca4r54b.record.d62", "entry_number": 65, "filed_on": "2026-03-20", "title": "Certified District Docket Entries and Record Complete", "asset_path": "assets/d62-certified-district-docket.pdf", "page_count": 4, "sealed": false}
+  ]
+}
