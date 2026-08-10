@@ -1,5 +1,7 @@
 qt_add_library(
     appellate_application STATIC
+    oral_argument_session_controller.cpp
+    oral_argument_session_controller.hpp
     session_controller.cpp
     session_controller.hpp
     workflow_session_controller.cpp

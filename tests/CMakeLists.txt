@@ -143,6 +143,18 @@ target_link_libraries(
 target_compile_features(tst_workflow_codec PRIVATE cxx_std_26)
 add_test(NAME workflow_codec COMMAND tst_workflow_codec)
 
+qt_add_executable(tst_oral_argument_codec storage/tst_oral_argument_codec.cpp)
+target_link_libraries(
+    tst_oral_argument_codec
+    PRIVATE
+        appellate::storage
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_oral_argument_codec PRIVATE cxx_std_26)
+add_test(NAME oral_argument_codec COMMAND tst_oral_argument_codec)
+
 qt_add_executable(tst_initiation_resume integration/tst_initiation_resume.cpp)
 target_link_libraries(
     tst_initiation_resume
@@ -169,6 +181,21 @@ target_link_libraries(
 )
 target_compile_features(tst_workflow_session_resume PRIVATE cxx_std_26)
 add_test(NAME workflow_session_resume COMMAND tst_workflow_session_resume)
+
+qt_add_executable(
+    tst_oral_argument_session_resume
+    integration/tst_oral_argument_session_resume.cpp
+)
+target_link_libraries(
+    tst_oral_argument_session_resume
+    PRIVATE
+        appellate::application
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_oral_argument_session_resume PRIVATE cxx_std_26)
+add_test(NAME oral_argument_session_resume COMMAND tst_oral_argument_session_resume)
 
 qt_add_executable(tst_out_of_tree_pack integration/tst_out_of_tree_pack.cpp)
 target_link_libraries(

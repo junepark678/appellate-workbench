@@ -2,10 +2,12 @@ qt_add_library(
     appellate_storage STATIC
     src/asset_store.cpp
     src/event_codec.cpp
+    src/oral_argument_codec.cpp
     src/sqlite_session_store.cpp
     src/workflow_codec.cpp
     include/appellate/storage/asset_store.hpp
     include/appellate/storage/event_codec.hpp
+    include/appellate/storage/oral_argument_codec.hpp
     include/appellate/storage/session_store.hpp
     include/appellate/storage/workflow_codec.hpp
     migrations/001_initial.sql
