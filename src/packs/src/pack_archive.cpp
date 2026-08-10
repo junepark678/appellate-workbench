@@ -5,6 +5,7 @@
 #include <archive_entry.h>
 
 #include <QByteArrayView>
+#include <QCryptographicHash>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
@@ -12,6 +13,7 @@
 #include <QHash>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QIODevice>
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QSet>
@@ -46,6 +48,7 @@ constexpr std::size_t maximum_standard_zip_members =
 constexpr auto fixed_zip_timestamp = static_cast<time_t>(315'532'800);
 constexpr std::uint64_t maximum_manifest_bytes = 1024ULL * 1024ULL;
 constexpr qsizetype maximum_declared_payloads = 10'000;
+constexpr qsizetype pdf_tail_bytes = 1024;
 
 struct ArchiveReadDeleter final {
     void operator()(archive* value) const noexcept {
@@ -440,7 +443,7 @@ struct ExportMember final {
 
 [[nodiscard]] auto validateManifestMemberSet(const QString& archive_path,
                                              const ZipInspection& inspection)
-    -> std::expected<void, Error> {
+    -> std::expected<QJsonObject, Error> {
     const auto manifest_member =
         std::ranges::find(inspection.members, QStringLiteral("manifest.json"), &ZipMember::path);
     if (manifest_member == inspection.members.end()) {
@@ -616,7 +619,81 @@ struct ExportMember final {
         return fail(has_undeclared ? ErrorCode::UndeclaredFile : ErrorCode::CannotRead,
                     QStringLiteral("Archive member set does not exactly match its manifest"));
     }
-    return {};
+    return manifest;
+}
+
+[[nodiscard]] bool isPdfWhitespace(char value) {
+    switch (static_cast<unsigned char>(value)) {
+    case 0x00:
+    case 0x09:
+    case 0x0a:
+    case 0x0c:
+    case 0x0d:
+    case 0x20:
+        return true;
+    default:
+        return false;
+    }
+}
+
+[[nodiscard]] bool hasPdfSignature(QByteArrayView header) {
+    return header.size() >= 8 && header.first(5) == QByteArrayView("%PDF-") &&
+           (header.at(5) == '1' || header.at(5) == '2') && header.at(6) == '.' &&
+           header.at(7) >= '0' && header.at(7) <= '9';
+}
+
+[[nodiscard]] bool hasPdfTrailer(QByteArrayView tail) {
+    auto end = tail.size();
+    while (end > 0 && isPdfWhitespace(tail.at(end - 1))) {
+        --end;
+    }
+    return end >= 5 && tail.sliced(end - 5, 5) == QByteArrayView("%%EOF");
+}
+
+[[nodiscard]] bool isLowercaseDigest(const std::string& value) {
+    return value.size() == 64 && std::ranges::all_of(value, [](char character) {
+               return (character >= '0' && character <= '9') ||
+                      (character >= 'a' && character <= 'f');
+           });
+}
+
+[[nodiscard]] auto blobFromManifest(const QJsonObject& manifest, const std::string& blob_path,
+                                    const PackArchiveLimits& limits)
+    -> std::expected<model::BlobDescriptor, Error> {
+    const auto requested_path = QString::fromStdString(blob_path);
+    if (!isPortablePath(requested_path)) {
+        return fail(ErrorCode::UnsafePath, QStringLiteral("Requested blob path is not portable"));
+    }
+    for (const auto& value : manifest.value(QStringLiteral("blobs")).toArray()) {
+        if (!value.isObject()) {
+            return fail(ErrorCode::InvalidManifest,
+                        QStringLiteral("Archive blob descriptor is not an object"));
+        }
+        const auto object = value.toObject();
+        if (object.value(QStringLiteral("path")).toString() != requested_path) {
+            continue;
+        }
+        const auto path = object.value(QStringLiteral("path"));
+        const auto media_type = object.value(QStringLiteral("media_type"));
+        const auto byte_size = object.value(QStringLiteral("byte_size"));
+        const auto digest = object.value(QStringLiteral("sha256"));
+        if (object.size() != 4 || !path.isString() || !media_type.isString() ||
+            media_type.toString() != QStringLiteral("application/pdf") ||
+            !byte_size.isDouble() || byte_size.toDouble() < 1.0 ||
+            byte_size.toDouble() > static_cast<double>(limits.maximum_file_bytes) ||
+            byte_size.toDouble() > static_cast<double>(limits.maximum_total_bytes) ||
+            byte_size.toDouble() !=
+                static_cast<double>(static_cast<std::uint64_t>(byte_size.toDouble())) ||
+            !digest.isString() || !isLowercaseDigest(digest.toString().toStdString())) {
+            return fail(ErrorCode::InvalidManifest,
+                        QStringLiteral("Archive blob descriptor is invalid"));
+        }
+        return model::BlobDescriptor{
+            requested_path.toStdString(), media_type.toString().toStdString(),
+            static_cast<std::uint64_t>(byte_size.toDouble()), digest.toString().toStdString()};
+    }
+    return fail(ErrorCode::CrossReferenceFailure,
+                QStringLiteral("Archive does not declare the requested blob"));
 }
 
 [[nodiscard]] auto extractArchive(const QString& archive_path, const ZipInspection& inspection,
@@ -886,6 +963,199 @@ std::expected<LoadedPack, Error> PackArchive::importArchive(const QString& archi
         return std::unexpected(extracted.error());
     }
     return PackReader::readDirectory(staging.path());
+}
+
+std::expected<model::BlobDescriptor, Error>
+PackArchive::declaredBlob(const QString& archive_path,
+                          const model::PackRevision& exact_revision,
+                          const std::string& blob_path, PackArchiveLimits limits) {
+    if (!validLimits(limits) || !isLowercaseDigest(exact_revision.digest)) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Invalid exact-revision blob lookup"));
+    }
+    const auto inspection = inspectZip(archive_path, limits);
+    if (!inspection) {
+        return std::unexpected(inspection.error());
+    }
+    const auto manifest = validateManifestMemberSet(archive_path, *inspection);
+    if (!manifest) {
+        return std::unexpected(manifest.error());
+    }
+    if (manifest->value(QStringLiteral("pack_id")).toString().toStdString() !=
+            exact_revision.id.value ||
+        manifest->value(QStringLiteral("version")).toString().toStdString() !=
+            exact_revision.version) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Archive identity differs from the exact pack revision"));
+    }
+    const auto descriptor = blobFromManifest(*manifest, blob_path, limits);
+    if (!descriptor) {
+        return std::unexpected(descriptor.error());
+    }
+    const auto member = std::ranges::find(inspection->members,
+                                          QString::fromStdString(descriptor->path),
+                                          &ZipMember::path);
+    if (member == inspection->members.end() ||
+        member->uncompressed_size != descriptor->byte_size) {
+        return fail(ErrorCode::DigestMismatch,
+                    QStringLiteral("Archive blob size differs from its declaration"));
+    }
+    return *descriptor;
+}
+
+std::expected<void, Error>
+PackArchive::streamValidatedBlob(const QString& archive_path,
+                                 const model::PackRevision& exact_revision,
+                                 const model::BlobDescriptor& descriptor,
+                                 QIODevice& destination, PackArchiveLimits limits) {
+    const auto descriptor_path = QString::fromStdString(descriptor.path);
+    if (!validLimits(limits) || !isPortablePath(descriptor_path) ||
+        descriptor.media_type != "application/pdf" ||
+        descriptor.byte_size > limits.maximum_file_bytes ||
+        descriptor.byte_size > limits.maximum_total_bytes ||
+        !isLowercaseDigest(descriptor.sha256) || !destination.isWritable() ||
+        destination.isSequential() || destination.pos() != 0 || destination.size() != 0) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Invalid validated-blob materialization request"));
+    }
+    if (!isLowercaseDigest(exact_revision.digest)) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Exact pack revision has an invalid digest"));
+    }
+
+    const auto inspection = inspectZip(archive_path, limits);
+    if (!inspection) {
+        return std::unexpected(inspection.error());
+    }
+    const auto manifest = validateManifestMemberSet(archive_path, *inspection);
+    if (!manifest) {
+        return std::unexpected(manifest.error());
+    }
+    if (manifest->value(QStringLiteral("pack_id")).toString().toStdString() !=
+            exact_revision.id.value ||
+        manifest->value(QStringLiteral("version")).toString().toStdString() !=
+            exact_revision.version) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Archive does not declare the validated blob and revision"));
+    }
+    const auto declared = blobFromManifest(*manifest, descriptor.path, limits);
+    if (!declared || *declared != descriptor) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Blob descriptor differs from the archive declaration"));
+    }
+    const auto selected =
+        std::ranges::find(inspection->members, descriptor_path, &ZipMember::path);
+    if (selected == inspection->members.end() ||
+        selected->uncompressed_size != descriptor.byte_size) {
+        return fail(ErrorCode::DigestMismatch,
+                    QStringLiteral("Archive blob size differs from its validated descriptor"));
+    }
+
+    auto reader_result = openArchiveReader(archive_path);
+    if (!reader_result) {
+        return std::unexpected(reader_result.error());
+    }
+    auto reader = std::move(*reader_result);
+    QHash<QString, std::uint32_t> expected_sizes;
+    expected_sizes.reserve(static_cast<qsizetype>(inspection->members.size()));
+    for (const auto& member : inspection->members) {
+        expected_sizes.insert(member.path, member.uncompressed_size);
+    }
+
+    QSet<QString> seen;
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    QByteArray header;
+    QByteArray tail;
+    header.reserve(8);
+    tail.reserve(pdf_tail_bytes);
+    std::array<char, 64 * 1024> buffer{};
+    std::uint64_t written = 0;
+    bool found = false;
+    archive_entry* raw_entry = nullptr;
+    while (true) {
+        const auto header_result = archive_read_next_header(reader.get(), &raw_entry);
+        if (header_result == ARCHIVE_EOF) {
+            break;
+        }
+        if (header_result != ARCHIVE_OK || raw_entry == nullptr) {
+            return fail(ErrorCode::InvalidManifest,
+                        libarchiveMessage(reader.get(), QStringLiteral("Cannot read ZIP member")));
+        }
+        if ((archive_format(reader.get()) & ARCHIVE_FORMAT_BASE_MASK) != ARCHIVE_FORMAT_ZIP ||
+            archive_filter_code(reader.get(), 0) != ARCHIVE_FILTER_NONE) {
+            return fail(ErrorCode::InvalidManifest,
+                        QStringLiteral("Only an unwrapped ZIP archive is supported"));
+        }
+        const auto* raw_path = archive_entry_pathname(raw_entry);
+        const auto path = raw_path == nullptr ? QString{} : QString::fromLatin1(raw_path);
+        const auto declared_size = archive_entry_size(raw_entry);
+        if (!expected_sizes.contains(path) || seen.contains(path) || !isPortablePath(path) ||
+            declared_size < 0 ||
+            static_cast<std::uint64_t>(declared_size) != expected_sizes.value(path) ||
+            archive_entry_filetype(raw_entry) != AE_IFREG ||
+            archive_entry_symlink(raw_entry) != nullptr ||
+            archive_entry_hardlink(raw_entry) != nullptr ||
+            archive_entry_is_encrypted(raw_entry) > 0 ||
+            archive_entry_size_is_set(raw_entry) == 0) {
+            return fail(ErrorCode::UnsafePath,
+                        QStringLiteral("ZIP member changed after validation: %1").arg(path));
+        }
+        seen.insert(path);
+        if (path != descriptor_path) {
+            if (archive_read_data_skip(reader.get()) != ARCHIVE_OK) {
+                return fail(ErrorCode::InvalidManifest,
+                            libarchiveMessage(reader.get(),
+                                              QStringLiteral("Cannot skip ZIP member")));
+            }
+            continue;
+        }
+
+        found = true;
+        while (true) {
+            const auto read_size = archive_read_data(reader.get(), buffer.data(), buffer.size());
+            if (read_size < 0) {
+                return fail(ErrorCode::InvalidManifest,
+                            libarchiveMessage(reader.get(),
+                                              QStringLiteral("Cannot stream validated blob")));
+            }
+            if (read_size == 0) {
+                break;
+            }
+            const auto chunk_size = static_cast<std::uint64_t>(read_size);
+            if (chunk_size > descriptor.byte_size ||
+                written > descriptor.byte_size - chunk_size ||
+                destination.write(buffer.data(), static_cast<qint64>(read_size)) != read_size) {
+                return fail(ErrorCode::CannotRead,
+                            QStringLiteral("Cannot write the complete validated blob"));
+            }
+            const QByteArrayView chunk(buffer.data(), static_cast<qsizetype>(read_size));
+            if (header.size() < 8) {
+                const auto needed = 8 - header.size();
+                header.append(chunk.first(std::min(needed, chunk.size())));
+            }
+            tail.append(chunk);
+            if (tail.size() > pdf_tail_bytes) {
+                tail.remove(0, tail.size() - pdf_tail_bytes);
+            }
+            hash.addData(chunk);
+            written += chunk_size;
+        }
+    }
+    if (seen.size() != expected_sizes.size() || !found ||
+        archive_read_has_encrypted_entries(reader.get()) > 0) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("ZIP member set or encryption state changed"));
+    }
+    if (written != descriptor.byte_size ||
+        QString::fromLatin1(hash.result().toHex()).toStdString() != descriptor.sha256) {
+        return fail(ErrorCode::DigestMismatch,
+                    QStringLiteral("Streamed blob does not match its validated descriptor"));
+    }
+    if (!hasPdfSignature(QByteArrayView(header)) || !hasPdfTrailer(QByteArrayView(tail))) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Streamed blob is not a structurally recognizable PDF"));
+    }
+    return {};
 }
 
 std::expected<model::PackRevision, Error> PackArchive::exportDirectory(const QString& directory,

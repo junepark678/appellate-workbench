@@ -24,6 +24,7 @@ enum class CatalogErrorCode {
     NotFound,
     QueryFailed,
     CannotStoreArchive,
+    CannotStoreBlob,
 };
 
 struct CatalogError final {
@@ -40,6 +41,13 @@ struct InstalledPack final {
     std::vector<model::PackDependency> dependencies;
 
     friend bool operator==(const InstalledPack&, const InstalledPack&) = default;
+};
+
+struct MaterializedBlob final {
+    model::BlobDescriptor descriptor;
+    QString local_path;
+
+    friend bool operator==(const MaterializedBlob&, const MaterializedBlob&) = default;
 };
 
 class PackCatalog final {
@@ -60,10 +68,15 @@ class PackCatalog final {
     [[nodiscard]] auto load(const model::PackId& id, const std::string& version) const
         -> std::expected<LoadedPack, CatalogError>;
 
+    [[nodiscard]] auto materializeBlob(const model::PackRevision& exact_revision,
+                                       const std::string& blob_path) const
+        -> std::expected<MaterializedBlob, CatalogError>;
+
     [[nodiscard]] auto list() const
         -> std::expected<std::vector<InstalledPack>, CatalogError>;
 
     [[nodiscard]] QString archivesDirectory() const;
+    [[nodiscard]] QString blobObjectsDirectory() const;
     [[nodiscard]] int schemaVersion() const;
 
   private:

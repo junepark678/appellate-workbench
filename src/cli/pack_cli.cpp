@@ -122,6 +122,8 @@ constexpr auto output_schema_version = 1;
         return QStringLiteral("catalog_query_failed");
     case packs::CatalogErrorCode::CannotStoreArchive:
         return QStringLiteral("cannot_store_archive");
+    case packs::CatalogErrorCode::CannotStoreBlob:
+        return QStringLiteral("cannot_store_blob");
     }
     return QStringLiteral("catalog_error");
 }
