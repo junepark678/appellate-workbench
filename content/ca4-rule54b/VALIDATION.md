@@ -1,103 +1,156 @@
-# Authoring validation and exact blockers
+# Validation evidence and remaining realism limits
 
-Validation run on **2026-08-11** from the repository root.
+Evidence refreshed on **2026-08-11** from the repository root. This document distinguishes
+pack-specific checks from generic trust-boundary tests and from legal review.
 
-## Completed checks
+## Pack-specific evidence
 
-- `find content/ca4-rule54b -name '*.json' -print0 | xargs -0 -n1 jq empty` succeeded for every
-  JSON file.
-- Local validation with `fastjsonschema` 2.22.1 against the matching files in `schemas/v1/`
-  passed for all 18 digest-independent resource candidates. As expected,
-  `record.candidate.json` failed only because each of its nine docket entries omits the required
-  `asset_sha256` property.
-- A read-only authoring audit confirmed all declared Markdown sources exist, every intended page
-  count matches its page-break markers (except the deliberately excluded annotation page in
-  `d59`), JA ranges are continuous from JA1 through JA47, case authority and record-anchor IDs
-  resolve, trace authority IDs resolve, and workflow authority copies match the canonical
-  citation/source-version/proposition triples in `authority-set.json`.
-- The audit covered 19 resource candidates, 22 authority objects, 10 joint-appendix segments,
-  and 18 intended PDFs (17 Markdown documents plus the generated joint-appendix plan).
-- No PDF, hash, manifest, archive, database entry, commit, or external filing was created.
+- The current pack CLI accepted both `content/ca4-rule54b/pack` and
+  `content/ca4-rule54b/us-ca4-rule54b-asterglen-0.1.0.awpack`. Each reported pack ID
+  `us.ca4.rule54b.asterglen`, version `0.1.0`, 19 resources, 18 blobs, and the same canonical
+  revision digest:
+  `ff7a2e1195f9bd006e7df46c19675a3e07a4bd8975b1643a01adbc9cc4fd3424`.
+- The archive SHA-256 is
+  `ce0ebffb92942e85e02658d11846af70ebb5fdc287f99a4c683a48f381e39227`.
+  The archive digest identifies the archive bytes; it is not the canonical pack-revision digest.
+- `pack/manifest.json` declares the exact 19-resource and 18-blob member set, with resource
+  digests and PDF byte sizes/digests. Pack validation checks the manifest, exact member set,
+  schema, cross-resource references, blob sizes, and blob hashes for both directory and archive
+  inputs.
+- `pack/resources/record.json` and its authoring mirror contain 18 docket entries, all with final
+  64-character `asset_sha256` values and positive page counts. Every record asset resolves to one
+  declared PDF blob, and the page-count sum is 124. The record structurally distinguishes the
+  synthetic district and appellate dockets, preserves their exercise ECF labels, actors,
+  descriptions, and tags, and declares unique page anchors for `JA1` through `JA47`.
+- `rendered/inventory.json` contains 18 entries under renderer contract
+  `appellate.markdown-pdf.semantic-layout.v2`. Every entry records assembly/semantic provenance,
+  actual page count, byte size, and pinned PDF SHA-256. The renderer contract produces native
+  searchable text rather than rasterized pages.
+- The joint-appendix inventory records a ten-segment composite, 47 logical and rendered pages,
+  and exact printed/searchable page labels `JA1` through `JA47`. The segment for
+  `documents/d59-rule-54b-order.md` selects page 1 only; the page-2 exercise annotation is not in
+  either rendered operative-order use.
+- The source/metadata audit still resolves all document paths, continuous JA ranges, record
+  anchors, case authority IDs, trace authority IDs, and workflow authority copies against the
+  canonical authority set. The ledger contains 22 authority objects and explicitly marks the
+  unpublished/nonbinding source used as secondary support.
 
-The repository CLI validates only a complete manifest-governed pack, which this authoring tree
-intentionally is not. The local per-resource schema results do not constitute pack-level
-cross-reference, semantic, archive, trust-boundary, or engine validation, and no such claim is
-made.
+## Automated executable evidence
 
-## Exact current-schema and loader blockers
+The current gold-case integration test loads the exact directory revision and resolves every
+runtime link, including all record blobs and the three fictional-composite bench profiles. Its
+canonical run executes 20 commands, emits 21 events, and replays exactly to the same terminal
+state after mandate. It verifies:
 
-1. **Record digest is required but intentionally absent.**
-   `schemas/v1/record.schema.json` requires `asset_sha256` in every `docket_entries` item.
-   `resources/record.candidate.json` omits that property for all nine entries because the task
-   forbids SHA fields that depend on the in-progress blob-format change. Consequently, that one
-   resource is expected to fail the current record schema at
-   `/docket_entries/*/asset_sha256`.
+- explicit court-role authority for all court commands, with clerk and composite-panel actor IDs
+  distinguished across administrative and decisional acts;
+- accepted notice, docketing statement, opening brief, and response brief;
+- calculated dates of 2026-03-06 (notice), 2026-03-19 (initial documents), 2026-04-29 (opening
+  brief), 2026-05-29 (response), 2026-06-22 (rehearing), and 2026-06-29 (mandate);
+- a deficiency event for missing docketing-statement fields and service, with no invented cure
+  deadline and no mutation of the canonical journal;
+- a nonconforming-opening-brief rejection and a late-response rejection, likewise isolated from
+  the canonical journal; and
+- the pinned judgment and mandate document hashes in terminal workflow state.
 
-2. **The current pack trust boundary requires a root manifest and blob declarations.**
-   The task expressly excludes a root `manifest.json` and all manifest SHA fields. The current
-   reader therefore has no `contents` declarations, `blobs` declarations, content digests, byte
-   sizes, or asset digests and cannot load this directory as a pack. This is intentional.
+Observed focused test results in the reference workspace were:
 
-3. **Intended assets are not blobs yet.**
-   `asset_path` values name intended PDFs from `metadata/intended-pdfs.json`, but no PDF exists.
-   Current cross-reference validation requires each record asset path to resolve to a declared
-   blob and its digest to match. Deterministic rendering, PDF safety checks, final byte/page
-   verification, and blob declarations must occur after the blob-format decision. Creating fake
-   PDFs merely to satisfy the reader would be misleading and was not done.
+- `GoldCaseTraceTest`: 4 passed;
+- `PackCatalogTest`: 12 passed;
+- `MarkdownPdfRendererTest`: 10 passed; and
+- `RenderCliTest`: 9 passed.
 
-4. **Legally accurate filing routing conflicts with current workflow semantics.**
-   The workflow schema permits an empty `filing_routes` array, but the current pack reader later
-   requires every catalog filing to have a route. Every route, in turn, must contain a
-   `deficiency_deadline` backed by a fixed `calculate_deadline` operation, and the reader requires
-   exactly one `reject_filing` operation for every stage. The sourced rules do not establish one
-   uniform fixed cure period or one uniform rejection consequence for every notice, initial
-   document, brief, and rehearing petition. `resources/workflow.json` therefore keeps
-   `filing_routes` empty and does not invent reject operations. It should pass the JSON schema but
-   is expected to fail current pack semantic validation with the reader's "every catalog filing
-   requires a workflow route" and per-stage `reject_filing` requirements.
+The catalog tests are generic trust-boundary evidence rather than a second legal review of this
+case. They cover immutable exact-revision installation, archive-integrity detection, verified
+content-addressed blob materialization, rehydration of a missing object from a verified archive,
+deduplication, refusal to overwrite corrupt or linked objects, missing/corrupt archive behavior,
+descriptor tampering, and storage migration. The renderer tests separately cover searchable
+PDFs, repeatable semantic identity, honest byte nondeterminism, printed/searchable labels,
+batch rollback, no overwrite, and traversal/symlink/resource rejection.
 
-5. **Conditional deadline and branch logic is not expressible in workflow v1.**
-   `calculate_deadline` stores only a fixed number of days and calendar/business-day counting. It
-   has no trigger field or predicates for private versus federal parties, Rule 58 entry,
-   FRAP 4(a)(4) tolling, FRAP 4(a)(5) extension, FRAP 4(a)(6) reopening, electronic versus other
-   service, amended decisions, rehearing petitions, stay motions, or Rule 41's "whichever is
-   later" calculation. The executable candidate contains only the authored fixed-day operations;
-   `traces/expected-traces.json` preserves the missing predicates and adverse expectations.
+## Rendering reproducibility boundary
 
-6. **Rule 54(b) gate conditions cannot select workflow branches.**
-   Workflow v1 has no condition language for ultimate disposition of an individual claim,
-   express no-just-reason text, case-specific findings, or abuse-of-discretion review. It also
-   cannot distinguish dismissal for no final decision from a merits judgment. The authored
-   `issue_judgment` operation points to the dismissal outcome, while the supported-certification
-   and sparse-findings alternatives remain in the trace evidence.
+The strict render plan, source hashes, assembly-plan hashes, semantic-plan hashes, semantic-render
+hashes, resolved fonts, Qt versions, and layout contract are recorded in the inventory. That
+semantic plan is repeatable for the same source, plan, and resolved render environment.
 
-7. **Record anchors are entry-level only.**
-   `case.schema.json` accepts record entry IDs but not page ranges or JA ranges. The operative
-   omission is specifically at JA40; that page-level relationship lives in
-   `metadata/joint-appendix.json` and the briefs, not the case resource.
+The PDF byte stream is not promised to repeat across invocations. `QPdfWriter` writes wall-clock
+information dates even though the renderer provenance fixes its own semantic timestamp. The
+current PDF files are therefore immutable pinned artifacts: their manifest hashes verify those
+specific bytes, but a fresh correct render may have different PDF hashes. Any intentional
+rerender requires coordinated record, manifest, archive, and revision updates.
 
-8. **Argument configuration cannot say "counterfactual."**
-   The authored appellate docket states that the panel decided without oral argument under FRAP
-   34(a)(2). `argument-config.schema.json` has no mode/status field to distinguish a moot-court
-   configuration from an argument that actually occurred. The README, opinion, docket metadata,
-   and realism uncertainty consistently identify `argument-config.json` as counterfactual.
+## Exact executable-scope limits
 
-9. **Authority and realism evidence have limited structured fields.**
-   The authority schema has no per-source checked-on date distinct from `source_version`, no
-   precedential-status field, and no uncertainty field. The realism schema has no dimension-level
-   evidence links, reviewer digest, or trace IDs. `sources/SOURCE_NOTES.md`, the nonprecedential
-   qualifier in the *McPherson* citation/proposition, and `known_uncertainty` preserve that
-   information without extending current schemas.
+The filing catalog has six types, but only four have workflow routes:
 
-## Release gates still required
+| Catalog filing | Executable in v0.1.0 | Current behavior |
+| --- | --- | --- |
+| Notice of appeal | Yes | conforming acceptance and nonconforming rejection; direct deadline recorded, not route-enforced |
+| Docketing statement | Yes | acceptance or deficiency for missing fields/service; no fixed cure period invented |
+| Transcript order | No | form/catalog entry only |
+| Opening brief | Yes | acceptance or nonconforming rejection; acceptance creates the response deadline |
+| Response brief | Yes | acceptance or rejection after the route-enforced response deadline |
+| Rehearing petition | No | form/catalog entry and counterfactual trace evidence only |
 
-- resolve blob/manifest representation and render real deterministic PDFs from the UTF-8 sources;
-- verify rendered page counts, operative-page exclusions, PDF safety, byte sizes, and hashes;
-- update the record candidate with final asset digests and add a root manifest only after the
-  blob format is settled;
-- add schema/runtime support for sourced conditional branches or narrow the executable filing
-  catalog without inventing legal deadlines;
-- run full schema, cross-reference, semantic, and trace tests; and
-- obtain attributable independent qualified review if any later release seeks realism level 3.
+Only the response deadline is currently connected to a filing route's eligibility decision.
+Notice, initial-document, opening-brief, rehearing, and mandate deadlines are explicitly
+court-calculated, recorded, authority-bearing, and replayed; the current routes do not reject a
+filing merely for violating those direct deadlines.
 
-This authoring revision remains `independent_review_pending` and makes no level-3 claim.
+Workflow schema v1 and this pack revision do not generally evaluate:
+
+- private/federal-party selection, Rule 58 entry, FRAP 4(a)(4) tolling, FRAP 4(a)(5) extension,
+  FRAP 4(a)(6) reopening, amended decisions, or service-mode predicates;
+- ultimate disposition of an individual claim, the express Rule 54(b) determination,
+  case-specific findings, claim separateness, or abuse-of-discretion predicates;
+- appearance/disclosure filings, reply briefing, rehearing-petition execution, stay motions, or
+  Rule 41's conditional later-of logic; or
+- alternate finality/statutory routes and merits outcomes after a supported certification.
+
+`traces/expected-traces.json` preserves those sourced counterfactual expectations as authoring
+evidence. It does not make them executable or claim that one result applies to every real case.
+
+The authored docket records submission and decision on the briefs. Its argument configuration is
+counterfactual moot-court training, not a historical docket event. The record represents the
+district and appellate entries as distinct typed dockets and binds each issue to precise JA page
+anchors; cross-filed documents retain their second exercise filing number in authored metadata.
+
+## Legal-review status and release gates
+
+The realism resource remains `independent_review_pending`, with every dimension at level 2 or
+below. No independent qualified legal reviewer has reviewed the procedural choices, documents,
+consequences, oral-argument configuration, or source application. The successful technical and
+engine checks above do **not** establish realism level 3.
+
+Before any later release claims level 3, it must obtain attributable independent qualified
+review and incorporate or explicitly resolve that review. Broader executable claims additionally
+require sourced route/predicate support for the limits listed above. Future cases must preserve
+the same exact asset, docket, entry-label, and page-anchor consistency evidence.
+
+## Reproducible commands
+
+These examples assume the repository prerequisites have been installed and the targets have been
+built; they do not claim that a reader's checkout already contains build products.
+
+```sh
+cmake --preset dev
+cmake --build --preset dev --target appellate-render appellate-pack tst_gold_case_trace tst_pack_catalog
+
+jq empty content/ca4-rule54b/metadata/intended-pdfs.json
+jq empty content/ca4-rule54b/metadata/joint-appendix.json
+jq empty content/ca4-rule54b/render-plan.json
+jq empty content/ca4-rule54b/rendered/inventory.json
+jq empty content/ca4-rule54b/pack/manifest.json
+
+./build/dev/src/cli/appellate-pack validate content/ca4-rule54b/pack
+./build/dev/src/cli/appellate-pack validate content/ca4-rule54b/us-ca4-rule54b-asterglen-0.1.0.awpack
+ctest --test-dir build/dev --output-on-failure -R '^(gold_case_trace|pack_catalog|markdown_pdf_renderer|render_cli)$'
+```
+
+The two `validate` results should identify the same canonical pack revision. Archive SHA can be
+checked independently with:
+
+```sh
+sha256sum content/ca4-rule54b/us-ca4-rule54b-asterglen-0.1.0.awpack
+```

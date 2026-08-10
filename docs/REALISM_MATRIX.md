@@ -9,10 +9,14 @@ procedure profile must score 3 throughout. A material legal error, impossible st
 off-record fact, unresolved citation, or incompatible bench role blocks release regardless of
 the numeric scores.
 
+An installable authoring candidate may appear below at level 2 while independent review remains
+pending. That status is useful technical/content evidence, but it is not a release-ready gold
+designation and does not satisfy the level-3 gate.
+
 | Case family | Procedure | Law | Deadlines / authority | Record | Consequences | Argument | Bench differentiation | Provenance | Review state |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | Employment retaliation | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
-| Rule 54(b) finality | Civil (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
+| Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Author self-reviewed; independent review pending |
 | Preliminary injunction / stay | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Section 1983 qualified immunity | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Post-trial JMOL | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |

@@ -7,13 +7,19 @@
   "continuous_pagination": true,
   "first_page": 1,
   "last_page": 47,
+  "render_status": "rendered-searchable-and-pinned-in-pack-v0.1.0",
+  "rendered_pdf_path": "pack/assets/a12-joint-appendix.pdf",
+  "rendered_pdf_sha256": "309956bf6f218a881a54365ccf2639f75c6c5360aa774c7e8b26c5479da8c872",
+  "renderer_contract": "appellate.markdown-pdf.semantic-layout.v2",
+  "page_labels_printed": true,
+  "page_labels_searchable": true,
   "citation_examples": ["JA24", "JA40-41", "JA44-47"],
   "segments": [
     {
       "segment_id": "ca4r54b.ja.front",
       "title": "Cover and table of contents",
-      "source_path": "metadata/joint-appendix.json",
-      "source_pages": "generated front matter",
+      "source_path": "documents/a12-joint-appendix-front.md",
+      "source_pages": "1-4",
       "ja_first": 1,
       "ja_last": 4
     },

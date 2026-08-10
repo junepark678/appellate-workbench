@@ -146,7 +146,7 @@
       "kind": "case",
       "schema_version": 1,
       "path": "resources/case.json",
-      "sha256": "e3af947a39c0241b5c0997f6f6e1136851c097410ad4d20def8373a44efc26cc"
+      "sha256": "5b4a85f0d12698121f8361305b1fb8ff69c13e2497bcd60d7c2c78139ae88b14"
     },
     {
       "id": "ca4r54b.court.ca4",
@@ -237,14 +237,14 @@
       "kind": "realism_review",
       "schema_version": 1,
       "path": "resources/realism-review.json",
-      "sha256": "d58c4dd55b036a8c6aa2c82cb91a7986eae3153cbaccb6937c81838fd60ca8fa"
+      "sha256": "59fe4235d64d8ebdd5f6ab0a62d286ba317b6a69dc8e1a6b3b910fc3bbc493bf"
     },
     {
       "id": "ca4r54b.record.asterglen",
       "kind": "record",
       "schema_version": 1,
       "path": "resources/record.json",
-      "sha256": "b21387413c8509f6fe8dac01b69bf023afdf25bf6d575489a4232750e9c6b963"
+      "sha256": "5bd9818b5a1bfbd257669c703ca7fdebadbe007111635a7c8e21aaa9baa24a76"
     },
     {
       "id": "ca4r54b.workflow.civil-rule54b",

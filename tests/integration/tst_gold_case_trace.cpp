@@ -5,6 +5,7 @@
 #include <QTest>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <concepts>
 #include <cstdint>
@@ -12,6 +13,7 @@
 #include <optional>
 #include <ranges>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -32,6 +34,7 @@ constexpr auto appellant_actor = "ca4r54b.actor.asterglen";
 constexpr auto first_appellee_actor = "ca4r54b.actor.copper-kestrel";
 constexpr auto second_appellee_actor = "ca4r54b.actor.meridian-silt";
 constexpr auto court_actor = "ca4r54b.actor.composite-panel";
+constexpr auto clerk_actor = "ca4r54b.actor.ca4-clerk";
 
 [[nodiscard]] QString goldPackPath() {
     return QStringLiteral(APPELLATE_GOLD_PACK);
@@ -263,16 +266,51 @@ void GoldCaseTraceTest::loadsExactPackAndResolvesEveryRuntimeLink() {
     QCOMPARE(runtime_case.definition.id.value, std::string("ca4r54b.case.asterglen"));
     QCOMPARE(runtime_case.definition.procedure_id.value,
              std::string("ca4r54b.procedure.civil-appeal"));
-    QCOMPARE(runtime_case.definition.actors.size(), std::size_t{4});
+    QCOMPARE(runtime_case.definition.actors.size(), std::size_t{5});
+    const auto clerk = std::ranges::find(
+        runtime_case.definition.actors, model::ActorId{std::string(clerk_actor)},
+        &model::CaseActor::id);
+    QVERIFY(clerk != runtime_case.definition.actors.end());
+    QCOMPARE(clerk->role.value, std::string("ca4r54b.role.court"));
+    const auto panel = std::ranges::find(
+        runtime_case.definition.actors, model::ActorId{std::string(court_actor)},
+        &model::CaseActor::id);
+    QVERIFY(panel != runtime_case.definition.actors.end());
+    QCOMPARE(panel->role.value, std::string("ca4r54b.role.court"));
     QCOMPARE(runtime_case.procedure.court_id.value, std::string("ca4r54b.court.ca4"));
     QCOMPARE(runtime_case.court.id, runtime_case.procedure.court_id);
     QCOMPARE(runtime_case.court.jurisdiction_id.value, std::string("us.ca4"));
     QCOMPARE(runtime_case.procedure.workflow_id, runtime_case.workflow.id);
     QCOMPARE(runtime_case.workflow.id.value, std::string("ca4r54b.workflow.civil-rule54b"));
     QCOMPARE(runtime_case.record.id.value, std::string("ca4r54b.record.asterglen"));
+    QCOMPARE(runtime_case.record.dockets.size(), std::size_t{2});
     QCOMPARE(runtime_case.record.docket_entries.size(), std::size_t{18});
+    QCOMPARE(runtime_case.record.page_anchors.size(), std::size_t{47});
     QCOMPARE(runtime_case.issues.size(), std::size_t{3});
     QCOMPARE(runtime_case.argument_configurations.size(), std::size_t{1});
+
+    const auto district_docket = std::ranges::find_if(
+        runtime_case.record.dockets, [](const packs::RuntimeDocketDescriptor& docket) {
+            return docket.id.value == "ca4r54b.docket.edva";
+        });
+    QVERIFY(district_docket != runtime_case.record.dockets.end());
+    QCOMPARE(district_docket->type, packs::RuntimeDocketType::District);
+    QVERIFY(!district_docket->court_id.has_value());
+    QCOMPARE(district_docket->court_ref,
+             std::string("United States District Court for the Eastern District of Virginia"));
+    QCOMPARE(district_docket->public_docket_number, std::string("SYN-25-0117"));
+
+    const auto appellate_docket = std::ranges::find_if(
+        runtime_case.record.dockets, [](const packs::RuntimeDocketDescriptor& docket) {
+            return docket.id.value == "ca4r54b.docket.ca4";
+        });
+    QVERIFY(appellate_docket != runtime_case.record.dockets.end());
+    QCOMPARE(appellate_docket->type, packs::RuntimeDocketType::Appellate);
+    QVERIFY(appellate_docket->court_id.has_value());
+    QCOMPARE(appellate_docket->court_id->value, std::string("ca4r54b.court.ca4"));
+    QCOMPARE(appellate_docket->court_ref,
+             std::string("United States Court of Appeals for the Fourth Circuit"));
+    QCOMPARE(appellate_docket->public_docket_number, std::string("SYN-26-1427"));
 
     std::unordered_map<std::string, const model::WorkflowOperation*> operations;
     for (const auto& operation : runtime_case.workflow.operations) {
@@ -316,15 +354,122 @@ void GoldCaseTraceTest::loadsExactPackAndResolvesEveryRuntimeLink() {
     QCOMPARE(joint_appendix->page_count, std::uint32_t{47});
     QCOMPARE(joint_appendix->asset_path, std::string("assets/a12-joint-appendix.pdf"));
 
+    struct ExpectedRecordEntry final {
+        std::string_view id;
+        std::string_view docket_id;
+        std::string_view entry_label;
+        std::string_view actor;
+    };
+    constexpr std::array<ExpectedRecordEntry, 18> expected_record_entries{{
+        {"ca4r54b.record.d01", "ca4r54b.docket.edva", "ECF No. 1",
+         "Asterglen Freight Software, Inc."},
+        {"ca4r54b.record.d08", "ca4r54b.docket.edva", "ECF No. 8",
+         "Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC"},
+        {"ca4r54b.record.d55", "ca4r54b.docket.edva", "ECF No. 55",
+         "District Jurist Solace (fictional composite)"},
+        {"ca4r54b.record.d57", "ca4r54b.docket.edva", "ECF No. 57",
+         "Asterglen Freight Software, Inc."},
+        {"ca4r54b.record.d58", "ca4r54b.docket.edva", "ECF No. 58",
+         "Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC"},
+        {"ca4r54b.record.d59", "ca4r54b.docket.edva", "ECF No. 59",
+         "District Jurist Solace (fictional composite)"},
+        {"ca4r54b.record.d60", "ca4r54b.docket.edva", "ECF No. 60",
+         "Exercise district clerk"},
+        {"ca4r54b.record.d61", "ca4r54b.docket.edva", "ECF No. 61",
+         "Asterglen Freight Software, Inc."},
+        {"ca4r54b.record.a01", "ca4r54b.docket.ca4", "ECF No. 1",
+         "Exercise Fourth Circuit clerk"},
+        {"ca4r54b.record.a02", "ca4r54b.docket.ca4", "ECF No. 5",
+         "Asterglen Freight Software, Inc."},
+        {"ca4r54b.record.a03", "ca4r54b.docket.ca4", "ECF No. 6",
+         "Asterglen Freight Software, Inc."},
+        {"ca4r54b.record.d62", "ca4r54b.docket.edva", "ECF No. 65",
+         "Exercise district clerk"},
+        {"ca4r54b.record.a10", "ca4r54b.docket.ca4", "ECF No. 14",
+         "Asterglen Freight Software, Inc."},
+        {"ca4r54b.record.a12", "ca4r54b.docket.ca4", "ECF No. 15",
+         "Parties jointly (fictional)"},
+        {"ca4r54b.record.a11", "ca4r54b.docket.ca4", "ECF No. 18",
+         "Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC"},
+        {"ca4r54b.record.a20", "ca4r54b.docket.ca4", "ECF No. 21",
+         "Fictional composite appellate panel"},
+        {"ca4r54b.record.a21", "ca4r54b.docket.ca4", "ECF No. 22",
+         "Exercise Fourth Circuit clerk"},
+        {"ca4r54b.record.a22", "ca4r54b.docket.ca4", "ECF No. 24",
+         "Exercise Fourth Circuit clerk"},
+    }};
+    for (std::size_t index = 0; index < expected_record_entries.size(); ++index) {
+        const auto& expected = expected_record_entries[index];
+        const auto entry = std::ranges::find_if(
+            runtime_case.record.docket_entries, [&](const packs::RuntimeDocketEntry& candidate) {
+                return candidate.id.value == expected.id;
+            });
+        QVERIFY(entry != runtime_case.record.docket_entries.end());
+        QCOMPARE(entry->entry_number, static_cast<std::uint32_t>(index + 1U));
+        QVERIFY(entry->docket_id.has_value());
+        QCOMPARE(entry->docket_id->value, std::string(expected.docket_id));
+        QVERIFY(entry->entry_label.has_value());
+        QCOMPARE(*entry->entry_label, std::string(expected.entry_label));
+        QVERIFY(entry->actor.has_value());
+        QCOMPARE(*entry->actor, std::string(expected.actor));
+        QVERIFY(entry->description.has_value());
+        QVERIFY(!entry->description->empty());
+        QCOMPARE(entry->tags.size(), std::size_t{3});
+        QVERIFY(!entry->parent_entry_id.has_value());
+        QVERIFY(!entry->relationship.has_value());
+    }
+
+    std::unordered_set<std::string> page_anchor_ids;
+    for (std::size_t index = 0; index < runtime_case.record.page_anchors.size(); ++index) {
+        const auto& anchor = runtime_case.record.page_anchors[index];
+        const auto page_number = static_cast<std::uint32_t>(index + 1U);
+        const auto suffix = std::to_string(page_number);
+        QCOMPARE(anchor.id.value, std::string("ca4r54b.record.anchor.ja") + suffix);
+        QCOMPARE(anchor.entry_id.value, std::string("ca4r54b.record.a12"));
+        QCOMPARE(anchor.page_number, page_number);
+        QVERIFY(anchor.citation_label.has_value());
+        QCOMPARE(*anchor.citation_label, std::string("JA") + suffix);
+        QVERIFY(page_anchor_ids.emplace(anchor.id.value).second);
+    }
+
     std::unordered_set<std::string> issue_ids;
     for (const auto& issue : runtime_case.issues) {
         QVERIFY(issue_ids.emplace(issue.id.value).second);
         QVERIFY(!issue.authority_ids.empty());
         QVERIFY(!issue.record_anchor_ids.empty());
         for (const auto& anchor : issue.record_anchor_ids) {
-            QVERIFY(record_ids.contains(anchor.value));
+            QVERIFY(page_anchor_ids.contains(anchor.value));
         }
     }
+
+    const auto issue = [&](std::string_view id) {
+        return std::ranges::find_if(runtime_case.issues, [&](const packs::RuntimeIssue& candidate) {
+            return candidate.id.value == id;
+        });
+    };
+    const auto finality_issue = issue("ca4r54b.issue.rule54b-finality");
+    QVERIFY(finality_issue != runtime_case.issues.end());
+    QVERIFY(finality_issue->record_anchor_ids ==
+            std::vector<packs::RuntimeRecordAnchorId>({
+                {"ca4r54b.record.anchor.ja27"}, {"ca4r54b.record.anchor.ja29"},
+                {"ca4r54b.record.anchor.ja37"}, {"ca4r54b.record.anchor.ja40"},
+                {"ca4r54b.record.anchor.ja41"},
+            }));
+    const auto timeliness_issue = issue("ca4r54b.issue.notice-timeliness");
+    QVERIFY(timeliness_issue != runtime_case.issues.end());
+    QVERIFY(timeliness_issue->record_anchor_ids ==
+            std::vector<packs::RuntimeRecordAnchorId>({
+                {"ca4r54b.record.anchor.ja41"}, {"ca4r54b.record.anchor.ja42"},
+                {"ca4r54b.record.anchor.ja43"}, {"ca4r54b.record.anchor.ja46"},
+            }));
+    const auto merits_issue = issue("ca4r54b.issue.merits-not-reached");
+    QVERIFY(merits_issue != runtime_case.issues.end());
+    QVERIFY(merits_issue->record_anchor_ids ==
+            std::vector<packs::RuntimeRecordAnchorId>({
+                {"ca4r54b.record.anchor.ja7"}, {"ca4r54b.record.anchor.ja8"},
+                {"ca4r54b.record.anchor.ja15"}, {"ca4r54b.record.anchor.ja25"},
+                {"ca4r54b.record.anchor.ja26"},
+            }));
 
     const auto& argument = runtime_case.argument_configurations.front();
     QCOMPARE(argument.case_id, runtime_case.definition.id);
@@ -364,26 +509,26 @@ void GoldCaseTraceTest::replaysCanonicalTraceThroughMandateAndKeepsAdverseBranch
     };
 
     mustExecute(model::CalculateWorkflowDeadline{
-        header("ca4r54b.command.calculate-notice", court_actor, date(2026, 2, 4)),
+        header("ca4r54b.command.calculate-notice", clerk_actor, date(2026, 2, 4)),
         model::WorkflowOperationId{"ca4r54b.operation.calculate-notice-deadline"},
         model::WorkflowDeadlineId{"ca4r54b.deadline.notice-appeal"}});
     mustExecute(noticeFiling(runtime_case));
     mustExecute(model::AdvanceWorkflowStage{
-        header("ca4r54b.command.advance-docketed", court_actor, date(2026, 3, 5)),
+        header("ca4r54b.command.advance-docketed", clerk_actor, date(2026, 3, 5)),
         model::WorkflowOperationId{"ca4r54b.operation.advance-docketed"}});
     mustExecute(model::EnterWorkflowOrder{
-        header("ca4r54b.command.enter-docketing-notice", court_actor, date(2026, 3, 5)),
+        header("ca4r54b.command.enter-docketing-notice", clerk_actor, date(2026, 3, 5)),
         model::WorkflowOperationId{"ca4r54b.operation.enter-docketing-notice"},
         model::WorkflowOrderId{"ca4r54b.order.docketing-notice"},
         model::WorkflowOrderDisposition::Other,
         *recordDigest(runtime_case, "ca4r54b.record.a01"),
         std::nullopt});
     mustExecute(model::CalculateWorkflowDeadline{
-        header("ca4r54b.command.calculate-initial", court_actor, date(2026, 3, 5)),
+        header("ca4r54b.command.calculate-initial", clerk_actor, date(2026, 3, 5)),
         model::WorkflowOperationId{"ca4r54b.operation.calculate-initial-deadline"},
         model::WorkflowDeadlineId{"ca4r54b.deadline.initial-documents"}});
     mustExecute(model::AdvanceWorkflowStage{
-        header("ca4r54b.command.advance-initial", court_actor, date(2026, 3, 5)),
+        header("ca4r54b.command.advance-initial", clerk_actor, date(2026, 3, 5)),
         model::WorkflowOperationId{"ca4r54b.operation.advance-initial-requirements"}});
 
     const auto before_deficiency = run;
@@ -416,11 +561,11 @@ void GoldCaseTraceTest::replaysCanonicalTraceThroughMandateAndKeepsAdverseBranch
 
     mustExecute(docketingStatement(runtime_case));
     mustExecute(model::CalculateWorkflowDeadline{
-        header("ca4r54b.command.calculate-opening", court_actor, date(2026, 3, 23)),
+        header("ca4r54b.command.calculate-opening", clerk_actor, date(2026, 3, 20)),
         model::WorkflowOperationId{"ca4r54b.operation.calculate-opening-brief-deadline"},
         model::WorkflowDeadlineId{"ca4r54b.deadline.opening-brief"}});
     mustExecute(model::AdvanceWorkflowStage{
-        header("ca4r54b.command.advance-briefing", court_actor, date(2026, 3, 23)),
+        header("ca4r54b.command.advance-briefing", clerk_actor, date(2026, 3, 23)),
         model::WorkflowOperationId{"ca4r54b.operation.advance-briefing"}});
 
     auto nonconforming_opening = openingBrief(runtime_case);
@@ -445,7 +590,7 @@ void GoldCaseTraceTest::replaysCanonicalTraceThroughMandateAndKeepsAdverseBranch
 
     mustExecute(openingBrief(runtime_case));
     mustExecute(model::AdvanceWorkflowStage{
-        header("ca4r54b.command.advance-response", court_actor, date(2026, 4, 29)),
+        header("ca4r54b.command.advance-response", clerk_actor, date(2026, 4, 29)),
         model::WorkflowOperationId{"ca4r54b.operation.advance-response-briefing"}});
 
     const auto before_late_response = run;
@@ -467,7 +612,7 @@ void GoldCaseTraceTest::replaysCanonicalTraceThroughMandateAndKeepsAdverseBranch
     mustExecute(responseBrief(runtime_case, "ca4r54b.command.file-response-brief",
                               "ca4r54b.filing-instance.response-brief", date(2026, 5, 8)));
     mustExecute(model::AdvanceWorkflowStage{
-        header("ca4r54b.command.advance-submitted", court_actor, date(2026, 5, 8)),
+        header("ca4r54b.command.advance-submitted", clerk_actor, date(2026, 6, 3)),
         model::WorkflowOperationId{"ca4r54b.operation.advance-submitted"}});
     mustExecute(model::AdvanceWorkflowStage{
         header("ca4r54b.command.advance-judgment", court_actor, date(2026, 6, 8)),
@@ -478,21 +623,21 @@ void GoldCaseTraceTest::replaysCanonicalTraceThroughMandateAndKeepsAdverseBranch
         *recordDigest(runtime_case, "ca4r54b.record.a21"),
         "Dismissed for want of appellate jurisdiction and remanded"});
     mustExecute(model::AdvanceWorkflowStage{
-        header("ca4r54b.command.advance-rehearing", court_actor, date(2026, 6, 8)),
+        header("ca4r54b.command.advance-rehearing", clerk_actor, date(2026, 6, 8)),
         model::WorkflowOperationId{"ca4r54b.operation.advance-rehearing"}});
     mustExecute(model::CalculateWorkflowDeadline{
-        header("ca4r54b.command.calculate-rehearing", court_actor, date(2026, 6, 8)),
+        header("ca4r54b.command.calculate-rehearing", clerk_actor, date(2026, 6, 8)),
         model::WorkflowOperationId{"ca4r54b.operation.calculate-rehearing-deadline"},
         model::WorkflowDeadlineId{"ca4r54b.deadline.rehearing"}});
     mustExecute(model::CalculateWorkflowDeadline{
-        header("ca4r54b.command.calculate-mandate", court_actor, date(2026, 6, 22)),
+        header("ca4r54b.command.calculate-mandate", clerk_actor, date(2026, 6, 22)),
         model::WorkflowOperationId{"ca4r54b.operation.calculate-mandate-deadline"},
         model::WorkflowDeadlineId{"ca4r54b.deadline.mandate"}});
     mustExecute(model::AdvanceWorkflowStage{
-        header("ca4r54b.command.advance-mandate", court_actor, date(2026, 6, 29)),
+        header("ca4r54b.command.advance-mandate", clerk_actor, date(2026, 6, 29)),
         model::WorkflowOperationId{"ca4r54b.operation.advance-mandate"}});
     mustExecute(model::IssueWorkflowMandate{
-        header("ca4r54b.command.issue-mandate", court_actor, date(2026, 6, 29)),
+        header("ca4r54b.command.issue-mandate", clerk_actor, date(2026, 6, 29)),
         model::WorkflowOperationId{"ca4r54b.operation.issue-mandate"},
         *recordDigest(runtime_case, "ca4r54b.record.a22")});
 
@@ -561,7 +706,7 @@ void GoldCaseTraceTest::replaysCanonicalTraceThroughMandateAndKeepsAdverseBranch
     const std::vector expected_deadlines{
         std::pair{std::string_view{"ca4r54b.deadline.notice-appeal"}, date(2026, 3, 6)},
         std::pair{std::string_view{"ca4r54b.deadline.initial-documents"}, date(2026, 3, 19)},
-        std::pair{std::string_view{"ca4r54b.deadline.opening-brief"}, date(2026, 5, 4)},
+        std::pair{std::string_view{"ca4r54b.deadline.opening-brief"}, date(2026, 4, 29)},
         std::pair{std::string_view{"ca4r54b.deadline.response-brief"}, date(2026, 5, 29)},
         std::pair{std::string_view{"ca4r54b.deadline.rehearing"}, date(2026, 6, 22)},
         std::pair{std::string_view{"ca4r54b.deadline.mandate"}, date(2026, 6, 29)},
@@ -593,8 +738,12 @@ void GoldCaseTraceTest::replaysCanonicalTraceThroughMandateAndKeepsAdverseBranch
             });
         QVERIFY(command != run.journal.end());
         QVERIFY(std::holds_alternative<model::AdvanceWorkflowStage>(command->command));
-        QCOMPARE(std::get<model::AdvanceWorkflowStage>(command->command).header.actor_id.value,
-                 std::string(court_actor));
+        const auto& stage_command = std::get<model::AdvanceWorkflowStage>(command->command);
+        const auto expected_actor =
+            stage_command.header.command_id.value == "ca4r54b.command.advance-judgment"
+                ? std::string_view{court_actor}
+                : std::string_view{clerk_actor};
+        QCOMPARE(stage_command.header.actor_id.value, std::string(expected_actor));
     }
 
     const auto replayed = engine::replayWorkflow(runtime_case.workflow, runtime_case.definition,

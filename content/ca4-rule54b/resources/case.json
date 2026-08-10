@@ -9,6 +9,7 @@
     {"actor_id": "ca4r54b.actor.asterglen", "role_id": "ca4r54b.role.appellant", "display_name": "Asterglen Freight Software, Inc. (fictional)", "synthetic": true},
     {"actor_id": "ca4r54b.actor.copper-kestrel", "role_id": "ca4r54b.role.appellee", "display_name": "Copper Kestrel Logistics, LLC (fictional)", "synthetic": true},
     {"actor_id": "ca4r54b.actor.meridian-silt", "role_id": "ca4r54b.role.appellee", "display_name": "Meridian Silt Holdings, LLC (fictional)", "synthetic": true},
+    {"actor_id": "ca4r54b.actor.ca4-clerk", "role_id": "ca4r54b.role.court", "display_name": "Exercise Fourth Circuit clerk", "synthetic": true},
     {"actor_id": "ca4r54b.actor.composite-panel", "role_id": "ca4r54b.role.court", "display_name": "Fictional composite appellate panel", "synthetic": true}
   ],
   "issues": [
@@ -22,11 +23,11 @@
         "ca4r54b.authority.mcpherson"
       ],
       "record_anchor_ids": [
-        "ca4r54b.record.d55",
-        "ca4r54b.record.d57",
-        "ca4r54b.record.d58",
-        "ca4r54b.record.d59",
-        "ca4r54b.record.d60"
+        "ca4r54b.record.anchor.ja27",
+        "ca4r54b.record.anchor.ja29",
+        "ca4r54b.record.anchor.ja37",
+        "ca4r54b.record.anchor.ja40",
+        "ca4r54b.record.anchor.ja41"
       ]
     },
     {
@@ -37,7 +38,12 @@
         "ca4r54b.authority.frap-4a1",
         "ca4r54b.authority.frap-26a"
       ],
-      "record_anchor_ids": ["ca4r54b.record.d60", "ca4r54b.record.d61", "ca4r54b.record.d62"]
+      "record_anchor_ids": [
+        "ca4r54b.record.anchor.ja41",
+        "ca4r54b.record.anchor.ja42",
+        "ca4r54b.record.anchor.ja43",
+        "ca4r54b.record.anchor.ja46"
+      ]
     },
     {
       "issue_id": "ca4r54b.issue.merits-not-reached",
@@ -46,7 +52,13 @@
         "ca4r54b.authority.usc-1291",
         "ca4r54b.authority.kinsale"
       ],
-      "record_anchor_ids": ["ca4r54b.record.d08", "ca4r54b.record.d55"]
+      "record_anchor_ids": [
+        "ca4r54b.record.anchor.ja7",
+        "ca4r54b.record.anchor.ja8",
+        "ca4r54b.record.anchor.ja15",
+        "ca4r54b.record.anchor.ja25",
+        "ca4r54b.record.anchor.ja26"
+      ]
     }
   ],
   "authored_disposition_id": "ca4r54b.operation.issue-dismissal-judgment"

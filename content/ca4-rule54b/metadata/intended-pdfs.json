@@ -1,14 +1,27 @@
 {
-  "format": "appellate-workbench-pdf-intent",
+  "format": "appellate-workbench-rendered-pdf-set",
   "format_version": 1,
   "case_id": "ca4r54b.case.asterglen",
   "as_of": "2026-08-11",
-  "status": "intent-only-no-pdfs-generated",
+  "status": "rendered-searchable-and-pinned-in-pack-v0.1.0",
+  "pack_revision_sha256": "ff7a2e1195f9bd006e7df46c19675a3e07a4bd8975b1643a01adbc9cc4fd3424",
+  "artifact_evidence": {
+    "render_plan_path": "render-plan.json",
+    "inventory_path": "rendered/inventory.json",
+    "pack_directory": "pack",
+    "archive_path": "us-ca4-rule54b-asterglen-0.1.0.awpack",
+    "renderer_contract": "appellate.markdown-pdf.semantic-layout.v2",
+    "document_count": 18,
+    "page_count": 124,
+    "semantic_render_plan_repeatable": true,
+    "pdf_byte_deterministic_across_runs": false,
+    "pdf_byte_note": "QPdfWriter emits wall-clock information dates; this revision pins the actual PDF SHA-256 and byte size in the inventory, record, and manifest."
+  },
   "global_render_constraints": {
     "source_encoding": "UTF-8",
     "paper": "US Letter",
     "color": "black text on white background",
-    "fonts": "renderer-supplied embedded open fonts only",
+    "fonts": "renderer-resolved generic serif and monospace; exact resolved families are recorded in renderer provenance",
     "page_break_marker": "<!-- PAGE BREAK -->",
     "header_required": "SYNTHETIC TRAINING RECORD or SYNTHETIC TRAINING OPINION/JUDGMENT/MANDATE",
     "active_content_forbidden": true,
@@ -137,7 +150,8 @@
       "intended_pdf_path": "assets/a12-joint-appendix.pdf",
       "pdf_title": "Synthetic Joint Appendix",
       "intended_page_count": 47,
-      "render_source_pages": "assemble according to metadata/joint-appendix.json"
+      "render_source_pages": "assemble ten ordered segments according to render-plan.json and metadata/joint-appendix.json",
+      "printed_searchable_page_labels": "JA1-JA47"
     },
     {
       "document_id": "ca4r54b.document.a20",
