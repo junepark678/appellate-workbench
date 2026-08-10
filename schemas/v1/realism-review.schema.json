@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v1/realism-review.schema.json",
+  "title": "Case realism review evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "resource_kind", "resource_id", "case_id", "review_state", "dimensions", "known_uncertainty"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "resource_kind": { "const": "realism_review" },
+    "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "case_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "review_state": { "enum": ["self_reviewed", "independent_review_pending", "independently_reviewed"] },
+    "reviewed_on": { "type": "string", "format": "date" },
+    "reviewer_reference": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["procedural_law", "deadlines_authority", "record_consistency", "consequences", "oral_argument", "bench_differentiation", "provenance"],
+      "properties": {
+        "procedural_law": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "deadlines_authority": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "record_consistency": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "consequences": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "oral_argument": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "bench_differentiation": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "provenance": { "type": "integer", "minimum": 0, "maximum": 3 }
+      }
+    },
+    "known_uncertainty": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v1/procedure-profile.schema.json",
+  "title": "Court procedure profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "resource_kind",
+    "resource_id",
+    "court_id",
+    "proceeding_type",
+    "actor_roles",
+    "filing_catalog_id",
+    "workflow_id",
+    "authority_set_ids"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "resource_kind": { "const": "procedure_profile" },
+    "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "court_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "proceeding_type": { "enum": ["civil_appeal", "criminal_appeal", "agency_review", "original_writ"] },
+    "actor_roles": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+    },
+    "filing_catalog_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "workflow_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "authority_set_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+    }
+  }
+}

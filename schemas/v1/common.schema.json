@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v1/common.schema.json",
+  "$defs": {
+    "namespaced_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "unit_interval": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "nonempty_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "authority_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_id", "citation", "source_version", "proposition"],
+      "properties": {
+        "authority_id": { "$ref": "#/$defs/namespaced_id" },
+        "citation": { "$ref": "#/$defs/nonempty_text" },
+        "source_version": { "type": "string", "format": "date" },
+        "proposition": { "$ref": "#/$defs/nonempty_text" },
+        "source_url": { "type": "string", "format": "uri", "maxLength": 2048 }
+      }
+    }
+  }
+}

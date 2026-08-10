@@ -55,7 +55,22 @@
         "required": ["id", "kind", "schema_version", "path", "sha256"],
         "properties": {
           "id": { "$ref": "#/$defs/namespaced_id" },
-          "kind": { "enum": ["judge_profile"] },
+          "kind": {
+            "enum": [
+              "argument_config",
+              "authority_set",
+              "bench_configuration",
+              "case",
+              "court",
+              "filing_catalog",
+              "form",
+              "judge_profile",
+              "procedure_profile",
+              "realism_review",
+              "record",
+              "workflow"
+            ]
+          },
           "schema_version": { "const": 1 },
           "path": { "$ref": "#/$defs/portable_path" },
           "sha256": { "$ref": "#/$defs/sha256" }

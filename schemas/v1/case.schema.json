@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v1/case.schema.json",
+  "title": "Synthetic appellate case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "resource_kind", "resource_id", "title", "procedure_profile_id", "record_id", "actors", "issues", "authored_disposition_id"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "resource_kind": { "const": "case" },
+    "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+    "procedure_profile_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "record_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "actors": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["actor_id", "role_id", "display_name", "synthetic"],
+        "properties": {
+          "actor_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "role_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "display_name": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "synthetic": { "const": true }
+        }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["issue_id", "title", "authority_ids", "record_anchor_ids"],
+        "properties": {
+          "issue_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 512 },
+          "authority_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+          },
+          "record_anchor_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+          }
+        }
+      }
+    },
+    "authored_disposition_id": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+  }
+}
