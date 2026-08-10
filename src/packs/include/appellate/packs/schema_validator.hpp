@@ -8,6 +8,7 @@
 #include <QString>
 #include <QStringView>
 
+#include <cstdint>
 #include <expected>
 
 namespace appellate::packs {
@@ -22,7 +23,8 @@ struct JsonLimits final {
 // confined to that registry; validation never performs network or filesystem I/O.
 class SchemaValidator final {
   public:
-    [[nodiscard]] static std::expected<SchemaValidator, Error> fromBundledSchemas();
+    [[nodiscard]] static std::expected<SchemaValidator, Error>
+    fromBundledSchemas(std::uint32_t schema_version);
 
     [[nodiscard]] static std::expected<QJsonObject, Error>
     parseObject(QByteArrayView bytes, QStringView source_name, JsonLimits limits = {});

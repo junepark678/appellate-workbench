@@ -1,0 +1,45 @@
+{
+  "schema_version": 2,
+  "resource_kind": "authority_set",
+  "resource_id": "example.authorities.fictional",
+  "source_cutoff": "2026-01-01",
+  "authorities": [
+    {
+      "authority_id": "example.authority.rule-one",
+      "citation": "Fictional Rule 1",
+      "source_version": "2026-01-01",
+      "proposition": "A notice starts the fictional appeal.",
+      "source_url": "https://example.invalid/rules/1"
+    },
+    {
+      "authority_id": "example.authority.filing-eligibility",
+      "citation": "Fictional Rule 2",
+      "source_version": "2026-01-01",
+      "proposition": "A filing that is not eligible at the current stage is rejected."
+    },
+    {
+      "authority_id": "example.authority.deficiency",
+      "citation": "Fictional Rule 3",
+      "source_version": "2026-01-01",
+      "proposition": "A deficient notice receives an opportunity to cure."
+    },
+    {
+      "authority_id": "example.authority.cure-deadline",
+      "citation": "Fictional Rule 4",
+      "source_version": "2026-01-01",
+      "proposition": "A deficient notice may be cured within two calendar days."
+    },
+    {
+      "authority_id": "example.authority.submission",
+      "citation": "Fictional Rule 5",
+      "source_version": "2026-01-01",
+      "proposition": "Acceptance advances the appeal to submission."
+    },
+    {
+      "authority_id": "example.authority.judgment",
+      "citation": "Fictional Rule 6",
+      "source_version": "2026-01-01",
+      "proposition": "The court may issue judgment after submission."
+    }
+  ]
+}

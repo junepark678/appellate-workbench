@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v2/argument-config.schema.json",
+  "title": "Oral-argument configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "resource_kind", "resource_id", "case_id", "bench_configuration_id", "total_seconds", "rebuttal_seconds", "permitted_issue_ids"],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "resource_kind": { "const": "argument_config" },
+    "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "case_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "bench_configuration_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "total_seconds": { "type": "integer", "minimum": 60, "maximum": 7200 },
+    "rebuttal_seconds": { "type": "integer", "minimum": 0, "maximum": 1800 },
+    "permitted_issue_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+    }
+  }
+}

@@ -779,12 +779,18 @@ struct ResolvedSchema final {
 
 } // namespace
 
-std::expected<SchemaValidator, Error> SchemaValidator::fromBundledSchemas() {
+std::expected<SchemaValidator, Error>
+SchemaValidator::fromBundledSchemas(std::uint32_t schema_version) {
     initializeAppellateSchemaResources();
+    if (schema_version != 1 && schema_version != 2) {
+        return fail(ErrorCode::UnsupportedSchema,
+                    QStringLiteral("Unsupported bundled schema version: %1").arg(schema_version));
+    }
     SchemaValidator validator;
+    const auto resource_prefix = QStringLiteral(":/appellate/schemas/v%1/").arg(schema_version);
     for (const auto* file_name : schema_files) {
         const auto name = QString::fromLatin1(file_name);
-        QFile file(QStringLiteral(":/appellate/schemas/v1/") + name);
+        QFile file(resource_prefix + name);
         if (!file.open(QIODevice::ReadOnly) || file.size() < 0 ||
             file.size() > maximum_schema_bytes) {
             return fail(ErrorCode::UnsupportedSchema,

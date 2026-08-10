@@ -1,8 +1,11 @@
 # Content-pack contract
 
-This document defines the intended version-1 resource taxonomy. The checked-in JSON schemas
-and parser are the executable subset; adding a resource kind requires schema, parser,
-validation, and round-trip tests together.
+This document defines the declarative resource taxonomy. Schema version 1 is frozen, including
+its canonical digest algorithm. Schema version 2 initially has the same resource semantics but
+uses its own manifest/resource schemas, exact capability versions, and canonical digest domain;
+later version-2 additions must not change how a version-1 pack is interpreted. The checked-in
+JSON schemas and parser are the executable subset; adding a resource kind requires schema,
+parser, validation, and round-trip tests together.
 
 ## Archive and identity
 
@@ -132,8 +135,17 @@ silently exercise an operation reserved to the court.
 Dependencies lock an exact pack ID, version, and digest. Optional or version-range dependencies
 are not supported in an executable session. A directed dependency graph must be acyclic.
 
-The manifest declares exact required capability IDs and positive integer versions. Unknown
-resource kinds, operation codes, schema versions, or required capabilities fail closed.
+The manifest declares exact required capability IDs and positive integer versions. Capability
+negotiation uses the executable registry: version-1 packs use version-1 capabilities and
+version-2 packs use version-2 capabilities. Unknown IDs, unsupported versions, and capabilities
+declared for the wrong manifest generation fail before runtime projection. Unknown resource
+kinds, unsupported kind/version pairs, operation codes, schema versions, and mixed-version
+manifest/resource sets also fail closed.
+
+Version 1 uses the `appellate-workbench-pack-revision-v1` digest domain exactly as originally
+shipped. Version 2 uses `appellate-workbench-pack-revision-v2`; a version-2 descriptor can never
+be interpreted through a version-1 schema or collide with an otherwise corresponding
+version-1 revision.
 
 ## Immutability and session pins
 
@@ -166,8 +178,10 @@ appellate-pack install <awpack> <catalog> [--installed-at YYYY-MM-DDTHH:MM:SSZ]
 appellate-pack list <catalog>
 ```
 
-`template` creates a complete fictional/composite example containing all version-1 resource
-kinds and refuses an existing destination. `export` also refuses an existing destination.
+`template` creates a complete fictional/composite schema-version-2 example containing every
+currently supported resource kind and refuses an existing destination. The CLI continues to
+validate, export, install, and list immutable version-1 packs without rewriting them. `export`
+also refuses an existing destination.
 Export orders members and fixes archive metadata, so identical source bytes produce identical
 archives and the same revision digest. Supplying `--installed-at` is intended for reproducible
 tests; normal interactive use records the current UTC second.

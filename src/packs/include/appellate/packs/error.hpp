@@ -20,6 +20,7 @@ enum class ErrorCode {
     DuplicateJsonKey,
     SchemaViolation,
     UnsupportedResourceKind,
+    UnsupportedCapability,
     CrossReferenceFailure,
 };
 

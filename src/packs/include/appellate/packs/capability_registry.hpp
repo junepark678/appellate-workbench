@@ -1,0 +1,32 @@
+#pragma once
+
+#include "appellate/model/pack_id.hpp"
+#include "appellate/packs/error.hpp"
+
+#include <cstdint>
+#include <expected>
+#include <span>
+#include <string_view>
+
+namespace appellate::packs {
+
+struct SupportedCapability final {
+    std::string_view id;
+    std::uint32_t version{};
+    std::uint32_t minimum_manifest_schema_version{};
+    std::uint32_t maximum_manifest_schema_version{};
+};
+
+// The declarative trust boundary negotiates capabilities exactly. A pack may
+// only require an ID/version pair listed here for its manifest schema version.
+// There is deliberately no best-effort downgrade or unknown-capability path.
+class CapabilityRegistry final {
+  public:
+    [[nodiscard]] static std::span<const SupportedCapability> supported() noexcept;
+
+    [[nodiscard]] static std::expected<void, Error>
+    validate(std::uint32_t manifest_schema_version,
+             std::span<const model::RequiredCapability> required_capabilities);
+};
+
+} // namespace appellate::packs

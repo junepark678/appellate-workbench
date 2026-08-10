@@ -554,7 +554,8 @@ struct ExportMember final {
                     QStringLiteral("Archive manifest cannot safely declare its member set"));
     }
     const auto schema_version = manifest.value(QStringLiteral("schema_version"));
-    if (!schema_version.isDouble() || schema_version.toDouble() != 1.0) {
+    if (!schema_version.isDouble() ||
+        (schema_version.toDouble() != 1.0 && schema_version.toDouble() != 2.0)) {
         return fail(ErrorCode::UnsupportedSchema,
                     QStringLiteral("Unsupported manifest schema version"));
     }

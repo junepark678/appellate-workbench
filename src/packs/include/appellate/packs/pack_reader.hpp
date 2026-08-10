@@ -8,6 +8,7 @@
 #include <QJsonObject>
 #include <QString>
 
+#include <cstdint>
 #include <expected>
 #include <vector>
 
@@ -19,6 +20,7 @@ struct ValidatedResource final {
 };
 
 struct LoadedPack final {
+    std::uint32_t manifest_schema_version{};
     model::PackRevision revision;
     std::vector<model::RequiredCapability> required_capabilities;
     std::vector<model::PackDependency> dependencies;

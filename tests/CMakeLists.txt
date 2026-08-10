@@ -18,6 +18,24 @@ target_compile_features(tst_pack_reader PRIVATE cxx_std_26)
 
 add_test(NAME pack_reader COMMAND tst_pack_reader)
 
+qt_add_executable(tst_schema_dispatch packs/tst_schema_dispatch.cpp)
+target_link_libraries(
+    tst_schema_dispatch
+    PRIVATE
+        appellate::packs
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_schema_dispatch
+    PRIVATE
+        APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+        APPELLATE_GOLD_PACK="${PROJECT_SOURCE_DIR}/content/ca4-rule54b/pack"
+)
+target_compile_features(tst_schema_dispatch PRIVATE cxx_std_26)
+add_test(NAME schema_dispatch COMMAND tst_schema_dispatch)
+
 qt_add_executable(tst_pack_archive packs/tst_pack_archive.cpp)
 target_link_libraries(
     tst_pack_archive

@@ -1,18 +1,18 @@
 <RCC>
     <qresource prefix="/appellate/templates/full-resource-pack">
-        <file alias="manifest.json">../../tests/fixtures/full-resource-pack/manifest.json</file>
-        <file alias="objects/final-order.pdf">../../tests/fixtures/full-resource-pack/objects/final-order.pdf</file>
-        <file alias="resources/argument-config.json">../../tests/fixtures/full-resource-pack/resources/argument-config.json</file>
-        <file alias="resources/authority-set.json">../../tests/fixtures/full-resource-pack/resources/authority-set.json</file>
-        <file alias="resources/bench-configuration.json">../../tests/fixtures/full-resource-pack/resources/bench-configuration.json</file>
-        <file alias="resources/case.json">../../tests/fixtures/full-resource-pack/resources/case.json</file>
-        <file alias="resources/court.json">../../tests/fixtures/full-resource-pack/resources/court.json</file>
-        <file alias="resources/filing-catalog.json">../../tests/fixtures/full-resource-pack/resources/filing-catalog.json</file>
-        <file alias="resources/form.json">../../tests/fixtures/full-resource-pack/resources/form.json</file>
-        <file alias="resources/judge-profile.json">../../tests/fixtures/full-resource-pack/resources/judge-profile.json</file>
-        <file alias="resources/procedure-profile.json">../../tests/fixtures/full-resource-pack/resources/procedure-profile.json</file>
-        <file alias="resources/realism-review.json">../../tests/fixtures/full-resource-pack/resources/realism-review.json</file>
-        <file alias="resources/record.json">../../tests/fixtures/full-resource-pack/resources/record.json</file>
-        <file alias="resources/workflow.json">../../tests/fixtures/full-resource-pack/resources/workflow.json</file>
+        <file alias="manifest.json">../../tests/fixtures/full-resource-pack-v2/manifest.json</file>
+        <file alias="objects/final-order.pdf">../../tests/fixtures/full-resource-pack-v2/objects/final-order.pdf</file>
+        <file alias="resources/argument-config.json">../../tests/fixtures/full-resource-pack-v2/resources/argument-config.json</file>
+        <file alias="resources/authority-set.json">../../tests/fixtures/full-resource-pack-v2/resources/authority-set.json</file>
+        <file alias="resources/bench-configuration.json">../../tests/fixtures/full-resource-pack-v2/resources/bench-configuration.json</file>
+        <file alias="resources/case.json">../../tests/fixtures/full-resource-pack-v2/resources/case.json</file>
+        <file alias="resources/court.json">../../tests/fixtures/full-resource-pack-v2/resources/court.json</file>
+        <file alias="resources/filing-catalog.json">../../tests/fixtures/full-resource-pack-v2/resources/filing-catalog.json</file>
+        <file alias="resources/form.json">../../tests/fixtures/full-resource-pack-v2/resources/form.json</file>
+        <file alias="resources/judge-profile.json">../../tests/fixtures/full-resource-pack-v2/resources/judge-profile.json</file>
+        <file alias="resources/procedure-profile.json">../../tests/fixtures/full-resource-pack-v2/resources/procedure-profile.json</file>
+        <file alias="resources/realism-review.json">../../tests/fixtures/full-resource-pack-v2/resources/realism-review.json</file>
+        <file alias="resources/record.json">../../tests/fixtures/full-resource-pack-v2/resources/record.json</file>
+        <file alias="resources/workflow.json">../../tests/fixtures/full-resource-pack-v2/resources/workflow.json</file>
     </qresource>
 </RCC>

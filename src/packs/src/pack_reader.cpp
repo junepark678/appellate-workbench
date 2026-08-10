@@ -1,4 +1,5 @@
 #include "appellate/packs/pack_reader.hpp"
+#include "appellate/packs/capability_registry.hpp"
 #include "appellate/packs/schema_validator.hpp"
 
 #include <QByteArrayView>
@@ -26,7 +27,8 @@
 namespace appellate::packs {
 namespace {
 
-constexpr auto supported_schema_version = 1;
+constexpr auto minimum_supported_schema_version = 1;
+constexpr auto maximum_supported_schema_version = 2;
 constexpr qint64 maximum_manifest_bytes = 1024 * 1024;
 constexpr qint64 maximum_resource_json_bytes = 8 * 1024 * 1024;
 constexpr qsizetype maximum_capabilities = 128;
@@ -283,7 +285,12 @@ struct KindDefinition final {
     return result;
 }
 
-[[nodiscard]] auto kindDefinition(const QString& kind) -> std::optional<KindDefinition> {
+[[nodiscard]] auto kindDefinition(const QString& kind, int schema_version)
+    -> std::optional<KindDefinition> {
+    if (schema_version < minimum_supported_schema_version ||
+        schema_version > maximum_supported_schema_version) {
+        return std::nullopt;
+    }
     if (kind == QStringLiteral("argument_config")) {
         return KindDefinition{model::ResourceKind::ArgumentConfig,
                               QStringLiteral("argument-config.schema.json")};
@@ -331,12 +338,12 @@ struct KindDefinition final {
     return std::nullopt;
 }
 
-[[nodiscard]] auto parseJudge(const QJsonObject& object, const QString& name)
+[[nodiscard]] auto parseJudge(const QJsonObject& object, const QString& name, int schema_version)
     -> std::expected<model::JudgeProfile, Error> {
     if (!hasExactKeys(object, {"schema_version", "resource_kind", "resource_id", "display_name",
                                "profile_class", "compatibility", "interaction", "voice"}) ||
-        !isExactInteger(object.value(QStringLiteral("schema_version")), supported_schema_version,
-                        supported_schema_version) ||
+        !isExactInteger(object.value(QStringLiteral("schema_version")), schema_version,
+                        schema_version) ||
         object.value(QStringLiteral("resource_kind")).toString() !=
             QStringLiteral("judge_profile")) {
         return fail(
@@ -676,7 +683,8 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     addFrame(hash, QByteArrayView(utf8));
 }
 
-[[nodiscard]] auto canonicalDigest(const QString& pack_id, const QString& version,
+[[nodiscard]] auto canonicalDigest(int manifest_schema_version, const QString& pack_id,
+                                   const QString& version,
                                    std::vector<model::RequiredCapability> capabilities,
                                    std::vector<model::PackDependency> dependencies,
                                    std::vector<ContentDescriptor> contents,
@@ -695,8 +703,12 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     });
 
     QCryptographicHash hash(QCryptographicHash::Sha256);
-    addFrame(hash, QByteArrayView("appellate-workbench-pack-revision-v1"));
-    addUint64(hash, supported_schema_version);
+    if (manifest_schema_version == 1) {
+        addFrame(hash, QByteArrayView("appellate-workbench-pack-revision-v1"));
+    } else {
+        addFrame(hash, QByteArrayView("appellate-workbench-pack-revision-v2"));
+    }
+    addUint64(hash, static_cast<quint64>(manifest_schema_version));
     addFrame(hash, pack_id);
     addFrame(hash, version);
 
@@ -1578,10 +1590,6 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
                     QStringLiteral("Pack root must be a real directory: %1").arg(directory));
     }
     const QDir root(root_info.absoluteFilePath());
-    const auto schema_validator = SchemaValidator::fromBundledSchemas();
-    if (!schema_validator) {
-        return std::unexpected(schema_validator.error());
-    }
     const auto manifest_path = root.filePath(QStringLiteral("manifest.json"));
     const auto manifest_bytes = readFile(manifest_path, maximum_manifest_bytes);
     if (!manifest_bytes) {
@@ -1592,10 +1600,17 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         return std::unexpected(parsed.error());
     }
     const auto manifest = *parsed;
-    if (!isExactInteger(manifest.value(QStringLiteral("schema_version")), supported_schema_version,
-                        supported_schema_version)) {
+    const auto manifest_schema_value = manifest.value(QStringLiteral("schema_version"));
+    if (!isExactInteger(manifest_schema_value, minimum_supported_schema_version,
+                        maximum_supported_schema_version)) {
         return fail(ErrorCode::UnsupportedSchema,
                     QStringLiteral("Unsupported manifest schema version"));
+    }
+    const auto manifest_schema_version = static_cast<int>(manifest_schema_value.toDouble());
+    const auto schema_validator =
+        SchemaValidator::fromBundledSchemas(static_cast<std::uint32_t>(manifest_schema_version));
+    if (!schema_validator) {
+        return std::unexpected(schema_validator.error());
     }
     if (!hasExactKeys(manifest, {"schema_version", "pack_id", "version", "required_capabilities",
                                  "dependencies", "contents", "blobs"}) ||
@@ -1641,6 +1656,11 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         capability_ids.insert(id);
         capabilities.push_back(model::RequiredCapability{
             id.toStdString(), static_cast<std::uint32_t>(capability_version.toDouble())});
+    }
+    const auto supported_capabilities = CapabilityRegistry::validate(
+        static_cast<std::uint32_t>(manifest_schema_version), capabilities);
+    if (!supported_capabilities) {
+        return std::unexpected(supported_capabilities.error());
     }
 
     std::vector<model::PackDependency> dependencies;
@@ -1692,13 +1712,23 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
                 isSafeRelativePath(path) ? ErrorCode::InvalidManifest : ErrorCode::UnsafePath;
             return fail(code, QStringLiteral("Invalid content entry %1").arg(id));
         }
-        if (!kindDefinition(kind)) {
+        if (!kindDefinition(kind, minimum_supported_schema_version)) {
             return fail(ErrorCode::UnsupportedResourceKind,
                         QStringLiteral("Unsupported resource kind %1").arg(kind));
         }
-        if (!isExactInteger(content_schema, supported_schema_version, supported_schema_version)) {
-            return fail(ErrorCode::UnsupportedSchema,
-                        QStringLiteral("Unsupported resource schema version for %1").arg(id));
+        if (!isExactInteger(content_schema, minimum_supported_schema_version,
+                            maximum_supported_schema_version) ||
+            static_cast<int>(content_schema.toDouble()) != manifest_schema_version) {
+            return fail(
+                ErrorCode::UnsupportedSchema,
+                QStringLiteral("Unsupported or cross-version resource schema for %1").arg(id));
+        }
+        const auto content_schema_version = static_cast<int>(content_schema.toDouble());
+        if (!kindDefinition(kind, content_schema_version)) {
+            return fail(ErrorCode::UnsupportedResourceKind,
+                        QStringLiteral("Unsupported resource kind/version %1 v%2")
+                            .arg(kind)
+                            .arg(content_schema_version));
         }
         if (content_ids.contains(id)) {
             return fail(ErrorCode::DuplicateContentId,
@@ -1712,7 +1742,7 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         content_paths.insert(path);
         declared_files.insert(path);
         declared_payload_paths.push_back(path);
-        contents.push_back(ContentDescriptor{id, kind, supported_schema_version, path, digest});
+        contents.push_back(ContentDescriptor{id, kind, content_schema_version, path, digest});
     }
 
     std::vector<model::BlobDescriptor> blobs;
@@ -1806,7 +1836,7 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
             return fail(ErrorCode::DigestMismatch,
                         QStringLiteral("Digest mismatch for %1").arg(content.path));
         }
-        const auto definition = kindDefinition(content.kind);
+        const auto definition = kindDefinition(content.kind, content.schema_version);
         if (!definition) {
             return fail(ErrorCode::UnsupportedResourceKind,
                         QStringLiteral("Unsupported resource kind %1").arg(content.kind));
@@ -1845,7 +1875,7 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
             *object,
         });
         if (definition->kind == model::ResourceKind::JudgeProfile) {
-            const auto judge = parseJudge(*object, content.path);
+            const auto judge = parseJudge(*object, content.path, content.schema_version);
             if (!judge) {
                 return std::unexpected(judge.error());
             }
@@ -1862,9 +1892,10 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     }
 
     return LoadedPack{
-        model::PackRevision{
-            model::PackId{pack_id.toStdString()}, version.toStdString(),
-            canonicalDigest(pack_id, version, capabilities, dependencies, contents, blobs)},
+        static_cast<std::uint32_t>(manifest_schema_version),
+        model::PackRevision{model::PackId{pack_id.toStdString()}, version.toStdString(),
+                            canonicalDigest(manifest_schema_version, pack_id, version, capabilities,
+                                            dependencies, contents, blobs)},
         std::move(capabilities),
         std::move(dependencies),
         std::move(resources),

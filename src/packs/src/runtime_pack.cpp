@@ -1,4 +1,5 @@
 #include "appellate/packs/runtime_pack.hpp"
+#include "appellate/packs/capability_registry.hpp"
 
 #include <QDate>
 #include <QDir>
@@ -369,6 +370,7 @@ struct ResourceIndex final {
 
 [[nodiscard]] Result<ResourceIndex> makeIndex(const LoadedPack& pack) {
     if (pack.resources.empty() || pack.resources.size() > maximum_resources ||
+        (pack.manifest_schema_version != 1 && pack.manifest_schema_version != 2) ||
         !isNamespacedId(QString::fromStdString(pack.revision.id.value)) ||
         pack.revision.version.empty() || !isSha256(QString::fromStdString(pack.revision.digest))) {
         return fail(RuntimePackErrorCode::InvalidPack,
@@ -382,7 +384,8 @@ struct ResourceIndex final {
         const auto document_id = requiredId(resource.document, "resource_id", path);
         const auto document_kind = requiredString(resource.document, "resource_kind", path);
         const auto schema_version =
-            requiredUnsigned(resource.document, "schema_version", path, 1, 1);
+            requiredUnsigned(resource.document, "schema_version", path,
+                             pack.manifest_schema_version, pack.manifest_schema_version);
         if (!document_id || !document_kind || !schema_version) {
             if (!document_id) {
                 return std::unexpected(document_id.error());
@@ -392,7 +395,8 @@ struct ResourceIndex final {
             }
             return std::unexpected(schema_version.error());
         }
-        if (resource.descriptor.schema_version != 1 || *schema_version != 1 ||
+        if (resource.descriptor.schema_version != pack.manifest_schema_version ||
+            *schema_version != pack.manifest_schema_version ||
             resource.descriptor.id != *document_id ||
             *document_kind != kindName(resource.descriptor.kind)) {
             return fail(RuntimePackErrorCode::InvalidResource,
@@ -1810,6 +1814,11 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
 } // namespace
 
 std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& pack) {
+    const auto capabilities =
+        CapabilityRegistry::validate(pack.manifest_schema_version, pack.required_capabilities);
+    if (!capabilities) {
+        return fail(RuntimePackErrorCode::InvalidPack, capabilities.error().message.toStdString());
+    }
     const auto index = makeIndex(pack);
     if (!index) {
         return std::unexpected(index.error());

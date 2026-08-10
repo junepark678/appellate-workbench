@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v2/common.schema.json",
+  "$defs": {
+    "namespaced_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "portable_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^[a-z0-9](?:[a-z0-9._-]*[a-z0-9_-])?(?:/[a-z0-9](?:[a-z0-9._-]*[a-z0-9_-])?)*$"
+    },
+    "unit_interval": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "nonempty_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "authority_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_id", "citation", "source_version", "proposition"],
+      "properties": {
+        "authority_id": { "$ref": "#/$defs/namespaced_id" },
+        "citation": { "$ref": "#/$defs/nonempty_text" },
+        "source_version": { "type": "string", "format": "date" },
+        "proposition": { "$ref": "#/$defs/nonempty_text" },
+        "source_url": { "type": "string", "format": "uri", "maxLength": 2048 }
+      }
+    },
+    "authority_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "supporting"],
+      "properties": {
+        "primary": { "$ref": "#/$defs/authority_ref" },
+        "supporting": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/authority_ref" }
+        }
+      }
+    }
+  }
+}

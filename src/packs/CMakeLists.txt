@@ -2,11 +2,13 @@ qt_add_library(
     appellate_packs STATIC
     src/pack_archive.cpp
     src/pack_catalog.cpp
+    src/capability_registry.cpp
     src/pack_reader.cpp
     src/runtime_pack.cpp
     src/schema_validator.cpp
     schemas.qrc
     include/appellate/packs/error.hpp
+    include/appellate/packs/capability_registry.hpp
     include/appellate/packs/pack_archive.hpp
     include/appellate/packs/pack_catalog.hpp
     include/appellate/packs/pack_reader.hpp

@@ -92,6 +92,8 @@ constexpr auto output_schema_version = 1;
         return QStringLiteral("schema_violation");
     case packs::ErrorCode::UnsupportedResourceKind:
         return QStringLiteral("unsupported_resource_kind");
+    case packs::ErrorCode::UnsupportedCapability:
+        return QStringLiteral("unsupported_capability");
     case packs::ErrorCode::CrossReferenceFailure:
         return QStringLiteral("cross_reference_failure");
     }

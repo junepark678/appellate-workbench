@@ -66,6 +66,16 @@ void PackCliTest::completePackLifecycle() {
     QVERIFY(QFileInfo::exists(QDir(pack_directory).filePath(QStringLiteral("manifest.json"))));
     QVERIFY(QFileInfo::exists(
         QDir(pack_directory).filePath(QStringLiteral("objects/final-order.pdf"))));
+    const auto templated_manifest =
+        responseObject(readAll(QDir(pack_directory).filePath(QStringLiteral("manifest.json"))));
+    QCOMPARE(templated_manifest.value(QStringLiteral("schema_version")).toInt(), 2);
+    QCOMPARE(templated_manifest.value(QStringLiteral("required_capabilities"))
+                 .toArray()
+                 .at(0)
+                 .toObject()
+                 .value(QStringLiteral("version"))
+                 .toInt(),
+             2);
 
     const auto validated_directory = runPackCli({QStringLiteral("validate"), pack_directory});
     requireSuccess(validated_directory, QStringLiteral("validate"));
