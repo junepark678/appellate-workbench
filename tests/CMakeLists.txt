@@ -183,3 +183,4 @@ target_link_libraries(
 )
 target_compile_features(tst_record_workspace PRIVATE cxx_std_26)
 add_test(NAME record_workspace COMMAND tst_record_workspace)
+set_tests_properties(record_workspace PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
