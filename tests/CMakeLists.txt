@@ -155,6 +155,23 @@ target_link_libraries(
 target_compile_features(tst_initiation_resume PRIVATE cxx_std_26)
 add_test(NAME initiation_resume COMMAND tst_initiation_resume)
 
+qt_add_executable(tst_out_of_tree_pack integration/tst_out_of_tree_pack.cpp)
+target_link_libraries(
+    tst_out_of_tree_pack
+    PRIVATE
+        appellate::packs
+        appellate::engine
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_out_of_tree_pack
+    PRIVATE APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+)
+target_compile_features(tst_out_of_tree_pack PRIVATE cxx_std_26)
+add_test(NAME out_of_tree_pack COMMAND tst_out_of_tree_pack)
+
 qt_add_executable(tst_record_workspace ui/tst_record_workspace.cpp)
 target_link_libraries(
     tst_record_workspace
