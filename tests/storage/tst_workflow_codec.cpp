@@ -94,6 +94,10 @@ eventHeader(std::string command_id, std::string operation_id, std::uint64_t sequ
         model::IssueWorkflowMandate{commandHeader("test.command.mandate"),
                                     model::WorkflowOperationId{"test.operation.mandate"},
                                     std::string(64, 'd')},
+        model::CalculateWorkflowDeadline{
+            commandHeader("test.command.deadline"),
+            model::WorkflowOperationId{"test.operation.deadline"},
+            model::WorkflowDeadlineId{"test.deadline.opening"}},
     };
 }
 
@@ -188,7 +192,8 @@ void WorkflowCodecTest::roundTripsEveryCommandVariant() {
     const QStringList expected_types{
         QStringLiteral("filing.submit"),  QStringLiteral("order.enter"),
         QStringLiteral("sealed.set"),     QStringLiteral("argument.schedule"),
-        QStringLiteral("judgment.issue"), QStringLiteral("mandate.issue")};
+        QStringLiteral("judgment.issue"), QStringLiteral("mandate.issue"),
+        QStringLiteral("deadline.calculate")};
     const auto values = commands();
     QCOMPARE(values.size(), static_cast<std::size_t>(expected_types.size()));
     for (std::size_t index = 0; index < values.size(); ++index) {

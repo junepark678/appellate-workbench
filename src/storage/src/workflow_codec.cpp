@@ -44,6 +44,7 @@ constexpr auto set_sealed_type = "sealed.set";
 constexpr auto schedule_argument_type = "argument.schedule";
 constexpr auto issue_judgment_type = "judgment.issue";
 constexpr auto issue_mandate_type = "mandate.issue";
+constexpr auto calculate_deadline_command_type = "deadline.calculate";
 
 constexpr auto filing_accepted_type = "filing.accepted";
 constexpr auto filing_rejected_type = "filing.rejected";
@@ -1049,6 +1050,25 @@ template <typename Id>
     return payload;
 }
 
+[[nodiscard]] auto encodeCommandPayload(const model::CalculateWorkflowDeadline& command)
+    -> std::expected<QJsonObject, WorkflowCodecError> {
+    auto payload = encodeCommandHeader(command.header);
+    const auto operation_id = checkedId(command.operation_id.value, u"payload.operation_id");
+    const auto deadline_id = checkedId(command.deadline_id.value, u"payload.deadline_id");
+    if (!payload) {
+        return std::unexpected(payload.error());
+    }
+    if (!operation_id) {
+        return std::unexpected(operation_id.error());
+    }
+    if (!deadline_id) {
+        return std::unexpected(deadline_id.error());
+    }
+    payload->insert(QStringLiteral("deadline_id"), *deadline_id);
+    payload->insert(QStringLiteral("operation_id"), *operation_id);
+    return payload;
+}
+
 [[nodiscard]] auto encodeCommandPayload(const model::SetWorkflowSealed& command)
     -> std::expected<QJsonObject, WorkflowCodecError> {
     auto payload = encodeCommandHeader(command.header);
@@ -1218,6 +1238,33 @@ template <typename Id>
     }
     return model::EnterWorkflowOrder{*header,      *operation_id, *order_id,
                                      *disposition, *digest,       *extension};
+}
+
+[[nodiscard]] auto decodeCalculateDeadline(const QJsonObject& payload)
+    -> std::expected<model::WorkflowCommand, WorkflowCodecError> {
+    if (const auto keys = exactKeys(
+            payload,
+            {u"actor_id", u"command_id", u"deadline_id", u"occurred_at", u"operation_id",
+             u"session_id"},
+            u"payload");
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto header = decodeCommandHeader(payload);
+    const auto operation_id =
+        decodeId<model::WorkflowOperationId>(payload, u"operation_id", u"payload");
+    const auto deadline_id =
+        decodeId<model::WorkflowDeadlineId>(payload, u"deadline_id", u"payload");
+    if (!header) {
+        return std::unexpected(header.error());
+    }
+    if (!operation_id) {
+        return std::unexpected(operation_id.error());
+    }
+    if (!deadline_id) {
+        return std::unexpected(deadline_id.error());
+    }
+    return model::CalculateWorkflowDeadline{*header, *operation_id, *deadline_id};
 }
 
 [[nodiscard]] auto decodeSetSealed(const QJsonObject& payload)
@@ -2283,6 +2330,9 @@ decodeWorkflowCommand(QByteArrayView encoded) {
     if (type == QLatin1StringView(issue_mandate_type)) {
         return decodeIssueMandate(payload);
     }
+    if (type == QLatin1StringView(calculate_deadline_command_type)) {
+        return decodeCalculateDeadline(payload);
+    }
     return fail(WorkflowCodecErrorCode::UnknownCommandType,
                 QStringLiteral("Unknown workflow command type %1").arg(type));
 }
@@ -2301,8 +2351,10 @@ QString workflowCommandType(const model::WorkflowCommand& command) {
                 return QString::fromLatin1(schedule_argument_type);
             } else if constexpr (std::same_as<Command, model::IssueWorkflowJudgment>) {
                 return QString::fromLatin1(issue_judgment_type);
-            } else {
+            } else if constexpr (std::same_as<Command, model::IssueWorkflowMandate>) {
                 return QString::fromLatin1(issue_mandate_type);
+            } else {
+                return QString::fromLatin1(calculate_deadline_command_type);
             }
         },
         command);

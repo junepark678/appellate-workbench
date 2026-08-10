@@ -98,6 +98,9 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
     operations.push_back(operation("test.op.response.deadline", appellant_stage,
                                    model::WorkflowOpcode::CalculateDeadline, std::nullopt, 30,
                                    model::DeadlineCounting::CalendarDays));
+    operations.push_back(operation("test.op.court.deadline", appellant_stage,
+                                   model::WorkflowOpcode::CalculateDeadline, std::nullopt, 3,
+                                   model::DeadlineCounting::CalendarDays, {court_role}));
     operations.push_back(operation("test.op.to-appellee", appellant_stage,
                                    model::WorkflowOpcode::AdvanceStage, appellee_stage));
 
@@ -453,6 +456,7 @@ class WorkflowEngineTest final : public QObject {
     void repeatedDeficienciesUseInstanceIdsAndReplay();
     void rejectsUnauthorizedIneligibleAndLateFilings();
     void usesRouteLocalRejectionAuthoritiesAndExplicitNonconformance();
+    void courtRecordsSourcedDeadlineTriggers();
     void rejectsUnauthorizedCourtActionAndMissingAuthority();
     void replayRejectsImpossibleGroupsAndForgedCourtActions();
     void rejectsBackdatedExplicitLegalTime();
@@ -723,6 +727,53 @@ void WorkflowEngineTest::usesRouteLocalRejectionAuthoritiesAndExplicitNonconform
              model::WorkflowFilingRejectionReason::NonconformingFiling);
     QCOMPARE(nonconforming_rejection->header.operation_id.value,
              std::string("test.op.extension.reject"));
+}
+
+void WorkflowEngineTest::courtRecordsSourcedDeadlineTriggers() {
+    const auto definition = workflow();
+    const auto case_definition = caseDefinition();
+    const auto initial = initialState();
+    const auto command = model::CalculateWorkflowDeadline{
+        header("command.court-deadline", "test.actor.court", date(2026, 8, 14)),
+        model::WorkflowOperationId{"test.op.court.deadline"},
+        model::WorkflowDeadlineId{"test.deadline.court-triggered"}};
+
+    const auto decision = engine::decideWorkflow(
+        definition, case_definition, initial, model::WorkflowCommand{command});
+    QVERIFY(decision.has_value());
+    QCOMPARE(decision->size(), std::size_t{1});
+    const auto* calculated =
+        std::get_if<model::WorkflowDeadlineCalculated>(&decision->front());
+    QVERIFY(calculated != nullptr);
+    QCOMPARE(calculated->base_date, date(2026, 8, 14));
+    QCOMPARE(calculated->due_date, date(2026, 8, 18));
+    QCOMPARE(calculated->purpose, model::WorkflowDeadlinePurpose::Filing);
+    QCOMPARE(calculated->header.authority.primary.id.value,
+             std::string("test.op.court.deadline.authority"));
+
+    const std::vector journal{model::WorkflowJournalEntry{
+        model::WorkflowCommand{command}, *decision}};
+    const auto replayed =
+        engine::replayWorkflow(definition, case_definition, initial, journal);
+    QVERIFY(replayed.has_value());
+    QCOMPARE(replayed->deadlines.size(), std::size_t{1});
+    QCOMPARE(replayed->deadlines.front().due_date, date(2026, 8, 18));
+
+    auto unauthorized = command;
+    unauthorized.header.command_id = model::WorkflowCommandId{"command.unauthorized-deadline"};
+    unauthorized.header.actor_id = model::ActorId{"test.actor.appellant"};
+    const auto denied = engine::decideWorkflow(
+        definition, case_definition, initial, model::WorkflowCommand{unauthorized});
+    QVERIFY(!denied.has_value());
+    QCOMPARE(denied.error().code, engine::WorkflowErrorCode::UnauthorizedActor);
+
+    auto duplicate = command;
+    duplicate.header.command_id = model::WorkflowCommandId{"command.duplicate-deadline"};
+    duplicate.header.occurred_at = at(date(2026, 8, 19));
+    const auto duplicate_result = engine::decideWorkflow(
+        definition, case_definition, *replayed, model::WorkflowCommand{duplicate});
+    QVERIFY(!duplicate_result.has_value());
+    QCOMPARE(duplicate_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
 }
 
 void WorkflowEngineTest::rejectsUnauthorizedCourtActionAndMissingAuthority() {

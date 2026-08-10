@@ -869,6 +869,35 @@ decideOrder(const model::WorkflowDefinition& workflow, const model::CaseDefiniti
         command.disposition, command.document_sha256, extension}};
 }
 
+[[nodiscard]] auto decideDeadline(const model::WorkflowDefinition& workflow,
+                                  const model::CaseDefinition& case_definition,
+                                  const model::WorkflowState& state,
+                                  const model::CalculateWorkflowDeadline& command)
+    -> std::expected<std::vector<model::WorkflowEvent>, WorkflowError> {
+    const auto operation = requireCourtOperation(workflow, case_definition, state, command,
+                                                 model::WorkflowOpcode::CalculateDeadline);
+    if (!operation) {
+        return std::unexpected(operation.error());
+    }
+    if (!validNamespacedId(command.deadline_id.value) ||
+        state.deadlines.size() == max_state_items ||
+        deadlineFor(state, command.deadline_id) != nullptr ||
+        !(**operation).deadline_days.has_value() ||
+        !(**operation).deadline_counting.has_value()) {
+        return fail(WorkflowErrorCode::InvalidCommand,
+                    "invalid or duplicate court-calculated deadline");
+    }
+    const auto due = calculateDeadline(workflow.calendar, command.header.occurred_at.court_date,
+                                       deadlineRule(**operation));
+    if (!validLegalDate(due)) {
+        return fail(WorkflowErrorCode::InvalidCommand,
+                    "court-calculated deadline is outside the supported legal calendar");
+    }
+    return std::vector<model::WorkflowEvent>{model::WorkflowDeadlineCalculated{
+        makeHeader(workflow, state, command.header, **operation, 0, 1), command.deadline_id,
+        model::WorkflowDeadlinePurpose::Filing, command.header.occurred_at.court_date, due}};
+}
+
 template <typename Event>
 [[nodiscard]] auto oneEvent(const model::WorkflowDefinition& workflow,
                             const model::WorkflowState& state,
@@ -999,6 +1028,8 @@ decideWorkflowImpl(const model::WorkflowDefinition& workflow,
                 return decideFiling(workflow, case_definition, state, concrete);
             } else if constexpr (std::same_as<Command, model::EnterWorkflowOrder>) {
                 return decideOrder(workflow, case_definition, state, concrete);
+            } else if constexpr (std::same_as<Command, model::CalculateWorkflowDeadline>) {
+                return decideDeadline(workflow, case_definition, state, concrete);
             } else if constexpr (std::same_as<Command, model::SetWorkflowSealed>) {
                 const auto operation = requireCourtOperation(
                     workflow, case_definition, state, concrete, model::WorkflowOpcode::SetSealed);

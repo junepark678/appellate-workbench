@@ -89,8 +89,21 @@ struct IssueWorkflowMandate final {
     friend bool operator==(const IssueWorkflowMandate&, const IssueWorkflowMandate&) = default;
 };
 
+// Records an explicit court-controlled deadline trigger. The operation supplies the
+// versioned authority, day count, and calendar rule; the command supplies only the
+// recorded trigger time and the immutable deadline identity.
+struct CalculateWorkflowDeadline final {
+    WorkflowCommandHeader header;
+    WorkflowOperationId operation_id;
+    WorkflowDeadlineId deadline_id;
+
+    friend bool operator==(const CalculateWorkflowDeadline&,
+                           const CalculateWorkflowDeadline&) = default;
+};
+
 using WorkflowCommand =
     std::variant<SubmitWorkflowFiling, EnterWorkflowOrder, SetWorkflowSealed,
-                 ScheduleWorkflowArgument, IssueWorkflowJudgment, IssueWorkflowMandate>;
+                 ScheduleWorkflowArgument, IssueWorkflowJudgment, IssueWorkflowMandate,
+                 CalculateWorkflowDeadline>;
 
 } // namespace appellate::model
