@@ -16,6 +16,7 @@
 #include <array>
 #include <cmath>
 #include <optional>
+#include <span>
 #include <utility>
 
 static void initializeAppellateSchemaResources() {
@@ -32,7 +33,10 @@ namespace {
 constexpr qsizetype maximum_schema_bytes = 1024 * 1024;
 constexpr qsizetype maximum_schema_recursion = 128;
 
-constexpr std::array<const char*, 14> schema_files{
+// Keep each generation's registry independent even while the current file
+// names happen to match. A future v2-only kind must never make the v1 loader
+// require or expose its schema.
+constexpr std::array<const char*, 14> v1_schema_files{
     "argument-config.schema.json",
     "authority-set.schema.json",
     "bench-configuration.schema.json",
@@ -48,6 +52,33 @@ constexpr std::array<const char*, 14> schema_files{
     "record.schema.json",
     "workflow.schema.json",
 };
+
+constexpr std::array<const char*, 14> v2_schema_files{
+    "argument-config.schema.json",
+    "authority-set.schema.json",
+    "bench-configuration.schema.json",
+    "case.schema.json",
+    "common.schema.json",
+    "court.schema.json",
+    "filing-catalog.schema.json",
+    "form.schema.json",
+    "judge-profile.schema.json",
+    "manifest.schema.json",
+    "procedure-profile.schema.json",
+    "realism-review.schema.json",
+    "record.schema.json",
+    "workflow.schema.json",
+};
+
+[[nodiscard]] std::span<const char* const> schemaFiles(std::uint32_t schema_version) {
+    if (schema_version == 1) {
+        return v1_schema_files;
+    }
+    if (schema_version == 2) {
+        return v2_schema_files;
+    }
+    return {};
+}
 
 [[nodiscard]] auto fail(ErrorCode code, QString message) -> std::unexpected<Error> {
     return std::unexpected(Error{code, std::move(message)});
@@ -782,13 +813,14 @@ struct ResolvedSchema final {
 std::expected<SchemaValidator, Error>
 SchemaValidator::fromBundledSchemas(std::uint32_t schema_version) {
     initializeAppellateSchemaResources();
-    if (schema_version != 1 && schema_version != 2) {
+    const auto generation_files = schemaFiles(schema_version);
+    if (generation_files.empty()) {
         return fail(ErrorCode::UnsupportedSchema,
                     QStringLiteral("Unsupported bundled schema version: %1").arg(schema_version));
     }
     SchemaValidator validator;
     const auto resource_prefix = QStringLiteral(":/appellate/schemas/v%1/").arg(schema_version);
-    for (const auto* file_name : schema_files) {
+    for (const auto* file_name : generation_files) {
         const auto name = QString::fromLatin1(file_name);
         QFile file(resource_prefix + name);
         if (!file.open(QIODevice::ReadOnly) || file.size() < 0 ||

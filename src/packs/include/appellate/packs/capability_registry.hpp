@@ -1,6 +1,7 @@
 #pragma once
 
 #include "appellate/model/pack_id.hpp"
+#include "appellate/model/resource.hpp"
 #include "appellate/packs/error.hpp"
 
 #include <cstdint>
@@ -25,8 +26,17 @@ class CapabilityRegistry final {
     [[nodiscard]] static std::span<const SupportedCapability> supported() noexcept;
 
     [[nodiscard]] static std::expected<void, Error>
-    validate(std::uint32_t manifest_schema_version,
-             std::span<const model::RequiredCapability> required_capabilities);
+    validateDeclarations(std::uint32_t manifest_schema_version,
+                         std::span<const model::RequiredCapability> required_capabilities);
+
+    // In addition to rejecting unknown declarations, verifies that a pack has
+    // declared every capability required by the resource kinds it contains.
+    // Schema v1 remains declaration-only for byte/behavior compatibility;
+    // schema v2 and later fail closed on an incomplete declaration.
+    [[nodiscard]] static std::expected<void, Error>
+    validateCoverage(std::uint32_t manifest_schema_version,
+                     std::span<const model::RequiredCapability> required_capabilities,
+                     std::span<const model::ResourceKind> resource_kinds);
 };
 
 } // namespace appellate::packs

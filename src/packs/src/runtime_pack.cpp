@@ -13,6 +13,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <iterator>
 #include <limits>
 #include <optional>
 #include <ranges>
@@ -396,8 +397,12 @@ struct ResourceIndex final {
             return fail(RuntimePackErrorCode::InvalidPack,
                         "runtime closure has invalid revision metadata, schema, or bounds");
         }
-        const auto capabilities = CapabilityRegistry::validate(pack->manifest_schema_version,
-                                                               pack->required_capabilities);
+        std::vector<model::ResourceKind> resource_kinds;
+        resource_kinds.reserve(pack->resources.size());
+        std::ranges::transform(pack->resources, std::back_inserter(resource_kinds),
+                               [](const auto& resource) { return resource.descriptor.kind; });
+        const auto capabilities = CapabilityRegistry::validateCoverage(
+            pack->manifest_schema_version, pack->required_capabilities, resource_kinds);
         if (!capabilities) {
             return fail(RuntimePackErrorCode::InvalidPack,
                         capabilities.error().message.toStdString());

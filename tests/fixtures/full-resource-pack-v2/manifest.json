@@ -6,6 +6,14 @@
     {
       "id": "workbench.pack.declarative-resources",
       "version": 2
+    },
+    {
+      "id": "workbench.pack.judge-profile",
+      "version": 2
+    },
+    {
+      "id": "workbench.pack.voice-style",
+      "version": 2
     }
   ],
   "dependencies": [],

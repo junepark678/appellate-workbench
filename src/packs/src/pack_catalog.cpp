@@ -1251,8 +1251,13 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
             return fail(CatalogErrorCode::InvalidResolvedGraph,
                         QStringLiteral("Resolved pack closure mixes manifest schema generations"));
         }
-        const auto capabilities = CapabilityRegistry::validate(loaded->manifest_schema_version,
-                                                               loaded->required_capabilities);
+        std::vector<model::ResourceKind> resource_kinds;
+        resource_kinds.reserve(loaded->resources.size());
+        for (const auto& resource : loaded->resources) {
+            resource_kinds.push_back(resource.descriptor.kind);
+        }
+        const auto capabilities = CapabilityRegistry::validateCoverage(
+            loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds);
         if (!capabilities) {
             return fail(CatalogErrorCode::UnsupportedCapability,
                         QStringLiteral("Pack %1 requires an unsupported capability: %2")

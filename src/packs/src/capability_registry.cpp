@@ -22,15 +22,22 @@ constexpr std::array supported_capabilities{
     return std::unexpected(Error{ErrorCode::UnsupportedCapability, std::move(message)});
 }
 
+[[nodiscard]] bool hasCapability(std::span<const model::RequiredCapability> required_capabilities,
+                                 std::string_view id, std::uint32_t version) {
+    return std::ranges::any_of(required_capabilities, [id, version](const auto& capability) {
+        return capability.id == id && capability.version == version;
+    });
+}
+
 } // namespace
 
 std::span<const SupportedCapability> CapabilityRegistry::supported() noexcept {
     return supported_capabilities;
 }
 
-std::expected<void, Error>
-CapabilityRegistry::validate(std::uint32_t manifest_schema_version,
-                             std::span<const model::RequiredCapability> required_capabilities) {
+std::expected<void, Error> CapabilityRegistry::validateDeclarations(
+    std::uint32_t manifest_schema_version,
+    std::span<const model::RequiredCapability> required_capabilities) {
     for (const auto& required : required_capabilities) {
         const auto supported = std::ranges::find_if(
             supported_capabilities, [&required](const SupportedCapability& candidate) {
@@ -49,6 +56,43 @@ CapabilityRegistry::validate(std::uint32_t manifest_schema_version,
                     .arg(required.version)
                     .arg(manifest_schema_version));
         }
+    }
+    return {};
+}
+
+std::expected<void, Error> CapabilityRegistry::validateCoverage(
+    std::uint32_t manifest_schema_version,
+    std::span<const model::RequiredCapability> required_capabilities,
+    std::span<const model::ResourceKind> resource_kinds) {
+    const auto declarations = validateDeclarations(manifest_schema_version, required_capabilities);
+    if (!declarations) {
+        return declarations;
+    }
+    if (manifest_schema_version == 1) {
+        return {};
+    }
+    if (manifest_schema_version != 2) {
+        return fail(
+            QStringLiteral("Unsupported manifest schema version %1").arg(manifest_schema_version));
+    }
+
+    if (!hasCapability(required_capabilities, "workbench.pack.declarative-resources", 2)) {
+        return fail(QStringLiteral(
+            "Manifest schema 2 requires workbench.pack.declarative-resources version 2"));
+    }
+
+    const auto contains_judge_profile =
+        std::ranges::find(resource_kinds, model::ResourceKind::JudgeProfile) !=
+        resource_kinds.end();
+    if (contains_judge_profile &&
+        !hasCapability(required_capabilities, "workbench.pack.judge-profile", 2)) {
+        return fail(QStringLiteral(
+            "Schema-2 judge profiles require workbench.pack.judge-profile version 2"));
+    }
+    if (contains_judge_profile &&
+        !hasCapability(required_capabilities, "workbench.pack.voice-style", 2)) {
+        return fail(
+            QStringLiteral("Schema-2 judge profiles require workbench.pack.voice-style version 2"));
     }
     return {};
 }

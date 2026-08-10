@@ -56,6 +56,68 @@ struct KindDefinition final {
     QString schema_file;
 };
 
+struct KindRegistration final {
+    const char* name;
+    model::ResourceKind kind;
+    const char* schema_file;
+};
+
+constexpr std::array v1_kind_registry{
+    KindRegistration{"argument_config", model::ResourceKind::ArgumentConfig,
+                     "argument-config.schema.json"},
+    KindRegistration{"authority_set", model::ResourceKind::AuthoritySet,
+                     "authority-set.schema.json"},
+    KindRegistration{"bench_configuration", model::ResourceKind::BenchConfiguration,
+                     "bench-configuration.schema.json"},
+    KindRegistration{"case", model::ResourceKind::Case, "case.schema.json"},
+    KindRegistration{"court", model::ResourceKind::Court, "court.schema.json"},
+    KindRegistration{"filing_catalog", model::ResourceKind::FilingCatalog,
+                     "filing-catalog.schema.json"},
+    KindRegistration{"form", model::ResourceKind::Form, "form.schema.json"},
+    KindRegistration{"judge_profile", model::ResourceKind::JudgeProfile,
+                     "judge-profile.schema.json"},
+    KindRegistration{"procedure_profile", model::ResourceKind::ProcedureProfile,
+                     "procedure-profile.schema.json"},
+    KindRegistration{"realism_review", model::ResourceKind::RealismReview,
+                     "realism-review.schema.json"},
+    KindRegistration{"record", model::ResourceKind::Record, "record.schema.json"},
+    KindRegistration{"workflow", model::ResourceKind::Workflow, "workflow.schema.json"},
+};
+
+// Deliberately independent from v1. New resource generations are registered
+// here without widening the v1 trust boundary.
+constexpr std::array v2_kind_registry{
+    KindRegistration{"argument_config", model::ResourceKind::ArgumentConfig,
+                     "argument-config.schema.json"},
+    KindRegistration{"authority_set", model::ResourceKind::AuthoritySet,
+                     "authority-set.schema.json"},
+    KindRegistration{"bench_configuration", model::ResourceKind::BenchConfiguration,
+                     "bench-configuration.schema.json"},
+    KindRegistration{"case", model::ResourceKind::Case, "case.schema.json"},
+    KindRegistration{"court", model::ResourceKind::Court, "court.schema.json"},
+    KindRegistration{"filing_catalog", model::ResourceKind::FilingCatalog,
+                     "filing-catalog.schema.json"},
+    KindRegistration{"form", model::ResourceKind::Form, "form.schema.json"},
+    KindRegistration{"judge_profile", model::ResourceKind::JudgeProfile,
+                     "judge-profile.schema.json"},
+    KindRegistration{"procedure_profile", model::ResourceKind::ProcedureProfile,
+                     "procedure-profile.schema.json"},
+    KindRegistration{"realism_review", model::ResourceKind::RealismReview,
+                     "realism-review.schema.json"},
+    KindRegistration{"record", model::ResourceKind::Record, "record.schema.json"},
+    KindRegistration{"workflow", model::ResourceKind::Workflow, "workflow.schema.json"},
+};
+
+[[nodiscard]] std::span<const KindRegistration> kindRegistry(int schema_version) {
+    if (schema_version == 1) {
+        return v1_kind_registry;
+    }
+    if (schema_version == 2) {
+        return v2_kind_registry;
+    }
+    return {};
+}
+
 [[nodiscard]] auto fail(ErrorCode code, QString message) -> std::unexpected<Error> {
     return std::unexpected(Error{code, std::move(message)});
 }
@@ -287,53 +349,12 @@ struct KindDefinition final {
 
 [[nodiscard]] auto kindDefinition(const QString& kind, int schema_version)
     -> std::optional<KindDefinition> {
-    if (schema_version < minimum_supported_schema_version ||
-        schema_version > maximum_supported_schema_version) {
-        return std::nullopt;
-    }
-    if (kind == QStringLiteral("argument_config")) {
-        return KindDefinition{model::ResourceKind::ArgumentConfig,
-                              QStringLiteral("argument-config.schema.json")};
-    }
-    if (kind == QStringLiteral("authority_set")) {
-        return KindDefinition{model::ResourceKind::AuthoritySet,
-                              QStringLiteral("authority-set.schema.json")};
-    }
-    if (kind == QStringLiteral("bench_configuration")) {
-        return KindDefinition{model::ResourceKind::BenchConfiguration,
-                              QStringLiteral("bench-configuration.schema.json")};
-    }
-    if (kind == QStringLiteral("case")) {
-        return KindDefinition{model::ResourceKind::Case, QStringLiteral("case.schema.json")};
-    }
-    if (kind == QStringLiteral("court")) {
-        return KindDefinition{model::ResourceKind::Court, QStringLiteral("court.schema.json")};
-    }
-    if (kind == QStringLiteral("filing_catalog")) {
-        return KindDefinition{model::ResourceKind::FilingCatalog,
-                              QStringLiteral("filing-catalog.schema.json")};
-    }
-    if (kind == QStringLiteral("form")) {
-        return KindDefinition{model::ResourceKind::Form, QStringLiteral("form.schema.json")};
-    }
-    if (kind == QStringLiteral("judge_profile")) {
-        return KindDefinition{model::ResourceKind::JudgeProfile,
-                              QStringLiteral("judge-profile.schema.json")};
-    }
-    if (kind == QStringLiteral("procedure_profile")) {
-        return KindDefinition{model::ResourceKind::ProcedureProfile,
-                              QStringLiteral("procedure-profile.schema.json")};
-    }
-    if (kind == QStringLiteral("realism_review")) {
-        return KindDefinition{model::ResourceKind::RealismReview,
-                              QStringLiteral("realism-review.schema.json")};
-    }
-    if (kind == QStringLiteral("record")) {
-        return KindDefinition{model::ResourceKind::Record, QStringLiteral("record.schema.json")};
-    }
-    if (kind == QStringLiteral("workflow")) {
-        return KindDefinition{model::ResourceKind::Workflow,
-                              QStringLiteral("workflow.schema.json")};
+    const auto registry = kindRegistry(schema_version);
+    const auto found = std::ranges::find_if(registry, [&kind](const auto& registration) {
+        return kind == QLatin1StringView(registration.name);
+    });
+    if (found != registry.end()) {
+        return KindDefinition{found->kind, QString::fromLatin1(found->schema_file)};
     }
     return std::nullopt;
 }
@@ -1655,7 +1676,7 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         capabilities.push_back(model::RequiredCapability{
             id.toStdString(), static_cast<std::uint32_t>(capability_version.toDouble())});
     }
-    const auto supported_capabilities = CapabilityRegistry::validate(
+    const auto supported_capabilities = CapabilityRegistry::validateDeclarations(
         static_cast<std::uint32_t>(manifest_schema_version), capabilities);
     if (!supported_capabilities) {
         return std::unexpected(supported_capabilities.error());
@@ -1685,12 +1706,14 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     }
 
     std::vector<ContentDescriptor> contents;
+    std::vector<model::ResourceKind> resource_kinds;
     QSet<QString> content_ids;
     QSet<QString> content_paths;
     QSet<QString> declared_files{QStringLiteral("manifest.json")};
     std::vector<QString> declared_payload_paths;
     declared_payload_paths.reserve(
         static_cast<std::size_t>(content_values.size() + blob_values.size()));
+    resource_kinds.reserve(static_cast<std::size_t>(content_values.size()));
     for (const auto& value : content_values) {
         if (!value.isObject()) {
             return fail(ErrorCode::InvalidManifest,
@@ -1710,10 +1733,6 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
                 isSafeRelativePath(path) ? ErrorCode::InvalidManifest : ErrorCode::UnsafePath;
             return fail(code, QStringLiteral("Invalid content entry %1").arg(id));
         }
-        if (!kindDefinition(kind, minimum_supported_schema_version)) {
-            return fail(ErrorCode::UnsupportedResourceKind,
-                        QStringLiteral("Unsupported resource kind %1").arg(kind));
-        }
         if (!isExactInteger(content_schema, minimum_supported_schema_version,
                             maximum_supported_schema_version) ||
             static_cast<int>(content_schema.toDouble()) != manifest_schema_version) {
@@ -1722,7 +1741,8 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
                 QStringLiteral("Unsupported or cross-version resource schema for %1").arg(id));
         }
         const auto content_schema_version = static_cast<int>(content_schema.toDouble());
-        if (!kindDefinition(kind, content_schema_version)) {
+        const auto definition = kindDefinition(kind, content_schema_version);
+        if (!definition) {
             return fail(ErrorCode::UnsupportedResourceKind,
                         QStringLiteral("Unsupported resource kind/version %1 v%2")
                             .arg(kind)
@@ -1741,6 +1761,13 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         declared_files.insert(path);
         declared_payload_paths.push_back(path);
         contents.push_back(ContentDescriptor{id, kind, content_schema_version, path, digest});
+        resource_kinds.push_back(definition->kind);
+    }
+
+    const auto capability_coverage = CapabilityRegistry::validateCoverage(
+        static_cast<std::uint32_t>(manifest_schema_version), capabilities, resource_kinds);
+    if (!capability_coverage) {
+        return std::unexpected(capability_coverage.error());
     }
 
     std::vector<model::BlobDescriptor> blobs;
@@ -1909,6 +1936,20 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
 
 std::expected<void, Error> PackReader::validateResolvedGraph(
     const LoadedPack& root, std::span<const LoadedPack* const> dependencies_dependency_first) {
+    const auto validate_capabilities = [](const LoadedPack& pack) -> std::expected<void, Error> {
+        std::vector<model::ResourceKind> resource_kinds;
+        resource_kinds.reserve(pack.resources.size());
+        for (const auto& resource : pack.resources) {
+            resource_kinds.push_back(resource.descriptor.kind);
+        }
+        return CapabilityRegistry::validateCoverage(pack.manifest_schema_version,
+                                                    pack.required_capabilities, resource_kinds);
+    };
+    const auto root_capabilities = validate_capabilities(root);
+    if (!root_capabilities) {
+        return std::unexpected(root_capabilities.error());
+    }
+
     std::size_t total_resources = root.resources.size();
     std::size_t total_blobs = root.blobs.size();
     if (total_resources > maximum_contents || total_blobs > maximum_contents) {
@@ -1921,6 +1962,10 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
             dependency->blobs.size() > maximum_contents - total_blobs) {
             return fail(ErrorCode::ResourceTooLarge,
                         QStringLiteral("Resolved closure exceeds the resource graph limit"));
+        }
+        const auto dependency_capabilities = validate_capabilities(*dependency);
+        if (!dependency_capabilities) {
+            return std::unexpected(dependency_capabilities.error());
         }
         total_resources += dependency->resources.size();
         total_blobs += dependency->blobs.size();

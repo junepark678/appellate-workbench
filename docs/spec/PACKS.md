@@ -158,10 +158,20 @@ one exact revision directly.
 
 The manifest declares exact required capability IDs and positive integer versions. Capability
 negotiation uses the executable registry: version-1 packs use version-1 capabilities and
-version-2 packs use version-2 capabilities. Unknown IDs, unsupported versions, and capabilities
-declared for the wrong manifest generation fail before runtime projection. Unknown resource
-kinds, unsupported kind/version pairs, operation codes, schema versions, and mixed-version
-manifest/resource sets also fail closed.
+version-2 packs use version-2 capabilities. Schema version 1 remains declaration-only for
+compatibility with frozen revisions. Every schema-version-2 pack must declare
+`workbench.pack.declarative-resources` version 2. A version-2 pack containing a `judge_profile`
+must additionally declare `workbench.pack.judge-profile` version 2 and
+`workbench.pack.voice-style` version 2. An empty list, an unrelated supported capability, or a
+partial declaration fails at pack read, resolved-catalog load, and independent runtime
+projection. Unknown IDs, unsupported versions, and capabilities declared for the wrong manifest
+generation fail before runtime projection. Unknown resource kinds, unsupported kind/version
+pairs, operation codes, schema versions, and mixed-version manifest/resource sets also fail
+closed.
+
+Schema and resource-kind registries are separate per manifest generation even where their current
+file names match. Adding a version-2-only schema or kind therefore cannot make the version-1
+loader require or expose it.
 
 Version 1 uses the `appellate-workbench-pack-revision-v1` digest domain exactly as originally
 shipped. Version 2 uses `appellate-workbench-pack-revision-v2`; a version-2 descriptor can never

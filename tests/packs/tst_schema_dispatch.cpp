@@ -12,6 +12,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <algorithm>
 #include <array>
 #include <functional>
 
@@ -27,6 +28,8 @@ class SchemaDispatchTest final : public QObject {
     void preservesPinnedV1Digests();
     void loadsV2AndProjectsRuntime();
     void rejectsUnknownAndMismatchedCapabilities();
+    void rejectsUnderdeclaredCapabilities();
+    void closureAndRuntimeRejectForgedCapabilityCoverage();
     void rejectsUnsupportedKindVersions();
     void rejectsV1V2CrossInterpretation();
 };
@@ -134,7 +137,7 @@ void SchemaDispatchTest::loadsV2AndProjectsRuntime() {
     QVERIFY2(v2.has_value(), v2 ? "" : qPrintable(v2.error().message));
     QCOMPARE(v2->manifest_schema_version, std::uint32_t{2});
     QCOMPARE(v2->revision.digest,
-             std::string("721c78b27194afb7269852cd918c6c89f8ea2252e0adce98e259d30a3f70a523"));
+             std::string("9a770089866701772f93442186bf42da57865bd4b04dd49e26e8fb570edff837"));
     QVERIFY(v2->revision.digest != v1->revision.digest);
     for (const auto& resource : v2->resources) {
         QCOMPARE(resource.descriptor.schema_version, std::uint32_t{2});
@@ -165,6 +168,60 @@ void SchemaDispatchTest::rejectsUnknownAndMismatchedCapabilities() {
         QVERIFY(!result.has_value());
         QCOMPARE(result.error().code, ErrorCode::UnsupportedCapability);
     }
+}
+
+void SchemaDispatchTest::rejectsUnderdeclaredCapabilities() {
+    const auto declarative = QJsonObject{
+        {QStringLiteral("id"), QStringLiteral("workbench.pack.declarative-resources")},
+        {QStringLiteral("version"), 2},
+    };
+    const auto judge = QJsonObject{
+        {QStringLiteral("id"), QStringLiteral("workbench.pack.judge-profile")},
+        {QStringLiteral("version"), 2},
+    };
+    const auto voice = QJsonObject{
+        {QStringLiteral("id"), QStringLiteral("workbench.pack.voice-style")},
+        {QStringLiteral("version"), 2},
+    };
+    const std::array declarations{
+        QJsonArray{},
+        QJsonArray{voice},
+        QJsonArray{declarative},
+        QJsonArray{declarative, judge},
+        QJsonArray{declarative, voice},
+    };
+
+    for (const auto& required_capabilities : declarations) {
+        QTemporaryDir pack;
+        QVERIFY(pack.isValid());
+        QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), pack.path()));
+        QVERIFY(mutateManifest(pack.path(), [&](QJsonObject& manifest) {
+            manifest.insert(QStringLiteral("required_capabilities"), required_capabilities);
+        }));
+        const auto result = PackReader::readDirectory(pack.path());
+        QVERIFY(!result.has_value());
+        QCOMPARE(result.error().code, ErrorCode::UnsupportedCapability);
+    }
+}
+
+void SchemaDispatchTest::closureAndRuntimeRejectForgedCapabilityCoverage() {
+    const auto loaded = PackReader::readDirectory(fixture(QStringLiteral("full-resource-pack-v2")));
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+
+    auto forged = *loaded;
+    forged.required_capabilities.erase(
+        std::remove_if(forged.required_capabilities.begin(), forged.required_capabilities.end(),
+                       [](const auto& capability) {
+                           return capability.id != "workbench.pack.declarative-resources";
+                       }),
+        forged.required_capabilities.end());
+    const auto closure = PackReader::validateResolvedGraph(forged, {});
+    QVERIFY(!closure.has_value());
+    QCOMPARE(closure.error().code, ErrorCode::UnsupportedCapability);
+
+    const auto runtime = appellate::packs::loadRuntimePack(forged);
+    QVERIFY(!runtime.has_value());
+    QCOMPARE(runtime.error().code, appellate::packs::RuntimePackErrorCode::InvalidPack);
 }
 
 void SchemaDispatchTest::rejectsUnsupportedKindVersions() {
