@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "resource_kind": "form",
+  "resource_id": "ca4r54b.form.opening-brief",
+  "filing_id": "ca4r54b.filing.opening-brief",
+  "title": "Appellant Opening Brief",
+  "fields": [
+    {"field_id": "ca4r54b.field.brief-jurisdiction", "label": "Jurisdictional statement", "value_type": "long_text", "required": true},
+    {"field_id": "ca4r54b.field.brief-issues", "label": "Issues presented", "value_type": "long_text", "required": true},
+    {"field_id": "ca4r54b.field.brief-record-citations", "label": "Joint appendix citations", "value_type": "record_citation", "required": true},
+    {"field_id": "ca4r54b.field.brief-relief", "label": "Relief requested", "value_type": "long_text", "required": true}
+  ]
+}

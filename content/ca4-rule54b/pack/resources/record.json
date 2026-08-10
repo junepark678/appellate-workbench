@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "resource_kind": "record",
+  "resource_id": "ca4r54b.record.asterglen",
+  "caption": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC",
+  "docket_entries": [
+    {
+      "entry_id": "ca4r54b.record.d01",
+      "entry_number": 1,
+      "filed_on": "2025-03-03",
+      "title": "District ECF No. 1 — Complaint and Jury Demand",
+      "asset_path": "assets/d01-complaint.pdf",
+      "asset_sha256": "728d5dbf0871699c74e7a6a677ce335b101f251e6b7c75c582652ee7fcb88247",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.d08",
+      "entry_number": 2,
+      "filed_on": "2025-04-07",
+      "title": "District ECF No. 8 — Answer, Affirmative Defenses, and Counterclaim",
+      "asset_path": "assets/d08-answer-counterclaim.pdf",
+      "asset_sha256": "245b273e29228130afd6a1d9fe1736bcedb714217cf55e2cf2269f48c8bfe27a",
+      "page_count": 11,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.d55",
+      "entry_number": 3,
+      "filed_on": "2026-01-12",
+      "title": "District ECF No. 55 — Memorandum Order on Partial Summary Judgment",
+      "asset_path": "assets/d55-partial-summary-judgment-order.pdf",
+      "asset_sha256": "1cef0a0397f84e0e752ca05c747c06a4c0af7c8ae52692d3f415f687cb95f23b",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.d57",
+      "entry_number": 4,
+      "filed_on": "2026-01-20",
+      "title": "District ECF No. 57 — Motion for Entry of Partial Final Judgment Under Rule 54(b)",
+      "asset_path": "assets/d57-rule-54b-motion.pdf",
+      "asset_sha256": "7e838c9a62c9868db9f5ca652ee5aa7b926a9e14f88ae631f9bb6c9073a8eaf3",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.d58",
+      "entry_number": 5,
+      "filed_on": "2026-01-30",
+      "title": "District ECF No. 58 — Opposition to Rule 54(b) Motion",
+      "asset_path": "assets/d58-rule-54b-response.pdf",
+      "asset_sha256": "712221f4533c7bb03e4cfc013520033db6524a088c74aaaac0b945d52ec27962",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.d59",
+      "entry_number": 6,
+      "filed_on": "2026-02-04",
+      "title": "District ECF No. 59 — Order Granting Rule 54(b) Motion",
+      "asset_path": "assets/d59-rule-54b-order.pdf",
+      "asset_sha256": "75510f99229ff9cdd1068d3b5355158d6b5a963ce9dbe756f804201bd07660f8",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.d60",
+      "entry_number": 7,
+      "filed_on": "2026-02-04",
+      "title": "District ECF No. 60 — Partial Judgment",
+      "asset_path": "assets/d60-partial-judgment.pdf",
+      "asset_sha256": "3b651e9ffe7994f2b3d7ef9103da930fc1ba57f2d9837c655b4ba9c436a97ed5",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.d61",
+      "entry_number": 8,
+      "filed_on": "2026-03-03",
+      "title": "District ECF No. 61 — Notice of Appeal",
+      "asset_path": "assets/d61-notice-of-appeal.pdf",
+      "asset_sha256": "f8e57bb334a1722264550a686eaf93b6872ae9816b081b7207db19deee58f7e8",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.a01",
+      "entry_number": 9,
+      "filed_on": "2026-03-05",
+      "title": "Fourth Circuit ECF No. 1 — Appeal Docketed; Docketing Notice",
+      "asset_path": "assets/a01-docketing-notice.pdf",
+      "asset_sha256": "9e5dc3aedde088d13dbe5ec340d7a01af44e22d1759886b7c49b23d77798f71e",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.a02",
+      "entry_number": 10,
+      "filed_on": "2026-03-16",
+      "title": "Fourth Circuit ECF No. 5 — Civil Appeal Docketing Statement",
+      "asset_path": "assets/a02-docketing-statement.pdf",
+      "asset_sha256": "8f3eb6f2ba91f1b9088685cf6259443eaf44dc398b680562f7121c6f4d5885f9",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.a03",
+      "entry_number": 11,
+      "filed_on": "2026-03-16",
+      "title": "Fourth Circuit ECF No. 6 / District ECF No. 64 — No-Transcript Certification",
+      "asset_path": "assets/a03-transcript-order.pdf",
+      "asset_sha256": "e3a81b0e31583808f242007101591b887aa90560f6c0194b326da0b351996803",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.d62",
+      "entry_number": 12,
+      "filed_on": "2026-03-20",
+      "title": "District ECF No. 65 — Certified District Docket Entries and Record Complete",
+      "asset_path": "assets/d62-certified-district-docket.pdf",
+      "asset_sha256": "2ed1ab6081fd26a77657ae6238445e227372090aa1595285507157f6888a5028",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.a10",
+      "entry_number": 13,
+      "filed_on": "2026-04-29",
+      "title": "Fourth Circuit ECF No. 14 — Appellant Opening Brief",
+      "asset_path": "assets/a10-appellant-opening-brief.pdf",
+      "asset_sha256": "0f1213fab7574e7fca7c7fd4d4cdfebba78d05f8e1157b92676b8c46a2bbce4b",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.a12",
+      "entry_number": 14,
+      "filed_on": "2026-04-29",
+      "title": "Fourth Circuit ECF No. 15 — Joint Appendix, JA1–JA47",
+      "asset_path": "assets/a12-joint-appendix.pdf",
+      "asset_sha256": "1afa9a6336c1e036864c83adca9660e720ec392226f052ba8a169417c094bead",
+      "page_count": 47,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.a11",
+      "entry_number": 15,
+      "filed_on": "2026-05-08",
+      "title": "Fourth Circuit ECF No. 18 — Appellees Response Brief",
+      "asset_path": "assets/a11-appellees-response-brief.pdf",
+      "asset_sha256": "e2a560ce72bb676c38f1cf63dd6a26f317e39a7b951e91f7647c956268c5c3d9",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.a20",
+      "entry_number": 16,
+      "filed_on": "2026-06-08",
+      "title": "Fourth Circuit ECF No. 21 — Synthetic Opinion: Dismissed and Remanded",
+      "asset_path": "assets/a20-synthetic-opinion.pdf",
+      "asset_sha256": "eb3d3e643717f2b36b1bb16c026faf3cbe485ea0633d4dabc551a19b12617a4f",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.a21",
+      "entry_number": 17,
+      "filed_on": "2026-06-08",
+      "title": "Fourth Circuit ECF No. 22 — Synthetic Judgment Entered",
+      "asset_path": "assets/a21-synthetic-judgment.pdf",
+      "asset_sha256": "21ec2396d700a65b6e44955d12092c3ec3257e8a43d8a37890ac824f6aeeb4d7",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.a22",
+      "entry_number": 18,
+      "filed_on": "2026-06-29",
+      "title": "Fourth Circuit ECF No. 24 — Synthetic Mandate Issued; District ECF No. 66 receipt",
+      "asset_path": "assets/a22-synthetic-mandate.pdf",
+      "asset_sha256": "1af5ca7d9433cd63f62daa5c1884b41fbfda5b3beffda1f587978fc511efa8c1",
+      "page_count": 2,
+      "sealed": false
+    }
+  ]
+}
