@@ -41,3 +41,15 @@ target_link_libraries(
 )
 target_compile_features(tst_asset_store PRIVATE cxx_std_26)
 add_test(NAME asset_store COMMAND tst_asset_store)
+
+qt_add_executable(tst_session_store storage/tst_session_store.cpp)
+target_link_libraries(
+    tst_session_store
+    PRIVATE
+        appellate::storage
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_session_store PRIVATE cxx_std_26)
+add_test(NAME session_store COMMAND tst_session_store)
