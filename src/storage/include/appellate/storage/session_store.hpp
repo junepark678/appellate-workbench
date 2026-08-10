@@ -74,6 +74,15 @@ struct StoredEvent final {
     friend bool operator==(const StoredEvent&, const StoredEvent&) = default;
 };
 
+struct StoredCommand final {
+    QString command_id;
+    qint64 expected_sequence{};
+    QByteArray payload_json;
+    QString recorded_at_utc;
+
+    friend bool operator==(const StoredCommand&, const StoredCommand&) = default;
+};
+
 struct DocketEntry final {
     QString entry_id;
     qint64 event_sequence{};
@@ -88,6 +97,7 @@ struct SessionSnapshot final {
     QString engine_revision;
     qint64 sequence{};
     std::vector<RevisionPin> pins;
+    std::vector<StoredCommand> commands;
     std::vector<StoredEvent> events;
     std::vector<DocketEntry> docket;
     std::vector<AssetReference> asset_references{};

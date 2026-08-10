@@ -177,6 +177,7 @@ void InitiationResumeTest::initiationSurvivesCloseAndReopen() {
     QCOMPARE((*reopened)->snapshot().engine_revision, snapshot_before_close.engine_revision);
     QCOMPARE((*reopened)->snapshot().sequence, snapshot_before_close.sequence);
     QVERIFY((*reopened)->snapshot().pins == snapshot_before_close.pins);
+    QVERIFY((*reopened)->snapshot().commands == snapshot_before_close.commands);
     QVERIFY((*reopened)->snapshot().events == snapshot_before_close.events);
     QVERIFY((*reopened)->snapshot().docket == snapshot_before_close.docket);
     QVERIFY((*reopened)->snapshot().asset_references == snapshot_before_close.asset_references);

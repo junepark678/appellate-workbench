@@ -511,8 +511,14 @@ SessionStore::loadSession(const QString& session_id) const {
         return fail(StoreErrorCode::NotFound, QStringLiteral("Session not found"));
     }
 
-    SessionSnapshot snapshot{
-        session_id, session.value(0).toString(), session.value(1).toLongLong(), {}, {}, {}, {}};
+    SessionSnapshot snapshot{session_id,
+                             session.value(0).toString(),
+                             session.value(1).toLongLong(),
+                             {},
+                             {},
+                             {},
+                             {},
+                             {}};
 
     QSqlQuery pins(database_);
     pins.prepare(QStringLiteral(
@@ -524,6 +530,20 @@ SessionStore::loadSession(const QString& session_id) const {
     while (pins.next()) {
         snapshot.pins.push_back(RevisionPin{pins.value(0).toString(), pins.value(1).toString(),
                                             pins.value(2).toString()});
+    }
+
+    QSqlQuery commands(database_);
+    commands.prepare(QStringLiteral(
+        "SELECT command_id, expected_sequence, payload_json, recorded_at_utc FROM command_log "
+        "WHERE session_id = ? ORDER BY expected_sequence, command_id"));
+    commands.addBindValue(session_id);
+    if (!commands.exec()) {
+        return queryFailure(StoreErrorCode::QueryFailed, commands, QStringLiteral("load commands"));
+    }
+    while (commands.next()) {
+        snapshot.commands.push_back(
+            StoredCommand{commands.value(0).toString(), commands.value(1).toLongLong(),
+                          commands.value(2).toByteArray(), commands.value(3).toString()});
     }
 
     QSqlQuery events(database_);

@@ -16,6 +16,7 @@ using appellate::storage::DocketWrite;
 using appellate::storage::EventWrite;
 using appellate::storage::RevisionPin;
 using appellate::storage::SessionStore;
+using appellate::storage::StoredCommand;
 using appellate::storage::StoreErrorCode;
 
 constexpr auto digest = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
@@ -148,6 +149,12 @@ void SessionStoreTest::persistsAndReopensPinnedSession() {
     QCOMPARE(snapshot->engine_revision, QStringLiteral("engine-1"));
     QCOMPARE(snapshot->sequence, 1);
     QCOMPARE(snapshot->pins, pins());
+    const std::vector expected_commands{
+        StoredCommand{QStringLiteral("command-1"), 0,
+                      QByteArrayLiteral(R"({"type":"submit_filing"})"),
+                      QStringLiteral("2026-08-11T00:00:00Z")},
+    };
+    QCOMPARE(snapshot->commands, expected_commands);
     QCOMPARE(snapshot->events.size(), std::size_t{1});
     QCOMPARE(snapshot->docket.size(), std::size_t{1});
     QCOMPARE(snapshot->docket.front().title, QStringLiteral("Notice of appeal"));
@@ -179,6 +186,7 @@ void SessionStoreTest::rejectsStaleSequenceWithoutPartialWrite() {
     const auto snapshot = (*store)->loadSession(QStringLiteral("session-1"));
     QVERIFY(snapshot.has_value());
     QCOMPARE(snapshot->sequence, 1);
+    QCOMPARE(snapshot->commands.size(), std::size_t{1});
     QCOMPARE(snapshot->events.size(), std::size_t{1});
 }
 
@@ -203,6 +211,7 @@ void SessionStoreTest::rollsBackDuplicateCommand() {
     const auto snapshot = (*store)->loadSession(QStringLiteral("session-1"));
     QVERIFY(snapshot.has_value());
     QCOMPARE(snapshot->sequence, 1);
+    QCOMPARE(snapshot->commands.size(), std::size_t{1});
     QCOMPARE(snapshot->events.size(), std::size_t{1});
     QCOMPARE(snapshot->docket.size(), std::size_t{1});
     QCOMPARE(snapshot->asset_references.size(), std::size_t{2});
@@ -244,6 +253,7 @@ void SessionStoreTest::rejectsInvalidAndDuplicateAssetReferencesWithoutWrites() 
     const auto snapshot = (*store)->loadSession(QStringLiteral("session-1"));
     QVERIFY(snapshot.has_value());
     QCOMPARE(snapshot->sequence, 0);
+    QVERIFY(snapshot->commands.empty());
     QVERIFY(snapshot->events.empty());
     QVERIFY(snapshot->docket.empty());
     QVERIFY(snapshot->asset_references.empty());
@@ -270,6 +280,7 @@ void SessionStoreTest::rollsBackDuplicateStoredAssetReference() {
     auto snapshot = (*store)->loadSession(QStringLiteral("session-1"));
     QVERIFY(snapshot.has_value());
     QCOMPARE(snapshot->sequence, 1);
+    QCOMPARE(snapshot->commands.size(), std::size_t{1});
     QCOMPARE(snapshot->events.size(), std::size_t{1});
     QCOMPARE(snapshot->asset_references.size(), std::size_t{2});
 
@@ -282,6 +293,7 @@ void SessionStoreTest::rollsBackDuplicateStoredAssetReference() {
     snapshot = (*store)->loadSession(QStringLiteral("session-1"));
     QVERIFY(snapshot.has_value());
     QCOMPARE(snapshot->sequence, 2);
+    QCOMPARE(snapshot->commands.size(), std::size_t{2});
     QCOMPARE(snapshot->events.size(), std::size_t{2});
     QCOMPARE(snapshot->asset_references.size(), std::size_t{3});
 }
@@ -325,6 +337,7 @@ void SessionStoreTest::backsUpAndRestoresConsistentSnapshot() {
     const auto snapshot = (*store)->loadSession(QStringLiteral("session-1"));
     QVERIFY(snapshot.has_value());
     QCOMPARE(snapshot->sequence, qint64{1});
+    QCOMPARE(snapshot->commands.size(), std::size_t{1});
     QCOMPARE(snapshot->events.size(), std::size_t{1});
     QCOMPARE(snapshot->docket.size(), std::size_t{1});
     QCOMPARE(snapshot->asset_references.size(), std::size_t{2});
