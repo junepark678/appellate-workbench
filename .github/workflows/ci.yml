@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - agent/**
   pull_request:
 
 permissions:
@@ -35,7 +34,7 @@ jobs:
       - name: Install build dependencies
         run: >-
           zypper --non-interactive install --no-recommends
-          git cmake ninja gcc-c++ clang qt6-base-devel qt6-sql-sqlite
+          git cmake ninja gcc-c++ clang dejavu-fonts qt6-base-devel qt6-sql-sqlite
           qt6-pdf-devel qt6-pdfwidgets-devel libarchive-devel
 
       - name: Check out source
@@ -67,7 +66,7 @@ jobs:
       - name: Install build dependencies
         run: >-
           zypper --non-interactive install --no-recommends
-          git cmake ninja gcc-c++ qt6-base-devel qt6-sql-sqlite
+          git cmake ninja gcc-c++ dejavu-fonts qt6-base-devel qt6-sql-sqlite
           qt6-pdf-devel qt6-pdfwidgets-devel libarchive-devel
 
       - name: Check out source

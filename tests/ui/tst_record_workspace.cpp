@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QFont>
 #include <QLineEdit>
 #include <QPageSize>
 #include <QPainter>
@@ -48,6 +49,7 @@ using appellate::ui::RecordWorkspaceErrorCode;
     if (!painter.isActive()) {
         return false;
     }
+    painter.setFont(QFont(QStringLiteral("DejaVu Sans"), 12));
     for (qsizetype index = 0; index < pages.size(); ++index) {
         painter.drawText(QRect(40, 40, 520, 700), Qt::AlignCenter, pages.at(index));
         if (index + 1 < pages.size() && !writer.newPage()) {
