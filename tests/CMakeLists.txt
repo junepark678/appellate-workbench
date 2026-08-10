@@ -231,6 +231,30 @@ target_compile_definitions(
 target_compile_features(tst_gold_case_trace PRIVATE cxx_std_26)
 add_test(NAME gold_case_trace COMMAND tst_gold_case_trace)
 
+qt_add_executable(
+    tst_gold_record_workspace
+    integration/tst_gold_record_workspace.cpp
+)
+target_link_libraries(
+    tst_gold_record_workspace
+    PRIVATE
+        appellate::record_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_gold_record_workspace
+    PRIVATE
+        APPELLATE_GOLD_ARCHIVE="${PROJECT_SOURCE_DIR}/content/ca4-rule54b/us-ca4-rule54b-asterglen-0.1.0.awpack"
+)
+target_compile_features(tst_gold_record_workspace PRIVATE cxx_std_26)
+add_test(NAME gold_record_workspace COMMAND tst_gold_record_workspace)
+set_tests_properties(
+    gold_record_workspace
+    PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
+
 qt_add_executable(tst_bench_profile_editor ui/tst_bench_profile_editor.cpp)
 target_link_libraries(
     tst_bench_profile_editor
