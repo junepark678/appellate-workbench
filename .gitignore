@@ -1,0 +1,14 @@
+/build/
+/out/
+/.cache/
+/.clangd/
+/.idea/
+/.vscode/
+/CMakeUserPresets.json
+/compile_commands.json
+*.autosave
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.user
+.DS_Store

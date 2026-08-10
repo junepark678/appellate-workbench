@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v1/judge-profile.schema.json",
+  "title": "Appellate Workbench fictional/composite bench profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "display_name", "court_role", "interaction"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "profile_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$"
+    },
+    "display_name": { "type": "string", "minLength": 1 },
+    "court_role": { "enum": ["district", "appellate"] },
+    "interaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "directness",
+        "formality",
+        "interruption_frequency",
+        "follow_up_depth",
+        "hypothetical_frequency",
+        "time_strictness"
+      ],
+      "properties": {
+        "directness": { "$ref": "#/$defs/unit_interval" },
+        "formality": { "$ref": "#/$defs/unit_interval" },
+        "interruption_frequency": { "$ref": "#/$defs/unit_interval" },
+        "follow_up_depth": { "$ref": "#/$defs/unit_interval" },
+        "hypothetical_frequency": { "$ref": "#/$defs/unit_interval" },
+        "time_strictness": { "$ref": "#/$defs/unit_interval" }
+      }
+    }
+  },
+  "$defs": {
+    "unit_interval": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

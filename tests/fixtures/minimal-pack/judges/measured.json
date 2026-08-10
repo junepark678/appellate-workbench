@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "profile_id": "example.judge.measured",
+  "display_name": "Measured Panelist",
+  "court_role": "appellate",
+  "interaction": {
+    "directness": 0.62,
+    "formality": 0.78,
+    "interruption_frequency": 0.28,
+    "follow_up_depth": 0.71,
+    "hypothetical_frequency": 0.44,
+    "time_strictness": 0.66
+  }
+}

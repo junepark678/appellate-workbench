@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "pack_id": "example.duplicate.pack",
+  "version": "0.1.0",
+  "contents": [
+    {
+      "id": "example.judge.measured",
+      "kind": "judge_profile",
+      "path": "judges/measured.json",
+      "sha256": "11e25ae35fe36439415979da4a72bad745ec6599c321103c87789d3b45c7b69e"
+    },
+    {
+      "id": "example.judge.measured",
+      "kind": "judge_profile",
+      "path": "judges/measured.json",
+      "sha256": "11e25ae35fe36439415979da4a72bad745ec6599c321103c87789d3b45c7b69e"
+    }
+  ]
+}

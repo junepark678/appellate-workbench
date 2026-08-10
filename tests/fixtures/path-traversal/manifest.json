@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "pack_id": "example.unsafe.pack",
+  "version": "0.1.0",
+  "contents": [
+    {
+      "id": "example.judge.escape",
+      "kind": "judge_profile",
+      "path": "../outside.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}
