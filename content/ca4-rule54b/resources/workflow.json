@@ -8,6 +8,7 @@
     "ca4r54b.stage.docketed",
     "ca4r54b.stage.initial-requirements",
     "ca4r54b.stage.briefing",
+    "ca4r54b.stage.response-briefing",
     "ca4r54b.stage.submitted",
     "ca4r54b.stage.judgment",
     "ca4r54b.stage.rehearing",
@@ -62,6 +63,22 @@
         "supporting": []
       },
       "authorized_role_ids": ["ca4r54b.role.appellant"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.reject-notice",
+      "stage_id": "ca4r54b.stage.notice-window",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-3",
+          "citation": "Fed. R. App. P. 3(a), (c) (Fourth Circuit rulebook Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "An appeal as of right is taken by timely filing a notice with the district clerk; the notice identifies the appellant, the appealed judgment or order, and the court of appeals.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule03.html"
+        },
+        "supporting": []
+      },
+      "authorized_role_ids": []
     },
     {
       "operation_id": "ca4r54b.operation.advance-docketed",
@@ -164,6 +181,38 @@
       "authorized_role_ids": ["ca4r54b.role.appellant"]
     },
     {
+      "operation_id": "ca4r54b.operation.reject-initial-documents",
+      "stage_id": "ca4r54b.stage.initial-requirements",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.loc-r-3b",
+          "citation": "4th Cir. Loc. R. 3(b) (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Counsel filing a direct or cross-appeal must file the court's docketing statement within 14 days after docketing, serve it, and attach any transcript order.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule03.html"
+        },
+        "supporting": []
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4r54b.operation.deficiency-initial-documents",
+      "stage_id": "ca4r54b.stage.initial-requirements",
+      "opcode": "issue_deficiency",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.initial-documents",
+          "citation": "Fourth Circuit, Appearance, Disclosure & Docketing Statements (March 2026 page, checked Aug. 11, 2026)",
+          "source_version": "2026-08-11",
+          "proposition": "Counsel appearance, applicable corporate disclosure, and the appellant's docketing statement are ordinarily filed within 14 days after appellate docketing; the docketing statement includes the transcript order.",
+          "source_url": "https://www.ca4.uscourts.gov/appellateprocedureguide/Initial_Requirements/APG-appearancedisclosuredocketing.html"
+        },
+        "supporting": []
+      },
+      "authorized_role_ids": []
+    },
+    {
       "operation_id": "ca4r54b.operation.calculate-opening-brief-deadline",
       "stage_id": "ca4r54b.stage.initial-requirements",
       "opcode": "calculate_deadline",
@@ -238,6 +287,22 @@
       "authorized_role_ids": ["ca4r54b.role.appellant"]
     },
     {
+      "operation_id": "ca4r54b.operation.reject-opening-brief",
+      "stage_id": "ca4r54b.stage.briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-31",
+          "citation": "Fed. R. App. P. 31(a) and 4th Cir. Loc. R. 31 (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Absent a different order, ordinary civil briefing allows 40 days for the opening brief, 30 days after service for the response, and 21 days after service for a reply, subject to the pre-argument limit.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule31.html"
+        },
+        "supporting": []
+      },
+      "authorized_role_ids": []
+    },
+    {
       "operation_id": "ca4r54b.operation.calculate-response-brief-deadline",
       "stage_id": "ca4r54b.stage.briefing",
       "opcode": "calculate_deadline",
@@ -264,8 +329,25 @@
       "authorized_role_ids": []
     },
     {
-      "operation_id": "ca4r54b.operation.accept-response-brief",
+      "operation_id": "ca4r54b.operation.advance-response-briefing",
       "stage_id": "ca4r54b.stage.briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-31",
+          "citation": "Fed. R. App. P. 31(a) and 4th Cir. Loc. R. 31 (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Absent a different order, ordinary civil briefing allows 40 days for the opening brief, 30 days after service for the response, and 21 days after service for a reply, subject to the pre-argument limit.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule31.html"
+        },
+        "supporting": []
+      },
+      "next_stage_id": "ca4r54b.stage.response-briefing",
+      "authorized_role_ids": ["ca4r54b.role.court"]
+    },
+    {
+      "operation_id": "ca4r54b.operation.accept-response-brief",
+      "stage_id": "ca4r54b.stage.response-briefing",
       "opcode": "accept_filing",
       "authority": {
         "primary": {
@@ -280,8 +362,24 @@
       "authorized_role_ids": ["ca4r54b.role.appellee"]
     },
     {
+      "operation_id": "ca4r54b.operation.reject-response-brief",
+      "stage_id": "ca4r54b.stage.response-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary": {
+          "authority_id": "ca4r54b.authority.frap-31",
+          "citation": "Fed. R. App. P. 31(a) and 4th Cir. Loc. R. 31 (Mar. 23, 2026)",
+          "source_version": "2026-03-23",
+          "proposition": "Absent a different order, ordinary civil briefing allows 40 days for the opening brief, 30 days after service for the response, and 21 days after service for a reply, subject to the pre-argument limit.",
+          "source_url": "https://www.ca4.uscourts.gov/rules/Rule31.html"
+        },
+        "supporting": []
+      },
+      "authorized_role_ids": []
+    },
+    {
       "operation_id": "ca4r54b.operation.advance-submitted",
-      "stage_id": "ca4r54b.stage.briefing",
+      "stage_id": "ca4r54b.stage.response-briefing",
       "opcode": "advance_stage",
       "authority": {
         "primary": {
@@ -459,7 +557,80 @@
       "authorized_role_ids": ["ca4r54b.role.court"]
     }
   ],
-  "filing_routes": [],
+  "filing_routes": [
+    {
+      "filing_type_id": "ca4r54b.filing.notice-appeal",
+      "stage_id": "ca4r54b.stage.notice-window",
+      "authorized_role_ids": ["ca4r54b.role.appellant"],
+      "required_field_ids": [
+        "ca4r54b.field.notice-party",
+        "ca4r54b.field.notice-judgment",
+        "ca4r54b.field.notice-court",
+        "ca4r54b.field.notice-date"
+      ],
+      "required_service_role_ids": [],
+      "accept_operation_id": "ca4r54b.operation.accept-notice",
+      "reject_operation_id": "ca4r54b.operation.reject-notice",
+      "advance_operation_id": "ca4r54b.operation.advance-docketed",
+      "reject_after_deadline": false
+    },
+    {
+      "filing_type_id": "ca4r54b.filing.docketing-statement",
+      "stage_id": "ca4r54b.stage.initial-requirements",
+      "authorized_role_ids": ["ca4r54b.role.appellant"],
+      "required_field_ids": [
+        "ca4r54b.field.docket-jurisdiction",
+        "ca4r54b.field.docket-issues",
+        "ca4r54b.field.docket-transcript"
+      ],
+      "required_service_role_ids": ["ca4r54b.role.appellee"],
+      "accept_operation_id": "ca4r54b.operation.accept-initial-documents",
+      "reject_operation_id": "ca4r54b.operation.reject-initial-documents",
+      "deficiency_operation_id": "ca4r54b.operation.deficiency-initial-documents",
+      "accepted_deadline": {
+        "deadline_id": "ca4r54b.deadline.opening-brief",
+        "operation_id": "ca4r54b.operation.calculate-opening-brief-deadline"
+      },
+      "advance_operation_id": "ca4r54b.operation.advance-briefing",
+      "reject_after_deadline": false
+    },
+    {
+      "filing_type_id": "ca4r54b.filing.opening-brief",
+      "stage_id": "ca4r54b.stage.briefing",
+      "authorized_role_ids": ["ca4r54b.role.appellant"],
+      "required_field_ids": [
+        "ca4r54b.field.brief-jurisdiction",
+        "ca4r54b.field.brief-issues",
+        "ca4r54b.field.brief-record-citations",
+        "ca4r54b.field.brief-relief"
+      ],
+      "required_service_role_ids": ["ca4r54b.role.appellee"],
+      "accept_operation_id": "ca4r54b.operation.accept-opening-brief",
+      "reject_operation_id": "ca4r54b.operation.reject-opening-brief",
+      "accepted_deadline": {
+        "deadline_id": "ca4r54b.deadline.response-brief",
+        "operation_id": "ca4r54b.operation.calculate-response-brief-deadline"
+      },
+      "advance_operation_id": "ca4r54b.operation.advance-response-briefing",
+      "satisfies_deadline_id": "ca4r54b.deadline.opening-brief",
+      "reject_after_deadline": true
+    },
+    {
+      "filing_type_id": "ca4r54b.filing.response-brief",
+      "stage_id": "ca4r54b.stage.response-briefing",
+      "authorized_role_ids": ["ca4r54b.role.appellee"],
+      "required_field_ids": [
+        "ca4r54b.field.response-jurisdiction",
+        "ca4r54b.field.response-argument"
+      ],
+      "required_service_role_ids": ["ca4r54b.role.appellant"],
+      "accept_operation_id": "ca4r54b.operation.accept-response-brief",
+      "reject_operation_id": "ca4r54b.operation.reject-response-brief",
+      "advance_operation_id": "ca4r54b.operation.advance-submitted",
+      "satisfies_deadline_id": "ca4r54b.deadline.response-brief",
+      "reject_after_deadline": true
+    }
+  ],
   "calendar": {
     "holidays": [
       "2026-01-01",
