@@ -2,18 +2,22 @@
   "schema_version": 1,
   "pack_id": "example.duplicate.pack",
   "version": "0.1.0",
+  "required_capabilities": [],
+  "dependencies": [],
   "contents": [
     {
       "id": "example.judge.measured",
       "kind": "judge_profile",
+      "schema_version": 1,
       "path": "judges/measured.json",
-      "sha256": "11e25ae35fe36439415979da4a72bad745ec6599c321103c87789d3b45c7b69e"
+      "sha256": "49f4fc53cd728cdbebf0c87cac2431967dac31c6842615bb679dcefa2773d308"
     },
     {
       "id": "example.judge.measured",
       "kind": "judge_profile",
+      "schema_version": 1,
       "path": "judges/measured.json",
-      "sha256": "11e25ae35fe36439415979da4a72bad745ec6599c321103c87789d3b45c7b69e"
+      "sha256": "49f4fc53cd728cdbebf0c87cac2431967dac31c6842615bb679dcefa2773d308"
     }
   ]
 }

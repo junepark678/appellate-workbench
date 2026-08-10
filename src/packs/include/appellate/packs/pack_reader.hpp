@@ -13,6 +13,8 @@ namespace appellate::packs {
 
 struct LoadedPack final {
     model::PackRevision revision;
+    std::vector<model::RequiredCapability> required_capabilities;
+    std::vector<model::PackDependency> dependencies;
     std::vector<model::JudgeProfile> judge_profiles;
 };
 

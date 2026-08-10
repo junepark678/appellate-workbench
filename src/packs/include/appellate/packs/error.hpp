@@ -11,6 +11,10 @@ enum class ErrorCode {
     UnsupportedSchema,
     UnsafePath,
     DuplicateContentId,
+    DuplicateContentPath,
+    DuplicatePayloadId,
+    UndeclaredFile,
+    ResourceTooLarge,
     DigestMismatch,
     InvalidJudgeProfile,
 };

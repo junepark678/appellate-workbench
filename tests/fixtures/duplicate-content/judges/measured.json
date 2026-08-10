@@ -2,13 +2,35 @@
   "schema_version": 1,
   "profile_id": "example.judge.measured",
   "display_name": "Measured Panelist",
-  "court_role": "appellate",
+  "profile_class": "fictional_composite",
+  "compatibility": {
+    "court_roles": ["appellate"],
+    "jurisdiction_ids": ["us.ca4"]
+  },
   "interaction": {
     "directness": 0.62,
     "formality": 0.78,
+    "question_length": 0.52,
     "interruption_frequency": 0.28,
     "follow_up_depth": 0.71,
     "hypothetical_frequency": 0.44,
-    "time_strictness": 0.66
+    "concession_recall": 0.73,
+    "time_strictness": 0.66,
+    "issue_focus": [
+      {
+        "topic_id": "appellate.issue.preservation",
+        "weight": 0.82
+      },
+      {
+        "topic_id": "appellate.issue.record-support",
+        "weight": 0.76
+      }
+    ]
+  },
+  "voice": {
+    "register": "formal",
+    "cadence": "measured",
+    "verbosity": 0.46,
+    "sentence_complexity": 0.58
   }
 }
