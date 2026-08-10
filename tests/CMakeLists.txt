@@ -172,6 +172,19 @@ target_compile_definitions(
 target_compile_features(tst_out_of_tree_pack PRIVATE cxx_std_26)
 add_test(NAME out_of_tree_pack COMMAND tst_out_of_tree_pack)
 
+qt_add_executable(tst_bench_profile_editor ui/tst_bench_profile_editor.cpp)
+target_link_libraries(
+    tst_bench_profile_editor
+    PRIVATE
+        appellate::bench_profile_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_bench_profile_editor PRIVATE cxx_std_26)
+add_test(NAME bench_profile_editor COMMAND tst_bench_profile_editor)
+set_tests_properties(bench_profile_editor PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 qt_add_executable(tst_record_workspace ui/tst_record_workspace.cpp)
 target_link_libraries(
     tst_record_workspace

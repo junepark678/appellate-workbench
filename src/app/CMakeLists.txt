@@ -16,6 +16,25 @@ target_link_libraries(
 target_compile_features(appellate_application PUBLIC cxx_std_26)
 
 qt_add_library(
+    appellate_bench_profile_ui STATIC
+    bench_profile_codec.cpp
+    bench_profile_codec.hpp
+    bench_profile_editor.cpp
+    bench_profile_editor.hpp
+)
+add_library(appellate::bench_profile_ui ALIAS appellate_bench_profile_ui)
+target_include_directories(
+    appellate_bench_profile_ui
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+target_link_libraries(
+    appellate_bench_profile_ui
+    PUBLIC appellate::model Qt6::Core Qt6::Widgets
+    PRIVATE appellate::project_warnings appellate::project_sanitizers
+)
+target_compile_features(appellate_bench_profile_ui PUBLIC cxx_std_26)
+
+qt_add_library(
     appellate_record_ui STATIC
     record_workspace.cpp
     record_workspace.hpp
