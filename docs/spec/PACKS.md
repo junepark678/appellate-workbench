@@ -80,6 +80,13 @@ Nonconforming submissions have three explicit supported outcomes:
 a local `calculate_deadline` operation; accepted-filing deadline IDs remain unique and exact.
 This version intentionally has no generic condition or expression language.
 
+Fixed deadlines whose trigger is a court event use an explicit recorded
+`CalculateWorkflowDeadline` command. The selected `calculate_deadline` operation supplies the
+versioned authority, day count, and calendar/business-day rule; the command records the court
+actor, trigger instant and court date, and deadline ID. Replay recalculates the due date and
+rejects a changed trigger, authority, identifier, calendar, or result. Wall-clock time is never
+read inside the engine.
+
 ## Dependencies and compatibility
 
 Dependencies lock an exact pack ID, version, and digest. Optional or version-range dependencies

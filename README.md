@@ -10,10 +10,11 @@ sync will replicate encrypted immutable objects; it will never sync a live SQLit
 ## Current status
 
 This repository is an active pre-MVP implementation, not a complete simulation yet. It now
-contains strict declarative-pack validation and immutable installation, a deterministic legal
-workflow engine, crash-safe SQLite/event-log and content-addressed storage, a searchable native
-PDF record workspace, and exact save/replay tests. The GitHub milestones define the remaining
-route to the content-complete MVP.
+contains strict declarative-pack validation and immutable installation, a native case/profile
+browser, a deterministic legal workflow engine, crash-safe SQLite/event-log and content-addressed
+storage, a searchable native PDF record workspace, and exact save/replay tests. Installed pack
+PDFs are verified into local content-addressed storage and can be reopened without the original
+archive. The GitHub milestones define the remaining route to the content-complete MVP.
 
 The content target deliberately retains the useful breadth of the earlier prototype:
 
@@ -51,7 +52,7 @@ ctest --preset dev
 Run the shell with the included fixture pack:
 
 ```sh
-./build/dev/src/app/'Appellate Workbench' tests/fixtures/minimal-pack
+./build/dev/src/app/'Appellate Workbench' tests/fixtures/full-resource-pack
 ```
 
 Create, validate, export, and install a complete declarative starter pack:
