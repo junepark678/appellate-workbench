@@ -53,3 +53,15 @@ target_link_libraries(
 )
 target_compile_features(tst_session_store PRIVATE cxx_std_26)
 add_test(NAME session_store COMMAND tst_session_store)
+
+qt_add_executable(tst_event_codec storage/tst_event_codec.cpp)
+target_link_libraries(
+    tst_event_codec
+    PRIVATE
+        appellate::storage
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_event_codec PRIVATE cxx_std_26)
+add_test(NAME event_codec COMMAND tst_event_codec)
