@@ -95,7 +95,7 @@ By fictional counsel:
 /s/ Avery Example
 
 Avery Example (fictional)
-synthetic-response@example.invalid
+synthetic-response (at) example.invalid
 
 ## Certificate of service
 

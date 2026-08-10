@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "source_path": "documents/d01-complaint.md",
+      "output_path": "assets/d01-complaint.pdf",
+      "title": "Synthetic Complaint and Jury Demand"
+    },
+    {
+      "source_path": "documents/d08-answer-counterclaim.md",
+      "output_path": "assets/d08-answer-counterclaim.pdf",
+      "title": "Synthetic Answer, Defenses, and Counterclaim"
+    },
+    {
+      "source_path": "documents/d55-partial-summary-judgment-order.md",
+      "output_path": "assets/d55-partial-summary-judgment-order.pdf",
+      "title": "Synthetic Memorandum Order on Partial Summary Judgment"
+    },
+    {
+      "source_path": "documents/d57-rule-54b-motion.md",
+      "output_path": "assets/d57-rule-54b-motion.pdf",
+      "title": "Synthetic Motion for Entry Under Rule 54(b)"
+    },
+    {
+      "source_path": "documents/d58-rule-54b-response.md",
+      "output_path": "assets/d58-rule-54b-response.pdf",
+      "title": "Synthetic Opposition to Rule 54(b) Motion"
+    },
+    {
+      "segments": [
+        {
+          "source_path": "documents/d59-rule-54b-order.md",
+          "first_page": 1,
+          "last_page": 1
+        }
+      ],
+      "output_path": "assets/d59-rule-54b-order.pdf",
+      "title": "Synthetic Order Granting Rule 54(b) Motion"
+    },
+    {
+      "source_path": "documents/d60-partial-judgment.md",
+      "output_path": "assets/d60-partial-judgment.pdf",
+      "title": "Synthetic Partial Judgment"
+    },
+    {
+      "source_path": "documents/d61-notice-of-appeal.md",
+      "output_path": "assets/d61-notice-of-appeal.pdf",
+      "title": "Synthetic Notice of Appeal"
+    },
+    {
+      "source_path": "documents/d62-certified-district-docket.md",
+      "output_path": "assets/d62-certified-district-docket.pdf",
+      "title": "Synthetic Certified District Docket Entries"
+    },
+    {
+      "source_path": "documents/a01-docketing-notice.md",
+      "output_path": "assets/a01-docketing-notice.pdf",
+      "title": "Synthetic Fourth Circuit Notice of Docketing"
+    },
+    {
+      "source_path": "documents/a02-docketing-statement.md",
+      "output_path": "assets/a02-docketing-statement.pdf",
+      "title": "Synthetic Civil Appeal Docketing Statement"
+    },
+    {
+      "source_path": "documents/a03-transcript-order.md",
+      "output_path": "assets/a03-transcript-order.pdf",
+      "title": "Synthetic Transcript Order Certification"
+    },
+    {
+      "source_path": "documents/a10-appellant-opening-brief.md",
+      "output_path": "assets/a10-appellant-opening-brief.pdf",
+      "title": "Synthetic Opening Brief of Appellant"
+    },
+    {
+      "source_path": "documents/a11-appellees-response-brief.md",
+      "output_path": "assets/a11-appellees-response-brief.pdf",
+      "title": "Synthetic Response Brief of Appellees"
+    },
+    {
+      "segments": [
+        {
+          "source_path": "documents/a12-joint-appendix-front.md",
+          "first_page": 1,
+          "last_page": 4
+        },
+        {
+          "source_path": "documents/d01-complaint.md",
+          "first_page": 1,
+          "last_page": 8
+        },
+        {
+          "source_path": "documents/d08-answer-counterclaim.md",
+          "first_page": 1,
+          "last_page": 11
+        },
+        {
+          "source_path": "documents/d55-partial-summary-judgment-order.md",
+          "first_page": 1,
+          "last_page": 5
+        },
+        {
+          "source_path": "documents/d57-rule-54b-motion.md",
+          "first_page": 1,
+          "last_page": 5
+        },
+        {
+          "source_path": "documents/d58-rule-54b-response.md",
+          "first_page": 1,
+          "last_page": 6
+        },
+        {
+          "source_path": "documents/d59-rule-54b-order.md",
+          "first_page": 1,
+          "last_page": 1
+        },
+        {
+          "source_path": "documents/d60-partial-judgment.md",
+          "first_page": 1,
+          "last_page": 1
+        },
+        {
+          "source_path": "documents/d61-notice-of-appeal.md",
+          "first_page": 1,
+          "last_page": 2
+        },
+        {
+          "source_path": "documents/d62-certified-district-docket.md",
+          "first_page": 1,
+          "last_page": 4
+        }
+      ],
+      "output_path": "assets/a12-joint-appendix.pdf",
+      "title": "Synthetic Joint Appendix"
+    },
+    {
+      "source_path": "documents/a20-synthetic-opinion.md",
+      "output_path": "assets/a20-synthetic-opinion.pdf",
+      "title": "Synthetic Exercise Opinion — Dismissed and Remanded"
+    },
+    {
+      "source_path": "documents/a21-synthetic-judgment.md",
+      "output_path": "assets/a21-synthetic-judgment.pdf",
+      "title": "Synthetic Appellate Judgment"
+    },
+    {
+      "source_path": "documents/a22-synthetic-mandate.md",
+      "output_path": "assets/a22-synthetic-mandate.pdf",
+      "title": "Synthetic Mandate"
+    }
+  ]
+}

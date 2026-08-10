@@ -23,7 +23,7 @@ SYNTHETIC TRAINING RECORD — NOT FILED — TRANSCRIPT CERTIFICATION PAGE 2
 /s/ Morgan Example
 
 Morgan Example (fictional counsel)
-synthetic-counsel@example.invalid
+synthetic-counsel (at) example.invalid
 
 Exercise service: sent to fictional appellee counsel and the fictional district clerk on March
 16, 2026. Because there is no court reporter or real action, no copy was sent to any real person.

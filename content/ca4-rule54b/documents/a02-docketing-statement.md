@@ -68,7 +68,7 @@ Filed and electronically served in the exercise on March 16, 2026.
 /s/ Morgan Example
 
 Morgan Example (fictional counsel for Appellant)
-synthetic-counsel@example.invalid
+synthetic-counsel (at) example.invalid
 
 Accuracy note: this statement expressly discloses the missing Rule 54(b) language. It does not
 contain argument beyond identifying the disputed jurisdictional basis.

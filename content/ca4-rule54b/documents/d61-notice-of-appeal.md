@@ -30,7 +30,7 @@ By fictional counsel:
 /s/ Morgan Example
 
 Morgan Example (fictional)
-synthetic-counsel@example.invalid
+synthetic-counsel (at) example.invalid
 
 ## Certificate of service
 

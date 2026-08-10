@@ -201,7 +201,7 @@ Avery Example (fictional)
 Example Response Workshop
 200 Training Avenue
 Richmond, Virginia 23219
-synthetic-response@example.invalid
+synthetic-response (at) example.invalid
 
 No person or firm named on this page is real or appearing in any court.
 

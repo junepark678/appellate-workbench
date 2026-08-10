@@ -186,7 +186,7 @@ Morgan Example (fictional)
 Example Advocacy Studio
 100 Training Square
 Richmond, Virginia 23219
-synthetic-counsel@example.invalid
+synthetic-counsel (at) example.invalid
 
 No person or firm named on this page is real or appearing in any court.
 
