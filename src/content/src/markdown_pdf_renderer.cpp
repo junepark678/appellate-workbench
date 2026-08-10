@@ -25,10 +25,12 @@
 #include <QUuid>
 #include <QVariant>
 
+#include <algorithm>
 #include <array>
 #include <cerrno>
 #include <limits>
 #include <memory>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -48,9 +50,13 @@ constexpr int pdf_resolution_dpi = 72;
 constexpr qreal page_margin_points = 54.0;
 constexpr qreal body_font_points = 10.0;
 constexpr qreal monospace_font_points = 9.0;
+constexpr qreal page_label_font_points = 9.0;
+constexpr qreal page_label_footer_band_points = 28.0;
+constexpr qreal page_label_top_gap_points = 4.0;
+constexpr qreal page_label_bottom_inset_points = 4.0;
 
 constexpr auto page_break_marker = "<!-- PAGE BREAK -->";
-constexpr auto renderer_contract = "appellate.markdown-pdf.semantic-layout.v1";
+constexpr auto renderer_contract = "appellate.markdown-pdf.semantic-layout.v2";
 constexpr auto fixed_author = "Appellate Workbench synthetic content";
 constexpr auto fixed_creator = "Appellate Workbench Markdown PDF Renderer";
 constexpr auto fixed_xmp_timestamp = "1970-01-01T00:00:00Z";
@@ -217,6 +223,22 @@ void addDigestFrame(QCryptographicHash& hash, QByteArrayView name, QByteArrayVie
                     QStringLiteral("PDF title must be 1-512 UTF-8 bytes with no surrounding "
                                    "whitespace or control characters"));
     }
+    if (metadata.page_labels) {
+        const auto& labels = *metadata.page_labels;
+        const auto encoded_prefix = labels.prefix.toLatin1();
+        const auto uppercase_ascii = std::ranges::all_of(
+            labels.prefix, [](QChar character) { return character >= u'A' && character <= u'Z'; });
+        if (labels.prefix.isEmpty() ||
+            encoded_prefix.size() > MarkdownPdfPageLabels::maximum_prefix_bytes ||
+            !uppercase_ascii || labels.first_number < 1 ||
+            labels.first_number > MarkdownPdfPageLabels::maximum_number) {
+            return fail(
+                MarkdownPdfErrorCode::InvalidConfiguration,
+                QStringLiteral("Page labels require a 1-16 letter uppercase ASCII prefix and a "
+                               "first number between 1 and %1")
+                    .arg(MarkdownPdfPageLabels::maximum_number));
+        }
+    }
     return {};
 }
 
@@ -279,34 +301,55 @@ class IsolatedTextDocument final : public QTextDocument {
 
 [[nodiscard]] QString buildProvenance(QStringView source_sha256, QStringView title_sha256,
                                       QStringView resolved_body_font,
-                                      QStringView resolved_monospace_font) {
+                                      QStringView resolved_monospace_font,
+                                      const std::optional<MarkdownPdfPageLabels>& page_labels,
+                                      int page_count) {
     const auto css_sha256 = lowercaseSha256(QByteArrayView(default_style_sheet));
-    return QStringLiteral(
-               "contract=%1\n"
-               "source_encoding=UTF-8\n"
-               "source_sha256=%2\n"
-               "title_sha256=%3\n"
-               "qt_build_version=%4\n"
-               "qt_runtime_version=%5\n"
-               "qt_build_abi=%6\n"
-               "paper=US-Letter-612x792pt\n"
-               "orientation=portrait\n"
-               "margins=54pt-all\n"
-               "resolution=72dpi\n"
-               "body_font=generic-serif-resolved-as-%7-10pt-no-kerning-no-hinting\n"
-               "monospace_font=generic-monospace-resolved-as-%8-9pt-no-kerning-no-hinting\n"
-               "stylesheet_sha256=%9\n"
-               "markdown=Qt-GitHub-without-raw-HTML\n"
-               "page_break_marker=%10\n"
-               "author=%11\n"
-               "creator=%12\n"
-               "xmp_timestamp=%13\n"
-               "pdf_byte_determinism=not-guaranteed-QPdfWriter-wall-clock-info-dates\n")
-        .arg(QString::fromLatin1(renderer_contract), source_sha256, title_sha256,
-             QString::fromLatin1(QT_VERSION_STR), QString::fromLatin1(qVersion()),
-             QSysInfo::buildAbi(), resolved_body_font, resolved_monospace_font, css_sha256,
-             QString::fromLatin1(page_break_marker), QString::fromLatin1(fixed_author),
-             QString::fromLatin1(fixed_creator), QString::fromLatin1(fixed_xmp_timestamp));
+    auto provenance =
+        QStringLiteral("contract=%1\n"
+                       "source_encoding=UTF-8\n"
+                       "source_sha256=%2\n"
+                       "title_sha256=%3\n"
+                       "qt_build_version=%4\n"
+                       "qt_runtime_version=%5\n"
+                       "qt_build_abi=%6\n"
+                       "paper=US-Letter-612x792pt\n"
+                       "orientation=portrait\n"
+                       "margins=54pt-all\n"
+                       "resolution=72dpi\n"
+                       "body_font=generic-serif-resolved-as-%7-10pt-no-kerning-no-hinting\n"
+                       "monospace_font=generic-monospace-resolved-as-%8-9pt-no-kerning-no-hinting\n"
+                       "stylesheet_sha256=%9\n"
+                       "markdown=Qt-GitHub-without-raw-HTML\n"
+                       "page_break_marker=%10\n"
+                       "author=%11\n"
+                       "creator=%12\n"
+                       "xmp_timestamp=%13\n"
+                       "pdf_byte_determinism=not-guaranteed-QPdfWriter-wall-clock-info-dates\n")
+            .arg(QString::fromLatin1(renderer_contract), source_sha256, title_sha256,
+                 QString::fromLatin1(QT_VERSION_STR), QString::fromLatin1(qVersion()),
+                 QSysInfo::buildAbi(), resolved_body_font, resolved_monospace_font, css_sha256,
+                 QString::fromLatin1(page_break_marker), QString::fromLatin1(fixed_author),
+                 QString::fromLatin1(fixed_creator), QString::fromLatin1(fixed_xmp_timestamp));
+    if (page_labels) {
+        const auto last_number = static_cast<qint64>(page_labels->first_number) + page_count - 1;
+        provenance += QStringLiteral(
+                          "page_label_contract=uppercase-ascii-prefix-plus-base10-v1\n"
+                          "page_label_prefix=%1\n"
+                          "page_label_first_number=%2\n"
+                          "page_label_last_number=%3\n"
+                          "page_label_number_format=base10-no-leading-zero\n"
+                          "page_label_font=generic-serif-resolved-as-%4-9pt-no-kerning-no-hinting\n"
+                          "page_label_footer_band=28pt-reserved-inside-paint-rectangle\n"
+                          "page_label_body_height=paint-rectangle-height-minus-28pt\n"
+                          "page_label_region=footer-band-top-plus-4pt-to-paint-bottom-minus-4pt\n"
+                          "page_label_alignment=horizontal-center-vertical-center\n")
+                          .arg(page_labels->prefix)
+                          .arg(page_labels->first_number)
+                          .arg(last_number)
+                          .arg(resolved_body_font);
+    }
+    return provenance;
 }
 
 [[nodiscard]] QString semanticRenderDigest(QByteArrayView source, QByteArrayView title,
@@ -595,17 +638,31 @@ auto MarkdownPdfRenderer::render(QByteArrayView utf8_markdown, QStringView absol
                     QStringLiteral("Cannot construct the fixed US Letter page layout"));
     }
     const auto content_size = page_layout.paintRect(QPageLayout::Point).size();
-    auto prepared = prepareDocuments(markdown, limits_, content_size);
+    auto document_content_size = content_size;
+    if (metadata.page_labels) {
+        document_content_size.setHeight(document_content_size.height() -
+                                        page_label_footer_band_points);
+    }
+    auto prepared = prepareDocuments(markdown, limits_, document_content_size);
     if (!prepared) {
         return std::unexpected(prepared.error());
+    }
+    if (metadata.page_labels) {
+        const auto last_number =
+            static_cast<qint64>(metadata.page_labels->first_number) + prepared->page_count - 1;
+        if (last_number > MarkdownPdfPageLabels::maximum_number) {
+            return fail(MarkdownPdfErrorCode::InvalidConfiguration,
+                        QStringLiteral("Page label sequence exceeds the maximum label number %1")
+                            .arg(MarkdownPdfPageLabels::maximum_number));
+        }
     }
 
     const auto source_sha256 = lowercaseSha256(utf8_markdown);
     const auto title_utf8 = metadata.title.toUtf8();
     const auto title_sha256 = lowercaseSha256(title_utf8);
-    const auto provenance =
-        buildProvenance(source_sha256, title_sha256, prepared->resolved_body_font,
-                        prepared->resolved_monospace_font);
+    const auto provenance = buildProvenance(
+        source_sha256, title_sha256, prepared->resolved_body_font,
+        prepared->resolved_monospace_font, metadata.page_labels, prepared->page_count);
     const auto provenance_utf8 = provenance.toUtf8();
     const auto semantic_sha256 = semanticRenderDigest(utf8_markdown, title_utf8, provenance_utf8);
     const auto document_id = deterministicDocumentId(semantic_sha256);
@@ -652,6 +709,9 @@ auto MarkdownPdfRenderer::render(QByteArrayView utf8_markdown, QStringView absol
         } else {
             const auto content_rectangle = page_layout.paintRect(QPageLayout::Point);
             const auto full_rectangle = page_layout.fullRect(QPageLayout::Point);
+            const auto body_rectangle = metadata.page_labels
+                                            ? QRectF(QPointF(0.0, 0.0), document_content_size)
+                                            : content_rectangle;
             int emitted_pages{};
             for (const auto& document : prepared->documents) {
                 for (int document_page = 0; document_page < document->pageCount();
@@ -663,15 +723,33 @@ auto MarkdownPdfRenderer::render(QByteArrayView utf8_markdown, QStringView absol
 
                     painter.fillRect(full_rectangle, Qt::white);
                     painter.save();
-                    painter.setClipRect(content_rectangle);
+                    painter.setClipRect(body_rectangle);
                     const auto page_offset =
-                        static_cast<qreal>(document_page) * content_rectangle.height();
-                    painter.translate(content_rectangle.left(),
-                                      content_rectangle.top() - page_offset);
-                    const QRectF document_clip(0.0, page_offset, content_rectangle.width(),
-                                               content_rectangle.height());
+                        static_cast<qreal>(document_page) * body_rectangle.height();
+                    painter.translate(body_rectangle.left(), body_rectangle.top() - page_offset);
+                    const QRectF document_clip(0.0, page_offset, body_rectangle.width(),
+                                               body_rectangle.height());
                     document->drawContents(&painter, document_clip);
                     painter.restore();
+                    if (metadata.page_labels) {
+                        const auto label_number =
+                            static_cast<qint64>(metadata.page_labels->first_number) + emitted_pages;
+                        const auto label =
+                            metadata.page_labels->prefix + QString::number(label_number);
+                        const QRectF label_rectangle(
+                            0.0, document_content_size.height() + page_label_top_gap_points,
+                            content_size.width(),
+                            page_label_footer_band_points - page_label_top_gap_points -
+                                page_label_bottom_inset_points);
+                        painter.save();
+                        painter.setClipRect(label_rectangle);
+                        painter.setPen(Qt::black);
+                        painter.setFont(configuredFont(body_font_request, QFont::Serif,
+                                                       page_label_font_points));
+                        painter.drawText(label_rectangle, Qt::AlignHCenter | Qt::AlignVCenter,
+                                         label);
+                        painter.restore();
+                    }
                     ++emitted_pages;
                 }
                 if (!render_succeeded) {

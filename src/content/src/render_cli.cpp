@@ -645,6 +645,7 @@ struct EntrySpec final {
     std::optional<QString> source_path;
     std::vector<SegmentSpec> segments;
     std::optional<QString> front_matter_markdown;
+    std::optional<MarkdownPdfPageLabels> page_labels;
     QString output_path;
     QString title;
 };
@@ -751,20 +752,30 @@ struct ParsedPlan final {
         const auto context = QStringLiteral("plan.entries[%1]").arg(index);
         const auto has_source = object.contains(QStringLiteral("source_path"));
         const auto has_segments = object.contains(QStringLiteral("segments"));
+        const auto has_page_label_prefix = object.contains(QStringLiteral("page_label_prefix"));
+        const auto has_page_label_start = object.contains(QStringLiteral("page_label_start"));
         if (has_source == has_segments) {
             return fail<ParsedPlan>(
                 RenderCliExitCode::InvalidPlan, QStringLiteral("schema_violation"),
                 QStringLiteral("%1 must contain exactly one of source_path or segments")
                     .arg(context));
         }
+        if (has_page_label_prefix != has_page_label_start) {
+            return fail<ParsedPlan>(
+                RenderCliExitCode::InvalidPlan, QStringLiteral("schema_violation"),
+                QStringLiteral("%1 must contain page_label_prefix and page_label_start together")
+                    .arg(context));
+        }
         if (has_source) {
-            if (const auto keys =
-                    exactKeys(object, {u"source_path", u"output_path", u"title"}, {}, context);
+            if (const auto keys = exactKeys(object, {u"source_path", u"output_path", u"title"},
+                                            {u"page_label_prefix", u"page_label_start"}, context);
                 !keys) {
                 return std::unexpected(keys.error());
             }
-        } else if (const auto keys = exactKeys(object, {u"segments", u"output_path", u"title"},
-                                               {u"front_matter_markdown"}, context);
+        } else if (const auto keys = exactKeys(
+                       object, {u"segments", u"output_path", u"title"},
+                       {u"front_matter_markdown", u"page_label_prefix", u"page_label_start"},
+                       context);
                    !keys) {
             return std::unexpected(keys.error());
         }
@@ -778,6 +789,37 @@ struct ParsedPlan final {
         EntrySpec entry;
         entry.output_path = object.value(QStringLiteral("output_path")).toString();
         entry.title = object.value(QStringLiteral("title")).toString();
+        if (has_page_label_prefix) {
+            if (!object.value(QStringLiteral("page_label_prefix")).isString()) {
+                return fail<ParsedPlan>(
+                    RenderCliExitCode::InvalidPlan, QStringLiteral("schema_violation"),
+                    QStringLiteral("%1.page_label_prefix must be a string").arg(context));
+            }
+            const auto prefix = object.value(QStringLiteral("page_label_prefix")).toString();
+            const auto uppercase_ascii = std::ranges::all_of(
+                prefix, [](QChar character) { return character >= u'A' && character <= u'Z'; });
+            if (prefix.isEmpty() ||
+                prefix.toLatin1().size() > MarkdownPdfPageLabels::maximum_prefix_bytes ||
+                !uppercase_ascii) {
+                return fail<ParsedPlan>(
+                    RenderCliExitCode::InvalidPlan, QStringLiteral("invalid_page_labels"),
+                    QStringLiteral("%1.page_label_prefix must contain 1-16 uppercase ASCII letters")
+                        .arg(context));
+            }
+            if (const auto added = addPlanString(
+                    total_string_bytes, prefix, limits, MarkdownPdfPageLabels::maximum_prefix_bytes,
+                    context + QStringLiteral(".page_label_prefix"), false);
+                !added) {
+                return std::unexpected(added.error());
+            }
+            const auto start = positiveInteger(object.value(QStringLiteral("page_label_start")),
+                                               context + QStringLiteral(".page_label_start"),
+                                               MarkdownPdfPageLabels::maximum_number);
+            if (!start) {
+                return std::unexpected(start.error());
+            }
+            entry.page_labels = MarkdownPdfPageLabels{prefix, *start};
+        }
         if (!isCleanPortableRelativePath(entry.output_path, limits.maximum_path_bytes, u".pdf")) {
             return fail<ParsedPlan>(
                 RenderCliExitCode::InvalidPlan, QStringLiteral("unsafe_output_path"),
@@ -1020,6 +1062,7 @@ struct SourceCache final {
 struct PreparedEntry final {
     QString output_path;
     QString title;
+    std::optional<MarkdownPdfPageLabels> page_labels;
     QByteArray markdown;
     int logical_page_count{};
     bool enforce_one_physical_page_per_logical_page{};
@@ -1056,6 +1099,7 @@ struct PreparedEntry final {
     PreparedEntry prepared;
     prepared.output_path = entry.output_path;
     prepared.title = entry.title;
+    prepared.page_labels = entry.page_labels;
     QJsonObject assembly{
         {QStringLiteral("assembly_contract"), QString::fromLatin1(assembly_contract)},
     };
@@ -1135,6 +1179,15 @@ struct PreparedEntry final {
         return fail<PreparedEntry>(
             RenderCliExitCode::InvalidPlan, QStringLiteral("limit_exceeded"),
             QStringLiteral("Assembled Markdown exceeds aggregate byte limit"));
+    }
+    if (prepared.page_labels &&
+        static_cast<qint64>(prepared.page_labels->first_number) + prepared.logical_page_count - 1 >
+            MarkdownPdfPageLabels::maximum_number) {
+        return fail<PreparedEntry>(
+            RenderCliExitCode::InvalidPlan, QStringLiteral("page_label_overflow"),
+            QStringLiteral("Page label sequence for %1 exceeds the maximum label number %2")
+                .arg(prepared.output_path)
+                .arg(MarkdownPdfPageLabels::maximum_number));
     }
     prepared.assembly_provenance = std::move(assembly);
     const auto canonical_assembly =
@@ -1284,8 +1337,9 @@ struct PreparedEntry final {
                 QStringLiteral("cannot_create_output_directory"),
                 QStringLiteral("Cannot create staged PDF parent for %1").arg(entry.output_path));
         }
-        const auto rendered =
-            renderer.render(entry.markdown, output_path, MarkdownPdfMetadata{entry.title});
+        MarkdownPdfMetadata metadata{entry.title};
+        metadata.page_labels = entry.page_labels;
+        const auto rendered = renderer.render(entry.markdown, output_path, metadata);
         if (!rendered) {
             return fail(RenderCliExitCode::RenderFailed, rendererErrorCode(rendered.error().code),
                         QStringLiteral("Cannot render %1: %2")
@@ -1307,7 +1361,7 @@ struct PreparedEntry final {
                         QStringLiteral("total_output_limit_exceeded"),
                         QStringLiteral("Rendered PDFs exceed the aggregate output byte limit"));
         }
-        inventory_entries.push_back(QJsonObject{
+        QJsonObject inventory_entry{
             {QStringLiteral("assembly_plan_sha256"), entry.assembly_plan_sha256},
             {QStringLiteral("assembly_provenance"), entry.assembly_provenance},
             {QStringLiteral("byte_size"), rendered->output_bytes},
@@ -1324,7 +1378,19 @@ struct PreparedEntry final {
             {QStringLiteral("semantic_render_sha256"), rendered->semantic_render_sha256},
             {QStringLiteral("source_sha256"), rendered->source_sha256},
             {QStringLiteral("title"), entry.title},
-        });
+        };
+        if (entry.page_labels) {
+            inventory_entry.insert(
+                QStringLiteral("page_labels"),
+                QJsonObject{
+                    {QStringLiteral("first_number"), entry.page_labels->first_number},
+                    {QStringLiteral("last_number"),
+                     static_cast<qint64>(entry.page_labels->first_number) + rendered->page_count -
+                         1},
+                    {QStringLiteral("prefix"), entry.page_labels->prefix},
+                });
+        }
+        inventory_entries.push_back(std::move(inventory_entry));
     }
     if (const auto inventory = writeInventory(staging.path(), plan.bytes, inventory_entries);
         !inventory) {

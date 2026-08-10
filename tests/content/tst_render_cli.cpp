@@ -12,6 +12,8 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <utility>
+
 using appellate::content::MarkdownPdfRenderer;
 using appellate::content::RenderBatchLimits;
 using appellate::content::RenderCliExitCode;
@@ -108,6 +110,7 @@ class RenderCliTest final : public QObject {
     void rollsBackTheWholeBatchWhenOneRenderFails();
     void rejectsOverwriteTraversalSymlinksDuplicatesAndUnknownFields();
     void rejectsInvalidCompositeRangesAndExactOneOfViolations();
+    void validatesPageLabelConfigurationAndOverflow();
     void enforcesEntryStringSourceInlineAndOutputLimits();
 };
 
@@ -132,6 +135,8 @@ void RenderCliTest::rendersSearchableSingleAndCompositePdfsWithInventory() {
                         "Searchable index page.")
              .arg(QString::fromLatin1(marker))},
         {QStringLiteral("output_path"), QStringLiteral("pdfs/z-appendix.pdf")},
+        {QStringLiteral("page_label_prefix"), QStringLiteral("JA")},
+        {QStringLiteral("page_label_start"), 10},
         {QStringLiteral("segments"),
          QJsonArray{
              QJsonObject{
@@ -193,9 +198,17 @@ void RenderCliTest::rendersSearchableSingleAndCompositePdfsWithInventory() {
     QCOMPARE(assembled.value(QStringLiteral("source_sha256")).toString().size(), 64);
     QCOMPARE(assembled.value(QStringLiteral("semantic_render_sha256")).toString().size(), 64);
     QCOMPARE(assembled.value(QStringLiteral("semantic_plan_sha256")).toString().size(), 64);
+    QVERIFY(!single.contains(QStringLiteral("page_labels")));
+    const auto page_labels = assembled.value(QStringLiteral("page_labels")).toObject();
+    QCOMPARE(page_labels.value(QStringLiteral("prefix")).toString(), QStringLiteral("JA"));
+    QCOMPARE(page_labels.value(QStringLiteral("first_number")).toInt(), 10);
+    QCOMPARE(page_labels.value(QStringLiteral("last_number")).toInt(), 14);
     QVERIFY(assembled.value(QStringLiteral("renderer_provenance"))
                 .toString()
                 .contains(QStringLiteral("pdf_byte_determinism=not-guaranteed")));
+    QVERIFY(assembled.value(QStringLiteral("renderer_provenance"))
+                .toString()
+                .contains(QStringLiteral("page_label_prefix=JA\n")));
 
     const auto assembly = assembled.value(QStringLiteral("assembly_provenance")).toObject();
     QCOMPARE(assembly.value(QStringLiteral("kind")).toString(), QStringLiteral("composite"));
@@ -218,6 +231,7 @@ void RenderCliTest::rendersSearchableSingleAndCompositePdfsWithInventory() {
     QCOMPARE(single_pdf.pageCount(), 2);
     QVERIFY(single_pdf.getAllText(0).text().contains(QStringLiteral("Searchable alpha first")));
     QVERIFY(single_pdf.getAllText(1).text().contains(QStringLiteral("Excluded omega second")));
+    QVERIFY(!single_pdf.getAllText(0).text().contains(QStringLiteral("JA10")));
 
     QPdfDocument composite_pdf;
     QCOMPARE(composite_pdf.load(QDir(output).filePath(QStringLiteral("pdfs/z-appendix.pdf"))),
@@ -230,6 +244,7 @@ void RenderCliTest::rendersSearchableSingleAndCompositePdfsWithInventory() {
     QVERIFY(composite_pdf.getAllText(4).text().contains(QStringLiteral("Searchable alpha")));
     for (int page = 0; page < composite_pdf.pageCount(); ++page) {
         const auto text = composite_pdf.getAllText(page).text();
+        QVERIFY2(text.contains(QStringLiteral("JA%1").arg(page + 10)), qPrintable(text));
         QVERIFY(!text.contains(QStringLiteral("Excluded red")));
         QVERIFY(!text.contains(QStringLiteral("Excluded omega")));
     }
@@ -240,10 +255,11 @@ void RenderCliTest::repeatsSemanticIdentityWithoutPromisingPdfBytes() {
     QVERIFY(fixture.root.isValid());
     const auto source = QDir(fixture.source_root).filePath(QStringLiteral("repeat.md"));
     QVERIFY(writeBytes(source, QByteArrayLiteral("# Repeatable\n\nSemantic identity.\n")));
-    QVERIFY(writeJson(
-        fixture.plan_path,
-        planWith(QJsonArray{singleEntry(QStringLiteral("repeat.md"), QStringLiteral("repeat.pdf"),
-                                        QStringLiteral("Repeatable Record"))})));
+    auto repeated_entry = singleEntry(QStringLiteral("repeat.md"), QStringLiteral("repeat.pdf"),
+                                      QStringLiteral("Repeatable Record"));
+    repeated_entry.insert(QStringLiteral("page_label_prefix"), QStringLiteral("APP"));
+    repeated_entry.insert(QStringLiteral("page_label_start"), 7);
+    QVERIFY(writeJson(fixture.plan_path, planWith(QJsonArray{repeated_entry})));
     const auto first_output = fixture.root.filePath(QStringLiteral("first"));
     const auto second_output = fixture.root.filePath(QStringLiteral("second"));
 
@@ -270,6 +286,39 @@ void RenderCliTest::repeatsSemanticIdentityWithoutPromisingPdfBytes() {
              fileSha256(QDir(first_output).filePath(QStringLiteral("repeat.pdf"))));
     QCOMPARE(second_entry.value(QStringLiteral("pdf_sha256")).toString(),
              fileSha256(QDir(second_output).filePath(QStringLiteral("repeat.pdf"))));
+    QCOMPARE(first_entry.value(QStringLiteral("page_labels")).toObject(),
+             QJsonObject({{QStringLiteral("first_number"), 7},
+                          {QStringLiteral("last_number"), 7},
+                          {QStringLiteral("prefix"), QStringLiteral("APP")}}));
+    QPdfDocument repeated_pdf;
+    QCOMPARE(repeated_pdf.load(QDir(first_output).filePath(QStringLiteral("repeat.pdf"))),
+             QPdfDocument::Error::None);
+    QVERIFY(repeated_pdf.getAllText(0).text().contains(QStringLiteral("APP7")));
+
+    repeated_entry.insert(QStringLiteral("page_label_start"), 8);
+    QVERIFY(writeJson(fixture.plan_path, planWith(QJsonArray{repeated_entry})));
+    const auto changed_output = fixture.root.filePath(QStringLiteral("changed"));
+    const auto changed =
+        runRenderCli(invocation(fixture.plan_path, fixture.source_root, changed_output));
+    QCOMPARE(changed.exit_code, static_cast<int>(RenderCliExitCode::Success));
+    const auto changed_entry = entryAt(inventoryAt(changed_output), 0);
+    QVERIFY(changed_entry.value(QStringLiteral("semantic_render_sha256")) !=
+            first_entry.value(QStringLiteral("semantic_render_sha256")));
+    QVERIFY(changed_entry.value(QStringLiteral("semantic_plan_sha256")) !=
+            first_entry.value(QStringLiteral("semantic_plan_sha256")));
+
+    repeated_entry.insert(QStringLiteral("page_label_prefix"), QStringLiteral("JA"));
+    repeated_entry.insert(QStringLiteral("page_label_start"), 7);
+    QVERIFY(writeJson(fixture.plan_path, planWith(QJsonArray{repeated_entry})));
+    const auto changed_prefix_output = fixture.root.filePath(QStringLiteral("changed-prefix"));
+    const auto changed_prefix =
+        runRenderCli(invocation(fixture.plan_path, fixture.source_root, changed_prefix_output));
+    QCOMPARE(changed_prefix.exit_code, static_cast<int>(RenderCliExitCode::Success));
+    const auto changed_prefix_entry = entryAt(inventoryAt(changed_prefix_output), 0);
+    QVERIFY(changed_prefix_entry.value(QStringLiteral("semantic_render_sha256")) !=
+            first_entry.value(QStringLiteral("semantic_render_sha256")));
+    QVERIFY(changed_prefix_entry.value(QStringLiteral("semantic_plan_sha256")) !=
+            first_entry.value(QStringLiteral("semantic_plan_sha256")));
     QVERIFY(!MarkdownPdfRenderer::byteOutputIsDeterministic());
 }
 
@@ -402,6 +451,54 @@ void RenderCliTest::rejectsInvalidCompositeRangesAndExactOneOfViolations() {
     result = runRenderCli(invocation(fixture.plan_path, fixture.source_root,
                                      fixture.root.filePath(QStringLiteral("neither"))));
     QCOMPARE(errorCode(result), QStringLiteral("schema_violation"));
+}
+
+void RenderCliTest::validatesPageLabelConfigurationAndOverflow() {
+    Fixture fixture;
+    QVERIFY(fixture.root.isValid());
+    const QByteArray two_pages =
+        QByteArrayLiteral("# First\n\n") + QByteArray(marker) + QByteArrayLiteral("\n\n# Second\n");
+    QVERIFY(writeBytes(QDir(fixture.source_root).filePath(QStringLiteral("pages.md")), two_pages));
+
+    const auto resultFor = [&](QJsonObject entry, QString output_name) {
+        if (!writeJson(fixture.plan_path, planWith(QJsonArray{std::move(entry)}))) {
+            return RenderCliResult{static_cast<int>(RenderCliExitCode::OperationFailed), {}, {}};
+        }
+        return runRenderCli(invocation(fixture.plan_path, fixture.source_root,
+                                       fixture.root.filePath(std::move(output_name))));
+    };
+
+    auto entry = singleEntry(QStringLiteral("pages.md"), QStringLiteral("pages.pdf"),
+                             QStringLiteral("Pages"));
+    entry.insert(QStringLiteral("page_label_prefix"), QStringLiteral("JA"));
+    auto result = resultFor(entry, QStringLiteral("missing-start"));
+    QCOMPARE(errorCode(result), QStringLiteral("schema_violation"));
+
+    entry.insert(QStringLiteral("page_label_start"), 1);
+    entry.insert(QStringLiteral("page_label_prefix"), QStringLiteral("Ja"));
+    result = resultFor(entry, QStringLiteral("lowercase"));
+    QCOMPARE(errorCode(result), QStringLiteral("invalid_page_labels"));
+
+    entry.insert(QStringLiteral("page_label_prefix"), QStringLiteral("ABCDEFGHIJKLMNOPQ"));
+    result = resultFor(entry, QStringLiteral("long-prefix"));
+    QCOMPARE(errorCode(result), QStringLiteral("invalid_page_labels"));
+
+    entry.insert(QStringLiteral("page_label_prefix"), QStringLiteral("JA"));
+    entry.insert(QStringLiteral("page_label_start"), 0);
+    result = resultFor(entry, QStringLiteral("zero-start"));
+    QCOMPARE(errorCode(result), QStringLiteral("schema_violation"));
+
+    entry.insert(QStringLiteral("page_label_start"),
+                 static_cast<qint64>(appellate::content::MarkdownPdfPageLabels::maximum_number) +
+                     1);
+    result = resultFor(entry, QStringLiteral("too-high-start"));
+    QCOMPARE(errorCode(result), QStringLiteral("schema_violation"));
+
+    entry.insert(QStringLiteral("page_label_start"),
+                 appellate::content::MarkdownPdfPageLabels::maximum_number);
+    result = resultFor(entry, QStringLiteral("overflow"));
+    QCOMPARE(errorCode(result), QStringLiteral("page_label_overflow"));
+    QVERIFY(!QFileInfo::exists(fixture.root.filePath(QStringLiteral("overflow"))));
 }
 
 void RenderCliTest::enforcesEntryStringSourceInlineAndOutputLimits() {

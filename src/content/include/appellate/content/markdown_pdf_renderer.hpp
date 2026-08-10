@@ -5,6 +5,8 @@
 #include <QStringView>
 
 #include <expected>
+#include <optional>
+#include <utility>
 
 namespace appellate::content {
 
@@ -48,8 +50,27 @@ struct MarkdownPdfLimits final {
     friend bool operator==(const MarkdownPdfLimits&, const MarkdownPdfLimits&) = default;
 };
 
+struct MarkdownPdfPageLabels final {
+    static constexpr qsizetype maximum_prefix_bytes = 16;
+    static constexpr int maximum_number = 999'999'999;
+
+    // Prefixes are deliberately restricted to 1-16 uppercase ASCII letters. The rendered label
+    // is the prefix immediately followed by the base-10 page number, for example JA1.
+    QString prefix;
+    int first_number{1};
+
+    friend bool operator==(const MarkdownPdfPageLabels&, const MarkdownPdfPageLabels&) = default;
+};
+
 struct MarkdownPdfMetadata final {
     QString title{QStringLiteral("Synthetic Appellate Record")};
+    std::optional<MarkdownPdfPageLabels> page_labels;
+
+    MarkdownPdfMetadata() = default;
+    explicit MarkdownPdfMetadata(
+        QString document_title,
+        std::optional<MarkdownPdfPageLabels> document_page_labels = std::nullopt)
+        : title(std::move(document_title)), page_labels(std::move(document_page_labels)) {}
 
     friend bool operator==(const MarkdownPdfMetadata&, const MarkdownPdfMetadata&) = default;
 };

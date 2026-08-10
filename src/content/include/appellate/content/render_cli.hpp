@@ -55,8 +55,10 @@ struct RenderBatchLimits final {
 //
 // A schema-v1 plan has exactly {schema_version, entries}. Each entry has exactly
 // {source_path, output_path, title}, or {segments, output_path, title} with the optional
-// front_matter_markdown field. A segment has exactly {source_path, first_page, last_page}; pages
-// are one-based Markdown segments delimited by MarkdownPdfRenderer::pageBreakMarker().
+// front_matter_markdown field. Either entry form may also contain page_label_prefix and
+// page_label_start, which must occur together. A segment has exactly
+// {source_path, first_page, last_page}; pages are one-based Markdown segments delimited by
+// MarkdownPdfRenderer::pageBreakMarker().
 //
 // On success the output directory contains the rendered PDFs and inventory.json. The directory is
 // published by a same-filesystem rename only after every PDF and the inventory are complete.

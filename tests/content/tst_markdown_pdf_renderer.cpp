@@ -10,9 +10,12 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <utility>
+
 using appellate::content::MarkdownPdfErrorCode;
 using appellate::content::MarkdownPdfLimits;
 using appellate::content::MarkdownPdfMetadata;
+using appellate::content::MarkdownPdfPageLabels;
 using appellate::content::MarkdownPdfRenderer;
 
 namespace {
@@ -41,8 +44,10 @@ class MarkdownPdfRendererTest final : public QObject {
 
   private slots:
     void rendersRealMultipageSearchablePdf();
+    void rendersSearchableRepeatablePageLabelsInReservedFooter();
     void semanticDigestIsRepeatableAndByteContractIsHonest();
     void rejectsMalformedAndOversizeInput();
+    void rejectsInvalidPageLabelsAndOverflow();
     void refusesOverwriteAndUnsafePaths();
     void rejectsSymlinkSourceAndExternalResources();
     void pageAndOutputBoundsLeaveNoPartialFile();
@@ -66,7 +71,7 @@ void MarkdownPdfRendererTest::rendersRealMultipageSearchablePdf() {
     QCOMPARE(result->source_sha256.size(), 64);
     QCOMPARE(result->semantic_render_sha256.size(), 64);
     QVERIFY(result->renderer_provenance.contains(
-        QStringLiteral("contract=appellate.markdown-pdf.semantic-layout.v1")));
+        QStringLiteral("contract=appellate.markdown-pdf.semantic-layout.v2")));
     QVERIFY(result->renderer_provenance.contains(QStringLiteral("qt_runtime_version=")));
     QVERIFY(result->renderer_provenance.contains(QStringLiteral("margins=54pt-all")));
     QVERIFY(result->renderer_provenance.contains(
@@ -92,12 +97,71 @@ void MarkdownPdfRendererTest::rendersRealMultipageSearchablePdf() {
              qPrintable(first_page_text));
     QVERIFY2(second_page_text.contains(QStringLiteral("Searchable omega mandate text")),
              qPrintable(second_page_text));
+    QVERIFY(!first_page_text.contains(QStringLiteral("JA1")));
+    QVERIFY(!second_page_text.contains(QStringLiteral("JA2")));
+    QVERIFY(!result->renderer_provenance.contains(QStringLiteral("page_label_contract=")));
 
     const QPageSize letter(QPageSize::Letter);
     const auto expected_size = letter.size(QPageSize::Point);
     const auto actual_size = document.pagePointSize(0);
     QVERIFY(qAbs(actual_size.width() - expected_size.width()) < 0.1);
     QVERIFY(qAbs(actual_size.height() - expected_size.height()) < 0.1);
+}
+
+void MarkdownPdfRendererTest::rendersSearchableRepeatablePageLabelsInReservedFooter() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    MarkdownPdfMetadata metadata{QStringLiteral("Labeled Joint Appendix")};
+    metadata.page_labels = MarkdownPdfPageLabels{QStringLiteral("JA"), 41};
+
+    const MarkdownPdfRenderer renderer;
+    const auto first = renderer.render(
+        twoPageMarkdown(), directory.filePath(QStringLiteral("labeled-first.pdf")), metadata);
+    if (!first) {
+        QFAIL(qPrintable(first.error().message));
+    }
+    const auto second = renderer.render(
+        twoPageMarkdown(), directory.filePath(QStringLiteral("labeled-second.pdf")), metadata);
+    if (!second) {
+        QFAIL(qPrintable(second.error().message));
+    }
+    QCOMPARE(first->semantic_render_sha256, second->semantic_render_sha256);
+    QCOMPARE(first->renderer_provenance, second->renderer_provenance);
+    QVERIFY(first->renderer_provenance.contains(QStringLiteral("page_label_prefix=JA\n")));
+    QVERIFY(first->renderer_provenance.contains(QStringLiteral("page_label_first_number=41\n")));
+    QVERIFY(first->renderer_provenance.contains(QStringLiteral("page_label_last_number=42\n")));
+    QVERIFY(first->renderer_provenance.contains(
+        QStringLiteral("page_label_footer_band=28pt-reserved-inside-paint-rectangle")));
+
+    const auto unlabeled =
+        renderer.render(twoPageMarkdown(), directory.filePath(QStringLiteral("unlabeled.pdf")),
+                        MarkdownPdfMetadata{QStringLiteral("Labeled Joint Appendix")});
+    if (!unlabeled) {
+        QFAIL(qPrintable(unlabeled.error().message));
+    }
+    QVERIFY(first->semantic_render_sha256 != unlabeled->semantic_render_sha256);
+
+    QPdfDocument document;
+    QCOMPARE(document.load(directory.filePath(QStringLiteral("labeled-first.pdf"))),
+             QPdfDocument::Error::None);
+    QCOMPARE(document.pageCount(), 2);
+    const QStringList expected_labels{QStringLiteral("JA41"), QStringLiteral("JA42")};
+    for (int page = 0; page < document.pageCount(); ++page) {
+        const auto all_text = document.getAllText(page).text();
+        const auto& expected_label = expected_labels.at(page);
+        const auto label_index = all_text.indexOf(expected_label);
+        QVERIFY2(label_index >= 0, qPrintable(all_text));
+        const auto label_selection = document.getSelectionAtIndex(
+            page, static_cast<int>(label_index), static_cast<int>(expected_label.size()));
+        QVERIFY(label_selection.isValid());
+        QVERIFY2(label_selection.boundingRectangle().top() >= 710.0,
+                 qPrintable(QStringLiteral("Label bounds unexpectedly enter body at y=%1")
+                                .arg(label_selection.boundingRectangle().top())));
+        QVERIFY2(
+            label_selection.boundingRectangle().bottom() <= 738.0,
+            qPrintable(QStringLiteral("Label bounds unexpectedly leave paint rectangle at y=%1")
+                           .arg(label_selection.boundingRectangle().bottom())));
+    }
 }
 
 void MarkdownPdfRendererTest::semanticDigestIsRepeatableAndByteContractIsHonest() {
@@ -164,6 +228,30 @@ void MarkdownPdfRendererTest::rejectsMalformedAndOversizeInput() {
         renderer.render(controls, directory.filePath(QStringLiteral("control.pdf")));
     QVERIFY(!control_result.has_value());
     QCOMPARE(control_result.error().code, MarkdownPdfErrorCode::InvalidUtf8);
+}
+
+void MarkdownPdfRendererTest::rejectsInvalidPageLabelsAndOverflow() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const MarkdownPdfRenderer renderer;
+
+    const auto rejects = [&](QString file_name, MarkdownPdfPageLabels labels) {
+        MarkdownPdfMetadata metadata{QStringLiteral("Invalid Page Labels")};
+        metadata.page_labels = std::move(labels);
+        const auto result =
+            renderer.render(twoPageMarkdown(), directory.filePath(file_name), metadata);
+        QVERIFY(!result.has_value());
+        QCOMPARE(result.error().code, MarkdownPdfErrorCode::InvalidConfiguration);
+        QVERIFY(!QFileInfo::exists(directory.filePath(file_name)));
+    };
+    rejects(QStringLiteral("empty-prefix.pdf"), MarkdownPdfPageLabels{{}, 1});
+    rejects(QStringLiteral("lowercase-prefix.pdf"), MarkdownPdfPageLabels{QStringLiteral("Ja"), 1});
+    rejects(QStringLiteral("numeric-prefix.pdf"), MarkdownPdfPageLabels{QStringLiteral("JA1"), 1});
+    rejects(QStringLiteral("long-prefix.pdf"),
+            MarkdownPdfPageLabels{QStringLiteral("ABCDEFGHIJKLMNOPQ"), 1});
+    rejects(QStringLiteral("zero-start.pdf"), MarkdownPdfPageLabels{QStringLiteral("JA"), 0});
+    rejects(QStringLiteral("overflow.pdf"),
+            MarkdownPdfPageLabels{QStringLiteral("JA"), MarkdownPdfPageLabels::maximum_number});
 }
 
 void MarkdownPdfRendererTest::refusesOverwriteAndUnsafePaths() {

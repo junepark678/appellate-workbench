@@ -131,6 +131,8 @@
         }
       ],
       "output_path": "assets/a12-joint-appendix.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 1,
       "title": "Synthetic Joint Appendix"
     },
     {
