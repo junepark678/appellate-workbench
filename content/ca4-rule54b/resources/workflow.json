@@ -587,10 +587,6 @@
       "accept_operation_id": "ca4r54b.operation.accept-initial-documents",
       "reject_operation_id": "ca4r54b.operation.reject-initial-documents",
       "deficiency_operation_id": "ca4r54b.operation.deficiency-initial-documents",
-      "accepted_deadline": {
-        "deadline_id": "ca4r54b.deadline.opening-brief",
-        "operation_id": "ca4r54b.operation.calculate-opening-brief-deadline"
-      },
       "advance_operation_id": "ca4r54b.operation.advance-briefing",
       "reject_after_deadline": false
     },
@@ -612,8 +608,7 @@
         "operation_id": "ca4r54b.operation.calculate-response-brief-deadline"
       },
       "advance_operation_id": "ca4r54b.operation.advance-response-briefing",
-      "satisfies_deadline_id": "ca4r54b.deadline.opening-brief",
-      "reject_after_deadline": true
+      "reject_after_deadline": false
     },
     {
       "filing_type_id": "ca4r54b.filing.response-brief",
