@@ -167,7 +167,8 @@ void InitiationResumeTest::initiationSurvivesCloseAndReopen() {
     }
     auto reopened = SessionController::reopen(
         definition, case_definition, initial,
-        appellate::storage::AssetStore(asset_root, 1024 * 1024), std::move(*reopened_store));
+        appellate::storage::AssetStore(asset_root, 1024 * 1024), std::move(*reopened_store),
+        snapshot_before_close.engine_revision, snapshot_before_close.pins);
     if (!reopened) {
         QFAIL(qPrintable(reopened.error().message));
     }

@@ -9,6 +9,10 @@
 #include <memory>
 #include <vector>
 
+namespace appellate::packs {
+class ResolvedPack;
+}
+
 namespace appellate::app {
 
 enum class OralArgumentSessionErrorCode {
@@ -49,10 +53,24 @@ class OralArgumentSessionController final {
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
 
     [[nodiscard]] static auto
+    create(QString session_id, model::OralArgumentConfiguration configuration,
+           model::BenchConfiguration bench, model::ArgumentGrounding grounding,
+           std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+           QString created_at_utc, const packs::ResolvedPack& resolved_pack)
+        -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
+
+    [[nodiscard]] static auto
     reopen(QString session_id, model::OralArgumentConfiguration configuration,
            model::BenchConfiguration bench, model::ArgumentGrounding grounding,
            std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
            std::vector<storage::RevisionPin> expected_pins)
+        -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
+
+    [[nodiscard]] static auto
+    reopen(QString session_id, model::OralArgumentConfiguration configuration,
+           model::BenchConfiguration bench, model::ArgumentGrounding grounding,
+           std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+           const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
 
     [[nodiscard]] auto submit(QString command_id, const model::CounselAnswer& answer,

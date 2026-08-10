@@ -9,12 +9,14 @@
 #include <QRegularExpression>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <limits>
 #include <optional>
 #include <ranges>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -215,9 +217,10 @@ optionalId(const QJsonObject& object, const char* key, const std::string& path) 
     return std::optional<std::string>{std::move(*value)};
 }
 
-[[nodiscard]] Result<std::optional<std::string>>
-optionalString(const QJsonObject& object, const char* key, const std::string& path,
-               qsizetype maximum) {
+[[nodiscard]] Result<std::optional<std::string>> optionalString(const QJsonObject& object,
+                                                                const char* key,
+                                                                const std::string& path,
+                                                                qsizetype maximum) {
     if (!object.contains(QLatin1StringView(key))) {
         return std::optional<std::string>{};
     }
@@ -338,6 +341,7 @@ optionalStringArray(const QJsonObject& object, const char* key, const std::strin
 struct ResourceIndex final {
     std::unordered_map<std::string, const ValidatedResource*> resources;
     std::unordered_map<std::string, const model::JudgeProfile*> judge_profiles;
+    std::unordered_map<std::string, const model::PackRevision*> resource_owners;
 
     [[nodiscard]] Result<const ValidatedResource*>
     require(const std::string& id, model::ResourceKind kind, const std::string& owner) const {
@@ -351,6 +355,11 @@ struct ResourceIndex final {
                         owner + " references " + id + " with the wrong resource kind");
         }
         return found->second;
+    }
+
+    [[nodiscard]] bool ownedBy(const std::string& id, const model::PackRevision& revision) const {
+        const auto found = resource_owners.find(id);
+        return found != resource_owners.end() && *found->second == revision;
     }
 
     [[nodiscard]] Result<const model::JudgeProfile*> requireJudge(const std::string& id,
@@ -368,65 +377,97 @@ struct ResourceIndex final {
     }
 };
 
-[[nodiscard]] Result<ResourceIndex> makeIndex(const LoadedPack& pack) {
-    if (pack.resources.empty() || pack.resources.size() > maximum_resources ||
-        (pack.manifest_schema_version != 1 && pack.manifest_schema_version != 2) ||
-        !isNamespacedId(QString::fromStdString(pack.revision.id.value)) ||
-        pack.revision.version.empty() || !isSha256(QString::fromStdString(pack.revision.digest))) {
+[[nodiscard]] Result<ResourceIndex> makeIndex(std::span<const LoadedPack* const> packs,
+                                              std::uint32_t manifest_schema_version) {
+    if (packs.empty() || (manifest_schema_version != 1 && manifest_schema_version != 2)) {
         return fail(RuntimePackErrorCode::InvalidPack,
                     "runtime pack has invalid revision metadata or resource bounds");
     }
 
+    std::size_t total_resources = 0;
+    std::size_t total_judges = 0;
+    for (const auto* pack : packs) {
+        if (pack == nullptr || pack->manifest_schema_version != manifest_schema_version ||
+            !isNamespacedId(QString::fromStdString(pack->revision.id.value)) ||
+            pack->revision.version.empty() ||
+            !isSha256(QString::fromStdString(pack->revision.digest)) ||
+            pack->resources.size() > maximum_resources - total_resources ||
+            pack->judge_profiles.size() > maximum_resources - total_judges) {
+            return fail(RuntimePackErrorCode::InvalidPack,
+                        "runtime closure has invalid revision metadata, schema, or bounds");
+        }
+        const auto capabilities = CapabilityRegistry::validate(pack->manifest_schema_version,
+                                                               pack->required_capabilities);
+        if (!capabilities) {
+            return fail(RuntimePackErrorCode::InvalidPack,
+                        capabilities.error().message.toStdString());
+        }
+        total_resources += pack->resources.size();
+        total_judges += pack->judge_profiles.size();
+    }
+    if (total_resources == 0) {
+        return fail(RuntimePackErrorCode::InvalidPack, "runtime closure contains no resources");
+    }
+
     ResourceIndex index;
-    index.resources.reserve(pack.resources.size());
-    for (const auto& resource : pack.resources) {
-        const auto path = "resource " + resource.descriptor.id;
-        const auto document_id = requiredId(resource.document, "resource_id", path);
-        const auto document_kind = requiredString(resource.document, "resource_kind", path);
-        const auto schema_version =
-            requiredUnsigned(resource.document, "schema_version", path,
-                             pack.manifest_schema_version, pack.manifest_schema_version);
-        if (!document_id || !document_kind || !schema_version) {
-            if (!document_id) {
-                return std::unexpected(document_id.error());
+    index.resources.reserve(total_resources);
+    index.resource_owners.reserve(total_resources);
+    for (const auto* pack : packs) {
+        for (const auto& resource : pack->resources) {
+            const auto path = "resource " + resource.descriptor.id;
+            const auto document_id = requiredId(resource.document, "resource_id", path);
+            const auto document_kind = requiredString(resource.document, "resource_kind", path);
+            const auto schema_version =
+                requiredUnsigned(resource.document, "schema_version", path, manifest_schema_version,
+                                 manifest_schema_version);
+            if (!document_id || !document_kind || !schema_version) {
+                if (!document_id) {
+                    return std::unexpected(document_id.error());
+                }
+                if (!document_kind) {
+                    return std::unexpected(document_kind.error());
+                }
+                return std::unexpected(schema_version.error());
             }
-            if (!document_kind) {
-                return std::unexpected(document_kind.error());
+            if (resource.descriptor.schema_version != manifest_schema_version ||
+                *schema_version != manifest_schema_version ||
+                resource.descriptor.id != *document_id ||
+                *document_kind != kindName(resource.descriptor.kind)) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            path + " does not match its validated descriptor");
             }
-            return std::unexpected(schema_version.error());
-        }
-        if (resource.descriptor.schema_version != pack.manifest_schema_version ||
-            *schema_version != pack.manifest_schema_version ||
-            resource.descriptor.id != *document_id ||
-            *document_kind != kindName(resource.descriptor.kind)) {
-            return fail(RuntimePackErrorCode::InvalidResource,
-                        path + " does not match its validated descriptor");
-        }
-        if (!index.resources.emplace(resource.descriptor.id, &resource).second) {
-            return fail(RuntimePackErrorCode::DuplicateResource,
-                        "runtime pack contains duplicate resource id " + resource.descriptor.id);
+            if (!index.resources.emplace(resource.descriptor.id, &resource).second ||
+                !index.resource_owners.emplace(resource.descriptor.id, &pack->revision).second) {
+                return fail(RuntimePackErrorCode::DuplicateResource,
+                            "runtime closure contains duplicate resource id " +
+                                resource.descriptor.id);
+            }
         }
     }
 
-    index.judge_profiles.reserve(pack.judge_profiles.size());
-    for (const auto& profile : pack.judge_profiles) {
-        if (!isNamespacedId(QString::fromStdString(profile.id)) ||
-            !index.judge_profiles.emplace(profile.id, &profile).second) {
-            return fail(RuntimePackErrorCode::DuplicateResource,
-                        "runtime pack contains invalid or duplicate typed judge profile " +
-                            profile.id);
-        }
-        const auto resource = index.require(profile.id, model::ResourceKind::JudgeProfile,
-                                            "typed judge profile " + profile.id);
-        if (!resource) {
-            return std::unexpected(resource.error());
+    index.judge_profiles.reserve(total_judges);
+    for (const auto* pack : packs) {
+        for (const auto& profile : pack->judge_profiles) {
+            if (!isNamespacedId(QString::fromStdString(profile.id)) ||
+                !index.judge_profiles.emplace(profile.id, &profile).second) {
+                return fail(RuntimePackErrorCode::DuplicateResource,
+                            "runtime closure contains invalid or duplicate typed judge profile " +
+                                profile.id);
+            }
+            const auto resource = index.require(profile.id, model::ResourceKind::JudgeProfile,
+                                                "typed judge profile " + profile.id);
+            if (!resource) {
+                return std::unexpected(resource.error());
+            }
         }
     }
-    for (const auto& resource : pack.resources) {
-        if (resource.descriptor.kind == model::ResourceKind::JudgeProfile &&
-            !index.judge_profiles.contains(resource.descriptor.id)) {
-            return fail(RuntimePackErrorCode::MissingResource,
-                        "judge resource has no typed profile " + resource.descriptor.id);
+    for (const auto* pack : packs) {
+        for (const auto& resource : pack->resources) {
+            if (resource.descriptor.kind == model::ResourceKind::JudgeProfile &&
+                !index.judge_profiles.contains(resource.descriptor.id)) {
+                return fail(RuntimePackErrorCode::MissingResource,
+                            "judge resource has no typed profile " + resource.descriptor.id);
+            }
         }
     }
     return index;
@@ -1012,8 +1053,7 @@ struct ParsedCase final {
     const auto caption = requiredString(resource.document, "caption", path);
     QJsonArray docket_descriptors;
     if (resource.document.contains(QStringLiteral("dockets"))) {
-        const auto values =
-            requiredArray(resource.document, "dockets", path, 1, 64);
+        const auto values = requiredArray(resource.document, "dockets", path, 1, 64);
         if (!values) {
             return std::unexpected(values.error());
         }
@@ -1023,8 +1063,7 @@ struct ParsedCase final {
         requiredArray(resource.document, "docket_entries", path, 1, maximum_case_items);
     QJsonArray anchor_values;
     if (resource.document.contains(QStringLiteral("page_anchors"))) {
-        const auto values =
-            requiredArray(resource.document, "page_anchors", path, 0, 32'768);
+        const auto values = requiredArray(resource.document, "page_anchors", path, 0, 32'768);
         if (!values) {
             return std::unexpected(values.error());
         }
@@ -1090,8 +1129,7 @@ struct ParsedCase final {
                         descriptor_path + ".docket_type is unsupported");
         }
         if (!docket_ids.emplace(*id).second || !isBoundedUtf8Text(*court_ref, 240) ||
-            !isBoundedUtf8Text(*public_number, 120) ||
-            !isBoundedUtf8Text(*docket_caption, 512)) {
+            !isBoundedUtf8Text(*public_number, 120) || !isBoundedUtf8Text(*docket_caption, 512)) {
             return fail(RuntimePackErrorCode::InvalidResource,
                         descriptor_path + " is duplicate or exceeds its text bounds");
         }
@@ -1099,9 +1137,9 @@ struct ParsedCase final {
         if (court_id->has_value()) {
             typed_court = RuntimeCourtId{**court_id};
         }
-        runtime_dockets.push_back(RuntimeDocketDescriptor{
-            RuntimeDocketId{*id}, type, std::move(typed_court), *court_ref, *public_number,
-            *docket_caption});
+        runtime_dockets.push_back(RuntimeDocketDescriptor{RuntimeDocketId{*id}, type,
+                                                          std::move(typed_court), *court_ref,
+                                                          *public_number, *docket_caption});
     }
 
     std::vector<RuntimeDocketEntry> docket;
@@ -1190,8 +1228,8 @@ struct ParsedCase final {
                         entry_path + ".docket_id is not declared by the record");
         }
         if (entry_label->has_value()) {
-            const auto label_key = (docket_id->has_value() ? **docket_id : std::string{}) + "\n" +
-                                   **entry_label;
+            const auto label_key =
+                (docket_id->has_value() ? **docket_id : std::string{}) + "\n" + **entry_label;
             if (!display_labels.emplace(label_key).second) {
                 return fail(RuntimePackErrorCode::InvalidResource,
                             entry_path + ".entry_label is duplicated within its docket");
@@ -1199,8 +1237,7 @@ struct ParsedCase final {
         }
         if (parent_id->has_value() != relationship_text->has_value()) {
             return fail(RuntimePackErrorCode::InvalidResource,
-                        entry_path +
-                            " must declare parent_entry_id and relationship together");
+                        entry_path + " must declare parent_entry_id and relationship together");
         }
         std::optional<RuntimeRecordEntryRelationship> relationship;
         if (relationship_text->has_value()) {
@@ -1624,7 +1661,8 @@ using RuntimeCatalog = std::unordered_map<std::string, RuntimeCatalogFiling>;
 
 [[nodiscard]] Result<RuntimeCase>
 assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
-             const std::vector<const ValidatedResource*>& arguments) {
+             const std::vector<const ValidatedResource*>& arguments,
+             const model::PackRevision& root_revision) {
     auto parsed_case = parseCase(resource);
     if (!parsed_case) {
         return std::unexpected(parsed_case.error());
@@ -1662,6 +1700,11 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         }
         return std::unexpected(catalog_resource.error());
     }
+    if (!index.ownedBy(parsed_case->record_id.value, root_revision)) {
+        return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                    "case " + parsed_case->definition.id.value +
+                        " must reference a record owned by the exact root pack");
+    }
     for (const auto& authority_id : procedure->authority_set_ids) {
         const auto authority = index.require(authority_id.value, model::ResourceKind::AuthoritySet,
                                              "procedure " + procedure->id.value);
@@ -1689,8 +1732,7 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         if (!docket.court_id.has_value()) {
             continue;
         }
-        const auto docket_court = index.require(docket.court_id->value,
-                                                model::ResourceKind::Court,
+        const auto docket_court = index.require(docket.court_id->value, model::ResourceKind::Court,
                                                 "record " + record->id.value);
         if (!docket_court) {
             return std::unexpected(docket_court.error());
@@ -1811,19 +1853,8 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
                        std::move(runtime_arguments)};
 }
 
-} // namespace
-
-std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& pack) {
-    const auto capabilities =
-        CapabilityRegistry::validate(pack.manifest_schema_version, pack.required_capabilities);
-    if (!capabilities) {
-        return fail(RuntimePackErrorCode::InvalidPack, capabilities.error().message.toStdString());
-    }
-    const auto index = makeIndex(pack);
-    if (!index) {
-        return std::unexpected(index.error());
-    }
-
+[[nodiscard]] Result<RuntimePack> projectRuntimePack(const LoadedPack& pack,
+                                                     const ResourceIndex& index) {
     std::vector<const ValidatedResource*> cases;
     std::unordered_map<std::string, std::vector<const ValidatedResource*>> arguments_by_case;
     for (const auto& resource : pack.resources) {
@@ -1835,7 +1866,7 @@ std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& p
             if (!case_id) {
                 return std::unexpected(case_id.error());
             }
-            const auto case_resource = index->require(*case_id, model::ResourceKind::Case, path);
+            const auto case_resource = index.require(*case_id, model::ResourceKind::Case, path);
             if (!case_resource) {
                 return std::unexpected(case_resource.error());
             }
@@ -1863,13 +1894,42 @@ std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& p
         const auto found = arguments_by_case.find(resource->descriptor.id);
         const std::vector<const ValidatedResource*> no_arguments;
         const auto& arguments = found == arguments_by_case.end() ? no_arguments : found->second;
-        auto runtime_case = assembleCase(*resource, *index, arguments);
+        auto runtime_case = assembleCase(*resource, index, arguments, pack.revision);
         if (!runtime_case) {
             return std::unexpected(runtime_case.error());
         }
         runtime_cases.push_back(std::move(*runtime_case));
     }
     return RuntimePack{pack.revision, std::move(runtime_cases)};
+}
+
+} // namespace
+
+std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& pack) {
+    if (pack.graph_state != PackGraphState::StandaloneValidated || !pack.dependencies.empty()) {
+        return fail(RuntimePackErrorCode::InvalidPack,
+                    "dependency-bearing or deferred pack requires a catalog-resolved closure");
+    }
+    const std::array packs{&pack};
+    const auto index = makeIndex(packs, pack.manifest_schema_version);
+    if (!index) {
+        return std::unexpected(index.error());
+    }
+    return projectRuntimePack(pack, *index);
+}
+
+std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const ResolvedPack& pack) {
+    std::vector<const LoadedPack*> closure;
+    closure.reserve(pack.dependenciesDependencyFirst().size() + 1U);
+    for (const auto& dependency : pack.dependenciesDependencyFirst()) {
+        closure.push_back(&dependency);
+    }
+    closure.push_back(&pack.root());
+    const auto index = makeIndex(closure, pack.root().manifest_schema_version);
+    if (!index) {
+        return std::unexpected(index.error());
+    }
+    return projectRuntimePack(pack.root(), *index);
 }
 
 } // namespace appellate::packs

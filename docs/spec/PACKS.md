@@ -85,11 +85,15 @@ When optional metadata is absent, the native projection uses `Not specified by p
 not infer an actor, public docket number, display entry number, description, parent, or
 relationship.
 
-The installed-record controller accepts a `LoadedPack` only as trusted output of `PackReader` or
-`PackCatalog`. It rebuilds the canonical runtime projection from that loaded pack, requires exact
-equality with any separately supplied runtime value, and then uses only the rebuilt projection.
-This closes split-representation changes to sealed state, metadata, relationships, and anchors
-without requiring the source archive to remain present after catalog installation.
+The installed-record controller accepts either a standalone `LoadedPack` or a catalog-created
+`ResolvedPack`; both are trusted only as output of the corresponding pack boundary. It rebuilds
+the canonical runtime projection, requires exact equality with any separately supplied runtime
+value, and then uses only the rebuilt projection. This closes split-representation changes to
+sealed state, metadata, relationships, and anchors without retaining the authoring tree or the
+author-provided source archive. An already resolved in-memory closure can continue opening its
+verified root blobs from the content store if the installed archive becomes unavailable; a future
+catalog reload still requires that installed archive because declarative resources are not stored
+separately.
 
 ### Filing-route outcomes
 
@@ -135,6 +139,23 @@ silently exercise an operation reserved to the court.
 Dependencies lock an exact pack ID, version, and digest. Optional or version-range dependencies
 are not supported in an executable session. A directed dependency graph must be acyclic.
 
+Standalone validation and export remain strict: every reference must resolve inside that one
+pack. A thin pack must be exported explicitly with `export-deferred`; this validates its archive,
+schemas, identities, files, blobs, and resource payloads but marks its resource graph as
+non-executable until catalog resolution. The catalog never fetches dependencies. It resolves only
+exact revisions already installed on the device, verifies each archive against its recorded
+direct-dependency rows, and constructs a non-forgeable `ResolvedPack` in deterministic
+dependency-first order. The closure is limited to 128 revisions and 10,000 combined resources.
+
+Only one exact revision of a pack ID may appear in a closure. Resource IDs are globally unique:
+there is no root-wins, last-wins, override, or identical-byte exception. Each pack may see only
+itself and its own declared transitive dependencies; a sibling or consuming root cannot satisfy
+an undeclared reference. Root-owned cases and argument configurations are the only runtime entry
+points, and a root case must use a root-owned record. Blob paths remain local to their owning pack
+even when two packs use the same relative path. Closure-scoped materialization therefore binds
+both the verified closure and the exact owning revision; standalone packs continue to use their
+one exact revision directly.
+
 The manifest declares exact required capability IDs and positive integer versions. Capability
 negotiation uses the executable registry: version-1 packs use version-1 capabilities and
 version-2 packs use version-2 capabilities. Unknown IDs, unsupported versions, and capabilities
@@ -152,7 +173,10 @@ version-1 revision.
 Installed archive objects use their archive SHA-256 as the filename and an SQLite catalog
 records their immutable pack revision. Re-importing an identical revision is idempotent.
 Reusing `(pack ID, version)` with a different digest is a hard conflict. A session records all
-transitive revision pins before its first command.
+transitive revision pins before its first command, sorted by pack ID. Reopen requires the exact
+same complete pin set; a missing or changed dependency pin is treated as a corrupt session.
+Catalog-backed session-controller entry points accept the `ResolvedPack` itself and derive this
+pin set centrally rather than asking UI code to reconstruct it.
 
 ## Import transaction
 
@@ -160,9 +184,12 @@ transitive revision pins before its first command.
 2. Validate archive structure and declared limits without trusting file extensions.
 3. Stage only declared regular files under generated private names.
 4. Validate schemas, identities, dependencies, cross-references, digests, and semantics.
-5. Fsync the staged archive and atomically rename it into the local pack store.
-6. Commit the installed-revision row in SQLite. On any failure, remove staging state and leave
-   the prior store and catalog unchanged.
+5. Fsync the staged archive and atomically publish archive and content-addressed blob objects.
+6. Commit the installed revision, exact dependencies, and blob descriptors in one SQLite
+   transaction. On any failure, roll back SQLite and remove only newly published objects that no
+   committed catalog row references; pre-existing deduplicated objects are preserved. A
+   catalog-local interprocess lock covers publication, commit, and cleanup so two installers
+   cannot race that reference check.
 
 ## Authoring CLI
 
@@ -174,8 +201,10 @@ nonzero exit code. Every response includes `schema_version: 1` and `status`.
 appellate-pack template <new-directory>
 appellate-pack validate <directory-or-awpack>
 appellate-pack export <directory> <new-awpack>
+appellate-pack export-deferred <directory> <new-awpack>
 appellate-pack install <awpack> <catalog> [--installed-at YYYY-MM-DDTHH:MM:SSZ]
 appellate-pack list <catalog>
+appellate-pack validate-resolved <catalog> <pack-id> <version> <digest>
 ```
 
 `template` creates a complete fictional/composite schema-version-2 example containing every
@@ -185,3 +214,9 @@ also refuses an existing destination.
 Export orders members and fixes archive metadata, so identical source bytes produce identical
 archives and the same revision digest. Supplying `--installed-at` is intended for reproducible
 tests; normal interactive use records the current UTC second.
+
+`export-deferred` is the only authoring command that permits dependency-resolved references; its
+JSON response states that resolution has not yet occurred. `validate-resolved` accepts an exact
+root revision in a local catalog, validates the whole installed closure, and returns the complete
+pack-ID-sorted revision-pin set. Neither command performs network access or makes a deferred pack
+directly executable.

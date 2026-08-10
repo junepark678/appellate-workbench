@@ -76,7 +76,8 @@ namespace {
         .arg(count == 1U ? singular : plural);
 }
 
-[[nodiscard]] auto checkedRuntime(const packs::LoadedPack& loaded)
+template <typename Pack>
+[[nodiscard]] auto checkedRuntime(const Pack& loaded)
     -> std::expected<packs::RuntimePack, QString> {
     auto runtime = packs::loadRuntimePack(loaded);
     if (!runtime) {
@@ -454,17 +455,17 @@ auto MainWindow::loadSource(const QString& source_path) -> std::expected<void, Q
         return reject(
             QStringLiteral("Pack archive installation failed: %1").arg(installed.error().message));
     }
-    const auto loaded = catalog_->load(installed->revision.id, installed->revision.version);
-    if (!loaded) {
-        return reject(
-            QStringLiteral("Installed pack could not be loaded: %1").arg(loaded.error().message));
+    const auto resolved = catalog_->loadResolved(installed->revision);
+    if (!resolved) {
+        return reject(QStringLiteral("Installed pack closure could not be loaded: %1")
+                          .arg(resolved.error().message));
     }
-    auto runtime = checkedRuntime(*loaded);
+    auto runtime = checkedRuntime(*resolved);
     if (!runtime) {
         return reject(runtime.error());
     }
     commitRuntime(std::move(*runtime), absolute_path,
-                  QStringLiteral("Installed and loaded pack archive."), std::move(*loaded));
+                  QStringLiteral("Installed and loaded exact pack closure."), std::move(*resolved));
     return {};
 }
 
@@ -573,7 +574,7 @@ auto MainWindow::openSelectedRecord() -> std::expected<void, QString> {
 
 void MainWindow::commitRuntime(packs::RuntimePack runtime, const QString& source_path,
                                const QString& success_message,
-                               std::optional<packs::LoadedPack> installed_pack) {
+                               std::optional<packs::ResolvedPack> installed_pack) {
     invalidateRecordSelection();
     runtime_pack_ = std::move(runtime);
     installed_pack_ = std::move(installed_pack);

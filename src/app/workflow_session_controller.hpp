@@ -16,6 +16,10 @@
 #include <optional>
 #include <vector>
 
+namespace appellate::packs {
+class ResolvedPack;
+}
+
 namespace appellate::app {
 
 enum class WorkflowSessionErrorCode {
@@ -59,10 +63,24 @@ class WorkflowSessionController final {
         -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
 
     [[nodiscard]] static auto
+    create(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+           model::WorkflowState initial_state, storage::AssetStore asset_store,
+           std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+           QString created_at_utc, const packs::ResolvedPack& resolved_pack)
+        -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
+
+    [[nodiscard]] static auto
     reopen(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
            model::WorkflowState initial_state, storage::AssetStore asset_store,
            std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
            std::vector<storage::RevisionPin> expected_pins)
+        -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
+
+    [[nodiscard]] static auto
+    reopen(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+           model::WorkflowState initial_state, storage::AssetStore asset_store,
+           std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+           const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
 
     [[nodiscard]] auto submit(const model::WorkflowCommand& command,

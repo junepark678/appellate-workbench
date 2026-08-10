@@ -1,5 +1,7 @@
 #include "workflow_session_controller.hpp"
 
+#include "resolved_session_pins.hpp"
+
 #include "appellate/engine/workflow_engine.hpp"
 #include "appellate/storage/workflow_codec.hpp"
 
@@ -490,6 +492,19 @@ WorkflowSessionController::create(model::WorkflowDefinition workflow,
 }
 
 std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>
+WorkflowSessionController::create(model::WorkflowDefinition workflow,
+                                  model::CaseDefinition case_definition,
+                                  model::WorkflowState initial_state,
+                                  storage::AssetStore asset_store,
+                                  std::unique_ptr<storage::SessionStore> session_store,
+                                  QString engine_revision, QString created_at_utc,
+                                  const packs::ResolvedPack& resolved_pack) {
+    return create(std::move(workflow), std::move(case_definition), std::move(initial_state),
+                  std::move(asset_store), std::move(session_store), std::move(engine_revision),
+                  std::move(created_at_utc), revisionPinsForSession(resolved_pack));
+}
+
+std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>
 WorkflowSessionController::reopen(model::WorkflowDefinition workflow,
                                   model::CaseDefinition case_definition,
                                   model::WorkflowState initial_state,
@@ -525,6 +540,19 @@ WorkflowSessionController::reopen(model::WorkflowDefinition workflow,
         std::move(workflow), std::move(case_definition), std::move(initial_state), restored->state,
         restored->journal, std::move(asset_store), std::move(session_store),
         std::move(expected_engine_revision), *normalized_pins, *loaded));
+}
+
+std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>
+WorkflowSessionController::reopen(model::WorkflowDefinition workflow,
+                                  model::CaseDefinition case_definition,
+                                  model::WorkflowState initial_state,
+                                  storage::AssetStore asset_store,
+                                  std::unique_ptr<storage::SessionStore> session_store,
+                                  QString expected_engine_revision,
+                                  const packs::ResolvedPack& resolved_pack) {
+    return reopen(std::move(workflow), std::move(case_definition), std::move(initial_state),
+                  std::move(asset_store), std::move(session_store),
+                  std::move(expected_engine_revision), revisionPinsForSession(resolved_pack));
 }
 
 std::expected<WorkflowSubmissionResult, WorkflowSessionError>

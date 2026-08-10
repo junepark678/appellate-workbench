@@ -315,7 +315,10 @@ void PackCatalogTest::requiresExactDependenciesWithoutPartialInstall() {
     QCOMPARE(QDir((*catalog)->blobObjectsDirectory())
                  .entryList(QDir::Files | QDir::NoDotAndDotDot)
                  .size(),
-             1);
+             0);
+    QCOMPARE(
+        QDir((*catalog)->archivesDirectory()).entryList(QDir::Files | QDir::NoDotAndDotDot).size(),
+        0);
 }
 
 void PackCatalogTest::rejectsSelfCycleAndImmutableConflict() {

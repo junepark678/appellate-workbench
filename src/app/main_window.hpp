@@ -71,7 +71,7 @@ class MainWindow final : public QMainWindow {
     void openCatalog(const QString& injected_root);
     void commitRuntime(packs::RuntimePack runtime, const QString& source_path,
                        const QString& success_message,
-                       std::optional<packs::LoadedPack> installed_pack = std::nullopt);
+                       std::optional<packs::ResolvedPack> installed_pack = std::nullopt);
     void invalidateRecordSelection();
     [[nodiscard]] bool selectedCaseHasLoadedRecord() const;
     void updateCaseSelection(int row);
@@ -82,7 +82,7 @@ class MainWindow final : public QMainWindow {
 
     std::unique_ptr<packs::PackCatalog> catalog_;
     std::optional<packs::RuntimePack> runtime_pack_;
-    std::optional<packs::LoadedPack> installed_pack_;
+    std::optional<packs::ResolvedPack> installed_pack_;
     std::optional<model::PackRevision> record_revision_;
     std::optional<model::CaseId> record_case_id_;
     QString current_source_path_;

@@ -28,17 +28,18 @@ struct PackArchiveLimits final {
 class PackArchive final {
   public:
     [[nodiscard]] static std::expected<LoadedPack, Error>
-    importArchive(const QString& archive_path, PackArchiveLimits limits = {});
+    importArchive(const QString& archive_path, PackArchiveLimits limits = {},
+                  PackValidationScope scope = PackValidationScope::Standalone);
 
     [[nodiscard]] static std::expected<void, Error>
-    streamValidatedBlob(const QString& archive_path,
-                        const model::PackRevision& exact_revision,
+    streamValidatedBlob(const QString& archive_path, const model::PackRevision& exact_revision,
                         const model::BlobDescriptor& descriptor, QIODevice& destination,
                         PackArchiveLimits limits = {});
 
     [[nodiscard]] static std::expected<model::PackRevision, Error>
     exportDirectory(const QString& directory, const QString& archive_path,
-                    PackArchiveLimits limits = {});
+                    PackArchiveLimits limits = {},
+                    PackValidationScope scope = PackValidationScope::Standalone);
 
   private:
     friend class PackCatalog;

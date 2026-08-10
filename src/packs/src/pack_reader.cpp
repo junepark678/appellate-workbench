@@ -1045,9 +1045,8 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 const auto docket = value.toObject();
                 const auto docket_id = docket.value(QStringLiteral("docket_id")).toString();
                 if (dockets.contains(docket_id)) {
-                    return crossReferenceFailure(
-                        resource, QStringLiteral("dockets"),
-                        QStringLiteral("docket ids must be unique"));
+                    return crossReferenceFailure(resource, QStringLiteral("dockets"),
+                                                 QStringLiteral("docket ids must be unique"));
                 }
                 dockets.insert(docket_id);
                 if (docket.contains(QStringLiteral("court_id"))) {
@@ -1078,16 +1077,15 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 entries.insert(entry_id);
                 entry_numbers.insert(entry_number);
                 entries_by_id.insert(entry_id, entry);
-                if (entry.contains(QStringLiteral("docket_id")) &&
-                    !dockets.contains(docket_id)) {
+                if (entry.contains(QStringLiteral("docket_id")) && !dockets.contains(docket_id)) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("docket_entries/docket_id"),
                         QStringLiteral("entry %1 references undeclared docket %2")
                             .arg(entry_id, docket_id));
                 }
                 if (entry.contains(QStringLiteral("entry_label"))) {
-                    const auto label_key = docket_id + u'\n' +
-                                           entry.value(QStringLiteral("entry_label")).toString();
+                    const auto label_key =
+                        docket_id + u'\n' + entry.value(QStringLiteral("entry_label")).toString();
                     if (display_labels.contains(label_key)) {
                         return crossReferenceFailure(
                             resource, QStringLiteral("docket_entries/entry_label"),
@@ -1125,12 +1123,13 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 if (!entries_by_id.contains(parent.value()) || parent.key() == parent.value()) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("docket_entries/parent_entry_id"),
-                        QStringLiteral("entry %1 has an orphaned or self parent").arg(parent.key()));
+                        QStringLiteral("entry %1 has an orphaned or self parent")
+                            .arg(parent.key()));
                 }
-                const auto child_docket = entries_by_id.value(parent.key())
-                                              .value(QStringLiteral("docket_id"));
-                const auto parent_docket = entries_by_id.value(parent.value())
-                                               .value(QStringLiteral("docket_id"));
+                const auto child_docket =
+                    entries_by_id.value(parent.key()).value(QStringLiteral("docket_id"));
+                const auto parent_docket =
+                    entries_by_id.value(parent.value()).value(QStringLiteral("docket_id"));
                 if (child_docket != parent_docket) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("docket_entries/parent_entry_id"),
@@ -1162,9 +1161,8 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 const auto page_number = anchor.value(QStringLiteral("page_number")).toInt();
                 if (page_anchor_ids.contains(anchor_id) || entries.contains(anchor_id) ||
                     !entries_by_id.contains(entry_id) ||
-                    page_number > entries_by_id.value(entry_id)
-                                      .value(QStringLiteral("page_count"))
-                                      .toInt()) {
+                    page_number >
+                        entries_by_id.value(entry_id).value(QStringLiteral("page_count")).toInt()) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("page_anchors"),
                         QStringLiteral(
@@ -1172,8 +1170,7 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 }
                 page_anchor_ids.insert(anchor_id);
                 if (anchor.contains(QStringLiteral("citation_label"))) {
-                    const auto citation =
-                        anchor.value(QStringLiteral("citation_label")).toString();
+                    const auto citation = anchor.value(QStringLiteral("citation_label")).toString();
                     if (citation_labels.contains(citation)) {
                         return crossReferenceFailure(
                             resource, QStringLiteral("page_anchors/citation_label"),
@@ -1583,7 +1580,8 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
 
 } // namespace
 
-std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& directory) {
+std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& directory,
+                                                           PackValidationScope scope) {
     const QFileInfo root_info(directory);
     if (!root_info.isDir() || root_info.isSymLink()) {
         return fail(ErrorCode::UnsafePath,
@@ -1886,9 +1884,13 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     std::ranges::sort(resources, [](const auto& left, const auto& right) {
         return left.descriptor.id < right.descriptor.id;
     });
-    const auto graph_result = validateResourceGraph(resources, blobs);
-    if (!graph_result) {
-        return std::unexpected(graph_result.error());
+    auto graph_state = PackGraphState::DeferredReferences;
+    if (scope == PackValidationScope::Standalone || dependencies.empty()) {
+        const auto graph_result = validateResourceGraph(resources, blobs);
+        if (!graph_result) {
+            return std::unexpected(graph_result.error());
+        }
+        graph_state = PackGraphState::StandaloneValidated;
     }
 
     return LoadedPack{
@@ -1901,7 +1903,69 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         std::move(resources),
         std::move(blobs),
         std::move(judges),
+        graph_state,
     };
+}
+
+std::expected<void, Error> PackReader::validateResolvedGraph(
+    const LoadedPack& root, std::span<const LoadedPack* const> dependencies_dependency_first) {
+    std::size_t total_resources = root.resources.size();
+    std::size_t total_blobs = root.blobs.size();
+    if (total_resources > maximum_contents || total_blobs > maximum_contents) {
+        return fail(ErrorCode::ResourceTooLarge,
+                    QStringLiteral("Resolved closure exceeds the resource graph limit"));
+    }
+    for (const auto* dependency : dependencies_dependency_first) {
+        if (dependency == nullptr ||
+            dependency->resources.size() > maximum_contents - total_resources ||
+            dependency->blobs.size() > maximum_contents - total_blobs) {
+            return fail(ErrorCode::ResourceTooLarge,
+                        QStringLiteral("Resolved closure exceeds the resource graph limit"));
+        }
+        total_resources += dependency->resources.size();
+        total_blobs += dependency->blobs.size();
+    }
+    if (total_resources > maximum_contents || total_blobs > maximum_contents ||
+        total_blobs > maximum_contents - total_resources) {
+        return fail(ErrorCode::ResourceTooLarge,
+                    QStringLiteral("Resolved closure exceeds the resource graph limit"));
+    }
+
+    std::vector<ValidatedResource> resources;
+    std::vector<model::BlobDescriptor> blobs;
+    resources.reserve(total_resources);
+    blobs.reserve(total_blobs);
+    const auto append_pack = [&](const LoadedPack& pack, std::size_t pack_index) {
+        const auto prefix = QStringLiteral("closure-%1/").arg(pack_index).toStdString();
+        for (const auto& source : pack.resources) {
+            auto resource = source;
+            if (resource.descriptor.kind == model::ResourceKind::Record) {
+                auto entries = resource.document.value(QStringLiteral("docket_entries")).toArray();
+                for (qsizetype index = 0; index < entries.size(); ++index) {
+                    auto entry = entries.at(index).toObject();
+                    entry.insert(
+                        QStringLiteral("asset_path"),
+                        QString::fromStdString(
+                            prefix +
+                            entry.value(QStringLiteral("asset_path")).toString().toStdString()));
+                    entries.replace(index, entry);
+                }
+                resource.document.insert(QStringLiteral("docket_entries"), entries);
+            }
+            resources.push_back(std::move(resource));
+        }
+        for (const auto& source : pack.blobs) {
+            auto blob = source;
+            blob.path = prefix + blob.path;
+            blobs.push_back(std::move(blob));
+        }
+    };
+    std::size_t pack_index = 0;
+    for (const auto* dependency : dependencies_dependency_first) {
+        append_pack(*dependency, pack_index++);
+    }
+    append_pack(root, pack_index);
+    return validateResourceGraph(resources, blobs);
 }
 
 } // namespace appellate::packs

@@ -2,6 +2,8 @@ qt_add_library(
     appellate_application STATIC
     oral_argument_session_controller.cpp
     oral_argument_session_controller.hpp
+    resolved_session_pins.cpp
+    resolved_session_pins.hpp
     session_controller.cpp
     session_controller.hpp
     workflow_session_controller.cpp
@@ -14,7 +16,7 @@ target_include_directories(
 )
 target_link_libraries(
     appellate_application
-    PUBLIC appellate::engine appellate::storage Qt6::Core
+    PUBLIC appellate::engine appellate::packs appellate::storage Qt6::Core
     PRIVATE appellate::project_warnings appellate::project_sanitizers
 )
 target_compile_features(appellate_application PUBLIC cxx_std_26)

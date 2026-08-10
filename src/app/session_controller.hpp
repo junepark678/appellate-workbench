@@ -15,6 +15,10 @@
 #include <memory>
 #include <vector>
 
+namespace appellate::packs {
+class ResolvedPack;
+}
+
 namespace appellate::app {
 
 enum class SessionControllerErrorCode {
@@ -56,9 +60,24 @@ class SessionController final {
         -> std::expected<std::unique_ptr<SessionController>, SessionControllerError>;
 
     [[nodiscard]] static auto
+    create(model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
+           model::SessionState initial_state, storage::AssetStore asset_store,
+           std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+           QString created_at_utc, const packs::ResolvedPack& resolved_pack)
+        -> std::expected<std::unique_ptr<SessionController>, SessionControllerError>;
+
+    [[nodiscard]] static auto
     reopen(model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
            model::SessionState initial_state, storage::AssetStore asset_store,
-           std::unique_ptr<storage::SessionStore> session_store)
+           std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+           std::vector<storage::RevisionPin> expected_pins)
+        -> std::expected<std::unique_ptr<SessionController>, SessionControllerError>;
+
+    [[nodiscard]] static auto
+    reopen(model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
+           model::SessionState initial_state, storage::AssetStore asset_store,
+           std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+           const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<SessionController>, SessionControllerError>;
 
     [[nodiscard]] auto submit(const model::SubmitFiling& command, QByteArrayView document_bytes,

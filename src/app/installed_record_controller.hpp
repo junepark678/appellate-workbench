@@ -74,7 +74,17 @@ class InstalledRecordController final {
                             const model::CaseId& selected_case_id)
         -> std::expected<InstalledRecordLoad, InstalledRecordError>;
 
+    [[nodiscard]] auto load(const packs::ResolvedPack& resolved_pack,
+                            const packs::RuntimePack& runtime_pack,
+                            const model::CaseId& selected_case_id)
+        -> std::expected<InstalledRecordLoad, InstalledRecordError>;
+
   private:
+    [[nodiscard]] auto
+    loadCanonical(const packs::LoadedPack& root_pack, const packs::RuntimePack& canonical_runtime,
+                  const packs::RuntimePack& supplied_runtime, const model::CaseId& selected_case_id)
+        -> std::expected<InstalledRecordLoad, InstalledRecordError>;
+
     packs::PackCatalog& catalog_;
     ui::RecordWorkspace& workspace_;
 };

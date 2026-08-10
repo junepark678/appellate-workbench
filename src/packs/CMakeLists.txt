@@ -12,6 +12,7 @@ qt_add_library(
     include/appellate/packs/pack_archive.hpp
     include/appellate/packs/pack_catalog.hpp
     include/appellate/packs/pack_reader.hpp
+    include/appellate/packs/resolved_pack.hpp
     include/appellate/packs/runtime_pack.hpp
     include/appellate/packs/schema_validator.hpp
 )

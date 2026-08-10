@@ -1,22 +1,30 @@
 #include "appellate/packs/pack_catalog.hpp"
+#include "appellate/packs/capability_registry.hpp"
 
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QLockFile>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QTemporaryFile>
 #include <QUuid>
 #include <QVariant>
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cerrno>
 #include <cstdint>
+#include <functional>
 #include <limits>
+#include <map>
+#include <optional>
 #include <ranges>
+#include <set>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 
 #if defined(Q_OS_UNIX)
@@ -32,9 +40,10 @@ namespace {
 constexpr auto current_schema_version = 2;
 constexpr qsizetype copy_buffer_bytes = 64 * 1024;
 constexpr qsizetype maximum_text_characters = 512;
+constexpr std::size_t maximum_resolved_revisions = 128;
+constexpr std::size_t maximum_resolved_resources = 10'000;
 
-[[nodiscard]] auto fail(CatalogErrorCode code, QString message)
-    -> std::unexpected<CatalogError> {
+[[nodiscard]] auto fail(CatalogErrorCode code, QString message) -> std::unexpected<CatalogError> {
     return std::unexpected(CatalogError{code, std::move(message)});
 }
 
@@ -59,8 +68,25 @@ constexpr qsizetype maximum_text_characters = 512;
            validDigest(QString::fromStdString(descriptor.sha256));
 }
 
-[[nodiscard]] QString asQString(const std::string& value) {
-    return QString::fromUtf8(value);
+[[nodiscard]] QString asQString(const std::string& value) { return QString::fromUtf8(value); }
+
+[[nodiscard]] bool revisionLess(const model::PackRevision& left, const model::PackRevision& right) {
+    return std::tie(left.id.value, left.version, left.digest) <
+           std::tie(right.id.value, right.version, right.digest);
+}
+
+struct RevisionLess final {
+    [[nodiscard]] bool operator()(const model::PackRevision& left,
+                                  const model::PackRevision& right) const {
+        return revisionLess(left, right);
+    }
+};
+
+[[nodiscard]] auto normalizedDependencies(std::vector<model::PackDependency> dependencies) {
+    std::ranges::sort(dependencies, [](const auto& left, const auto& right) {
+        return revisionLess(left.revision, right.revision);
+    });
+    return dependencies;
 }
 
 [[nodiscard]] model::PackRevision revisionFromQuery(const QSqlQuery& query, int offset = 0) {
@@ -111,9 +137,8 @@ void addFrame(QCryptographicHash& hash, const std::string& value) {
     return fail(code, QStringLiteral("%1: %2").arg(action, query.lastError().text()));
 }
 
-[[nodiscard]] auto execStatement(QSqlDatabase& database, const QString& sql,
-                                 CatalogErrorCode code, const QString& action)
-    -> std::expected<void, CatalogError> {
+[[nodiscard]] auto execStatement(QSqlDatabase& database, const QString& sql, CatalogErrorCode code,
+                                 const QString& action) -> std::expected<void, CatalogError> {
     QSqlQuery query(database);
     if (!query.exec(sql)) {
         return queryFailure(code, query, action);
@@ -176,8 +201,30 @@ struct StagedArchive final {
     LoadedPack loaded;
 };
 
-[[nodiscard]] auto hashArchiveFile(const QString& path)
-    -> std::expected<QString, CatalogError> {
+struct PublishedPath final {
+    QString path;
+    bool newly_created{};
+};
+
+class ScopeExit final {
+  public:
+    explicit ScopeExit(std::function<void()> action) : action_(std::move(action)) {}
+    ScopeExit(const ScopeExit&) = delete;
+    ScopeExit& operator=(const ScopeExit&) = delete;
+    ~ScopeExit() {
+        if (active_) {
+            action_();
+        }
+    }
+
+    void dismiss() noexcept { active_ = false; }
+
+  private:
+    std::function<void()> action_;
+    bool active_{true};
+};
+
+[[nodiscard]] auto hashArchiveFile(const QString& path) -> std::expected<QString, CatalogError> {
     const QFileInfo info(path);
     if (!info.isFile() || info.isSymLink()) {
         return fail(CatalogErrorCode::CannotStoreArchive,
@@ -204,8 +251,7 @@ struct StagedArchive final {
     return QString::fromLatin1(hash.result().toHex());
 }
 
-[[nodiscard]] auto verifyBlobObject(const QString& path,
-                                    const model::BlobDescriptor& descriptor,
+[[nodiscard]] auto verifyBlobObject(const QString& path, const model::BlobDescriptor& descriptor,
                                     CatalogErrorCode error_code)
     -> std::expected<void, CatalogError> {
     const QFileInfo before(path);
@@ -245,13 +291,15 @@ struct StagedArchive final {
     return {};
 }
 
-[[nodiscard]] auto ensureBlobObject(const QString& archive_path,
-                                    const model::PackRevision& exact_revision,
-                                    const model::BlobDescriptor& descriptor,
-                                    const QString& objects_directory,
-                                    CatalogErrorCode invalid_existing_code,
-                                    CatalogErrorCode invalid_archive_code)
-    -> std::expected<QString, CatalogError> {
+[[nodiscard]] auto
+ensureBlobObject(const QString& archive_path, const model::PackRevision& exact_revision,
+                 const model::BlobDescriptor& descriptor, const QString& objects_directory,
+                 CatalogErrorCode invalid_existing_code, CatalogErrorCode invalid_archive_code,
+                 PublishedPath* attempted_publication = nullptr)
+    -> std::expected<PublishedPath, CatalogError> {
+    if (attempted_publication != nullptr) {
+        *attempted_publication = {};
+    }
     const auto digest = asQString(descriptor.sha256);
     const QFileInfo objects_info(objects_directory);
     if (!objects_info.isDir() || objects_info.isSymLink()) {
@@ -273,11 +321,14 @@ struct StagedArchive final {
         if (!verified) {
             return std::unexpected(verified.error());
         }
-        return final_path;
+        const auto publication = PublishedPath{final_path, false};
+        if (attempted_publication != nullptr) {
+            *attempted_publication = publication;
+        }
+        return publication;
     }
 
-    QTemporaryFile temporary(
-        QDir(objects_directory).filePath(QStringLiteral(".blob-XXXXXX.tmp")));
+    QTemporaryFile temporary(QDir(objects_directory).filePath(QStringLiteral(".blob-XXXXXX.tmp")));
     temporary.setAutoRemove(false);
     if (!temporary.open() ||
         !QFile::setPermissions(temporary.fileName(),
@@ -292,8 +343,8 @@ struct StagedArchive final {
                     QStringLiteral("Cannot create private blob staging file"));
     }
     const auto temporary_path = temporary.fileName();
-    const auto streamed = PackArchive::streamValidatedBlob(archive_path, exact_revision,
-                                                            descriptor, temporary);
+    const auto streamed =
+        PackArchive::streamValidatedBlob(archive_path, exact_revision, descriptor, temporary);
     if (!streamed) {
         temporary.setAutoRemove(true);
         temporary.close();
@@ -320,7 +371,15 @@ struct StagedArchive final {
         if (!raced) {
             return std::unexpected(raced.error());
         }
-        return final_path;
+        const auto publication = PublishedPath{final_path, false};
+        if (attempted_publication != nullptr) {
+            *attempted_publication = publication;
+        }
+        return publication;
+    }
+    const auto publication = PublishedPath{final_path, true};
+    if (attempted_publication != nullptr) {
+        *attempted_publication = publication;
     }
     if (!syncDirectory(objects_directory)) {
         return fail(CatalogErrorCode::CannotStoreBlob,
@@ -330,14 +389,18 @@ struct StagedArchive final {
     if (!verified) {
         return std::unexpected(verified.error());
     }
-    return final_path;
+    return publication;
 }
 
 [[nodiscard]] auto stageArchive(const QString& source_path, const QString& archives_directory)
     -> std::expected<StagedArchive, CatalogError> {
-    const auto initially_loaded = PackArchive::importArchive(source_path);
+    const auto initially_loaded =
+        PackArchive::importArchive(source_path, {}, PackValidationScope::ResolvedClosure);
     if (!initially_loaded) {
-        return fail(CatalogErrorCode::ArchiveInvalid, initially_loaded.error().message);
+        return fail(initially_loaded.error().code == ErrorCode::UnsupportedCapability
+                        ? CatalogErrorCode::UnsupportedCapability
+                        : CatalogErrorCode::ArchiveInvalid,
+                    initially_loaded.error().message);
     }
 
     QFile source(source_path);
@@ -345,8 +408,7 @@ struct StagedArchive final {
         return fail(CatalogErrorCode::CannotStoreArchive,
                     QStringLiteral("Cannot open archive for installation"));
     }
-    QTemporaryFile staged(
-        QDir(archives_directory).filePath(QStringLiteral(".awpack-XXXXXX.tmp")));
+    QTemporaryFile staged(QDir(archives_directory).filePath(QStringLiteral(".awpack-XXXXXX.tmp")));
     staged.setAutoRemove(false);
     if (!staged.open()) {
         return fail(CatalogErrorCode::CannotStoreArchive,
@@ -380,8 +442,16 @@ struct StagedArchive final {
     const auto staged_path = staged.fileName();
     staged.close();
 
-    const auto reloaded = PackArchive::importArchive(staged_path);
-    if (!reloaded || reloaded->revision != initially_loaded->revision) {
+    const auto reloaded =
+        PackArchive::importArchive(staged_path, {}, PackValidationScope::ResolvedClosure);
+    if (!reloaded) {
+        QFile::remove(staged_path);
+        return fail(reloaded.error().code == ErrorCode::UnsupportedCapability
+                        ? CatalogErrorCode::UnsupportedCapability
+                        : CatalogErrorCode::ArchiveInvalid,
+                    reloaded.error().message);
+    }
+    if (reloaded->revision != initially_loaded->revision) {
         QFile::remove(staged_path);
         return fail(CatalogErrorCode::ArchiveInvalid,
                     QStringLiteral("Archive changed while it was being installed"));
@@ -393,47 +463,74 @@ struct StagedArchive final {
     };
 }
 
-[[nodiscard]] auto installStagedFile(StagedArchive& staged, const QString& archives_directory)
-    -> std::expected<QString, CatalogError> {
-    const auto final_path = QDir(archives_directory)
-                                .filePath(staged.sha256 + QStringLiteral(".awpack"));
+[[nodiscard]] auto installStagedFile(StagedArchive& staged, const QString& archives_directory,
+                                     PublishedPath* attempted_publication)
+    -> std::expected<PublishedPath, CatalogError> {
+    *attempted_publication = {};
+    const auto final_path =
+        QDir(archives_directory).filePath(staged.sha256 + QStringLiteral(".awpack"));
     if (QFileInfo::exists(final_path)) {
         QFile::remove(staged.path);
         const auto existing_hash = hashArchiveFile(final_path);
-        const auto existing = PackArchive::importArchive(final_path);
+        const auto existing =
+            PackArchive::importArchive(final_path, {}, PackValidationScope::ResolvedClosure);
         if (!existing_hash || *existing_hash != staged.sha256 || !existing ||
             existing->revision != staged.loaded.revision) {
             return fail(CatalogErrorCode::CannotStoreArchive,
                         QStringLiteral("Existing archive object is corrupt"));
         }
-        return final_path;
+        const auto publication = PublishedPath{final_path, false};
+        *attempted_publication = publication;
+        return publication;
     }
     if (!QFile::rename(staged.path, final_path)) {
         QFile::remove(staged.path);
         const auto existing_hash = hashArchiveFile(final_path);
-        const auto existing = PackArchive::importArchive(final_path);
+        const auto existing =
+            PackArchive::importArchive(final_path, {}, PackValidationScope::ResolvedClosure);
         if (!existing_hash || *existing_hash != staged.sha256 || !existing ||
             existing->revision != staged.loaded.revision) {
             return fail(CatalogErrorCode::CannotStoreArchive,
                         QStringLiteral("Cannot atomically install archive object"));
         }
-        return final_path;
+        const auto publication = PublishedPath{final_path, false};
+        *attempted_publication = publication;
+        return publication;
     }
+    const auto publication = PublishedPath{final_path, true};
+    *attempted_publication = publication;
     if (!syncDirectory(archives_directory)) {
         return fail(CatalogErrorCode::CannotStoreArchive,
                     QStringLiteral("Cannot durably flush the archive directory"));
     }
-    return final_path;
+    return publication;
+}
+
+[[nodiscard]] bool catalogReferencesArchive(const QSqlDatabase& database,
+                                            const QString& archive_sha256) {
+    QSqlQuery query(database);
+    query.prepare(QStringLiteral("SELECT 1 FROM pack_revisions WHERE archive_sha256 = ? LIMIT 1"));
+    query.addBindValue(archive_sha256);
+    // Fail closed: an unreadable catalog is never permission to delete a durable object.
+    return !query.exec() || query.next();
+}
+
+[[nodiscard]] bool catalogReferencesBlob(const QSqlDatabase& database, const QString& blob_sha256) {
+    QSqlQuery query(database);
+    query.prepare(QStringLiteral("SELECT 1 FROM pack_blobs WHERE sha256 = ? LIMIT 1"));
+    query.addBindValue(blob_sha256);
+    // Fail closed: an unreadable catalog is never permission to delete a durable object.
+    return !query.exec() || query.next();
 }
 
 [[nodiscard]] auto dependenciesFor(const QSqlDatabase& database,
                                    const model::PackRevision& revision)
     -> std::expected<std::vector<model::PackDependency>, CatalogError> {
     QSqlQuery query(database);
-    query.prepare(QStringLiteral(
-        "SELECT dependency_pack_id, dependency_version, dependency_digest "
-        "FROM pack_dependencies WHERE pack_id = ? AND version = ? "
-        "ORDER BY dependency_pack_id, dependency_version, dependency_digest"));
+    query.prepare(
+        QStringLiteral("SELECT dependency_pack_id, dependency_version, dependency_digest "
+                       "FROM pack_dependencies WHERE pack_id = ? AND version = ? "
+                       "ORDER BY dependency_pack_id, dependency_version, dependency_digest"));
     query.addBindValue(asQString(revision.id.value));
     query.addBindValue(asQString(revision.version));
     if (!query.exec()) {
@@ -447,13 +544,11 @@ struct StagedArchive final {
     return dependencies;
 }
 
-[[nodiscard]] auto blobsFor(const QSqlDatabase& database,
-                            const model::PackRevision& revision)
+[[nodiscard]] auto blobsFor(const QSqlDatabase& database, const model::PackRevision& revision)
     -> std::expected<std::vector<model::BlobDescriptor>, CatalogError> {
     QSqlQuery query(database);
-    query.prepare(QStringLiteral(
-        "SELECT path, media_type, byte_size, sha256 FROM pack_blobs "
-        "WHERE pack_id = ? AND version = ? ORDER BY path"));
+    query.prepare(QStringLiteral("SELECT path, media_type, byte_size, sha256 FROM pack_blobs "
+                                 "WHERE pack_id = ? AND version = ? ORDER BY path"));
     query.addBindValue(asQString(revision.id.value));
     query.addBindValue(asQString(revision.version));
     if (!query.exec()) {
@@ -481,9 +576,8 @@ struct StagedArchive final {
         blobs.push_back(std::move(descriptor));
     }
     QSqlQuery set(database);
-    set.prepare(QStringLiteral(
-        "SELECT blob_count, descriptor_sha256 FROM pack_blob_sets "
-        "WHERE pack_id = ? AND version = ?"));
+    set.prepare(QStringLiteral("SELECT blob_count, descriptor_sha256 FROM pack_blob_sets "
+                               "WHERE pack_id = ? AND version = ?"));
     set.addBindValue(asQString(revision.id.value));
     set.addBindValue(asQString(revision.version));
     if (!set.exec()) {
@@ -505,8 +599,7 @@ struct StagedArchive final {
     return blobs;
 }
 
-[[nodiscard]] auto recordBlobs(QSqlDatabase& database,
-                               const model::PackRevision& revision,
+[[nodiscard]] auto recordBlobs(QSqlDatabase& database, const model::PackRevision& revision,
                                const std::vector<model::BlobDescriptor>& blobs,
                                CatalogErrorCode error_code, const QString& action)
     -> std::expected<void, CatalogError> {
@@ -586,8 +679,8 @@ PackCatalog::open(const QString& root_directory) {
     auto catalog = std::unique_ptr<PackCatalog>(new PackCatalog(
         absolute_root,
         QStringLiteral("appellate-packs-%1").arg(QUuid::createUuid().toString(QUuid::Id128))));
-    catalog->database_ = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"),
-                                                   catalog->connection_name_);
+    catalog->database_ =
+        QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), catalog->connection_name_);
     catalog->database_.setDatabaseName(
         QDir(absolute_root).filePath(QStringLiteral("catalog.sqlite")));
     if (!catalog->database_.open()) {
@@ -612,9 +705,9 @@ std::expected<void, CatalogError> PackCatalog::configure() {
         {"PRAGMA busy_timeout = 5000", "set busy timeout"},
     };
     for (const auto& [sql, action] : statements) {
-        if (const auto result = execStatement(database_, QLatin1StringView(sql),
-                                              CatalogErrorCode::CannotOpen,
-                                              QLatin1StringView(action));
+        if (const auto result =
+                execStatement(database_, QLatin1StringView(sql), CatalogErrorCode::CannotOpen,
+                              QLatin1StringView(action));
             !result) {
             return result;
         }
@@ -707,11 +800,11 @@ std::expected<void, CatalogError> PackCatalog::migrate() {
                 return fail(CatalogErrorCode::MigrationFailed,
                             QStringLiteral("Cannot migrate corrupt archive metadata"));
             }
-            const auto archive_path = QDir(archivesDirectory())
-                                          .filePath(item.archive_sha256 +
-                                                    QStringLiteral(".awpack"));
+            const auto archive_path =
+                QDir(archivesDirectory()).filePath(item.archive_sha256 + QStringLiteral(".awpack"));
             const auto archive_hash = hashArchiveFile(archive_path);
-            const auto loaded = PackArchive::importArchive(archive_path);
+            const auto loaded =
+                PackArchive::importArchive(archive_path, {}, PackValidationScope::ResolvedClosure);
             if (!archive_hash || *archive_hash != item.archive_sha256 || !loaded ||
                 loaded->revision != item.revision) {
                 rollback();
@@ -727,11 +820,10 @@ std::expected<void, CatalogError> PackCatalog::migrate() {
             }
         }
     }
-    for (auto next_version = version + 1; next_version <= current_schema_version;
-         ++next_version) {
+    for (auto next_version = version + 1; next_version <= current_schema_version; ++next_version) {
         QSqlQuery record(database_);
-        record.prepare(QStringLiteral(
-            "INSERT INTO catalog_migrations(version, applied_at_utc) VALUES(?, ?)"));
+        record.prepare(
+            QStringLiteral("INSERT INTO catalog_migrations(version, applied_at_utc) VALUES(?, ?)"));
         record.addBindValue(next_version);
         record.addBindValue(QStringLiteral("2026-08-11T00:00:00Z"));
         if (!record.exec()) {
@@ -761,50 +853,150 @@ PackCatalog::installArchive(const QString& archive_path, const QString& installe
     if (!staged) {
         return std::unexpected(staged.error());
     }
-    const auto final_path = installStagedFile(*staged, archivesDirectory());
-    if (!final_path) {
-        return std::unexpected(final_path.error());
-    }
-
     const auto& revision = staged->loaded.revision;
     if (!validText(asQString(revision.id.value)) || !validText(asQString(revision.version)) ||
         !validDigest(asQString(revision.digest)) || !validDigest(staged->sha256)) {
+        QFile::remove(staged->path);
         return fail(CatalogErrorCode::ArchiveInvalid,
                     QStringLiteral("Archive revision is invalid"));
-    }
-    const auto archive_hash_before = hashArchiveFile(*final_path);
-    if (!archive_hash_before || *archive_hash_before != staged->sha256) {
-        return fail(CatalogErrorCode::CannotStoreArchive,
-                    QStringLiteral("Installed archive object changed before blob materialization"));
-    }
-    for (const auto& blob : staged->loaded.blobs) {
-        const auto materialized = ensureBlobObject(
-            *final_path, revision, blob, blobObjectsDirectory(),
-            CatalogErrorCode::CannotStoreBlob, CatalogErrorCode::ArchiveInvalid);
-        if (!materialized) {
-            return std::unexpected(materialized.error());
-        }
-    }
-    const auto archive_hash_after = hashArchiveFile(*final_path);
-    if (!archive_hash_after || *archive_hash_after != staged->sha256) {
-        return fail(CatalogErrorCode::CannotStoreArchive,
-                    QStringLiteral("Installed archive object changed during blob materialization"));
     }
     for (const auto& dependency : staged->loaded.dependencies) {
         if (dependency.revision.id == revision.id &&
             dependency.revision.version == revision.version) {
+            QFile::remove(staged->path);
             return fail(CatalogErrorCode::DependencyCycle,
                         QStringLiteral("Pack cannot depend on its own ID and version"));
         }
     }
 
+    // Archive/CAS publication, the SQLite commit, and failure cleanup form one catalog-local
+    // critical section. Without this lock, a failed installer could observe a shared object as
+    // unreferenced and delete it immediately before another process committed its reference.
+    QLockFile installation_lock(QDir(root_directory_).filePath(QStringLiteral(".install.lock")));
+    installation_lock.setStaleLockTime(0);
+    if (!installation_lock.tryLock()) {
+        QFile::remove(staged->path);
+        return fail(CatalogErrorCode::CannotStoreArchive,
+                    QStringLiteral("Another pack installation is active in this catalog"));
+    }
+
+    const auto candidate = resolveClosure(revision, &staged->loaded);
+    if (!candidate) {
+        QFile::remove(staged->path);
+        return std::unexpected(candidate.error());
+    }
+
+    QSqlQuery preexisting(database_);
+    preexisting.prepare(
+        QStringLiteral("SELECT digest, archive_sha256, installed_at_utc FROM pack_revisions "
+                       "WHERE pack_id = ? AND version = ?"));
+    preexisting.addBindValue(asQString(revision.id.value));
+    preexisting.addBindValue(asQString(revision.version));
+    if (!preexisting.exec()) {
+        QFile::remove(staged->path);
+        return queryFailure(CatalogErrorCode::QueryFailed, preexisting,
+                            QStringLiteral("preflight immutable pack version"));
+    }
+    if (preexisting.next()) {
+        const auto existing_digest = preexisting.value(0).toString();
+        const auto existing_archive = preexisting.value(1).toString();
+        const auto existing_installed_at = preexisting.value(2).toString();
+        if (existing_digest != asQString(revision.digest) || !validDigest(existing_archive) ||
+            preexisting.next()) {
+            QFile::remove(staged->path);
+            return fail(CatalogErrorCode::ImmutableConflict,
+                        QStringLiteral("Pack ID and version already identify another revision"));
+        }
+        const auto resolved = loadResolved(revision);
+        if (!resolved) {
+            QFile::remove(staged->path);
+            return std::unexpected(resolved.error());
+        }
+        if (normalizedDependencies(resolved->root().dependencies) !=
+                normalizedDependencies(staged->loaded.dependencies) ||
+            resolved->root().blobs != staged->loaded.blobs) {
+            QFile::remove(staged->path);
+            return fail(CatalogErrorCode::CorruptCatalog,
+                        QStringLiteral("Installed pack differs from staged revision"));
+        }
+        const auto installed = InstalledPack{revision, existing_archive, existing_installed_at,
+                                             resolved->root().dependencies};
+        QFile::remove(staged->path);
+        return installed;
+    }
+
+    std::optional<PublishedPath> published_archive;
+    std::vector<std::pair<QString, PublishedPath>> published_blobs;
+    bool transaction_started = false;
+    ScopeExit rollback_publications([&] {
+        if (transaction_started) {
+            rollback();
+            transaction_started = false;
+        }
+
+        bool removed_blob = false;
+        for (auto iterator = published_blobs.rbegin(); iterator != published_blobs.rend();
+             ++iterator) {
+            const auto& [digest, publication] = *iterator;
+            if (publication.newly_created && !catalogReferencesBlob(database_, digest) &&
+                QFile::remove(publication.path)) {
+                removed_blob = true;
+            }
+        }
+        if (removed_blob) {
+            static_cast<void>(syncDirectory(blobObjectsDirectory()));
+        }
+
+        if (published_archive.has_value() && published_archive->newly_created &&
+            !catalogReferencesArchive(database_, staged->sha256) &&
+            QFile::remove(published_archive->path)) {
+            static_cast<void>(syncDirectory(archivesDirectory()));
+        }
+        // installStagedFile normally moved or removed this path. Removing it here also covers
+        // failures before publication without risking any pre-existing catalog object.
+        static_cast<void>(QFile::remove(staged->path));
+    });
+
+    PublishedPath attempted_archive;
+    const auto final_path = installStagedFile(*staged, archivesDirectory(), &attempted_archive);
+    if (attempted_archive.newly_created) {
+        published_archive = attempted_archive;
+    }
+    if (!final_path) {
+        return std::unexpected(final_path.error());
+    }
+    published_archive = *final_path;
+    const auto archive_hash_before = hashArchiveFile(final_path->path);
+    if (!archive_hash_before || *archive_hash_before != staged->sha256) {
+        return fail(CatalogErrorCode::CannotStoreArchive,
+                    QStringLiteral("Installed archive object changed before blob materialization"));
+    }
+    for (const auto& blob : staged->loaded.blobs) {
+        PublishedPath attempted_blob;
+        const auto materialized = ensureBlobObject(
+            final_path->path, revision, blob, blobObjectsDirectory(),
+            CatalogErrorCode::CannotStoreBlob, CatalogErrorCode::ArchiveInvalid, &attempted_blob);
+        if (attempted_blob.newly_created) {
+            published_blobs.emplace_back(asQString(blob.sha256), attempted_blob);
+        }
+        if (!materialized) {
+            return std::unexpected(materialized.error());
+        }
+    }
+    const auto archive_hash_after = hashArchiveFile(final_path->path);
+    if (!archive_hash_after || *archive_hash_after != staged->sha256) {
+        return fail(CatalogErrorCode::CannotStoreArchive,
+                    QStringLiteral("Installed archive object changed during blob materialization"));
+    }
+
     if (const auto begun = beginImmediate(); !begun) {
         return std::unexpected(begun.error());
     }
+    transaction_started = true;
     QSqlQuery existing(database_);
-    existing.prepare(QStringLiteral(
-        "SELECT digest, archive_sha256, installed_at_utc FROM pack_revisions "
-        "WHERE pack_id = ? AND version = ?"));
+    existing.prepare(
+        QStringLiteral("SELECT digest, archive_sha256, installed_at_utc FROM pack_revisions "
+                       "WHERE pack_id = ? AND version = ?"));
     existing.addBindValue(asQString(revision.id.value));
     existing.addBindValue(asQString(revision.version));
     if (!existing.exec()) {
@@ -824,11 +1016,16 @@ PackCatalog::installArchive(const QString& archive_path, const QString& installe
             return fail(CatalogErrorCode::CorruptCatalog,
                         QStringLiteral("Installed pack blob descriptors are corrupt"));
         }
+        const auto resolved = loadResolved(revision);
+        if (!resolved) {
+            rollback();
+            return std::unexpected(resolved.error());
+        }
         const auto installed = InstalledPack{
             revision,
             existing.value(1).toString(),
             existing.value(2).toString(),
-            staged->loaded.dependencies,
+            resolved->root().dependencies,
         };
         rollback();
         return installed;
@@ -868,17 +1065,16 @@ PackCatalog::installArchive(const QString& archive_path, const QString& installe
                             QStringLiteral("install pack revision"));
     }
     const auto blobs_recorded =
-        recordBlobs(database_, revision, staged->loaded.blobs,
-                    CatalogErrorCode::QueryFailed,
+        recordBlobs(database_, revision, staged->loaded.blobs, CatalogErrorCode::QueryFailed,
                     QStringLiteral("record pack blob descriptors"));
     if (!blobs_recorded) {
         rollback();
         return std::unexpected(blobs_recorded.error());
     }
     QSqlQuery dependency_insert(database_);
-    dependency_insert.prepare(QStringLiteral(
-        "INSERT INTO pack_dependencies(pack_id, version, dependency_pack_id, "
-        "dependency_version, dependency_digest) VALUES(?, ?, ?, ?, ?)"));
+    dependency_insert.prepare(
+        QStringLiteral("INSERT INTO pack_dependencies(pack_id, version, dependency_pack_id, "
+                       "dependency_version, dependency_digest) VALUES(?, ?, ?, ?, ?)"));
     for (const auto& dependency : staged->loaded.dependencies) {
         dependency_insert.bindValue(0, asQString(revision.id.value));
         dependency_insert.bindValue(1, asQString(revision.version));
@@ -891,22 +1087,28 @@ PackCatalog::installArchive(const QString& archive_path, const QString& installe
                                 QStringLiteral("record pack dependency"));
         }
     }
+    const auto resolved = loadResolved(revision);
+    if (!resolved) {
+        rollback();
+        return std::unexpected(resolved.error());
+    }
     if (const auto committed = commit(); !committed) {
         return std::unexpected(committed.error());
     }
-    return InstalledPack{revision, staged->sha256, installed_at_utc,
-                         staged->loaded.dependencies};
+    transaction_started = false;
+    rollback_publications.dismiss();
+    return InstalledPack{revision, staged->sha256, installed_at_utc, resolved->root().dependencies};
 }
 
-std::expected<LoadedPack, CatalogError>
-PackCatalog::load(const model::PackId& id, const std::string& version) const {
+std::expected<LoadedPack, CatalogError> PackCatalog::load(const model::PackId& id,
+                                                          const std::string& version) const {
     if (!validText(asQString(id.value)) || !validText(asQString(version))) {
         return fail(CatalogErrorCode::InvalidConfiguration,
                     QStringLiteral("Pack ID and version are required"));
     }
     QSqlQuery query(database_);
-    query.prepare(QStringLiteral(
-        "SELECT digest, archive_sha256 FROM pack_revisions WHERE pack_id = ? AND version = ?"));
+    query.prepare(
+        QStringLiteral("SELECT digest FROM pack_revisions WHERE pack_id = ? AND version = ?"));
     query.addBindValue(asQString(id.value));
     query.addBindValue(asQString(version));
     if (!query.exec()) {
@@ -917,17 +1119,55 @@ PackCatalog::load(const model::PackId& id, const std::string& version) const {
         return fail(CatalogErrorCode::NotFound, QStringLiteral("Pack is not installed"));
     }
     const auto expected_digest = query.value(0).toString();
+    if (!validDigest(expected_digest) || query.next()) {
+        return fail(CatalogErrorCode::CorruptCatalog,
+                    QStringLiteral("Installed pack metadata is corrupt"));
+    }
+    return loadExactRevision(
+        model::PackRevision{id, version, expected_digest.toLatin1().toStdString()},
+        CatalogErrorCode::NotFound);
+}
+
+std::expected<LoadedPack, CatalogError>
+PackCatalog::loadExactRevision(const model::PackRevision& exact_revision,
+                               CatalogErrorCode missing_code) const {
+    if (!validText(asQString(exact_revision.id.value)) ||
+        !validText(asQString(exact_revision.version)) ||
+        !validDigest(asQString(exact_revision.digest))) {
+        return fail(CatalogErrorCode::InvalidConfiguration,
+                    QStringLiteral("An exact pack revision is required"));
+    }
+    QSqlQuery query(database_);
+    query.prepare(QStringLiteral(
+        "SELECT digest, archive_sha256 FROM pack_revisions WHERE pack_id = ? AND version = ?"));
+    query.addBindValue(asQString(exact_revision.id.value));
+    query.addBindValue(asQString(exact_revision.version));
+    if (!query.exec()) {
+        return queryFailure(CatalogErrorCode::QueryFailed, query,
+                            QStringLiteral("load exact installed pack"));
+    }
+    if (!query.next() || query.value(0).toString() != asQString(exact_revision.digest)) {
+        return fail(missing_code, QStringLiteral("Exact pack revision is not installed"));
+    }
     const auto archive_sha = query.value(1).toString();
-    if (!validDigest(expected_digest) || !validDigest(archive_sha)) {
+    if (!validDigest(archive_sha) || query.next()) {
         return fail(CatalogErrorCode::CorruptCatalog,
                     QStringLiteral("Installed pack metadata is corrupt"));
     }
     const auto path = QDir(archivesDirectory()).filePath(archive_sha + QStringLiteral(".awpack"));
     const auto actual_archive_sha = hashArchiveFile(path);
-    const auto loaded = PackArchive::importArchive(path);
-    if (!actual_archive_sha || *actual_archive_sha != archive_sha || !loaded ||
-        asQString(loaded->revision.digest) != expected_digest ||
-        loaded->revision.id != id || loaded->revision.version != version) {
+    const auto loaded = PackArchive::importArchive(path, {}, PackValidationScope::ResolvedClosure);
+    if (!actual_archive_sha || *actual_archive_sha != archive_sha) {
+        return fail(CatalogErrorCode::CorruptCatalog,
+                    QStringLiteral("Installed archive does not match its catalog revision"));
+    }
+    if (!loaded) {
+        return fail(loaded.error().code == ErrorCode::UnsupportedCapability
+                        ? CatalogErrorCode::UnsupportedCapability
+                        : CatalogErrorCode::CorruptCatalog,
+                    loaded.error().message);
+    }
+    if (loaded->revision != exact_revision) {
         return fail(CatalogErrorCode::CorruptCatalog,
                     QStringLiteral("Installed archive does not match its catalog revision"));
     }
@@ -936,7 +1176,241 @@ PackCatalog::load(const model::PackId& id, const std::string& version) const {
         return fail(CatalogErrorCode::CorruptCatalog,
                     QStringLiteral("Installed blob descriptors do not match the archive"));
     }
+    const auto recorded_dependencies = dependenciesFor(database_, exact_revision);
+    if (!recorded_dependencies || normalizedDependencies(*recorded_dependencies) !=
+                                      normalizedDependencies(loaded->dependencies)) {
+        return fail(
+            CatalogErrorCode::CorruptCatalog,
+            QStringLiteral("Installed dependency rows do not match the verified archive manifest"));
+    }
     return *loaded;
+}
+
+std::expected<ResolvedPack, CatalogError>
+PackCatalog::loadResolved(const model::PackRevision& exact_root) const {
+    return resolveClosure(exact_root, nullptr);
+}
+
+std::expected<ResolvedPack, CatalogError>
+PackCatalog::resolveClosure(const model::PackRevision& exact_root,
+                            const LoadedPack* staged_root) const {
+    if (!validText(asQString(exact_root.id.value)) || !validText(asQString(exact_root.version)) ||
+        !validDigest(asQString(exact_root.digest))) {
+        return fail(CatalogErrorCode::InvalidConfiguration,
+                    QStringLiteral("An exact root pack revision is required"));
+    }
+
+    enum class VisitState { Visiting, Complete };
+    std::map<model::PackRevision, VisitState, RevisionLess> states;
+    std::map<std::string, model::PackRevision> selected_by_pack_id;
+    std::vector<LoadedPack> dependencies_dependency_first;
+    std::optional<LoadedPack> root;
+    std::optional<std::uint32_t> closure_schema_version;
+    std::size_t resource_count = 0;
+
+    std::function<std::expected<void, CatalogError>(const model::PackRevision&, bool)> visit;
+    visit = [&](const model::PackRevision& exact_revision,
+                bool is_root) -> std::expected<void, CatalogError> {
+        const auto selected = selected_by_pack_id.find(exact_revision.id.value);
+        if (selected != selected_by_pack_id.end() && selected->second != exact_revision) {
+            return fail(CatalogErrorCode::DependencyVersionSplit,
+                        QStringLiteral("Resolved closure selects more than one revision of pack %1")
+                            .arg(asQString(exact_revision.id.value)));
+        }
+
+        const auto state = states.find(exact_revision);
+        if (state != states.end()) {
+            if (state->second == VisitState::Visiting) {
+                return fail(CatalogErrorCode::DependencyCycle,
+                            QStringLiteral("Resolved pack dependency graph contains a cycle"));
+            }
+            return {};
+        }
+        if (states.size() >= maximum_resolved_revisions) {
+            return fail(CatalogErrorCode::DependencyClosureTooLarge,
+                        QStringLiteral("Resolved pack closure exceeds 128 exact revisions"));
+        }
+
+        selected_by_pack_id.insert_or_assign(exact_revision.id.value, exact_revision);
+        states.emplace(exact_revision, VisitState::Visiting);
+        auto loaded =
+            is_root && staged_root != nullptr
+                ? std::expected<LoadedPack, CatalogError>{*staged_root}
+                : loadExactRevision(exact_revision, is_root ? CatalogErrorCode::NotFound
+                                                            : CatalogErrorCode::MissingDependency);
+        if (!loaded) {
+            return std::unexpected(loaded.error());
+        }
+        if (loaded->revision != exact_revision) {
+            return fail(CatalogErrorCode::ArchiveInvalid,
+                        QStringLiteral("Staged root differs from its exact revision"));
+        }
+        if (!closure_schema_version.has_value()) {
+            closure_schema_version = loaded->manifest_schema_version;
+        } else if (*closure_schema_version != loaded->manifest_schema_version) {
+            return fail(CatalogErrorCode::InvalidResolvedGraph,
+                        QStringLiteral("Resolved pack closure mixes manifest schema generations"));
+        }
+        const auto capabilities = CapabilityRegistry::validate(loaded->manifest_schema_version,
+                                                               loaded->required_capabilities);
+        if (!capabilities) {
+            return fail(CatalogErrorCode::UnsupportedCapability,
+                        QStringLiteral("Pack %1 requires an unsupported capability: %2")
+                            .arg(asQString(exact_revision.id.value), capabilities.error().message));
+        }
+        if (loaded->resources.size() > maximum_resolved_resources - resource_count) {
+            return fail(CatalogErrorCode::DependencyClosureTooLarge,
+                        QStringLiteral("Resolved pack closure exceeds 10000 resources"));
+        }
+        resource_count += loaded->resources.size();
+
+        auto direct_dependencies = normalizedDependencies(loaded->dependencies);
+        for (const auto& dependency : direct_dependencies) {
+            const auto traversed = visit(dependency.revision, false);
+            if (!traversed) {
+                return std::unexpected(traversed.error());
+            }
+        }
+        states.at(exact_revision) = VisitState::Complete;
+        if (is_root) {
+            root = std::move(*loaded);
+        } else {
+            dependencies_dependency_first.push_back(std::move(*loaded));
+        }
+        return {};
+    };
+
+    const auto traversed = visit(exact_root, true);
+    if (!traversed) {
+        return std::unexpected(traversed.error());
+    }
+    if (!root.has_value()) {
+        return fail(CatalogErrorCode::CorruptCatalog,
+                    QStringLiteral("Resolved closure did not produce its exact root"));
+    }
+
+    std::unordered_map<std::string, model::PackRevision> resource_owners;
+    resource_owners.reserve(resource_count);
+    const auto index_resources = [&](const LoadedPack& pack) -> std::expected<void, CatalogError> {
+        for (const auto& resource : pack.resources) {
+            const auto [found, inserted] =
+                resource_owners.emplace(resource.descriptor.id, pack.revision);
+            if (!inserted) {
+                return fail(CatalogErrorCode::ResourceCollision,
+                            QStringLiteral("Resource ID %1 is declared by both %2 and %3")
+                                .arg(asQString(resource.descriptor.id),
+                                     asQString(found->second.id.value),
+                                     asQString(pack.revision.id.value)));
+            }
+        }
+        return {};
+    };
+    for (const auto& dependency : dependencies_dependency_first) {
+        const auto indexed = index_resources(dependency);
+        if (!indexed) {
+            return std::unexpected(indexed.error());
+        }
+    }
+    if (const auto indexed = index_resources(*root); !indexed) {
+        return std::unexpected(indexed.error());
+    }
+
+    std::unordered_map<std::string, const model::BlobDescriptor*> root_blobs;
+    root_blobs.reserve(root->blobs.size());
+    for (const auto& blob : root->blobs) {
+        root_blobs.emplace(blob.path, &blob);
+    }
+    for (const auto& resource : root->resources) {
+        if (resource.descriptor.kind == model::ResourceKind::Case) {
+            const auto record_id =
+                resource.document.value(QStringLiteral("record_id")).toString().toStdString();
+            const auto owner = resource_owners.find(record_id);
+            if (owner == resource_owners.end() || owner->second != root->revision) {
+                return fail(CatalogErrorCode::InvalidResolvedGraph,
+                            QStringLiteral("Root case %1 must reference a root-owned record")
+                                .arg(asQString(resource.descriptor.id)));
+            }
+        }
+        if (resource.descriptor.kind != model::ResourceKind::Record) {
+            continue;
+        }
+        for (const auto& entry_value :
+             resource.document.value(QStringLiteral("docket_entries")).toArray()) {
+            const auto entry = entry_value.toObject();
+            const auto path = entry.value(QStringLiteral("asset_path")).toString().toStdString();
+            const auto digest =
+                entry.value(QStringLiteral("asset_sha256")).toString().toStdString();
+            const auto blob = root_blobs.find(path);
+            if (blob == root_blobs.end() || blob->second->sha256 != digest) {
+                return fail(
+                    CatalogErrorCode::InvalidResolvedGraph,
+                    QStringLiteral("Root record %1 must resolve blobs inside the exact root pack")
+                        .arg(asQString(resource.descriptor.id)));
+            }
+        }
+    }
+
+    std::map<model::PackRevision, const LoadedPack*, RevisionLess> packs_by_revision;
+    for (const auto& dependency : dependencies_dependency_first) {
+        packs_by_revision.emplace(dependency.revision, &dependency);
+    }
+    packs_by_revision.emplace(root->revision, &*root);
+    const auto validate_visible_graph =
+        [&](const LoadedPack& owner) -> std::expected<void, CatalogError> {
+        std::set<model::PackRevision, RevisionLess> included;
+        std::vector<const LoadedPack*> visible_dependency_first;
+        std::function<std::expected<void, CatalogError>(const model::PackRevision&)> collect;
+        collect = [&](const model::PackRevision& revision) -> std::expected<void, CatalogError> {
+            if (included.contains(revision)) {
+                return {};
+            }
+            const auto found = packs_by_revision.find(revision);
+            if (found == packs_by_revision.end()) {
+                return fail(CatalogErrorCode::CorruptCatalog,
+                            QStringLiteral("Resolved dependency is absent from its closure"));
+            }
+            included.insert(revision);
+            for (const auto& dependency : normalizedDependencies(found->second->dependencies)) {
+                const auto collected = collect(dependency.revision);
+                if (!collected) {
+                    return std::unexpected(collected.error());
+                }
+            }
+            visible_dependency_first.push_back(found->second);
+            return {};
+        };
+        for (const auto& dependency : normalizedDependencies(owner.dependencies)) {
+            const auto collected = collect(dependency.revision);
+            if (!collected) {
+                return std::unexpected(collected.error());
+            }
+        }
+        const auto validated = PackReader::validateResolvedGraph(owner, visible_dependency_first);
+        if (!validated) {
+            return fail(CatalogErrorCode::InvalidResolvedGraph,
+                        QStringLiteral("Pack %1 has an invalid resolved resource graph: %2")
+                            .arg(asQString(owner.revision.id.value), validated.error().message));
+        }
+        return {};
+    };
+    for (const auto& dependency : dependencies_dependency_first) {
+        const auto validated = validate_visible_graph(dependency);
+        if (!validated) {
+            return std::unexpected(validated.error());
+        }
+    }
+    if (const auto validated = validate_visible_graph(*root); !validated) {
+        return std::unexpected(validated.error());
+    }
+
+    std::vector<model::PackRevision> revisions_by_pack_id;
+    revisions_by_pack_id.reserve(selected_by_pack_id.size());
+    for (const auto& [pack_id, revision] : selected_by_pack_id) {
+        static_cast<void>(pack_id);
+        revisions_by_pack_id.push_back(revision);
+    }
+    return ResolvedPack(std::move(*root), std::move(dependencies_dependency_first),
+                        std::move(revisions_by_pack_id));
 }
 
 std::expected<MaterializedBlob, CatalogError>
@@ -944,8 +1418,7 @@ PackCatalog::materializeBlob(const model::PackRevision& exact_revision,
                              const std::string& blob_path) const {
     if (!validText(asQString(exact_revision.id.value)) ||
         !validText(asQString(exact_revision.version)) ||
-        !validDigest(asQString(exact_revision.digest)) ||
-        !validText(asQString(blob_path))) {
+        !validDigest(asQString(exact_revision.digest)) || !validText(asQString(blob_path))) {
         return fail(CatalogErrorCode::InvalidConfiguration,
                     QStringLiteral("Exact pack revision and blob path are required"));
     }
@@ -967,8 +1440,7 @@ PackCatalog::materializeBlob(const model::PackRevision& exact_revision,
     if (!descriptors) {
         return std::unexpected(descriptors.error());
     }
-    const auto found =
-        std::ranges::find(*descriptors, blob_path, &model::BlobDescriptor::path);
+    const auto found = std::ranges::find(*descriptors, blob_path, &model::BlobDescriptor::path);
     if (found == descriptors->end()) {
         return fail(CatalogErrorCode::NotFound,
                     QStringLiteral("Blob path is not declared by the exact pack revision"));
@@ -1017,10 +1489,14 @@ PackCatalog::materializeBlob(const model::PackRevision& exact_revision,
         return fail(CatalogErrorCode::CorruptCatalog,
                     QStringLiteral("Catalog and archive blob descriptors differ"));
     }
+    PublishedPath attempted_blob;
     const auto materialized_path = ensureBlobObject(
         archive_path, exact_revision, descriptor, objects_directory,
-        CatalogErrorCode::CorruptCatalog, CatalogErrorCode::CorruptCatalog);
+        CatalogErrorCode::CorruptCatalog, CatalogErrorCode::CorruptCatalog, &attempted_blob);
     if (!materialized_path) {
+        if (attempted_blob.newly_created && QFile::remove(attempted_blob.path)) {
+            static_cast<void>(syncDirectory(objects_directory));
+        }
         return std::unexpected(materialized_path.error());
     }
     const auto hash_after = hashArchiveFile(archive_path);
@@ -1028,14 +1504,25 @@ PackCatalog::materializeBlob(const model::PackRevision& exact_revision,
         return fail(CatalogErrorCode::CorruptCatalog,
                     QStringLiteral("Installed archive changed during blob resolution"));
     }
-    return MaterializedBlob{descriptor, *materialized_path};
+    return MaterializedBlob{descriptor, materialized_path->path};
+}
+
+std::expected<MaterializedBlob, CatalogError>
+PackCatalog::materializeBlob(const ResolvedPack& closure,
+                             const model::PackRevision& owning_revision,
+                             const std::string& blob_path) const {
+    if (!closure.containsRevision(owning_revision)) {
+        return fail(CatalogErrorCode::InvalidConfiguration,
+                    QStringLiteral("Blob owner is outside the resolved pack closure"));
+    }
+    return materializeBlob(owning_revision, blob_path);
 }
 
 std::expected<std::vector<InstalledPack>, CatalogError> PackCatalog::list() const {
     QSqlQuery query(database_);
-    if (!query.exec(QStringLiteral(
-            "SELECT pack_id, version, digest, archive_sha256, installed_at_utc "
-            "FROM pack_revisions ORDER BY pack_id, version"))) {
+    if (!query.exec(
+            QStringLiteral("SELECT pack_id, version, digest, archive_sha256, installed_at_utc "
+                           "FROM pack_revisions ORDER BY pack_id, version"))) {
         return queryFailure(CatalogErrorCode::QueryFailed, query,
                             QStringLiteral("list installed packs"));
     }
@@ -1047,7 +1534,7 @@ std::expected<std::vector<InstalledPack>, CatalogError> PackCatalog::list() cons
             return std::unexpected(dependencies.error());
         }
         packs.push_back(InstalledPack{revision, query.value(3).toString(),
-                                     query.value(4).toString(), *dependencies});
+                                      query.value(4).toString(), *dependencies});
     }
     return packs;
 }

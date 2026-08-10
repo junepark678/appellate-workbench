@@ -1,5 +1,7 @@
 #include "session_controller.hpp"
 
+#include "resolved_session_pins.hpp"
+
 #include "appellate/engine/procedure_engine.hpp"
 #include "appellate/storage/event_codec.hpp"
 
@@ -7,6 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <algorithm>
 #include <chrono>
 #include <optional>
 #include <ranges>
@@ -129,8 +132,7 @@ namespace {
     for (const auto& reference : snapshot.asset_references) {
         if (!asset_store.read(reference.digest)) {
             return fail(SessionControllerErrorCode::AssetStoreFailure,
-                        QStringLiteral("Cannot verify referenced asset %1")
-                            .arg(reference.digest));
+                        QStringLiteral("Cannot verify referenced asset %1").arg(reference.digest));
         }
     }
     for (std::size_t index = 0; index < snapshot.events.size(); ++index) {
@@ -156,8 +158,7 @@ namespace {
             if (std::ranges::find(snapshot.asset_references, reference) ==
                 snapshot.asset_references.end()) {
                 return fail(SessionControllerErrorCode::CorruptSession,
-                            QStringLiteral("Event asset %1 has no session reference")
-                                .arg(*digest));
+                            QStringLiteral("Event asset %1 has no session reference").arg(*digest));
             }
         }
         if (const auto docket = docketWrite(*decoded, static_cast<qsizetype>(index));
@@ -219,25 +220,42 @@ std::expected<std::unique_ptr<SessionController>, SessionControllerError> Sessio
         return fail(SessionControllerErrorCode::SessionStoreFailure, loaded.error().message);
     }
 
-    auto controller = std::unique_ptr<SessionController>(new SessionController(
-        std::move(procedure), std::move(case_definition), initial_state, std::move(asset_store),
-        std::move(session_store), *loaded));
+    auto controller = std::unique_ptr<SessionController>(
+        new SessionController(std::move(procedure), std::move(case_definition), initial_state,
+                              std::move(asset_store), std::move(session_store), *loaded));
     return controller;
 }
 
-std::expected<std::unique_ptr<SessionController>, SessionControllerError>
-SessionController::reopen(model::ProcedureDefinition procedure,
-                          model::CaseDefinition case_definition, model::SessionState initial_state,
-                          storage::AssetStore asset_store,
-                          std::unique_ptr<storage::SessionStore> session_store) {
-    if (!session_store || !isPristineInitialState(procedure, case_definition, initial_state)) {
+std::expected<std::unique_ptr<SessionController>, SessionControllerError> SessionController::create(
+    model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
+    model::SessionState initial_state, storage::AssetStore asset_store,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    QString created_at_utc, const packs::ResolvedPack& resolved_pack) {
+    return create(std::move(procedure), std::move(case_definition), std::move(initial_state),
+                  std::move(asset_store), std::move(session_store), std::move(engine_revision),
+                  std::move(created_at_utc), revisionPinsForSession(resolved_pack));
+}
+
+std::expected<std::unique_ptr<SessionController>, SessionControllerError> SessionController::reopen(
+    model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
+    model::SessionState initial_state, storage::AssetStore asset_store,
+    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+    std::vector<storage::RevisionPin> expected_pins) {
+    if (!session_store || expected_engine_revision.isEmpty() || expected_pins.empty() ||
+        !isPristineInitialState(procedure, case_definition, initial_state)) {
         return fail(SessionControllerErrorCode::InvalidConfiguration,
                     QStringLiteral("Cannot reopen a session from the supplied configuration"));
     }
 
+    std::ranges::sort(expected_pins, {}, &storage::RevisionPin::pack_id);
+
     const auto loaded = session_store->loadSession(asQString(initial_state.id.value));
     if (!loaded) {
         return fail(SessionControllerErrorCode::SessionStoreFailure, loaded.error().message);
+    }
+    if (loaded->engine_revision != expected_engine_revision || loaded->pins != expected_pins) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Stored engine or exact pack-revision pins differ"));
     }
     const auto replayed =
         replaySnapshot(procedure, case_definition, initial_state, *loaded, asset_store);
@@ -245,10 +263,20 @@ SessionController::reopen(model::ProcedureDefinition procedure,
         return std::unexpected(replayed.error());
     }
 
-    auto controller = std::unique_ptr<SessionController>(new SessionController(
-        std::move(procedure), std::move(case_definition), *replayed, std::move(asset_store),
-        std::move(session_store), *loaded));
+    auto controller = std::unique_ptr<SessionController>(
+        new SessionController(std::move(procedure), std::move(case_definition), *replayed,
+                              std::move(asset_store), std::move(session_store), *loaded));
     return controller;
+}
+
+std::expected<std::unique_ptr<SessionController>, SessionControllerError> SessionController::reopen(
+    model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
+    model::SessionState initial_state, storage::AssetStore asset_store,
+    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+    const packs::ResolvedPack& resolved_pack) {
+    return reopen(std::move(procedure), std::move(case_definition), std::move(initial_state),
+                  std::move(asset_store), std::move(session_store),
+                  std::move(expected_engine_revision), revisionPinsForSession(resolved_pack));
 }
 
 std::expected<SubmissionResult, SessionControllerError>

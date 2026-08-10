@@ -116,6 +116,16 @@ constexpr auto output_schema_version = 1;
         return QStringLiteral("missing_dependency");
     case packs::CatalogErrorCode::DependencyCycle:
         return QStringLiteral("dependency_cycle");
+    case packs::CatalogErrorCode::DependencyVersionSplit:
+        return QStringLiteral("dependency_version_split");
+    case packs::CatalogErrorCode::DependencyClosureTooLarge:
+        return QStringLiteral("dependency_closure_too_large");
+    case packs::CatalogErrorCode::UnsupportedCapability:
+        return QStringLiteral("unsupported_capability");
+    case packs::CatalogErrorCode::ResourceCollision:
+        return QStringLiteral("resource_collision");
+    case packs::CatalogErrorCode::InvalidResolvedGraph:
+        return QStringLiteral("invalid_resolved_graph");
     case packs::CatalogErrorCode::CorruptCatalog:
         return QStringLiteral("corrupt_catalog");
     case packs::CatalogErrorCode::NotFound:
@@ -153,8 +163,9 @@ constexpr auto output_schema_version = 1;
 [[nodiscard]] QString usageMessage() {
     return QStringLiteral(
         "usage: appellate-pack validate <directory-or-awpack> | export <directory> "
-        "<archive> | install <archive> <catalog> [--installed-at <canonical UTC>] | "
-        "list <catalog> | template <new-destination>");
+        "<archive> | export-deferred <directory> <archive> | validate-resolved <catalog> "
+        "<pack-id> <version> <digest> | install <archive> <catalog> "
+        "[--installed-at <canonical UTC>] | list <catalog> | template <new-destination>");
 }
 
 [[nodiscard]] bool isCanonicalUtc(const QString& value) {
@@ -195,22 +206,67 @@ constexpr auto output_schema_version = 1;
     object.insert(QStringLiteral("resource_count"), static_cast<qint64>(loaded->resources.size()));
     object.insert(QStringLiteral("source_kind"),
                   is_directory ? QStringLiteral("directory") : QStringLiteral("archive"));
+    object.insert(QStringLiteral("validation_scope"), QStringLiteral("standalone"));
     return success(std::move(object));
 }
 
-[[nodiscard]] RunResult exportCommand(const QStringList& arguments) {
-    constexpr auto command = "export";
+[[nodiscard]] RunResult exportCommand(const QStringList& arguments, bool deferred) {
+    const auto command = deferred ? QStringLiteral("export-deferred") : QStringLiteral("export");
     if (arguments.size() != 3) {
-        return invalidArguments(QStringLiteral("export requires a source and destination"),
-                                QLatin1StringView(command));
+        return invalidArguments(QStringLiteral("%1 requires a source and destination").arg(command),
+                                command);
     }
-    const auto exported = packs::PackArchive::exportDirectory(arguments.at(1), arguments.at(2));
+    const auto exported =
+        packs::PackArchive::exportDirectory(arguments.at(1), arguments.at(2), {},
+                                            deferred ? packs::PackValidationScope::ResolvedClosure
+                                                     : packs::PackValidationScope::Standalone);
     if (!exported) {
         return failure(ExitCode::InvalidPack, packErrorCode(exported.error().code),
-                       exported.error().message, QLatin1StringView(command));
+                       exported.error().message, command);
     }
     auto object = revisionObject(*exported);
+    object.insert(QStringLiteral("command"), command);
+    object.insert(QStringLiteral("validation_scope"),
+                  deferred ? QStringLiteral("deferred_references") : QStringLiteral("standalone"));
+    if (deferred) {
+        object.insert(QStringLiteral("resolved"), false);
+        object.insert(
+            QStringLiteral("notice"),
+            QStringLiteral("Archive references remain deferred until catalog resolution"));
+    }
+    return success(std::move(object));
+}
+
+[[nodiscard]] RunResult validateResolvedCommand(const QStringList& arguments) {
+    constexpr auto command = "validate-resolved";
+    if (arguments.size() != 5) {
+        return invalidArguments(
+            QStringLiteral("validate-resolved requires a catalog and exact root revision"),
+            QLatin1StringView(command));
+    }
+    auto catalog = packs::PackCatalog::open(arguments.at(1));
+    if (!catalog) {
+        return failure(ExitCode::OperationFailed, catalogErrorCode(catalog.error().code),
+                       catalog.error().message, QLatin1StringView(command));
+    }
+    const auto root =
+        model::PackRevision{model::PackId{arguments.at(2).toStdString()},
+                            arguments.at(3).toStdString(), arguments.at(4).toStdString()};
+    const auto resolved = (*catalog)->loadResolved(root);
+    if (!resolved) {
+        return failure(ExitCode::OperationFailed, catalogErrorCode(resolved.error().code),
+                       resolved.error().message, QLatin1StringView(command));
+    }
+    QJsonArray pins;
+    for (const auto& revision : resolved->revisionsByPackId()) {
+        pins.push_back(revisionObject(revision));
+    }
+    auto object = revisionObject(resolved->root().revision);
     object.insert(QStringLiteral("command"), QLatin1StringView(command));
+    object.insert(QStringLiteral("resolved_revision_count"),
+                  static_cast<qint64>(resolved->revisionsByPackId().size()));
+    object.insert(QStringLiteral("revision_pins"), pins);
+    object.insert(QStringLiteral("validation_scope"), QStringLiteral("catalog_resolved"));
     return success(std::move(object));
 }
 
@@ -410,7 +466,13 @@ RunResult runPackCli(const QStringList& arguments) {
         return validateCommand(arguments);
     }
     if (command == QStringLiteral("export")) {
-        return exportCommand(arguments);
+        return exportCommand(arguments, false);
+    }
+    if (command == QStringLiteral("export-deferred")) {
+        return exportCommand(arguments, true);
+    }
+    if (command == QStringLiteral("validate-resolved")) {
+        return validateResolvedCommand(arguments);
     }
     if (command == QStringLiteral("install")) {
         return installCommand(arguments);

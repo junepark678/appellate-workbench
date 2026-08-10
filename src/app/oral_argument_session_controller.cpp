@@ -1,5 +1,7 @@
 #include "oral_argument_session_controller.hpp"
 
+#include "resolved_session_pins.hpp"
+
 #include "appellate/engine/oral_argument_engine.hpp"
 #include "appellate/storage/oral_argument_codec.hpp"
 
@@ -333,6 +335,19 @@ OralArgumentSessionController::create(QString session_id,
 }
 
 std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::create(QString session_id,
+                                      model::OralArgumentConfiguration configuration,
+                                      model::BenchConfiguration bench,
+                                      model::ArgumentGrounding grounding,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString engine_revision, QString created_at_utc,
+                                      const packs::ResolvedPack& resolved_pack) {
+    return create(std::move(session_id), std::move(configuration), std::move(bench),
+                  std::move(grounding), std::move(session_store), std::move(engine_revision),
+                  std::move(created_at_utc), revisionPinsForSession(resolved_pack));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
 OralArgumentSessionController::reopen(QString session_id,
                                       model::OralArgumentConfiguration configuration,
                                       model::BenchConfiguration bench,
@@ -368,6 +383,19 @@ OralArgumentSessionController::reopen(QString session_id,
         std::move(session_id), std::move(configuration), std::move(bench), std::move(grounding),
         *initial, *state, std::move(session_store), std::move(expected_engine_revision),
         *normalized_pins, *snapshot));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::reopen(QString session_id,
+                                      model::OralArgumentConfiguration configuration,
+                                      model::BenchConfiguration bench,
+                                      model::ArgumentGrounding grounding,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString expected_engine_revision,
+                                      const packs::ResolvedPack& resolved_pack) {
+    return reopen(std::move(session_id), std::move(configuration), std::move(bench),
+                  std::move(grounding), std::move(session_store),
+                  std::move(expected_engine_revision), revisionPinsForSession(resolved_pack));
 }
 
 std::expected<OralArgumentSubmissionResult, OralArgumentSessionError>

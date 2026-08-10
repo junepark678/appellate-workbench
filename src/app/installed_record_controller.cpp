@@ -261,18 +261,41 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
                     QStringLiteral("Loaded pack cannot be rebuilt as a canonical runtime pack: %1")
                         .arg(asQString(canonical_runtime.error().message)));
     }
-    if (*canonical_runtime != runtime_pack) {
-        return fail(InstalledRecordErrorCode::RuntimeMismatch,
-                    QStringLiteral(
-                        "Supplied runtime pack differs from the exact loaded-pack projection"));
+    return loadCanonical(loaded_pack, *canonical_runtime, runtime_pack, selected_case_id);
+}
+
+std::expected<InstalledRecordLoad, InstalledRecordError>
+InstalledRecordController::load(const packs::ResolvedPack& resolved_pack,
+                                const packs::RuntimePack& runtime_pack,
+                                const model::CaseId& selected_case_id) {
+    if (resolved_pack.root().revision != runtime_pack.revision) {
+        return fail(InstalledRecordErrorCode::RevisionMismatch,
+                    QStringLiteral("Resolved and runtime packs are different exact roots"));
     }
-    const auto& canonical_pack = *canonical_runtime;
+    const auto canonical_runtime = packs::loadRuntimePack(resolved_pack);
+    if (!canonical_runtime) {
+        return fail(
+            InstalledRecordErrorCode::RuntimeMismatch,
+            QStringLiteral("Resolved pack cannot be rebuilt as a canonical runtime pack: %1")
+                .arg(asQString(canonical_runtime.error().message)));
+    }
+    return loadCanonical(resolved_pack.root(), *canonical_runtime, runtime_pack, selected_case_id);
+}
+
+std::expected<InstalledRecordLoad, InstalledRecordError> InstalledRecordController::loadCanonical(
+    const packs::LoadedPack& root_pack, const packs::RuntimePack& canonical_runtime,
+    const packs::RuntimePack& supplied_runtime, const model::CaseId& selected_case_id) {
+    if (canonical_runtime != supplied_runtime) {
+        return fail(
+            InstalledRecordErrorCode::RuntimeMismatch,
+            QStringLiteral("Supplied runtime pack differs from the exact canonical projection"));
+    }
+    const auto& canonical_pack = canonical_runtime;
 
     const auto identifies_selected_case = [&](const packs::RuntimeCase& runtime_case) {
         return runtime_case.definition.id == selected_case_id;
     };
-    const auto case_matches =
-        std::ranges::count_if(canonical_pack.cases, identifies_selected_case);
+    const auto case_matches = std::ranges::count_if(canonical_pack.cases, identifies_selected_case);
     if (case_matches == 0) {
         return fail(InstalledRecordErrorCode::MissingCase,
                     QStringLiteral("Selected runtime case does not exist"));
@@ -284,7 +307,7 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
     const auto selected = std::ranges::find_if(canonical_pack.cases, identifies_selected_case);
     const auto& runtime_case = *selected;
 
-    if (const auto identity = validateRecordIdentity(loaded_pack, runtime_case); !identity) {
+    if (const auto identity = validateRecordIdentity(root_pack, runtime_case); !identity) {
         return std::unexpected(identity.error());
     }
     if (const auto valid = validateRuntimeRecord(runtime_case); !valid) {
@@ -307,8 +330,7 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
             !isRoundTripText(docket.court_ref, 240) ||
             !isRoundTripText(docket.public_docket_number, 120) ||
             !isRoundTripText(docket.caption, 512) ||
-            (docket.court_id.has_value() &&
-             !isRoundTripText(docket.court_id->value, 160)) ||
+            (docket.court_id.has_value() && !isRoundTripText(docket.court_id->value, 160)) ||
             !dockets_by_id.emplace(docket.id.value, &docket).second) {
             return fail(InstalledRecordErrorCode::InvalidRecord,
                         QStringLiteral("Runtime docket descriptor metadata is invalid"));
@@ -344,8 +366,7 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
         if (parent == entries_by_id.end() || parent->second->id == entry.id ||
             parent->second->docket_id != entry.docket_id) {
             return fail(InstalledRecordErrorCode::InvalidRecord,
-                        QStringLiteral(
-                            "Runtime parent links must resolve within the same docket"));
+                        QStringLiteral("Runtime parent links must resolve within the same docket"));
         }
         parents.emplace(entry.id.value, entry.parent_entry_id->value);
     }
@@ -368,22 +389,20 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
     citation_labels.reserve(runtime_case.record.page_anchors.size());
     for (const auto& anchor : runtime_case.record.page_anchors) {
         const auto entry = entries_by_id.find(anchor.entry_id.value);
-        if (!isRoundTripText(anchor.id.value, 160) ||
-            !anchor_ids.emplace(anchor.id.value).second || entries_by_id.contains(anchor.id.value) ||
-            entry == entries_by_id.end() || anchor.page_number == 0 ||
-            anchor.page_number > entry->second->page_count ||
+        if (!isRoundTripText(anchor.id.value, 160) || !anchor_ids.emplace(anchor.id.value).second ||
+            entries_by_id.contains(anchor.id.value) || entry == entries_by_id.end() ||
+            anchor.page_number == 0 || anchor.page_number > entry->second->page_count ||
             (anchor.citation_label.has_value() &&
              (!isRoundTripText(*anchor.citation_label, 120) ||
               !citation_labels.emplace(*anchor.citation_label).second))) {
             return fail(InstalledRecordErrorCode::InvalidRecord,
                         QStringLiteral("Runtime record page anchor is invalid"));
         }
-        const auto citation = anchor.citation_label.has_value()
-                                  ? asQString(*anchor.citation_label)
-                                  : QString{};
-        definition.anchors.push_back(ui::RecordPageAnchor{
-            asQString(anchor.id.value), asQString(anchor.entry_id.value),
-            static_cast<int>(anchor.page_number - 1), citation});
+        const auto citation =
+            anchor.citation_label.has_value() ? asQString(*anchor.citation_label) : QString{};
+        definition.anchors.push_back(
+            ui::RecordPageAnchor{asQString(anchor.id.value), asQString(anchor.entry_id.value),
+                                 static_cast<int>(anchor.page_number - 1), citation});
         if (!citation.isEmpty()) {
             citations_by_entry[anchor.entry_id.value].push_back(citation);
         }
@@ -399,13 +418,11 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
             return fail(InstalledRecordErrorCode::InvalidRecord,
                         QStringLiteral("Runtime docket entry metadata is invalid"));
         }
-        if ((entry.docket_id.has_value() &&
-             (!isRoundTripText(entry.docket_id->value, 160) ||
-              !dockets_by_id.contains(entry.docket_id->value))) ||
+        if ((entry.docket_id.has_value() && (!isRoundTripText(entry.docket_id->value, 160) ||
+                                             !dockets_by_id.contains(entry.docket_id->value))) ||
             (entry.entry_label.has_value() && !isRoundTripText(*entry.entry_label, 120)) ||
             (entry.actor.has_value() && !isRoundTripText(*entry.actor, 240)) ||
-            (entry.description.has_value() &&
-             !isRoundTripText(*entry.description, 4'096)) ||
+            (entry.description.has_value() && !isRoundTripText(*entry.description, 4'096)) ||
             (entry.parent_entry_id.has_value() != entry.relationship.has_value()) ||
             (entry.parent_entry_id.has_value() &&
              (!entries_by_id.contains(entry.parent_entry_id->value) ||
@@ -427,7 +444,7 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
             tags.push_back(asQString(tag));
         }
 
-        const auto declared = matchingBlob(loaded_pack, entry.asset_path);
+        const auto declared = matchingBlob(root_pack, entry.asset_path);
         if (!declared) {
             return std::unexpected(declared.error());
         }
@@ -485,28 +502,24 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
             {QStringLiteral("pack_version"), asQString(canonical_pack.revision.version)},
             {QStringLiteral("pack_revision_sha256"), asQString(canonical_pack.revision.digest)},
         };
-        const auto docket = entry.docket_id.has_value()
-                                ? dockets_by_id.at(entry.docket_id->value)
-                                : nullptr;
+        const auto docket =
+            entry.docket_id.has_value() ? dockets_by_id.at(entry.docket_id->value) : nullptr;
         const auto docket_id =
             entry.docket_id.has_value() ? asQString(entry.docket_id->value) : QString{};
-        const auto docket_label = docket != nullptr
-                                      ? asQString(docket->public_docket_number)
-                                      : QStringLiteral("Not specified by pack");
+        const auto docket_label = docket != nullptr ? asQString(docket->public_docket_number)
+                                                    : QStringLiteral("Not specified by pack");
         const auto entry_label = entry.entry_label.has_value()
                                      ? asQString(*entry.entry_label)
                                      : QStringLiteral("Not specified by pack");
         const auto actor = entry.actor.has_value() ? asQString(*entry.actor)
-                                                    : QStringLiteral("Not specified by pack");
-        const auto description =
-            entry.description.has_value() ? asQString(*entry.description)
-                                          : QStringLiteral("Not specified by pack");
-        const auto parent_id = entry.parent_entry_id.has_value()
-                                   ? asQString(entry.parent_entry_id->value)
-                                   : QString{};
-        const auto relationship = entry.relationship.has_value()
-                                      ? relationshipName(*entry.relationship)
-                                      : QString{};
+                                                   : QStringLiteral("Not specified by pack");
+        const auto description = entry.description.has_value()
+                                     ? asQString(*entry.description)
+                                     : QStringLiteral("Not specified by pack");
+        const auto parent_id =
+            entry.parent_entry_id.has_value() ? asQString(entry.parent_entry_id->value) : QString{};
+        const auto relationship =
+            entry.relationship.has_value() ? relationshipName(*entry.relationship) : QString{};
         metadata.insert(QStringLiteral("docket_id"),
                         docket_id.isEmpty() ? QStringLiteral("Not specified by pack") : docket_id);
         metadata.insert(QStringLiteral("docket_number"), docket_label);
@@ -526,13 +539,11 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
             metadata.insert(QStringLiteral("court_ref"), asQString(docket->court_ref));
             metadata.insert(QStringLiteral("docket_caption"), asQString(docket->caption));
             metadata.insert(QStringLiteral("docket_court_id"),
-                            docket->court_id.has_value()
-                                ? asQString(docket->court_id->value)
-                                : QStringLiteral("Not specified by pack"));
+                            docket->court_id.has_value() ? asQString(docket->court_id->value)
+                                                         : QStringLiteral("Not specified by pack"));
         }
-        definition.documents.push_back(
-            ui::RecordDocument{entry_id, title, materialized->local_path, entry.sealed, metadata,
-                               actual_page_count});
+        definition.documents.push_back(ui::RecordDocument{
+            entry_id, title, materialized->local_path, entry.sealed, metadata, actual_page_count});
         definition.docket.push_back(ui::RecordDocketEntry{
             entry_id,
             filed_on,
@@ -540,8 +551,8 @@ InstalledRecordController::load(const packs::LoadedPack& loaded_pack,
             actor,
             description,
             entry_id,
-            tags + QStringList{entry.sealed ? QStringLiteral("sealed")
-                                            : QStringLiteral("unsealed")},
+            tags +
+                QStringList{entry.sealed ? QStringLiteral("sealed") : QStringLiteral("unsealed")},
             metadata,
             docket_id,
             docket_label,

@@ -2,6 +2,7 @@
 
 #include "appellate/model/pack_id.hpp"
 #include "appellate/packs/pack_archive.hpp"
+#include "appellate/packs/resolved_pack.hpp"
 
 #include <QSqlDatabase>
 #include <QString>
@@ -20,6 +21,11 @@ enum class CatalogErrorCode {
     ImmutableConflict,
     MissingDependency,
     DependencyCycle,
+    DependencyVersionSplit,
+    DependencyClosureTooLarge,
+    UnsupportedCapability,
+    ResourceCollision,
+    InvalidResolvedGraph,
     CorruptCatalog,
     NotFound,
     QueryFailed,
@@ -61,19 +67,25 @@ class PackCatalog final {
     [[nodiscard]] static auto open(const QString& root_directory)
         -> std::expected<std::unique_ptr<PackCatalog>, CatalogError>;
 
-    [[nodiscard]] auto installArchive(const QString& archive_path,
-                                      const QString& installed_at_utc)
+    [[nodiscard]] auto installArchive(const QString& archive_path, const QString& installed_at_utc)
         -> std::expected<InstalledPack, CatalogError>;
 
     [[nodiscard]] auto load(const model::PackId& id, const std::string& version) const
         -> std::expected<LoadedPack, CatalogError>;
 
+    [[nodiscard]] auto loadResolved(const model::PackRevision& exact_root) const
+        -> std::expected<ResolvedPack, CatalogError>;
+
     [[nodiscard]] auto materializeBlob(const model::PackRevision& exact_revision,
                                        const std::string& blob_path) const
         -> std::expected<MaterializedBlob, CatalogError>;
 
-    [[nodiscard]] auto list() const
-        -> std::expected<std::vector<InstalledPack>, CatalogError>;
+    [[nodiscard]] auto materializeBlob(const ResolvedPack& closure,
+                                       const model::PackRevision& owning_revision,
+                                       const std::string& blob_path) const
+        -> std::expected<MaterializedBlob, CatalogError>;
+
+    [[nodiscard]] auto list() const -> std::expected<std::vector<InstalledPack>, CatalogError>;
 
     [[nodiscard]] QString archivesDirectory() const;
     [[nodiscard]] QString blobObjectsDirectory() const;
@@ -86,6 +98,12 @@ class PackCatalog final {
     [[nodiscard]] auto migrate() -> std::expected<void, CatalogError>;
     [[nodiscard]] auto beginImmediate() -> std::expected<void, CatalogError>;
     [[nodiscard]] auto commit() -> std::expected<void, CatalogError>;
+    [[nodiscard]] auto loadExactRevision(const model::PackRevision& exact_revision,
+                                         CatalogErrorCode missing_code) const
+        -> std::expected<LoadedPack, CatalogError>;
+    [[nodiscard]] auto resolveClosure(const model::PackRevision& exact_root,
+                                      const LoadedPack* staged_root) const
+        -> std::expected<ResolvedPack, CatalogError>;
     void rollback();
     void closeConnection();
 

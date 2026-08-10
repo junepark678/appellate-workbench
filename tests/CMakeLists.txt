@@ -65,6 +65,31 @@ target_link_libraries(
 target_compile_features(tst_pack_catalog PRIVATE cxx_std_26)
 add_test(NAME pack_catalog COMMAND tst_pack_catalog)
 
+qt_add_executable(
+    tst_pack_dependency_resolution
+    packs/tst_pack_dependency_resolution.cpp
+)
+target_link_libraries(
+    tst_pack_dependency_resolution
+    PRIVATE
+        appellate::application
+        appellate::pack_cli
+        appellate::record_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_pack_dependency_resolution
+    PRIVATE APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+)
+target_compile_features(tst_pack_dependency_resolution PRIVATE cxx_std_26)
+add_test(NAME pack_dependency_resolution COMMAND tst_pack_dependency_resolution)
+set_tests_properties(
+    pack_dependency_resolution
+    PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
+
 qt_add_executable(tst_pack_cli cli/tst_pack_cli.cpp)
 target_link_libraries(
     tst_pack_cli

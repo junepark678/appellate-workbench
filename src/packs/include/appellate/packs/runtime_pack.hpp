@@ -5,6 +5,7 @@
 #include "appellate/model/pack_id.hpp"
 #include "appellate/model/workflow.hpp"
 #include "appellate/packs/pack_reader.hpp"
+#include "appellate/packs/resolved_pack.hpp"
 
 #include <cstdint>
 #include <expected>
@@ -262,5 +263,7 @@ struct RuntimePackError final {
 };
 
 [[nodiscard]] std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& pack);
+[[nodiscard]] std::expected<RuntimePack, RuntimePackError>
+loadRuntimePack(const ResolvedPack& pack);
 
 } // namespace appellate::packs
