@@ -48,7 +48,7 @@ struct WorkflowDeficiencyRecord final {
     FilingTypeId filing_type;
     ActorId actor_id;
     std::vector<WorkflowRequirementId> missing_requirements;
-    WorkflowDeadlineId cure_deadline_id;
+    std::optional<WorkflowDeadlineId> cure_deadline_id;
     bool cured{};
 
     friend bool operator==(const WorkflowDeficiencyRecord&,

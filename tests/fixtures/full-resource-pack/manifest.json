@@ -100,7 +100,7 @@
       "kind": "workflow",
       "schema_version": 1,
       "path": "resources/workflow.json",
-      "sha256": "f2268dd5ab85682dc94ac2cdc8ecd26929ed1ac56d38906864e3aaafeee1378e"
+      "sha256": "c7bb77f2bb143e97ed6254d04f438fedb62ddb2c05127e118925e67f794aaae7"
     }
   ]
 }

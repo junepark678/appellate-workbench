@@ -40,6 +40,7 @@ struct WorkflowFilingAccepted final {
 enum class WorkflowFilingRejectionReason {
     UnauthorizedActor,
     IneligibleFiling,
+    NonconformingFiling,
     DeadlineExpired,
     UnknownDeficiency,
 };
@@ -61,7 +62,7 @@ struct WorkflowDeficiencyIssued final {
     FilingTypeId filing_type;
     ActorId actor_id;
     std::vector<WorkflowRequirementId> missing_requirements;
-    WorkflowDeadlineId cure_deadline_id;
+    std::optional<WorkflowDeadlineId> cure_deadline_id;
 
     friend bool operator==(const WorkflowDeficiencyIssued&,
                            const WorkflowDeficiencyIssued&) = default;

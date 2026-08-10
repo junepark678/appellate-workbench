@@ -52,6 +52,7 @@ class PackReaderTest final : public QObject {
     void rejectsBrokenCrossReference();
     void rejectsIncompleteWorkflowAuthority();
     void rejectsConflictingWorkflowAuthority();
+    void acceptsCatalogSupersetAndStagesWithoutFallbackRejections();
     void rejectsWorkflowInvariantViolation();
 };
 
@@ -965,28 +966,84 @@ void PackReaderTest::rejectsConflictingWorkflowAuthority() {
     QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
 }
 
-void PackReaderTest::rejectsWorkflowInvariantViolation() {
+void PackReaderTest::acceptsCatalogSupersetAndStagesWithoutFallbackRejections() {
     QTemporaryDir pack;
     QVERIFY(pack.isValid());
     QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), pack.path()));
-    const auto relative_path = QStringLiteral("resources/workflow.json");
-    QFile workflow_file(QDir(pack.path()).filePath(relative_path));
+
+    const auto catalog_path = QStringLiteral("resources/filing-catalog.json");
+    QFile catalog_file(QDir(pack.path()).filePath(catalog_path));
+    QVERIFY(catalog_file.open(QIODevice::ReadOnly));
+    const auto catalog_document = QJsonDocument::fromJson(catalog_file.readAll()).object();
+    auto filings = catalog_document.value(QStringLiteral("filings")).toArray();
+    filings.push_back(QJsonObject{
+        {QStringLiteral("filing_id"), QStringLiteral("example.filing.reference-template")},
+        {QStringLiteral("title"), QStringLiteral("Reference-only filing template")},
+        {QStringLiteral("actor_role_ids"), QJsonArray{QStringLiteral("example.role.appellant")}},
+        {QStringLiteral("required_field_ids"), QJsonArray{}},
+        {QStringLiteral("authority_id"), QStringLiteral("example.authority.rule-one")},
+    });
+    QVERIFY(replaceResourceField(pack.path(), catalog_path, QStringLiteral("filings"), filings));
+
+    const auto workflow_path = QStringLiteral("resources/workflow.json");
+    QFile workflow_file(QDir(pack.path()).filePath(workflow_path));
     QVERIFY(workflow_file.open(QIODevice::ReadOnly));
     const auto workflow_document = QJsonDocument::fromJson(workflow_file.readAll()).object();
     const auto operations = workflow_document.value(QStringLiteral("operations")).toArray();
-    QJsonArray without_submitted_rejection;
+    QJsonArray without_unrouted_stage_rejection;
     for (const auto& value : operations) {
         if (value.toObject().value(QStringLiteral("operation_id")).toString() !=
             QStringLiteral("example.operation.reject-submitted")) {
-            without_submitted_rejection.push_back(value);
+            without_unrouted_stage_rejection.push_back(value);
         }
     }
-    QVERIFY(replaceResourceField(pack.path(), relative_path, QStringLiteral("operations"),
-                                 without_submitted_rejection));
+    QVERIFY(replaceResourceField(pack.path(), workflow_path, QStringLiteral("operations"),
+                                 without_unrouted_stage_rejection));
 
     const auto result = appellate::packs::PackReader::readDirectory(pack.path());
-    QVERIFY(!result.has_value());
-    QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+    QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error().message));
+}
+
+void PackReaderTest::rejectsWorkflowInvariantViolation() {
+    const auto relative_path = QStringLiteral("resources/workflow.json");
+    for (int variant = 0; variant < 3; ++variant) {
+        QTemporaryDir pack;
+        QVERIFY(pack.isValid());
+        QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), pack.path()));
+        QFile workflow_file(QDir(pack.path()).filePath(relative_path));
+        QVERIFY(workflow_file.open(QIODevice::ReadOnly));
+        const auto workflow_document = QJsonDocument::fromJson(workflow_file.readAll()).object();
+        auto operations = workflow_document.value(QStringLiteral("operations")).toArray();
+        auto routes = workflow_document.value(QStringLiteral("filing_routes")).toArray();
+        auto route = routes.at(0).toObject();
+        if (variant == 0) {
+            QJsonArray without_route_rejection;
+            for (const auto& value : operations) {
+                if (value.toObject().value(QStringLiteral("operation_id")).toString() !=
+                    QStringLiteral("example.operation.reject-opened")) {
+                    without_route_rejection.push_back(value);
+                }
+            }
+            operations = without_route_rejection;
+            QVERIFY(replaceResourceField(pack.path(), relative_path, QStringLiteral("operations"),
+                                         operations));
+        } else if (variant == 1) {
+            route.insert(QStringLiteral("reject_operation_id"),
+                         QStringLiteral("example.operation.accept-notice"));
+            routes.replace(0, route);
+            QVERIFY(replaceResourceField(pack.path(), relative_path,
+                                         QStringLiteral("filing_routes"), routes));
+        } else {
+            route.remove(QStringLiteral("deficiency_operation_id"));
+            routes.replace(0, route);
+            QVERIFY(replaceResourceField(pack.path(), relative_path,
+                                         QStringLiteral("filing_routes"), routes));
+        }
+
+        const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+        QVERIFY(!result.has_value());
+        QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+    }
 }
 
 } // namespace

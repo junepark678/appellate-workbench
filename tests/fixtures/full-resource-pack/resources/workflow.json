@@ -122,6 +122,7 @@
       "required_field_ids": ["example.field.caption"],
       "required_service_role_ids": ["example.role.appellee"],
       "accept_operation_id": "example.operation.accept-notice",
+      "reject_operation_id": "example.operation.reject-opened",
       "deficiency_operation_id": "example.operation.issue-deficiency",
       "deficiency_deadline": {
         "deadline_id": "example.deadline.notice-cure",

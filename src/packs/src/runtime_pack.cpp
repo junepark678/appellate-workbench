@@ -488,7 +488,7 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
     const auto operation_values =
         requiredArray(resource.document, "operations", path, 1, maximum_operations);
     const auto route_values =
-        requiredArray(resource.document, "filing_routes", path, 0, maximum_routes);
+        requiredArray(resource.document, "filing_routes", path, 1, maximum_routes);
     const auto calendar_object = requiredObject(resource.document, "calendar", path);
     if (!initial_stage || !stage_ids || !operation_values || !route_values || !calendar_object) {
         if (!initial_stage) {
@@ -592,16 +592,14 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
             idArray(route, "required_field_ids", route_path, 0, maximum_route_items);
         const auto service = idArray(route, "required_service_role_ids", route_path, 0, 64);
         const auto accept = requiredId(route, "accept_operation_id", route_path);
-        const auto deficiency = requiredId(route, "deficiency_operation_id", route_path);
-        const auto deficiency_plan_object =
-            requiredObject(route, "deficiency_deadline", route_path);
+        const auto reject = requiredId(route, "reject_operation_id", route_path);
+        const auto deficiency = optionalId(route, "deficiency_operation_id", route_path);
         const auto advance = optionalId(route, "advance_operation_id", route_path);
         const auto satisfies = optionalId(route, "satisfies_deadline_id", route_path);
         const auto reject_after_deadline =
             requiredBoolean(route, "reject_after_deadline", route_path);
-        if (!filing_type || !stage || !authorized || !fields || !service || !accept ||
-            !deficiency || !deficiency_plan_object || !advance || !satisfies ||
-            !reject_after_deadline) {
+        if (!filing_type || !stage || !authorized || !fields || !service || !accept || !reject ||
+            !deficiency || !advance || !satisfies || !reject_after_deadline) {
             if (!filing_type) {
                 return std::unexpected(filing_type.error());
             }
@@ -620,11 +618,11 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
             if (!accept) {
                 return std::unexpected(accept.error());
             }
+            if (!reject) {
+                return std::unexpected(reject.error());
+            }
             if (!deficiency) {
                 return std::unexpected(deficiency.error());
-            }
-            if (!deficiency_plan_object) {
-                return std::unexpected(deficiency_plan_object.error());
             }
             if (!advance) {
                 return std::unexpected(advance.error());
@@ -634,10 +632,23 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
             }
             return std::unexpected(reject_after_deadline.error());
         }
-        auto deficiency_plan =
-            parseDeadlinePlan(*deficiency_plan_object, route_path + ".deficiency_deadline");
-        if (!deficiency_plan) {
-            return std::unexpected(deficiency_plan.error());
+        std::optional<model::WorkflowDeadlinePlan> deficiency_plan;
+        if (route.contains(QStringLiteral("deficiency_deadline"))) {
+            if (!deficiency->has_value()) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            route_path + ".deficiency_deadline requires deficiency_operation_id");
+            }
+            const auto deficiency_plan_object =
+                requiredObject(route, "deficiency_deadline", route_path);
+            if (!deficiency_plan_object) {
+                return std::unexpected(deficiency_plan_object.error());
+            }
+            auto parsed =
+                parseDeadlinePlan(*deficiency_plan_object, route_path + ".deficiency_deadline");
+            if (!parsed) {
+                return std::unexpected(parsed.error());
+            }
+            deficiency_plan = std::move(*parsed);
         }
         std::optional<model::WorkflowDeadlinePlan> accepted_plan;
         if (route.contains(QStringLiteral("accepted_deadline"))) {
@@ -671,12 +682,16 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
         if (satisfies->has_value()) {
             satisfies_id = model::WorkflowDeadlineId{std::move(**satisfies)};
         }
+        std::optional<model::WorkflowOperationId> deficiency_id;
+        if (deficiency->has_value()) {
+            deficiency_id = model::WorkflowOperationId{std::move(**deficiency)};
+        }
         routes.push_back(model::WorkflowFilingRoute{
             model::FilingTypeId{*filing_type}, model::WorkflowStageId{*stage},
             std::move(authorized_roles), std::move(required_fields), std::move(service_roles),
-            model::WorkflowOperationId{*accept}, model::WorkflowOperationId{*deficiency},
-            std::move(*deficiency_plan), std::move(accepted_plan), std::move(advance_id),
-            std::move(satisfies_id), *reject_after_deadline});
+            model::WorkflowOperationId{*accept}, model::WorkflowOperationId{*reject},
+            std::move(deficiency_id), std::move(deficiency_plan), std::move(accepted_plan),
+            std::move(advance_id), std::move(satisfies_id), *reject_after_deadline});
     }
 
     const auto holiday_values =
@@ -693,12 +708,106 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
         }
         holidays.push_back(*holiday);
     }
-    return model::WorkflowDefinition{model::WorkflowId{resource.descriptor.id},
-                                     model::WorkflowStageId{*initial_stage},
-                                     std::move(stages),
-                                     std::move(operations),
-                                     std::move(routes),
-                                     model::CourtCalendar{std::move(holidays)}};
+    model::WorkflowDefinition definition{model::WorkflowId{resource.descriptor.id},
+                                         model::WorkflowStageId{*initial_stage},
+                                         std::move(stages),
+                                         std::move(operations),
+                                         std::move(routes),
+                                         model::CourtCalendar{std::move(holidays)}};
+
+    std::unordered_set<std::string> declared_stages;
+    declared_stages.reserve(definition.stages.size());
+    for (const auto& declared_stage : definition.stages) {
+        declared_stages.insert(declared_stage.value);
+    }
+    if (!declared_stages.contains(definition.initial_stage_id.value)) {
+        return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                    path + " initial stage is not declared");
+    }
+
+    std::unordered_map<std::string, const model::WorkflowOperation*> operations_by_id;
+    operations_by_id.reserve(definition.operations.size());
+    for (const auto& operation : definition.operations) {
+        if (!operations_by_id.emplace(operation.id.value, &operation).second ||
+            !declared_stages.contains(operation.stage_id.value) ||
+            (operation.next_stage_id.has_value() &&
+             !declared_stages.contains(operation.next_stage_id->value))) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " has duplicate operations or undeclared stages");
+        }
+        const auto has_deadline = operation.deadline_days.has_value();
+        const auto can_have_deadline =
+            operation.opcode == model::WorkflowOpcode::CalculateDeadline ||
+            operation.opcode == model::WorkflowOpcode::EnterOrder;
+        if (has_deadline != operation.deadline_counting.has_value() ||
+            (operation.opcode == model::WorkflowOpcode::CalculateDeadline && !has_deadline) ||
+            (!can_have_deadline && has_deadline) ||
+            (operation.opcode == model::WorkflowOpcode::AdvanceStage &&
+             !operation.next_stage_id.has_value())) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " has an incompatible workflow operation");
+        }
+    }
+    const auto operationForRoute = [&operations_by_id](const model::WorkflowOperationId& id,
+                                                       model::WorkflowOpcode opcode,
+                                                       const model::WorkflowStageId& stage) {
+        const auto found = operations_by_id.find(id.value);
+        return found != operations_by_id.end() && found->second->opcode == opcode &&
+               found->second->stage_id == stage;
+    };
+
+    std::unordered_set<std::string> route_keys;
+    std::unordered_set<std::string> deadline_ids;
+    std::unordered_set<std::string> accepted_deadline_ids;
+    for (const auto& route : definition.filing_routes) {
+        if (!route_keys.emplace(route.stage_id.value + "\n" + route.filing_type.value).second ||
+            !declared_stages.contains(route.stage_id.value) ||
+            !operationForRoute(route.accept_operation_id, model::WorkflowOpcode::AcceptFiling,
+                               route.stage_id) ||
+            !operationForRoute(route.reject_operation_id, model::WorkflowOpcode::RejectFiling,
+                               route.stage_id)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " has a duplicate or incompatible filing route");
+        }
+        if (route.deficiency_operation_id.has_value() &&
+            !operationForRoute(*route.deficiency_operation_id,
+                               model::WorkflowOpcode::IssueDeficiency, route.stage_id)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " has an incompatible deficiency operation");
+        }
+        if (route.deficiency_deadline.has_value()) {
+            if (!route.deficiency_operation_id.has_value() ||
+                !deadline_ids.emplace(route.deficiency_deadline->deadline_id.value).second ||
+                !operationForRoute(route.deficiency_deadline->operation_id,
+                                   model::WorkflowOpcode::CalculateDeadline, route.stage_id)) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            path + " has an incompatible deficiency deadline");
+            }
+        }
+        if (route.accepted_deadline.has_value()) {
+            if (!deadline_ids.emplace(route.accepted_deadline->deadline_id.value).second ||
+                !accepted_deadline_ids.emplace(route.accepted_deadline->deadline_id.value).second ||
+                !operationForRoute(route.accepted_deadline->operation_id,
+                                   model::WorkflowOpcode::CalculateDeadline, route.stage_id)) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            path + " has an incompatible accepted deadline");
+            }
+        }
+        if (route.advance_operation_id.has_value() &&
+            !operationForRoute(*route.advance_operation_id, model::WorkflowOpcode::AdvanceStage,
+                               route.stage_id)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " has an incompatible advance operation");
+        }
+    }
+    for (const auto& route : definition.filing_routes) {
+        if (route.satisfies_deadline_id.has_value() &&
+            !accepted_deadline_ids.contains(route.satisfies_deadline_id->value)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " satisfies a deadline that this workflow does not produce");
+        }
+    }
+    return definition;
 }
 
 struct ParsedCase final {
@@ -880,6 +989,60 @@ struct ParsedCase final {
                                             *asset_path, *digest, *pages, *sealed});
     }
     return RuntimeRecord{RuntimeRecordId{resource.descriptor.id}, *caption, std::move(docket)};
+}
+
+struct RuntimeCatalogFiling final {
+    std::unordered_set<std::string> authorized_roles;
+    std::unordered_set<std::string> required_fields;
+};
+
+using RuntimeCatalog = std::unordered_map<std::string, RuntimeCatalogFiling>;
+
+[[nodiscard]] Result<RuntimeCatalog> parseFilingCatalog(const ValidatedResource& resource) {
+    const auto path = "filing catalog " + resource.descriptor.id;
+    const auto filing_values = requiredArray(resource.document, "filings", path, 1, 512);
+    if (!filing_values) {
+        return std::unexpected(filing_values.error());
+    }
+    RuntimeCatalog catalog;
+    catalog.reserve(static_cast<std::size_t>(filing_values->size()));
+    for (qsizetype index = 0; index < filing_values->size(); ++index) {
+        if (!filing_values->at(index).isObject()) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + ".filings must contain objects");
+        }
+        const auto filing = filing_values->at(index).toObject();
+        const auto filing_path = path + ".filings[" + std::to_string(index) + "]";
+        const auto id = requiredId(filing, "filing_id", filing_path);
+        const auto title = requiredString(filing, "title", filing_path);
+        const auto roles = idArray(filing, "actor_role_ids", filing_path, 1, maximum_case_items);
+        const auto fields =
+            idArray(filing, "required_field_ids", filing_path, 0, maximum_route_items);
+        const auto authority = requiredId(filing, "authority_id", filing_path);
+        if (!id || !title || !roles || !fields || !authority) {
+            if (!id) {
+                return std::unexpected(id.error());
+            }
+            if (!title) {
+                return std::unexpected(title.error());
+            }
+            if (!roles) {
+                return std::unexpected(roles.error());
+            }
+            if (!fields) {
+                return std::unexpected(fields.error());
+            }
+            return std::unexpected(authority.error());
+        }
+        RuntimeCatalogFiling parsed;
+        parsed.authorized_roles.insert(roles->begin(), roles->end());
+        parsed.required_fields.insert(fields->begin(), fields->end());
+        if (!catalog.emplace(*id, std::move(parsed)).second) {
+            return fail(RuntimePackErrorCode::DuplicateResource,
+                        path + " repeats filing type " + *id);
+        }
+    }
+    return catalog;
 }
 
 [[nodiscard]] Result<RuntimeProcedure> parseProcedure(const ValidatedResource& resource) {
@@ -1191,6 +1354,7 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
     auto workflow = parseWorkflow(**workflow_resource);
     auto court = parseCourt(**court_resource);
     auto record = parseRecord(**record_resource);
+    auto catalog = parseFilingCatalog(**catalog_resource);
     if (!workflow) {
         return std::unexpected(workflow.error());
     }
@@ -1199,6 +1363,9 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
     }
     if (!record) {
         return std::unexpected(record.error());
+    }
+    if (!catalog) {
+        return std::unexpected(catalog.error());
     }
     for (const auto& authority_id : court->authority_set_ids) {
         const auto authority = index.require(authority_id.value, model::ResourceKind::AuthoritySet,
@@ -1211,6 +1378,53 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         return fail(RuntimePackErrorCode::CrossReferenceFailure,
                     "case " + parsed_case->definition.id.value +
                         " has different court and workflow calendars");
+    }
+    std::unordered_set<std::string> procedure_roles;
+    procedure_roles.reserve(procedure->actor_roles.size());
+    for (const auto& role : procedure->actor_roles) {
+        procedure_roles.insert(role.value);
+    }
+    for (const auto& [filing_id, filing] : *catalog) {
+        if (std::ranges::any_of(filing.authorized_roles, [&](const auto& role) {
+                return !procedure_roles.contains(role);
+            })) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        "filing catalog entry " + filing_id + " uses a role outside its procedure");
+        }
+    }
+    for (const auto& operation : workflow->operations) {
+        if (std::ranges::any_of(operation.authorized_roles, [&](const auto& role) {
+                return !procedure_roles.contains(role.value);
+            })) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        "workflow " + workflow->id.value +
+                            " uses an operation role outside its procedure");
+        }
+    }
+    for (const auto& route : workflow->filing_routes) {
+        const auto declared = catalog->find(route.filing_type.value);
+        std::unordered_set<std::string> route_roles;
+        std::unordered_set<std::string> route_fields;
+        route_roles.reserve(route.authorized_roles.size());
+        route_fields.reserve(route.required_fields.size());
+        for (const auto& role : route.authorized_roles) {
+            route_roles.insert(role.value);
+        }
+        for (const auto& field : route.required_fields) {
+            route_fields.insert(field.value);
+        }
+        if (declared == catalog->end() || route_roles != declared->second.authorized_roles ||
+            route_fields != declared->second.required_fields ||
+            std::ranges::any_of(
+                route.authorized_roles,
+                [&](const auto& role) { return !procedure_roles.contains(role.value); }) ||
+            std::ranges::any_of(route.required_service_roles, [&](const auto& role) {
+                return !procedure_roles.contains(role.value);
+            })) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        "workflow " + workflow->id.value +
+                            " route conflicts with its procedure filing catalog");
+        }
     }
     for (const auto& actor : parsed_case->definition.actors) {
         if (!hasRole(*procedure, actor.role)) {

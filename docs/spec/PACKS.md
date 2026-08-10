@@ -47,13 +47,38 @@ kind, normalized path, size, media type, and digest fields.
 | `bench_configuration` | Typed seats and presiding seat | Judge profiles and court |
 | `case` | Synthetic parties, issues, facts, and authored disposition | Procedure, workflow, record, form, authority, and argument IDs |
 | `court` | Court identity, jurisdiction, roles, and calendar | Authority sets |
-| `filing_catalog` | Filing types, fields, service rules, and routes | Court, procedure, form, and authority IDs |
+| `filing_catalog` | Filing types, field inventories, and eligible actor roles | Authority IDs |
 | `form` | Declarative fields and validation constraints | Filing catalog entries |
 | `judge_profile` | Fictional/composite interaction controls and voice templates | Compatible courts and issue vocabulary |
 | `procedure_profile` | Proceeding identity and supported built-in operations | Court, workflow, and filing catalog |
 | `realism_review` | Per-dimension evidence, reviewer status, and uncertainty | Case and authority IDs |
 | `record` | Docket entries, immutable document digests, and stable page anchors | Case and asset paths |
 | `workflow` | Typed stages, roles, routes, deadlines, calendar, and authority bases | Filing catalog and authority IDs |
+
+### Filing-route outcomes
+
+A runnable workflow declares at least one executable filing route. A filing catalog may be a
+strict superset of those routes so it can also describe reference-only or template filing types.
+Every executable route must still name one declared catalog filing, exactly match that filing's
+eligible roles and required fields, and use only actor and service roles declared by the owning
+procedure profile.
+
+Each route names its own `accept_operation_id` and `reject_operation_id`. Both operations must
+belong to the route's stage and carry the matching typed opcode and a complete, versioned
+authority basis. Different filing types in the same stage may therefore use different rejection
+authorities. A submission for which the current stage has no route fails closed as an invalid
+command; the engine does not borrow an unrelated rejection operation or synthesize authority.
+
+Nonconforming submissions have three explicit supported outcomes:
+
+- omit `deficiency_operation_id` to reject under the route's rejection operation;
+- provide `deficiency_operation_id` alone to issue a curable deficiency with no invented fixed
+  deadline; or
+- also provide `deficiency_deadline` to issue a deficiency and calculate its sourced deadline.
+
+`deficiency_deadline` is invalid without `deficiency_operation_id`. Deadline plans must reference
+a local `calculate_deadline` operation; accepted-filing deadline IDs remain unique and exact.
+This version intentionally has no generic condition or expression language.
 
 ## Dependencies and compatibility
 

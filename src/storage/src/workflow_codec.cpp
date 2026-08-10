@@ -1446,6 +1446,8 @@ template <typename Id>
         return QStringLiteral("unauthorized_actor");
     case model::WorkflowFilingRejectionReason::IneligibleFiling:
         return QStringLiteral("ineligible_filing");
+    case model::WorkflowFilingRejectionReason::NonconformingFiling:
+        return QStringLiteral("nonconforming_filing");
     case model::WorkflowFilingRejectionReason::DeadlineExpired:
         return QStringLiteral("deadline_expired");
     case model::WorkflowFilingRejectionReason::UnknownDeficiency:
@@ -1466,6 +1468,9 @@ template <typename Id>
     }
     if (*value == u"ineligible_filing") {
         return model::WorkflowFilingRejectionReason::IneligibleFiling;
+    }
+    if (*value == u"nonconforming_filing") {
+        return model::WorkflowFilingRejectionReason::NonconformingFiling;
     }
     if (*value == u"deadline_expired") {
         return model::WorkflowFilingRejectionReason::DeadlineExpired;
@@ -1642,7 +1647,7 @@ template <typename Id>
     const auto actor_id = checkedId(event.actor_id.value, u"payload.actor_id");
     const auto requirements = encodeIdArray(event.missing_requirements, maximum_requirements, true,
                                             u"payload.missing_requirements");
-    const auto deadline = checkedId(event.cure_deadline_id.value, u"payload.cure_deadline_id");
+    const auto deadline = encodeOptionalId(event.cure_deadline_id, u"payload.cure_deadline_id");
     if (!payload) {
         return std::unexpected(payload.error());
     }
@@ -1943,7 +1948,7 @@ template <typename Id>
         payload.value(u"missing_requirements"), maximum_requirements, true,
         u"payload.missing_requirements");
     const auto deadline_id =
-        decodeId<model::WorkflowDeadlineId>(payload, u"cure_deadline_id", u"payload");
+        decodeOptionalId<model::WorkflowDeadlineId>(payload, u"cure_deadline_id", u"payload");
     if (!header) {
         return std::unexpected(header.error());
     }

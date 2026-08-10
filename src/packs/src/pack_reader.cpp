@@ -782,10 +782,6 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
             }
             QSet<QString> operations;
             QHash<QString, QJsonObject> operation_documents;
-            QHash<QString, qsizetype> rejection_counts;
-            for (const auto& stage : stages) {
-                rejection_counts.insert(stage, 0);
-            }
             for (const auto& value : document.value(QStringLiteral("operations")).toArray()) {
                 const auto operation = value.toObject();
                 const auto operation_id =
@@ -843,18 +839,6 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                         resource, QStringLiteral("operations/authorized_role_ids"),
                         QStringLiteral("court operations require an authorized role"));
                 }
-                if (opcode == QStringLiteral("reject_filing")) {
-                    ++rejection_counts[operation.value(QStringLiteral("stage_id")).toString()];
-                }
-            }
-            for (auto count = rejection_counts.constBegin(); count != rejection_counts.constEnd();
-                 ++count) {
-                if (count.value() != 1) {
-                    return crossReferenceFailure(
-                        resource, QStringLiteral("operations"),
-                        QStringLiteral("stage %1 must have exactly one reject_filing operation")
-                            .arg(count.key()));
-                }
             }
 
             const auto operationForId = [&operation_documents](const QString& operation_id,
@@ -868,7 +852,13 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
             QSet<QString> route_keys;
             QSet<QString> declared_deadline_ids;
             QSet<QString> accepted_deadline_ids;
-            for (const auto& value : document.value(QStringLiteral("filing_routes")).toArray()) {
+            const auto filing_routes = document.value(QStringLiteral("filing_routes")).toArray();
+            if (filing_routes.isEmpty()) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("filing_routes"),
+                    QStringLiteral("a runnable workflow requires an executable filing route"));
+            }
+            for (const auto& value : filing_routes) {
                 const auto route = value.toObject();
                 const auto stage_id = route.value(QStringLiteral("stage_id")).toString();
                 const auto filing_type_id =
@@ -883,12 +873,24 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 route_keys.insert(route_key);
                 if (!operationForId(route.value(QStringLiteral("accept_operation_id")).toString(),
                                     QStringLiteral("accept_filing"), stage_id) ||
-                    !operationForId(
-                        route.value(QStringLiteral("deficiency_operation_id")).toString(),
-                        QStringLiteral("issue_deficiency"), stage_id)) {
+                    !operationForId(route.value(QStringLiteral("reject_operation_id")).toString(),
+                                    QStringLiteral("reject_filing"), stage_id)) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("filing_routes"),
-                        QStringLiteral("route accept and deficiency operations are incompatible"));
+                        QStringLiteral("route accept and reject operations are incompatible"));
+                }
+                const auto has_deficiency_operation =
+                    route.contains(QStringLiteral("deficiency_operation_id"));
+                const auto has_deficiency_deadline =
+                    route.contains(QStringLiteral("deficiency_deadline"));
+                if ((has_deficiency_operation &&
+                     !operationForId(
+                         route.value(QStringLiteral("deficiency_operation_id")).toString(),
+                         QStringLiteral("issue_deficiency"), stage_id)) ||
+                    (has_deficiency_deadline && !has_deficiency_operation)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("filing_routes/deficiency"),
+                        QStringLiteral("route deficiency behavior is incompatible"));
                 }
                 const auto validateDeadlinePlan =
                     [&](const QJsonObject& plan) -> std::expected<void, Error> {
@@ -904,10 +906,12 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                     declared_deadline_ids.insert(deadline_id);
                     return {};
                 };
-                const auto deficiency_plan = validateDeadlinePlan(
-                    route.value(QStringLiteral("deficiency_deadline")).toObject());
-                if (!deficiency_plan) {
-                    return std::unexpected(deficiency_plan.error());
+                if (has_deficiency_deadline) {
+                    const auto deficiency_plan = validateDeadlinePlan(
+                        route.value(QStringLiteral("deficiency_deadline")).toObject());
+                    if (!deficiency_plan) {
+                        return std::unexpected(deficiency_plan.error());
+                    }
                 }
                 if (route.contains(QStringLiteral("accepted_deadline"))) {
                     const auto accepted_plan =
@@ -927,7 +931,7 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                         QStringLiteral("advance operation is incompatible with the route"));
                 }
             }
-            for (const auto& value : document.value(QStringLiteral("filing_routes")).toArray()) {
+            for (const auto& value : filing_routes) {
                 const auto route = value.toObject();
                 if (route.contains(QStringLiteral("satisfies_deadline_id")) &&
                     !accepted_deadline_ids.contains(
@@ -1078,12 +1082,10 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                     QStringLiteral("workflow operation role is not declared by the procedure"));
             }
         }
-        QSet<QString> routed_filing_types;
         for (const auto& value :
              workflow_document.value(QStringLiteral("filing_routes")).toArray()) {
             const auto route = value.toObject();
             const auto filing_type_id = route.value(QStringLiteral("filing_type_id")).toString();
-            routed_filing_types.insert(filing_type_id);
             if (!catalog_filings.value(catalog_id).contains(filing_type_id) ||
                 !rolesAreDeclared(route.value(QStringLiteral("authorized_role_ids")).toArray()) ||
                 !rolesAreDeclared(
@@ -1096,11 +1098,6 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                     resource, QStringLiteral("workflow_id/filing_routes"),
                     QStringLiteral("workflow route conflicts with its procedure filing catalog"));
             }
-        }
-        if (routed_filing_types != catalog_filings.value(catalog_id)) {
-            return crossReferenceFailure(
-                resource, QStringLiteral("workflow_id/filing_routes"),
-                QStringLiteral("every catalog filing requires a workflow route"));
         }
     }
 

@@ -79,11 +79,14 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
     }
 
     std::vector<model::WorkflowOperation> operations;
-    for (const auto* stage : {appellant_stage, appellee_stage, reply_stage, submitted_stage,
-                              argument_stage, judgment_stage, closed_stage}) {
-        operations.push_back(
-            operation(std::string(stage) + ".reject", stage, model::WorkflowOpcode::RejectFiling));
-    }
+    operations.push_back(
+        operation("test.op.opening.reject", appellant_stage, model::WorkflowOpcode::RejectFiling));
+    operations.push_back(
+        operation("test.op.extension.reject", appellee_stage, model::WorkflowOpcode::RejectFiling));
+    operations.push_back(
+        operation("test.op.response.reject", appellee_stage, model::WorkflowOpcode::RejectFiling));
+    operations.push_back(
+        operation("test.op.reply.reject", reply_stage, model::WorkflowOpcode::RejectFiling));
 
     operations.push_back(
         operation("test.op.opening.accept", appellant_stage, model::WorkflowOpcode::AcceptFiling));
@@ -142,8 +145,8 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
     const auto make_route = [](std::string filing_type, std::string stage,
                                std::vector<std::string> authorized_roles,
                                std::vector<std::string> service_roles, std::string accept,
-                               std::string deficiency, std::string deficiency_calculation,
-                               std::string deficiency_deadline_id,
+                               std::string reject, std::optional<std::string> deficiency,
+                               std::optional<model::WorkflowDeadlinePlan> deficiency_deadline,
                                std::optional<model::WorkflowDeadlinePlan> accepted_deadline,
                                std::optional<std::string> advance,
                                std::optional<std::string> satisfies) {
@@ -162,10 +165,10 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
             {model::FilingFieldId{"test.field.certificate"}},
             std::move(service),
             model::WorkflowOperationId{std::move(accept)},
-            model::WorkflowOperationId{std::move(deficiency)},
-            model::WorkflowDeadlinePlan{
-                model::WorkflowDeadlineId{std::move(deficiency_deadline_id)},
-                model::WorkflowOperationId{std::move(deficiency_calculation)}},
+            model::WorkflowOperationId{std::move(reject)},
+            deficiency ? std::optional{model::WorkflowOperationId{std::move(*deficiency)}}
+                       : std::nullopt,
+            std::move(deficiency_deadline),
             std::move(accepted_deadline),
             advance ? std::optional{model::WorkflowOperationId{std::move(*advance)}} : std::nullopt,
             satisfies ? std::optional{model::WorkflowDeadlineId{std::move(*satisfies)}}
@@ -177,26 +180,29 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
     std::vector<model::WorkflowFilingRoute> routes;
     routes.push_back(make_route(
         "test.filing.opening", appellant_stage, {appellant_role}, {appellee_role},
-        "test.op.opening.accept", "test.op.opening.deficiency", "test.op.opening.cure-deadline",
-        "test.deadline.opening-cure",
+        "test.op.opening.accept", "test.op.opening.reject", "test.op.opening.deficiency",
+        model::WorkflowDeadlinePlan{model::WorkflowDeadlineId{"test.deadline.opening-cure"},
+                                    model::WorkflowOperationId{"test.op.opening.cure-deadline"}},
         model::WorkflowDeadlinePlan{model::WorkflowDeadlineId{response_deadline},
                                     model::WorkflowOperationId{"test.op.response.deadline"}},
         "test.op.to-appellee", std::nullopt));
-    routes.push_back(make_route(
-        "test.filing.extension", appellee_stage, {appellee_role}, {appellant_role},
-        "test.op.extension.accept", "test.op.appellee.deficiency", "test.op.appellee.cure-deadline",
-        "test.deadline.extension-cure", std::nullopt, std::nullopt, std::nullopt));
+    routes.push_back(make_route("test.filing.extension", appellee_stage, {appellee_role},
+                                {appellant_role}, "test.op.extension.accept",
+                                "test.op.extension.reject", std::nullopt, std::nullopt,
+                                std::nullopt, std::nullopt, std::nullopt));
     routes.push_back(make_route(
         "test.filing.response", appellee_stage, {appellee_role}, {appellant_role},
-        "test.op.response.accept", "test.op.appellee.deficiency", "test.op.appellee.cure-deadline",
-        "test.deadline.response-cure",
+        "test.op.response.accept", "test.op.response.reject", "test.op.appellee.deficiency",
+        std::nullopt,
         model::WorkflowDeadlinePlan{model::WorkflowDeadlineId{reply_deadline},
                                     model::WorkflowOperationId{"test.op.reply.deadline"}},
         "test.op.to-reply", response_deadline));
-    routes.push_back(make_route("test.filing.reply", reply_stage, {appellant_role}, {appellee_role},
-                                "test.op.reply.accept", "test.op.reply.deficiency",
-                                "test.op.reply.cure-deadline", "test.deadline.reply-cure",
-                                std::nullopt, "test.op.to-submission", reply_deadline));
+    routes.push_back(make_route(
+        "test.filing.reply", reply_stage, {appellant_role}, {appellee_role}, "test.op.reply.accept",
+        "test.op.reply.reject", "test.op.reply.deficiency",
+        model::WorkflowDeadlinePlan{model::WorkflowDeadlineId{"test.deadline.reply-cure"},
+                                    model::WorkflowOperationId{"test.op.reply.cure-deadline"}},
+        std::nullopt, "test.op.to-submission", reply_deadline));
 
     return model::WorkflowDefinition{
         model::WorkflowId{"test.workflow.civil-appeal"},
@@ -443,12 +449,15 @@ class WorkflowEngineTest final : public QObject {
   private slots:
     void completesDeterministicGoldenAppeal();
     void deficiencyUsesServiceAndHolidayRulesAndCanBeCured();
+    void deficiencyWithoutSourcedDeadlineReplaysAndCanBeCured();
     void repeatedDeficienciesUseInstanceIdsAndReplay();
     void rejectsUnauthorizedIneligibleAndLateFilings();
+    void usesRouteLocalRejectionAuthoritiesAndExplicitNonconformance();
     void rejectsUnauthorizedCourtActionAndMissingAuthority();
     void replayRejectsImpossibleGroupsAndForgedCourtActions();
     void rejectsBackdatedExplicitLegalTime();
     void rejectsDirtySnapshotsAndMalformedDefinitions();
+    void rejectsMalformedRouteOutcomeCombinations();
     void replayRejectsTamperedTrace();
 };
 
@@ -505,6 +514,7 @@ void WorkflowEngineTest::deficiencyUsesServiceAndHolidayRulesAndCanBeCured() {
     const auto* deadline = std::get_if<model::WorkflowDeadlineCalculated>(&decision->back());
     QVERIFY(deficiency != nullptr);
     QVERIFY(deadline != nullptr);
+    QVERIFY(deficiency->cure_deadline_id.has_value());
     QCOMPARE(deficiency->missing_requirements,
              (std::vector{model::WorkflowRequirementId{"service.test.actor.appellee"},
                           model::WorkflowRequirementId{"test.field.certificate"}}));
@@ -527,6 +537,60 @@ void WorkflowEngineTest::deficiencyUsesServiceAndHolidayRulesAndCanBeCured() {
     QVERIFY(cured->deficiencies.front().cured);
     QCOMPARE(cured->deadlines.front().status, model::WorkflowDeadlineStatus::Satisfied);
     QCOMPARE(cured->current_stage_id.value, std::string(appellee_stage));
+}
+
+void WorkflowEngineTest::deficiencyWithoutSourcedDeadlineReplaysAndCanBeCured() {
+    const auto definition = workflow();
+    const auto case_definition = caseDefinition();
+    auto run = emptyRun();
+    const auto appellant = model::ActorId{"test.actor.appellant"};
+    QVERIFY(execute(definition, case_definition, run,
+                    filing("command.opening", "filing.opening", "test.actor.appellant",
+                           "test.filing.opening", date(2026, 8, 13),
+                           {model::ActorId{"test.actor.appellee"}}))
+                .has_value());
+
+    const auto deficient_command =
+        filing("command.response-deficient", "filing.response-deficient", "test.actor.appellee",
+               "test.filing.response", date(2026, 8, 20), {appellant}, false);
+    const auto decision =
+        engine::decideWorkflow(definition, case_definition, run.state, deficient_command);
+    QVERIFY(decision.has_value());
+    QCOMPARE(decision->size(), std::size_t{1});
+    const auto* deficiency = std::get_if<model::WorkflowDeficiencyIssued>(&decision->front());
+    QVERIFY(deficiency != nullptr);
+    QVERIFY(!deficiency->cure_deadline_id.has_value());
+    QCOMPARE(deficiency->header.operation_id.value, std::string("test.op.appellee.deficiency"));
+
+    run.journal.push_back(model::WorkflowJournalEntry{deficient_command, *decision});
+    const auto pending =
+        engine::replayWorkflow(definition, case_definition, run.initial_state, run.journal);
+    QVERIFY(pending.has_value());
+    QCOMPARE(pending->deficiencies.size(), std::size_t{1});
+    QVERIFY(!pending->deficiencies.front().cure_deadline_id.has_value());
+    QCOMPARE(pending->deadlines.size(), std::size_t{1});
+
+    const auto cure = filing("command.response-cure", "filing.response-cure", "test.actor.appellee",
+                             "test.filing.response", date(2026, 9, 10), {appellant}, true,
+                             deficiency->deficiency_id);
+    const auto cured_events = engine::decideWorkflow(definition, case_definition, *pending, cure);
+    QVERIFY(cured_events.has_value());
+    run.journal.push_back(model::WorkflowJournalEntry{cure, *cured_events});
+    const auto cured =
+        engine::replayWorkflow(definition, case_definition, run.initial_state, run.journal);
+    QVERIFY(cured.has_value());
+    QVERIFY(cured->deficiencies.front().cured);
+
+    auto tampered = run.journal;
+    auto* tampered_deficiency =
+        std::get_if<model::WorkflowDeficiencyIssued>(&tampered.at(1).events.front());
+    QVERIFY(tampered_deficiency != nullptr);
+    tampered_deficiency->cure_deadline_id =
+        model::WorkflowDeadlineId{"test.deadline.fabricated-cure"};
+    const auto rejected =
+        engine::replayWorkflow(definition, case_definition, run.initial_state, tampered);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidEvent);
 }
 
 void WorkflowEngineTest::repeatedDeficienciesUseInstanceIdsAndReplay() {
@@ -588,14 +652,8 @@ void WorkflowEngineTest::rejectsUnauthorizedIneligibleAndLateFilings() {
                date(2026, 8, 13), {model::ActorId{"test.actor.appellee"}});
     const auto ineligible =
         engine::decideWorkflow(definition, case_definition, initial, ineligible_command);
-    QVERIFY(ineligible.has_value());
-    rejected = std::get_if<model::WorkflowFilingRejected>(&ineligible->front());
-    QVERIFY(rejected != nullptr);
-    QCOMPARE(rejected->reason, model::WorkflowFilingRejectionReason::IneligibleFiling);
-    QVERIFY(engine::replayWorkflow(
-                definition, case_definition, initial,
-                std::vector{model::WorkflowJournalEntry{ineligible_command, *ineligible}})
-                .has_value());
+    QVERIFY(!ineligible.has_value());
+    QCOMPARE(ineligible.error().code, engine::WorkflowErrorCode::InvalidCommand);
 
     auto run = emptyRun();
     QVERIFY(execute(definition, case_definition, run,
@@ -615,6 +673,56 @@ void WorkflowEngineTest::rejectsUnauthorizedIneligibleAndLateFilings() {
     journal.push_back(model::WorkflowJournalEntry{late_command, *late});
     QVERIFY(engine::replayWorkflow(definition, case_definition, run.initial_state, journal)
                 .has_value());
+}
+
+void WorkflowEngineTest::usesRouteLocalRejectionAuthoritiesAndExplicitNonconformance() {
+    const auto definition = workflow();
+    const auto case_definition = caseDefinition();
+    auto run = emptyRun();
+    const auto appellant = model::ActorId{"test.actor.appellant"};
+    QVERIFY(execute(definition, case_definition, run,
+                    filing("command.opening", "filing.opening", "test.actor.appellant",
+                           "test.filing.opening", date(2026, 8, 13),
+                           {model::ActorId{"test.actor.appellee"}}))
+                .has_value());
+
+    const auto unauthorized_extension =
+        filing("command.extension-unauthorized", "filing.extension-unauthorized",
+               "test.actor.appellant", "test.filing.extension", date(2026, 8, 20), {}, true);
+    const auto extension_decision =
+        engine::decideWorkflow(definition, case_definition, run.state, unauthorized_extension);
+    QVERIFY(extension_decision.has_value());
+    const auto* extension_rejection =
+        std::get_if<model::WorkflowFilingRejected>(&extension_decision->front());
+    QVERIFY(extension_rejection != nullptr);
+    QCOMPARE(extension_rejection->header.operation_id.value,
+             std::string("test.op.extension.reject"));
+
+    const auto unauthorized_response =
+        filing("command.response-unauthorized", "filing.response-unauthorized",
+               "test.actor.appellant", "test.filing.response", date(2026, 8, 20), {}, true);
+    const auto response_decision =
+        engine::decideWorkflow(definition, case_definition, run.state, unauthorized_response);
+    QVERIFY(response_decision.has_value());
+    const auto* response_rejection =
+        std::get_if<model::WorkflowFilingRejected>(&response_decision->front());
+    QVERIFY(response_rejection != nullptr);
+    QCOMPARE(response_rejection->header.operation_id.value, std::string("test.op.response.reject"));
+    QVERIFY(extension_rejection->header.authority != response_rejection->header.authority);
+
+    const auto nonconforming = filing(
+        "command.extension-nonconforming", "filing.extension-nonconforming", "test.actor.appellee",
+        "test.filing.extension", date(2026, 8, 20), {appellant}, false);
+    const auto nonconforming_decision =
+        engine::decideWorkflow(definition, case_definition, run.state, nonconforming);
+    QVERIFY(nonconforming_decision.has_value());
+    const auto* nonconforming_rejection =
+        std::get_if<model::WorkflowFilingRejected>(&nonconforming_decision->front());
+    QVERIFY(nonconforming_rejection != nullptr);
+    QCOMPARE(nonconforming_rejection->reason,
+             model::WorkflowFilingRejectionReason::NonconformingFiling);
+    QCOMPARE(nonconforming_rejection->header.operation_id.value,
+             std::string("test.op.extension.reject"));
 }
 
 void WorkflowEngineTest::rejectsUnauthorizedCourtActionAndMissingAuthority() {
@@ -650,7 +758,7 @@ void WorkflowEngineTest::replayRejectsImpossibleGroupsAndForgedCourtActions() {
         engine::decideWorkflow(definition, case_definition, initial, opening_command);
     QVERIFY(opening.has_value());
     auto impossible = *opening;
-    const auto reject_id = model::WorkflowOperationId{std::string(appellant_stage) + ".reject"};
+    const auto reject_id = model::WorkflowOperationId{"test.op.opening.reject"};
     const auto reject_operation =
         std::ranges::find(definition.operations, reject_id, &model::WorkflowOperation::id);
     QVERIFY(reject_operation != definition.operations.end());
@@ -786,6 +894,41 @@ void WorkflowEngineTest::rejectsDirtySnapshotsAndMalformedDefinitions() {
         malformed, case_definition, initial,
         filing("command.opening", "filing.opening", "test.actor.appellant", "test.filing.opening",
                date(2026, 8, 13), {model::ActorId{"test.actor.appellee"}}));
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+}
+
+void WorkflowEngineTest::rejectsMalformedRouteOutcomeCombinations() {
+    const auto case_definition = caseDefinition();
+    const auto initial = initialState();
+    const auto command =
+        filing("command.opening", "filing.opening", "test.actor.appellant", "test.filing.opening",
+               date(2026, 8, 13), {model::ActorId{"test.actor.appellee"}});
+
+    auto malformed = workflow();
+    malformed.filing_routes.front().reject_operation_id =
+        model::WorkflowOperationId{"test.op.opening.accept"};
+    auto result = engine::decideWorkflow(malformed, case_definition, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    malformed = workflow();
+    malformed.filing_routes.front().reject_operation_id =
+        model::WorkflowOperationId{"test.op.missing-rejection"};
+    result = engine::decideWorkflow(malformed, case_definition, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    malformed = workflow();
+    malformed.filing_routes.front().deficiency_operation_id.reset();
+    QVERIFY(malformed.filing_routes.front().deficiency_deadline.has_value());
+    result = engine::decideWorkflow(malformed, case_definition, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    malformed = workflow();
+    malformed.filing_routes.clear();
+    result = engine::decideWorkflow(malformed, case_definition, initial, command);
     QVERIFY(!result.has_value());
     QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
 }

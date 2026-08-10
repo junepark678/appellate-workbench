@@ -141,6 +141,8 @@ struct DocumentRequirement final {
         return QStringLiteral("rejected-unauthorized");
     case model::WorkflowFilingRejectionReason::IneligibleFiling:
         return QStringLiteral("rejected-ineligible");
+    case model::WorkflowFilingRejectionReason::NonconformingFiling:
+        return QStringLiteral("rejected-nonconforming");
     case model::WorkflowFilingRejectionReason::DeadlineExpired:
         return QStringLiteral("rejected-late");
     case model::WorkflowFilingRejectionReason::UnknownDeficiency:

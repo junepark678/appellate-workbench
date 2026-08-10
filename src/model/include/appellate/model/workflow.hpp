@@ -96,8 +96,9 @@ struct WorkflowFilingRoute final {
     std::vector<FilingFieldId> required_fields;
     std::vector<ActorRoleId> required_service_roles;
     WorkflowOperationId accept_operation_id;
-    WorkflowOperationId deficiency_operation_id;
-    WorkflowDeadlinePlan deficiency_deadline;
+    WorkflowOperationId reject_operation_id;
+    std::optional<WorkflowOperationId> deficiency_operation_id;
+    std::optional<WorkflowDeadlinePlan> deficiency_deadline;
     std::optional<WorkflowDeadlinePlan> accepted_deadline;
     std::optional<WorkflowOperationId> advance_operation_id;
     std::optional<WorkflowDeadlineId> satisfies_deadline_id;

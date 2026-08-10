@@ -5,6 +5,8 @@
 #include "appellate/packs/runtime_pack.hpp"
 
 #include <QDir>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -80,6 +82,7 @@ class OutOfTreePackTest final : public QObject {
     void drivesBuiltInWorkflowFromInstalledArchive();
     void rejectsRemovedLinkedResource();
     void rejectsDuplicateAndMutatedResources();
+    void validatesRouteOutcomesAndAllowsCatalogSuperset();
 };
 
 void OutOfTreePackTest::drivesBuiltInWorkflowFromInstalledArchive() {
@@ -192,6 +195,54 @@ void OutOfTreePackTest::rejectsDuplicateAndMutatedResources() {
     const auto mutated_result = packs::loadRuntimePack(*mutated);
     QVERIFY(!mutated_result.has_value());
     QVERIFY(mutated_result.error().code == packs::RuntimePackErrorCode::InvalidResource);
+}
+
+void OutOfTreePackTest::validatesRouteOutcomesAndAllowsCatalogSuperset() {
+    auto with_reference = packs::PackReader::readDirectory(fullPackPath());
+    QVERIFY(with_reference.has_value());
+    auto catalog = std::ranges::find_if(
+        with_reference->resources, [](const packs::ValidatedResource& resource) {
+            return resource.descriptor.kind == model::ResourceKind::FilingCatalog;
+        });
+    QVERIFY(catalog != with_reference->resources.end());
+    auto filings = catalog->document.value(QStringLiteral("filings")).toArray();
+    filings.push_back(QJsonObject{
+        {QStringLiteral("filing_id"), QStringLiteral("example.filing.reference-template")},
+        {QStringLiteral("title"), QStringLiteral("Reference-only filing template")},
+        {QStringLiteral("actor_role_ids"), QJsonArray{QStringLiteral("example.role.appellant")}},
+        {QStringLiteral("required_field_ids"), QJsonArray{}},
+        {QStringLiteral("authority_id"), QStringLiteral("example.authority.rule-one")},
+    });
+    catalog->document.insert(QStringLiteral("filings"), filings);
+    const auto superset = packs::loadRuntimePack(*with_reference);
+    QVERIFY2(superset.has_value(), superset ? "" : superset.error().message.c_str());
+
+    for (int variant = 0; variant < 3; ++variant) {
+        auto loaded = packs::PackReader::readDirectory(fullPackPath());
+        QVERIFY(loaded.has_value());
+        auto workflow =
+            std::ranges::find_if(loaded->resources, [](const packs::ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow;
+            });
+        QVERIFY(workflow != loaded->resources.end());
+        auto routes = workflow->document.value(QStringLiteral("filing_routes")).toArray();
+        auto route = routes.at(0).toObject();
+        if (variant == 0) {
+            route.insert(QStringLiteral("reject_operation_id"),
+                         QStringLiteral("example.operation.accept-notice"));
+        } else if (variant == 1) {
+            route.insert(QStringLiteral("reject_operation_id"),
+                         QStringLiteral("example.operation.missing"));
+        } else {
+            route.remove(QStringLiteral("deficiency_operation_id"));
+        }
+        routes.replace(0, route);
+        workflow->document.insert(QStringLiteral("filing_routes"), routes);
+        const auto result = packs::loadRuntimePack(*loaded);
+        QVERIFY(!result.has_value());
+        QVERIFY(result.error().code == packs::RuntimePackErrorCode::CrossReferenceFailure ||
+                result.error().code == packs::RuntimePackErrorCode::InvalidResource);
+    }
 }
 
 } // namespace

@@ -72,6 +72,7 @@
     },
     "filing_routes": {
       "type": "array",
+      "minItems": 1,
       "maxItems": 2048,
       "items": {
         "type": "object",
@@ -83,8 +84,7 @@
           "required_field_ids",
           "required_service_role_ids",
           "accept_operation_id",
-          "deficiency_operation_id",
-          "deficiency_deadline",
+          "reject_operation_id",
           "reject_after_deadline"
         ],
         "properties": {
@@ -110,6 +110,7 @@
             "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
           },
           "accept_operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "reject_operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
           "deficiency_operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
           "deficiency_deadline": { "$ref": "#/$defs/deadline_plan" },
           "accepted_deadline": { "$ref": "#/$defs/deadline_plan" },

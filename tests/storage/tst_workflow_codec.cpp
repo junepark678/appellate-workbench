@@ -240,6 +240,17 @@ void WorkflowCodecTest::roundTripsEveryEventVariant() {
         QVERIFY(reencoded.has_value());
         QCOMPARE(*reencoded, *first);
     }
+
+    auto no_deadline = std::get<model::WorkflowDeficiencyIssued>(values.at(2));
+    no_deadline.cure_deadline_id.reset();
+    const auto encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{no_deadline});
+    QVERIFY(encoded.has_value());
+    const auto decoded = storage::decodeWorkflowEvent(*encoded);
+    QVERIFY(decoded.has_value());
+    QVERIFY(*decoded == model::WorkflowEvent{no_deadline});
+    const auto payload =
+        QJsonDocument::fromJson(*encoded).object().value(QStringLiteral("payload")).toObject();
+    QVERIFY(payload.value(QStringLiteral("cure_deadline_id")).isNull());
 }
 
 void WorkflowCodecTest::roundTripsEveryEnumValue() {
@@ -257,6 +268,7 @@ void WorkflowCodecTest::roundTripsEveryEnumValue() {
 
     for (const auto reason : {model::WorkflowFilingRejectionReason::UnauthorizedActor,
                               model::WorkflowFilingRejectionReason::IneligibleFiling,
+                              model::WorkflowFilingRejectionReason::NonconformingFiling,
                               model::WorkflowFilingRejectionReason::DeadlineExpired,
                               model::WorkflowFilingRejectionReason::UnknownDeficiency}) {
         auto event = std::get<model::WorkflowFilingRejected>(events().at(1));

@@ -195,16 +195,6 @@ template <typename Range, typename Projection>
     return found == workflow.filing_routes.end() ? nullptr : &*found;
 }
 
-[[nodiscard]] auto rejectionFor(const model::WorkflowDefinition& workflow,
-                                const model::WorkflowStageId& stage)
-    -> const model::WorkflowOperation* {
-    const auto found = std::ranges::find_if(workflow.operations, [&](const auto& operation) {
-        return operation.stage_id == stage &&
-               operation.opcode == model::WorkflowOpcode::RejectFiling;
-    });
-    return found == workflow.operations.end() ? nullptr : &*found;
-}
-
 [[nodiscard]] auto deadlineFor(model::WorkflowState& state, const model::WorkflowDeadlineId& id)
     -> model::WorkflowDeadlineRecord* {
     const auto found =
@@ -261,7 +251,8 @@ template <typename Range, typename Projection>
     -> std::expected<void, WorkflowError> {
     if (!validNamespacedId(workflow.id.value) || workflow.stages.empty() ||
         workflow.stages.size() > max_stages || workflow.operations.empty() ||
-        workflow.operations.size() > max_operations || workflow.filing_routes.size() > max_routes ||
+        workflow.operations.size() > max_operations || workflow.filing_routes.empty() ||
+        workflow.filing_routes.size() > max_routes ||
         workflow.calendar.holidays.size() > max_holidays ||
         std::ranges::find(workflow.stages, workflow.initial_stage_id) == workflow.stages.end() ||
         hasDuplicates(workflow.stages, [](const auto& stage) { return stage.value; }) ||
@@ -334,28 +325,23 @@ template <typename Range, typename Projection>
         }
     }
 
-    for (const auto& stage : workflow.stages) {
-        const auto rejection_count =
-            std::ranges::count_if(workflow.operations, [&](const auto& op) {
-                return op.stage_id == stage && op.opcode == model::WorkflowOpcode::RejectFiling;
-            });
-        if (rejection_count != 1) {
-            return fail(WorkflowErrorCode::InvalidDefinition,
-                        "each stage requires exactly one reject_filing operation");
-        }
-    }
-
     if (hasDuplicates(workflow.filing_routes, [](const auto& route) {
             return route.stage_id.value + "\n" + route.filing_type.value;
         })) {
         return fail(WorkflowErrorCode::InvalidDefinition, "duplicate filing route");
     }
+    std::unordered_set<std::string> declared_deadline_ids;
     std::unordered_set<std::string> produced_deadline_ids;
     for (const auto& route : workflow.filing_routes) {
         const auto* accept = operationFor(workflow, route.accept_operation_id);
-        const auto* deficiency = operationFor(workflow, route.deficiency_operation_id);
+        const auto* reject = operationFor(workflow, route.reject_operation_id);
+        const auto* deficiency = route.deficiency_operation_id
+                                     ? operationFor(workflow, *route.deficiency_operation_id)
+                                     : nullptr;
         const auto* deficiency_deadline =
-            operationFor(workflow, route.deficiency_deadline.operation_id);
+            route.deficiency_deadline
+                ? operationFor(workflow, route.deficiency_deadline->operation_id)
+                : nullptr;
         const auto* accepted_deadline =
             route.accepted_deadline ? operationFor(workflow, route.accepted_deadline->operation_id)
                                     : nullptr;
@@ -363,7 +349,6 @@ template <typename Range, typename Projection>
                                   ? operationFor(workflow, *route.advance_operation_id)
                                   : nullptr;
         if (!validNamespacedId(route.filing_type.value) ||
-            !validNamespacedId(route.deficiency_deadline.deadline_id.value) ||
             std::ranges::find(workflow.stages, route.stage_id) == workflow.stages.end() ||
             route.authorized_roles.empty() || route.authorized_roles.size() > max_route_items ||
             route.required_fields.size() > max_route_items ||
@@ -379,10 +364,16 @@ template <typename Range, typename Projection>
                 [](const auto& field) { return !validNamespacedId(field.value); }) ||
             std::ranges::any_of(route.required_service_roles,
                                 [](const auto& role) { return !validNamespacedId(role.value); }) ||
-            accept == nullptr || deficiency == nullptr || deficiency_deadline == nullptr ||
+            accept == nullptr || reject == nullptr ||
             accept->opcode != model::WorkflowOpcode::AcceptFiling ||
-            deficiency->opcode != model::WorkflowOpcode::IssueDeficiency ||
-            deficiency_deadline->opcode != model::WorkflowOpcode::CalculateDeadline ||
+            reject->opcode != model::WorkflowOpcode::RejectFiling ||
+            (route.deficiency_operation_id.has_value() &&
+             (deficiency == nullptr ||
+              deficiency->opcode != model::WorkflowOpcode::IssueDeficiency)) ||
+            (route.deficiency_deadline.has_value() &&
+             (!route.deficiency_operation_id.has_value() || deficiency_deadline == nullptr ||
+              deficiency_deadline->opcode != model::WorkflowOpcode::CalculateDeadline ||
+              !validNamespacedId(route.deficiency_deadline->deadline_id.value))) ||
             (route.accepted_deadline.has_value() &&
              (accepted_deadline == nullptr ||
               accepted_deadline->opcode != model::WorkflowOpcode::CalculateDeadline)) ||
@@ -393,9 +384,15 @@ template <typename Range, typename Projection>
         }
         if (route.accepted_deadline.has_value() &&
             (!validNamespacedId(route.accepted_deadline->deadline_id.value) ||
+             !declared_deadline_ids.emplace(route.accepted_deadline->deadline_id.value).second ||
              !produced_deadline_ids.emplace(route.accepted_deadline->deadline_id.value).second)) {
             return fail(WorkflowErrorCode::InvalidDefinition,
                         "accepted deadline identifiers must be valid and unique");
+        }
+        if (route.deficiency_deadline.has_value() &&
+            !declared_deadline_ids.emplace(route.deficiency_deadline->deadline_id.value).second) {
+            return fail(WorkflowErrorCode::InvalidDefinition,
+                        "deficiency deadline identifiers must be unique");
         }
         if (route.satisfies_deadline_id.has_value() &&
             !validNamespacedId(route.satisfies_deadline_id->value)) {
@@ -403,7 +400,7 @@ template <typename Range, typename Projection>
                         "filing route has an invalid deadline reference");
         }
         for (const auto* operation :
-             {accept, deficiency, deficiency_deadline, accepted_deadline, advance}) {
+             {accept, reject, deficiency, deficiency_deadline, accepted_deadline, advance}) {
             if (operation != nullptr && operation->stage_id != route.stage_id) {
                 return fail(WorkflowErrorCode::InvalidDefinition,
                             "filing-route operations must share its stage");
@@ -506,7 +503,9 @@ template <typename Range, typename Projection>
         deadlines.emplace(deadline.deadline_id.value, &deadline);
     }
     for (const auto& deficiency : state.deficiencies) {
-        const auto deadline = deadlines.find(deficiency.cure_deadline_id.value);
+        const auto deadline = deficiency.cure_deadline_id
+                                  ? deadlines.find(deficiency.cure_deadline_id->value)
+                                  : deadlines.end();
         if (!validNamespacedId(deficiency.deficiency_id.value) ||
             !validNamespacedId(deficiency.filing_id.value) ||
             !validNamespacedId(deficiency.filing_type.value) ||
@@ -518,9 +517,10 @@ template <typename Range, typename Projection>
             std::ranges::any_of(
                 deficiency.missing_requirements,
                 [](const auto& requirement) { return !validNamespacedId(requirement.value); }) ||
-            !validNamespacedId(deficiency.cure_deadline_id.value) ||
-            (deadline != deadlines.end() &&
-             (deadline->second->purpose != model::WorkflowDeadlinePurpose::DeficiencyCure ||
+            (deficiency.cure_deadline_id.has_value() &&
+             (!validNamespacedId(deficiency.cure_deadline_id->value) ||
+              deadline == deadlines.end() ||
+              deadline->second->purpose != model::WorkflowDeadlinePurpose::DeficiencyCure ||
               deficiency.cured !=
                   (deadline->second->status == model::WorkflowDeadlineStatus::Satisfied)))) {
             return fail(WorkflowErrorCode::InvalidState, "invalid deficiency snapshot");
@@ -576,14 +576,15 @@ template <typename Range, typename Projection>
                                       operation.authority};
 }
 
-[[nodiscard]] auto rejectFiling(const model::WorkflowDefinition& workflow,
-                                const model::WorkflowState& state,
-                                const model::SubmitWorkflowFiling& command,
-                                model::WorkflowFilingRejectionReason reason)
+[[nodiscard]] auto
+rejectFiling(const model::WorkflowDefinition& workflow, const model::WorkflowState& state,
+             const model::WorkflowFilingRoute& route, const model::SubmitWorkflowFiling& command,
+             model::WorkflowFilingRejectionReason reason)
     -> std::expected<std::vector<model::WorkflowEvent>, WorkflowError> {
-    const auto* operation = rejectionFor(workflow, state.current_stage_id);
+    const auto* operation = operationFor(workflow, route.reject_operation_id);
     if (operation == nullptr) {
-        return fail(WorkflowErrorCode::InvalidDefinition, "stage has no rejection operation");
+        return fail(WorkflowErrorCode::InvalidDefinition,
+                    "filing route has no compatible rejection operation");
     }
     return std::vector<model::WorkflowEvent>{model::WorkflowFilingRejected{
         makeHeader(workflow, state, command.header, *operation, 0, 1), command.filing_id,
@@ -664,11 +665,11 @@ template <typename Range, typename Projection>
     }
     const auto* route = routeFor(workflow, state.current_stage_id, command.filing_type);
     if (route == nullptr) {
-        return rejectFiling(workflow, state, command,
-                            model::WorkflowFilingRejectionReason::IneligibleFiling);
+        return fail(WorkflowErrorCode::InvalidCommand,
+                    "filing type has no executable route in the current stage");
     }
     if (!roleAllowed(route->authorized_roles, actor->role)) {
-        return rejectFiling(workflow, state, command,
+        return rejectFiling(workflow, state, *route, command,
                             model::WorkflowFilingRejectionReason::UnauthorizedActor);
     }
 
@@ -677,66 +678,84 @@ template <typename Range, typename Projection>
         if (deficiency == nullptr || deficiency->cured ||
             deficiency->filing_type != command.filing_type ||
             deficiency->actor_id != command.header.actor_id) {
-            return rejectFiling(workflow, state, command,
+            return rejectFiling(workflow, state, *route, command,
                                 model::WorkflowFilingRejectionReason::UnknownDeficiency);
         }
-        const auto* deadline = deadlineFor(state, deficiency->cure_deadline_id);
-        if (deadline == nullptr || deadline->status != model::WorkflowDeadlineStatus::Open ||
-            isLater(command.header.occurred_at.court_date, deadline->due_date)) {
-            return rejectFiling(workflow, state, command,
-                                model::WorkflowFilingRejectionReason::DeadlineExpired);
+        if (deficiency->cure_deadline_id.has_value()) {
+            const auto* deadline = deadlineFor(state, *deficiency->cure_deadline_id);
+            if (deadline == nullptr || deadline->status != model::WorkflowDeadlineStatus::Open ||
+                isLater(command.header.occurred_at.court_date, deadline->due_date)) {
+                return rejectFiling(workflow, state, *route, command,
+                                    model::WorkflowFilingRejectionReason::DeadlineExpired);
+            }
         }
     }
     if (route->satisfies_deadline_id.has_value()) {
         const auto* deadline = deadlineFor(state, *route->satisfies_deadline_id);
         if (deadline == nullptr || deadline->status != model::WorkflowDeadlineStatus::Open) {
-            return rejectFiling(workflow, state, command,
+            return rejectFiling(workflow, state, *route, command,
                                 model::WorkflowFilingRejectionReason::IneligibleFiling);
         }
         if (route->reject_after_deadline &&
             isLater(command.header.occurred_at.court_date, deadline->due_date)) {
-            return rejectFiling(workflow, state, command,
+            return rejectFiling(workflow, state, *route, command,
                                 model::WorkflowFilingRejectionReason::DeadlineExpired);
         }
     }
 
     auto missing = missingRequirements(*route, case_definition, command);
     if (!missing.empty()) {
-        const auto* deficiency = operationFor(workflow, route->deficiency_operation_id);
-        const auto* calculation = operationFor(workflow, route->deficiency_deadline.operation_id);
-        constexpr std::uint32_t event_count = 2;
+        if (!route->deficiency_operation_id.has_value()) {
+            return rejectFiling(workflow, state, *route, command,
+                                model::WorkflowFilingRejectionReason::NonconformingFiling);
+        }
+        const auto* deficiency = operationFor(workflow, *route->deficiency_operation_id);
+        const auto* calculation =
+            route->deficiency_deadline
+                ? operationFor(workflow, route->deficiency_deadline->operation_id)
+                : nullptr;
+        const auto event_count =
+            static_cast<std::uint32_t>(1 + route->deficiency_deadline.has_value());
         const auto deficiency_id = deficiencyIdFor(command.header.command_id);
         const auto cure_deadline_id =
-            deficiencyDeadlineIdFor(route->deficiency_deadline, command.header.command_id);
-        if (!validNamespacedId(deficiency_id.value) || !validNamespacedId(cure_deadline_id.value) ||
+            route->deficiency_deadline
+                ? std::optional{deficiencyDeadlineIdFor(*route->deficiency_deadline,
+                                                        command.header.command_id)}
+                : std::nullopt;
+        if (!validNamespacedId(deficiency_id.value) ||
+            (cure_deadline_id.has_value() && !validNamespacedId(cure_deadline_id->value)) ||
             state.deficiencies.size() == max_state_items ||
-            state.deadlines.size() == max_state_items ||
+            (cure_deadline_id.has_value() && state.deadlines.size() == max_state_items) ||
             deficiencyFor(state, deficiency_id) != nullptr ||
-            deadlineFor(state, cure_deadline_id) != nullptr) {
+            (cure_deadline_id.has_value() && deadlineFor(state, *cure_deadline_id) != nullptr)) {
             return fail(WorkflowErrorCode::InvalidCommand,
                         "deficiency instance identifiers already exist");
         }
-        const auto due = calculateDeadline(workflow.calendar, command.header.occurred_at.court_date,
-                                           deadlineRule(*calculation));
-        if (!validLegalDate(due)) {
-            return fail(WorkflowErrorCode::InvalidCommand,
-                        "deficiency deadline is outside the supported legal calendar");
-        }
-        return std::vector<model::WorkflowEvent>{
-            model::WorkflowDeficiencyIssued{
-                makeHeader(workflow, state, command.header, *deficiency, 0, event_count),
-                deficiency_id, command.filing_id, command.filing_type, command.header.actor_id,
-                std::move(missing), cure_deadline_id},
-            model::WorkflowDeadlineCalculated{
+        std::vector<model::WorkflowEvent> events;
+        events.reserve(event_count);
+        events.emplace_back(model::WorkflowDeficiencyIssued{
+            makeHeader(workflow, state, command.header, *deficiency, 0, event_count), deficiency_id,
+            command.filing_id, command.filing_type, command.header.actor_id, std::move(missing),
+            cure_deadline_id});
+        if (cure_deadline_id.has_value()) {
+            const auto due =
+                calculateDeadline(workflow.calendar, command.header.occurred_at.court_date,
+                                  deadlineRule(*calculation));
+            if (!validLegalDate(due)) {
+                return fail(WorkflowErrorCode::InvalidCommand,
+                            "deficiency deadline is outside the supported legal calendar");
+            }
+            events.emplace_back(model::WorkflowDeadlineCalculated{
                 makeHeader(workflow, state, command.header, *calculation, 1, event_count),
-                cure_deadline_id, model::WorkflowDeadlinePurpose::DeficiencyCure,
-                command.header.occurred_at.court_date, due},
-        };
+                *cure_deadline_id, model::WorkflowDeadlinePurpose::DeficiencyCure,
+                command.header.occurred_at.court_date, due});
+        }
+        return events;
     }
 
     if (route->accepted_deadline.has_value() &&
         deadlineFor(state, route->accepted_deadline->deadline_id) != nullptr) {
-        return rejectFiling(workflow, state, command,
+        return rejectFiling(workflow, state, *route, command,
                             model::WorkflowFilingRejectionReason::IneligibleFiling);
     }
     if (state.accepted_filings.size() == max_state_items ||
@@ -1087,8 +1106,12 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                                     "invalid deficiency cure");
                     }
                     deficiency->cured = true;
-                    if (auto* due = deadlineFor(next, deficiency->cure_deadline_id);
-                        due != nullptr) {
+                    if (deficiency->cure_deadline_id.has_value()) {
+                        auto* due = deadlineFor(next, *deficiency->cure_deadline_id);
+                        if (due == nullptr || due->status != model::WorkflowDeadlineStatus::Open) {
+                            return fail(WorkflowErrorCode::InvalidTransition,
+                                        "invalid deficiency deadline cure");
+                        }
                         due->status = model::WorkflowDeadlineStatus::Satisfied;
                     }
                 }
@@ -1112,11 +1135,13 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                     routeFor(workflow, state.current_stage_id, concrete.filing_type);
                 const auto expected_deficiency_id = deficiencyIdFor(concrete.header.command_id);
                 const auto expected_deadline_id =
-                    route == nullptr ? model::WorkflowDeadlineId{}
-                                     : deficiencyDeadlineIdFor(route->deficiency_deadline,
-                                                               concrete.header.command_id);
+                    route != nullptr && route->deficiency_deadline.has_value()
+                        ? std::optional{deficiencyDeadlineIdFor(*route->deficiency_deadline,
+                                                                concrete.header.command_id)}
+                        : std::nullopt;
                 if (route == nullptr || state.deficiencies.size() == max_state_items ||
-                    route->deficiency_operation_id != concrete.header.operation_id ||
+                    !route->deficiency_operation_id.has_value() ||
+                    *route->deficiency_operation_id != concrete.header.operation_id ||
                     concrete.deficiency_id != expected_deficiency_id ||
                     concrete.cure_deadline_id != expected_deadline_id ||
                     concrete.missing_requirements.empty() ||
