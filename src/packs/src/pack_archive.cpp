@@ -1,4 +1,5 @@
 #include "appellate/packs/pack_archive.hpp"
+#include "appellate/packs/schema_validator.hpp"
 
 #include <archive.h>
 #include <archive_entry.h>
@@ -8,6 +9,9 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QHash>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QSet>
@@ -40,6 +44,8 @@ constexpr std::uint64_t maximum_standard_zip_value =
 constexpr std::size_t maximum_standard_zip_members =
     static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max());
 constexpr auto fixed_zip_timestamp = static_cast<time_t>(315'532'800);
+constexpr std::uint64_t maximum_manifest_bytes = 1024ULL * 1024ULL;
+constexpr qsizetype maximum_declared_payloads = 10'000;
 
 struct ArchiveReadDeleter final {
     void operator()(archive* value) const noexcept {
@@ -432,6 +438,187 @@ struct ExportMember final {
     return reader;
 }
 
+[[nodiscard]] auto validateManifestMemberSet(const QString& archive_path,
+                                             const ZipInspection& inspection)
+    -> std::expected<void, Error> {
+    const auto manifest_member =
+        std::ranges::find(inspection.members, QStringLiteral("manifest.json"), &ZipMember::path);
+    if (manifest_member == inspection.members.end()) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Archive does not contain manifest.json"));
+    }
+    if (manifest_member->uncompressed_size > maximum_manifest_bytes) {
+        return fail(ErrorCode::ResourceTooLarge,
+                    QStringLiteral("Archive manifest exceeds its size limit"));
+    }
+
+    auto reader_result = openArchiveReader(archive_path);
+    if (!reader_result) {
+        return std::unexpected(reader_result.error());
+    }
+    auto reader = std::move(*reader_result);
+    QHash<QString, std::uint32_t> inspected_sizes;
+    inspected_sizes.reserve(static_cast<qsizetype>(inspection.members.size()));
+    for (const auto& member : inspection.members) {
+        inspected_sizes.insert(member.path, member.uncompressed_size);
+    }
+    QByteArray manifest_bytes;
+    manifest_bytes.reserve(static_cast<qsizetype>(manifest_member->uncompressed_size));
+    std::array<char, 64 * 1024> buffer{};
+    bool found_manifest = false;
+    archive_entry* raw_entry = nullptr;
+    while (!found_manifest) {
+        const auto header_result = archive_read_next_header(reader.get(), &raw_entry);
+        if (header_result == ARCHIVE_EOF) {
+            break;
+        }
+        if (header_result != ARCHIVE_OK || raw_entry == nullptr) {
+            return fail(ErrorCode::InvalidManifest,
+                        libarchiveMessage(reader.get(), QStringLiteral("Cannot read ZIP member")));
+        }
+        const auto* raw_path = archive_entry_pathname(raw_entry);
+        const auto path = raw_path == nullptr ? QString{} : QString::fromLatin1(raw_path);
+        const auto declared_size = archive_entry_size(raw_entry);
+        if (!inspected_sizes.contains(path)) {
+            return fail(ErrorCode::UnsafePath,
+                        QStringLiteral("Unexpected ZIP member path: %1").arg(path));
+        }
+        if (declared_size < 0 ||
+            static_cast<std::uint64_t>(declared_size) != inspected_sizes.value(path)) {
+            return fail(ErrorCode::InvalidManifest,
+                        QStringLiteral("ZIP member size changed after inspection"));
+        }
+        if (archive_entry_filetype(raw_entry) != AE_IFREG ||
+            archive_entry_symlink(raw_entry) != nullptr ||
+            archive_entry_hardlink(raw_entry) != nullptr ||
+            archive_entry_is_encrypted(raw_entry) > 0 ||
+            archive_entry_size_is_set(raw_entry) == 0) {
+            return fail(ErrorCode::UnsafePath,
+                        QStringLiteral("ZIP member is not a plain regular file: %1").arg(path));
+        }
+        if (path != QStringLiteral("manifest.json")) {
+            if (archive_read_data_skip(reader.get()) != ARCHIVE_OK) {
+                return fail(
+                    ErrorCode::InvalidManifest,
+                    libarchiveMessage(reader.get(), QStringLiteral("Cannot skip ZIP member")));
+            }
+            continue;
+        }
+        std::uint64_t total = 0;
+        while (true) {
+            const auto read_size = archive_read_data(reader.get(), buffer.data(), buffer.size());
+            if (read_size < 0) {
+                return fail(
+                    ErrorCode::InvalidManifest,
+                    libarchiveMessage(reader.get(), QStringLiteral("Cannot read ZIP manifest")));
+            }
+            if (read_size == 0) {
+                break;
+            }
+            const auto chunk_size = static_cast<std::uint64_t>(read_size);
+            if (chunk_size > manifest_member->uncompressed_size ||
+                total > manifest_member->uncompressed_size - chunk_size) {
+                return fail(ErrorCode::InvalidManifest,
+                            QStringLiteral("ZIP manifest exceeds its declared size"));
+            }
+            manifest_bytes.append(buffer.data(), static_cast<qsizetype>(read_size));
+            total += chunk_size;
+        }
+        if (total != manifest_member->uncompressed_size) {
+            return fail(ErrorCode::InvalidManifest, QStringLiteral("ZIP manifest is truncated"));
+        }
+        found_manifest = true;
+    }
+    if (!found_manifest) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Archive manifest could not be read"));
+    }
+
+    const auto parsed =
+        SchemaValidator::parseObject(manifest_bytes, QStringLiteral("manifest.json"));
+    if (!parsed) {
+        return std::unexpected(parsed.error());
+    }
+    const auto& manifest = *parsed;
+    if (manifest.size() != 7 || !manifest.contains(QStringLiteral("schema_version")) ||
+        !manifest.contains(QStringLiteral("pack_id")) ||
+        !manifest.contains(QStringLiteral("version")) ||
+        !manifest.contains(QStringLiteral("required_capabilities")) ||
+        !manifest.contains(QStringLiteral("dependencies")) ||
+        !manifest.value(QStringLiteral("contents")).isArray() ||
+        !manifest.value(QStringLiteral("blobs")).isArray()) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Archive manifest cannot safely declare its member set"));
+    }
+    const auto schema_version = manifest.value(QStringLiteral("schema_version"));
+    if (!schema_version.isDouble() || schema_version.toDouble() != 1.0) {
+        return fail(ErrorCode::UnsupportedSchema,
+                    QStringLiteral("Unsupported manifest schema version"));
+    }
+    const auto contents = manifest.value(QStringLiteral("contents")).toArray();
+    const auto blobs = manifest.value(QStringLiteral("blobs")).toArray();
+    if (contents.isEmpty() || contents.size() > maximum_declared_payloads ||
+        blobs.size() > maximum_declared_payloads - contents.size()) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Archive manifest member count is invalid"));
+    }
+
+    QSet<QString> declared{QStringLiteral("manifest.json")};
+    std::vector<QString> payload_paths;
+    payload_paths.reserve(static_cast<std::size_t>(contents.size() + blobs.size()));
+    const auto addPaths = [&declared,
+                           &payload_paths](const QJsonArray& values) -> std::expected<void, Error> {
+        for (const auto& value : values) {
+            if (!value.isObject()) {
+                return fail(ErrorCode::InvalidManifest,
+                            QStringLiteral("Archive descriptor is not an object"));
+            }
+            const auto path_value = value.toObject().value(QStringLiteral("path"));
+            const auto path = path_value.toString();
+            if (!path_value.isString() || !isPortablePath(path) ||
+                path == QStringLiteral("manifest.json")) {
+                return fail(ErrorCode::UnsafePath,
+                            QStringLiteral("Unsafe archive descriptor path: %1").arg(path));
+            }
+            if (declared.contains(path)) {
+                return fail(ErrorCode::DuplicateContentPath,
+                            QStringLiteral("Duplicate archive path: %1").arg(path));
+            }
+            payload_paths.push_back(path);
+            declared.insert(path);
+        }
+        return {};
+    };
+    if (const auto content_paths = addPaths(contents); !content_paths) {
+        return std::unexpected(content_paths.error());
+    }
+    if (const auto blob_paths = addPaths(blobs); !blob_paths) {
+        return std::unexpected(blob_paths.error());
+    }
+    for (const auto& path : payload_paths) {
+        auto separator = path.indexOf(u'/');
+        while (separator >= 0) {
+            if (declared.contains(path.first(separator))) {
+                return fail(ErrorCode::DuplicateContentPath,
+                            QStringLiteral("Overlapping archive path: %1").arg(path));
+            }
+            separator = path.indexOf(u'/', separator + 1);
+        }
+    }
+
+    QSet<QString> archived;
+    for (const auto& member : inspection.members) {
+        archived.insert(member.path);
+    }
+    if (archived != declared) {
+        const auto has_undeclared = std::ranges::any_of(
+            archived, [&declared](const QString& path) { return !declared.contains(path); });
+        return fail(has_undeclared ? ErrorCode::UndeclaredFile : ErrorCode::CannotRead,
+                    QStringLiteral("Archive member set does not exactly match its manifest"));
+    }
+    return {};
+}
+
 [[nodiscard]] auto extractArchive(const QString& archive_path, const ZipInspection& inspection,
                                   const QString& staging_path) -> std::expected<void, Error> {
     auto reader_result = openArchiveReader(archive_path);
@@ -440,8 +627,10 @@ struct ExportMember final {
     }
     auto reader = std::move(*reader_result);
     QSet<QString> expected;
+    QHash<QString, std::uint32_t> expected_sizes;
     for (const auto& member : inspection.members) {
         expected.insert(member.path);
+        expected_sizes.insert(member.path, member.uncompressed_size);
     }
 
     QSet<QString> seen;
@@ -476,8 +665,10 @@ struct ExportMember final {
                         QStringLiteral("ZIP member is not a plain regular file: %1").arg(path));
         }
         const auto declared_size = archive_entry_size(raw_entry);
-        if (declared_size < 0) {
-            return fail(ErrorCode::InvalidManifest, QStringLiteral("ZIP member has no valid size"));
+        if (declared_size < 0 ||
+            static_cast<std::uint64_t>(declared_size) != expected_sizes.value(path)) {
+            return fail(ErrorCode::InvalidManifest,
+                        QStringLiteral("ZIP member size changed after inspection"));
         }
         const auto absolute_path = QDir(staging_path).filePath(path);
         if (!QDir{}.mkpath(QFileInfo(absolute_path).path())) {
@@ -679,6 +870,10 @@ std::expected<LoadedPack, Error> PackArchive::importArchive(const QString& archi
     const auto inspection = inspectZip(archive_path, limits);
     if (!inspection) {
         return std::unexpected(inspection.error());
+    }
+    const auto member_set = validateManifestMemberSet(archive_path, *inspection);
+    if (!member_set) {
+        return std::unexpected(member_set.error());
     }
     QTemporaryDir staging(QDir::tempPath() + QStringLiteral("/appellate-awpack-XXXXXX"));
     if (!staging.isValid() ||

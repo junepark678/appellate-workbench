@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/appellate/templates/full-resource-pack">
         <file alias="manifest.json">../../tests/fixtures/full-resource-pack/manifest.json</file>
+        <file alias="objects/final-order.pdf">../../tests/fixtures/full-resource-pack/objects/final-order.pdf</file>
         <file alias="resources/argument-config.json">../../tests/fixtures/full-resource-pack/resources/argument-config.json</file>
         <file alias="resources/authority-set.json">../../tests/fixtures/full-resource-pack/resources/authority-set.json</file>
         <file alias="resources/bench-configuration.json">../../tests/fixtures/full-resource-pack/resources/bench-configuration.json</file>

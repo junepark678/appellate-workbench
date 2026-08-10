@@ -48,9 +48,8 @@ class PackCatalogTest final : public QObject {
     };
 }
 
-[[nodiscard]] auto buildArchive(const QString& root, const QString& stem,
-                                const QString& pack_id, const QString& version,
-                                const QString& display_name,
+[[nodiscard]] auto buildArchive(const QString& root, const QString& stem, const QString& pack_id,
+                                const QString& version, const QString& display_name,
                                 const std::vector<PackRevision>& dependencies = {})
     -> std::expected<PackRevision, QString> {
     const auto source = QDir(root).filePath(QStringLiteral("sources/") + stem);
@@ -61,41 +60,44 @@ class PackCatalogTest final : public QObject {
     }
 
     const auto profile_id = pack_id + QStringLiteral(".judge.measured");
-    const auto profile = QJsonDocument(QJsonObject{
-        {QStringLiteral("schema_version"), 1},
-        {QStringLiteral("resource_kind"), QStringLiteral("judge_profile")},
-        {QStringLiteral("resource_id"), profile_id},
-        {QStringLiteral("display_name"), display_name},
-        {QStringLiteral("profile_class"), QStringLiteral("fictional_composite")},
-        {QStringLiteral("compatibility"),
-         QJsonObject{
-             {QStringLiteral("court_roles"), QJsonArray{QStringLiteral("appellate")}},
-             {QStringLiteral("jurisdiction_ids"), QJsonArray{QStringLiteral("test.court")}},
-         }},
-        {QStringLiteral("interaction"),
-         QJsonObject{
-             {QStringLiteral("directness"), 0.5},
-             {QStringLiteral("formality"), 0.5},
-             {QStringLiteral("question_length"), 0.5},
-             {QStringLiteral("interruption_frequency"), 0.2},
-             {QStringLiteral("follow_up_depth"), 0.5},
-             {QStringLiteral("hypothetical_frequency"), 0.4},
-             {QStringLiteral("concession_recall"), 0.6},
-             {QStringLiteral("time_strictness"), 0.5},
-             {QStringLiteral("issue_focus"),
-              QJsonArray{QJsonObject{
-                  {QStringLiteral("topic_id"), QStringLiteral("test.issue.preservation")},
-                  {QStringLiteral("weight"), 0.8},
-              }}},
-         }},
-        {QStringLiteral("voice"),
-         QJsonObject{
-             {QStringLiteral("register"), QStringLiteral("formal")},
-             {QStringLiteral("cadence"), QStringLiteral("measured")},
-             {QStringLiteral("verbosity"), 0.5},
-             {QStringLiteral("sentence_complexity"), 0.5},
-         }},
-    }).toJson(QJsonDocument::Compact);
+    const auto profile =
+        QJsonDocument(
+            QJsonObject{
+                {QStringLiteral("schema_version"), 1},
+                {QStringLiteral("resource_kind"), QStringLiteral("judge_profile")},
+                {QStringLiteral("resource_id"), profile_id},
+                {QStringLiteral("display_name"), display_name},
+                {QStringLiteral("profile_class"), QStringLiteral("fictional_composite")},
+                {QStringLiteral("compatibility"),
+                 QJsonObject{
+                     {QStringLiteral("court_roles"), QJsonArray{QStringLiteral("appellate")}},
+                     {QStringLiteral("jurisdiction_ids"), QJsonArray{QStringLiteral("test.court")}},
+                 }},
+                {QStringLiteral("interaction"),
+                 QJsonObject{
+                     {QStringLiteral("directness"), 0.5},
+                     {QStringLiteral("formality"), 0.5},
+                     {QStringLiteral("question_length"), 0.5},
+                     {QStringLiteral("interruption_frequency"), 0.2},
+                     {QStringLiteral("follow_up_depth"), 0.5},
+                     {QStringLiteral("hypothetical_frequency"), 0.4},
+                     {QStringLiteral("concession_recall"), 0.6},
+                     {QStringLiteral("time_strictness"), 0.5},
+                     {QStringLiteral("issue_focus"),
+                      QJsonArray{QJsonObject{
+                          {QStringLiteral("topic_id"), QStringLiteral("test.issue.preservation")},
+                          {QStringLiteral("weight"), 0.8},
+                      }}},
+                 }},
+                {QStringLiteral("voice"),
+                 QJsonObject{
+                     {QStringLiteral("register"), QStringLiteral("formal")},
+                     {QStringLiteral("cadence"), QStringLiteral("measured")},
+                     {QStringLiteral("verbosity"), 0.5},
+                     {QStringLiteral("sentence_complexity"), 0.5},
+                 }},
+            })
+            .toJson(QJsonDocument::Compact);
     const auto profile_path = QDir(source).filePath(QStringLiteral("judges/measured.json"));
     if (!writeAll(profile_path, profile)) {
         return std::unexpected(QStringLiteral("cannot write profile"));
@@ -105,27 +107,32 @@ class PackCatalogTest final : public QObject {
     for (const auto& dependency : dependencies) {
         dependency_array.push_back(dependencyJson(dependency));
     }
-    const auto manifest = QJsonDocument(QJsonObject{
-        {QStringLiteral("schema_version"), 1},
-        {QStringLiteral("pack_id"), pack_id},
-        {QStringLiteral("version"), version},
-        {QStringLiteral("required_capabilities"),
-         QJsonArray{
-             QJsonObject{{QStringLiteral("id"), QStringLiteral("workbench.pack.judge-profile")},
-                         {QStringLiteral("version"), 1}},
-             QJsonObject{{QStringLiteral("id"), QStringLiteral("workbench.pack.voice-style")},
-                         {QStringLiteral("version"), 1}},
-         }},
-        {QStringLiteral("dependencies"), dependency_array},
-        {QStringLiteral("contents"),
-         QJsonArray{QJsonObject{
-             {QStringLiteral("id"), profile_id},
-             {QStringLiteral("kind"), QStringLiteral("judge_profile")},
-             {QStringLiteral("schema_version"), 1},
-             {QStringLiteral("path"), QStringLiteral("judges/measured.json")},
-             {QStringLiteral("sha256"), QString::fromLatin1(sha256(profile))},
-         }}},
-    }).toJson(QJsonDocument::Compact);
+    const auto manifest =
+        QJsonDocument(QJsonObject{
+                          {QStringLiteral("schema_version"), 1},
+                          {QStringLiteral("pack_id"), pack_id},
+                          {QStringLiteral("version"), version},
+                          {QStringLiteral("required_capabilities"),
+                           QJsonArray{
+                               QJsonObject{{QStringLiteral("id"),
+                                            QStringLiteral("workbench.pack.judge-profile")},
+                                           {QStringLiteral("version"), 1}},
+                               QJsonObject{{QStringLiteral("id"),
+                                            QStringLiteral("workbench.pack.voice-style")},
+                                           {QStringLiteral("version"), 1}},
+                           }},
+                          {QStringLiteral("dependencies"), dependency_array},
+                          {QStringLiteral("blobs"), QJsonArray{}},
+                          {QStringLiteral("contents"),
+                           QJsonArray{QJsonObject{
+                               {QStringLiteral("id"), profile_id},
+                               {QStringLiteral("kind"), QStringLiteral("judge_profile")},
+                               {QStringLiteral("schema_version"), 1},
+                               {QStringLiteral("path"), QStringLiteral("judges/measured.json")},
+                               {QStringLiteral("sha256"), QString::fromLatin1(sha256(profile))},
+                           }}},
+                      })
+            .toJson(QJsonDocument::Compact);
     if (!writeAll(QDir(source).filePath(QStringLiteral("manifest.json")), manifest)) {
         return std::unexpected(QStringLiteral("cannot write manifest"));
     }
@@ -145,9 +152,9 @@ class PackCatalogTest final : public QObject {
 void PackCatalogTest::installsLoadsListsAndIsIdempotent() {
     QTemporaryDir temporary;
     QVERIFY(temporary.isValid());
-    const auto base = buildArchive(temporary.path(), QStringLiteral("base"),
-                                   QStringLiteral("test.pack.base"), QStringLiteral("1.0.0"),
-                                   QStringLiteral("Base Composite"));
+    const auto base =
+        buildArchive(temporary.path(), QStringLiteral("base"), QStringLiteral("test.pack.base"),
+                     QStringLiteral("1.0.0"), QStringLiteral("Base Composite"));
     if (!base) {
         QFAIL(qPrintable(base.error()));
     }
@@ -161,25 +168,25 @@ void PackCatalogTest::installsLoadsListsAndIsIdempotent() {
     auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
     QVERIFY(catalog.has_value());
     QCOMPARE((*catalog)->schemaVersion(), 1);
-    const auto installed_base = (*catalog)->installArchive(
-        archivePath(temporary.path(), QStringLiteral("base")),
-        QStringLiteral("2026-08-11T01:00:00Z"));
+    const auto installed_base =
+        (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("base")),
+                                   QStringLiteral("2026-08-11T01:00:00Z"));
     QVERIFY(installed_base.has_value());
     QVERIFY(installed_base->revision == *base);
-    QVERIFY(QFileInfo::exists(QDir((*catalog)->archivesDirectory())
-                                 .filePath(installed_base->archive_sha256 +
-                                           QStringLiteral(".awpack"))));
+    QVERIFY(QFileInfo::exists(
+        QDir((*catalog)->archivesDirectory())
+            .filePath(installed_base->archive_sha256 + QStringLiteral(".awpack"))));
 
-    const auto installed_dependent = (*catalog)->installArchive(
-        archivePath(temporary.path(), QStringLiteral("dependent")),
-        QStringLiteral("2026-08-11T02:00:00Z"));
+    const auto installed_dependent =
+        (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("dependent")),
+                                   QStringLiteral("2026-08-11T02:00:00Z"));
     QVERIFY(installed_dependent.has_value());
     QCOMPARE(installed_dependent->dependencies.size(), std::size_t{1});
     QVERIFY(installed_dependent->dependencies.front().revision == *base);
 
-    const auto idempotent = (*catalog)->installArchive(
-        archivePath(temporary.path(), QStringLiteral("dependent")),
-        QStringLiteral("2026-08-11T03:00:00Z"));
+    const auto idempotent =
+        (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("dependent")),
+                                   QStringLiteral("2026-08-11T03:00:00Z"));
     QVERIFY(idempotent.has_value());
     QCOMPARE(idempotent->installed_at_utc, QStringLiteral("2026-08-11T02:00:00Z"));
 
@@ -206,9 +213,9 @@ void PackCatalogTest::requiresExactDependenciesWithoutPartialInstall() {
     auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
     QVERIFY(catalog.has_value());
 
-    const auto installed = (*catalog)->installArchive(
-        archivePath(temporary.path(), QStringLiteral("dependent")),
-        QStringLiteral("2026-08-11T02:00:00Z"));
+    const auto installed =
+        (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("dependent")),
+                                   QStringLiteral("2026-08-11T02:00:00Z"));
     QVERIFY(!installed.has_value());
     QCOMPARE(installed.error().code, CatalogErrorCode::MissingDependency);
     const auto listed = (*catalog)->list();
@@ -224,10 +231,9 @@ void PackCatalogTest::rejectsSelfCycleAndImmutableConflict() {
         "1.0.0",
         std::string(64, 'b'),
     };
-    const auto cycle = buildArchive(temporary.path(), QStringLiteral("cycle"),
-                                    QStringLiteral("test.pack.cycle"),
-                                    QStringLiteral("1.0.0"),
-                                    QStringLiteral("Cycle Composite"), {self});
+    const auto cycle =
+        buildArchive(temporary.path(), QStringLiteral("cycle"), QStringLiteral("test.pack.cycle"),
+                     QStringLiteral("1.0.0"), QStringLiteral("Cycle Composite"), {self});
     // The semantic reader rejects a direct cycle before an archive can be produced. The catalog
     // repeats this guard for defense in depth when accepting future archive/schema versions.
     QVERIFY(!cycle.has_value());
@@ -235,12 +241,10 @@ void PackCatalogTest::rejectsSelfCycleAndImmutableConflict() {
     QVERIFY(catalog.has_value());
 
     const auto first = buildArchive(temporary.path(), QStringLiteral("first"),
-                                    QStringLiteral("test.pack.conflict"),
-                                    QStringLiteral("1.0.0"),
+                                    QStringLiteral("test.pack.conflict"), QStringLiteral("1.0.0"),
                                     QStringLiteral("First Composite"));
     const auto second = buildArchive(temporary.path(), QStringLiteral("second"),
-                                     QStringLiteral("test.pack.conflict"),
-                                     QStringLiteral("1.0.0"),
+                                     QStringLiteral("test.pack.conflict"), QStringLiteral("1.0.0"),
                                      QStringLiteral("Second Composite"));
     QVERIFY(first.has_value());
     QVERIFY(second.has_value());
@@ -263,21 +267,19 @@ void PackCatalogTest::rejectsSelfCycleAndImmutableConflict() {
 void PackCatalogTest::detectsCorruptInstalledArchive() {
     QTemporaryDir temporary;
     QVERIFY(temporary.isValid());
-    const auto revision = buildArchive(temporary.path(), QStringLiteral("base"),
-                                       QStringLiteral("test.pack.base"),
-                                       QStringLiteral("1.0.0"),
-                                       QStringLiteral("Base Composite"));
+    const auto revision =
+        buildArchive(temporary.path(), QStringLiteral("base"), QStringLiteral("test.pack.base"),
+                     QStringLiteral("1.0.0"), QStringLiteral("Base Composite"));
     QVERIFY(revision.has_value());
     auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
     QVERIFY(catalog.has_value());
-    const auto installed = (*catalog)->installArchive(
-        archivePath(temporary.path(), QStringLiteral("base")),
-        QStringLiteral("2026-08-11T01:00:00Z"));
+    const auto installed =
+        (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("base")),
+                                   QStringLiteral("2026-08-11T01:00:00Z"));
     QVERIFY(installed.has_value());
 
     const auto stored_path = QDir((*catalog)->archivesDirectory())
-                                 .filePath(installed->archive_sha256 +
-                                           QStringLiteral(".awpack"));
+                                 .filePath(installed->archive_sha256 + QStringLiteral(".awpack"));
     QFile corrupt(stored_path);
     QVERIFY(corrupt.open(QIODevice::WriteOnly | QIODevice::Truncate));
     QCOMPARE(corrupt.write("corrupt"), qint64{7});

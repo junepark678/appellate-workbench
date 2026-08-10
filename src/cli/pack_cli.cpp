@@ -187,6 +187,7 @@ constexpr auto output_schema_version = 1;
     }
     auto object = revisionObject(loaded->revision);
     object.insert(QStringLiteral("command"), QLatin1StringView(command));
+    object.insert(QStringLiteral("blob_count"), static_cast<qint64>(loaded->blobs.size()));
     object.insert(QStringLiteral("resource_count"), static_cast<qint64>(loaded->resources.size()));
     object.insert(QStringLiteral("source_kind"),
                   is_directory ? QStringLiteral("directory") : QStringLiteral("archive"));
@@ -272,8 +273,9 @@ constexpr auto output_schema_version = 1;
     });
 }
 
-constexpr std::array<const char*, 13> template_members{
+constexpr std::array<const char*, 14> template_members{
     "manifest.json",
+    "objects/final-order.pdf",
     "resources/argument-config.json",
     "resources/authority-set.json",
     "resources/bench-configuration.json",
@@ -387,6 +389,7 @@ constexpr std::array<const char*, 13> template_members{
     staging.setAutoRemove(false);
     auto object = revisionObject(validated->revision);
     object.insert(QStringLiteral("command"), QLatin1StringView(command));
+    object.insert(QStringLiteral("blob_count"), static_cast<qint64>(validated->blobs.size()));
     object.insert(QStringLiteral("resource_count"),
                   static_cast<qint64>(validated->resources.size()));
     return success(std::move(object));

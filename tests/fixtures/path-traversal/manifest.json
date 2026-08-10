@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "required_capabilities": [],
   "dependencies": [],
+  "blobs": [],
   "contents": [
     {
       "id": "example.judge.escape",

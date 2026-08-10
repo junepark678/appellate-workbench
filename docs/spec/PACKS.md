@@ -12,7 +12,7 @@ logical layout is:
 ```text
 manifest.json
 resources/*.json
-assets/*.pdf
+objects/*.pdf
 ```
 
 Paths use normalized UTF-8 forward-slash names. Archives may not contain links, device files,
@@ -21,9 +21,22 @@ Version 1 rejects compression, ZIP64, comments, encryption, extra fields, links,
 entries, and hidden bytes between members. Readers enforce bounded member count, per-member
 size, and total size before staging any declared regular file.
 
+Every version-1 manifest has a `blobs` array, including packs that declare no blobs. A blob
+descriptor has exactly `path`, `media_type`, `byte_size`, and `sha256`; version 1 accepts only
+`application/pdf`. Content and blob paths share one portable, non-overlapping namespace, with at
+most 10,000 combined descriptors. Each blob is limited to 512 MiB and declared blob bytes are
+limited to 3 GiB per pack. Readers stream blobs to verify their exact size and SHA-256 plus a PDF
+header and end marker. Every record `asset_path` and `asset_sha256` must match one declared blob,
+and unreferenced blobs are rejected.
+
+The pack reader deliberately does not implement a partial PDF parser. Checking a record's
+declared `page_count` against the parsed document belongs at the QtPdf runtime record-workspace
+boundary; fixture integration tests compare those values so authored packs remain consistent.
+
 IDs are globally namespaced lowercase tokens. Versions follow SemVer. Digests are lowercase
 SHA-256 hex. Manifest content order does not confer behavior; canonical digest computation
-sorts entries by content ID and hashes identity, kind, normalized path, and object digest.
+sorts entries by content ID and blobs by descriptor fields, then hashes length-framed identity,
+kind, normalized path, size, media type, and digest fields.
 
 ## Version-1 resource kinds
 

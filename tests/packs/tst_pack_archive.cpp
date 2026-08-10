@@ -6,6 +6,9 @@
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -44,8 +47,8 @@ struct TestEntry final {
     TestEntry(QString entry_path, QByteArray entry_data,
               unsigned int entry_file_type = static_cast<unsigned int>(AE_IFREG),
               QString entry_link_target = {})
-        : path(std::move(entry_path)), data(std::move(entry_data)),
-          file_type(entry_file_type), link_target(std::move(entry_link_target)) {}
+        : path(std::move(entry_path)), data(std::move(entry_data)), file_type(entry_file_type),
+          link_target(std::move(entry_link_target)) {}
 };
 
 enum class TestCompression {
@@ -62,6 +65,8 @@ class PackArchiveTest final : public QObject {
     void rejectsDeflatedMember();
     void rejectsEncryptedMember();
     void rejectsUnsafeAndDuplicatePaths();
+    void rejectsUndeclaredPortableMember();
+    void rejectsDeclaredButMissingBlob();
     void rejectsLinksAndDirectories();
     void enforcesMemberAndSizeLimits();
     void reusesStrictPackValidationAfterExtraction();
@@ -152,8 +157,8 @@ class PackArchiveTest final : public QObject {
 void PackArchiveTest::roundTripPreservesRevision() {
     QTemporaryDir output;
     QVERIFY(output.isValid());
-    const auto source = fixture(QStringLiteral("minimal-pack"));
-    const auto archive_path = QDir(output.path()).filePath(QStringLiteral("minimal.awpack"));
+    const auto source = fixture(QStringLiteral("full-resource-pack"));
+    const auto archive_path = QDir(output.path()).filePath(QStringLiteral("full.awpack"));
     const auto source_pack = appellate::packs::PackReader::readDirectory(source);
     QVERIFY(source_pack.has_value());
 
@@ -167,6 +172,7 @@ void PackArchiveTest::roundTripPreservesRevision() {
     }
     QCOMPARE(*exported, source_pack->revision);
     QCOMPARE(imported->revision, source_pack->revision);
+    QCOMPARE(imported->blobs, source_pack->blobs);
     QCOMPARE(imported->judge_profiles, source_pack->judge_profiles);
 }
 
@@ -222,6 +228,54 @@ void PackArchiveTest::rejectsUnsafeAndDuplicatePaths() {
     result = appellate::packs::PackArchive::importArchive(duplicate_path);
     QVERIFY(!result.has_value());
     QCOMPARE(result.error().code, appellate::packs::ErrorCode::DuplicateContentPath);
+}
+
+void PackArchiveTest::rejectsUndeclaredPortableMember() {
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto source = fixture(QStringLiteral("minimal-pack"));
+    const auto manifest = readAll(QDir(source).filePath(QStringLiteral("manifest.json")));
+    const auto profile = readAll(QDir(source).filePath(QStringLiteral("judges/measured.json")));
+    QVERIFY(!manifest.isEmpty());
+    QVERIFY(!profile.isEmpty());
+    const auto path = QDir(output.path()).filePath(QStringLiteral("undeclared.awpack"));
+    QVERIFY(writeTestZip(
+        path, {
+                  {QStringLiteral("manifest.json"), manifest},
+                  {QStringLiteral("judges/measured.json"), profile},
+                  {QStringLiteral("objects/unlisted.pdf"), QByteArray("%PDF-1.7\n%%EOF\n")},
+              }));
+
+    const auto result = appellate::packs::PackArchive::importArchive(path);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::UndeclaredFile);
+}
+
+void PackArchiveTest::rejectsDeclaredButMissingBlob() {
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto source = fixture(QStringLiteral("minimal-pack"));
+    auto manifest =
+        QJsonDocument::fromJson(readAll(QDir(source).filePath(QStringLiteral("manifest.json"))))
+            .object();
+    const auto profile = readAll(QDir(source).filePath(QStringLiteral("judges/measured.json")));
+    QVERIFY(!manifest.isEmpty());
+    QVERIFY(!profile.isEmpty());
+    manifest.insert(QStringLiteral("blobs"),
+                    QJsonArray{QJsonObject{
+                        {QStringLiteral("path"), QStringLiteral("objects/missing.pdf")},
+                        {QStringLiteral("media_type"), QStringLiteral("application/pdf")},
+                        {QStringLiteral("byte_size"), 17},
+                        {QStringLiteral("sha256"), QString(64, u'0')},
+                    }});
+    const auto path = QDir(output.path()).filePath(QStringLiteral("missing-blob.awpack"));
+    QVERIFY(writeTestZip(path, {{QStringLiteral("manifest.json"),
+                                 QJsonDocument(manifest).toJson(QJsonDocument::Compact)},
+                                {QStringLiteral("judges/measured.json"), profile}}));
+
+    const auto result = appellate::packs::PackArchive::importArchive(path);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::CannotRead);
 }
 
 void PackArchiveTest::rejectsLinksAndDirectories() {

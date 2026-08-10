@@ -11,6 +11,8 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <cstdint>
+
 namespace {
 
 class PackReaderTest final : public QObject {
@@ -19,6 +21,14 @@ class PackReaderTest final : public QObject {
   private slots:
     void loadsValidPack();
     void loadsFullDeclarativeResourceGraph();
+    void rejectsMissingBlobArray();
+    void rejectsDuplicateAndOverlappingBlobPaths();
+    void rejectsInvalidBlob_data();
+    void rejectsInvalidBlob();
+    void rejectsBlobSizeBudgets();
+    void rejectsUnlistedAndOrphanBlobs();
+    void rejectsMissingAndMismatchedRecordBlobs();
+    void digestIncludesBlobDescriptor();
     void rejectsMalformedJson();
     void rejectsUnsupportedSchema();
     void rejectsPathTraversal();
@@ -173,6 +183,19 @@ class PackReaderTest final : public QObject {
     };
 }
 
+[[nodiscard]] QByteArray validPdf() {
+    return QByteArray("%PDF-1.7\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n");
+}
+
+[[nodiscard]] QJsonObject blobEntry(const QString& path, const QByteArray& payload) {
+    return QJsonObject{
+        {QStringLiteral("path"), path},
+        {QStringLiteral("media_type"), QStringLiteral("application/pdf")},
+        {QStringLiteral("byte_size"), static_cast<qint64>(payload.size())},
+        {QStringLiteral("sha256"), sha256(payload)},
+    };
+}
+
 [[nodiscard]] QJsonObject capability(const QString& id, int version = 1) {
     return QJsonObject{
         {QStringLiteral("id"), id},
@@ -192,7 +215,8 @@ class PackReaderTest final : public QObject {
 [[nodiscard]] QJsonObject validManifest(const QJsonArray& contents,
                                         const QJsonArray& capabilities = {},
                                         const QJsonArray& dependencies = {},
-                                        const QString& version = QStringLiteral("1.0.0")) {
+                                        const QString& version = QStringLiteral("1.0.0"),
+                                        const QJsonArray& blobs = {}) {
     return QJsonObject{
         {QStringLiteral("schema_version"), 1},
         {QStringLiteral("pack_id"), QStringLiteral("example.test.pack")},
@@ -200,7 +224,56 @@ class PackReaderTest final : public QObject {
         {QStringLiteral("required_capabilities"), capabilities},
         {QStringLiteral("dependencies"), dependencies},
         {QStringLiteral("contents"), contents},
+        {QStringLiteral("blobs"), blobs},
     };
+}
+
+[[nodiscard]] bool updateFixtureBlob(const QString& root, const QByteArray& payload) {
+    const auto blob_path = QStringLiteral("objects/final-order.pdf");
+    if (!writeBytes(root, blob_path, payload)) {
+        return false;
+    }
+
+    const auto record_path = QStringLiteral("resources/record.json");
+    QFile record_file(QDir(root).filePath(record_path));
+    if (!record_file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+    auto record = QJsonDocument::fromJson(record_file.readAll()).object();
+    record_file.close();
+    auto entries = record.value(QStringLiteral("docket_entries")).toArray();
+    auto entry = entries.at(0).toObject();
+    entry.insert(QStringLiteral("asset_sha256"), sha256(payload));
+    entries.replace(0, entry);
+    record.insert(QStringLiteral("docket_entries"), entries);
+    const auto record_bytes = jsonBytes(record);
+    if (!writeBytes(root, record_path, record_bytes)) {
+        return false;
+    }
+
+    QFile manifest_file(QDir(root).filePath(QStringLiteral("manifest.json")));
+    if (!manifest_file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+    auto manifest = QJsonDocument::fromJson(manifest_file.readAll()).object();
+    manifest_file.close();
+    auto blobs = manifest.value(QStringLiteral("blobs")).toArray();
+    auto blob = blobs.at(0).toObject();
+    blob.insert(QStringLiteral("byte_size"), static_cast<qint64>(payload.size()));
+    blob.insert(QStringLiteral("sha256"), sha256(payload));
+    blobs.replace(0, blob);
+    manifest.insert(QStringLiteral("blobs"), blobs);
+    auto contents = manifest.value(QStringLiteral("contents")).toArray();
+    for (qsizetype index = 0; index < contents.size(); ++index) {
+        auto content = contents.at(index).toObject();
+        if (content.value(QStringLiteral("path")).toString() == record_path) {
+            content.insert(QStringLiteral("sha256"), sha256(record_bytes));
+            contents.replace(index, content);
+            manifest.insert(QStringLiteral("contents"), contents);
+            return writeJson(root, QStringLiteral("manifest.json"), manifest);
+        }
+    }
+    return false;
 }
 
 void PackReaderTest::loadsValidPack() {
@@ -236,6 +309,10 @@ void PackReaderTest::loadsFullDeclarativeResourceGraph() {
     }
     QCOMPARE(result->revision.id.value, std::string("example.full.fictional"));
     QCOMPARE(result->resources.size(), std::size_t{12});
+    QCOMPARE(result->blobs.size(), std::size_t{1});
+    QCOMPARE(result->blobs.front().path, std::string("objects/final-order.pdf"));
+    QCOMPARE(result->blobs.front().media_type, std::string("application/pdf"));
+    QCOMPARE(result->blobs.front().byte_size, std::uint64_t{1163});
     QCOMPARE(result->judge_profiles.size(), std::size_t{1});
     QSet<int> kinds;
     for (const auto& resource : result->resources) {
@@ -245,6 +322,226 @@ void PackReaderTest::loadsFullDeclarativeResourceGraph() {
     }
     QCOMPARE(kinds.size(), 12);
     QCOMPARE(result->resources.front().descriptor.id, std::string("example.argument.fictional"));
+}
+
+void PackReaderTest::rejectsMissingBlobArray() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    const auto judge = jsonBytes(validJudge());
+    QVERIFY(writeBytes(pack.path(), QStringLiteral("judges/measured.json"), judge));
+    auto manifest = validManifest(QJsonArray{contentEntry(
+        QStringLiteral("example.judge.measured"), QStringLiteral("judges/measured.json"), judge)});
+    manifest.remove(QStringLiteral("blobs"));
+    QVERIFY(writeJson(pack.path(), QStringLiteral("manifest.json"), manifest));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::InvalidManifest);
+}
+
+void PackReaderTest::rejectsDuplicateAndOverlappingBlobPaths() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    const auto judge = jsonBytes(validJudge());
+    const auto content_path = QStringLiteral("judges/measured.json");
+    QVERIFY(writeBytes(pack.path(), content_path, judge));
+    const QJsonArray contents{
+        contentEntry(QStringLiteral("example.judge.measured"), content_path, judge)};
+    const auto pdf = validPdf();
+    const auto blob = blobEntry(QStringLiteral("objects/order.pdf"), pdf);
+
+    QVERIFY(writeJson(
+        pack.path(), QStringLiteral("manifest.json"),
+        validManifest(contents, {}, {}, QStringLiteral("1.0.0"), QJsonArray{blob, blob})));
+    auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::DuplicateContentPath);
+
+    auto overlapping = blob;
+    overlapping.insert(QStringLiteral("path"), content_path + QStringLiteral("/order.pdf"));
+    QVERIFY(writeJson(
+        pack.path(), QStringLiteral("manifest.json"),
+        validManifest(contents, {}, {}, QStringLiteral("1.0.0"), QJsonArray{overlapping})));
+    result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::DuplicateContentPath);
+
+    overlapping.insert(QStringLiteral("path"), content_path);
+    QVERIFY(writeJson(
+        pack.path(), QStringLiteral("manifest.json"),
+        validManifest(contents, {}, {}, QStringLiteral("1.0.0"), QJsonArray{overlapping})));
+    result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::DuplicateContentPath);
+}
+
+void PackReaderTest::rejectsInvalidBlob_data() {
+    QTest::addColumn<QString>("failure");
+    QTest::addColumn<int>("expected_code");
+    QTest::newRow("wrong hash") << QStringLiteral("hash")
+                                << static_cast<int>(appellate::packs::ErrorCode::DigestMismatch);
+    QTest::newRow("wrong MIME") << QStringLiteral("mime")
+                                << static_cast<int>(appellate::packs::ErrorCode::InvalidManifest);
+    QTest::newRow("wrong size") << QStringLiteral("size")
+                                << static_cast<int>(appellate::packs::ErrorCode::DigestMismatch);
+    QTest::newRow("wrong signature")
+        << QStringLiteral("signature")
+        << static_cast<int>(appellate::packs::ErrorCode::InvalidManifest);
+    QTest::newRow("missing trailer")
+        << QStringLiteral("trailer")
+        << static_cast<int>(appellate::packs::ErrorCode::InvalidManifest);
+}
+
+void PackReaderTest::rejectsInvalidBlob() {
+    QFETCH(QString, failure);
+    QFETCH(int, expected_code);
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    const auto judge = jsonBytes(validJudge());
+    const auto content_path = QStringLiteral("judges/measured.json");
+    const auto blob_path = QStringLiteral("objects/order.pdf");
+    auto payload = validPdf();
+    if (failure == QStringLiteral("signature")) {
+        payload = QByteArray("not-a-pdf\n%%EOF\n");
+    } else if (failure == QStringLiteral("trailer")) {
+        payload = QByteArray("%PDF-1.7\nmissing trailer\n");
+    }
+    QVERIFY(writeBytes(pack.path(), content_path, judge));
+    QVERIFY(writeBytes(pack.path(), blob_path, payload));
+    auto blob = blobEntry(blob_path, payload);
+    if (failure == QStringLiteral("hash")) {
+        blob.insert(QStringLiteral("sha256"), QString(64, u'0'));
+    } else if (failure == QStringLiteral("mime")) {
+        blob.insert(QStringLiteral("media_type"), QStringLiteral("text/plain"));
+    } else if (failure == QStringLiteral("size")) {
+        blob.insert(QStringLiteral("byte_size"), payload.size() + 1);
+    }
+    QVERIFY(writeJson(
+        pack.path(), QStringLiteral("manifest.json"),
+        validManifest(
+            QJsonArray{contentEntry(QStringLiteral("example.judge.measured"), content_path, judge)},
+            {}, {}, QStringLiteral("1.0.0"), QJsonArray{blob})));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(static_cast<int>(result.error().code), expected_code);
+}
+
+void PackReaderTest::rejectsBlobSizeBudgets() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    const auto judge = jsonBytes(validJudge());
+    const auto content_path = QStringLiteral("judges/measured.json");
+    QVERIFY(writeBytes(pack.path(), content_path, judge));
+    const QJsonArray contents{
+        contentEntry(QStringLiteral("example.judge.measured"), content_path, judge)};
+    auto oversized = blobEntry(QStringLiteral("objects/oversized.pdf"), validPdf());
+    oversized.insert(QStringLiteral("byte_size"), qint64{512} * 1024 * 1024 + 1);
+    QVERIFY(
+        writeJson(pack.path(), QStringLiteral("manifest.json"),
+                  validManifest(contents, {}, {}, QStringLiteral("1.0.0"), QJsonArray{oversized})));
+    auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::InvalidManifest);
+
+    QJsonArray excessive_total;
+    for (int index = 0; index < 7; ++index) {
+        auto blob = blobEntry(QStringLiteral("objects/order-%1.pdf").arg(index), validPdf());
+        blob.insert(QStringLiteral("byte_size"), qint64{512} * 1024 * 1024);
+        excessive_total.push_back(blob);
+    }
+    QVERIFY(writeJson(pack.path(), QStringLiteral("manifest.json"),
+                      validManifest(contents, {}, {}, QStringLiteral("1.0.0"), excessive_total)));
+    result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::ResourceTooLarge);
+}
+
+void PackReaderTest::rejectsUnlistedAndOrphanBlobs() {
+    const auto judge = jsonBytes(validJudge());
+    const auto pdf = validPdf();
+    const auto content_path = QStringLiteral("judges/measured.json");
+    const auto blob_path = QStringLiteral("objects/order.pdf");
+
+    QTemporaryDir unlisted;
+    QVERIFY(unlisted.isValid());
+    QVERIFY(writeBytes(unlisted.path(), content_path, judge));
+    QVERIFY(writeBytes(unlisted.path(), blob_path, pdf));
+    QVERIFY(writeJson(unlisted.path(), QStringLiteral("manifest.json"),
+                      validManifest(QJsonArray{contentEntry(
+                          QStringLiteral("example.judge.measured"), content_path, judge)})));
+    auto result = appellate::packs::PackReader::readDirectory(unlisted.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::UndeclaredFile);
+
+    QTemporaryDir orphan;
+    QVERIFY(orphan.isValid());
+    QVERIFY(writeBytes(orphan.path(), content_path, judge));
+    QVERIFY(writeBytes(orphan.path(), blob_path, pdf));
+    QVERIFY(writeJson(
+        orphan.path(), QStringLiteral("manifest.json"),
+        validManifest(
+            QJsonArray{contentEntry(QStringLiteral("example.judge.measured"), content_path, judge)},
+            {}, {}, QStringLiteral("1.0.0"), QJsonArray{blobEntry(blob_path, pdf)})));
+    result = appellate::packs::PackReader::readDirectory(orphan.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+}
+
+void PackReaderTest::rejectsMissingAndMismatchedRecordBlobs() {
+    QTemporaryDir missing;
+    QVERIFY(missing.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), missing.path()));
+    QFile manifest_file(QDir(missing.path()).filePath(QStringLiteral("manifest.json")));
+    QVERIFY(manifest_file.open(QIODevice::ReadOnly));
+    auto manifest = QJsonDocument::fromJson(manifest_file.readAll()).object();
+    manifest_file.close();
+    manifest.insert(QStringLiteral("blobs"), QJsonArray{});
+    QVERIFY(
+        QFile::remove(QDir(missing.path()).filePath(QStringLiteral("objects/final-order.pdf"))));
+    QVERIFY(writeJson(missing.path(), QStringLiteral("manifest.json"), manifest));
+    auto result = appellate::packs::PackReader::readDirectory(missing.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+
+    QTemporaryDir mismatched;
+    QVERIFY(mismatched.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), mismatched.path()));
+    const auto record_path = QStringLiteral("resources/record.json");
+    QFile record_file(QDir(mismatched.path()).filePath(record_path));
+    QVERIFY(record_file.open(QIODevice::ReadOnly));
+    auto record = QJsonDocument::fromJson(record_file.readAll()).object();
+    record_file.close();
+    auto entries = record.value(QStringLiteral("docket_entries")).toArray();
+    auto entry = entries.at(0).toObject();
+    entry.insert(QStringLiteral("asset_sha256"), QString(64, u'0'));
+    entries.replace(0, entry);
+    QVERIFY(replaceResourceField(mismatched.path(), record_path, QStringLiteral("docket_entries"),
+                                 entries));
+    result = appellate::packs::PackReader::readDirectory(mismatched.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+}
+
+void PackReaderTest::digestIncludesBlobDescriptor() {
+    QTemporaryDir original;
+    QTemporaryDir changed;
+    QVERIFY(original.isValid());
+    QVERIFY(changed.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), original.path()));
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), changed.path()));
+    QFile blob_file(QDir(changed.path()).filePath(QStringLiteral("objects/final-order.pdf")));
+    QVERIFY(blob_file.open(QIODevice::ReadOnly));
+    auto changed_payload = blob_file.readAll();
+    blob_file.close();
+    changed_payload.append(' ');
+    QVERIFY(updateFixtureBlob(changed.path(), changed_payload));
+
+    const auto original_result = appellate::packs::PackReader::readDirectory(original.path());
+    const auto changed_result = appellate::packs::PackReader::readDirectory(changed.path());
+    QVERIFY(original_result.has_value());
+    QVERIFY(changed_result.has_value());
+    QVERIFY(original_result->revision.digest != changed_result->revision.digest);
 }
 
 void PackReaderTest::rejectsMalformedJson() {

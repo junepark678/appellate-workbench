@@ -9,6 +9,14 @@
     }
   ],
   "dependencies": [],
+  "blobs": [
+    {
+      "path": "objects/final-order.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 1163,
+      "sha256": "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366"
+    }
+  ],
   "contents": [
     {
       "id": "example.argument.fictional",
@@ -85,7 +93,7 @@
       "kind": "record",
       "schema_version": 1,
       "path": "resources/record.json",
-      "sha256": "40709b7f90f70bb5edfc45df8b4e47b0a7ce0276ab47b582796bf5ef29b7e164"
+      "sha256": "5f751c1babe139d8255f1e50b8b0209c183ceb67d8f7a1abd7eb7af4dee952f8"
     },
     {
       "id": "example.workflow.fictional",

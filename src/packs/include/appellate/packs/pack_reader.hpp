@@ -23,6 +23,7 @@ struct LoadedPack final {
     std::vector<model::RequiredCapability> required_capabilities;
     std::vector<model::PackDependency> dependencies;
     std::vector<ValidatedResource> resources;
+    std::vector<model::BlobDescriptor> blobs;
     std::vector<model::JudgeProfile> judge_profiles;
 };
 

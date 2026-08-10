@@ -33,8 +33,12 @@ constexpr qsizetype maximum_capabilities = 128;
 constexpr qsizetype maximum_dependencies = 128;
 constexpr qsizetype maximum_contents = 10'000;
 constexpr qsizetype maximum_directory_entries = 20'000;
+constexpr quint64 maximum_blob_bytes = 512ULL * 1024ULL * 1024ULL;
+constexpr quint64 maximum_total_blob_bytes = 3ULL * 1024ULL * 1024ULL * 1024ULL;
 constexpr qsizetype maximum_issue_focus_items = 32;
 constexpr qsizetype maximum_jurisdictions = 64;
+constexpr qsizetype blob_stream_buffer_bytes = 64 * 1024;
+constexpr qsizetype pdf_tail_bytes = 1024;
 
 struct ContentDescriptor final {
     QString id;
@@ -144,6 +148,27 @@ struct KindDefinition final {
     return std::ranges::none_of(segments, [](const QString& segment) {
         return segment.endsWith(u'.') || isReservedPathSegment(segment);
     });
+}
+
+[[nodiscard]] std::optional<QString> overlappingPath(const std::vector<QString>& paths) {
+    QSet<QString> declared;
+    declared.reserve(static_cast<qsizetype>(paths.size()));
+    for (const auto& path : paths) {
+        if (declared.contains(path)) {
+            return path;
+        }
+        declared.insert(path);
+    }
+    for (const auto& path : paths) {
+        auto separator = path.indexOf(u'/');
+        while (separator >= 0) {
+            if (declared.contains(path.first(separator))) {
+                return path;
+            }
+            separator = path.indexOf(u'/', separator + 1);
+        }
+    }
+    return std::nullopt;
 }
 
 [[nodiscard]] bool isDisplayName(const QString& value) {
@@ -420,6 +445,107 @@ struct KindDefinition final {
     return current;
 }
 
+[[nodiscard]] bool isPdfWhitespace(char value) {
+    switch (static_cast<unsigned char>(value)) {
+    case 0x00:
+    case 0x09:
+    case 0x0a:
+    case 0x0c:
+    case 0x0d:
+    case 0x20:
+        return true;
+    default:
+        return false;
+    }
+}
+
+[[nodiscard]] bool hasPdfSignature(QByteArrayView header) {
+    return header.size() >= 8 && header.first(5) == QByteArrayView("%PDF-") &&
+           (header.at(5) == '1' || header.at(5) == '2') && header.at(6) == '.' &&
+           header.at(7) >= '0' && header.at(7) <= '9';
+}
+
+[[nodiscard]] bool hasPdfTrailer(QByteArrayView tail) {
+    auto end = tail.size();
+    while (end > 0 && isPdfWhitespace(tail.at(end - 1))) {
+        --end;
+    }
+    return end >= 5 && tail.sliced(end - 5, 5) == QByteArrayView("%%EOF");
+}
+
+[[nodiscard]] auto validateBlobFile(const QString& absolute_path,
+                                    const model::BlobDescriptor& descriptor)
+    -> std::expected<void, Error> {
+    const QFileInfo info(absolute_path);
+    if (info.size() < 0 || static_cast<quint64>(info.size()) != descriptor.byte_size) {
+        return fail(ErrorCode::DigestMismatch, QStringLiteral("Blob size mismatch for %1")
+                                                   .arg(QString::fromStdString(descriptor.path)));
+    }
+
+    QFile file(absolute_path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return fail(
+            ErrorCode::CannotRead,
+            QStringLiteral("Cannot read blob %1").arg(QString::fromStdString(descriptor.path)));
+    }
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    std::array<char, blob_stream_buffer_bytes> buffer{};
+    QByteArray header;
+    QByteArray tail;
+    header.reserve(8);
+    tail.reserve(pdf_tail_bytes);
+    quint64 total = 0;
+    while (true) {
+        const auto read_size = file.read(buffer.data(), static_cast<qint64>(buffer.size()));
+        if (read_size < 0) {
+            return fail(ErrorCode::CannotRead, QStringLiteral("Cannot read complete blob %1")
+                                                   .arg(QString::fromStdString(descriptor.path)));
+        }
+        if (read_size == 0) {
+            break;
+        }
+        const auto chunk_size = static_cast<quint64>(read_size);
+        if (chunk_size > descriptor.byte_size || total > descriptor.byte_size - chunk_size) {
+            return fail(ErrorCode::DigestMismatch,
+                        QStringLiteral("Blob size mismatch for %1")
+                            .arg(QString::fromStdString(descriptor.path)));
+        }
+        const QByteArrayView chunk(buffer.data(), read_size);
+        if (header.size() < 8) {
+            const auto needed = 8 - header.size();
+            header.append(chunk.first(std::min(needed, chunk.size())));
+        }
+        tail.append(chunk);
+        if (tail.size() > pdf_tail_bytes) {
+            tail.remove(0, tail.size() - pdf_tail_bytes);
+        }
+        hash.addData(chunk);
+        total += chunk_size;
+    }
+    if (file.error() != QFileDevice::NoError) {
+        return fail(ErrorCode::CannotRead, QStringLiteral("Cannot read complete blob %1")
+                                               .arg(QString::fromStdString(descriptor.path)));
+    }
+    if (total != descriptor.byte_size) {
+        return fail(ErrorCode::DigestMismatch, QStringLiteral("Blob size mismatch for %1")
+                                                   .arg(QString::fromStdString(descriptor.path)));
+    }
+    const auto actual_digest = QString::fromLatin1(hash.result().toHex()).toStdString();
+    if (actual_digest != descriptor.sha256) {
+        return fail(
+            ErrorCode::DigestMismatch,
+            QStringLiteral("Digest mismatch for %1").arg(QString::fromStdString(descriptor.path)));
+    }
+    if (descriptor.media_type != "application/pdf" || !hasPdfSignature(QByteArrayView(header)) ||
+        !hasPdfTrailer(QByteArrayView(tail))) {
+        return fail(ErrorCode::InvalidManifest,
+                    QStringLiteral("Blob is not a structurally recognizable PDF: %1")
+                        .arg(QString::fromStdString(descriptor.path)));
+    }
+    return {};
+}
+
 [[nodiscard]] auto validateDeclaredFileSet(const QDir& root, const QSet<QString>& declared)
     -> std::expected<void, Error> {
     qsizetype entry_count = 0;
@@ -473,7 +599,8 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
 [[nodiscard]] auto canonicalDigest(const QString& pack_id, const QString& version,
                                    std::vector<model::RequiredCapability> capabilities,
                                    std::vector<model::PackDependency> dependencies,
-                                   std::vector<ContentDescriptor> contents) -> std::string {
+                                   std::vector<ContentDescriptor> contents,
+                                   std::vector<model::BlobDescriptor> blobs) -> std::string {
     std::ranges::sort(capabilities, {}, &model::RequiredCapability::id);
     std::ranges::sort(dependencies, [](const auto& left, const auto& right) {
         return std::tie(left.revision.id.value, left.revision.version, left.revision.digest) <
@@ -481,6 +608,10 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     });
     std::ranges::sort(contents, [](const auto& left, const auto& right) {
         return std::tie(left.id, left.kind, left.path) < std::tie(right.id, right.kind, right.path);
+    });
+    std::ranges::sort(blobs, [](const auto& left, const auto& right) {
+        return std::tie(left.path, left.media_type, left.byte_size, left.sha256) <
+               std::tie(right.path, right.media_type, right.byte_size, right.sha256);
     });
 
     QCryptographicHash hash(QCryptographicHash::Sha256);
@@ -508,6 +639,13 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
         addFrame(hash, content.path);
         addFrame(hash, content.digest);
     }
+    addUint64(hash, static_cast<quint64>(blobs.size()));
+    for (const auto& blob : blobs) {
+        addFrame(hash, QString::fromStdString(blob.path));
+        addFrame(hash, QString::fromStdString(blob.media_type));
+        addUint64(hash, blob.byte_size);
+        addFrame(hash, QString::fromStdString(blob.sha256));
+    }
     return QString::fromLatin1(hash.result().toHex()).toStdString();
 }
 
@@ -527,7 +665,8 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     return result;
 }
 
-[[nodiscard]] auto validateResourceGraph(const std::vector<ValidatedResource>& resources)
+[[nodiscard]] auto validateResourceGraph(const std::vector<ValidatedResource>& resources,
+                                         const std::vector<model::BlobDescriptor>& blobs)
     -> std::expected<void, Error> {
     QHash<QString, const ValidatedResource*> by_id;
     for (const auto& resource : resources) {
@@ -538,6 +677,17 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
         }
         by_id.insert(id, &resource);
     }
+
+    QHash<QString, const model::BlobDescriptor*> blobs_by_path;
+    for (const auto& blob : blobs) {
+        const auto path = QString::fromStdString(blob.path);
+        if (blobs_by_path.contains(path)) {
+            return fail(ErrorCode::CrossReferenceFailure,
+                        QStringLiteral("Blob path resolves more than once: %1").arg(path));
+        }
+        blobs_by_path.insert(path, &blob);
+    }
+    QSet<QString> referenced_blob_paths;
 
     const auto requireKind =
         [&by_id](const ValidatedResource& owner, const QString& field, const QString& id,
@@ -798,6 +948,8 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 const auto entry = value.toObject();
                 const auto entry_id = entry.value(QStringLiteral("entry_id")).toString();
                 const auto entry_number = entry.value(QStringLiteral("entry_number")).toInt();
+                const auto asset_path = entry.value(QStringLiteral("asset_path")).toString();
+                const auto asset_digest = entry.value(QStringLiteral("asset_sha256")).toString();
                 if (entries.contains(entry_id) || entry_numbers.contains(entry_number)) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("docket_entries"),
@@ -805,6 +957,18 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 }
                 entries.insert(entry_id);
                 entry_numbers.insert(entry_number);
+                const auto blob = blobs_by_path.constFind(asset_path);
+                if (blob == blobs_by_path.constEnd()) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("docket_entries/asset_path"),
+                        QStringLiteral("unresolved blob path %1").arg(asset_path));
+                }
+                if (QString::fromStdString((*blob)->sha256) != asset_digest) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("docket_entries/asset_sha256"),
+                        QStringLiteral("digest does not match blob %1").arg(asset_path));
+                }
+                referenced_blob_paths.insert(asset_path);
             }
             record_entries.insert(id, entries);
             break;
@@ -1201,6 +1365,13 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
             break;
         }
     }
+    for (const auto& blob : blobs) {
+        const auto path = QString::fromStdString(blob.path);
+        if (!referenced_blob_paths.contains(path)) {
+            return fail(ErrorCode::CrossReferenceFailure,
+                        QStringLiteral("Orphan blob is not referenced by a record: %1").arg(path));
+        }
+    }
     return {};
 }
 
@@ -1233,10 +1404,11 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
                     QStringLiteral("Unsupported manifest schema version"));
     }
     if (!hasExactKeys(manifest, {"schema_version", "pack_id", "version", "required_capabilities",
-                                 "dependencies", "contents"}) ||
+                                 "dependencies", "contents", "blobs"}) ||
         !manifest.value(QStringLiteral("required_capabilities")).isArray() ||
         !manifest.value(QStringLiteral("dependencies")).isArray() ||
-        !manifest.value(QStringLiteral("contents")).isArray()) {
+        !manifest.value(QStringLiteral("contents")).isArray() ||
+        !manifest.value(QStringLiteral("blobs")).isArray()) {
         return fail(ErrorCode::InvalidManifest,
                     QStringLiteral("Manifest contains unknown, missing, or invalid fields"));
     }
@@ -1247,10 +1419,12 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         manifest.value(QStringLiteral("required_capabilities")).toArray();
     const auto dependency_values = manifest.value(QStringLiteral("dependencies")).toArray();
     const auto content_values = manifest.value(QStringLiteral("contents")).toArray();
+    const auto blob_values = manifest.value(QStringLiteral("blobs")).toArray();
     if (!isNamespacedId(pack_id) || !isSemanticVersion(version) ||
         capability_values.size() > maximum_capabilities ||
         dependency_values.size() > maximum_dependencies || content_values.isEmpty() ||
-        content_values.size() > maximum_contents) {
+        content_values.size() > maximum_contents ||
+        blob_values.size() > maximum_contents - content_values.size()) {
         return fail(ErrorCode::InvalidManifest,
                     QStringLiteral("Manifest identifiers, version, or array bounds are invalid"));
     }
@@ -1302,6 +1476,9 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     QSet<QString> content_ids;
     QSet<QString> content_paths;
     QSet<QString> declared_files{QStringLiteral("manifest.json")};
+    std::vector<QString> declared_payload_paths;
+    declared_payload_paths.reserve(
+        static_cast<std::size_t>(content_values.size() + blob_values.size()));
     for (const auto& value : content_values) {
         if (!value.isObject()) {
             return fail(ErrorCode::InvalidManifest,
@@ -1340,7 +1517,52 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         content_ids.insert(id);
         content_paths.insert(path);
         declared_files.insert(path);
+        declared_payload_paths.push_back(path);
         contents.push_back(ContentDescriptor{id, kind, supported_schema_version, path, digest});
+    }
+
+    std::vector<model::BlobDescriptor> blobs;
+    blobs.reserve(static_cast<std::size_t>(blob_values.size()));
+    quint64 total_blob_bytes = 0;
+    for (const auto& value : blob_values) {
+        if (!value.isObject()) {
+            return fail(ErrorCode::InvalidManifest,
+                        QStringLiteral("Every blob descriptor must be an object"));
+        }
+        const auto object = value.toObject();
+        const auto path = object.value(QStringLiteral("path")).toString();
+        const auto media_type = object.value(QStringLiteral("media_type")).toString();
+        const auto byte_size_value = object.value(QStringLiteral("byte_size"));
+        const auto digest = object.value(QStringLiteral("sha256")).toString();
+        if (!hasExactKeys(object, {"path", "media_type", "byte_size", "sha256"}) ||
+            !isSafeRelativePath(path) || path == QStringLiteral("manifest.json") ||
+            !object.value(QStringLiteral("media_type")).isString() ||
+            media_type != QStringLiteral("application/pdf") ||
+            !isExactInteger(byte_size_value, 1, static_cast<qint64>(maximum_blob_bytes)) ||
+            !isSha256(digest)) {
+            const auto code =
+                isSafeRelativePath(path) ? ErrorCode::InvalidManifest : ErrorCode::UnsafePath;
+            return fail(code, QStringLiteral("Invalid blob descriptor for %1").arg(path));
+        }
+        if (declared_files.contains(path)) {
+            return fail(ErrorCode::DuplicateContentPath,
+                        QStringLiteral("Duplicate blob path %1").arg(path));
+        }
+        const auto byte_size = static_cast<quint64>(byte_size_value.toDouble());
+        if (byte_size > maximum_total_blob_bytes ||
+            total_blob_bytes > maximum_total_blob_bytes - byte_size) {
+            return fail(ErrorCode::ResourceTooLarge,
+                        QStringLiteral("Declared blobs exceed the total size limit"));
+        }
+        total_blob_bytes += byte_size;
+        declared_files.insert(path);
+        declared_payload_paths.push_back(path);
+        blobs.push_back(model::BlobDescriptor{path.toStdString(), media_type.toStdString(),
+                                              byte_size, digest.toStdString()});
+    }
+    if (const auto overlap = overlappingPath(declared_payload_paths); overlap) {
+        return fail(ErrorCode::DuplicateContentPath,
+                    QStringLiteral("Overlapping payload path %1").arg(*overlap));
     }
 
     const auto manifest_schema =
@@ -1357,6 +1579,19 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     if (!file_set_result) {
         return std::unexpected(file_set_result.error());
     }
+
+    for (const auto& blob : blobs) {
+        const auto relative_path = QString::fromStdString(blob.path);
+        const auto absolute_path = validateRegularPath(root, relative_path);
+        if (!absolute_path) {
+            return std::unexpected(absolute_path.error());
+        }
+        const auto validated = validateBlobFile(*absolute_path, blob);
+        if (!validated) {
+            return std::unexpected(validated.error());
+        }
+    }
+    std::ranges::sort(blobs, {}, &model::BlobDescriptor::path);
 
     std::vector<model::JudgeProfile> judges;
     std::vector<ValidatedResource> resources;
@@ -1427,7 +1662,7 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     std::ranges::sort(resources, [](const auto& left, const auto& right) {
         return left.descriptor.id < right.descriptor.id;
     });
-    const auto graph_result = validateResourceGraph(resources);
+    const auto graph_result = validateResourceGraph(resources, blobs);
     if (!graph_result) {
         return std::unexpected(graph_result.error());
     }
@@ -1435,10 +1670,11 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     return LoadedPack{
         model::PackRevision{
             model::PackId{pack_id.toStdString()}, version.toStdString(),
-            canonicalDigest(pack_id, version, capabilities, dependencies, contents)},
+            canonicalDigest(pack_id, version, capabilities, dependencies, contents, blobs)},
         std::move(capabilities),
         std::move(dependencies),
         std::move(resources),
+        std::move(blobs),
         std::move(judges),
     };
 }

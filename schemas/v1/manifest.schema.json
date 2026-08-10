@@ -10,7 +10,8 @@
     "version",
     "required_capabilities",
     "dependencies",
-    "contents"
+    "contents",
+    "blobs"
   ],
   "properties": {
     "schema_version": { "const": 1 },
@@ -73,6 +74,25 @@
           },
           "schema_version": { "const": 1 },
           "path": { "$ref": "#/$defs/portable_path" },
+          "sha256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "blobs": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "media_type", "byte_size", "sha256"],
+        "properties": {
+          "path": { "$ref": "#/$defs/portable_path" },
+          "media_type": { "const": "application/pdf" },
+          "byte_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 536870912
+          },
           "sha256": { "$ref": "#/$defs/sha256" }
         }
       }

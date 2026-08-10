@@ -62,7 +62,10 @@ void PackCliTest::completePackLifecycle() {
     requireSuccess(templated, QStringLiteral("template"));
     const auto template_response = responseObject(templated.standard_output);
     QCOMPARE(template_response.value(QStringLiteral("resource_count")).toInt(), 12);
+    QCOMPARE(template_response.value(QStringLiteral("blob_count")).toInt(), 1);
     QVERIFY(QFileInfo::exists(QDir(pack_directory).filePath(QStringLiteral("manifest.json"))));
+    QVERIFY(QFileInfo::exists(
+        QDir(pack_directory).filePath(QStringLiteral("objects/final-order.pdf"))));
 
     const auto validated_directory = runPackCli({QStringLiteral("validate"), pack_directory});
     requireSuccess(validated_directory, QStringLiteral("validate"));
@@ -70,6 +73,10 @@ void PackCliTest::completePackLifecycle() {
                  .value(QStringLiteral("source_kind"))
                  .toString(),
              QStringLiteral("directory"));
+    QCOMPARE(responseObject(validated_directory.standard_output)
+                 .value(QStringLiteral("blob_count"))
+                 .toInt(),
+             1);
 
     const auto first_export = runPackCli({QStringLiteral("export"), pack_directory, first_archive});
     requireSuccess(first_export, QStringLiteral("export"));
@@ -80,6 +87,7 @@ void PackCliTest::completePackLifecycle() {
     const auto archive_response = responseObject(validated_archive.standard_output);
     QCOMPARE(archive_response.value(QStringLiteral("source_kind")).toString(),
              QStringLiteral("archive"));
+    QCOMPARE(archive_response.value(QStringLiteral("blob_count")).toInt(), 1);
     QCOMPARE(archive_response.value(QStringLiteral("digest")),
              first_revision.value(QStringLiteral("digest")));
 

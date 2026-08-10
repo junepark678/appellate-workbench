@@ -2,7 +2,11 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QFile>
 #include <QFont>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QLineEdit>
 #include <QPageSize>
 #include <QPainter>
@@ -24,6 +28,7 @@ class RecordWorkspaceTest final : public QObject {
 
   private slots:
     void filtersMetadataAndSearchesPdfText();
+    void fixturePageCountMatchesRecordDeclaration();
     void navigatesStableAnchorAcrossMultipagePdf();
     void refusesSealedItem();
     void rejectsMissingAndOrphanDocuments();
@@ -125,6 +130,26 @@ void RecordWorkspaceTest::filtersMetadataAndSearchesPdfText() {
     QVERIFY(opened.has_value());
     workspace.setDocumentSearch(QStringLiteral("evidentiary"));
     QTRY_VERIFY_WITH_TIMEOUT(workspace.documentSearchResultCount() >= 1, 10'000);
+}
+
+void RecordWorkspaceTest::fixturePageCountMatchesRecordDeclaration() {
+    const auto pdf = QFINDTESTDATA("../fixtures/full-resource-pack/objects/final-order.pdf");
+    const auto record_path = QFINDTESTDATA("../fixtures/full-resource-pack/resources/record.json");
+    QVERIFY2(!pdf.isEmpty(), "Cannot locate the full-pack PDF fixture");
+    QVERIFY2(!record_path.isEmpty(), "Cannot locate the full-pack record fixture");
+    QFile record_file(record_path);
+    QVERIFY(record_file.open(QIODevice::ReadOnly));
+    const auto record = QJsonDocument::fromJson(record_file.readAll()).object();
+    const auto entries = record.value(QStringLiteral("docket_entries")).toArray();
+    QCOMPARE(entries.size(), 1);
+    const auto declared_page_count =
+        entries.at(0).toObject().value(QStringLiteral("page_count")).toInt();
+
+    RecordWorkspace workspace;
+    QVERIFY(workspace.setRecord(basicRecord(pdf)).has_value());
+    QVERIFY(workspace.openDocketEntry(QStringLiteral("docket.1")).has_value());
+    QCOMPARE(workspace.loadedPageCount(), declared_page_count);
+    QCOMPARE(declared_page_count, 3);
 }
 
 void RecordWorkspaceTest::navigatesStableAnchorAcrossMultipagePdf() {

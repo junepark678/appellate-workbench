@@ -30,4 +30,13 @@ struct DeclarativeResource final {
     friend bool operator==(const DeclarativeResource&, const DeclarativeResource&) = default;
 };
 
+struct BlobDescriptor final {
+    std::string path;
+    std::string media_type;
+    std::uint64_t byte_size{};
+    std::string sha256;
+
+    friend bool operator==(const BlobDescriptor&, const BlobDescriptor&) = default;
+};
+
 } // namespace appellate::model
