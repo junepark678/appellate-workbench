@@ -130,6 +130,29 @@ struct StagedArchive final {
     LoadedPack loaded;
 };
 
+[[nodiscard]] auto hashArchiveFile(const QString& path)
+    -> std::expected<QString, CatalogError> {
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return fail(CatalogErrorCode::CannotStoreArchive,
+                    QStringLiteral("Cannot read archive object"));
+    }
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    std::array<char, copy_buffer_bytes> buffer{};
+    while (true) {
+        const auto read = file.read(buffer.data(), static_cast<qint64>(buffer.size()));
+        if (read < 0) {
+            return fail(CatalogErrorCode::CannotStoreArchive,
+                        QStringLiteral("Cannot hash the complete archive object"));
+        }
+        if (read == 0) {
+            break;
+        }
+        hash.addData(QByteArrayView(buffer.data(), read));
+    }
+    return QString::fromLatin1(hash.result().toHex());
+}
+
 [[nodiscard]] auto stageArchive(const QString& source_path, const QString& archives_directory)
     -> std::expected<StagedArchive, CatalogError> {
     const auto initially_loaded = PackArchive::importArchive(source_path);
@@ -196,8 +219,10 @@ struct StagedArchive final {
                                 .filePath(staged.sha256 + QStringLiteral(".awpack"));
     if (QFileInfo::exists(final_path)) {
         QFile::remove(staged.path);
+        const auto existing_hash = hashArchiveFile(final_path);
         const auto existing = PackArchive::importArchive(final_path);
-        if (!existing || existing->revision != staged.loaded.revision) {
+        if (!existing_hash || *existing_hash != staged.sha256 || !existing ||
+            existing->revision != staged.loaded.revision) {
             return fail(CatalogErrorCode::CannotStoreArchive,
                         QStringLiteral("Existing archive object is corrupt"));
         }
@@ -205,8 +230,10 @@ struct StagedArchive final {
     }
     if (!QFile::rename(staged.path, final_path)) {
         QFile::remove(staged.path);
+        const auto existing_hash = hashArchiveFile(final_path);
         const auto existing = PackArchive::importArchive(final_path);
-        if (!existing || existing->revision != staged.loaded.revision) {
+        if (!existing_hash || *existing_hash != staged.sha256 || !existing ||
+            existing->revision != staged.loaded.revision) {
             return fail(CatalogErrorCode::CannotStoreArchive,
                         QStringLiteral("Cannot atomically install archive object"));
         }
@@ -515,8 +542,10 @@ PackCatalog::load(const model::PackId& id, const std::string& version) const {
                     QStringLiteral("Installed pack metadata is corrupt"));
     }
     const auto path = QDir(archivesDirectory()).filePath(archive_sha + QStringLiteral(".awpack"));
+    const auto actual_archive_sha = hashArchiveFile(path);
     const auto loaded = PackArchive::importArchive(path);
-    if (!loaded || asQString(loaded->revision.digest) != expected_digest ||
+    if (!actual_archive_sha || *actual_archive_sha != archive_sha || !loaded ||
+        asQString(loaded->revision.digest) != expected_digest ||
         loaded->revision.id != id || loaded->revision.version != version) {
         return fail(CatalogErrorCode::CorruptCatalog,
                     QStringLiteral("Installed archive does not match its catalog revision"));
