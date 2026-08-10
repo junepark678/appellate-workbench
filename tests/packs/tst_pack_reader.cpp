@@ -2,6 +2,7 @@
 
 #include <QCryptographicHash>
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
@@ -17,6 +18,7 @@ class PackReaderTest final : public QObject {
 
   private slots:
     void loadsValidPack();
+    void loadsFullDeclarativeResourceGraph();
     void rejectsMalformedJson();
     void rejectsUnsupportedSchema();
     void rejectsPathTraversal();
@@ -32,6 +34,15 @@ class PackReaderTest final : public QObject {
     void rejectsOversizedJson();
     void producesCanonicalOrderIndependentDigest();
     void digestIncludesPathAndDependencies();
+    void rejectsDuplicateJsonKeys();
+    void rejectsUnknownResourceKind();
+    void rejectsUnsupportedResourceSchema();
+    void rejectsGenericSchemaViolation();
+    void rejectsDescriptorPayloadDisagreement();
+    void rejectsBrokenCrossReference();
+    void rejectsIncompleteWorkflowAuthority();
+    void rejectsConflictingWorkflowAuthority();
+    void rejectsWorkflowInvariantViolation();
 };
 
 [[nodiscard]] QString fixture(const QString& name) {
@@ -62,11 +73,62 @@ class PackReaderTest final : public QObject {
     return writeBytes(root, relative_path, jsonBytes(object));
 }
 
+[[nodiscard]] bool copyTree(const QString& source, const QString& destination) {
+    QDirIterator iterator(source, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    const QDir source_root(source);
+    while (iterator.hasNext()) {
+        const auto source_path = iterator.next();
+        QFile input(source_path);
+        if (!input.open(QIODevice::ReadOnly) ||
+            !writeBytes(destination, source_root.relativeFilePath(source_path), input.readAll())) {
+            return false;
+        }
+    }
+    return true;
+}
+
+[[nodiscard]] bool replaceResourceField(const QString& root, const QString& relative_path,
+                                        const QString& field, const QJsonValue& value) {
+    QFile resource_file(QDir(root).filePath(relative_path));
+    if (!resource_file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+    auto resource = QJsonDocument::fromJson(resource_file.readAll()).object();
+    resource_file.close();
+    resource.insert(field, value);
+    const auto resource_bytes = jsonBytes(resource);
+    if (!writeBytes(root, relative_path, resource_bytes)) {
+        return false;
+    }
+
+    QFile manifest_file(QDir(root).filePath(QStringLiteral("manifest.json")));
+    if (!manifest_file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+    auto manifest = QJsonDocument::fromJson(manifest_file.readAll()).object();
+    manifest_file.close();
+    auto contents = manifest.value(QStringLiteral("contents")).toArray();
+    bool found = false;
+    for (qsizetype index = 0; index < contents.size(); ++index) {
+        auto entry = contents.at(index).toObject();
+        if (entry.value(QStringLiteral("path")).toString() != relative_path) {
+            continue;
+        }
+        entry.insert(QStringLiteral("sha256"), sha256(resource_bytes));
+        contents.replace(index, entry);
+        found = true;
+        break;
+    }
+    manifest.insert(QStringLiteral("contents"), contents);
+    return found && writeJson(root, QStringLiteral("manifest.json"), manifest);
+}
+
 [[nodiscard]] QJsonObject validJudge(const QString& id = QStringLiteral("example.judge.measured"),
                                      const QString& name = QStringLiteral("Measured Panelist")) {
     return QJsonObject{
         {QStringLiteral("schema_version"), 1},
-        {QStringLiteral("profile_id"), id},
+        {QStringLiteral("resource_kind"), QStringLiteral("judge_profile")},
+        {QStringLiteral("resource_id"), id},
         {QStringLiteral("display_name"), name},
         {QStringLiteral("profile_class"), QStringLiteral("fictional_composite")},
         {QStringLiteral("compatibility"),
@@ -154,6 +216,7 @@ void PackReaderTest::loadsValidPack() {
     QCOMPARE(result->dependencies.size(), std::size_t{1});
     QCOMPARE(result->dependencies.front().revision.id.value,
              std::string("example.foundation.common"));
+    QCOMPARE(result->resources.size(), std::size_t{1});
     QCOMPARE(result->judge_profiles.size(), std::size_t{1});
     const auto& profile = result->judge_profiles.front();
     QCOMPARE(profile.display_name, std::string("Measured Panelist"));
@@ -162,6 +225,26 @@ void PackReaderTest::loadsValidPack() {
     QCOMPARE(profile.compatibility.jurisdiction_ids.front(), std::string("us.ca4"));
     QCOMPARE(profile.interaction.issue_focus.size(), std::size_t{2});
     QCOMPARE(profile.voice.cadence, appellate::model::VoiceCadence::Measured);
+}
+
+void PackReaderTest::loadsFullDeclarativeResourceGraph() {
+    const auto result =
+        appellate::packs::PackReader::readDirectory(fixture(QStringLiteral("full-resource-pack")));
+
+    if (!result.has_value()) {
+        QFAIL(qPrintable(result.error().message));
+    }
+    QCOMPARE(result->revision.id.value, std::string("example.full.fictional"));
+    QCOMPARE(result->resources.size(), std::size_t{12});
+    QCOMPARE(result->judge_profiles.size(), std::size_t{1});
+    QSet<int> kinds;
+    for (const auto& resource : result->resources) {
+        kinds.insert(static_cast<int>(resource.descriptor.kind));
+        QCOMPARE(resource.document.value(QStringLiteral("resource_id")).toString().toStdString(),
+                 resource.descriptor.id);
+    }
+    QCOMPARE(kinds.size(), 12);
+    QCOMPARE(result->resources.front().descriptor.id, std::string("example.argument.fictional"));
 }
 
 void PackReaderTest::rejectsMalformedJson() {
@@ -445,6 +528,168 @@ void PackReaderTest::digestIncludesPathAndDependencies() {
     QVERIFY(dependency_result.has_value());
     QVERIFY(first_result->revision.digest != path_result->revision.digest);
     QVERIFY(first_result->revision.digest != dependency_result->revision.digest);
+}
+
+void PackReaderTest::rejectsDuplicateJsonKeys() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    auto judge = jsonBytes(validJudge());
+    const QByteArray identity("\"resource_id\":\"example.judge.measured\"");
+    QVERIFY(judge.contains(identity));
+    judge.replace(identity, identity + QByteArray(",") + identity);
+    const auto path = QStringLiteral("judges/measured.json");
+    QVERIFY(writeBytes(pack.path(), path, judge));
+    QVERIFY(writeJson(pack.path(), QStringLiteral("manifest.json"),
+                      validManifest(QJsonArray{
+                          contentEntry(QStringLiteral("example.judge.measured"), path, judge)})));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::DuplicateJsonKey);
+}
+
+void PackReaderTest::rejectsUnknownResourceKind() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    const auto judge = jsonBytes(validJudge());
+    const auto path = QStringLiteral("judges/measured.json");
+    QVERIFY(writeBytes(pack.path(), path, judge));
+    auto entry = contentEntry(QStringLiteral("example.judge.measured"), path, judge);
+    entry.insert(QStringLiteral("kind"), QStringLiteral("native_plugin"));
+    QVERIFY(
+        writeJson(pack.path(), QStringLiteral("manifest.json"), validManifest(QJsonArray{entry})));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::UnsupportedResourceKind);
+}
+
+void PackReaderTest::rejectsUnsupportedResourceSchema() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    const auto judge = jsonBytes(validJudge());
+    const auto path = QStringLiteral("judges/measured.json");
+    QVERIFY(writeBytes(pack.path(), path, judge));
+    auto entry = contentEntry(QStringLiteral("example.judge.measured"), path, judge);
+    entry.insert(QStringLiteral("schema_version"), 2);
+    QVERIFY(
+        writeJson(pack.path(), QStringLiteral("manifest.json"), validManifest(QJsonArray{entry})));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::UnsupportedSchema);
+}
+
+void PackReaderTest::rejectsGenericSchemaViolation() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), pack.path()));
+    QVERIFY(replaceResourceField(pack.path(), QStringLiteral("resources/court.json"),
+                                 QStringLiteral("native_hook"), QStringLiteral("not allowed")));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::SchemaViolation);
+}
+
+void PackReaderTest::rejectsDescriptorPayloadDisagreement() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    const auto judge = jsonBytes(validJudge());
+    const auto path = QStringLiteral("judges/measured.json");
+    QVERIFY(writeBytes(pack.path(), path, judge));
+    QVERIFY(writeJson(pack.path(), QStringLiteral("manifest.json"),
+                      validManifest(QJsonArray{
+                          contentEntry(QStringLiteral("example.judge.different"), path, judge)})));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::SchemaViolation);
+}
+
+void PackReaderTest::rejectsBrokenCrossReference() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), pack.path()));
+    QVERIFY(replaceResourceField(pack.path(), QStringLiteral("resources/court.json"),
+                                 QStringLiteral("authority_set_ids"),
+                                 QJsonArray{QStringLiteral("example.authorities.missing")}));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+}
+
+void PackReaderTest::rejectsIncompleteWorkflowAuthority() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), pack.path()));
+    const auto relative_path = QStringLiteral("resources/workflow.json");
+    QFile workflow_file(QDir(pack.path()).filePath(relative_path));
+    QVERIFY(workflow_file.open(QIODevice::ReadOnly));
+    const auto workflow_document = QJsonDocument::fromJson(workflow_file.readAll()).object();
+    auto operations = workflow_document.value(QStringLiteral("operations")).toArray();
+    auto operation = operations.at(0).toObject();
+    auto authority = operation.value(QStringLiteral("authority")).toObject();
+    auto primary = authority.value(QStringLiteral("primary")).toObject();
+    primary.remove(QStringLiteral("source_version"));
+    authority.insert(QStringLiteral("primary"), primary);
+    operation.insert(QStringLiteral("authority"), authority);
+    operations.replace(0, operation);
+    QVERIFY(
+        replaceResourceField(pack.path(), relative_path, QStringLiteral("operations"), operations));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::SchemaViolation);
+}
+
+void PackReaderTest::rejectsConflictingWorkflowAuthority() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), pack.path()));
+    const auto relative_path = QStringLiteral("resources/workflow.json");
+    QFile workflow_file(QDir(pack.path()).filePath(relative_path));
+    QVERIFY(workflow_file.open(QIODevice::ReadOnly));
+    const auto workflow_document = QJsonDocument::fromJson(workflow_file.readAll()).object();
+    auto operations = workflow_document.value(QStringLiteral("operations")).toArray();
+    auto operation = operations.at(0).toObject();
+    auto authority = operation.value(QStringLiteral("authority")).toObject();
+    auto primary = authority.value(QStringLiteral("primary")).toObject();
+    primary.insert(QStringLiteral("proposition"), QStringLiteral("Fabricated proposition"));
+    authority.insert(QStringLiteral("primary"), primary);
+    operation.insert(QStringLiteral("authority"), authority);
+    operations.replace(0, operation);
+    QVERIFY(
+        replaceResourceField(pack.path(), relative_path, QStringLiteral("operations"), operations));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+}
+
+void PackReaderTest::rejectsWorkflowInvariantViolation() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), pack.path()));
+    const auto relative_path = QStringLiteral("resources/workflow.json");
+    QFile workflow_file(QDir(pack.path()).filePath(relative_path));
+    QVERIFY(workflow_file.open(QIODevice::ReadOnly));
+    const auto workflow_document = QJsonDocument::fromJson(workflow_file.readAll()).object();
+    const auto operations = workflow_document.value(QStringLiteral("operations")).toArray();
+    QJsonArray without_submitted_rejection;
+    for (const auto& value : operations) {
+        if (value.toObject().value(QStringLiteral("operation_id")).toString() !=
+            QStringLiteral("example.operation.reject-submitted")) {
+            without_submitted_rejection.push_back(value);
+        }
+    }
+    QVERIFY(replaceResourceField(pack.path(), relative_path, QStringLiteral("operations"),
+                                 without_submitted_rejection));
+
+    const auto result = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
 }
 
 } // namespace

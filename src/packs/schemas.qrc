@@ -1,0 +1,18 @@
+<RCC>
+  <qresource prefix="/appellate/schemas/v1">
+    <file alias="argument-config.schema.json">../../schemas/v1/argument-config.schema.json</file>
+    <file alias="authority-set.schema.json">../../schemas/v1/authority-set.schema.json</file>
+    <file alias="bench-configuration.schema.json">../../schemas/v1/bench-configuration.schema.json</file>
+    <file alias="case.schema.json">../../schemas/v1/case.schema.json</file>
+    <file alias="common.schema.json">../../schemas/v1/common.schema.json</file>
+    <file alias="court.schema.json">../../schemas/v1/court.schema.json</file>
+    <file alias="filing-catalog.schema.json">../../schemas/v1/filing-catalog.schema.json</file>
+    <file alias="form.schema.json">../../schemas/v1/form.schema.json</file>
+    <file alias="judge-profile.schema.json">../../schemas/v1/judge-profile.schema.json</file>
+    <file alias="manifest.schema.json">../../schemas/v1/manifest.schema.json</file>
+    <file alias="procedure-profile.schema.json">../../schemas/v1/procedure-profile.schema.json</file>
+    <file alias="realism-review.schema.json">../../schemas/v1/realism-review.schema.json</file>
+    <file alias="record.schema.json">../../schemas/v1/record.schema.json</file>
+    <file alias="workflow.schema.json">../../schemas/v1/workflow.schema.json</file>
+  </qresource>
+</RCC>

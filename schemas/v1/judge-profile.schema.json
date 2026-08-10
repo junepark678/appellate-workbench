@@ -6,7 +6,8 @@
   "additionalProperties": false,
   "required": [
     "schema_version",
-    "profile_id",
+    "resource_kind",
+    "resource_id",
     "display_name",
     "profile_class",
     "compatibility",
@@ -15,7 +16,8 @@
   ],
   "properties": {
     "schema_version": { "const": 1 },
-    "profile_id": { "$ref": "#/$defs/namespaced_id" },
+    "resource_kind": { "const": "judge_profile" },
+    "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
     "display_name": { "type": "string", "minLength": 1, "maxLength": 128 },
     "profile_class": { "const": "fictional_composite" },
     "compatibility": {
@@ -35,7 +37,7 @@
           "minItems": 1,
           "maxItems": 64,
           "uniqueItems": true,
-          "items": { "$ref": "#/$defs/namespaced_id" }
+          "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
         }
       }
     },
@@ -54,14 +56,14 @@
         "issue_focus"
       ],
       "properties": {
-        "directness": { "$ref": "#/$defs/unit_interval" },
-        "formality": { "$ref": "#/$defs/unit_interval" },
-        "question_length": { "$ref": "#/$defs/unit_interval" },
-        "interruption_frequency": { "$ref": "#/$defs/unit_interval" },
-        "follow_up_depth": { "$ref": "#/$defs/unit_interval" },
-        "hypothetical_frequency": { "$ref": "#/$defs/unit_interval" },
-        "concession_recall": { "$ref": "#/$defs/unit_interval" },
-        "time_strictness": { "$ref": "#/$defs/unit_interval" },
+        "directness": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "formality": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "question_length": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "interruption_frequency": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "follow_up_depth": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "hypothetical_frequency": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "concession_recall": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "time_strictness": { "$ref": "common.schema.json#/$defs/unit_interval" },
         "issue_focus": {
           "type": "array",
           "minItems": 1,
@@ -71,8 +73,8 @@
             "additionalProperties": false,
             "required": ["topic_id", "weight"],
             "properties": {
-              "topic_id": { "$ref": "#/$defs/namespaced_id" },
-              "weight": { "$ref": "#/$defs/unit_interval" }
+              "topic_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+              "weight": { "$ref": "common.schema.json#/$defs/unit_interval" }
             }
           }
         }
@@ -85,22 +87,9 @@
       "properties": {
         "register": { "enum": ["plain", "formal", "technical"] },
         "cadence": { "enum": ["clipped", "measured", "expansive"] },
-        "verbosity": { "$ref": "#/$defs/unit_interval" },
-        "sentence_complexity": { "$ref": "#/$defs/unit_interval" }
+        "verbosity": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "sentence_complexity": { "$ref": "common.schema.json#/$defs/unit_interval" }
       }
-    }
-  },
-  "$defs": {
-    "namespaced_id": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 128,
-      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$"
-    },
-    "unit_interval": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1
     }
   }
 }

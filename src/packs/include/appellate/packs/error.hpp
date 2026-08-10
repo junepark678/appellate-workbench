@@ -17,6 +17,10 @@ enum class ErrorCode {
     ResourceTooLarge,
     DigestMismatch,
     InvalidJudgeProfile,
+    DuplicateJsonKey,
+    SchemaViolation,
+    UnsupportedResourceKind,
+    CrossReferenceFailure,
 };
 
 struct Error final {

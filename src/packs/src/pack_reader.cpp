@@ -1,4 +1,5 @@
 #include "appellate/packs/pack_reader.hpp"
+#include "appellate/packs/schema_validator.hpp"
 
 #include <QByteArrayView>
 #include <QCryptographicHash>
@@ -6,6 +7,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QHash>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -40,6 +42,11 @@ struct ContentDescriptor final {
     int schema_version{};
     QString path;
     QString digest;
+};
+
+struct KindDefinition final {
+    model::ResourceKind kind;
+    QString schema_file;
 };
 
 [[nodiscard]] auto fail(ErrorCode code, QString message) -> std::unexpected<Error> {
@@ -84,17 +91,6 @@ struct ContentDescriptor final {
                     QStringLiteral("File exceeds its size limit: %1").arg(path));
     }
     return bytes;
-}
-
-[[nodiscard]] auto parseObject(const QByteArray& bytes, const QString& name)
-    -> std::expected<QJsonObject, Error> {
-    QJsonParseError parse_error;
-    const auto document = QJsonDocument::fromJson(bytes, &parse_error);
-    if (parse_error.error != QJsonParseError::NoError || !document.isObject()) {
-        return fail(ErrorCode::InvalidJson,
-                    QStringLiteral("Invalid JSON in %1: %2").arg(name, parse_error.errorString()));
-    }
-    return document.object();
 }
 
 [[nodiscard]] bool isExactInteger(const QJsonValue& value, qint64 minimum, qint64 maximum) {
@@ -202,23 +198,68 @@ struct ContentDescriptor final {
     return std::nullopt;
 }
 
-[[nodiscard]] auto parseJudge(const QByteArray& bytes, const QString& name)
-    -> std::expected<model::JudgeProfile, Error> {
-    const auto parsed = parseObject(bytes, name);
-    if (!parsed) {
-        return std::unexpected(parsed.error());
+[[nodiscard]] auto kindDefinition(const QString& kind) -> std::optional<KindDefinition> {
+    if (kind == QStringLiteral("argument_config")) {
+        return KindDefinition{model::ResourceKind::ArgumentConfig,
+                              QStringLiteral("argument-config.schema.json")};
     }
-    const auto object = *parsed;
-    if (!hasExactKeys(object, {"schema_version", "profile_id", "display_name", "profile_class",
-                               "compatibility", "interaction", "voice"}) ||
+    if (kind == QStringLiteral("authority_set")) {
+        return KindDefinition{model::ResourceKind::AuthoritySet,
+                              QStringLiteral("authority-set.schema.json")};
+    }
+    if (kind == QStringLiteral("bench_configuration")) {
+        return KindDefinition{model::ResourceKind::BenchConfiguration,
+                              QStringLiteral("bench-configuration.schema.json")};
+    }
+    if (kind == QStringLiteral("case")) {
+        return KindDefinition{model::ResourceKind::Case, QStringLiteral("case.schema.json")};
+    }
+    if (kind == QStringLiteral("court")) {
+        return KindDefinition{model::ResourceKind::Court, QStringLiteral("court.schema.json")};
+    }
+    if (kind == QStringLiteral("filing_catalog")) {
+        return KindDefinition{model::ResourceKind::FilingCatalog,
+                              QStringLiteral("filing-catalog.schema.json")};
+    }
+    if (kind == QStringLiteral("form")) {
+        return KindDefinition{model::ResourceKind::Form, QStringLiteral("form.schema.json")};
+    }
+    if (kind == QStringLiteral("judge_profile")) {
+        return KindDefinition{model::ResourceKind::JudgeProfile,
+                              QStringLiteral("judge-profile.schema.json")};
+    }
+    if (kind == QStringLiteral("procedure_profile")) {
+        return KindDefinition{model::ResourceKind::ProcedureProfile,
+                              QStringLiteral("procedure-profile.schema.json")};
+    }
+    if (kind == QStringLiteral("realism_review")) {
+        return KindDefinition{model::ResourceKind::RealismReview,
+                              QStringLiteral("realism-review.schema.json")};
+    }
+    if (kind == QStringLiteral("record")) {
+        return KindDefinition{model::ResourceKind::Record, QStringLiteral("record.schema.json")};
+    }
+    if (kind == QStringLiteral("workflow")) {
+        return KindDefinition{model::ResourceKind::Workflow,
+                              QStringLiteral("workflow.schema.json")};
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto parseJudge(const QJsonObject& object, const QString& name)
+    -> std::expected<model::JudgeProfile, Error> {
+    if (!hasExactKeys(object, {"schema_version", "resource_kind", "resource_id", "display_name",
+                               "profile_class", "compatibility", "interaction", "voice"}) ||
         !isExactInteger(object.value(QStringLiteral("schema_version")), supported_schema_version,
-                        supported_schema_version)) {
+                        supported_schema_version) ||
+        object.value(QStringLiteral("resource_kind")).toString() !=
+            QStringLiteral("judge_profile")) {
         return fail(
             ErrorCode::InvalidJudgeProfile,
             QStringLiteral("Unknown, missing, or invalid judge profile fields in %1").arg(name));
     }
 
-    const auto id = object.value(QStringLiteral("profile_id")).toString();
+    const auto id = object.value(QStringLiteral("resource_id")).toString();
     const auto display_name = object.value(QStringLiteral("display_name")).toString();
     if (!isNamespacedId(id) || !isDisplayName(display_name) ||
         object.value(QStringLiteral("profile_class")).toString() !=
@@ -470,6 +511,699 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     return QString::fromLatin1(hash.result().toHex()).toStdString();
 }
 
+[[nodiscard]] auto crossReferenceFailure(const ValidatedResource& resource, QString field,
+                                         QString detail) -> std::unexpected<Error> {
+    return fail(ErrorCode::CrossReferenceFailure,
+                QStringLiteral("Resource %1 has invalid reference %2: %3")
+                    .arg(QString::fromStdString(resource.descriptor.id), std::move(field),
+                         std::move(detail)));
+}
+
+[[nodiscard]] QSet<QString> stringSet(const QJsonArray& values) {
+    QSet<QString> result;
+    for (const auto& value : values) {
+        result.insert(value.toString());
+    }
+    return result;
+}
+
+[[nodiscard]] auto validateResourceGraph(const std::vector<ValidatedResource>& resources)
+    -> std::expected<void, Error> {
+    QHash<QString, const ValidatedResource*> by_id;
+    for (const auto& resource : resources) {
+        const auto id = QString::fromStdString(resource.descriptor.id);
+        if (by_id.contains(id)) {
+            return crossReferenceFailure(resource, QStringLiteral("resource_id"),
+                                         QStringLiteral("resource identifiers must be unique"));
+        }
+        by_id.insert(id, &resource);
+    }
+
+    const auto requireKind =
+        [&by_id](const ValidatedResource& owner, const QString& field, const QString& id,
+                 model::ResourceKind expected) -> std::expected<const ValidatedResource*, Error> {
+        const auto found = by_id.constFind(id);
+        if (found == by_id.constEnd()) {
+            return crossReferenceFailure(owner, field, QStringLiteral("unresolved id %1").arg(id));
+        }
+        if ((*found)->descriptor.kind != expected) {
+            return crossReferenceFailure(
+                owner, field, QStringLiteral("%1 resolves to the wrong resource kind").arg(id));
+        }
+        return *found;
+    };
+
+    QSet<QString> authority_ids;
+    QHash<QString, QJsonObject> authorities_by_id;
+    QSet<QString> filing_ids;
+    QHash<QString, QSet<QString>> catalog_filings;
+    QHash<QString, QSet<QString>> filing_required_fields;
+    QHash<QString, QSet<QString>> filing_authorized_roles;
+    QHash<QString, QSet<QString>> form_fields_by_filing;
+    QHash<QString, QSet<QString>> workflow_stages;
+    QHash<QString, QSet<QString>> workflow_operations;
+    QHash<QString, QSet<QString>> record_entries;
+    QHash<QString, QSet<QString>> case_issues;
+    QHash<QString, QSet<QString>> catalog_roles;
+
+    for (const auto& resource : resources) {
+        const auto id = QString::fromStdString(resource.descriptor.id);
+        const auto& document = resource.document;
+        switch (resource.descriptor.kind) {
+        case model::ResourceKind::AuthoritySet:
+            for (const auto& value : document.value(QStringLiteral("authorities")).toArray()) {
+                const auto authority_id =
+                    value.toObject().value(QStringLiteral("authority_id")).toString();
+                if (authority_ids.contains(authority_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("authorities"),
+                        QStringLiteral("duplicate authority id %1").arg(authority_id));
+                }
+                authority_ids.insert(authority_id);
+                authorities_by_id.insert(authority_id, value.toObject());
+            }
+            break;
+        case model::ResourceKind::FilingCatalog:
+            for (const auto& value : document.value(QStringLiteral("filings")).toArray()) {
+                const auto filing = value.toObject();
+                const auto filing_id = filing.value(QStringLiteral("filing_id")).toString();
+                if (filing_ids.contains(filing_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("filings"),
+                        QStringLiteral("duplicate filing id %1").arg(filing_id));
+                }
+                filing_ids.insert(filing_id);
+                catalog_filings[id].insert(filing_id);
+                filing_required_fields.insert(
+                    filing_id,
+                    stringSet(filing.value(QStringLiteral("required_field_ids")).toArray()));
+                filing_authorized_roles.insert(
+                    filing_id, stringSet(filing.value(QStringLiteral("actor_role_ids")).toArray()));
+            }
+            break;
+        case model::ResourceKind::Form: {
+            const auto filing_id = document.value(QStringLiteral("filing_id")).toString();
+            auto& fields = form_fields_by_filing[filing_id];
+            for (const auto& value : document.value(QStringLiteral("fields")).toArray()) {
+                const auto field = value.toObject();
+                const auto field_id = field.value(QStringLiteral("field_id")).toString();
+                if (fields.contains(field_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("fields"),
+                        QStringLiteral("duplicate field id %1 for filing %2")
+                            .arg(field_id, filing_id));
+                }
+                fields.insert(field_id);
+                const auto is_choice = field.value(QStringLiteral("value_type")).toString() ==
+                                       QStringLiteral("choice");
+                if (is_choice != field.contains(QStringLiteral("choices"))) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("fields/choices"),
+                        QStringLiteral("choices are required only for choice fields"));
+                }
+            }
+            break;
+        }
+        case model::ResourceKind::Workflow: {
+            const auto stages = stringSet(document.value(QStringLiteral("stages")).toArray());
+            if (!stages.contains(document.value(QStringLiteral("initial_stage_id")).toString())) {
+                return crossReferenceFailure(resource, QStringLiteral("initial_stage_id"),
+                                             QStringLiteral("stage is not declared"));
+            }
+            QSet<QString> operations;
+            QHash<QString, QJsonObject> operation_documents;
+            QHash<QString, qsizetype> rejection_counts;
+            for (const auto& stage : stages) {
+                rejection_counts.insert(stage, 0);
+            }
+            for (const auto& value : document.value(QStringLiteral("operations")).toArray()) {
+                const auto operation = value.toObject();
+                const auto operation_id =
+                    operation.value(QStringLiteral("operation_id")).toString();
+                if (operations.contains(operation_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations"),
+                        QStringLiteral("duplicate operation id %1").arg(operation_id));
+                }
+                operations.insert(operation_id);
+                operation_documents.insert(operation_id, operation);
+                if (!stages.contains(operation.value(QStringLiteral("stage_id")).toString())) {
+                    return crossReferenceFailure(resource, QStringLiteral("operations/stage_id"),
+                                                 QStringLiteral("stage is not declared"));
+                }
+                if (operation.contains(QStringLiteral("next_stage_id")) &&
+                    !stages.contains(operation.value(QStringLiteral("next_stage_id")).toString())) {
+                    return crossReferenceFailure(resource,
+                                                 QStringLiteral("operations/next_stage_id"),
+                                                 QStringLiteral("stage is not declared"));
+                }
+                const auto has_days = operation.contains(QStringLiteral("deadline_days"));
+                const auto has_counting = operation.contains(QStringLiteral("deadline_counting"));
+                if (has_days != has_counting) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/deadline"),
+                        QStringLiteral("deadline_days and deadline_counting must appear together"));
+                }
+                const auto opcode = operation.value(QStringLiteral("opcode")).toString();
+                if (opcode == QStringLiteral("calculate_deadline") && !has_days) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/deadline_days"),
+                        QStringLiteral("calculate_deadline requires a complete deadline rule"));
+                }
+                if (opcode != QStringLiteral("calculate_deadline") &&
+                    opcode != QStringLiteral("enter_order") && has_days) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/deadline_days"),
+                        QStringLiteral("this opcode cannot carry a deadline rule"));
+                }
+                if (opcode == QStringLiteral("advance_stage") &&
+                    !operation.contains(QStringLiteral("next_stage_id"))) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/next_stage_id"),
+                        QStringLiteral("advance_stage requires a next stage"));
+                }
+                static const QSet<QString> court_opcodes{
+                    QStringLiteral("enter_order"),       QStringLiteral("set_sealed"),
+                    QStringLiteral("schedule_argument"), QStringLiteral("issue_judgment"),
+                    QStringLiteral("issue_mandate"),
+                };
+                if (court_opcodes.contains(opcode) &&
+                    operation.value(QStringLiteral("authorized_role_ids")).toArray().isEmpty()) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/authorized_role_ids"),
+                        QStringLiteral("court operations require an authorized role"));
+                }
+                if (opcode == QStringLiteral("reject_filing")) {
+                    ++rejection_counts[operation.value(QStringLiteral("stage_id")).toString()];
+                }
+            }
+            for (auto count = rejection_counts.constBegin(); count != rejection_counts.constEnd();
+                 ++count) {
+                if (count.value() != 1) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations"),
+                        QStringLiteral("stage %1 must have exactly one reject_filing operation")
+                            .arg(count.key()));
+                }
+            }
+
+            const auto operationForId = [&operation_documents](const QString& operation_id,
+                                                               const QString& opcode,
+                                                               const QString& stage_id) {
+                const auto found = operation_documents.constFind(operation_id);
+                return found != operation_documents.constEnd() &&
+                       found->value(QStringLiteral("opcode")).toString() == opcode &&
+                       found->value(QStringLiteral("stage_id")).toString() == stage_id;
+            };
+            QSet<QString> route_keys;
+            QSet<QString> declared_deadline_ids;
+            QSet<QString> accepted_deadline_ids;
+            for (const auto& value : document.value(QStringLiteral("filing_routes")).toArray()) {
+                const auto route = value.toObject();
+                const auto stage_id = route.value(QStringLiteral("stage_id")).toString();
+                const auto filing_type_id =
+                    route.value(QStringLiteral("filing_type_id")).toString();
+                const auto route_key = stage_id + u'|' + filing_type_id;
+                if (!stages.contains(stage_id) || route_keys.contains(route_key)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("filing_routes"),
+                        QStringLiteral(
+                            "route stage and filing type pairs must be valid and unique"));
+                }
+                route_keys.insert(route_key);
+                if (!operationForId(route.value(QStringLiteral("accept_operation_id")).toString(),
+                                    QStringLiteral("accept_filing"), stage_id) ||
+                    !operationForId(
+                        route.value(QStringLiteral("deficiency_operation_id")).toString(),
+                        QStringLiteral("issue_deficiency"), stage_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("filing_routes"),
+                        QStringLiteral("route accept and deficiency operations are incompatible"));
+                }
+                const auto validateDeadlinePlan =
+                    [&](const QJsonObject& plan) -> std::expected<void, Error> {
+                    const auto deadline_id = plan.value(QStringLiteral("deadline_id")).toString();
+                    if (declared_deadline_ids.contains(deadline_id) ||
+                        !operationForId(plan.value(QStringLiteral("operation_id")).toString(),
+                                        QStringLiteral("calculate_deadline"), stage_id)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("filing_routes/deadline"),
+                            QStringLiteral(
+                                "deadline ids must be unique and use a local calculation"));
+                    }
+                    declared_deadline_ids.insert(deadline_id);
+                    return {};
+                };
+                const auto deficiency_plan = validateDeadlinePlan(
+                    route.value(QStringLiteral("deficiency_deadline")).toObject());
+                if (!deficiency_plan) {
+                    return std::unexpected(deficiency_plan.error());
+                }
+                if (route.contains(QStringLiteral("accepted_deadline"))) {
+                    const auto accepted_plan =
+                        route.value(QStringLiteral("accepted_deadline")).toObject();
+                    const auto accepted_result = validateDeadlinePlan(accepted_plan);
+                    if (!accepted_result) {
+                        return std::unexpected(accepted_result.error());
+                    }
+                    accepted_deadline_ids.insert(
+                        accepted_plan.value(QStringLiteral("deadline_id")).toString());
+                }
+                if (route.contains(QStringLiteral("advance_operation_id")) &&
+                    !operationForId(route.value(QStringLiteral("advance_operation_id")).toString(),
+                                    QStringLiteral("advance_stage"), stage_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("filing_routes/advance_operation_id"),
+                        QStringLiteral("advance operation is incompatible with the route"));
+                }
+            }
+            for (const auto& value : document.value(QStringLiteral("filing_routes")).toArray()) {
+                const auto route = value.toObject();
+                if (route.contains(QStringLiteral("satisfies_deadline_id")) &&
+                    !accepted_deadline_ids.contains(
+                        route.value(QStringLiteral("satisfies_deadline_id")).toString())) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("filing_routes/satisfies_deadline_id"),
+                        QStringLiteral("satisfied deadline is not produced by this workflow"));
+                }
+            }
+            workflow_stages.insert(id, stages);
+            workflow_operations.insert(id, operations);
+            break;
+        }
+        case model::ResourceKind::Record: {
+            QSet<QString> entries;
+            QSet<int> entry_numbers;
+            for (const auto& value : document.value(QStringLiteral("docket_entries")).toArray()) {
+                const auto entry = value.toObject();
+                const auto entry_id = entry.value(QStringLiteral("entry_id")).toString();
+                const auto entry_number = entry.value(QStringLiteral("entry_number")).toInt();
+                if (entries.contains(entry_id) || entry_numbers.contains(entry_number)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("docket_entries"),
+                        QStringLiteral("entry ids and numbers must be unique"));
+                }
+                entries.insert(entry_id);
+                entry_numbers.insert(entry_number);
+            }
+            record_entries.insert(id, entries);
+            break;
+        }
+        case model::ResourceKind::Case: {
+            QSet<QString> actor_ids;
+            for (const auto& value : document.value(QStringLiteral("actors")).toArray()) {
+                const auto actor_id = value.toObject().value(QStringLiteral("actor_id")).toString();
+                if (actor_ids.contains(actor_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("actors"),
+                        QStringLiteral("duplicate actor id %1").arg(actor_id));
+                }
+                actor_ids.insert(actor_id);
+            }
+            QSet<QString> issues;
+            for (const auto& value : document.value(QStringLiteral("issues")).toArray()) {
+                const auto issue_id = value.toObject().value(QStringLiteral("issue_id")).toString();
+                if (issues.contains(issue_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("issues"),
+                        QStringLiteral("duplicate issue id %1").arg(issue_id));
+                }
+                issues.insert(issue_id);
+            }
+            case_issues.insert(id, issues);
+            break;
+        }
+        case model::ResourceKind::BenchConfiguration: {
+            QSet<QString> seats;
+            for (const auto& value : document.value(QStringLiteral("seats")).toArray()) {
+                const auto seat_id = value.toObject().value(QStringLiteral("seat_id")).toString();
+                if (seats.contains(seat_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("seats"),
+                        QStringLiteral("duplicate seat id %1").arg(seat_id));
+                }
+                seats.insert(seat_id);
+            }
+            if (!seats.contains(document.value(QStringLiteral("presiding_seat_id")).toString())) {
+                return crossReferenceFailure(resource, QStringLiteral("presiding_seat_id"),
+                                             QStringLiteral("seat is not declared"));
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    // Procedure profiles establish the contextual role vocabulary for catalogs
+    // and the workflow used by each case.
+    for (const auto& resource : resources) {
+        if (resource.descriptor.kind != model::ResourceKind::ProcedureProfile) {
+            continue;
+        }
+        const auto& document = resource.document;
+        const auto court = requireKind(resource, QStringLiteral("court_id"),
+                                       document.value(QStringLiteral("court_id")).toString(),
+                                       model::ResourceKind::Court);
+        if (!court) {
+            return std::unexpected(court.error());
+        }
+        const auto catalog_id = document.value(QStringLiteral("filing_catalog_id")).toString();
+        const auto catalog = requireKind(resource, QStringLiteral("filing_catalog_id"), catalog_id,
+                                         model::ResourceKind::FilingCatalog);
+        if (!catalog) {
+            return std::unexpected(catalog.error());
+        }
+        const auto workflow = requireKind(resource, QStringLiteral("workflow_id"),
+                                          document.value(QStringLiteral("workflow_id")).toString(),
+                                          model::ResourceKind::Workflow);
+        if (!workflow) {
+            return std::unexpected(workflow.error());
+        }
+        for (const auto& value : document.value(QStringLiteral("authority_set_ids")).toArray()) {
+            const auto authority_set =
+                requireKind(resource, QStringLiteral("authority_set_ids"), value.toString(),
+                            model::ResourceKind::AuthoritySet);
+            if (!authority_set) {
+                return std::unexpected(authority_set.error());
+            }
+        }
+        const auto procedure_roles =
+            stringSet(document.value(QStringLiteral("actor_roles")).toArray());
+        catalog_roles[catalog_id].unite(procedure_roles);
+        const auto& workflow_document = (*workflow)->document;
+        if (stringSet(workflow_document.value(QStringLiteral("calendar"))
+                          .toObject()
+                          .value(QStringLiteral("holidays"))
+                          .toArray()) !=
+            stringSet((*court)->document.value(QStringLiteral("holidays")).toArray())) {
+            return crossReferenceFailure(
+                resource, QStringLiteral("workflow_id/calendar"),
+                QStringLiteral("workflow calendar must match its court calendar"));
+        }
+        const auto rolesAreDeclared = [&procedure_roles](const QJsonArray& values) {
+            return std::ranges::all_of(values, [&procedure_roles](const QJsonValue& value) {
+                return procedure_roles.contains(value.toString());
+            });
+        };
+        for (const auto& value : workflow_document.value(QStringLiteral("operations")).toArray()) {
+            if (!rolesAreDeclared(
+                    value.toObject().value(QStringLiteral("authorized_role_ids")).toArray())) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("workflow_id/operations/authorized_role_ids"),
+                    QStringLiteral("workflow operation role is not declared by the procedure"));
+            }
+        }
+        QSet<QString> routed_filing_types;
+        for (const auto& value :
+             workflow_document.value(QStringLiteral("filing_routes")).toArray()) {
+            const auto route = value.toObject();
+            const auto filing_type_id = route.value(QStringLiteral("filing_type_id")).toString();
+            routed_filing_types.insert(filing_type_id);
+            if (!catalog_filings.value(catalog_id).contains(filing_type_id) ||
+                !rolesAreDeclared(route.value(QStringLiteral("authorized_role_ids")).toArray()) ||
+                !rolesAreDeclared(
+                    route.value(QStringLiteral("required_service_role_ids")).toArray()) ||
+                stringSet(route.value(QStringLiteral("authorized_role_ids")).toArray()) !=
+                    filing_authorized_roles.value(filing_type_id) ||
+                stringSet(route.value(QStringLiteral("required_field_ids")).toArray()) !=
+                    filing_required_fields.value(filing_type_id)) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("workflow_id/filing_routes"),
+                    QStringLiteral("workflow route conflicts with its procedure filing catalog"));
+            }
+        }
+        if (routed_filing_types != catalog_filings.value(catalog_id)) {
+            return crossReferenceFailure(
+                resource, QStringLiteral("workflow_id/filing_routes"),
+                QStringLiteral("every catalog filing requires a workflow route"));
+        }
+    }
+
+    for (const auto& resource : resources) {
+        const auto& document = resource.document;
+        switch (resource.descriptor.kind) {
+        case model::ResourceKind::Court:
+            for (const auto& value :
+                 document.value(QStringLiteral("authority_set_ids")).toArray()) {
+                const auto authority_set =
+                    requireKind(resource, QStringLiteral("authority_set_ids"), value.toString(),
+                                model::ResourceKind::AuthoritySet);
+                if (!authority_set) {
+                    return std::unexpected(authority_set.error());
+                }
+            }
+            break;
+        case model::ResourceKind::FilingCatalog:
+            for (const auto& value : document.value(QStringLiteral("filings")).toArray()) {
+                const auto filing = value.toObject();
+                const auto filing_id = filing.value(QStringLiteral("filing_id")).toString();
+                const auto authority_id = filing.value(QStringLiteral("authority_id")).toString();
+                if (!authority_ids.contains(authority_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("filings/authority_id"),
+                        QStringLiteral("unresolved authority %1").arg(authority_id));
+                }
+                const auto roles =
+                    catalog_roles.value(QString::fromStdString(resource.descriptor.id));
+                if (!roles.isEmpty()) {
+                    for (const auto& role :
+                         filing.value(QStringLiteral("actor_role_ids")).toArray()) {
+                        if (!roles.contains(role.toString())) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("filings/actor_role_ids"),
+                                QStringLiteral("role %1 is not declared by the procedure")
+                                    .arg(role.toString()));
+                        }
+                    }
+                }
+                const auto available_fields = form_fields_by_filing.value(filing_id);
+                for (const auto& field :
+                     filing.value(QStringLiteral("required_field_ids")).toArray()) {
+                    if (!available_fields.contains(field.toString())) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("filings/required_field_ids"),
+                            QStringLiteral("field %1 has no form declaration")
+                                .arg(field.toString()));
+                    }
+                }
+            }
+            break;
+        case model::ResourceKind::Form: {
+            const auto filing_id = document.value(QStringLiteral("filing_id")).toString();
+            if (!filing_ids.contains(filing_id)) {
+                return crossReferenceFailure(resource, QStringLiteral("filing_id"),
+                                             QStringLiteral("unresolved filing %1").arg(filing_id));
+            }
+            break;
+        }
+        case model::ResourceKind::Workflow:
+            for (const auto& value : document.value(QStringLiteral("operations")).toArray()) {
+                const auto authority =
+                    value.toObject().value(QStringLiteral("authority")).toObject();
+                const auto authorityMatchesCanonical =
+                    [&authorities_by_id](const QJsonObject& reference) {
+                        const auto found = authorities_by_id.constFind(
+                            reference.value(QStringLiteral("authority_id")).toString());
+                        if (found == authorities_by_id.constEnd()) {
+                            return false;
+                        }
+                        for (const auto& field :
+                             {QStringLiteral("citation"), QStringLiteral("source_version"),
+                              QStringLiteral("proposition")}) {
+                            if (reference.value(field) != found->value(field)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    };
+                const auto primary = authority.value(QStringLiteral("primary")).toObject();
+                if (!authorityMatchesCanonical(primary)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/authority/primary"),
+                        QStringLiteral(
+                            "authority is unresolved or conflicts with its authority set"));
+                }
+                QSet<QString> basis_ids{primary.value(QStringLiteral("authority_id")).toString()};
+                for (const auto& supporting :
+                     authority.value(QStringLiteral("supporting")).toArray()) {
+                    const auto supporting_reference = supporting.toObject();
+                    const auto supporting_id =
+                        supporting_reference.value(QStringLiteral("authority_id")).toString();
+                    if (basis_ids.contains(supporting_id) ||
+                        !authorityMatchesCanonical(supporting_reference)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("operations/authority/supporting"),
+                            QStringLiteral("supporting authorities must be unique canonical refs"));
+                    }
+                    basis_ids.insert(supporting_id);
+                }
+            }
+            break;
+        case model::ResourceKind::Case: {
+            const auto procedure =
+                requireKind(resource, QStringLiteral("procedure_profile_id"),
+                            document.value(QStringLiteral("procedure_profile_id")).toString(),
+                            model::ResourceKind::ProcedureProfile);
+            if (!procedure) {
+                return std::unexpected(procedure.error());
+            }
+            const auto record_id = document.value(QStringLiteral("record_id")).toString();
+            const auto record = requireKind(resource, QStringLiteral("record_id"), record_id,
+                                            model::ResourceKind::Record);
+            if (!record) {
+                return std::unexpected(record.error());
+            }
+            const auto roles =
+                stringSet((*procedure)->document.value(QStringLiteral("actor_roles")).toArray());
+            for (const auto& value : document.value(QStringLiteral("actors")).toArray()) {
+                const auto role_id = value.toObject().value(QStringLiteral("role_id")).toString();
+                if (!roles.contains(role_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("actors/role_id"),
+                        QStringLiteral("role %1 is not declared by the procedure").arg(role_id));
+                }
+            }
+            for (const auto& value : document.value(QStringLiteral("issues")).toArray()) {
+                const auto issue = value.toObject();
+                for (const auto& authority :
+                     issue.value(QStringLiteral("authority_ids")).toArray()) {
+                    if (!authority_ids.contains(authority.toString())) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("issues/authority_ids"),
+                            QStringLiteral("unresolved authority %1").arg(authority.toString()));
+                    }
+                }
+                for (const auto& anchor :
+                     issue.value(QStringLiteral("record_anchor_ids")).toArray()) {
+                    if (!record_entries.value(record_id).contains(anchor.toString())) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("issues/record_anchor_ids"),
+                            QStringLiteral("anchor %1 is not in the case record")
+                                .arg(anchor.toString()));
+                    }
+                }
+            }
+            const auto workflow_id =
+                (*procedure)->document.value(QStringLiteral("workflow_id")).toString();
+            const auto disposition =
+                document.value(QStringLiteral("authored_disposition_id")).toString();
+            const auto case_workflow =
+                requireKind(resource, QStringLiteral("authored_disposition_id"), workflow_id,
+                            model::ResourceKind::Workflow);
+            if (!case_workflow) {
+                return std::unexpected(case_workflow.error());
+            }
+            const auto operation_values =
+                (*case_workflow)->document.value(QStringLiteral("operations")).toArray();
+            const auto authored_operation =
+                std::ranges::find_if(operation_values, [&disposition](const QJsonValue& value) {
+                    const auto operation = value.toObject();
+                    return operation.value(QStringLiteral("operation_id")).toString() ==
+                               disposition &&
+                           operation.value(QStringLiteral("opcode")).toString() ==
+                               QStringLiteral("issue_judgment");
+                });
+            if (!workflow_operations.value(workflow_id).contains(disposition) ||
+                authored_operation == operation_values.end()) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("authored_disposition_id"),
+                    QStringLiteral("operation is not a judgment in the case workflow"));
+            }
+            break;
+        }
+        case model::ResourceKind::ArgumentConfig: {
+            const auto case_id = document.value(QStringLiteral("case_id")).toString();
+            const auto case_resource = requireKind(resource, QStringLiteral("case_id"), case_id,
+                                                   model::ResourceKind::Case);
+            if (!case_resource) {
+                return std::unexpected(case_resource.error());
+            }
+            const auto bench =
+                requireKind(resource, QStringLiteral("bench_configuration_id"),
+                            document.value(QStringLiteral("bench_configuration_id")).toString(),
+                            model::ResourceKind::BenchConfiguration);
+            if (!bench) {
+                return std::unexpected(bench.error());
+            }
+            for (const auto& issue :
+                 document.value(QStringLiteral("permitted_issue_ids")).toArray()) {
+                if (!case_issues.value(case_id).contains(issue.toString())) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("permitted_issue_ids"),
+                        QStringLiteral("issue %1 is not in the configured case")
+                            .arg(issue.toString()));
+                }
+            }
+            if (document.value(QStringLiteral("rebuttal_seconds")).toInt() >
+                document.value(QStringLiteral("total_seconds")).toInt()) {
+                return crossReferenceFailure(resource, QStringLiteral("rebuttal_seconds"),
+                                             QStringLiteral("cannot exceed total_seconds"));
+            }
+            break;
+        }
+        case model::ResourceKind::BenchConfiguration: {
+            const auto court = requireKind(resource, QStringLiteral("court_id"),
+                                           document.value(QStringLiteral("court_id")).toString(),
+                                           model::ResourceKind::Court);
+            if (!court) {
+                return std::unexpected(court.error());
+            }
+            const auto court_role =
+                (*court)->document.value(QStringLiteral("court_role")).toString();
+            const auto jurisdiction =
+                (*court)->document.value(QStringLiteral("jurisdiction_id")).toString();
+            for (const auto& value : document.value(QStringLiteral("seats")).toArray()) {
+                const auto seat = value.toObject();
+                if (seat.value(QStringLiteral("court_role")).toString() != court_role) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("seats/court_role"),
+                        QStringLiteral("seat role does not match the court"));
+                }
+                const auto profile =
+                    requireKind(resource, QStringLiteral("seats/profile_id"),
+                                seat.value(QStringLiteral("profile_id")).toString(),
+                                model::ResourceKind::JudgeProfile);
+                if (!profile) {
+                    return std::unexpected(profile.error());
+                }
+                const auto compatibility =
+                    (*profile)->document.value(QStringLiteral("compatibility")).toObject();
+                if (!stringSet(compatibility.value(QStringLiteral("court_roles")).toArray())
+                         .contains(court_role) ||
+                    !stringSet(compatibility.value(QStringLiteral("jurisdiction_ids")).toArray())
+                         .contains(jurisdiction)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("seats/profile_id"),
+                        QStringLiteral("judge profile is incompatible with the court"));
+                }
+            }
+            break;
+        }
+        case model::ResourceKind::RealismReview: {
+            const auto case_resource = requireKind(
+                resource, QStringLiteral("case_id"),
+                document.value(QStringLiteral("case_id")).toString(), model::ResourceKind::Case);
+            if (!case_resource) {
+                return std::unexpected(case_resource.error());
+            }
+            if (document.value(QStringLiteral("review_state")).toString() ==
+                    QStringLiteral("independently_reviewed") &&
+                (!document.contains(QStringLiteral("reviewed_on")) ||
+                 !document.contains(QStringLiteral("reviewer_reference")))) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("review_state"),
+                    QStringLiteral("independent review requires date and reviewer reference"));
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    return {};
+}
+
 } // namespace
 
 std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& directory) {
@@ -479,12 +1213,16 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
                     QStringLiteral("Pack root must be a real directory: %1").arg(directory));
     }
     const QDir root(root_info.absoluteFilePath());
+    const auto schema_validator = SchemaValidator::fromBundledSchemas();
+    if (!schema_validator) {
+        return std::unexpected(schema_validator.error());
+    }
     const auto manifest_path = root.filePath(QStringLiteral("manifest.json"));
     const auto manifest_bytes = readFile(manifest_path, maximum_manifest_bytes);
     if (!manifest_bytes) {
         return std::unexpected(manifest_bytes.error());
     }
-    const auto parsed = parseObject(*manifest_bytes, manifest_path);
+    const auto parsed = SchemaValidator::parseObject(*manifest_bytes, manifest_path);
     if (!parsed) {
         return std::unexpected(parsed.error());
     }
@@ -576,13 +1314,20 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         const auto digest = object.value(QStringLiteral("sha256")).toString();
         const auto content_schema = object.value(QStringLiteral("schema_version"));
         if (!hasExactKeys(object, {"id", "kind", "schema_version", "path", "sha256"}) ||
-            !isNamespacedId(id) || kind != QStringLiteral("judge_profile") ||
-            !isExactInteger(content_schema, supported_schema_version, supported_schema_version) ||
-            !isSafeRelativePath(path) || path == QStringLiteral("manifest.json") ||
-            !isSha256(digest)) {
+            !isNamespacedId(id) || !object.value(QStringLiteral("kind")).isString() ||
+            !content_schema.isDouble() || !isSafeRelativePath(path) ||
+            path == QStringLiteral("manifest.json") || !isSha256(digest)) {
             const auto code =
                 isSafeRelativePath(path) ? ErrorCode::InvalidManifest : ErrorCode::UnsafePath;
             return fail(code, QStringLiteral("Invalid content entry %1").arg(id));
+        }
+        if (!kindDefinition(kind)) {
+            return fail(ErrorCode::UnsupportedResourceKind,
+                        QStringLiteral("Unsupported resource kind %1").arg(kind));
+        }
+        if (!isExactInteger(content_schema, supported_schema_version, supported_schema_version)) {
+            return fail(ErrorCode::UnsupportedSchema,
+                        QStringLiteral("Unsupported resource schema version for %1").arg(id));
         }
         if (content_ids.contains(id)) {
             return fail(ErrorCode::DuplicateContentId,
@@ -598,12 +1343,24 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         contents.push_back(ContentDescriptor{id, kind, supported_schema_version, path, digest});
     }
 
+    const auto manifest_schema =
+        schema_validator->validate(QStringLiteral("manifest.schema.json"), manifest);
+    if (!manifest_schema) {
+        auto error = manifest_schema.error();
+        if (error.code == ErrorCode::SchemaViolation) {
+            error.code = ErrorCode::InvalidManifest;
+        }
+        return std::unexpected(std::move(error));
+    }
+
     const auto file_set_result = validateDeclaredFileSet(root, declared_files);
     if (!file_set_result) {
         return std::unexpected(file_set_result.error());
     }
 
     std::vector<model::JudgeProfile> judges;
+    std::vector<ValidatedResource> resources;
+    resources.reserve(contents.size());
     QSet<QString> payload_ids;
     for (const auto& content : contents) {
         const auto absolute_path = validateRegularPath(root, content.path);
@@ -620,24 +1377,60 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
             return fail(ErrorCode::DigestMismatch,
                         QStringLiteral("Digest mismatch for %1").arg(content.path));
         }
-        const auto judge = parseJudge(*bytes, content.path);
-        if (!judge) {
-            return std::unexpected(judge.error());
+        const auto definition = kindDefinition(content.kind);
+        if (!definition) {
+            return fail(ErrorCode::UnsupportedResourceKind,
+                        QStringLiteral("Unsupported resource kind %1").arg(content.kind));
         }
-        const auto payload_id = QString::fromStdString(judge->id);
+        const auto object = SchemaValidator::parseObject(*bytes, content.path);
+        if (!object) {
+            return std::unexpected(object.error());
+        }
+        const auto schema_result = schema_validator->validate(definition->schema_file, *object);
+        if (!schema_result) {
+            auto error = schema_result.error();
+            if (definition->kind == model::ResourceKind::JudgeProfile &&
+                error.code == ErrorCode::SchemaViolation) {
+                error.code = ErrorCode::InvalidJudgeProfile;
+            }
+            return std::unexpected(std::move(error));
+        }
+        const auto payload_id = object->value(QStringLiteral("resource_id")).toString();
         if (payload_ids.contains(payload_id)) {
             return fail(ErrorCode::DuplicatePayloadId,
                         QStringLiteral("Duplicate payload id %1").arg(payload_id));
         }
         payload_ids.insert(payload_id);
-        if (payload_id != content.id) {
-            return fail(ErrorCode::InvalidJudgeProfile,
-                        QStringLiteral("Manifest id %1 does not match payload id %2")
-                            .arg(content.id, payload_id));
+        if (payload_id != content.id ||
+            object->value(QStringLiteral("resource_kind")).toString() != content.kind ||
+            !isExactInteger(object->value(QStringLiteral("schema_version")), content.schema_version,
+                            content.schema_version)) {
+            return fail(ErrorCode::SchemaViolation,
+                        QStringLiteral("Descriptor and payload identity disagree for %1")
+                            .arg(content.path));
         }
-        judges.push_back(*judge);
+        resources.push_back(ValidatedResource{
+            model::DeclarativeResource{definition->kind, content.id.toStdString(),
+                                       static_cast<std::uint32_t>(content.schema_version),
+                                       content.path.toStdString(), content.digest.toStdString()},
+            *object,
+        });
+        if (definition->kind == model::ResourceKind::JudgeProfile) {
+            const auto judge = parseJudge(*object, content.path);
+            if (!judge) {
+                return std::unexpected(judge.error());
+            }
+            judges.push_back(*judge);
+        }
     }
     std::ranges::sort(judges, {}, &model::JudgeProfile::id);
+    std::ranges::sort(resources, [](const auto& left, const auto& right) {
+        return left.descriptor.id < right.descriptor.id;
+    });
+    const auto graph_result = validateResourceGraph(resources);
+    if (!graph_result) {
+        return std::unexpected(graph_result.error());
+    }
 
     return LoadedPack{
         model::PackRevision{
@@ -645,6 +1438,7 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
             canonicalDigest(pack_id, version, capabilities, dependencies, contents)},
         std::move(capabilities),
         std::move(dependencies),
+        std::move(resources),
         std::move(judges),
     };
 }

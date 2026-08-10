@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "resource_kind": "filing_catalog",
+  "resource_id": "example.catalog.fictional",
+  "filings": [
+    {
+      "filing_id": "example.filing.notice",
+      "title": "Notice of Appeal",
+      "actor_role_ids": ["example.role.appellant"],
+      "required_field_ids": ["example.field.caption"],
+      "authority_id": "example.authority.rule-one"
+    }
+  ]
+}

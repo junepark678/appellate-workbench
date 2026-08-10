@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
-  "profile_id": "example.judge.measured",
+  "resource_kind": "judge_profile",
+  "resource_id": "example.judge.measured",
   "display_name": "Measured Panelist",
   "profile_class": "fictional_composite",
   "compatibility": {

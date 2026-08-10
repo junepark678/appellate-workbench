@@ -23,7 +23,7 @@
           "entry_number": { "type": "integer", "minimum": 1 },
           "filed_on": { "type": "string", "format": "date" },
           "title": { "type": "string", "minLength": 1, "maxLength": 512 },
-          "asset_path": { "type": "string", "minLength": 1, "maxLength": 512 },
+          "asset_path": { "$ref": "common.schema.json#/$defs/portable_path" },
           "asset_sha256": { "$ref": "common.schema.json#/$defs/sha256" },
           "page_count": { "type": "integer", "minimum": 1, "maximum": 10000 },
           "sealed": { "type": "boolean" }

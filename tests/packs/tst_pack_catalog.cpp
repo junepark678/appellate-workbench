@@ -63,7 +63,8 @@ class PackCatalogTest final : public QObject {
     const auto profile_id = pack_id + QStringLiteral(".judge.measured");
     const auto profile = QJsonDocument(QJsonObject{
         {QStringLiteral("schema_version"), 1},
-        {QStringLiteral("profile_id"), profile_id},
+        {QStringLiteral("resource_kind"), QStringLiteral("judge_profile")},
+        {QStringLiteral("resource_id"), profile_id},
         {QStringLiteral("display_name"), display_name},
         {QStringLiteral("profile_class"), QStringLiteral("fictional_composite")},
         {QStringLiteral("compatibility"),

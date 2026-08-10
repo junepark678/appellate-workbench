@@ -3,12 +3,16 @@ qt_add_library(
     src/pack_archive.cpp
     src/pack_catalog.cpp
     src/pack_reader.cpp
+    src/schema_validator.cpp
+    schemas.qrc
     include/appellate/packs/error.hpp
     include/appellate/packs/pack_archive.hpp
     include/appellate/packs/pack_catalog.hpp
     include/appellate/packs/pack_reader.hpp
+    include/appellate/packs/schema_validator.hpp
 )
 add_library(appellate::packs ALIAS appellate_packs)
+set_target_properties(appellate_packs PROPERTIES AUTORCC ON)
 
 target_include_directories(
     appellate_packs

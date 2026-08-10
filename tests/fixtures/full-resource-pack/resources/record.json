@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "resource_kind": "record",
+  "resource_id": "example.record.fictional",
+  "caption": "Example Appellant v. Example Appellee",
+  "docket_entries": [
+    {
+      "entry_id": "example.record.entry-one",
+      "entry_number": 1,
+      "filed_on": "2026-01-02",
+      "title": "Final Order",
+      "asset_path": "objects/final-order.pdf",
+      "asset_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "page_count": 3,
+      "sealed": false
+    }
+  ]
+}
