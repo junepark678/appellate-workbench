@@ -9,10 +9,11 @@ sync will replicate encrypted immutable objects; it will never sync a live SQLit
 
 ## Current status
 
-This repository is a pre-MVP foundation, not a usable simulation yet. The first vertical
-slice compiles a Qt Widgets shell, validates a small data-only content pack, rejects unsafe
-paths and invalid hashes, and displays a fictional/composite bench profile. The GitHub
-milestones define the route to the MVP.
+This repository is an active pre-MVP implementation, not a complete simulation yet. It now
+contains strict declarative-pack validation and immutable installation, a deterministic legal
+workflow engine, crash-safe SQLite/event-log and content-addressed storage, a searchable native
+PDF record workspace, and exact save/replay tests. The GitHub milestones define the remaining
+route to the content-complete MVP.
 
 The content target deliberately retains the useful breadth of the earlier prototype:
 
@@ -33,7 +34,8 @@ Prerequisites:
 
 - CMake 3.30 or newer;
 - Ninja;
-- Qt 6.8 or newer with Core, Gui, Widgets, and Test;
+- Qt 6.8 or newer with Core, Gui, Pdf, PdfWidgets, Sql, Widgets, and Test;
+- libarchive;
 - a compiler toolchain recognized by CMake as supporting C++26 mode.
 
 The reference development environment is Qt 6.11.1, CMake 4.3.4, Ninja 1.13.2, and GCC
@@ -51,6 +53,20 @@ Run the shell with the included fixture pack:
 ```sh
 ./build/dev/src/app/'Appellate Workbench' tests/fixtures/minimal-pack
 ```
+
+Create, validate, export, and install a complete declarative starter pack:
+
+```sh
+./build/dev/src/cli/appellate-pack template /tmp/my-appellate-pack
+./build/dev/src/cli/appellate-pack validate /tmp/my-appellate-pack
+./build/dev/src/cli/appellate-pack export /tmp/my-appellate-pack /tmp/my-pack.awpack
+./build/dev/src/cli/appellate-pack install /tmp/my-pack.awpack /tmp/appellate-pack-catalog
+./build/dev/src/cli/appellate-pack list /tmp/appellate-pack-catalog
+```
+
+The CLI emits one compact, schema-versioned JSON object to stdout on success and stderr on
+failure. `template` never overwrites an existing destination. See the
+[pack contract and CLI reference](docs/spec/PACKS.md) before editing a generated pack.
 
 Start with [the product contract](docs/PRODUCT.md), [the architecture](docs/ARCHITECTURE.md),
 and the accepted decisions:

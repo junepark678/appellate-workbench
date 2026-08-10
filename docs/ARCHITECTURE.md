@@ -9,14 +9,16 @@ runtime and no application server.
 The dependency direction is intentionally narrow:
 
 ```text
-desktop-ui -> packs / future engine / future storage
-packs      -> model + Qt Core
-model      -> standard C++ only
+desktop-ui / cli -> packs / engine / storage
+packs            -> model + Qt Core / Sql + libarchive
+engine           -> model
+storage          -> model + Qt Core / Sql
+model            -> standard C++ only
 ```
 
-Targets are added only with a real vertical slice. Planned targets include `engine` for the
-deterministic state machine, `storage` for SQLite and the content-addressed asset store, and
-`sync` for optional encrypted object replication. There is no generic `core` junk drawer.
+Targets are added only with a real vertical slice. Optional encrypted object replication will
+eventually live in a separate `sync` target; it is not part of persistence or simulation
+correctness. There is no generic `core` junk drawer.
 
 ## Determinism and persistence
 
