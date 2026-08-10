@@ -52,5 +52,12 @@ Run the shell with the included fixture pack:
 ./build/dev/src/app/'Appellate Workbench' tests/fixtures/minimal-pack
 ```
 
-See [the product contract](docs/PRODUCT.md) and
-[the architecture](docs/ARCHITECTURE.md) before expanding the codebase.
+Start with [the product contract](docs/PRODUCT.md), [the architecture](docs/ARCHITECTURE.md),
+and the accepted decisions:
+
+- [native offline MVP](docs/adr/0001-native-offline-mvp.md);
+- [declarative pack trust boundary](docs/adr/0002-declarative-pack-trust-boundary.md);
+- [bench-profile boundary](docs/adr/0003-bench-profile-boundary.md).
+
+Content work is measured against the [frozen parity inventory](docs/PARITY_INVENTORY.md) and
+[realism release matrix](docs/REALISM_MATRIX.md).
