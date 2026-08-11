@@ -333,10 +333,11 @@ constexpr auto output_schema_version = 1;
     });
 }
 
-constexpr std::array<const char*, 14> template_members{
+constexpr std::array<const char*, 15> template_members{
     "manifest.json",
     "objects/final-order.pdf",
     "resources/argument-config.json",
+    "resources/argument-config-counterfactual.json",
     "resources/authority-set.json",
     "resources/bench-configuration.json",
     "resources/case.json",

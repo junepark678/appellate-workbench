@@ -3,6 +3,7 @@
         <file alias="manifest.json">../../tests/fixtures/full-resource-pack-v2/manifest.json</file>
         <file alias="objects/final-order.pdf">../../tests/fixtures/full-resource-pack-v2/objects/final-order.pdf</file>
         <file alias="resources/argument-config.json">../../tests/fixtures/full-resource-pack-v2/resources/argument-config.json</file>
+        <file alias="resources/argument-config-counterfactual.json">../../tests/fixtures/full-resource-pack-v2/resources/argument-config-counterfactual.json</file>
         <file alias="resources/authority-set.json">../../tests/fixtures/full-resource-pack-v2/resources/authority-set.json</file>
         <file alias="resources/bench-configuration.json">../../tests/fixtures/full-resource-pack-v2/resources/bench-configuration.json</file>
         <file alias="resources/case.json">../../tests/fixtures/full-resource-pack-v2/resources/case.json</file>
