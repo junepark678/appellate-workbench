@@ -30,12 +30,18 @@ constexpr std::size_t maximum_phrases = 8;
 constexpr std::size_t maximum_issues = 256;
 constexpr std::size_t maximum_grounding_per_issue = 64;
 constexpr std::size_t maximum_prompts_per_issue = 32;
-constexpr std::size_t maximum_authored_questions = maximum_issues * maximum_prompts_per_issue;
-constexpr std::size_t maximum_authored_grounding = 8'192;
 constexpr std::size_t maximum_topics_per_issue = 8;
 constexpr std::size_t maximum_citations = 32;
 constexpr std::size_t maximum_events = 4'096;
 constexpr std::size_t maximum_transcript_entries = maximum_events * 2;
+constexpr std::size_t maximum_canonical_issue_bindings = 64;
+constexpr std::size_t maximum_canonical_questions = 128;
+constexpr std::size_t maximum_canonical_questions_per_issue = 16;
+constexpr std::size_t maximum_canonical_grounding_per_question = 16;
+constexpr std::size_t maximum_canonical_grounding =
+    maximum_canonical_questions * maximum_canonical_grounding_per_question;
+constexpr std::size_t maximum_canonical_events = 64;
+constexpr std::size_t maximum_canonical_transcript_entries = maximum_canonical_events * 2;
 constexpr std::size_t maximum_prompt_length = 512;
 constexpr std::size_t maximum_answer_length = 16 * 1'024;
 constexpr std::size_t maximum_rendered_utterance_length = 32 * 1'024;
@@ -150,6 +156,55 @@ constexpr std::chrono::seconds maximum_argument_time{24 * 60 * 60};
         index += continuation_count + 1;
     }
     return true;
+}
+
+[[nodiscard]] constexpr bool asciiWhitespace(unsigned char character) noexcept {
+    return character == static_cast<unsigned char>(' ') || character == '\t' ||
+           character == '\n' || character == '\r' || character == '\f' || character == '\v';
+}
+
+[[nodiscard]] constexpr bool unicodeWhitespace(char32_t scalar) noexcept {
+    return (scalar >= U'\t' && scalar <= U'\r') || scalar == U' ' || scalar == U'\u0085' ||
+           scalar == U'\u00a0' || scalar == U'\u1680' ||
+           (scalar >= U'\u2000' && scalar <= U'\u200a') || scalar == U'\u2028' ||
+           scalar == U'\u2029' || scalar == U'\u202f' || scalar == U'\u205f' ||
+           scalar == U'\u3000';
+}
+
+// Call only after strict UTF-8 validation. This recognizes the Unicode White_Space property so
+// an authored question cannot be visually empty while still passing a byte-level check.
+[[nodiscard]] bool hasNonWhitespaceScalar(std::string_view value) {
+    for (std::size_t index = 0; index < value.size();) {
+        const auto lead = static_cast<std::uint8_t>(value[index]);
+        std::size_t width = 1;
+        char32_t scalar = lead;
+        if ((lead & 0xe0U) == 0xc0U) {
+            width = 2;
+            scalar = lead & 0x1fU;
+        } else if ((lead & 0xf0U) == 0xe0U) {
+            width = 3;
+            scalar = lead & 0x0fU;
+        } else if ((lead & 0xf8U) == 0xf0U) {
+            width = 4;
+            scalar = lead & 0x07U;
+        }
+        for (std::size_t offset = 1; offset < width; ++offset) {
+            scalar = (scalar << 6U) |
+                     (static_cast<std::uint8_t>(value[index + offset]) & 0x3fU);
+        }
+        if (!unicodeWhitespace(scalar)) {
+            return true;
+        }
+        index += width;
+    }
+    return false;
+}
+
+[[nodiscard]] bool validAuthoredPrompt(std::string_view value) {
+    return model::isCanonicalAuthorityText(value, maximum_prompt_length) &&
+           !asciiWhitespace(static_cast<unsigned char>(value.front())) &&
+           !asciiWhitespace(static_cast<unsigned char>(value.back())) &&
+           hasNonWhitespaceScalar(value);
 }
 
 [[nodiscard]] bool validEnum(model::CourtRole value) {
@@ -498,8 +553,9 @@ validAuthoredGrounding(const model::AuthoredArgumentGrounding& grounding) {
     if (!namespacedId(bank.case_id.value) || !namespacedId(bank.argument_configuration_id) ||
         !validEnum(bank.mode) ||
         (!bank.grounding_digest.empty() && !lowercaseSha256(bank.grounding_digest)) ||
-        bank.issue_topics.empty() || bank.issue_topics.size() > maximum_issues ||
-        bank.questions.empty() || bank.questions.size() > maximum_authored_questions ||
+        bank.issue_topics.empty() ||
+        bank.issue_topics.size() > maximum_canonical_issue_bindings ||
+        bank.questions.empty() || bank.questions.size() > maximum_canonical_questions ||
         !hasUniqueValues(bank.issue_topics, &model::ArgumentIssueTopics::issue_id) ||
         !hasUniqueValues(bank.questions, &model::AuthoredArgumentQuestion::id)) {
         return fail(ErrorCode::InvalidDefinition, "invalid authored question-bank shape");
@@ -524,7 +580,7 @@ validAuthoredGrounding(const model::AuthoredArgumentGrounding& grounding) {
     std::unordered_map<std::string, std::size_t> questions_per_issue;
     questions_per_issue.reserve(bindings.size());
     std::unordered_set<std::string> grounding_ids;
-    grounding_ids.reserve(maximum_authored_grounding);
+    grounding_ids.reserve(maximum_canonical_grounding);
     std::size_t grounding_count = 0;
     for (const auto& question : bank.questions) {
         const auto binding = bindings.find(question.issue_id);
@@ -532,15 +588,15 @@ validAuthoredGrounding(const model::AuthoredArgumentGrounding& grounding) {
             !validEnum(question.topic) ||
             std::ranges::find(binding->second->topics, question.topic) ==
                 binding->second->topics.end() ||
-            !boundedText(question.prompt, maximum_prompt_length) || !validUtf8(question.prompt) ||
+            !validAuthoredPrompt(question.prompt) ||
             question.grounding.empty() ||
-            question.grounding.size() > maximum_grounding_per_issue ||
-            grounding_count > maximum_authored_grounding - question.grounding.size()) {
+            question.grounding.size() > maximum_canonical_grounding_per_question ||
+            grounding_count > maximum_canonical_grounding - question.grounding.size()) {
             return fail(ErrorCode::InvalidDefinition, "invalid authored grounded question");
         }
         auto& issue_count = questions_per_issue[question.issue_id];
         ++issue_count;
-        if (issue_count > maximum_prompts_per_issue) {
+        if (issue_count > maximum_canonical_questions_per_issue) {
             return fail(ErrorCode::InvalidDefinition,
                         "authored issue exceeds its question limit");
         }
@@ -977,10 +1033,37 @@ digestQuestionBankUnchecked(const model::AuthoredQuestionBank& bank) {
     return digest.finish();
 }
 
+[[nodiscard]] std::string canonicalDefinitionDigestUnchecked(
+    const model::CanonicalOralArgumentDefinition& definition) {
+    Sha256 digest;
+    digest.addText("appellate-workbench-canonical-oral-argument-definition-v1");
+    digest.addText(definition.question_bank.case_id.value);
+    digest.addText(definition.question_bank.argument_configuration_id);
+    digest.addText(modeName(definition.question_bank.mode));
+    digest.addText(definition.question_bank.grounding_digest);
+
+    const auto& configuration = definition.configuration;
+    digest.addUint64(static_cast<std::uint64_t>(configuration.principal_time.count()));
+    digest.addUint64(static_cast<std::uint64_t>(configuration.rebuttal_time.count()));
+    digest.addDouble(configuration.classification_confidence_threshold);
+    digest.addUint64(configuration.maximum_follow_up_depth);
+    digest.addText(configuration.behavior_definition_digest);
+    digest.addText(configuration.grounding_digest);
+    digest.addText(configuration.legal_state_digest);
+    digest.addText(configuration.authored_disposition_id);
+    return digest.finish();
+}
+
 [[nodiscard]] model::CanonicalOralArgumentContract
-canonicalContract(const model::AuthoredQuestionBank& bank) {
-    return model::CanonicalOralArgumentContract{bank.case_id, bank.argument_configuration_id,
-                                                bank.mode, bank.grounding_digest};
+canonicalContract(const model::CanonicalOralArgumentDefinition& definition) {
+    const auto& bank = definition.question_bank;
+    return model::CanonicalOralArgumentContract{
+        bank.case_id,
+        bank.argument_configuration_id,
+        bank.mode,
+        bank.grounding_digest,
+        canonicalDefinitionDigestUnchecked(definition),
+    };
 }
 
 [[nodiscard]] auto validateCanonicalBoundary(
@@ -1327,6 +1410,15 @@ applyAcceptedEvent(const model::OralArgumentConfiguration& configuration,
     -> std::expected<void, Error> {
     if (state.journal.size() >= maximum_events) {
         return fail(ErrorCode::InvalidTransition, "oral argument reached its hard event limit");
+    }
+    return {};
+}
+
+[[nodiscard]] auto ensureCanonicalEventCapacity(const model::OralArgumentState& state)
+    -> std::expected<void, Error> {
+    if (state.journal.size() >= maximum_canonical_events) {
+        return fail(ErrorCode::InvalidTransition,
+                    "canonical oral argument reached its hard event limit");
     }
     return {};
 }
@@ -1869,7 +1961,8 @@ authoredQuestionById(const model::AuthoredQuestionBank& bank, std::string_view q
 [[nodiscard]] auto validateAuthoredEventShape(
     const model::CanonicalOralArgumentDefinition& definition,
     const model::OralArgumentEvent& event) -> std::expected<void, Error> {
-    if (event.sequence == 0 || event.sequence > maximum_events || !validEnum(event.bench.kind) ||
+    if (event.sequence == 0 || event.sequence > maximum_canonical_events ||
+        !validEnum(event.bench.kind) ||
         seatById(definition.bench, event.bench.seat_id) == nullptr ||
         !boundedText(event.bench.rendered_utterance, maximum_rendered_utterance_length)) {
         return fail(ErrorCode::InvalidEvent, "canonical oral-argument event shape is invalid");
@@ -1917,14 +2010,14 @@ authoredQuestionById(const model::AuthoredQuestionBank& bank, std::string_view q
 [[nodiscard]] model::OralArgumentState initialCanonicalStateUnchecked(
     const model::CanonicalOralArgumentDefinition& definition) {
     auto state = initialStateUnchecked(definition.configuration);
-    state.canonical_contract = canonicalContract(definition.question_bank);
+    state.canonical_contract = canonicalContract(definition);
     return state;
 }
 
 [[nodiscard]] auto planAuthoredOpeningUnchecked(
     const model::CanonicalOralArgumentDefinition& definition,
     const model::OralArgumentState& state) -> std::expected<model::OralArgumentEvent, Error> {
-    if (const auto capacity = ensureEventCapacity(state); !capacity) {
+    if (const auto capacity = ensureCanonicalEventCapacity(state); !capacity) {
         return std::unexpected(capacity.error());
     }
     if (state.phase != model::OralArgumentPhase::NotStarted) {
@@ -1953,7 +2046,7 @@ authoredQuestionById(const model::AuthoredQuestionBank& bank, std::string_view q
     const model::CanonicalOralArgumentDefinition& definition,
     const model::OralArgumentState& state, const model::CounselAnswer& answer)
     -> std::expected<model::OralArgumentEvent, Error> {
-    if (const auto capacity = ensureEventCapacity(state); !capacity) {
+    if (const auto capacity = ensureCanonicalEventCapacity(state); !capacity) {
         return std::unexpected(capacity.error());
     }
     if (state.phase != model::OralArgumentPhase::Principal &&
@@ -2038,7 +2131,7 @@ authoredQuestionById(const model::AuthoredQuestionBank& bank, std::string_view q
     const model::CanonicalOralArgumentDefinition& definition,
     std::span<const model::OralArgumentEvent> journal)
     -> std::expected<model::OralArgumentState, Error> {
-    if (journal.size() > maximum_events) {
+    if (journal.size() > maximum_canonical_events) {
         return fail(ErrorCode::InvalidSession,
                     "canonical oral-argument journal exceeds its hard limit");
     }
@@ -2103,10 +2196,10 @@ authoredQuestionById(const model::AuthoredQuestionBank& bank, std::string_view q
         state.authored_disposition_id != definition.configuration.authored_disposition_id ||
         state.canonical_contract !=
             std::optional<model::CanonicalOralArgumentContract>{
-                canonicalContract(definition.question_bank)} ||
-        state.journal.size() > maximum_events ||
-        state.transcript.size() > maximum_transcript_entries ||
-        state.concessions.size() > maximum_events || state.next_event_sequence == 0 ||
+                canonicalContract(definition)} ||
+        state.journal.size() > maximum_canonical_events ||
+        state.transcript.size() > maximum_canonical_transcript_entries ||
+        state.concessions.size() > maximum_canonical_events || state.next_event_sequence == 0 ||
         state.next_event_sequence != static_cast<std::uint64_t>(state.journal.size()) + 1 ||
         state.principal_remaining < std::chrono::seconds::zero() ||
         state.principal_remaining > definition.configuration.principal_time ||
@@ -2292,7 +2385,7 @@ std::expected<model::OralArgumentState, Error> applyOralArgumentEvent(
     if (const auto valid = validateCanonicalState(definition, state); !valid) {
         return std::unexpected(valid.error());
     }
-    if (const auto capacity = ensureEventCapacity(state); !capacity) {
+    if (const auto capacity = ensureCanonicalEventCapacity(state); !capacity) {
         return std::unexpected(capacity.error());
     }
     if (const auto valid = validateAuthoredEventShape(definition, event); !valid) {
@@ -2324,7 +2417,7 @@ std::expected<model::OralArgumentState, Error> replayOralArgument(
     if (const auto valid = validateCanonicalBoundary(definition); !valid) {
         return std::unexpected(valid.error());
     }
-    if (events.size() > maximum_events) {
+    if (events.size() > maximum_canonical_events) {
         return fail(ErrorCode::InvalidSession,
                     "canonical replay journal exceeds its hard event limit");
     }

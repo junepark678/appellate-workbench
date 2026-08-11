@@ -210,6 +210,7 @@ struct CanonicalOralArgumentContract final {
     std::string argument_configuration_id;
     OralArgumentMode mode{OralArgumentMode::ActualRecord};
     std::string grounding_digest;
+    std::string definition_digest;
 
     friend bool operator==(const CanonicalOralArgumentContract&,
                            const CanonicalOralArgumentContract&) = default;

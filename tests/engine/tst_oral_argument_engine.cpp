@@ -3,8 +3,10 @@
 #include <QTest>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <expected>
+#include <optional>
 #include <ranges>
 #include <string>
 #include <utility>
@@ -32,6 +34,9 @@ class OralArgumentEngineTest final : public QObject {
     void canonicalDigestBindsTopicsPromptsModesAndResolvedGrounding();
     void rejectsMixedOrInvalidCanonicalDefinitionsAndSwappedSelections();
     void canonicalRecordPinsAndCounterfactualStateRemainBounded();
+    void canonicalContractRejectsOperativeConfigurationSwaps();
+    void enforcesCanonicalQuestionBankAndPromptBounds();
+    void enforcesCanonicalEventLimitAtEveryBoundary();
 };
 
 using namespace appellate;
@@ -299,6 +304,55 @@ configuration(const model::BenchConfiguration& bench, const model::ArgumentGroun
         std::move(bench),
         std::move(bank),
     };
+}
+
+[[nodiscard]] model::AuthoredQuestionBank emptyBoundedBank() {
+    return model::AuthoredQuestionBank{
+        model::CaseId{"case.bounds"},
+        "case.bounds.argument",
+        model::OralArgumentMode::ActualRecord,
+        {},
+        {},
+        {},
+    };
+}
+
+[[nodiscard]] std::string boundedIssueId(std::size_t issue_index) {
+    return "case.bounds.issue-" + std::to_string(issue_index);
+}
+
+void appendBoundedIssue(model::AuthoredQuestionBank& bank, std::size_t issue_index) {
+    bank.issue_topics.push_back(model::ArgumentIssueTopics{
+        boundedIssueId(issue_index),
+        {model::ArgumentFocusTopic::Merits},
+    });
+}
+
+void appendBoundedQuestion(model::AuthoredQuestionBank& bank, std::size_t issue_index,
+                           std::size_t question_index, std::size_t grounding_count = 1) {
+    const auto issue_id = boundedIssueId(issue_index);
+    std::vector<model::AuthoredArgumentGrounding> grounding;
+    grounding.reserve(grounding_count);
+    for (std::size_t grounding_index = 0; grounding_index < grounding_count;
+         ++grounding_index) {
+        const auto suffix = std::to_string(issue_index) + "-" +
+                            std::to_string(question_index) + "-" +
+                            std::to_string(grounding_index);
+        grounding.push_back(model::BriefPageArgumentGrounding{
+            "case.bounds.grounding-" + suffix,
+            "case.bounds.entry-" + suffix,
+            1,
+            std::string(64, 'a'),
+        });
+    }
+    bank.questions.push_back(model::AuthoredArgumentQuestion{
+        "case.bounds.question-" + std::to_string(issue_index) + "-" +
+            std::to_string(question_index),
+        issue_id,
+        model::ArgumentFocusTopic::Merits,
+        "Which authored source controls issue " + std::to_string(issue_index) + "?",
+        std::move(grounding),
+    });
 }
 
 void OralArgumentEngineTest::validatesOneToManyCompatibleBenches() {
@@ -1131,6 +1185,183 @@ void OralArgumentEngineTest::canonicalRecordPinsAndCounterfactualStateRemainBoun
     const auto replayed = engine::replayOralArgument(definition, *initial, events);
     QVERIFY(replayed.has_value());
     QCOMPARE(*replayed, *after_demand);
+}
+
+void OralArgumentEngineTest::canonicalContractRejectsOperativeConfigurationSwaps() {
+    const auto definition = canonicalDefinition();
+    const auto initial = engine::initializeOralArgument(definition);
+    QVERIFY(initial.has_value());
+    QVERIFY(initial->canonical_contract.has_value());
+    const auto opening = engine::planOpeningQuestion(definition, *initial);
+    QVERIFY(opening.has_value());
+    const auto started = engine::applyOralArgumentEvent(definition, *initial, *opening);
+    QVERIFY(started.has_value());
+
+    const model::CounselAnswer threshold_probe{
+        model::CounselActKind::Answer,
+        "The authored record and authority support the requested relief.",
+        "issue.alpha",
+        {"case.alpha.grounding-authority"},
+        0.75,
+        5s,
+    };
+    const auto original_decision =
+        engine::decideCounselAnswer(definition, *started, threshold_probe);
+    QVERIFY(original_decision.has_value());
+    QVERIFY(original_decision->bench.kind != model::BenchActKind::ClarificationRequest);
+
+    const auto rejects_swap = [&](const model::CanonicalOralArgumentDefinition& changed) {
+        const auto changed_initial = engine::initializeOralArgument(changed);
+        QVERIFY(changed_initial.has_value());
+        QVERIFY(changed_initial->canonical_contract.has_value());
+        QVERIFY(changed_initial->canonical_contract->definition_digest !=
+                initial->canonical_contract->definition_digest);
+        QVERIFY(!engine::decideCounselAnswer(changed, *started, threshold_probe).has_value());
+        const std::array journal{*opening};
+        QVERIFY(!engine::replayOralArgument(changed, *initial, journal).has_value());
+    };
+
+    auto changed_threshold = definition;
+    changed_threshold.configuration.classification_confidence_threshold = 0.80;
+    rejects_swap(changed_threshold);
+
+    auto changed_follow_up_limit = definition;
+    ++changed_follow_up_limit.configuration.maximum_follow_up_depth;
+    rejects_swap(changed_follow_up_limit);
+
+    auto changed_principal_time = definition;
+    changed_principal_time.configuration.principal_time += 30s;
+    rejects_swap(changed_principal_time);
+
+    auto changed_rebuttal_time = definition;
+    changed_rebuttal_time.configuration.rebuttal_time += 10s;
+    rejects_swap(changed_rebuttal_time);
+}
+
+void OralArgumentEngineTest::enforcesCanonicalQuestionBankAndPromptBounds() {
+    auto issue_limit = emptyBoundedBank();
+    for (std::size_t issue_index = 0; issue_index < 64; ++issue_index) {
+        appendBoundedIssue(issue_limit, issue_index);
+        appendBoundedQuestion(issue_limit, issue_index, 0);
+    }
+    QVERIFY(engine::groundingDigest(issue_limit).has_value());
+    appendBoundedIssue(issue_limit, 64);
+    appendBoundedQuestion(issue_limit, 64, 0);
+    QVERIFY(!engine::groundingDigest(issue_limit).has_value());
+
+    auto question_limit = emptyBoundedBank();
+    for (std::size_t issue_index = 0; issue_index < 8; ++issue_index) {
+        appendBoundedIssue(question_limit, issue_index);
+        for (std::size_t question_index = 0; question_index < 16; ++question_index) {
+            appendBoundedQuestion(question_limit, issue_index, question_index);
+        }
+    }
+    QCOMPARE(question_limit.questions.size(), std::size_t{128});
+    QVERIFY(engine::groundingDigest(question_limit).has_value());
+    appendBoundedIssue(question_limit, 8);
+    appendBoundedQuestion(question_limit, 8, 0);
+    QCOMPARE(question_limit.questions.size(), std::size_t{129});
+    QVERIFY(!engine::groundingDigest(question_limit).has_value());
+
+    auto per_issue_limit = emptyBoundedBank();
+    appendBoundedIssue(per_issue_limit, 0);
+    for (std::size_t question_index = 0; question_index < 16; ++question_index) {
+        appendBoundedQuestion(per_issue_limit, 0, question_index);
+    }
+    QVERIFY(engine::groundingDigest(per_issue_limit).has_value());
+    appendBoundedQuestion(per_issue_limit, 0, 16);
+    QCOMPARE(per_issue_limit.questions.size(), std::size_t{17});
+    QVERIFY(!engine::groundingDigest(per_issue_limit).has_value());
+
+    auto grounding_limit = emptyBoundedBank();
+    appendBoundedIssue(grounding_limit, 0);
+    appendBoundedQuestion(grounding_limit, 0, 0, 16);
+    QCOMPARE(grounding_limit.questions.front().grounding.size(), std::size_t{16});
+    QVERIFY(engine::groundingDigest(grounding_limit).has_value());
+    grounding_limit.questions.front().grounding.push_back(model::BriefPageArgumentGrounding{
+        "case.bounds.grounding-0-0-16",
+        "case.bounds.entry-0-0-16",
+        1,
+        std::string(64, 'a'),
+    });
+    QCOMPARE(grounding_limit.questions.front().grounding.size(), std::size_t{17});
+    QVERIFY(!engine::groundingDigest(grounding_limit).has_value());
+
+    const auto rejects_prompt = [](std::string prompt) {
+        auto bank = emptyBoundedBank();
+        appendBoundedIssue(bank, 0);
+        appendBoundedQuestion(bank, 0, 0);
+        bank.questions.front().prompt = std::move(prompt);
+        return !engine::groundingDigest(bank).has_value();
+    };
+    QVERIFY(!rejects_prompt(std::string(512, 'a')));
+    QVERIFY(rejects_prompt(std::string(513, 'a')));
+    QVERIFY(rejects_prompt(" leading ASCII space"));
+    QVERIFY(rejects_prompt("trailing ASCII space "));
+    QVERIFY(rejects_prompt("   "));
+    QVERIFY(rejects_prompt("line\nbreak"));
+    QVERIFY(rejects_prompt(std::string{"bad\0prompt", 10}));
+    QVERIFY(rejects_prompt(std::string{"bad"} + static_cast<char>(0x7f) + "prompt"));
+    QVERIFY(rejects_prompt(std::string{"\xc3\x28", 2}));
+    QVERIFY(rejects_prompt(std::string{"\xc2\xa0"}));
+    QVERIFY(rejects_prompt(std::string{"\xe3\x80\x80"}));
+}
+
+void OralArgumentEngineTest::enforcesCanonicalEventLimitAtEveryBoundary() {
+    auto definition = canonicalDefinition();
+    definition.configuration.principal_time = 1'000s;
+    const auto initial = engine::initializeOralArgument(definition);
+    QVERIFY(initial.has_value());
+    const auto opening = engine::planOpeningQuestion(definition, *initial);
+    QVERIFY(opening.has_value());
+    const auto started = engine::applyOralArgumentEvent(definition, *initial, *opening);
+    QVERIFY(started.has_value());
+
+    const model::CounselAnswer response{
+        model::CounselActKind::Answer,
+        "The authored sources support the requested disposition.",
+        "issue.alpha",
+        {"case.alpha.grounding-authority"},
+        1.0,
+        1s,
+    };
+    const auto second = engine::decideCounselAnswer(definition, *started, response);
+    QVERIFY(second.has_value());
+    const auto after_second =
+        engine::applyOralArgumentEvent(definition, *started, *second);
+    QVERIFY(after_second.has_value());
+    const auto third = engine::decideCounselAnswer(definition, *after_second, response);
+    QVERIFY(third.has_value());
+    QCOMPARE(second->bench.kind, model::BenchActKind::Interruption);
+    QCOMPARE(third->bench.kind, model::BenchActKind::Interruption);
+
+    std::vector<model::OralArgumentEvent> journal;
+    journal.reserve(64);
+    journal.push_back(*opening);
+    for (std::uint64_t sequence = 2; sequence <= 64; ++sequence) {
+        auto event = sequence % 2 == 0 ? *second : *third;
+        event.sequence = sequence;
+        event.bench.question->parent_act_sequence = sequence - 1;
+        journal.push_back(std::move(event));
+    }
+
+    const auto state = engine::replayOralArgument(definition, *initial, journal);
+    QVERIFY(state.has_value());
+    QCOMPARE(state->journal.size(), std::size_t{64});
+    QCOMPARE(state->transcript.size(), std::size_t{127});
+    QCOMPARE(state->next_event_sequence, std::uint64_t{65});
+    QVERIFY(!engine::decideCounselAnswer(definition, *state, response).has_value());
+    QVERIFY(!engine::applyOralArgumentEvent(definition, *state, journal.back()).has_value());
+
+    auto excessive_journal = journal;
+    excessive_journal.push_back(excessive_journal.back());
+    QCOMPARE(excessive_journal.size(), std::size_t{65});
+    QVERIFY(!engine::replayOralArgument(definition, *initial, excessive_journal).has_value());
+
+    auto excessive_sequence = *opening;
+    excessive_sequence.sequence = 65;
+    QVERIFY(!engine::applyOralArgumentEvent(definition, *initial, excessive_sequence)
+                 .has_value());
 }
 
 } // namespace
