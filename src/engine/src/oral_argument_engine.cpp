@@ -541,8 +541,7 @@ validAuthoredGrounding(const model::AuthoredArgumentGrounding& grounding) {
                        reference.page_number <= maximum_document_pages &&
                        lowercaseSha256(reference.asset_sha256) &&
                        (!reference.citation_label.has_value() ||
-                        (boundedText(*reference.citation_label, 120) &&
-                         validUtf8(*reference.citation_label)));
+                        model::isCanonicalAuthorityText(*reference.citation_label, 120));
             }
         },
         grounding);

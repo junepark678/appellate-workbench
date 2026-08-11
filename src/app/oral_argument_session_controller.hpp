@@ -56,6 +56,15 @@ class OralArgumentSessionController final {
            QString created_at_utc, std::vector<storage::RevisionPin> pins)
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
 
+    // Compatibility path for legacy schema-1 sessions. Schema-2 resolved packs must use the
+    // case/configuration overload below so authored grounding cannot be silently downgraded.
+    [[nodiscard]] static auto
+    create(QString session_id, model::OralArgumentConfiguration configuration,
+           model::BenchConfiguration bench, model::ArgumentGrounding grounding,
+           std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+           QString created_at_utc, const packs::ResolvedPack& resolved_pack)
+        -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
+
     [[nodiscard]] static auto
     create(QString session_id, const model::CaseId& case_id,
            const packs::RuntimeArgumentConfigId& argument_configuration_id,
@@ -69,6 +78,13 @@ class OralArgumentSessionController final {
            model::BenchConfiguration bench, model::ArgumentGrounding grounding,
            std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
            std::vector<storage::RevisionPin> expected_pins)
+        -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
+
+    [[nodiscard]] static auto
+    reopen(QString session_id, model::OralArgumentConfiguration configuration,
+           model::BenchConfiguration bench, model::ArgumentGrounding grounding,
+           std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+           const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
 
     [[nodiscard]] static auto

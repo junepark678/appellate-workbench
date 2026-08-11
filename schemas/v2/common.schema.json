@@ -33,6 +33,11 @@
       "minLength": 1,
       "maxLength": 4096
     },
+    "canonical_authority_locator": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
     "canonical_authority": {
       "type": "object",
       "additionalProperties": false,
@@ -73,7 +78,7 @@
         "citation": { "$ref": "#/$defs/canonical_authority_text" },
         "source_version": { "type": "string", "format": "date" },
         "checked_on": { "type": "string", "format": "date" },
-        "locator": { "$ref": "#/$defs/canonical_authority_text" },
+        "locator": { "$ref": "#/$defs/canonical_authority_locator" },
         "source_url": {
           "type": "string",
           "format": "uri",

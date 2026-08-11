@@ -4,7 +4,9 @@
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/storage/asset_store.hpp"
 #include "appellate/storage/session_store.hpp"
+#include "appellate/engine/oral_argument_engine.hpp"
 #include "installed_record_controller.hpp"
+#include "oral_argument_session_controller.hpp"
 #include "pack_cli.hpp"
 #include "record_workspace.hpp"
 #include "resolved_session_pins.hpp"
@@ -40,6 +42,54 @@ using appellate::model::PackRevision;
 using appellate::packs::CatalogErrorCode;
 using appellate::packs::PackArchive;
 using appellate::packs::PackCatalog;
+
+struct LegacyOralDefinitions final {
+    appellate::model::OralArgumentConfiguration configuration;
+    appellate::model::BenchConfiguration bench;
+    appellate::model::ArgumentGrounding grounding;
+};
+
+[[nodiscard]] LegacyOralDefinitions legacyOralDefinitions() {
+    auto profile = appellate::model::JudgeProfile{
+        "fictional.legacy-resolved",
+        "Legacy Resolved Composite",
+        appellate::model::ProfileClass::FictionalComposite,
+        appellate::model::ProfileCompatibility{{appellate::model::CourtRole::Appellate},
+                                                {"us.ca4"}},
+        appellate::model::InteractionStyle{
+            0.8, 0.8, 0.4, 0.5, 0.5, 0.2, 0.5, 0.5, 0.5,
+            {appellate::model::IssueFocus{"issue.legacy-resolved", 1.0}}},
+        appellate::model::VoiceStyle{
+            appellate::model::VoiceRegister::Technical,
+            appellate::model::VoiceCadence::Measured,
+            appellate::model::QuestionFraming::Direct,
+            appellate::model::CounselAddress::Counsel,
+            0.4,
+            0.4,
+            {"answer the question"},
+            {"before you continue"},
+            {"clarify that point"}},
+    };
+    appellate::model::BenchConfiguration bench{
+        "us.ca4", appellate::model::CourtRole::Appellate,
+        {appellate::model::BenchSeat{"seat.legacy-resolved", std::move(profile)}},
+        "seat.legacy-resolved"};
+    appellate::model::ArgumentGrounding grounding{{appellate::model::ArgumentIssue{
+        "issue.legacy-resolved",
+        "legacy resolved issue",
+        {{appellate::model::GroundingKind::Authority, "authority.legacy-resolved", std::nullopt}},
+        {"What is the governing legacy rule?"},
+        {}}}};
+    const auto behavior = appellate::engine::behaviorDefinitionDigest(bench);
+    const auto grounding_digest = appellate::engine::groundingDigest(grounding);
+    Q_ASSERT(behavior.has_value());
+    Q_ASSERT(grounding_digest.has_value());
+    return LegacyOralDefinitions{
+        appellate::model::OralArgumentConfiguration{
+            std::chrono::seconds{90}, std::chrono::seconds{0}, 0.7, 3, *behavior,
+            *grounding_digest, std::string(64, 'a'), "disposition.legacy-resolved"},
+        std::move(bench), std::move(grounding)};
+}
 
 class PackDependencyResolutionTest final : public QObject {
     Q_OBJECT
@@ -963,6 +1013,33 @@ void PackDependencyResolutionTest::
     const auto session_database =
         QDir(session_directory.path()).filePath(QStringLiteral("sessions.sqlite"));
     const auto session_assets = QDir(session_directory.path()).filePath(QStringLiteral("assets"));
+    const auto oral_database =
+        QDir(session_directory.path()).filePath(QStringLiteral("legacy-oral.sqlite"));
+    {
+        auto definitions = legacyOralDefinitions();
+        auto store = appellate::storage::SessionStore::open(oral_database);
+        QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
+        const auto created = appellate::app::OralArgumentSessionController::create(
+            QStringLiteral("test.session.legacy-resolved"), std::move(definitions.configuration),
+            std::move(definitions.bench), std::move(definitions.grounding), std::move(*store),
+            QStringLiteral("engine.legacy-resolved.1"),
+            QStringLiteral("2026-08-11T11:00:00Z"), *resolved);
+        QVERIFY2(created.has_value(), created ? "" : qPrintable(created.error().message));
+        QVERIFY((*created)->snapshot().pins == pins);
+        QCOMPARE((*created)->snapshot().authority_contract,
+                 appellate::storage::SessionAuthorityContract::LegacyV1);
+    }
+    {
+        auto definitions = legacyOralDefinitions();
+        auto store = appellate::storage::SessionStore::open(oral_database);
+        QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
+        const auto reopened = appellate::app::OralArgumentSessionController::reopen(
+            QStringLiteral("test.session.legacy-resolved"), std::move(definitions.configuration),
+            std::move(definitions.bench), std::move(definitions.grounding), std::move(*store),
+            QStringLiteral("engine.legacy-resolved.1"), *resolved);
+        QVERIFY2(reopened.has_value(), reopened ? "" : qPrintable(reopened.error().message));
+        QVERIFY((*reopened)->snapshot().pins == pins);
+    }
     {
         auto store = appellate::storage::SessionStore::open(session_database);
         if (!store) {
@@ -1035,7 +1112,8 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
     QVERIFY2(procedure.has_value(), procedure ? "" : qPrintable(procedure.error()));
     const auto root = buildPartitionArchive(
         temporary.path(), QStringLiteral("v2-root"), QStringLiteral("test.v2.root"),
-        {QStringLiteral("resources/argument-config.json"),
+        {QStringLiteral("resources/argument-config-counterfactual.json"),
+         QStringLiteral("resources/argument-config.json"),
          QStringLiteral("resources/bench-configuration.json"),
          QStringLiteral("resources/case.json"), QStringLiteral("resources/judge-profile.json"),
          QStringLiteral("resources/realism-review.json"), QStringLiteral("resources/record.json")},
@@ -1085,10 +1163,14 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
     QVERIFY(runtime_case.filing_authorities.front().authority.provenance.has_value());
     QCOMPARE(runtime_case.filing_authorities.front().authority.provenance->locator,
              std::string("Rule 1"));
-    QCOMPARE(runtime_case.argument_configurations.size(), std::size_t{1});
-    QVERIFY(runtime_case.argument_configurations.front().grounded_question_bank.has_value());
-    const auto& question_bank =
-        *runtime_case.argument_configurations.front().grounded_question_bank;
+    QCOMPARE(runtime_case.argument_configurations.size(), std::size_t{2});
+    const auto actual_argument = std::ranges::find(
+        runtime_case.argument_configurations,
+        appellate::packs::RuntimeArgumentConfigId{"example.argument.fictional"},
+        &appellate::packs::RuntimeArgumentConfiguration::id);
+    QVERIFY(actual_argument != runtime_case.argument_configurations.end());
+    QVERIFY(actual_argument->grounded_question_bank.has_value());
+    const auto& question_bank = *actual_argument->grounded_question_bank;
     QCOMPARE(question_bank.mode, appellate::model::OralArgumentMode::ActualRecord);
     QCOMPARE(question_bank.grounding_digest,
              std::string("766b0a05b8d4c6ed2b05496f520bc34d11ade1d1d670f7dd6fb036c11a238c55"));
@@ -1101,6 +1183,46 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
         std::get<appellate::model::AuthorityArgumentGrounding>(*grounded_authority).authority;
     QVERIFY(authority_snapshot.provenance.has_value());
     QCOMPARE(authority_snapshot.provenance->locator, std::string("Rule 1"));
+
+    const auto oral_database =
+        QDir(temporary.path()).filePath(QStringLiteral("v2-oral-sessions.sqlite"));
+    const std::array canonical_arguments{
+        std::pair{appellate::packs::RuntimeArgumentConfigId{"example.argument.fictional"},
+                  appellate::model::OralArgumentMode::ActualRecord},
+        std::pair{appellate::packs::RuntimeArgumentConfigId{"example.argument.counterfactual"},
+                  appellate::model::OralArgumentMode::CounterfactualTraining},
+    };
+    for (std::size_t index = 0; index < canonical_arguments.size(); ++index) {
+        auto store = appellate::storage::SessionStore::open(oral_database);
+        QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
+        const auto created = appellate::app::OralArgumentSessionController::create(
+            QStringLiteral("test.session.resolved-oral-%1").arg(index),
+            runtime_case.definition.id, canonical_arguments[index].first,
+            std::string(64, 'c'), std::move(*store),
+            QStringLiteral("engine.resolved-oral.2"),
+            QStringLiteral("2026-08-11T10:00:00Z"), *resolved);
+        QVERIFY2(created.has_value(), created ? "" : qPrintable(created.error().message));
+        QVERIFY((*created)->canonicalDefinition() != nullptr);
+        QCOMPARE((*created)->canonicalDefinition()->question_bank.mode,
+                 canonical_arguments[index].second);
+        QCOMPARE((*created)->snapshot().authority_contract,
+                 appellate::storage::SessionAuthorityContract::CanonicalV2);
+        QVERIFY((*created)->snapshot().pins == appellate::app::revisionPinsForSession(*resolved));
+    }
+    {
+        auto definitions = legacyOralDefinitions();
+        auto store = appellate::storage::SessionStore::open(oral_database);
+        QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
+        const auto rejected = appellate::app::OralArgumentSessionController::create(
+            QStringLiteral("test.session.v2-legacy-refused"),
+            std::move(definitions.configuration), std::move(definitions.bench),
+            std::move(definitions.grounding), std::move(*store),
+            QStringLiteral("engine.legacy-resolved.1"),
+            QStringLiteral("2026-08-11T10:00:00Z"), *resolved);
+        QVERIFY(!rejected.has_value());
+        QCOMPARE(rejected.error().code,
+                 appellate::app::OralArgumentSessionErrorCode::InvalidConfiguration);
+    }
 
     const auto session_id = std::string("test.session.v2-authority");
     const auto court_date = appellate::model::LegalDate{std::chrono::year{2026} /

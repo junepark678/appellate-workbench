@@ -703,6 +703,40 @@ void SchemaDispatchTest::validatesGroundedQuestionBanks() {
     QCOMPARE(rejected_focus.error().code, ErrorCode::CrossReferenceFailure);
 
     for (int variant = 0; variant < 2; ++variant) {
+        QTemporaryDir unlaunchable_focus;
+        QVERIFY(unlaunchable_focus.isValid());
+        QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")),
+                         unlaunchable_focus.path()));
+        QVERIFY(mutateResource(
+            unlaunchable_focus.path(), QStringLiteral("resources/judge-profile.json"),
+            [variant](QJsonObject& document) {
+                auto interaction = document.value(QStringLiteral("interaction")).toObject();
+                auto focus = interaction.value(QStringLiteral("issue_focus")).toArray();
+                for (qsizetype index = 0; index < focus.size(); ++index) {
+                    auto item = focus.at(index).toObject();
+                    if (variant == 0) {
+                        static const std::array disjoint_topics{
+                            QStringLiteral("workbench.topic.jurisdiction"),
+                            QStringLiteral("workbench.topic.standard-of-review"),
+                            QStringLiteral("workbench.topic.governing-authority"),
+                            QStringLiteral("workbench.topic.practical-consequences"),
+                        };
+                        item.insert(QStringLiteral("topic_id"),
+                                    disjoint_topics.at(static_cast<std::size_t>(index)));
+                    } else {
+                        item.insert(QStringLiteral("weight"), 0.0);
+                    }
+                    focus.replace(index, item);
+                }
+                interaction.insert(QStringLiteral("issue_focus"), focus);
+                document.insert(QStringLiteral("interaction"), interaction);
+            }));
+        const auto rejected = PackReader::readDirectory(unlaunchable_focus.path());
+        QVERIFY(!rejected.has_value());
+        QCOMPARE(rejected.error().code, ErrorCode::CrossReferenceFailure);
+    }
+
+    for (int variant = 0; variant < 2; ++variant) {
         QTemporaryDir record_pack;
         QVERIFY(record_pack.isValid());
         QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), record_pack.path()));
@@ -723,6 +757,34 @@ void SchemaDispatchTest::validatesGroundedQuestionBanks() {
         const auto rejected_record = PackReader::readDirectory(record_pack.path());
         QVERIFY(!rejected_record.has_value());
         QCOMPARE(rejected_record.error().code, ErrorCode::CrossReferenceFailure);
+    }
+
+    for (int scalar_count : {120, 121}) {
+        QTemporaryDir label_pack;
+        QVERIFY(label_pack.isValid());
+        QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), label_pack.path()));
+        QVERIFY(mutateResource(
+            label_pack.path(), QStringLiteral("resources/record.json"),
+            [scalar_count](QJsonObject& document) {
+                auto anchors = document.value(QStringLiteral("page_anchors")).toArray();
+                auto anchor = anchors.at(0).toObject();
+                anchor.insert(QStringLiteral("citation_label"),
+                              QString(scalar_count, QChar{0xD55C}));
+                anchors.replace(0, anchor);
+                document.insert(QStringLiteral("page_anchors"), anchors);
+            }));
+        QVERIFY(refreshQuestionBankDigest(label_pack.path(), argument_path));
+        QVERIFY(refreshQuestionBankDigest(
+            label_pack.path(), QStringLiteral("resources/argument-config-counterfactual.json")));
+        const auto result = PackReader::readDirectory(label_pack.path());
+        if (scalar_count == 120) {
+            QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error().message));
+            const auto runtime = appellate::packs::loadRuntimePack(*result);
+            QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+        } else {
+            QVERIFY(!result.has_value());
+            QCOMPARE(result.error().code, ErrorCode::SchemaViolation);
+        }
     }
 
     QTemporaryDir per_issue_overflow;
@@ -774,6 +836,49 @@ void SchemaDispatchTest::validatesGroundedQuestionBanks() {
     QVERIFY(!forged_runtime.has_value());
     QCOMPARE(forged_runtime.error().code,
              appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+
+    auto forged_focus = *loaded;
+    const auto forged_profile =
+        std::ranges::find_if(forged_focus.resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::JudgeProfile;
+        });
+    QVERIFY(forged_profile != forged_focus.resources.end());
+    auto interaction =
+        forged_profile->document.value(QStringLiteral("interaction")).toObject();
+    auto focus = interaction.value(QStringLiteral("issue_focus")).toArray();
+    for (qsizetype index = 0; index < focus.size(); ++index) {
+        auto item = focus.at(index).toObject();
+        item.insert(QStringLiteral("topic_id"),
+                    QStringLiteral("workbench.topic.jurisdiction"));
+        focus.replace(index, item);
+    }
+    interaction.insert(QStringLiteral("issue_focus"), focus);
+    forged_profile->document.insert(QStringLiteral("interaction"), interaction);
+    for (auto& profile : forged_focus.judge_profiles) {
+        for (auto& item : profile.interaction.issue_focus) {
+            item.topic_id = "workbench.topic.jurisdiction";
+        }
+    }
+    const auto forged_focus_runtime = appellate::packs::loadRuntimePack(forged_focus);
+    QVERIFY(!forged_focus_runtime.has_value());
+    QCOMPARE(forged_focus_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+
+    auto forged_label = *loaded;
+    const auto forged_record =
+        std::ranges::find_if(forged_label.resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Record;
+        });
+    QVERIFY(forged_record != forged_label.resources.end());
+    auto anchors = forged_record->document.value(QStringLiteral("page_anchors")).toArray();
+    auto first_anchor = anchors.at(0).toObject();
+    first_anchor.insert(QStringLiteral("citation_label"), QStringLiteral("JA\n2"));
+    anchors.replace(0, first_anchor);
+    forged_record->document.insert(QStringLiteral("page_anchors"), anchors);
+    const auto forged_label_runtime = appellate::packs::loadRuntimePack(forged_label);
+    QVERIFY(!forged_label_runtime.has_value());
+    QCOMPARE(forged_label_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::InvalidResource);
 
     auto root = *loaded;
     auto dependency = *loaded;
@@ -891,7 +996,7 @@ void SchemaDispatchTest::enforcesGroundedQuestionBoundsAndPrompts() {
                     bindings.push_back(QJsonObject{
                         {QStringLiteral("issue_id"), current_issue},
                         {QStringLiteral("topic_ids"),
-                         QJsonArray{QStringLiteral("workbench.topic.merits")}},
+                         QJsonArray{QStringLiteral("workbench.topic.preservation")}},
                     });
                     const auto question_count =
                         add_extra_issue && issue_index == total_issue_count - 1
@@ -905,7 +1010,8 @@ void SchemaDispatchTest::enforcesGroundedQuestionBoundsAndPrompts() {
                                  .arg(issue_index)
                                  .arg(question_index)},
                             {QStringLiteral("issue_id"), current_issue},
-                            {QStringLiteral("topic_id"), QStringLiteral("workbench.topic.merits")},
+                            {QStringLiteral("topic_id"),
+                             QStringLiteral("workbench.topic.preservation")},
                             {QStringLiteral("prompt"),
                              QStringLiteral("Grounded boundary question %1, item %2?")
                                  .arg(issue_index)
@@ -1073,6 +1179,8 @@ void SchemaDispatchTest::enforcesGroundedQuestionBoundsAndPrompts() {
         const auto result = PackReader::readDirectory(prompt_pack.path());
         if (scalar_count == 512) {
             QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error().message));
+            const auto runtime = appellate::packs::loadRuntimePack(*result);
+            QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
         } else {
             QVERIFY(!result.has_value());
             QCOMPARE(result.error().code, ErrorCode::SchemaViolation);
@@ -1874,7 +1982,10 @@ void SchemaDispatchTest::rejectsInvalidCanonicalAuthorityMetadata() {
     QCOMPARE(runtime.error().code, appellate::packs::RuntimePackErrorCode::InvalidResource);
 
     const QString unicode_text(2000, QChar{0xD55C});
+    const QString unicode_locator(1024, QChar{0xD55C});
     QVERIFY(appellate::model::isCanonicalAuthorityText(unicode_text.toUtf8().toStdString(), 4096));
+    QVERIFY(appellate::model::isCanonicalAuthorityText(unicode_locator.toUtf8().toStdString(),
+                                                       1024));
     QTemporaryDir unicode_pack;
     QVERIFY(unicode_pack.isValid());
     QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), unicode_pack.path()));
@@ -1884,7 +1995,7 @@ void SchemaDispatchTest::rejectsInvalidCanonicalAuthorityMetadata() {
         auto first = values.at(0).toObject();
         first.insert(QStringLiteral("citation"), unicode_text);
         first.insert(QStringLiteral("proposition"), unicode_text);
-        first.insert(QStringLiteral("locator"), unicode_text);
+        first.insert(QStringLiteral("locator"), unicode_locator);
         values.replace(0, first);
         document.insert(QStringLiteral("authorities"), values);
     }));
@@ -1901,7 +2012,26 @@ void SchemaDispatchTest::rejectsInvalidCanonicalAuthorityMetadata() {
     QVERIFY(unicode_authority != unicode_runtime->cases.front().workflow.operations.end());
     QCOMPARE(unicode_authority->authority.primary.citation, unicode_text.toUtf8().toStdString());
     QCOMPARE(unicode_authority->authority.primary.provenance->locator,
-             unicode_text.toUtf8().toStdString());
+             unicode_locator.toUtf8().toStdString());
+
+    QTemporaryDir overlong_locator_pack;
+    QVERIFY(overlong_locator_pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")),
+                     overlong_locator_pack.path()));
+    QVERIFY(stripGroundedQuestions(overlong_locator_pack.path()));
+    QVERIFY(mutateResource(overlong_locator_pack.path(), authority_path,
+                           [](QJsonObject& document) {
+                               auto values =
+                                   document.value(QStringLiteral("authorities")).toArray();
+                               auto first = values.at(0).toObject();
+                               first.insert(QStringLiteral("locator"),
+                                            QString(1025, QChar{0xD55C}));
+                               values.replace(0, first);
+                               document.insert(QStringLiteral("authorities"), values);
+                           }));
+    const auto overlong_locator = PackReader::readDirectory(overlong_locator_pack.path());
+    QVERIFY(!overlong_locator.has_value());
+    QCOMPARE(overlong_locator.error().code, ErrorCode::SchemaViolation);
 
     QTemporaryDir overlong_pack;
     QVERIFY(overlong_pack.isValid());

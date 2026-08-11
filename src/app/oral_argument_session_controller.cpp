@@ -224,6 +224,13 @@ constexpr std::size_t maximum_canonical_events = 64;
                                                 legal_state_digest, *runtime);
 }
 
+[[nodiscard]] bool isLegacyResolvedPack(const packs::ResolvedPack& resolved_pack) {
+    return resolved_pack.root().manifest_schema_version == 1 &&
+           std::ranges::all_of(resolved_pack.dependenciesDependencyFirst(), [](const auto& pack) {
+               return pack.manifest_schema_version == 1;
+           });
+}
+
 [[nodiscard]] auto validateCanonicalDefinitions(
     const QString& session_id, const QString& engine_revision,
     const model::CanonicalOralArgumentDefinition& definition,
@@ -573,6 +580,22 @@ OralArgumentSessionController::create(QString session_id,
 }
 
 std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::create(
+    QString session_id, model::OralArgumentConfiguration configuration,
+    model::BenchConfiguration bench, model::ArgumentGrounding grounding,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    QString created_at_utc, const packs::ResolvedPack& resolved_pack) {
+    if (!isLegacyResolvedPack(resolved_pack)) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Legacy oral-argument definitions require an exact schema-1 "
+                                   "resolved pack closure"));
+    }
+    return create(std::move(session_id), std::move(configuration), std::move(bench),
+                  std::move(grounding), std::move(session_store), std::move(engine_revision),
+                  std::move(created_at_utc), revisionPinsForSession(resolved_pack));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
 OralArgumentSessionController::createCanonicalForTesting(
     QString session_id, model::CanonicalOralArgumentDefinition definition,
     std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
@@ -698,6 +721,22 @@ OralArgumentSessionController::reopen(QString session_id,
         std::move(session_id), std::move(configuration), std::move(bench), std::move(grounding),
         *initial, *state, std::move(session_store), std::move(expected_engine_revision),
         *normalized_pins, *snapshot));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::reopen(
+    QString session_id, model::OralArgumentConfiguration configuration,
+    model::BenchConfiguration bench, model::ArgumentGrounding grounding,
+    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+    const packs::ResolvedPack& resolved_pack) {
+    if (!isLegacyResolvedPack(resolved_pack)) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Legacy oral-argument definitions require an exact schema-1 "
+                                   "resolved pack closure"));
+    }
+    return reopen(std::move(session_id), std::move(configuration), std::move(bench),
+                  std::move(grounding), std::move(session_store),
+                  std::move(expected_engine_revision), revisionPinsForSession(resolved_pack));
 }
 
 std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>

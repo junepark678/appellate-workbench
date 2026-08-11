@@ -1099,7 +1099,7 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         checked_on < source_version ||
                         !model::isCanonicalAuthorityText(citation, 4096) ||
                         !model::isCanonicalAuthorityText(proposition, 4096) ||
-                        !model::isCanonicalAuthorityText(locator, 4096) ||
+                        !model::isCanonicalAuthorityText(locator, 1024) ||
                         !model::isCanonicalAuthoritySourceUrl(source_url)) {
                         return crossReferenceFailure(
                             resource, QStringLiteral("authorities/provenance"),
@@ -1579,10 +1579,11 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 anchors_by_id.insert(anchor_id, anchor);
                 if (anchor.contains(QStringLiteral("citation_label"))) {
                     const auto citation = anchor.value(QStringLiteral("citation_label")).toString();
-                    if (citation_labels.contains(citation)) {
+                    if (!model::isCanonicalAuthorityText(citation.toUtf8().toStdString(), 120) ||
+                        citation_labels.contains(citation)) {
                         return crossReferenceFailure(
                             resource, QStringLiteral("page_anchors/citation_label"),
-                            QStringLiteral("citation labels must be unique"));
+                            QStringLiteral("citation labels must be canonical and unique"));
                     }
                     citation_labels.insert(citation);
                 }
@@ -2252,6 +2253,10 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     QStringLiteral("bindings must exactly cover permitted_issue_ids"));
             }
 
+            QSet<QString> bank_topics;
+            for (auto topics = topics_by_issue.cbegin(); topics != topics_by_issue.cend(); ++topics) {
+                bank_topics.unite(topics.value());
+            }
             for (const auto& seat_value :
                  (*bench)->document.value(QStringLiteral("seats")).toArray()) {
                 const auto profile = requireKind(
@@ -2261,18 +2266,30 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 if (!profile) {
                     return std::unexpected(profile.error());
                 }
+                bool has_positive_bank_focus = false;
                 for (const auto& focus_value : (*profile)
                                                    ->document.value(QStringLiteral("interaction"))
                                                    .toObject()
                                                    .value(QStringLiteral("issue_focus"))
                                                    .toArray()) {
-                    if (!is_focus_topic(
-                            focus_value.toObject().value(QStringLiteral("topic_id")).toString())) {
+                    const auto focus = focus_value.toObject();
+                    const auto topic_id = focus.value(QStringLiteral("topic_id")).toString();
+                    if (!is_focus_topic(topic_id)) {
                         return crossReferenceFailure(
                             resource, QStringLiteral("bench_configuration_id/issue_focus"),
                             QStringLiteral("grounded-question benches require closed reusable "
                                            "focus topics"));
                     }
+                    has_positive_bank_focus =
+                        has_positive_bank_focus ||
+                        (focus.value(QStringLiteral("weight")).toDouble() > 0.0 &&
+                         bank_topics.contains(topic_id));
+                }
+                if (!has_positive_bank_focus) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("bench_configuration_id/issue_focus"),
+                        QStringLiteral("every grounded-question bench seat requires a positive "
+                                       "focus represented in the question bank"));
                 }
             }
 

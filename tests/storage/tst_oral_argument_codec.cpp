@@ -17,6 +17,7 @@ class OralArgumentCodecTest final : public QObject {
     void roundTripsConfigurationAnswerAndCompleteEvent();
     void preservesLiteralSchemaOneBytes();
     void roundTripsCanonicalSchemaTwoRows();
+    void enforcesCanonicalUnicodeScalarBounds();
     void rejectsGenerationDowngradesAndIncompleteCanonicalGrounding();
     void rejectsDuplicateUnknownAndMissingMembers_data();
     void rejectsDuplicateUnknownAndMissingMembers();
@@ -277,6 +278,59 @@ void OralArgumentCodecTest::roundTripsCanonicalSchemaTwoRows() {
         storage::decodeCanonicalOralArgumentEvent(*encoded_expired);
     QVERIFY(decoded_expired.has_value());
     QVERIFY(*decoded_expired == expired);
+}
+
+void OralArgumentCodecTest::enforcesCanonicalUnicodeScalarBounds() {
+    const auto unicode = [](qsizetype count) {
+        return QString(count, QChar{0xD55C}).toUtf8().toStdString();
+    };
+
+    auto boundary = canonicalEvent();
+    auto& boundary_selection = std::get<model::AuthoredQuestionSelection>(
+        boundary.bench.question->selection);
+    boundary_selection.prompt = unicode(512);
+    auto& boundary_authority =
+        std::get<model::AuthorityArgumentGrounding>(boundary_selection.grounding.at(0));
+    boundary_authority.authority.provenance->locator = unicode(1'024);
+    auto& boundary_record =
+        std::get<model::RecordPageArgumentGrounding>(boundary_selection.grounding.at(2));
+    boundary_record.citation_label = unicode(120);
+    const auto encoded = storage::encodeCanonicalOralArgumentEvent(boundary);
+    QVERIFY2(encoded.has_value(), encoded ? "" : qPrintable(encoded.error().message));
+    const auto decoded = storage::decodeCanonicalOralArgumentEvent(*encoded);
+    QVERIFY2(decoded.has_value(), decoded ? "" : qPrintable(decoded.error().message));
+    QVERIFY(*decoded == boundary);
+
+    auto overlong_prompt = boundary;
+    std::get<model::AuthoredQuestionSelection>(overlong_prompt.bench.question->selection).prompt =
+        unicode(513);
+    QVERIFY(!storage::encodeCanonicalOralArgumentEvent(overlong_prompt).has_value());
+
+    auto overlong_locator = boundary;
+    std::get<model::AuthorityArgumentGrounding>(
+        std::get<model::AuthoredQuestionSelection>(overlong_locator.bench.question->selection)
+            .grounding.at(0))
+        .authority.provenance->locator = unicode(1'025);
+    QVERIFY(!storage::encodeCanonicalOralArgumentEvent(overlong_locator).has_value());
+
+    auto overlong_label = boundary;
+    std::get<model::RecordPageArgumentGrounding>(
+        std::get<model::AuthoredQuestionSelection>(overlong_label.bench.question->selection)
+            .grounding.at(2))
+        .citation_label = unicode(121);
+    QVERIFY(!storage::encodeCanonicalOralArgumentEvent(overlong_label).has_value());
+
+    auto controlled_label = boundary;
+    std::get<model::RecordPageArgumentGrounding>(
+        std::get<model::AuthoredQuestionSelection>(controlled_label.bench.question->selection)
+            .grounding.at(2))
+        .citation_label = "Hearing\nTr. 47";
+    QVERIFY(!storage::encodeCanonicalOralArgumentEvent(controlled_label).has_value());
+
+    auto padded_prompt = boundary;
+    std::get<model::AuthoredQuestionSelection>(padded_prompt.bench.question->selection).prompt =
+        " padded prompt ";
+    QVERIFY(!storage::encodeCanonicalOralArgumentEvent(padded_prompt).has_value());
 }
 
 void OralArgumentCodecTest::rejectsGenerationDowngradesAndIncompleteCanonicalGrounding() {

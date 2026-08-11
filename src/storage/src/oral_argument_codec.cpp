@@ -37,7 +37,8 @@ constexpr auto event_type = "oral_argument.event";
 constexpr qsizetype maximum_payload_bytes = 1024 * 1024;
 constexpr qsizetype maximum_id_bytes = 160;
 constexpr qsizetype maximum_answer_bytes = 16 * 1024;
-constexpr qsizetype maximum_prompt_bytes = 640;
+constexpr qsizetype maximum_legacy_prompt_bytes = 640;
+constexpr std::size_t maximum_canonical_prompt_scalars = 512;
 constexpr qsizetype maximum_utterance_bytes = 32 * 1024;
 constexpr qsizetype maximum_probability_bytes = 1'100;
 constexpr qsizetype maximum_citations = 32;
@@ -1004,7 +1005,8 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
     }
     const auto issue_id = checkedId(question.issue_id, u"event.bench.question.issue_id");
     const auto prompt =
-        checkedText(selection->prompt, maximum_prompt_bytes, u"event.bench.question.prompt");
+        checkedText(selection->prompt, maximum_legacy_prompt_bytes,
+                    u"event.bench.question.prompt");
     if (!issue_id || !prompt) {
         return !issue_id ? std::unexpected(issue_id.error()) : std::unexpected(prompt.error());
     }
@@ -1061,7 +1063,7 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
         return std::unexpected(keys.error());
     }
     const auto issue_id = readId(object, u"issue_id", context);
-    const auto prompt = readString(object, u"prompt", maximum_prompt_bytes, context);
+    const auto prompt = readString(object, u"prompt", maximum_legacy_prompt_bytes, context);
     if (!issue_id || !prompt) {
         return !issue_id ? std::unexpected(issue_id.error()) : std::unexpected(prompt.error());
     }
@@ -1145,6 +1147,41 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
                     QStringLiteral("%1 is not canonical authority text").arg(context));
     }
     return QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
+}
+
+[[nodiscard]] bool isCanonicalAuthoredPrompt(std::string_view value) {
+    if (!model::isCanonicalAuthorityText(value, maximum_canonical_prompt_scalars) ||
+        value.front() == ' ' || value.back() == ' ' || !roundTripsUtf8(value)) {
+        return false;
+    }
+    const auto text = QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
+    return std::ranges::any_of(text, [](QChar scalar) { return !scalar.isSpace(); });
+}
+
+[[nodiscard]] auto checkedCanonicalPrompt(std::string_view value, QStringView context)
+    -> std::expected<QString, OralArgumentCodecError> {
+    if (!isCanonicalAuthoredPrompt(value)) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("%1 is not a canonical authored prompt").arg(context));
+    }
+    return QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
+}
+
+[[nodiscard]] auto readCanonicalPrompt(const QJsonObject& object, QStringView key,
+                                       QStringView context)
+    -> std::expected<QString, OralArgumentCodecError> {
+    const auto value = object.value(key);
+    if (!value.isString()) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("%1.%2 must be a string").arg(context, key));
+    }
+    const auto text = value.toString();
+    const auto bytes = text.toUtf8().toStdString();
+    if (!isCanonicalAuthoredPrompt(bytes)) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("%1.%2 is not a canonical authored prompt").arg(context, key));
+    }
+    return text;
 }
 
 [[nodiscard]] auto authorityTypeName(model::AuthorityType type)
@@ -1400,8 +1437,8 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
                                                   u"canonical_question.grounding[].asset_sha256");
                 std::expected<QString, OralArgumentCodecError> label{QString{}};
                 if (reference.citation_label.has_value()) {
-                    label = checkedText(*reference.citation_label, 120,
-                                        u"canonical_question.grounding[].citation_label");
+                    label = checkedAuthorityText(*reference.citation_label, 120,
+                                                 u"canonical_question.grounding[].citation_label");
                 }
                 if (!anchor || !entry || !digest || !label || reference.page_number == 0 ||
                     reference.page_number > maximum_document_pages) {
@@ -1483,9 +1520,19 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
                                                        maximum_document_pages, context);
         std::optional<std::string> label;
         if (!object.value(u"citation_label").isNull()) {
-            const auto decoded = readString(object, u"citation_label", 120, context);
-            if (!decoded) return std::unexpected(decoded.error());
-            label = decoded->toUtf8().toStdString();
+            const auto label_value = object.value(u"citation_label");
+            if (!label_value.isString()) {
+                return fail(OralArgumentCodecErrorCode::InvalidField,
+                            QStringLiteral("%1.citation_label must be a string or null")
+                                .arg(context));
+            }
+            const auto decoded = label_value.toString().toUtf8().toStdString();
+            if (!model::isCanonicalAuthorityText(decoded, 120)) {
+                return fail(OralArgumentCodecErrorCode::InvalidField,
+                            QStringLiteral("%1.citation_label is not canonical text")
+                                .arg(context));
+            }
+            label = decoded;
         }
         if (!grounding_id || !anchor || !entry || !digest || !page || *page == 0) {
             if (!grounding_id) return std::unexpected(grounding_id.error());
@@ -1514,8 +1561,8 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
     }
     const auto issue = checkedId(question.issue_id, u"canonical_question.issue_id");
     const auto question_id = checkedId(selection->question_id, u"canonical_question.question_id");
-    const auto prompt = checkedText(selection->prompt, maximum_prompt_bytes,
-                                    u"canonical_question.prompt");
+    const auto prompt =
+        checkedCanonicalPrompt(selection->prompt, u"canonical_question.prompt");
     const auto mode = oralArgumentModeName(selection->mode);
     const auto topic_id = model::argumentFocusTopicId(selection->topic);
     if (!issue || !question_id || !prompt || !mode || topic_id.empty() ||
@@ -1580,7 +1627,7 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
         !keys) return std::unexpected(keys.error());
     const auto issue = readId(object, u"issue_id", context);
     const auto question_id = readId(object, u"question_id", context);
-    const auto prompt = readString(object, u"prompt", maximum_prompt_bytes, context);
+    const auto prompt = readCanonicalPrompt(object, u"prompt", context);
     const auto mode_text = readString(object, u"mode", 32, context);
     const auto topic_text = readString(object, u"topic_id", maximum_id_bytes, context);
     const auto recalls_value = object.value(u"recalls_concession");

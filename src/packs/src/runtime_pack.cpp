@@ -967,7 +967,7 @@ struct ResourceIndex final {
     const auto type = authority_types.find(*type_text);
     const auto status = statuses.find(*status_text);
     if (type == authority_types.end() || status == statuses.end() ||
-        !model::isCanonicalAuthorityText(*locator, 4096) || !isBoundedUtf8Text(*source_url, 2048) ||
+        !model::isCanonicalAuthorityText(*locator, 1024) || !isBoundedUtf8Text(*source_url, 2048) ||
         !model::isCanonicalAuthoritySourceUrl(*source_url)) {
         return fail(RuntimePackErrorCode::InvalidResource,
                     path + " contains invalid canonical authority provenance");
@@ -2232,9 +2232,11 @@ struct ParsedCase final {
                         anchor_path +
                             " is duplicate, ambiguous, orphaned, or outside the declared PDF");
         }
-        if (citation->has_value() && !citation_labels.emplace(**citation).second) {
+        if (citation->has_value() &&
+            (!model::isCanonicalAuthorityText(**citation, 120) ||
+             !citation_labels.emplace(**citation).second)) {
             return fail(RuntimePackErrorCode::InvalidResource,
-                        anchor_path + ".citation_label is duplicated");
+                        anchor_path + ".citation_label is noncanonical or duplicated");
         }
         anchors.push_back(RuntimeRecordPageAnchor{RuntimeRecordPageAnchorId{*id},
                                                   RuntimeRecordEntryId{*entry_id}, *page_number,
@@ -2604,13 +2606,23 @@ parseQuestionBank(const ValidatedResource& resource, const ResourceIndex& index,
     }
     std::ranges::sort(issue_topics, {}, &model::ArgumentIssueTopics::issue_id);
 
+    std::unordered_set<std::string> bank_topic_ids;
+    for (const auto& [issue_id, topic_ids] : topics_by_issue) {
+        static_cast<void>(issue_id);
+        bank_topic_ids.insert(topic_ids.begin(), topic_ids.end());
+    }
     for (const auto& seat : bench.seats) {
-        if (std::ranges::any_of(
-                seat.profile.interaction.issue_focus, [](const model::IssueFocus& focus) {
-                    return !model::argumentFocusTopicFromId(focus.topic_id).has_value();
-                })) {
+        const auto has_invalid_focus = std::ranges::any_of(
+            seat.profile.interaction.issue_focus, [](const model::IssueFocus& focus) {
+                return !model::argumentFocusTopicFromId(focus.topic_id).has_value();
+            });
+        const auto has_positive_bank_focus = std::ranges::any_of(
+            seat.profile.interaction.issue_focus, [&bank_topic_ids](const model::IssueFocus& focus) {
+                return focus.weight > 0.0 && bank_topic_ids.contains(focus.topic_id);
+            });
+        if (has_invalid_focus || !has_positive_bank_focus) {
             return fail(RuntimePackErrorCode::CrossReferenceFailure,
-                        path + " uses a bench profile with a noncanonical focus topic");
+                        path + " uses a bench profile without a positive canonical bank focus");
         }
     }
 

@@ -1305,6 +1305,18 @@ void OralArgumentEngineTest::enforcesCanonicalQuestionBankAndPromptBounds() {
     QVERIFY(rejects_prompt(std::string{"\xc3\x28", 2}));
     QVERIFY(rejects_prompt(std::string{"\xc2\xa0"}));
     QVERIFY(rejects_prompt(std::string{"\xe3\x80\x80"}));
+
+    auto citation_label_boundary = canonicalDefinition().question_bank;
+    auto& record_reference = std::get<model::RecordPageArgumentGrounding>(
+        citation_label_boundary.questions.front().grounding.back());
+    record_reference.citation_label =
+        QString(120, QChar{0xD55C}).toUtf8().toStdString();
+    QVERIFY(engine::groundingDigest(citation_label_boundary).has_value());
+    record_reference.citation_label =
+        QString(121, QChar{0xD55C}).toUtf8().toStdString();
+    QVERIFY(!engine::groundingDigest(citation_label_boundary).has_value());
+    record_reference.citation_label = "Hearing\nTr. 47";
+    QVERIFY(!engine::groundingDigest(citation_label_boundary).has_value());
 }
 
 void OralArgumentEngineTest::enforcesCanonicalEventLimitAtEveryBoundary() {
