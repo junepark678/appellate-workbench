@@ -1,21 +1,22 @@
 #include "appellate/storage/session_store.hpp"
 
-#include <QDir>
 #include <QDateTime>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QSet>
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QSet>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QTemporaryFile>
 #include <QUuid>
 #include <QVariant>
-#include <QTemporaryFile>
 
 #include <array>
 #include <cerrno>
 #include <limits>
+#include <optional>
 #include <ranges>
 #include <utility>
 
@@ -29,7 +30,7 @@
 namespace appellate::storage {
 namespace {
 
-constexpr auto current_schema_version = 1;
+constexpr auto current_schema_version = 2;
 constexpr qsizetype maximum_asset_purpose_length = 128;
 constexpr std::size_t maximum_asset_references_per_batch = 4096;
 constexpr std::size_t maximum_events_per_batch = 4096;
@@ -93,6 +94,28 @@ constexpr qsizetype backup_buffer_bytes = 64 * 1024;
     });
 }
 
+[[nodiscard]] auto authorityContractName(SessionAuthorityContract contract)
+    -> std::optional<QString> {
+    switch (contract) {
+    case SessionAuthorityContract::LegacyV1:
+        return QStringLiteral("legacy-v1");
+    case SessionAuthorityContract::CanonicalV2:
+        return QStringLiteral("canonical-v2");
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto parseAuthorityContract(const QString& value)
+    -> std::optional<SessionAuthorityContract> {
+    if (value == QStringLiteral("legacy-v1")) {
+        return SessionAuthorityContract::LegacyV1;
+    }
+    if (value == QStringLiteral("canonical-v2")) {
+        return SessionAuthorityContract::CanonicalV2;
+    }
+    return std::nullopt;
+}
+
 [[nodiscard]] auto execStatement(QSqlDatabase& database, const QString& sql, StoreErrorCode code,
                                  const QString& action) -> std::expected<void, StoreError> {
     QSqlQuery query(database);
@@ -151,7 +174,8 @@ constexpr qsizetype backup_buffer_bytes = 64 * 1024;
 #endif
 }
 
-[[nodiscard]] auto verifyDatabase(const QString& path, StoreErrorCode failure_code)
+[[nodiscard]] auto verifyDatabase(const QString& path, StoreErrorCode failure_code,
+                                  bool allow_older_schema = false)
     -> std::expected<void, StoreError> {
     const auto connection =
         QStringLiteral("appellate-verify-%1").arg(QUuid::createUuid().toString(QUuid::Id128));
@@ -172,9 +196,17 @@ constexpr qsizetype backup_buffer_bytes = 64 * 1024;
                 QSqlQuery schema(database);
                 if (!schema.exec(QStringLiteral(
                         "SELECT COALESCE(MAX(version), 0) FROM schema_migrations")) ||
-                    !schema.next() || schema.value(0).toInt() != current_schema_version) {
+                    !schema.next()) {
                     result = queryFailure(failure_code, schema,
                                           QStringLiteral("verify database schema"));
+                } else {
+                    const auto version = schema.value(0).toInt();
+                    if (version < 1 || version > current_schema_version ||
+                        (!allow_older_schema && version != current_schema_version)) {
+                        result =
+                            fail(failure_code,
+                                 QStringLiteral("Backup schema %1 is not supported").arg(version));
+                    }
                 }
             }
             database.close();
@@ -186,8 +218,19 @@ constexpr qsizetype backup_buffer_bytes = 64 * 1024;
 }
 
 [[nodiscard]] auto migrationSql(int version) -> std::expected<QByteArray, StoreError> {
-    QFile migration(QStringLiteral(":/appellate/storage/migrations/%1_initial.sql")
-                        .arg(version, 3, 10, QLatin1Char('0')));
+    QString migration_name;
+    switch (version) {
+    case 1:
+        migration_name = QStringLiteral("001_initial.sql");
+        break;
+    case 2:
+        migration_name = QStringLiteral("002_session_authority_contract.sql");
+        break;
+    default:
+        return fail(StoreErrorCode::MigrationFailed,
+                    QStringLiteral("Embedded migration %1 is unknown").arg(version));
+    }
+    QFile migration(QStringLiteral(":/appellate/storage/migrations/%1").arg(migration_name));
     if (!migration.open(QIODevice::ReadOnly)) {
         return fail(StoreErrorCode::MigrationFailed,
                     QStringLiteral("Embedded migration %1 is unavailable").arg(version));
@@ -297,8 +340,8 @@ std::expected<void, StoreError> SessionStore::migrate() {
                         .arg(current_schema_version));
     }
 
-    if (version < 1) {
-        const auto migration = migrationSql(1);
+    for (auto next_version = version + 1; next_version <= current_schema_version; ++next_version) {
+        const auto migration = migrationSql(next_version);
         if (!migration) {
             rollback();
             return std::unexpected(migration.error());
@@ -312,30 +355,32 @@ std::expected<void, StoreError> SessionStore::migrate() {
             if (!migration_query.exec(statement)) {
                 rollback();
                 return queryFailure(StoreErrorCode::MigrationFailed, migration_query,
-                                    QStringLiteral("apply migration 1"));
+                                    QStringLiteral("apply migration %1").arg(next_version));
             }
         }
 
         QSqlQuery record(database_);
         record.prepare(
-            QStringLiteral("INSERT INTO schema_migrations(version, applied_at_utc) VALUES(1, ?)"));
+            QStringLiteral("INSERT INTO schema_migrations(version, applied_at_utc) VALUES(?, ?)"));
+        record.addBindValue(next_version);
         record.addBindValue(QStringLiteral("2026-08-11T00:00:00Z"));
         if (!record.exec()) {
             rollback();
             return queryFailure(StoreErrorCode::MigrationFailed, record,
-                                QStringLiteral("record migration 1"));
+                                QStringLiteral("record migration %1").arg(next_version));
         }
     }
     return commit();
 }
 
-std::expected<void, StoreError> SessionStore::createSession(const QString& session_id,
-                                                            const QString& engine_revision,
-                                                            const QString& created_at_utc,
-                                                            const std::vector<RevisionPin>& pins) {
+std::expected<void, StoreError>
+SessionStore::createSession(const QString& session_id, const QString& engine_revision,
+                            const QString& created_at_utc, const std::vector<RevisionPin>& pins,
+                            SessionAuthorityContract authority_contract) {
+    const auto authority_contract_name = authorityContractName(authority_contract);
     if (!validText(session_id) || !validText(engine_revision) ||
-        !validCanonicalUtc(created_at_utc) || pins.empty() ||
-        pins.size() > maximum_session_pins) {
+        !validCanonicalUtc(created_at_utc) || pins.empty() || pins.size() > maximum_session_pins ||
+        !authority_contract_name.has_value()) {
         return fail(
             StoreErrorCode::InvalidArgument,
             QStringLiteral("Session identity, engine revision, time, and pins are required"));
@@ -358,10 +403,11 @@ std::expected<void, StoreError> SessionStore::createSession(const QString& sessi
 
     QSqlQuery session(database_);
     session.prepare(QStringLiteral(
-        "INSERT INTO sessions(session_id, engine_revision, sequence, created_at_utc) "
-        "VALUES(?, ?, 0, ?)"));
+        "INSERT INTO sessions(session_id, engine_revision, authority_contract, sequence, "
+        "created_at_utc) VALUES(?, ?, ?, 0, ?)"));
     session.addBindValue(session_id);
     session.addBindValue(engine_revision);
+    session.addBindValue(*authority_contract_name);
     session.addBindValue(created_at_utc);
     if (!session.exec()) {
         rollback();
@@ -541,8 +587,8 @@ std::expected<qint64, StoreError> SessionStore::append(const QString& session_id
 std::expected<SessionSnapshot, StoreError>
 SessionStore::loadSession(const QString& session_id) const {
     QSqlQuery session(database_);
-    session.prepare(
-        QStringLiteral("SELECT engine_revision, sequence FROM sessions WHERE session_id = ?"));
+    session.prepare(QStringLiteral(
+        "SELECT engine_revision, authority_contract, sequence FROM sessions WHERE session_id = ?"));
     session.addBindValue(session_id);
     if (!session.exec()) {
         return queryFailure(StoreErrorCode::QueryFailed, session, QStringLiteral("load session"));
@@ -551,9 +597,16 @@ SessionStore::loadSession(const QString& session_id) const {
         return fail(StoreErrorCode::NotFound, QStringLiteral("Session not found"));
     }
 
+    const auto authority_contract = parseAuthorityContract(session.value(1).toString());
+    if (!authority_contract.has_value()) {
+        return fail(StoreErrorCode::ConstraintViolation,
+                    QStringLiteral("Stored session authority contract is invalid"));
+    }
+
     SessionSnapshot snapshot{session_id,
                              session.value(0).toString(),
-                             session.value(1).toLongLong(),
+                             *authority_contract,
+                             session.value(2).toLongLong(),
                              {},
                              {},
                              {},
@@ -660,8 +713,7 @@ std::expected<void, StoreError> SessionStore::backupTo(const QString& backup_pat
         return queryFailure(StoreErrorCode::BackupFailed, backup,
                             QStringLiteral("create consistent database backup"));
     }
-    if (!QFile::setPermissions(absolute_backup,
-                               QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
+    if (!QFile::setPermissions(absolute_backup, QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
         return fail(StoreErrorCode::BackupFailed,
                     QStringLiteral("Cannot restrict backup permissions"));
     }
@@ -675,8 +727,8 @@ std::expected<void, StoreError> SessionStore::backupTo(const QString& backup_pat
     return verifyDatabase(absolute_backup, StoreErrorCode::BackupFailed);
 }
 
-std::expected<void, StoreError>
-SessionStore::restoreBackup(const QString& backup_path, const QString& destination_path) {
+std::expected<void, StoreError> SessionStore::restoreBackup(const QString& backup_path,
+                                                            const QString& destination_path) {
     if (backup_path.isEmpty() || destination_path.isEmpty()) {
         return fail(StoreErrorCode::InvalidArgument,
                     QStringLiteral("Backup and restore paths are required"));
@@ -690,7 +742,7 @@ SessionStore::restoreBackup(const QString& backup_path, const QString& destinati
                     QStringLiteral("Restore source must be a real backup and destination new"));
     }
     if (const auto verified =
-            verifyDatabase(source_info.absoluteFilePath(), StoreErrorCode::RestoreFailed);
+            verifyDatabase(source_info.absoluteFilePath(), StoreErrorCode::RestoreFailed, true);
         !verified) {
         return verified;
     }
@@ -707,8 +759,7 @@ SessionStore::restoreBackup(const QString& backup_path, const QString& destinati
     QTemporaryFile staged(QDir(parent).filePath(QStringLiteral(".restore-XXXXXX.tmp")));
     staged.setAutoRemove(true);
     if (!staged.open()) {
-        return fail(StoreErrorCode::RestoreFailed,
-                    QStringLiteral("Cannot create staged restore"));
+        return fail(StoreErrorCode::RestoreFailed, QStringLiteral("Cannot create staged restore"));
     }
     std::array<char, backup_buffer_bytes> buffer{};
     while (true) {
@@ -731,12 +782,11 @@ SessionStore::restoreBackup(const QString& backup_path, const QString& destinati
     }
     const auto staged_path = staged.fileName();
     staged.close();
-    if (const auto verified = verifyDatabase(staged_path, StoreErrorCode::RestoreFailed);
+    if (const auto verified = verifyDatabase(staged_path, StoreErrorCode::RestoreFailed, true);
         !verified) {
         return verified;
     }
-    if (!QFile::setPermissions(staged_path,
-                               QFileDevice::ReadOwner | QFileDevice::WriteOwner) ||
+    if (!QFile::setPermissions(staged_path, QFileDevice::ReadOwner | QFileDevice::WriteOwner) ||
         !QFile::rename(staged_path, destination_info.absoluteFilePath())) {
         return fail(StoreErrorCode::RestoreFailed,
                     QStringLiteral("Cannot atomically commit restored database"));

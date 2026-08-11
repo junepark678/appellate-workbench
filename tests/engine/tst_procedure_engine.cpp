@@ -28,6 +28,19 @@ using namespace std::chrono_literals;
     };
 }
 
+[[nodiscard]] appellate::model::AuthorityProvenance provenance() {
+    return appellate::model::AuthorityProvenance{
+        appellate::model::AuthorityType::Rule,
+        "us.federal",
+        "us.ca4",
+        appellate::model::PrecedentialStatus::NotApplicable,
+        true,
+        "2026-08-11",
+        "Fed. R. App. P. 3(a)",
+        "https://www.ca4.uscourts.gov/rules/Rule03.html",
+    };
+}
+
 struct Fixture final {
     appellate::model::ProcedureDefinition procedure{
         appellate::model::ProcedureId{"test.procedure.civil"},
@@ -96,6 +109,7 @@ class ProcedureEngineTest final : public QObject {
     void cureAndReplayProduceIdenticalState();
     void rejectsExpiredCure();
     void refusesDefinitionWithoutAuthority();
+    void validatesCompleteProvenanceAndRejectsMutations();
 };
 
 void ProcedureEngineTest::producesDeterministicSourcedAcceptance() {
@@ -206,6 +220,84 @@ void ProcedureEngineTest::refusesDefinitionWithoutAuthority() {
 
     QVERIFY(!decision.has_value());
     QCOMPARE(decision.error().code, appellate::engine::ErrorCode::MissingAuthority);
+}
+
+void ProcedureEngineTest::validatesCompleteProvenanceAndRejectsMutations() {
+    auto fixture = Fixture{};
+    auto& rule = fixture.procedure.initiating_filing;
+    rule.filing_authority.primary.provenance = provenance();
+    rule.actor_authority.primary.provenance = provenance();
+    rule.deficiency_authority.primary.provenance = provenance();
+    auto decision =
+        appellate::engine::decide(fixture.procedure, fixture.case_definition, fixture.state,
+                                  fixture.command("test.submission.provenance", date(2026, 8, 13)));
+    QVERIFY(decision.has_value());
+    const auto* accepted = std::get_if<appellate::model::FilingAccepted>(&decision->front());
+    QVERIFY(accepted != nullptr);
+    QVERIFY(accepted->authority.primary.provenance.has_value());
+
+    rule.filing_authority.primary.provenance->source_url =
+        "http://www.ca4.uscourts.gov/rules/Rule03.html";
+    decision =
+        appellate::engine::decide(fixture.procedure, fixture.case_definition, fixture.state,
+                                  fixture.command("test.submission.bad-url", date(2026, 8, 13)));
+    QVERIFY(!decision.has_value());
+    QCOMPARE(decision.error().code, appellate::engine::ErrorCode::MissingAuthority);
+
+    rule.filing_authority.primary.provenance = provenance();
+    rule.filing_authority.primary.provenance->precedential_status =
+        static_cast<appellate::model::PrecedentialStatus>(99);
+    decision =
+        appellate::engine::decide(fixture.procedure, fixture.case_definition, fixture.state,
+                                  fixture.command("test.submission.bad-status", date(2026, 8, 13)));
+    QVERIFY(!decision.has_value());
+    QCOMPARE(decision.error().code, appellate::engine::ErrorCode::MissingAuthority);
+
+    rule.filing_authority.primary.provenance = provenance();
+    rule.filing_authority.primary.provenance->checked_on = "2025-08-11";
+    decision = appellate::engine::decide(
+        fixture.procedure, fixture.case_definition, fixture.state,
+        fixture.command("test.submission.bad-chronology", date(2026, 8, 13)));
+    QVERIFY(!decision.has_value());
+    QCOMPARE(decision.error().code, appellate::engine::ErrorCode::MissingAuthority);
+
+    rule.filing_authority.primary.provenance = provenance();
+    rule.filing_authority.supporting.push_back(authority("test.authority.legacy").primary);
+    decision =
+        appellate::engine::decide(fixture.procedure, fixture.case_definition, fixture.state,
+                                  fixture.command("test.submission.mixed", date(2026, 8, 13)));
+    QVERIFY(!decision.has_value());
+    QCOMPARE(decision.error().code, appellate::engine::ErrorCode::MissingAuthority);
+
+    rule.filing_authority.supporting.clear();
+    rule.filing_authority.supporting.push_back(rule.filing_authority.primary);
+    decision = appellate::engine::decide(
+        fixture.procedure, fixture.case_definition, fixture.state,
+        fixture.command("test.submission.duplicate-authority", date(2026, 8, 13)));
+    QVERIFY(!decision.has_value());
+    QCOMPARE(decision.error().code, appellate::engine::ErrorCode::MissingAuthority);
+
+    rule.filing_authority.supporting.clear();
+    rule.actor_authority.primary.provenance.reset();
+    decision = appellate::engine::decide(
+        fixture.procedure, fixture.case_definition, fixture.state,
+        fixture.command("test.submission.mixed-procedure", date(2026, 8, 13)));
+    QVERIFY(!decision.has_value());
+    QCOMPARE(decision.error().code, appellate::engine::ErrorCode::MissingAuthority);
+
+    rule.actor_authority.primary.provenance = provenance();
+    auto unicode_value = std::string{};
+    unicode_value.reserve(2000 * std::string("한").size());
+    for (int index = 0; index < 2000; ++index) {
+        unicode_value += "한";
+    }
+    rule.filing_authority.primary.citation = unicode_value;
+    rule.filing_authority.primary.proposition = unicode_value;
+    rule.filing_authority.primary.provenance->locator = unicode_value;
+    decision = appellate::engine::decide(
+        fixture.procedure, fixture.case_definition, fixture.state,
+        fixture.command("test.submission.unicode-authority", date(2026, 8, 13)));
+    QVERIFY(decision.has_value());
 }
 
 } // namespace

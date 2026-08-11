@@ -14,6 +14,10 @@
     {
       "id": "workbench.pack.voice-style",
       "version": 2
+    },
+    {
+      "id": "workbench.pack.canonical-authority",
+      "version": 1
     }
   ],
   "dependencies": [],
@@ -38,7 +42,7 @@
       "kind": "authority_set",
       "schema_version": 2,
       "path": "resources/authority-set.json",
-      "sha256": "1a7668815c2f19f71315c05afc97f8dd99f4b1ba32943ea1883b503436864ef7"
+      "sha256": "13c4d1d65e1fbc224b58de525147b7a9d25bd37e121b776cfc2c8f29dda5a791"
     },
     {
       "id": "example.bench.fictional",
@@ -108,7 +112,7 @@
       "kind": "workflow",
       "schema_version": 2,
       "path": "resources/workflow.json",
-      "sha256": "d6db84c96778e9477fce7092ac9ec845a02f8a0e13c6944b15d8a0da7ce10d27"
+      "sha256": "df6a7eeb3ed10525793e234ed9c0ebcd8e356432d911f3bb791e0853aeb81bbb"
     }
   ]
 }

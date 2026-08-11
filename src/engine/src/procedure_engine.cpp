@@ -4,27 +4,130 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <functional>
 #include <ranges>
+#include <string>
 #include <string_view>
 #include <type_traits>
+#include <unordered_set>
 #include <utility>
 
 namespace appellate::engine {
 namespace {
 
+constexpr std::size_t maximum_supporting_authorities = 32;
+
 [[nodiscard]] auto fail(ErrorCode code, std::string message) -> std::unexpected<Error> {
     return std::unexpected(Error{code, std::move(message)});
 }
 
+[[nodiscard]] bool validNamespacedId(std::string_view value) {
+    if (value.size() < 3 || value.size() > 160) {
+        return false;
+    }
+    bool has_separator = false;
+    bool previous_was_separator = true;
+    for (const char raw_character : value) {
+        const auto character = static_cast<unsigned char>(raw_character);
+        const auto alphanumeric =
+            std::isdigit(character) != 0 || (character >= static_cast<unsigned char>('a') &&
+                                             character <= static_cast<unsigned char>('z'));
+        const auto separator = character == static_cast<unsigned char>('.') ||
+                               character == static_cast<unsigned char>('-');
+        if ((!alphanumeric && !separator) || (separator && previous_was_separator)) {
+            return false;
+        }
+        has_separator = has_separator || separator;
+        previous_was_separator = separator;
+    }
+    return has_separator && !previous_was_separator;
+}
+
+[[nodiscard]] bool validDateText(std::string_view value) {
+    if (value.size() != 10 || value[4] != '-' || value[7] != '-') {
+        return false;
+    }
+    for (const auto index : {std::size_t{0}, std::size_t{1}, std::size_t{2}, std::size_t{3},
+                             std::size_t{5}, std::size_t{6}, std::size_t{8}, std::size_t{9}}) {
+        if (std::isdigit(static_cast<unsigned char>(value[index])) == 0) {
+            return false;
+        }
+    }
+    const auto digit = [&](std::size_t index) { return value[index] - '0'; };
+    const auto year = digit(0) * 1000 + digit(1) * 100 + digit(2) * 10 + digit(3);
+    const auto month = digit(5) * 10 + digit(6);
+    const auto day = digit(8) * 10 + digit(9);
+    return year >= 1 &&
+           (std::chrono::year{year} / std::chrono::month{static_cast<unsigned>(month)} /
+            std::chrono::day{static_cast<unsigned>(day)})
+               .ok();
+}
+
+[[nodiscard]] bool validAuthorityType(model::AuthorityType type) {
+    switch (type) {
+    case model::AuthorityType::Constitution:
+    case model::AuthorityType::Statute:
+    case model::AuthorityType::Rule:
+    case model::AuthorityType::Regulation:
+    case model::AuthorityType::Case:
+    case model::AuthorityType::Order:
+    case model::AuthorityType::AdministrativeDecision:
+    case model::AuthorityType::Other:
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] bool validPrecedentialStatus(model::PrecedentialStatus status) {
+    switch (status) {
+    case model::PrecedentialStatus::NotApplicable:
+    case model::PrecedentialStatus::Precedential:
+    case model::PrecedentialStatus::Nonprecedential:
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] bool validProvenance(const model::AuthorityProvenance& provenance) {
+    return validAuthorityType(provenance.type) && validNamespacedId(provenance.jurisdiction_id) &&
+           validNamespacedId(provenance.issuing_body_id) &&
+           validPrecedentialStatus(provenance.precedential_status) &&
+           validDateText(provenance.checked_on) &&
+           model::isCanonicalAuthorityText(provenance.locator, 4096) &&
+           model::isCanonicalAuthoritySourceUrl(provenance.source_url);
+}
+
 [[nodiscard]] bool validAuthorityRef(const model::AuthorityRef& authority) {
-    return !authority.id.value.empty() && !authority.citation.empty() &&
-           !authority.source_version.empty() && !authority.proposition.empty();
+    const auto legacy_complete = !authority.id.value.empty() && !authority.citation.empty() &&
+                                 !authority.source_version.empty() &&
+                                 !authority.proposition.empty();
+    if (!legacy_complete || !authority.provenance.has_value()) {
+        return legacy_complete;
+    }
+    return validNamespacedId(authority.id.value) &&
+           model::isCanonicalAuthorityText(authority.citation, 4096) &&
+           validDateText(authority.source_version) &&
+           model::isCanonicalAuthorityText(authority.proposition, 4096) &&
+           validProvenance(*authority.provenance) &&
+           model::authorityVerificationNotBeforeSource(authority.source_version,
+                                                       authority.provenance->checked_on);
 }
 
 [[nodiscard]] bool validAuthority(const model::AuthorityBasis& authority) {
-    return validAuthorityRef(authority.primary) &&
-           std::ranges::all_of(authority.supporting, validAuthorityRef);
+    const auto has_provenance = authority.primary.provenance.has_value();
+    if (!validAuthorityRef(authority.primary) ||
+        authority.supporting.size() > maximum_supporting_authorities ||
+        !std::ranges::all_of(authority.supporting, [&](const auto& supporting) {
+            return supporting.provenance.has_value() == has_provenance &&
+                   validAuthorityRef(supporting);
+        })) {
+        return false;
+    }
+    std::unordered_set<std::string> identifiers{authority.primary.id.value};
+    return std::ranges::all_of(authority.supporting, [&](const auto& supporting) {
+        return identifiers.emplace(supporting.id.value).second;
+    });
 }
 
 [[nodiscard]] bool validDigest(std::string_view digest) {
@@ -70,6 +173,12 @@ template <typename Range, typename Projection>
         !validAuthority(rule.deficiency_authority)) {
         return fail(ErrorCode::MissingAuthority,
                     "every rule-driven filing transition requires a complete authority");
+    }
+    const auto uses_canonical_authority = rule.filing_authority.primary.provenance.has_value();
+    if (rule.actor_authority.primary.provenance.has_value() != uses_canonical_authority ||
+        rule.deficiency_authority.primary.provenance.has_value() != uses_canonical_authority) {
+        return fail(ErrorCode::MissingAuthority,
+                    "a procedure cannot mix legacy and canonical authority generations");
     }
     if (case_definition.id.value.empty() || case_definition.procedure_id != procedure.id ||
         case_definition.actors.empty() ||

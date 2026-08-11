@@ -56,13 +56,6 @@ class SessionController final {
     create(model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
            model::SessionState initial_state, storage::AssetStore asset_store,
            std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
-           QString created_at_utc, std::vector<storage::RevisionPin> pins)
-        -> std::expected<std::unique_ptr<SessionController>, SessionControllerError>;
-
-    [[nodiscard]] static auto
-    create(model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
-           model::SessionState initial_state, storage::AssetStore asset_store,
-           std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
            QString created_at_utc, const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<SessionController>, SessionControllerError>;
 
@@ -88,6 +81,17 @@ class SessionController final {
     [[nodiscard]] const storage::SessionSnapshot& snapshot() const noexcept;
 
   private:
+    friend class SessionControllerTestAccess;
+
+    // Test-only seam for the pre-workflow legacy controller. Production creation must bind its
+    // exact revision pins through the schema-v1 ResolvedPack overload above.
+    [[nodiscard]] static auto
+    create(model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
+           model::SessionState initial_state, storage::AssetStore asset_store,
+           std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+           QString created_at_utc, std::vector<storage::RevisionPin> pins)
+        -> std::expected<std::unique_ptr<SessionController>, SessionControllerError>;
+
     SessionController(model::ProcedureDefinition procedure, model::CaseDefinition case_definition,
                       model::SessionState state, storage::AssetStore asset_store,
                       std::unique_ptr<storage::SessionStore> session_store,

@@ -101,14 +101,60 @@ constexpr std::uint32_t max_events_per_command = 3;
            });
 }
 
+[[nodiscard]] bool validAuthorityType(model::AuthorityType type) {
+    switch (type) {
+    case model::AuthorityType::Constitution:
+    case model::AuthorityType::Statute:
+    case model::AuthorityType::Rule:
+    case model::AuthorityType::Regulation:
+    case model::AuthorityType::Case:
+    case model::AuthorityType::Order:
+    case model::AuthorityType::AdministrativeDecision:
+    case model::AuthorityType::Other:
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] bool validPrecedentialStatus(model::PrecedentialStatus status) {
+    switch (status) {
+    case model::PrecedentialStatus::NotApplicable:
+    case model::PrecedentialStatus::Precedential:
+    case model::PrecedentialStatus::Nonprecedential:
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] bool validProvenance(const model::AuthorityProvenance& provenance) {
+    return validAuthorityType(provenance.type) && validNamespacedId(provenance.jurisdiction_id) &&
+           validNamespacedId(provenance.issuing_body_id) &&
+           validPrecedentialStatus(provenance.precedential_status) &&
+           validSourceVersion(provenance.checked_on) &&
+           model::isCanonicalAuthorityText(provenance.locator, 4096) &&
+           model::isCanonicalAuthoritySourceUrl(provenance.source_url);
+}
+
 [[nodiscard]] bool validAuthorityRef(const model::AuthorityRef& authority) {
-    return validNamespacedId(authority.id.value) && validText(authority.citation, 4096) &&
-           validSourceVersion(authority.source_version) && validText(authority.proposition, 4096);
+    if (!authority.provenance.has_value()) {
+        return validNamespacedId(authority.id.value) && validText(authority.citation, 4096) &&
+               validSourceVersion(authority.source_version) &&
+               validText(authority.proposition, 4096);
+    }
+    return validNamespacedId(authority.id.value) && validSourceVersion(authority.source_version) &&
+           model::isCanonicalAuthorityText(authority.citation, 4096) &&
+           model::isCanonicalAuthorityText(authority.proposition, 4096) &&
+           validProvenance(*authority.provenance) &&
+           model::authorityVerificationNotBeforeSource(authority.source_version,
+                                                       authority.provenance->checked_on);
 }
 
 [[nodiscard]] bool validAuthority(const model::AuthorityBasis& authority) {
     if (!validAuthorityRef(authority.primary) || authority.supporting.size() > max_authorities ||
-        !std::ranges::all_of(authority.supporting, validAuthorityRef)) {
+        !std::ranges::all_of(authority.supporting, [&](const auto& supporting) {
+            return supporting.provenance.has_value() == authority.primary.provenance.has_value() &&
+                   validAuthorityRef(supporting);
+        })) {
         return false;
     }
     std::unordered_set<std::string> identifiers{authority.primary.id.value};
@@ -270,6 +316,8 @@ template <typename Range, typename Projection>
         return fail(WorkflowErrorCode::InvalidDefinition, "invalid stages or court holidays");
     }
 
+    const auto uses_canonical_authority =
+        workflow.operations.front().authority.primary.provenance.has_value();
     for (const auto& operation : workflow.operations) {
         if (!validNamespacedId(operation.id.value) || !validOpcode(operation.opcode) ||
             std::ranges::find(workflow.stages, operation.stage_id) == workflow.stages.end() ||
@@ -287,6 +335,10 @@ template <typename Range, typename Projection>
         if (!validAuthority(operation.authority)) {
             return fail(WorkflowErrorCode::MissingAuthority,
                         "every workflow operation requires complete versioned authority");
+        }
+        if (operation.authority.primary.provenance.has_value() != uses_canonical_authority) {
+            return fail(WorkflowErrorCode::MissingAuthority,
+                        "a workflow cannot mix legacy and canonical authority generations");
         }
         const auto may_calculate_deadline =
             operation.opcode == model::WorkflowOpcode::CalculateDeadline ||
@@ -883,8 +935,7 @@ decideOrder(const model::WorkflowDefinition& workflow, const model::CaseDefiniti
     if (!validNamespacedId(command.deadline_id.value) ||
         state.deadlines.size() == max_state_items ||
         deadlineFor(state, command.deadline_id) != nullptr ||
-        !(**operation).deadline_days.has_value() ||
-        !(**operation).deadline_counting.has_value()) {
+        !(**operation).deadline_days.has_value() || !(**operation).deadline_counting.has_value()) {
         return fail(WorkflowErrorCode::InvalidCommand,
                     "invalid or duplicate court-calculated deadline");
     }
@@ -899,10 +950,10 @@ decideOrder(const model::WorkflowDefinition& workflow, const model::CaseDefiniti
         model::WorkflowDeadlinePurpose::Filing, command.header.occurred_at.court_date, due}};
 }
 
-[[nodiscard]] auto
-decideAdvance(const model::WorkflowDefinition& workflow,
-              const model::CaseDefinition& case_definition, const model::WorkflowState& state,
-              const model::AdvanceWorkflowStage& command)
+[[nodiscard]] auto decideAdvance(const model::WorkflowDefinition& workflow,
+                                 const model::CaseDefinition& case_definition,
+                                 const model::WorkflowState& state,
+                                 const model::AdvanceWorkflowStage& command)
     -> std::expected<std::vector<model::WorkflowEvent>, WorkflowError> {
     const auto operation = requireCourtOperation(workflow, case_definition, state, command,
                                                  model::WorkflowOpcode::AdvanceStage);
@@ -913,9 +964,9 @@ decideAdvance(const model::WorkflowDefinition& workflow,
         return fail(WorkflowErrorCode::InvalidDefinition,
                     "advance operation has no destination stage");
     }
-    return std::vector<model::WorkflowEvent>{model::WorkflowStageAdvanced{
-        makeHeader(workflow, state, command.header, **operation, 0, 1), state.current_stage_id,
-        *(**operation).next_stage_id}};
+    return std::vector<model::WorkflowEvent>{
+        model::WorkflowStageAdvanced{makeHeader(workflow, state, command.header, **operation, 0, 1),
+                                     state.current_stage_id, *(**operation).next_stage_id}};
 }
 
 template <typename Event>

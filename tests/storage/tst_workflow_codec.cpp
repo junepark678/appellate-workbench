@@ -1,5 +1,6 @@
 #include "appellate/storage/workflow_codec.hpp"
 
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTest>
@@ -30,15 +31,31 @@ using storage::WorkflowCodecErrorCode;
         date(2026, 8, 14)};
 }
 
-[[nodiscard]] model::AuthorityRef authorityRef(std::string id, std::string proposition) {
-    return model::AuthorityRef{model::AuthorityId{std::move(id)}, "Fed. R. App. P. test",
-                               "2026-08-11", std::move(proposition)};
+[[nodiscard]] model::AuthorityProvenance
+provenance(model::AuthorityType type = model::AuthorityType::Rule,
+           model::PrecedentialStatus status = model::PrecedentialStatus::NotApplicable) {
+    return model::AuthorityProvenance{type,
+                                      "us.federal",
+                                      "us.ca4",
+                                      status,
+                                      true,
+                                      "2026-08-11",
+                                      "Fed. R. App. P. test",
+                                      "https://www.ca4.uscourts.gov/rules/Rule03.html"};
 }
 
-[[nodiscard]] model::AuthorityBasis authority() {
+[[nodiscard]] model::AuthorityRef authorityRef(std::string id, std::string proposition,
+                                               bool with_provenance = false) {
+    return model::AuthorityRef{model::AuthorityId{std::move(id)}, "Fed. R. App. P. test",
+                               "2026-08-11", std::move(proposition),
+                               with_provenance ? std::optional{provenance()} : std::nullopt};
+}
+
+[[nodiscard]] model::AuthorityBasis authority(bool with_provenance = false) {
     return model::AuthorityBasis{
-        authorityRef("test.authority.primary", "Primary workflow proposition"),
-        {authorityRef("test.authority.supporting", "Supporting workflow proposition")}};
+        authorityRef("test.authority.primary", "Primary workflow proposition", with_provenance),
+        {authorityRef("test.authority.supporting", "Supporting workflow proposition",
+                      with_provenance)}};
 }
 
 [[nodiscard]] model::WorkflowCommandHeader commandHeader(std::string command_id) {
@@ -94,10 +111,9 @@ eventHeader(std::string command_id, std::string operation_id, std::uint64_t sequ
         model::IssueWorkflowMandate{commandHeader("test.command.mandate"),
                                     model::WorkflowOperationId{"test.operation.mandate"},
                                     std::string(64, 'd')},
-        model::CalculateWorkflowDeadline{
-            commandHeader("test.command.deadline"),
-            model::WorkflowOperationId{"test.operation.deadline"},
-            model::WorkflowDeadlineId{"test.deadline.opening"}},
+        model::CalculateWorkflowDeadline{commandHeader("test.command.deadline"),
+                                         model::WorkflowOperationId{"test.operation.deadline"},
+                                         model::WorkflowDeadlineId{"test.deadline.opening"}},
         model::AdvanceWorkflowStage{commandHeader("test.command.advance"),
                                     model::WorkflowOperationId{"test.operation.advance"}},
     };
@@ -182,6 +198,10 @@ class WorkflowCodecTest final : public QObject {
   private slots:
     void roundTripsEveryCommandVariant();
     void roundTripsEveryEventVariant();
+    void preservesLegacyEventSchemaOneBytes();
+    void roundTripsCompleteProvenanceInEventSchemaTwo();
+    void rejectsAuthoritySchemaDowngradesAndMixedForms();
+    void rejectsMutatedProvenance();
     void roundTripsEveryEnumValue();
     void rejectsUnknownTypesVersionsAndKeys();
     void rejectsMalformedIdsDigestsTimesAndEnums();
@@ -192,9 +212,9 @@ class WorkflowCodecTest final : public QObject {
 
 void WorkflowCodecTest::roundTripsEveryCommandVariant() {
     const QStringList expected_types{
-        QStringLiteral("filing.submit"),  QStringLiteral("order.enter"),
-        QStringLiteral("sealed.set"),     QStringLiteral("argument.schedule"),
-        QStringLiteral("judgment.issue"), QStringLiteral("mandate.issue"),
+        QStringLiteral("filing.submit"),      QStringLiteral("order.enter"),
+        QStringLiteral("sealed.set"),         QStringLiteral("argument.schedule"),
+        QStringLiteral("judgment.issue"),     QStringLiteral("mandate.issue"),
         QStringLiteral("deadline.calculate"), QStringLiteral("stage.advance")};
     const auto values = commands();
     QCOMPARE(values.size(), static_cast<std::size_t>(expected_types.size()));
@@ -258,6 +278,162 @@ void WorkflowCodecTest::roundTripsEveryEventVariant() {
     const auto payload =
         QJsonDocument::fromJson(*encoded).object().value(QStringLiteral("payload")).toObject();
     QVERIFY(payload.value(QStringLiteral("cure_deadline_id")).isNull());
+}
+
+void WorkflowCodecTest::preservesLegacyEventSchemaOneBytes() {
+    const auto event = events().front();
+    const auto encoded = storage::encodeWorkflowEvent(event);
+    QVERIFY(encoded.has_value());
+    const auto envelope = QJsonDocument::fromJson(*encoded).object();
+    QCOMPARE(envelope.value(QStringLiteral("schema_version")).toInt(), 1);
+    const auto primary = envelope.value(QStringLiteral("payload"))
+                             .toObject()
+                             .value(QStringLiteral("authority"))
+                             .toObject()
+                             .value(QStringLiteral("primary"))
+                             .toObject();
+    QVERIFY(!primary.contains(QStringLiteral("provenance")));
+    const auto decoded = storage::decodeWorkflowEvent(*encoded);
+    QVERIFY(decoded.has_value());
+    const auto reencoded = storage::encodeWorkflowEvent(*decoded);
+    QVERIFY(reencoded.has_value());
+    QCOMPARE(*reencoded, *encoded);
+}
+
+void WorkflowCodecTest::roundTripsCompleteProvenanceInEventSchemaTwo() {
+    const std::vector types{model::AuthorityType::Constitution,
+                            model::AuthorityType::Statute,
+                            model::AuthorityType::Rule,
+                            model::AuthorityType::Regulation,
+                            model::AuthorityType::Case,
+                            model::AuthorityType::Order,
+                            model::AuthorityType::AdministrativeDecision,
+                            model::AuthorityType::Other};
+    const std::vector statuses{model::PrecedentialStatus::NotApplicable,
+                               model::PrecedentialStatus::Precedential,
+                               model::PrecedentialStatus::Nonprecedential};
+    for (const auto type : types) {
+        for (const auto status : statuses) {
+            auto concrete = std::get<model::WorkflowFilingAccepted>(events().front());
+            concrete.header.authority = authority(true);
+            concrete.header.authority.primary.provenance = provenance(type, status);
+            concrete.header.authority.supporting.front().provenance = provenance(type, status);
+            const model::WorkflowEvent event = concrete;
+            const auto encoded = storage::encodeWorkflowEvent(event);
+            QVERIFY(encoded.has_value());
+            const auto envelope = QJsonDocument::fromJson(*encoded).object();
+            QCOMPARE(envelope.value(QStringLiteral("schema_version")).toInt(), 2);
+            const auto decoded = storage::decodeWorkflowEvent(*encoded);
+            QVERIFY(decoded.has_value());
+            QVERIFY(*decoded == event);
+            const auto reencoded = storage::encodeWorkflowEvent(*decoded);
+            QVERIFY(reencoded.has_value());
+            QCOMPARE(*reencoded, *encoded);
+        }
+    }
+
+    auto unicode_text = std::string{};
+    unicode_text.reserve(2000 * std::string("한").size());
+    for (int index = 0; index < 2000; ++index) {
+        unicode_text += "한";
+    }
+    auto unicode = std::get<model::WorkflowFilingAccepted>(events().front());
+    unicode.header.authority = authority(true);
+    unicode.header.authority.primary.citation = unicode_text;
+    unicode.header.authority.primary.proposition = unicode_text;
+    unicode.header.authority.primary.provenance->locator = unicode_text;
+    auto encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{unicode});
+    QVERIFY(encoded.has_value());
+    auto decoded = storage::decodeWorkflowEvent(*encoded);
+    QVERIFY(decoded.has_value());
+    QVERIFY(*decoded == model::WorkflowEvent{unicode});
+
+    unicode.header.authority.primary.proposition = "invalid\nproposition";
+    encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{unicode});
+    QVERIFY(!encoded.has_value());
+    QCOMPARE(encoded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+}
+
+void WorkflowCodecTest::rejectsAuthoritySchemaDowngradesAndMixedForms() {
+    auto concrete = std::get<model::WorkflowFilingAccepted>(events().front());
+    concrete.header.authority = authority(true);
+    concrete.header.authority.supporting.front().provenance.reset();
+    auto encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{concrete});
+    QVERIFY(!encoded.has_value());
+    QCOMPARE(encoded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+
+    concrete.header.authority = authority(true);
+    auto envelope = eventObject(model::WorkflowEvent{concrete});
+    envelope.insert(QStringLiteral("schema_version"), 1);
+    auto decoded = storage::decodeWorkflowEvent(compact(envelope));
+    QVERIFY(!decoded.has_value());
+    QCOMPARE(decoded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+
+    envelope = eventObject(events().front());
+    envelope.insert(QStringLiteral("schema_version"), 2);
+    decoded = storage::decodeWorkflowEvent(compact(envelope));
+    QVERIFY(!decoded.has_value());
+    QCOMPARE(decoded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+
+    envelope = eventObject(model::WorkflowEvent{concrete});
+    auto payload = envelope.value(QStringLiteral("payload")).toObject();
+    auto authority_object = payload.value(QStringLiteral("authority")).toObject();
+    auto supporting = authority_object.value(QStringLiteral("supporting")).toArray();
+    auto supporting_ref = supporting.first().toObject();
+    supporting_ref.remove(QStringLiteral("provenance"));
+    supporting.replace(0, supporting_ref);
+    authority_object.insert(QStringLiteral("supporting"), supporting);
+    payload.insert(QStringLiteral("authority"), authority_object);
+    envelope.insert(QStringLiteral("payload"), payload);
+    decoded = storage::decodeWorkflowEvent(compact(envelope));
+    QVERIFY(!decoded.has_value());
+    QCOMPARE(decoded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+
+    envelope = eventObject(model::WorkflowEvent{concrete});
+    payload = envelope.value(QStringLiteral("payload")).toObject();
+    authority_object = payload.value(QStringLiteral("authority")).toObject();
+    auto primary = authority_object.value(QStringLiteral("primary")).toObject();
+    auto source = primary.value(QStringLiteral("provenance")).toObject();
+    source.insert(QStringLiteral("checked_on"), QStringLiteral("2025-08-11"));
+    primary.insert(QStringLiteral("provenance"), source);
+    authority_object.insert(QStringLiteral("primary"), primary);
+    payload.insert(QStringLiteral("authority"), authority_object);
+    envelope.insert(QStringLiteral("payload"), payload);
+    decoded = storage::decodeWorkflowEvent(compact(envelope));
+    QVERIFY(!decoded.has_value());
+    QCOMPARE(decoded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+}
+
+void WorkflowCodecTest::rejectsMutatedProvenance() {
+    auto concrete = std::get<model::WorkflowFilingAccepted>(events().front());
+    concrete.header.authority = authority(true);
+    auto envelope = eventObject(model::WorkflowEvent{concrete});
+    auto payload = envelope.value(QStringLiteral("payload")).toObject();
+    auto authority_object = payload.value(QStringLiteral("authority")).toObject();
+    auto primary = authority_object.value(QStringLiteral("primary")).toObject();
+    auto source = primary.value(QStringLiteral("provenance")).toObject();
+    source.insert(QStringLiteral("source_url"), QStringLiteral("http://example.invalid/rule"));
+    primary.insert(QStringLiteral("provenance"), source);
+    authority_object.insert(QStringLiteral("primary"), primary);
+    payload.insert(QStringLiteral("authority"), authority_object);
+    envelope.insert(QStringLiteral("payload"), payload);
+    auto decoded = storage::decodeWorkflowEvent(compact(envelope));
+    QVERIFY(!decoded.has_value());
+    QCOMPARE(decoded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+
+    envelope = eventObject(model::WorkflowEvent{concrete});
+    payload = envelope.value(QStringLiteral("payload")).toObject();
+    authority_object = payload.value(QStringLiteral("authority")).toObject();
+    primary = authority_object.value(QStringLiteral("primary")).toObject();
+    source = primary.value(QStringLiteral("provenance")).toObject();
+    source.insert(QStringLiteral("precedential_status"), QStringLiteral("binding"));
+    primary.insert(QStringLiteral("provenance"), source);
+    authority_object.insert(QStringLiteral("primary"), primary);
+    payload.insert(QStringLiteral("authority"), authority_object);
+    envelope.insert(QStringLiteral("payload"), payload);
+    decoded = storage::decodeWorkflowEvent(compact(envelope));
+    QVERIFY(!decoded.has_value());
+    QCOMPARE(decoded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
 }
 
 void WorkflowCodecTest::roundTripsEveryEnumValue() {

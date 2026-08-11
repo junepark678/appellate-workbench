@@ -144,8 +144,9 @@ validateSnapshot(const QString& session_id, const QString& expected_engine_revis
                  const storage::SessionSnapshot& snapshot)
     -> std::expected<model::OralArgumentState, OralArgumentSessionError> {
     if (snapshot.session_id != session_id || snapshot.engine_revision != expected_engine_revision ||
-        snapshot.pins != expected_pins || snapshot.sequence <= 0 ||
-        snapshot.sequence > static_cast<qint64>(maximum_events) ||
+        snapshot.pins != expected_pins ||
+        snapshot.authority_contract != storage::SessionAuthorityContract::LegacyV1 ||
+        snapshot.sequence <= 0 || snapshot.sequence > static_cast<qint64>(maximum_events) ||
         snapshot.commands.size() != snapshot.events.size() ||
         snapshot.events.size() != static_cast<std::size_t>(snapshot.sequence) ||
         !snapshot.docket.empty() || !snapshot.asset_references.empty()) {
@@ -299,8 +300,9 @@ OralArgumentSessionController::create(QString session_id,
         return engineFailure(projected.error(), OralArgumentSessionErrorCode::EngineFailure);
     }
 
-    if (const auto created = session_store->createSession(session_id, engine_revision,
-                                                          created_at_utc, *normalized_pins);
+    if (const auto created = session_store->createSession(
+            session_id, engine_revision, created_at_utc, *normalized_pins,
+            storage::SessionAuthorityContract::LegacyV1);
         !created) {
         return fail(OralArgumentSessionErrorCode::SessionStoreFailure, created.error().message);
     }

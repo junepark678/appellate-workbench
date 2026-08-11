@@ -13,13 +13,8 @@
       "stage_id": "example.stage.opened",
       "opcode": "reject_filing",
       "authority": {
-        "primary": {
-          "authority_id": "example.authority.filing-eligibility",
-          "citation": "Fictional Rule 2",
-          "source_version": "2026-01-01",
-          "proposition": "A filing that is not eligible at the current stage is rejected."
-        },
-        "supporting": []
+        "primary_authority_id": "example.authority.filing-eligibility",
+        "supporting_authority_ids": []
       },
       "authorized_role_ids": []
     },
@@ -28,13 +23,8 @@
       "stage_id": "example.stage.submitted",
       "opcode": "reject_filing",
       "authority": {
-        "primary": {
-          "authority_id": "example.authority.filing-eligibility",
-          "citation": "Fictional Rule 2",
-          "source_version": "2026-01-01",
-          "proposition": "A filing that is not eligible at the current stage is rejected."
-        },
-        "supporting": []
+        "primary_authority_id": "example.authority.filing-eligibility",
+        "supporting_authority_ids": []
       },
       "authorized_role_ids": []
     },
@@ -43,13 +33,8 @@
       "stage_id": "example.stage.opened",
       "opcode": "accept_filing",
       "authority": {
-        "primary": {
-          "authority_id": "example.authority.rule-one",
-          "citation": "Fictional Rule 1",
-          "source_version": "2026-01-01",
-          "proposition": "A notice starts the fictional appeal."
-        },
-        "supporting": []
+        "primary_authority_id": "example.authority.rule-one",
+        "supporting_authority_ids": []
       },
       "authorized_role_ids": []
     },
@@ -58,13 +43,8 @@
       "stage_id": "example.stage.opened",
       "opcode": "issue_deficiency",
       "authority": {
-        "primary": {
-          "authority_id": "example.authority.deficiency",
-          "citation": "Fictional Rule 3",
-          "source_version": "2026-01-01",
-          "proposition": "A deficient notice receives an opportunity to cure."
-        },
-        "supporting": []
+        "primary_authority_id": "example.authority.deficiency",
+        "supporting_authority_ids": []
       },
       "authorized_role_ids": []
     },
@@ -73,13 +53,8 @@
       "stage_id": "example.stage.opened",
       "opcode": "calculate_deadline",
       "authority": {
-        "primary": {
-          "authority_id": "example.authority.cure-deadline",
-          "citation": "Fictional Rule 4",
-          "source_version": "2026-01-01",
-          "proposition": "A deficient notice may be cured within two calendar days."
-        },
-        "supporting": []
+        "primary_authority_id": "example.authority.cure-deadline",
+        "supporting_authority_ids": []
       },
       "deadline_days": 2,
       "deadline_counting": "calendar_days",
@@ -90,13 +65,8 @@
       "stage_id": "example.stage.opened",
       "opcode": "advance_stage",
       "authority": {
-        "primary": {
-          "authority_id": "example.authority.submission",
-          "citation": "Fictional Rule 5",
-          "source_version": "2026-01-01",
-          "proposition": "Acceptance advances the appeal to submission."
-        },
-        "supporting": []
+        "primary_authority_id": "example.authority.submission",
+        "supporting_authority_ids": []
       },
       "next_stage_id": "example.stage.submitted",
       "authorized_role_ids": []
@@ -106,13 +76,8 @@
       "stage_id": "example.stage.submitted",
       "opcode": "issue_judgment",
       "authority": {
-        "primary": {
-          "authority_id": "example.authority.judgment",
-          "citation": "Fictional Rule 6",
-          "source_version": "2026-01-01",
-          "proposition": "The court may issue judgment after submission."
-        },
-        "supporting": []
+        "primary_authority_id": "example.authority.judgment",
+        "supporting_authority_ids": []
       },
       "authorized_role_ids": [
         "example.role.court"

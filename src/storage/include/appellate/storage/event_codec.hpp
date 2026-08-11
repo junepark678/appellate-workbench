@@ -12,6 +12,7 @@ namespace appellate::storage {
 
 enum class EventCodecErrorCode {
     InvalidJson,
+    DuplicateMember,
     PayloadTooLarge,
     UnsupportedVersion,
     UnknownEventType,

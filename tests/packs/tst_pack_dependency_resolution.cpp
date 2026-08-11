@@ -24,9 +24,12 @@
 #include <QTemporaryDir>
 #include <QTest>
 #include <QUuid>
+#include <QVariant>
 
 #include <array>
+#include <chrono>
 #include <expected>
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
@@ -50,6 +53,7 @@ class PackDependencyResolutionTest final : public QObject {
     void capsClosureAt128Revisions();
     void scopesBlobMaterializationToResolvedClosure();
     void hydratesThinRootKeepsDependencyEntryPointsHiddenAndPinsSessions();
+    void resolvesV2CanonicalAuthoritiesAcrossExactDependencies();
     void rejectsSiblingAssistedDependencyReference();
     void rejectsWrongExactDigestForBlobStreaming();
     void serializesPublicationAcrossCatalogInstances();
@@ -100,10 +104,6 @@ void addFrame(QCryptographicHash& hash, const std::string& value) {
         return {};
     }
     return file.readAll();
-}
-
-[[nodiscard]] QString fullResourceFixture() {
-    return QStringLiteral(APPELLATE_TEST_FIXTURES) + QStringLiteral("/full-resource-pack");
 }
 
 [[nodiscard]] QJsonObject dependency(const PackRevision& revision) {
@@ -297,14 +297,21 @@ void addFrame(QCryptographicHash& hash, const std::string& value) {
 buildPartitionArchive(const QString& root, const QString& stem, const QString& pack_id,
                       const std::vector<QString>& resource_paths,
                       const std::vector<PackRevision>& dependencies = {}, bool include_blob = false,
-                      const QByteArray& replacement_prefix = {})
+                      const QByteArray& replacement_prefix = {}, int schema_version = 1)
     -> std::expected<PackRevision, QString> {
     const auto source = QDir(root).filePath(QStringLiteral("sources/") + stem);
     const auto archive =
         QDir(root).filePath(QStringLiteral("archives/") + stem + QStringLiteral(".awpack"));
     QJsonArray contents;
+    const auto fixture_root = QStringLiteral(APPELLATE_TEST_FIXTURES) +
+                              (schema_version == 2 ? QStringLiteral("/full-resource-pack-v2")
+                                                   : QStringLiteral("/full-resource-pack"));
+    const auto fixture_manifest =
+        QJsonDocument::fromJson(
+            readAll(QDir(fixture_root).filePath(QStringLiteral("manifest.json"))))
+            .object();
     for (const auto& resource_path : resource_paths) {
-        auto payload = readAll(QDir(fullResourceFixture()).filePath(resource_path));
+        auto payload = readAll(QDir(fixture_root).filePath(resource_path));
         if (!replacement_prefix.isEmpty()) {
             payload.replace(QByteArray("example."), replacement_prefix);
         }
@@ -324,14 +331,10 @@ buildPartitionArchive(const QString& root, const QString& stem, const QString& p
     }
     QJsonArray blobs;
     if (include_blob) {
-        const auto fixture_manifest =
-            QJsonDocument::fromJson(
-                readAll(QDir(fullResourceFixture()).filePath(QStringLiteral("manifest.json"))))
-                .object();
         blobs = fixture_manifest.value(QStringLiteral("blobs")).toArray();
         for (const auto& value : blobs) {
             const auto path = value.toObject().value(QStringLiteral("path")).toString();
-            const auto payload = readAll(QDir(fullResourceFixture()).filePath(path));
+            const auto payload = readAll(QDir(fixture_root).filePath(path));
             if (payload.isEmpty() || !writeAll(QDir(source).filePath(path), payload)) {
                 return std::unexpected(QStringLiteral("cannot partition fixture blob"));
             }
@@ -342,20 +345,16 @@ buildPartitionArchive(const QString& root, const QString& stem, const QString& p
         dependency_values.push_back(dependency(required));
     }
     const auto manifest =
-        QJsonDocument(
-            QJsonObject{
-                {QStringLiteral("schema_version"), 1},
-                {QStringLiteral("pack_id"), pack_id},
-                {QStringLiteral("version"), QStringLiteral("1.0.0")},
-                {QStringLiteral("required_capabilities"),
-                 QJsonArray{QJsonObject{
-                     {QStringLiteral("id"), QStringLiteral("workbench.pack.declarative-resources")},
-                     {QStringLiteral("version"), 1},
-                 }}},
-                {QStringLiteral("dependencies"), dependency_values},
-                {QStringLiteral("blobs"), blobs},
-                {QStringLiteral("contents"), contents},
-            })
+        QJsonDocument(QJsonObject{
+                          {QStringLiteral("schema_version"), schema_version},
+                          {QStringLiteral("pack_id"), pack_id},
+                          {QStringLiteral("version"), QStringLiteral("1.0.0")},
+                          {QStringLiteral("required_capabilities"),
+                           fixture_manifest.value(QStringLiteral("required_capabilities"))},
+                          {QStringLiteral("dependencies"), dependency_values},
+                          {QStringLiteral("blobs"), blobs},
+                          {QStringLiteral("contents"), contents},
+                      })
             .toJson(QJsonDocument::Compact);
     if (!writeAll(QDir(source).filePath(QStringLiteral("manifest.json")), manifest) ||
         !QDir{}.mkpath(QFileInfo(archive).path())) {
@@ -474,6 +473,68 @@ seedCatalogWithoutResolution(const QString& catalog_root, const QString& source_
     }
     QSqlDatabase::removeDatabase(connection_name);
     return succeeded;
+}
+
+[[nodiscard]] std::optional<QByteArray> firstSessionEventPayload(const QString& database_path,
+                                                                 const QString& session_id) {
+    const auto connection_name =
+        QStringLiteral("session-event-read-%1").arg(QUuid::createUuid().toString(QUuid::Id128));
+    std::optional<QByteArray> payload;
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection_name);
+        database.setDatabaseName(database_path);
+        if (database.open()) {
+            QSqlQuery query(database);
+            query.prepare(QStringLiteral("SELECT payload_json FROM event_log WHERE session_id = ? "
+                                         "ORDER BY sequence LIMIT 1"));
+            query.addBindValue(session_id);
+            if (query.exec() && query.next()) {
+                payload = query.value(0).toByteArray();
+            }
+        }
+        database.close();
+    }
+    QSqlDatabase::removeDatabase(connection_name);
+    return payload;
+}
+
+[[nodiscard]] bool writeFirstSessionEventPayload(const QString& database_path,
+                                                 const QString& session_id,
+                                                 const QByteArray& payload) {
+    const auto connection_name =
+        QStringLiteral("session-event-write-%1").arg(QUuid::createUuid().toString(QUuid::Id128));
+    bool succeeded = false;
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection_name);
+        database.setDatabaseName(database_path);
+        if (database.open()) {
+            QSqlQuery query(database);
+            query.prepare(QStringLiteral(
+                "UPDATE event_log SET payload_json = ? WHERE session_id = ? AND sequence = 1"));
+            query.addBindValue(payload);
+            query.addBindValue(session_id);
+            succeeded = query.exec() && query.numRowsAffected() == 1;
+        }
+        database.close();
+    }
+    QSqlDatabase::removeDatabase(connection_name);
+    return succeeded;
+}
+
+[[nodiscard]] QByteArray
+mutateAuthorityProvenance(const QByteArray& encoded,
+                          const std::function<void(QJsonObject&)>& mutate_provenance) {
+    auto envelope = QJsonDocument::fromJson(encoded).object();
+    auto payload = envelope.value(QStringLiteral("payload")).toObject();
+    auto basis = payload.value(QStringLiteral("authority")).toObject();
+    auto primary = basis.value(QStringLiteral("primary")).toObject();
+    auto provenance = primary.value(QStringLiteral("provenance")).toObject();
+    mutate_provenance(provenance);
+    primary.insert(QStringLiteral("provenance"), provenance);
+    basis.insert(QStringLiteral("primary"), primary);
+    payload.insert(QStringLiteral("authority"), basis);
+    envelope.insert(QStringLiteral("payload"), payload);
+    return QJsonDocument(envelope).toJson(QJsonDocument::Compact);
 }
 
 void PackDependencyResolutionTest::resolvesDiamondDependencyFirstWithSortedPins() {
@@ -944,6 +1005,218 @@ void PackDependencyResolutionTest::
     const auto changed = reopen_with(std::move(changed_transitive));
     QVERIFY(!changed.has_value());
     QCOMPARE(changed.error().code, appellate::app::WorkflowSessionErrorCode::CorruptSession);
+}
+
+void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDependencies() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto authorities = buildPartitionArchive(
+        temporary.path(), QStringLiteral("v2-authorities"), QStringLiteral("test.v2.authorities"),
+        {QStringLiteral("resources/authority-set.json")}, {}, false, {}, 2);
+    QVERIFY2(authorities.has_value(), authorities ? "" : qPrintable(authorities.error()));
+    const auto procedure = buildPartitionArchive(
+        temporary.path(), QStringLiteral("v2-procedure"), QStringLiteral("test.v2.procedure"),
+        {QStringLiteral("resources/court.json"), QStringLiteral("resources/filing-catalog.json"),
+         QStringLiteral("resources/form.json"), QStringLiteral("resources/procedure-profile.json"),
+         QStringLiteral("resources/workflow.json")},
+        {*authorities}, false, {}, 2);
+    QVERIFY2(procedure.has_value(), procedure ? "" : qPrintable(procedure.error()));
+    const auto root = buildPartitionArchive(
+        temporary.path(), QStringLiteral("v2-root"), QStringLiteral("test.v2.root"),
+        {QStringLiteral("resources/argument-config.json"),
+         QStringLiteral("resources/bench-configuration.json"),
+         QStringLiteral("resources/case.json"), QStringLiteral("resources/judge-profile.json"),
+         QStringLiteral("resources/realism-review.json"), QStringLiteral("resources/record.json")},
+        {*procedure}, true, {}, 2);
+    QVERIFY2(root.has_value(), root ? "" : qPrintable(root.error()));
+
+    auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
+    QVERIFY(catalog.has_value());
+    QVERIFY(install(**catalog, temporary.path(), QStringLiteral("v2-authorities"), 1));
+    QVERIFY(install(**catalog, temporary.path(), QStringLiteral("v2-procedure"), 2));
+    QVERIFY(install(**catalog, temporary.path(), QStringLiteral("v2-root"), 3));
+    const auto resolved = (*catalog)->loadResolved(*root);
+    QVERIFY2(resolved.has_value(), resolved ? "" : qPrintable(resolved.error().message));
+    QCOMPARE(resolved->resourceOwner("example.authorities.fictional"),
+             std::optional<PackRevision>(*authorities));
+
+    const auto runtime = appellate::packs::loadRuntimePack(*resolved);
+    QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+    QCOMPARE(runtime->cases.size(), std::size_t{1});
+    const auto& runtime_case = runtime->cases.front();
+    const auto& workflow_authority = runtime_case.workflow.operations.front().authority.primary;
+    QVERIFY(workflow_authority.provenance.has_value());
+    QCOMPARE(workflow_authority.provenance->source_url,
+             std::string("https://example.invalid/rules/2"));
+    QCOMPARE(runtime_case.issues.front().authorities.size(), std::size_t{1});
+    QVERIFY(runtime_case.issues.front().authorities.front().provenance.has_value());
+    QCOMPARE(runtime_case.issues.front().authorities.front().citation,
+             std::string("Fictional Rule 1"));
+    QCOMPARE(runtime_case.filing_authorities.size(), std::size_t{1});
+    QCOMPARE(runtime_case.filing_authorities.front().filing_type_id.value,
+             std::string("example.filing.notice"));
+    QVERIFY(runtime_case.filing_authorities.front().authority.provenance.has_value());
+    QCOMPARE(runtime_case.filing_authorities.front().authority.provenance->locator,
+             std::string("Rule 1"));
+
+    const auto session_id = std::string("test.session.v2-authority");
+    const auto court_date = appellate::model::LegalDate{std::chrono::year{2026} /
+                                                        std::chrono::January / std::chrono::day{2}};
+    const auto initial_state = appellate::model::WorkflowState{
+        session_id,
+        runtime_case.workflow.id,
+        runtime_case.workflow.initial_stage_id,
+        1,
+        std::nullopt,
+        {},
+        {},
+        {},
+        {},
+        {},
+        false,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+    };
+    const auto session_database =
+        QDir(temporary.path()).filePath(QStringLiteral("v2-sessions.sqlite"));
+    const auto session_assets = QDir(temporary.path()).filePath(QStringLiteral("v2-assets"));
+    constexpr auto session_engine = "engine.canonical-authority.test.1";
+
+    auto stripped_workflow_for_create = runtime_case.workflow;
+    for (auto& operation : stripped_workflow_for_create.operations) {
+        operation.authority.primary.provenance.reset();
+        for (auto& supporting : operation.authority.supporting) {
+            supporting.provenance.reset();
+        }
+    }
+    {
+        auto store = appellate::storage::SessionStore::open(session_database);
+        QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
+        const auto unsafe = appellate::app::WorkflowSessionController::create(
+            stripped_workflow_for_create, runtime_case.definition, initial_state,
+            appellate::storage::AssetStore(session_assets), std::move(*store),
+            QString::fromLatin1(session_engine), QStringLiteral("2026-01-02T11:59:00Z"), *resolved);
+        QVERIFY(!unsafe.has_value());
+        QCOMPARE(unsafe.error().code,
+                 appellate::app::WorkflowSessionErrorCode::InvalidConfiguration);
+    }
+    {
+        auto store = appellate::storage::SessionStore::open(session_database);
+        QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
+        const auto missing = (*store)->loadSession(QString::fromStdString(session_id));
+        QVERIFY(!missing.has_value());
+        QCOMPARE(missing.error().code, appellate::storage::StoreErrorCode::NotFound);
+    }
+
+    const QByteArray document("canonical v2 notice");
+    const auto command = appellate::model::SubmitWorkflowFiling{
+        appellate::model::WorkflowCommandHeader{
+            session_id,
+            appellate::model::WorkflowCommandId{"test.command.v2-notice"},
+            appellate::model::ActorId{"example.actor.appellant"},
+            appellate::model::LegalTime{
+                std::chrono::sys_seconds{std::chrono::sys_days{court_date.value}} +
+                    std::chrono::hours{12},
+                court_date,
+            },
+        },
+        appellate::model::WorkflowFilingId{"test.filing.v2-notice"},
+        appellate::model::FilingTypeId{"example.filing.notice"},
+        sha256(document).toStdString(),
+        {appellate::model::WorkflowFieldValue{
+            appellate::model::FilingFieldId{"example.field.caption"}, "caption supplied"}},
+        {appellate::model::ActorId{"example.actor.appellee"}},
+        std::nullopt,
+    };
+    {
+        auto store = appellate::storage::SessionStore::open(session_database);
+        QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
+        auto created = appellate::app::WorkflowSessionController::create(
+            runtime_case.definition.id, initial_state,
+            appellate::storage::AssetStore(session_assets), std::move(*store),
+            QString::fromLatin1(session_engine), QStringLiteral("2026-01-02T11:59:00Z"), *resolved);
+        QVERIFY2(created.has_value(), created ? "" : qPrintable(created.error().message));
+        QCOMPARE((*created)->snapshot().authority_contract,
+                 appellate::storage::SessionAuthorityContract::CanonicalV2);
+        const auto submitted = (*created)->submit(command, QByteArrayView(document),
+                                                  QStringLiteral("2026-01-02T12:00:00Z"));
+        QVERIFY2(submitted.has_value(), submitted ? "" : qPrintable(submitted.error().message));
+        QVERIFY(!submitted->events.empty());
+        QVERIFY(std::ranges::all_of(submitted->events, [](const auto& event) {
+            return std::visit(
+                [](const auto& concrete) {
+                    return concrete.header.authority.primary.provenance.has_value();
+                },
+                event);
+        }));
+    }
+
+    const auto pins = appellate::app::revisionPinsForSession(*resolved);
+    auto stripped_workflow = runtime_case.workflow;
+    for (auto& operation : stripped_workflow.operations) {
+        operation.authority.primary.provenance.reset();
+        for (auto& supporting : operation.authority.supporting) {
+            supporting.provenance.reset();
+        }
+    }
+    {
+        auto store = appellate::storage::SessionStore::open(session_database);
+        QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
+        const auto downgraded = appellate::app::WorkflowSessionController::reopen(
+            stripped_workflow, runtime_case.definition, initial_state,
+            appellate::storage::AssetStore(session_assets), std::move(*store),
+            QString::fromLatin1(session_engine), pins);
+        QVERIFY(!downgraded.has_value());
+        QCOMPARE(downgraded.error().code, appellate::app::WorkflowSessionErrorCode::CorruptSession);
+    }
+
+    const auto reopen_canonical = [&]() {
+        using Controller = appellate::app::WorkflowSessionController;
+        using Error = appellate::app::WorkflowSessionError;
+        auto store = appellate::storage::SessionStore::open(session_database);
+        if (!store) {
+            return std::expected<std::unique_ptr<Controller>, Error>{std::unexpected(Error{
+                appellate::app::WorkflowSessionErrorCode::SessionStoreFailure,
+                store.error().message,
+            })};
+        }
+        return Controller::reopen(runtime_case.definition.id, initial_state,
+                                  appellate::storage::AssetStore(session_assets), std::move(*store),
+                                  QString::fromLatin1(session_engine), *resolved);
+    };
+    auto reopened = reopen_canonical();
+    QVERIFY2(reopened.has_value(), reopened ? "" : qPrintable(reopened.error().message));
+    QCOMPARE((*reopened)->snapshot().authority_contract,
+             appellate::storage::SessionAuthorityContract::CanonicalV2);
+    (*reopened).reset();
+
+    const auto original_event =
+        firstSessionEventPayload(session_database, QString::fromStdString(session_id));
+    QVERIFY(original_event.has_value());
+    const auto bad_url = mutateAuthorityProvenance(*original_event, [](QJsonObject& provenance) {
+        provenance.insert(QStringLiteral("source_url"),
+                          QStringLiteral("https://Example.invalid/rules/1"));
+    });
+    QVERIFY(writeFirstSessionEventPayload(session_database, QString::fromStdString(session_id),
+                                          bad_url));
+    QVERIFY(!reopen_canonical().has_value());
+    QVERIFY(writeFirstSessionEventPayload(session_database, QString::fromStdString(session_id),
+                                          *original_event));
+
+    const auto changed_status =
+        mutateAuthorityProvenance(*original_event, [](QJsonObject& provenance) {
+            provenance.insert(QStringLiteral("precedential_status"),
+                              QStringLiteral("precedential"));
+        });
+    QVERIFY(writeFirstSessionEventPayload(session_database, QString::fromStdString(session_id),
+                                          changed_status));
+    QVERIFY(!reopen_canonical().has_value());
+    QVERIFY(writeFirstSessionEventPayload(session_database, QString::fromStdString(session_id),
+                                          *original_event));
+    reopened = reopen_canonical();
+    QVERIFY2(reopened.has_value(), reopened ? "" : qPrintable(reopened.error().message));
 }
 
 void PackDependencyResolutionTest::rejectsSiblingAssistedDependencyReference() {

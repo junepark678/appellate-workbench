@@ -36,6 +36,11 @@ struct RevisionPin final {
     friend bool operator==(const RevisionPin&, const RevisionPin&) = default;
 };
 
+enum class SessionAuthorityContract {
+    LegacyV1,
+    CanonicalV2,
+};
+
 struct EventWrite final {
     QString event_type;
     QByteArray payload_json;
@@ -95,6 +100,7 @@ struct DocketEntry final {
 struct SessionSnapshot final {
     QString session_id;
     QString engine_revision;
+    SessionAuthorityContract authority_contract{SessionAuthorityContract::LegacyV1};
     qint64 sequence{};
     std::vector<RevisionPin> pins;
     std::vector<StoredCommand> commands;
@@ -116,7 +122,8 @@ class SessionStore final {
 
     [[nodiscard]] std::expected<void, StoreError>
     createSession(const QString& session_id, const QString& engine_revision,
-                  const QString& created_at_utc, const std::vector<RevisionPin>& pins);
+                  const QString& created_at_utc, const std::vector<RevisionPin>& pins,
+                  SessionAuthorityContract authority_contract = SessionAuthorityContract::LegacyV1);
 
     [[nodiscard]] std::expected<qint64, StoreError>
     append(const QString& session_id, qint64 expected_sequence, const CommitBatch& batch);

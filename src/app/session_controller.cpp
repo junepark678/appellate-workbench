@@ -27,6 +27,20 @@ namespace {
 
 [[nodiscard]] QString asQString(const std::string& value) { return QString::fromStdString(value); }
 
+[[nodiscard]] bool usesCanonicalAuthority(const model::AuthorityBasis& basis) {
+    return basis.primary.provenance.has_value() ||
+           std::ranges::any_of(basis.supporting, [](const auto& authority) {
+               return authority.provenance.has_value();
+           });
+}
+
+[[nodiscard]] bool usesCanonicalAuthority(const model::ProcedureDefinition& procedure) {
+    const auto& filing = procedure.initiating_filing;
+    return usesCanonicalAuthority(filing.filing_authority) ||
+           usesCanonicalAuthority(filing.actor_authority) ||
+           usesCanonicalAuthority(filing.deficiency_authority);
+}
+
 [[nodiscard]] bool isPristineInitialState(const model::ProcedureDefinition& procedure,
                                           const model::CaseDefinition& case_definition,
                                           const model::SessionState& state) {
@@ -204,6 +218,7 @@ std::expected<std::unique_ptr<SessionController>, SessionControllerError> Sessio
     std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
     QString created_at_utc, std::vector<storage::RevisionPin> pins) {
     if (!session_store || engine_revision.isEmpty() || created_at_utc.isEmpty() || pins.empty() ||
+        usesCanonicalAuthority(procedure) ||
         !isPristineInitialState(procedure, case_definition, initial_state)) {
         return fail(SessionControllerErrorCode::InvalidConfiguration,
                     QStringLiteral("Cannot create a session from the supplied configuration"));
@@ -211,13 +226,18 @@ std::expected<std::unique_ptr<SessionController>, SessionControllerError> Sessio
 
     const auto session_id = asQString(initial_state.id.value);
     const auto created =
-        session_store->createSession(session_id, engine_revision, created_at_utc, pins);
+        session_store->createSession(session_id, engine_revision, created_at_utc, pins,
+                                     storage::SessionAuthorityContract::LegacyV1);
     if (!created) {
         return fail(SessionControllerErrorCode::SessionStoreFailure, created.error().message);
     }
     const auto loaded = session_store->loadSession(session_id);
     if (!loaded) {
         return fail(SessionControllerErrorCode::SessionStoreFailure, loaded.error().message);
+    }
+    if (loaded->authority_contract != storage::SessionAuthorityContract::LegacyV1) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Stored authority contract is not legacy-v1"));
     }
 
     auto controller = std::unique_ptr<SessionController>(
@@ -231,6 +251,11 @@ std::expected<std::unique_ptr<SessionController>, SessionControllerError> Sessio
     model::SessionState initial_state, storage::AssetStore asset_store,
     std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
     QString created_at_utc, const packs::ResolvedPack& resolved_pack) {
+    if (resolved_pack.root().manifest_schema_version != 1) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Schema-v2 procedures require a catalog-derived session entry "
+                                   "point"));
+    }
     return create(std::move(procedure), std::move(case_definition), std::move(initial_state),
                   std::move(asset_store), std::move(session_store), std::move(engine_revision),
                   std::move(created_at_utc), revisionPinsForSession(resolved_pack));
@@ -242,6 +267,7 @@ std::expected<std::unique_ptr<SessionController>, SessionControllerError> Sessio
     std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
     std::vector<storage::RevisionPin> expected_pins) {
     if (!session_store || expected_engine_revision.isEmpty() || expected_pins.empty() ||
+        usesCanonicalAuthority(procedure) ||
         !isPristineInitialState(procedure, case_definition, initial_state)) {
         return fail(SessionControllerErrorCode::InvalidConfiguration,
                     QStringLiteral("Cannot reopen a session from the supplied configuration"));
@@ -253,9 +279,11 @@ std::expected<std::unique_ptr<SessionController>, SessionControllerError> Sessio
     if (!loaded) {
         return fail(SessionControllerErrorCode::SessionStoreFailure, loaded.error().message);
     }
-    if (loaded->engine_revision != expected_engine_revision || loaded->pins != expected_pins) {
+    if (loaded->engine_revision != expected_engine_revision || loaded->pins != expected_pins ||
+        loaded->authority_contract != storage::SessionAuthorityContract::LegacyV1) {
         return fail(SessionControllerErrorCode::CorruptSession,
-                    QStringLiteral("Stored engine or exact pack-revision pins differ"));
+                    QStringLiteral("Stored engine, exact pack-revision pins, or authority contract "
+                                   "differ"));
     }
     const auto replayed =
         replaySnapshot(procedure, case_definition, initial_state, *loaded, asset_store);
@@ -274,6 +302,11 @@ std::expected<std::unique_ptr<SessionController>, SessionControllerError> Sessio
     model::SessionState initial_state, storage::AssetStore asset_store,
     std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
     const packs::ResolvedPack& resolved_pack) {
+    if (resolved_pack.root().manifest_schema_version != 1) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Schema-v2 procedures require a catalog-derived session entry "
+                                   "point"));
+    }
     return reopen(std::move(procedure), std::move(case_definition), std::move(initial_state),
                   std::move(asset_store), std::move(session_store),
                   std::move(expected_engine_revision), revisionPinsForSession(resolved_pack));
@@ -354,9 +387,10 @@ SessionController::submit(const model::SubmitFiling& command, QByteArrayView doc
     if (!loaded) {
         return fail(SessionControllerErrorCode::SessionStoreFailure, loaded.error().message);
     }
-    if (loaded->sequence != *appended) {
+    if (loaded->sequence != *appended ||
+        loaded->authority_contract != storage::SessionAuthorityContract::LegacyV1) {
         return fail(SessionControllerErrorCode::CorruptSession,
-                    QStringLiteral("Persisted session sequence does not match append result"));
+                    QStringLiteral("Persisted session sequence or authority contract differs"));
     }
 
     state_ = std::move(next_state);

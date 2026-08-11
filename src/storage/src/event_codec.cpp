@@ -1,4 +1,5 @@
 #include "appellate/storage/event_codec.hpp"
+#include "strict_json_scan.hpp"
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -9,6 +10,7 @@
 #include <QStringList>
 
 #include <algorithm>
+#include <cctype>
 #include <charconv>
 #include <chrono>
 #include <cstdint>
@@ -24,12 +26,15 @@
 namespace appellate::storage {
 namespace {
 
-constexpr auto schema_version = 1;
+constexpr auto legacy_schema_version = 1;
+constexpr auto provenance_schema_version = 2;
 constexpr qsizetype maximum_payload_bytes = 1024 * 1024;
 constexpr qsizetype maximum_id_characters = 256;
 constexpr qsizetype maximum_citation_characters = 4096;
 constexpr qsizetype maximum_source_version_characters = 256;
 constexpr qsizetype maximum_proposition_characters = 16 * 1024;
+constexpr qsizetype maximum_source_url_characters = 2048;
+constexpr qsizetype maximum_canonical_text_code_units = 8192;
 constexpr qsizetype maximum_supporting_authorities = 32;
 constexpr qsizetype maximum_missing_fields = 256;
 
@@ -96,6 +101,44 @@ constexpr auto rejected_type = "filing.rejected";
 [[nodiscard]] bool roundTripsUtf8(std::string_view value) {
     const auto decoded = QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
     return decoded.toUtf8() == QByteArrayView(value.data(), static_cast<qsizetype>(value.size()));
+}
+
+[[nodiscard]] bool isNamespacedId(QStringView value) {
+    if (value.size() < 3 || value.size() > 160) {
+        return false;
+    }
+    bool has_separator = false;
+    bool previous_was_separator = true;
+    for (const auto character : value) {
+        const auto code = character.unicode();
+        const auto alphanumeric = (code >= u'0' && code <= u'9') || (code >= u'a' && code <= u'z');
+        const auto separator = code == u'.' || code == u'-';
+        if ((!alphanumeric && !separator) || (separator && previous_was_separator)) {
+            return false;
+        }
+        has_separator = has_separator || separator;
+        previous_was_separator = separator;
+    }
+    return has_separator && !previous_was_separator;
+}
+
+[[nodiscard]] bool isCanonicalDate(QStringView value) {
+    if (value.size() != 10 || value.at(4) != u'-' || value.at(7) != u'-') {
+        return false;
+    }
+    for (const auto index : {0, 1, 2, 3, 5, 6, 8, 9}) {
+        if (value.at(index) < u'0' || value.at(index) > u'9') {
+            return false;
+        }
+    }
+    bool year_ok = false;
+    bool month_ok = false;
+    bool day_ok = false;
+    const auto year = value.first(4).toInt(&year_ok);
+    const auto month = value.sliced(5, 2).toUInt(&month_ok);
+    const auto day = value.last(2).toUInt(&day_ok);
+    return year_ok && month_ok && day_ok && year > 0 &&
+           (std::chrono::year{year} / std::chrono::month{month} / std::chrono::day{day}).ok();
 }
 
 [[nodiscard]] auto readId(const QJsonObject& object, QStringView key, QStringView context)
@@ -259,51 +302,264 @@ template <typename Integer>
     return model::LegalTime{std::chrono::sys_seconds{std::chrono::seconds{*seconds}}, *date};
 }
 
+[[nodiscard]] auto encodeAuthorityType(model::AuthorityType type)
+    -> std::expected<QString, EventCodecError> {
+    switch (type) {
+    case model::AuthorityType::Constitution:
+        return QStringLiteral("constitution");
+    case model::AuthorityType::Statute:
+        return QStringLiteral("statute");
+    case model::AuthorityType::Rule:
+        return QStringLiteral("rule");
+    case model::AuthorityType::Regulation:
+        return QStringLiteral("regulation");
+    case model::AuthorityType::Case:
+        return QStringLiteral("case");
+    case model::AuthorityType::Order:
+        return QStringLiteral("order");
+    case model::AuthorityType::AdministrativeDecision:
+        return QStringLiteral("administrative_decision");
+    case model::AuthorityType::Other:
+        return QStringLiteral("other");
+    }
+    return fail(EventCodecErrorCode::IncompleteAuthority, QStringLiteral("Unknown authority type"));
+}
+
+[[nodiscard]] auto decodeAuthorityType(QStringView value) -> std::optional<model::AuthorityType> {
+    if (value == u"constitution") {
+        return model::AuthorityType::Constitution;
+    }
+    if (value == u"statute") {
+        return model::AuthorityType::Statute;
+    }
+    if (value == u"rule") {
+        return model::AuthorityType::Rule;
+    }
+    if (value == u"regulation") {
+        return model::AuthorityType::Regulation;
+    }
+    if (value == u"case") {
+        return model::AuthorityType::Case;
+    }
+    if (value == u"order") {
+        return model::AuthorityType::Order;
+    }
+    if (value == u"administrative_decision") {
+        return model::AuthorityType::AdministrativeDecision;
+    }
+    if (value == u"other") {
+        return model::AuthorityType::Other;
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto encodePrecedentialStatus(model::PrecedentialStatus status)
+    -> std::expected<QString, EventCodecError> {
+    switch (status) {
+    case model::PrecedentialStatus::NotApplicable:
+        return QStringLiteral("not_applicable");
+    case model::PrecedentialStatus::Precedential:
+        return QStringLiteral("precedential");
+    case model::PrecedentialStatus::Nonprecedential:
+        return QStringLiteral("nonprecedential");
+    }
+    return fail(EventCodecErrorCode::IncompleteAuthority,
+                QStringLiteral("Unknown precedential status"));
+}
+
+[[nodiscard]] auto decodePrecedentialStatus(QStringView value)
+    -> std::optional<model::PrecedentialStatus> {
+    if (value == u"not_applicable") {
+        return model::PrecedentialStatus::NotApplicable;
+    }
+    if (value == u"precedential") {
+        return model::PrecedentialStatus::Precedential;
+    }
+    if (value == u"nonprecedential") {
+        return model::PrecedentialStatus::Nonprecedential;
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto encodeProvenance(const model::AuthorityProvenance& provenance)
+    -> std::expected<QJsonObject, EventCodecError> {
+    const auto type = encodeAuthorityType(provenance.type);
+    const auto status = encodePrecedentialStatus(provenance.precedential_status);
+    if (!type || !status || !roundTripsUtf8(provenance.jurisdiction_id) ||
+        !roundTripsUtf8(provenance.issuing_body_id) || !roundTripsUtf8(provenance.checked_on) ||
+        !roundTripsUtf8(provenance.locator) || !roundTripsUtf8(provenance.source_url)) {
+        return fail(EventCodecErrorCode::IncompleteAuthority,
+                    QStringLiteral("Authority provenance must be complete valid UTF-8"));
+    }
+    const auto jurisdiction_id = QString::fromUtf8(provenance.jurisdiction_id);
+    const auto issuing_body_id = QString::fromUtf8(provenance.issuing_body_id);
+    const auto checked_on = QString::fromUtf8(provenance.checked_on);
+    const auto locator = QString::fromUtf8(provenance.locator);
+    const auto source_url = QString::fromUtf8(provenance.source_url);
+    if (!isNamespacedId(jurisdiction_id) || !isNamespacedId(issuing_body_id) ||
+        !isCanonicalDate(checked_on) ||
+        !model::isCanonicalAuthorityText(provenance.locator, 4096) || source_url.isEmpty() ||
+        source_url.size() > maximum_source_url_characters || containsNull(source_url) ||
+        !model::isCanonicalAuthoritySourceUrl(provenance.source_url)) {
+        return fail(EventCodecErrorCode::IncompleteAuthority,
+                    QStringLiteral("Authority provenance is incomplete or noncanonical"));
+    }
+    return QJsonObject{
+        {QStringLiteral("authority_type"), *type},
+        {QStringLiteral("checked_on"), checked_on},
+        {QStringLiteral("issuing_body_id"), issuing_body_id},
+        {QStringLiteral("jurisdiction_id"), jurisdiction_id},
+        {QStringLiteral("locator"), locator},
+        {QStringLiteral("official_source"), provenance.official_source},
+        {QStringLiteral("precedential_status"), *status},
+        {QStringLiteral("source_url"), source_url},
+    };
+}
+
+[[nodiscard]] auto decodeProvenance(const QJsonObject& object, QStringView context)
+    -> std::expected<model::AuthorityProvenance, EventCodecError> {
+    if (const auto keys =
+            exactKeys(object,
+                      {u"authority_type", u"checked_on", u"issuing_body_id", u"jurisdiction_id",
+                       u"locator", u"official_source", u"precedential_status", u"source_url"},
+                      context);
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto type_text = readString(object, u"authority_type", 32, context);
+    const auto jurisdiction_id = readString(object, u"jurisdiction_id", 160, context);
+    const auto issuing_body_id = readString(object, u"issuing_body_id", 160, context);
+    const auto status_text = readString(object, u"precedential_status", 32, context);
+    const auto checked_on = readString(object, u"checked_on", 10, context);
+    const auto locator = readString(object, u"locator", maximum_canonical_text_code_units, context);
+    const auto source_url =
+        readString(object, u"source_url", maximum_source_url_characters, context);
+    const auto official_source = object.value(u"official_source");
+    if (!type_text || !jurisdiction_id || !issuing_body_id || !status_text || !checked_on ||
+        !locator || !source_url || !official_source.isBool()) {
+        return fail(EventCodecErrorCode::IncompleteAuthority,
+                    QStringLiteral("Authority provenance fields must be complete"));
+    }
+    const auto type = decodeAuthorityType(*type_text);
+    const auto status = decodePrecedentialStatus(*status_text);
+    const auto locator_bytes = locator->toUtf8().toStdString();
+    const auto source_url_bytes = source_url->toUtf8().toStdString();
+    if (!type || !status || !isNamespacedId(*jurisdiction_id) ||
+        !isNamespacedId(*issuing_body_id) || !isCanonicalDate(*checked_on) ||
+        !model::isCanonicalAuthorityText(locator_bytes, 4096) ||
+        !model::isCanonicalAuthoritySourceUrl(source_url_bytes)) {
+        return fail(EventCodecErrorCode::IncompleteAuthority,
+                    QStringLiteral("Authority provenance is incomplete or noncanonical"));
+    }
+    return model::AuthorityProvenance{
+        *type,
+        jurisdiction_id->toUtf8().toStdString(),
+        issuing_body_id->toUtf8().toStdString(),
+        *status,
+        official_source.toBool(),
+        checked_on->toUtf8().toStdString(),
+        std::move(locator_bytes),
+        std::move(source_url_bytes),
+    };
+}
+
 [[nodiscard]] auto encodeAuthorityRef(const model::AuthorityRef& authority)
     -> std::expected<QJsonObject, EventCodecError> {
     const auto id = QString::fromUtf8(authority.id.value);
     const auto citation = QString::fromUtf8(authority.citation);
     const auto source_version = QString::fromUtf8(authority.source_version);
     const auto proposition = QString::fromUtf8(authority.proposition);
+    const auto has_provenance = authority.provenance.has_value();
     if (!roundTripsUtf8(authority.id.value) || !roundTripsUtf8(authority.citation) ||
         !roundTripsUtf8(authority.source_version) || !roundTripsUtf8(authority.proposition) ||
-        !isCanonicalId(id) || citation.isEmpty() || citation.size() > maximum_citation_characters ||
-        source_version.isEmpty() || source_version.size() > maximum_source_version_characters ||
-        proposition.isEmpty() || proposition.size() > maximum_proposition_characters ||
+        !isCanonicalId(id) || citation.isEmpty() || source_version.isEmpty() ||
+        source_version.size() > maximum_source_version_characters || proposition.isEmpty() ||
         containsNull(citation) || containsNull(source_version) || containsNull(proposition)) {
         return fail(EventCodecErrorCode::IncompleteAuthority,
                     QStringLiteral("Authority fields must be complete and bounded"));
     }
-    return QJsonObject{
+    if ((!has_provenance && (citation.size() > maximum_citation_characters ||
+                             proposition.size() > maximum_proposition_characters)) ||
+        (has_provenance && (!isNamespacedId(id) || !isCanonicalDate(source_version) ||
+                            !model::isCanonicalAuthorityText(authority.citation, 4096) ||
+                            !model::isCanonicalAuthorityText(authority.proposition, 4096) ||
+                            !model::authorityVerificationNotBeforeSource(
+                                authority.source_version, authority.provenance->checked_on)))) {
+        return fail(EventCodecErrorCode::IncompleteAuthority,
+                    QStringLiteral("Versioned authority metadata is noncanonical"));
+    }
+    QJsonObject result{
         {QStringLiteral("citation"), citation},
         {QStringLiteral("id"), id},
         {QStringLiteral("proposition"), proposition},
         {QStringLiteral("source_version"), source_version},
     };
+    if (has_provenance) {
+        const auto provenance = encodeProvenance(*authority.provenance);
+        if (!provenance) {
+            return std::unexpected(provenance.error());
+        }
+        result.insert(QStringLiteral("provenance"), *provenance);
+    }
+    return result;
 }
 
 [[nodiscard]] auto decodeAuthorityRef(const QJsonObject& object, QStringView context)
     -> std::expected<model::AuthorityRef, EventCodecError> {
-    if (const auto keys =
-            exactKeys(object, {u"citation", u"id", u"proposition", u"source_version"}, context);
-        !keys) {
+    const auto has_provenance = object.contains(u"provenance");
+    const auto keys =
+        has_provenance
+            ? exactKeys(object,
+                        {u"citation", u"id", u"proposition", u"provenance", u"source_version"},
+                        context)
+            : exactKeys(object, {u"citation", u"id", u"proposition", u"source_version"}, context);
+    if (!keys) {
         return std::unexpected(keys.error());
     }
     const auto id = readId(object, u"id", context);
-    const auto citation = readString(object, u"citation", maximum_citation_characters, context);
+    const auto citation = readString(
+        object, u"citation",
+        has_provenance ? maximum_canonical_text_code_units : maximum_citation_characters, context);
     const auto source_version =
         readString(object, u"source_version", maximum_source_version_characters, context);
-    const auto proposition =
-        readString(object, u"proposition", maximum_proposition_characters, context);
+    const auto proposition = readString(object, u"proposition",
+                                        has_provenance ? maximum_canonical_text_code_units
+                                                       : maximum_proposition_characters,
+                                        context);
     if (!id || !citation || !source_version || !proposition) {
         const auto message = QStringLiteral("Authority fields must be complete and bounded");
         return fail(EventCodecErrorCode::IncompleteAuthority, message);
+    }
+    std::optional<model::AuthorityProvenance> provenance;
+    if (has_provenance) {
+        const auto provenance_value = object.value(u"provenance");
+        const auto citation_bytes = citation->toUtf8().toStdString();
+        const auto proposition_bytes = proposition->toUtf8().toStdString();
+        if (!provenance_value.isObject() || !isNamespacedId(QString::fromUtf8(*id)) ||
+            !isCanonicalDate(*source_version) ||
+            !model::isCanonicalAuthorityText(citation_bytes, 4096) ||
+            !model::isCanonicalAuthorityText(proposition_bytes, 4096)) {
+            return fail(EventCodecErrorCode::IncompleteAuthority,
+                        QStringLiteral("Versioned authority metadata is incomplete"));
+        }
+        auto decoded = decodeProvenance(provenance_value.toObject(),
+                                        QStringLiteral("%1.provenance").arg(context));
+        if (!decoded) {
+            return std::unexpected(decoded.error());
+        }
+        if (!model::authorityVerificationNotBeforeSource(source_version->toUtf8().toStdString(),
+                                                         decoded->checked_on)) {
+            return fail(EventCodecErrorCode::IncompleteAuthority,
+                        QStringLiteral("Authority verification predates its source version"));
+        }
+        provenance = std::move(*decoded);
     }
     return model::AuthorityRef{
         model::AuthorityId{*id},
         citation->toUtf8().toStdString(),
         source_version->toUtf8().toStdString(),
         proposition->toUtf8().toStdString(),
+        std::move(provenance),
     };
 }
 
@@ -380,6 +636,24 @@ template <typename Integer>
         supporting.push_back(std::move(*decoded));
     }
     return model::AuthorityBasis{*primary, std::move(supporting)};
+}
+
+[[nodiscard]] auto authoritySchemaVersion(const model::AuthorityBasis& authority)
+    -> std::expected<int, EventCodecError> {
+    const auto has_provenance = authority.primary.provenance.has_value();
+    if (std::ranges::any_of(authority.supporting, [&](const auto& supporting) {
+            return supporting.provenance.has_value() != has_provenance;
+        })) {
+        return fail(EventCodecErrorCode::IncompleteAuthority,
+                    QStringLiteral("Authority basis mixes legacy and provenance-bearing refs"));
+    }
+    return has_provenance ? provenance_schema_version : legacy_schema_version;
+}
+
+[[nodiscard]] auto authorityOf(const model::LegalEvent& event) -> const model::AuthorityBasis& {
+    return std::visit(
+        [](const auto& concrete) -> const model::AuthorityBasis& { return concrete.authority; },
+        event);
 }
 
 [[nodiscard]] auto rejectionReason(model::FilingRejectionReason reason) -> QString {
@@ -687,6 +961,10 @@ struct DecodedCommon final {
 } // namespace
 
 std::expected<QByteArray, EventCodecError> encodeEvent(const model::LegalEvent& event) {
+    const auto version = authoritySchemaVersion(authorityOf(event));
+    if (!version) {
+        return std::unexpected(version.error());
+    }
     const auto payload = std::visit(
         [](const auto& concrete) -> std::expected<QJsonObject, EventCodecError> {
             return encodePayload(concrete);
@@ -698,7 +976,7 @@ std::expected<QByteArray, EventCodecError> encodeEvent(const model::LegalEvent& 
     const QJsonObject envelope{
         {QStringLiteral("event_type"), eventType(event)},
         {QStringLiteral("payload"), *payload},
-        {QStringLiteral("schema_version"), schema_version},
+        {QStringLiteral("schema_version"), *version},
     };
     const auto result = QJsonDocument(envelope).toJson(QJsonDocument::Compact);
     if (result.size() > maximum_payload_bytes) {
@@ -713,6 +991,12 @@ std::expected<model::LegalEvent, EventCodecError> decodeEvent(QByteArrayView enc
         return fail(EventCodecErrorCode::PayloadTooLarge,
                     QStringLiteral("Event is empty or exceeds the size limit"));
     }
+    if (const auto scan = detail::scanStrictJson(encoded); !scan) {
+        return fail(scan.error().code == detail::StrictJsonErrorCode::DuplicateMember
+                        ? EventCodecErrorCode::DuplicateMember
+                        : EventCodecErrorCode::InvalidJson,
+                    scan.error().message);
+    }
     QJsonParseError parse_error;
     const auto document = QJsonDocument::fromJson(encoded.toByteArray(), &parse_error);
     if (parse_error.error != QJsonParseError::NoError || !document.isObject()) {
@@ -726,7 +1010,8 @@ std::expected<model::LegalEvent, EventCodecError> decodeEvent(QByteArrayView enc
         return std::unexpected(keys.error());
     }
     const auto version = envelope.value(u"schema_version");
-    if (!version.isDouble() || version.toDouble() != schema_version) {
+    if (!version.isDouble() || (version.toDouble() != legacy_schema_version &&
+                                version.toDouble() != provenance_schema_version)) {
         return fail(EventCodecErrorCode::UnsupportedVersion,
                     QStringLiteral("Unsupported event schema version"));
     }
@@ -739,17 +1024,28 @@ std::expected<model::LegalEvent, EventCodecError> decodeEvent(QByteArrayView enc
                     QStringLiteral("event.payload must be an object"));
     }
     const auto payload = envelope.value(u"payload").toObject();
-    if (*type == QLatin1StringView(accepted_type)) {
-        return decodeAccepted(payload);
+    auto decoded = [&]() -> std::expected<model::LegalEvent, EventCodecError> {
+        if (*type == QLatin1StringView(accepted_type)) {
+            return decodeAccepted(payload);
+        }
+        if (*type == QLatin1StringView(deficiency_type)) {
+            return decodeDeficiency(payload);
+        }
+        if (*type == QLatin1StringView(rejected_type)) {
+            return decodeRejected(payload);
+        }
+        return fail(EventCodecErrorCode::UnknownEventType,
+                    QStringLiteral("Unknown event type %1").arg(*type));
+    }();
+    if (!decoded) {
+        return std::unexpected(decoded.error());
     }
-    if (*type == QLatin1StringView(deficiency_type)) {
-        return decodeDeficiency(payload);
+    const auto authority_version = authoritySchemaVersion(authorityOf(*decoded));
+    if (!authority_version || *authority_version != version.toInt()) {
+        return fail(EventCodecErrorCode::IncompleteAuthority,
+                    QStringLiteral("Event schema version does not match its authority form"));
     }
-    if (*type == QLatin1StringView(rejected_type)) {
-        return decodeRejected(payload);
-    }
-    return fail(EventCodecErrorCode::UnknownEventType,
-                QStringLiteral("Unknown event type %1").arg(*type));
+    return decoded;
 }
 
 QString eventType(const model::LegalEvent& event) {

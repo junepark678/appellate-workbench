@@ -16,6 +16,7 @@ constexpr std::array supported_capabilities{
     SupportedCapability{"workbench.pack.judge-profile", 2, 2, 2},
     SupportedCapability{"workbench.pack.voice-style", 1, 1, 1},
     SupportedCapability{"workbench.pack.voice-style", 2, 2, 2},
+    SupportedCapability{"workbench.pack.canonical-authority", 1, 2, 2},
 };
 
 [[nodiscard]] auto fail(QString message) -> std::unexpected<Error> {
@@ -93,6 +94,24 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
         !hasCapability(required_capabilities, "workbench.pack.voice-style", 2)) {
         return fail(
             QStringLiteral("Schema-2 judge profiles require workbench.pack.voice-style version 2"));
+    }
+    constexpr std::array authority_bearing_kinds{
+        model::ResourceKind::AuthoritySet,
+        model::ResourceKind::Case,
+        model::ResourceKind::Court,
+        model::ResourceKind::FilingCatalog,
+        model::ResourceKind::ProcedureProfile,
+        model::ResourceKind::Workflow,
+    };
+    const auto contains_authority_bearing_content =
+        std::ranges::any_of(resource_kinds, [&authority_bearing_kinds](model::ResourceKind kind) {
+            return std::ranges::find(authority_bearing_kinds, kind) !=
+                   authority_bearing_kinds.end();
+        });
+    if (contains_authority_bearing_content &&
+        !hasCapability(required_capabilities, "workbench.pack.canonical-authority", 1)) {
+        return fail(QStringLiteral("Schema-2 authority-bearing content requires "
+                                   "workbench.pack.canonical-authority version 1"));
     }
     return {};
 }

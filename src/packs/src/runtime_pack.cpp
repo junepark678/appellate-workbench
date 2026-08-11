@@ -79,7 +79,7 @@ template <typename Value> using Result = std::expected<Value, RuntimePackError>;
 [[nodiscard]] bool isNamespacedId(const QString& value) {
     static const QRegularExpression pattern(
         QStringLiteral(R"(^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$)"));
-    return value.size() >= 3 && value.size() <= 128 && pattern.match(value).hasMatch();
+    return value.size() >= 3 && value.size() <= 160 && pattern.match(value).hasMatch();
 }
 
 [[nodiscard]] bool isSha256(const QString& value) {
@@ -340,9 +340,16 @@ optionalStringArray(const QJsonObject& object, const char* key, const std::strin
 }
 
 struct ResourceIndex final {
+    struct CanonicalAuthority final {
+        model::AuthorityRef reference;
+        std::string authority_set_id;
+        const model::PackRevision* owner{};
+    };
+
     std::unordered_map<std::string, const ValidatedResource*> resources;
     std::unordered_map<std::string, const model::JudgeProfile*> judge_profiles;
     std::unordered_map<std::string, const model::PackRevision*> resource_owners;
+    std::unordered_map<std::string, CanonicalAuthority> authorities;
 
     [[nodiscard]] Result<const ValidatedResource*>
     require(const std::string& id, model::ResourceKind kind, const std::string& owner) const {
@@ -358,9 +365,29 @@ struct ResourceIndex final {
         return found->second;
     }
 
+    [[nodiscard]] bool
+    authorityInSets(const std::string& id,
+                    std::span<const RuntimeAuthoritySetId> authority_set_ids) const {
+        const auto authority = authorities.find(id);
+        return authority != authorities.end() &&
+               std::ranges::any_of(authority_set_ids, [&authority](const auto& set_id) {
+                   return set_id.value == authority->second.authority_set_id;
+               });
+    }
+
     [[nodiscard]] bool ownedBy(const std::string& id, const model::PackRevision& revision) const {
         const auto found = resource_owners.find(id);
         return found != resource_owners.end() && *found->second == revision;
+    }
+
+    [[nodiscard]] Result<model::AuthorityRef> requireAuthority(const std::string& id,
+                                                               const std::string& owner) const {
+        const auto found = authorities.find(id);
+        if (found == authorities.end()) {
+            return fail(RuntimePackErrorCode::MissingResource,
+                        owner + " references missing canonical authority " + id);
+        }
+        return found->second.reference;
     }
 
     [[nodiscard]] Result<const model::JudgeProfile*> requireJudge(const std::string& id,
@@ -378,6 +405,10 @@ struct ResourceIndex final {
     }
 };
 
+[[nodiscard]] Result<model::AuthorityRef> parseAuthorityReference(const QJsonObject& object,
+                                                                  const std::string& path,
+                                                                  std::uint32_t schema_version);
+
 [[nodiscard]] Result<ResourceIndex> makeIndex(std::span<const LoadedPack* const> packs,
                                               std::uint32_t manifest_schema_version) {
     if (packs.empty() || (manifest_schema_version != 1 && manifest_schema_version != 2)) {
@@ -389,6 +420,7 @@ struct ResourceIndex final {
     std::size_t total_judges = 0;
     for (const auto* pack : packs) {
         if (pack == nullptr || pack->manifest_schema_version != manifest_schema_version ||
+            pack->revision.id.value.size() > 128 ||
             !isNamespacedId(QString::fromStdString(pack->revision.id.value)) ||
             pack->revision.version.empty() ||
             !isSha256(QString::fromStdString(pack->revision.digest)) ||
@@ -475,11 +507,73 @@ struct ResourceIndex final {
             }
         }
     }
+    index.authorities.reserve(total_resources);
+    for (const auto* pack : packs) {
+        for (const auto& resource : pack->resources) {
+            if (resource.descriptor.kind != model::ResourceKind::AuthoritySet) {
+                continue;
+            }
+            const auto values = requiredArray(resource.document, "authorities",
+                                              "authority set " + resource.descriptor.id, 1, 2048);
+            if (!values) {
+                return std::unexpected(values.error());
+            }
+            std::optional<model::LegalDate> source_cutoff;
+            if (pack->manifest_schema_version == 2) {
+                auto parsed_cutoff = requiredDate(resource.document, "source_cutoff",
+                                                  "authority set " + resource.descriptor.id);
+                if (!parsed_cutoff) {
+                    return std::unexpected(parsed_cutoff.error());
+                }
+                source_cutoff = *parsed_cutoff;
+            }
+            for (qsizetype authority_index = 0; authority_index < values->size();
+                 ++authority_index) {
+                if (!values->at(authority_index).isObject()) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                "authority set " + resource.descriptor.id +
+                                    " must contain authority objects");
+                }
+                const auto path = "authority set " + resource.descriptor.id + ".authorities[" +
+                                  std::to_string(authority_index) + "]";
+                const auto authority_object = values->at(authority_index).toObject();
+                auto authority =
+                    parseAuthorityReference(authority_object, path, pack->manifest_schema_version);
+                if (!authority) {
+                    return std::unexpected(authority.error());
+                }
+                if (source_cutoff.has_value()) {
+                    const auto source_version =
+                        requiredDate(authority_object, "source_version", path);
+                    const auto checked_on = requiredDate(authority_object, "checked_on", path);
+                    if (!source_version || !checked_on) {
+                        return std::unexpected(
+                            (!source_version ? source_version.error() : checked_on.error()));
+                    }
+                    if (source_version->value > source_cutoff->value ||
+                        checked_on->value < source_version->value) {
+                        return fail(RuntimePackErrorCode::InvalidResource,
+                                    path + " has inconsistent source chronology");
+                    }
+                }
+                const auto id = authority->id.value;
+                if (!index.authorities
+                         .emplace(id, ResourceIndex::CanonicalAuthority{std::move(*authority),
+                                                                        resource.descriptor.id,
+                                                                        &pack->revision})
+                         .second) {
+                    return fail(RuntimePackErrorCode::DuplicateResource,
+                                "runtime closure contains duplicate canonical authority " + id);
+                }
+            }
+        }
+    }
     return index;
 }
 
 [[nodiscard]] Result<model::AuthorityRef> parseAuthorityReference(const QJsonObject& object,
-                                                                  const std::string& path) {
+                                                                  const std::string& path,
+                                                                  std::uint32_t schema_version) {
     const auto id = requiredId(object, "authority_id", path);
     const auto citation = requiredString(object, "citation", path);
     const auto source_version = requiredDate(object, "source_version", path);
@@ -497,11 +591,121 @@ struct ResourceIndex final {
         return std::unexpected(proposition.error());
     }
     const auto source_text = object.value(QStringLiteral("source_version")).toString();
-    return model::AuthorityRef{model::AuthorityId{*id}, *citation, utf8(source_text), *proposition};
+    if (!isBoundedUtf8Text(*citation, 4096) || !isBoundedUtf8Text(*proposition, 4096)) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + " contains overlong canonical authority text");
+    }
+    if (schema_version == 1) {
+        return model::AuthorityRef{model::AuthorityId{*id}, *citation, utf8(source_text),
+                                   *proposition, std::nullopt};
+    }
+    if (schema_version != 2) {
+        return fail(RuntimePackErrorCode::InvalidPack,
+                    path + " uses an unsupported authority schema generation");
+    }
+    if (!model::isCanonicalAuthorityText(*citation, 4096) ||
+        !model::isCanonicalAuthorityText(*proposition, 4096)) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + " contains noncanonical authority text");
+    }
+
+    const auto type_text = requiredString(object, "authority_type", path);
+    const auto jurisdiction = requiredId(object, "jurisdiction_id", path);
+    const auto issuing_body = requiredId(object, "issuing_body_id", path);
+    const auto status_text = requiredString(object, "precedential_status", path);
+    const auto official_source = requiredBoolean(object, "official_source", path);
+    const auto checked_on = requiredDate(object, "checked_on", path);
+    const auto locator = requiredString(object, "locator", path);
+    const auto source_url = requiredString(object, "source_url", path);
+    if (!type_text || !jurisdiction || !issuing_body || !status_text || !official_source ||
+        !checked_on || !locator || !source_url) {
+        if (!type_text) {
+            return std::unexpected(type_text.error());
+        }
+        if (!jurisdiction) {
+            return std::unexpected(jurisdiction.error());
+        }
+        if (!issuing_body) {
+            return std::unexpected(issuing_body.error());
+        }
+        if (!status_text) {
+            return std::unexpected(status_text.error());
+        }
+        if (!official_source) {
+            return std::unexpected(official_source.error());
+        }
+        if (!checked_on) {
+            return std::unexpected(checked_on.error());
+        }
+        if (!locator) {
+            return std::unexpected(locator.error());
+        }
+        return std::unexpected(source_url.error());
+    }
+    static const std::unordered_map<std::string, model::AuthorityType> authority_types{
+        {"constitution", model::AuthorityType::Constitution},
+        {"statute", model::AuthorityType::Statute},
+        {"rule", model::AuthorityType::Rule},
+        {"regulation", model::AuthorityType::Regulation},
+        {"case", model::AuthorityType::Case},
+        {"order", model::AuthorityType::Order},
+        {"administrative_decision", model::AuthorityType::AdministrativeDecision},
+        {"other", model::AuthorityType::Other},
+    };
+    static const std::unordered_map<std::string, model::PrecedentialStatus> statuses{
+        {"not_applicable", model::PrecedentialStatus::NotApplicable},
+        {"precedential", model::PrecedentialStatus::Precedential},
+        {"nonprecedential", model::PrecedentialStatus::Nonprecedential},
+    };
+    const auto type = authority_types.find(*type_text);
+    const auto status = statuses.find(*status_text);
+    if (type == authority_types.end() || status == statuses.end() ||
+        !model::isCanonicalAuthorityText(*locator, 4096) || !isBoundedUtf8Text(*source_url, 2048) ||
+        !model::isCanonicalAuthoritySourceUrl(*source_url)) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + " contains invalid canonical authority provenance");
+    }
+    const auto checked_text = object.value(QStringLiteral("checked_on")).toString();
+    return model::AuthorityRef{
+        model::AuthorityId{*id}, *citation, utf8(source_text), *proposition,
+        model::AuthorityProvenance{type->second, *jurisdiction, *issuing_body, status->second,
+                                   *official_source, utf8(checked_text), *locator, *source_url}};
 }
 
 [[nodiscard]] Result<model::AuthorityBasis> parseAuthorityBasis(const QJsonObject& object,
-                                                                const std::string& path) {
+                                                                const std::string& path,
+                                                                const ResourceIndex& resource_index,
+                                                                std::uint32_t schema_version) {
+    if (schema_version == 2) {
+        const auto primary_id = requiredId(object, "primary_authority_id", path);
+        const auto supporting_ids =
+            idArray(object, "supporting_authority_ids", path, 0, maximum_authorities);
+        if (!primary_id) {
+            return std::unexpected(primary_id.error());
+        }
+        if (!supporting_ids) {
+            return std::unexpected(supporting_ids.error());
+        }
+        auto primary = resource_index.requireAuthority(*primary_id, path + ".primary_authority_id");
+        if (!primary) {
+            return std::unexpected(primary.error());
+        }
+        std::vector<model::AuthorityRef> supporting;
+        supporting.reserve(supporting_ids->size());
+        for (const auto& supporting_id : *supporting_ids) {
+            if (supporting_id == *primary_id) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            path + " repeats its primary authority as supporting authority");
+            }
+            auto reference =
+                resource_index.requireAuthority(supporting_id, path + ".supporting_authority_ids");
+            if (!reference) {
+                return std::unexpected(reference.error());
+            }
+            supporting.push_back(std::move(*reference));
+        }
+        return model::AuthorityBasis{std::move(*primary), std::move(supporting)};
+    }
     const auto primary_object = requiredObject(object, "primary", path);
     const auto supporting_values =
         requiredArray(object, "supporting", path, 0, maximum_authorities);
@@ -511,7 +715,7 @@ struct ResourceIndex final {
     if (!supporting_values) {
         return std::unexpected(supporting_values.error());
     }
-    auto primary = parseAuthorityReference(*primary_object, path + ".primary");
+    auto primary = parseAuthorityReference(*primary_object, path + ".primary", schema_version);
     if (!primary) {
         return std::unexpected(primary.error());
     }
@@ -523,8 +727,8 @@ struct ResourceIndex final {
             return fail(RuntimePackErrorCode::InvalidResource,
                         path + ".supporting must contain objects");
         }
-        auto reference =
-            parseAuthorityReference(supporting_values->at(index).toObject(), path + ".supporting");
+        auto reference = parseAuthorityReference(supporting_values->at(index).toObject(),
+                                                 path + ".supporting", schema_version);
         if (!reference) {
             return std::unexpected(reference.error());
         }
@@ -608,7 +812,9 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
                                        model::WorkflowOperationId{*operation_id}};
 }
 
-[[nodiscard]] Result<model::WorkflowDefinition> parseWorkflow(const ValidatedResource& resource) {
+[[nodiscard]] Result<model::WorkflowDefinition> parseWorkflow(const ValidatedResource& resource,
+                                                              const ResourceIndex& resource_index,
+                                                              std::uint32_t schema_version) {
     const auto path = "workflow " + resource.descriptor.id;
     const auto initial_stage = requiredId(resource.document, "initial_stage_id", path);
     const auto stage_ids = idArray(resource.document, "stages", path, 1, maximum_stages);
@@ -681,7 +887,8 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
             }
             return std::unexpected(roles.error());
         }
-        auto authority = parseAuthorityBasis(*authority_object, operation_path + ".authority");
+        auto authority = parseAuthorityBasis(*authority_object, operation_path + ".authority",
+                                             resource_index, schema_version);
         if (!authority) {
             return std::unexpected(authority.error());
         }
@@ -945,7 +1152,8 @@ struct ParsedCase final {
     model::WorkflowOperationId authored_disposition_id;
 };
 
-[[nodiscard]] Result<ParsedCase> parseCase(const ValidatedResource& resource) {
+[[nodiscard]] Result<ParsedCase> parseCase(const ValidatedResource& resource,
+                                           const ResourceIndex& resource_index) {
     const auto path = "case " + resource.descriptor.id;
     const auto title = requiredString(resource.document, "title", path);
     const auto procedure = requiredId(resource.document, "procedure_profile_id", path);
@@ -1037,15 +1245,23 @@ struct ParsedCase final {
                         issue_path + " repeats an issue identifier");
         }
         std::vector<model::AuthorityId> authority_ids;
-        for (auto& authority : *authorities) {
-            authority_ids.push_back(model::AuthorityId{std::move(authority)});
+        std::vector<model::AuthorityRef> authority_references;
+        authority_ids.reserve(authorities->size());
+        authority_references.reserve(authorities->size());
+        for (const auto& authority : *authorities) {
+            auto canonical = resource_index.requireAuthority(authority, issue_path);
+            if (!canonical) {
+                return std::unexpected(canonical.error());
+            }
+            authority_ids.push_back(model::AuthorityId{authority});
+            authority_references.push_back(std::move(*canonical));
         }
         std::vector<RuntimeRecordAnchorId> anchor_ids;
         for (auto& anchor : *anchors) {
             anchor_ids.push_back(RuntimeRecordAnchorId{std::move(anchor)});
         }
         issues.push_back(RuntimeIssue{RuntimeIssueId{*id}, *issue_title, std::move(authority_ids),
-                                      std::move(anchor_ids)});
+                                      std::move(authority_references), std::move(anchor_ids)});
     }
     return ParsedCase{model::CaseDefinition{model::CaseId{resource.descriptor.id},
                                             model::ProcedureId{*procedure}, std::move(actors)},
@@ -1354,11 +1570,13 @@ struct ParsedCase final {
 struct RuntimeCatalogFiling final {
     std::unordered_set<std::string> authorized_roles;
     std::unordered_set<std::string> required_fields;
+    model::AuthorityRef authority;
 };
 
 using RuntimeCatalog = std::unordered_map<std::string, RuntimeCatalogFiling>;
 
-[[nodiscard]] Result<RuntimeCatalog> parseFilingCatalog(const ValidatedResource& resource) {
+[[nodiscard]] Result<RuntimeCatalog> parseFilingCatalog(const ValidatedResource& resource,
+                                                        const ResourceIndex& resource_index) {
     const auto path = "filing catalog " + resource.descriptor.id;
     const auto filing_values = requiredArray(resource.document, "filings", path, 1, 512);
     if (!filing_values) {
@@ -1397,6 +1615,11 @@ using RuntimeCatalog = std::unordered_map<std::string, RuntimeCatalogFiling>;
         RuntimeCatalogFiling parsed;
         parsed.authorized_roles.insert(roles->begin(), roles->end());
         parsed.required_fields.insert(fields->begin(), fields->end());
+        auto canonical = resource_index.requireAuthority(*authority, filing_path);
+        if (!canonical) {
+            return std::unexpected(canonical.error());
+        }
+        parsed.authority = std::move(*canonical);
         if (!catalog.emplace(*id, std::move(parsed)).second) {
             return fail(RuntimePackErrorCode::DuplicateResource,
                         path + " repeats filing type " + *id);
@@ -1668,7 +1891,7 @@ using RuntimeCatalog = std::unordered_map<std::string, RuntimeCatalogFiling>;
 assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
              const std::vector<const ValidatedResource*>& arguments,
              const model::PackRevision& root_revision) {
-    auto parsed_case = parseCase(resource);
+    auto parsed_case = parseCase(resource, index);
     if (!parsed_case) {
         return std::unexpected(parsed_case.error());
     }
@@ -1717,10 +1940,11 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
             return std::unexpected(authority.error());
         }
     }
-    auto workflow = parseWorkflow(**workflow_resource);
+    auto workflow =
+        parseWorkflow(**workflow_resource, index, (*workflow_resource)->descriptor.schema_version);
     auto court = parseCourt(**court_resource);
     auto record = parseRecord(**record_resource);
-    auto catalog = parseFilingCatalog(**catalog_resource);
+    auto catalog = parseFilingCatalog(**catalog_resource, index);
     if (!workflow) {
         return std::unexpected(workflow.error());
     }
@@ -1732,6 +1956,45 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
     }
     if (!catalog) {
         return std::unexpected(catalog.error());
+    }
+    if (resource.descriptor.schema_version == 2) {
+        if (std::ranges::any_of(procedure->authority_set_ids, [&](const auto& procedure_set) {
+                return std::ranges::none_of(court->authority_set_ids, [&](const auto& court_set) {
+                    return procedure_set.value == court_set.value;
+                });
+            })) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        "procedure " + procedure->id.value +
+                            " uses an authority set not declared by its court");
+        }
+        for (const auto& operation : workflow->operations) {
+            if (!index.authorityInSets(operation.authority.primary.id.value,
+                                       procedure->authority_set_ids) ||
+                std::ranges::any_of(operation.authority.supporting, [&](const auto& authority) {
+                    return !index.authorityInSets(authority.id.value, procedure->authority_set_ids);
+                })) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            "workflow " + workflow->id.value +
+                                " uses an authority outside its procedure authority sets");
+            }
+        }
+        if (std::ranges::any_of(*catalog, [&](const auto& entry) {
+                return !index.authorityInSets(entry.second.authority.id.value,
+                                              procedure->authority_set_ids);
+            })) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        "filing catalog " + procedure->filing_catalog_id.value +
+                            " uses an authority outside its procedure authority sets");
+        }
+        for (const auto& issue : parsed_case->issues) {
+            if (std::ranges::any_of(issue.authority_ids, [&](const auto& authority) {
+                    return !index.authorityInSets(authority.value, procedure->authority_set_ids);
+                })) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            "case " + parsed_case->definition.id.value +
+                                " uses an authority outside its procedure authority sets");
+            }
+        }
     }
     for (const auto& docket : record->dockets) {
         if (!docket.court_id.has_value()) {
@@ -1847,6 +2110,14 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         }
         runtime_arguments.push_back(std::move(*parsed_argument));
     }
+    std::vector<RuntimeFilingAuthority> filing_authorities;
+    filing_authorities.reserve(catalog->size());
+    for (const auto& [filing_type_id, filing] : *catalog) {
+        filing_authorities.push_back(
+            RuntimeFilingAuthority{model::FilingTypeId{filing_type_id}, filing.authority});
+    }
+    std::ranges::sort(filing_authorities, {},
+                      [](const auto& filing) { return filing.filing_type_id.value; });
     return RuntimeCase{std::move(parsed_case->definition),
                        std::move(parsed_case->title),
                        std::move(*procedure),
@@ -1854,6 +2125,7 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
                        std::move(*workflow),
                        std::move(*record),
                        std::move(parsed_case->issues),
+                       std::move(filing_authorities),
                        std::move(parsed_case->authored_disposition_id),
                        std::move(runtime_arguments)};
 }

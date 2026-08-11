@@ -165,9 +165,17 @@ struct RuntimeIssue final {
     RuntimeIssueId id;
     std::string title;
     std::vector<model::AuthorityId> authority_ids;
+    std::vector<model::AuthorityRef> authorities;
     std::vector<RuntimeRecordAnchorId> record_anchor_ids;
 
     friend bool operator==(const RuntimeIssue&, const RuntimeIssue&) = default;
+};
+
+struct RuntimeFilingAuthority final {
+    model::FilingTypeId filing_type_id;
+    model::AuthorityRef authority;
+
+    friend bool operator==(const RuntimeFilingAuthority&, const RuntimeFilingAuthority&) = default;
 };
 
 struct RuntimeProcedure final {
@@ -232,6 +240,7 @@ struct RuntimeCase final {
     model::WorkflowDefinition workflow;
     RuntimeRecord record;
     std::vector<RuntimeIssue> issues;
+    std::vector<RuntimeFilingAuthority> filing_authorities;
     model::WorkflowOperationId authored_disposition_id;
     std::vector<RuntimeArgumentConfiguration> argument_configurations;
 

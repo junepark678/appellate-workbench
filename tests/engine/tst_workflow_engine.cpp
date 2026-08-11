@@ -48,6 +48,17 @@ constexpr auto reply_deadline = "test.deadline.reply";
     };
 }
 
+[[nodiscard]] model::AuthorityProvenance provenance() {
+    return model::AuthorityProvenance{model::AuthorityType::Rule,
+                                      "us.federal",
+                                      "us.ca4",
+                                      model::PrecedentialStatus::NotApplicable,
+                                      true,
+                                      "2026-08-11",
+                                      "Fed. R. App. P. 3(a)",
+                                      "https://www.ca4.uscourts.gov/rules/Rule03.html"};
+}
+
 [[nodiscard]] model::WorkflowOperation
 operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
           std::optional<std::string> next_stage = std::nullopt,
@@ -462,6 +473,7 @@ class WorkflowEngineTest final : public QObject {
     void courtRecordsSourcedDeadlineTriggers();
     void courtExplicitlyAdvancesSourcedStages();
     void rejectsUnauthorizedCourtActionAndMissingAuthority();
+    void validatesCompleteProvenanceAndRejectsMutations();
     void replayRejectsImpossibleGroupsAndForgedCourtActions();
     void rejectsBackdatedExplicitLegalTime();
     void rejectsDirtySnapshotsAndMalformedDefinitions();
@@ -742,12 +754,11 @@ void WorkflowEngineTest::courtRecordsSourcedDeadlineTriggers() {
         model::WorkflowOperationId{"test.op.court.deadline"},
         model::WorkflowDeadlineId{"test.deadline.court-triggered"}};
 
-    const auto decision = engine::decideWorkflow(
-        definition, case_definition, initial, model::WorkflowCommand{command});
+    const auto decision = engine::decideWorkflow(definition, case_definition, initial,
+                                                 model::WorkflowCommand{command});
     QVERIFY(decision.has_value());
     QCOMPARE(decision->size(), std::size_t{1});
-    const auto* calculated =
-        std::get_if<model::WorkflowDeadlineCalculated>(&decision->front());
+    const auto* calculated = std::get_if<model::WorkflowDeadlineCalculated>(&decision->front());
     QVERIFY(calculated != nullptr);
     QCOMPARE(calculated->base_date, date(2026, 8, 14));
     QCOMPARE(calculated->due_date, date(2026, 8, 18));
@@ -755,10 +766,9 @@ void WorkflowEngineTest::courtRecordsSourcedDeadlineTriggers() {
     QCOMPARE(calculated->header.authority.primary.id.value,
              std::string("test.op.court.deadline.authority"));
 
-    const std::vector journal{model::WorkflowJournalEntry{
-        model::WorkflowCommand{command}, *decision}};
-    const auto replayed =
-        engine::replayWorkflow(definition, case_definition, initial, journal);
+    const std::vector journal{
+        model::WorkflowJournalEntry{model::WorkflowCommand{command}, *decision}};
+    const auto replayed = engine::replayWorkflow(definition, case_definition, initial, journal);
     QVERIFY(replayed.has_value());
     QCOMPARE(replayed->deadlines.size(), std::size_t{1});
     QCOMPARE(replayed->deadlines.front().due_date, date(2026, 8, 18));
@@ -766,16 +776,16 @@ void WorkflowEngineTest::courtRecordsSourcedDeadlineTriggers() {
     auto unauthorized = command;
     unauthorized.header.command_id = model::WorkflowCommandId{"command.unauthorized-deadline"};
     unauthorized.header.actor_id = model::ActorId{"test.actor.appellant"};
-    const auto denied = engine::decideWorkflow(
-        definition, case_definition, initial, model::WorkflowCommand{unauthorized});
+    const auto denied = engine::decideWorkflow(definition, case_definition, initial,
+                                               model::WorkflowCommand{unauthorized});
     QVERIFY(!denied.has_value());
     QCOMPARE(denied.error().code, engine::WorkflowErrorCode::UnauthorizedActor);
 
     auto duplicate = command;
     duplicate.header.command_id = model::WorkflowCommandId{"command.duplicate-deadline"};
     duplicate.header.occurred_at = at(date(2026, 8, 19));
-    const auto duplicate_result = engine::decideWorkflow(
-        definition, case_definition, *replayed, model::WorkflowCommand{duplicate});
+    const auto duplicate_result = engine::decideWorkflow(definition, case_definition, *replayed,
+                                                         model::WorkflowCommand{duplicate});
     QVERIFY(!duplicate_result.has_value());
     QCOMPARE(duplicate_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
 }
@@ -788,8 +798,8 @@ void WorkflowEngineTest::courtExplicitlyAdvancesSourcedStages() {
         header("command.court-advance", "test.actor.court", date(2026, 8, 14)),
         model::WorkflowOperationId{"test.op.court-advance"}};
 
-    const auto decision = engine::decideWorkflow(
-        definition, case_definition, initial, model::WorkflowCommand{command});
+    const auto decision = engine::decideWorkflow(definition, case_definition, initial,
+                                                 model::WorkflowCommand{command});
     QVERIFY(decision.has_value());
     QCOMPARE(decision->size(), std::size_t{1});
     const auto* advanced = std::get_if<model::WorkflowStageAdvanced>(&decision->front());
@@ -802,40 +812,39 @@ void WorkflowEngineTest::courtExplicitlyAdvancesSourcedStages() {
 
     const std::vector journal{
         model::WorkflowJournalEntry{model::WorkflowCommand{command}, *decision}};
-    const auto replayed =
-        engine::replayWorkflow(definition, case_definition, initial, journal);
+    const auto replayed = engine::replayWorkflow(definition, case_definition, initial, journal);
     QVERIFY(replayed.has_value());
     QCOMPARE(replayed->current_stage_id.value, std::string(appellee_stage));
 
     auto tampered_journal = journal;
-    std::get<model::WorkflowStageAdvanced>(tampered_journal.front().events.front())
-        .next_stage_id = model::WorkflowStageId{reply_stage};
-    const auto tampered = engine::replayWorkflow(
-        definition, case_definition, initial, tampered_journal);
+    std::get<model::WorkflowStageAdvanced>(tampered_journal.front().events.front()).next_stage_id =
+        model::WorkflowStageId{reply_stage};
+    const auto tampered =
+        engine::replayWorkflow(definition, case_definition, initial, tampered_journal);
     QVERIFY(!tampered.has_value());
     QCOMPARE(tampered.error().code, engine::WorkflowErrorCode::InvalidEvent);
 
     auto unauthorized = command;
     unauthorized.header.command_id = model::WorkflowCommandId{"command.party-advance"};
     unauthorized.header.actor_id = model::ActorId{"test.actor.appellant"};
-    const auto party_result = engine::decideWorkflow(
-        definition, case_definition, initial, model::WorkflowCommand{unauthorized});
+    const auto party_result = engine::decideWorkflow(definition, case_definition, initial,
+                                                     model::WorkflowCommand{unauthorized});
     QVERIFY(!party_result.has_value());
     QCOMPARE(party_result.error().code, engine::WorkflowErrorCode::UnauthorizedActor);
 
     auto wrong_stage = command;
     wrong_stage.header.command_id = model::WorkflowCommandId{"command.wrong-stage-advance"};
     wrong_stage.header.occurred_at = at(date(2026, 8, 15));
-    const auto wrong_stage_result = engine::decideWorkflow(
-        definition, case_definition, *replayed, model::WorkflowCommand{wrong_stage});
+    const auto wrong_stage_result = engine::decideWorkflow(definition, case_definition, *replayed,
+                                                           model::WorkflowCommand{wrong_stage});
     QVERIFY(!wrong_stage_result.has_value());
     QCOMPARE(wrong_stage_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
 
     auto wrong_opcode = command;
     wrong_opcode.header.command_id = model::WorkflowCommandId{"command.wrong-opcode-advance"};
     wrong_opcode.operation_id = model::WorkflowOperationId{"test.op.court.deadline"};
-    const auto wrong_opcode_result = engine::decideWorkflow(
-        definition, case_definition, initial, model::WorkflowCommand{wrong_opcode});
+    const auto wrong_opcode_result = engine::decideWorkflow(definition, case_definition, initial,
+                                                            model::WorkflowCommand{wrong_opcode});
     QVERIFY(!wrong_opcode_result.has_value());
     QCOMPARE(wrong_opcode_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
 
@@ -843,13 +852,13 @@ void WorkflowEngineTest::courtExplicitlyAdvancesSourcedStages() {
         header("command.before-advance", "test.actor.court", date(2026, 8, 14)),
         model::WorkflowOperationId{"test.op.court.deadline"},
         model::WorkflowDeadlineId{"test.deadline.before-advance"}};
-    const auto deadline_decision = engine::decideWorkflow(
-        definition, case_definition, initial, model::WorkflowCommand{deadline_command});
+    const auto deadline_decision = engine::decideWorkflow(definition, case_definition, initial,
+                                                          model::WorkflowCommand{deadline_command});
     QVERIFY(deadline_decision.has_value());
-    const std::vector deadline_journal{model::WorkflowJournalEntry{
-        model::WorkflowCommand{deadline_command}, *deadline_decision}};
-    const auto after_deadline = engine::replayWorkflow(
-        definition, case_definition, initial, deadline_journal);
+    const std::vector deadline_journal{
+        model::WorkflowJournalEntry{model::WorkflowCommand{deadline_command}, *deadline_decision}};
+    const auto after_deadline =
+        engine::replayWorkflow(definition, case_definition, initial, deadline_journal);
     QVERIFY(after_deadline.has_value());
     auto backdated = command;
     backdated.header.command_id = model::WorkflowCommandId{"command.backdated-advance"};
@@ -862,11 +871,11 @@ void WorkflowEngineTest::courtExplicitlyAdvancesSourcedStages() {
     auto leaking_definition = definition;
     leaking_definition.filing_routes.front().advance_operation_id =
         model::WorkflowOperationId{"test.op.court-advance"};
-    const auto party_filing = filing(
-        "command.leaking-route", "filing.leaking-route", "test.actor.appellant",
-        "test.filing.opening", date(2026, 8, 14), {model::ActorId{"test.actor.appellee"}});
-    const auto leak_result = engine::decideWorkflow(
-        leaking_definition, case_definition, initial, model::WorkflowCommand{party_filing});
+    const auto party_filing =
+        filing("command.leaking-route", "filing.leaking-route", "test.actor.appellant",
+               "test.filing.opening", date(2026, 8, 14), {model::ActorId{"test.actor.appellee"}});
+    const auto leak_result = engine::decideWorkflow(leaking_definition, case_definition, initial,
+                                                    model::WorkflowCommand{party_filing});
     QVERIFY(!leak_result.has_value());
     QCOMPARE(leak_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
 }
@@ -891,6 +900,68 @@ void WorkflowEngineTest::rejectsUnauthorizedCourtActionAndMissingAuthority() {
     result = engine::decideWorkflow(definition, case_definition, submitted->state, command);
     QVERIFY(!result.has_value());
     QCOMPARE(result.error().code, engine::WorkflowErrorCode::MissingAuthority);
+}
+
+void WorkflowEngineTest::validatesCompleteProvenanceAndRejectsMutations() {
+    auto definition = workflow();
+    const auto case_definition = caseDefinition();
+    const auto initial = initialState();
+    const model::WorkflowCommand command = model::CalculateWorkflowDeadline{
+        header("command.provenance", "test.actor.court", date(2026, 8, 14)),
+        model::WorkflowOperationId{"test.op.court.deadline"},
+        model::WorkflowDeadlineId{"test.deadline.provenance"}};
+    for (auto& candidate : definition.operations) {
+        candidate.authority.primary.provenance = provenance();
+    }
+    auto operation = std::ranges::find(definition.operations,
+                                       model::WorkflowOperationId{"test.op.court.deadline"},
+                                       &model::WorkflowOperation::id);
+    QVERIFY(operation != definition.operations.end());
+    auto result = engine::decideWorkflow(definition, case_definition, initial, command);
+    QVERIFY(result.has_value());
+    QVERIFY(eventHeader(result->front()).authority.primary.provenance.has_value());
+
+    operation->authority.primary.provenance->source_url = "javascript:alert(1)";
+    result = engine::decideWorkflow(definition, case_definition, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::MissingAuthority);
+
+    operation->authority.primary.provenance = provenance();
+    operation->authority.primary.provenance->precedential_status =
+        static_cast<model::PrecedentialStatus>(99);
+    result = engine::decideWorkflow(definition, case_definition, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::MissingAuthority);
+
+    operation->authority.primary.provenance = provenance();
+    operation->authority.primary.provenance->checked_on = "2025-08-11";
+    result = engine::decideWorkflow(definition, case_definition, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::MissingAuthority);
+
+    operation->authority.primary.provenance = provenance();
+    operation->authority.supporting.push_back(authority("test.op.legacy").primary);
+    result = engine::decideWorkflow(definition, case_definition, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::MissingAuthority);
+
+    operation->authority.supporting.clear();
+    definition.operations.front().authority.primary.provenance.reset();
+    result = engine::decideWorkflow(definition, case_definition, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::MissingAuthority);
+
+    definition.operations.front().authority.primary.provenance = provenance();
+    auto unicode_value = std::string{};
+    unicode_value.reserve(2000 * std::string("한").size());
+    for (int index = 0; index < 2000; ++index) {
+        unicode_value += "한";
+    }
+    operation->authority.primary.citation = unicode_value;
+    operation->authority.primary.proposition = unicode_value;
+    operation->authority.primary.provenance->locator = unicode_value;
+    result = engine::decideWorkflow(definition, case_definition, initial, command);
+    QVERIFY(result.has_value());
 }
 
 void WorkflowEngineTest::replayRejectsImpossibleGroupsAndForgedCourtActions() {

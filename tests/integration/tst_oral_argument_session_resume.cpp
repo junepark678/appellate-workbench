@@ -229,7 +229,8 @@ struct Definitions final {
 }
 
 [[nodiscard]] bool tamperDatabase(const QString& database_path, const QString& kind) {
-    if (kind == QStringLiteral("command-id") || kind == QStringLiteral("recorded-time")) {
+    if (kind == QStringLiteral("command-id") || kind == QStringLiteral("recorded-time") ||
+        kind == QStringLiteral("authority-contract")) {
         const auto connection_name =
             QStringLiteral("oral-tamper-%1").arg(QUuid::createUuid().toString(QUuid::Id128));
         bool succeeded = false;
@@ -240,13 +241,18 @@ struct Definitions final {
                 return false;
             }
             QSqlQuery query(database);
-            succeeded = kind == QStringLiteral("command-id")
-                            ? query.exec(QStringLiteral(
-                                  "UPDATE command_log SET command_id='command.answer.forged' "
-                                  "WHERE expected_sequence=1"))
-                            : query.exec(QStringLiteral(
-                                  "UPDATE command_log SET recorded_at_utc="
-                                  "'2026-08-11T10:01:00Z' WHERE expected_sequence=1"));
+            if (kind == QStringLiteral("command-id")) {
+                succeeded = query.exec(
+                    QStringLiteral("UPDATE command_log SET command_id='command.answer.forged' "
+                                   "WHERE expected_sequence=1"));
+            } else if (kind == QStringLiteral("recorded-time")) {
+                succeeded =
+                    query.exec(QStringLiteral("UPDATE command_log SET recorded_at_utc="
+                                              "'2026-08-11T10:01:00Z' WHERE expected_sequence=1"));
+            } else {
+                succeeded = query.exec(
+                    QStringLiteral("UPDATE sessions SET authority_contract='canonical-v2'"));
+            }
             database.close();
             database = QSqlDatabase{};
         }
@@ -367,6 +373,7 @@ void OralArgumentSessionResumeTest::answerJournalAndTranscriptSurviveExactReopen
     const auto expected_initial = (*controller)->initialState();
     const auto expected_state = (*controller)->state();
     const auto expected_snapshot = (*controller)->snapshot();
+    QCOMPARE(expected_snapshot.authority_contract, storage::SessionAuthorityContract::LegacyV1);
     QCOMPARE(expected_state.journal.size(), std::size_t{3});
     QCOMPARE(expected_state.transcript.size(), std::size_t{5});
     QCOMPARE(expected_state.concessions.size(), std::size_t{1});
@@ -387,9 +394,9 @@ void OralArgumentSessionResumeTest::answerJournalAndTranscriptSurviveExactReopen
 void OralArgumentSessionResumeTest::rejectsPersistedTampering_data() {
     QTest::addColumn<QString>("kind");
 
-    for (const auto* kind :
-         {"command-id", "recorded-time", "event-type", "event-authority", "rendered-utterance",
-          "event-grounding", "answer", "configuration-pin", "grounding-pin"}) {
+    for (const auto* kind : {"command-id", "recorded-time", "authority-contract", "event-type",
+                             "event-authority", "rendered-utterance", "event-grounding", "answer",
+                             "configuration-pin", "grounding-pin"}) {
         QTest::newRow(kind) << QString::fromLatin1(kind);
     }
 }

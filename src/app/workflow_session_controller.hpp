@@ -59,14 +59,16 @@ class WorkflowSessionController final {
     create(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
            model::WorkflowState initial_state, storage::AssetStore asset_store,
            std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
-           QString created_at_utc, std::vector<storage::RevisionPin> pins)
+           QString created_at_utc, const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
 
-    [[nodiscard]] static auto
-    create(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
-           model::WorkflowState initial_state, storage::AssetStore asset_store,
-           std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
-           QString created_at_utc, const packs::ResolvedPack& resolved_pack)
+    // Catalog-backed production entry point. Workflow and case definitions are
+    // derived from the exact resolved closure instead of trusted from a caller.
+    [[nodiscard]] static auto create(model::CaseId case_id, model::WorkflowState initial_state,
+                                     storage::AssetStore asset_store,
+                                     std::unique_ptr<storage::SessionStore> session_store,
+                                     QString engine_revision, QString created_at_utc,
+                                     const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
 
     [[nodiscard]] static auto
@@ -83,6 +85,12 @@ class WorkflowSessionController final {
            const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
 
+    [[nodiscard]] static auto
+    reopen(model::CaseId case_id, model::WorkflowState initial_state,
+           storage::AssetStore asset_store, std::unique_ptr<storage::SessionStore> session_store,
+           QString expected_engine_revision, const packs::ResolvedPack& resolved_pack)
+        -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
+
     [[nodiscard]] auto submit(const model::WorkflowCommand& command,
                               std::optional<QByteArrayView> document_bytes,
                               const QString& recorded_at_utc)
@@ -94,6 +102,33 @@ class WorkflowSessionController final {
     [[nodiscard]] const storage::SessionSnapshot& snapshot() const noexcept;
 
   private:
+    friend class WorkflowSessionControllerTestAccess;
+
+    // Test-only seam for caller-authored legacy definitions. Production creation must bind exact
+    // revision pins through one of the ResolvedPack overloads above.
+    [[nodiscard]] static auto
+    create(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+           model::WorkflowState initial_state, storage::AssetStore asset_store,
+           std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+           QString created_at_utc, std::vector<storage::RevisionPin> pins)
+        -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
+
+    [[nodiscard]] static auto
+    createBound(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+                model::WorkflowState initial_state, storage::AssetStore asset_store,
+                std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+                QString created_at_utc, std::vector<storage::RevisionPin> pins,
+                storage::SessionAuthorityContract authority_contract)
+        -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
+
+    [[nodiscard]] static auto
+    reopenBound(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+                model::WorkflowState initial_state, storage::AssetStore asset_store,
+                std::unique_ptr<storage::SessionStore> session_store,
+                QString expected_engine_revision, std::vector<storage::RevisionPin> expected_pins,
+                storage::SessionAuthorityContract authority_contract)
+        -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
+
     WorkflowSessionController(model::WorkflowDefinition workflow,
                               model::CaseDefinition case_definition,
                               model::WorkflowState initial_state, model::WorkflowState state,

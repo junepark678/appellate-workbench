@@ -25,6 +25,25 @@
 #include <utility>
 #include <vector>
 
+namespace appellate::app {
+
+class WorkflowSessionControllerTestAccess final {
+  public:
+    [[nodiscard]] static auto
+    create(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+           model::WorkflowState initial_state, storage::AssetStore asset_store,
+           std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+           QString created_at_utc, std::vector<storage::RevisionPin> pins)
+        -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError> {
+        return WorkflowSessionController::create(
+            std::move(workflow), std::move(case_definition), std::move(initial_state),
+            std::move(asset_store), std::move(session_store), std::move(engine_revision),
+            std::move(created_at_utc), std::move(pins));
+    }
+};
+
+} // namespace appellate::app
+
 namespace {
 
 class WorkflowSessionResumeTest final : public QObject {
@@ -38,6 +57,8 @@ class WorkflowSessionResumeTest final : public QObject {
     void reopenRejectsMissingOrCorruptAsset_data();
     void reopenRejectsMissingOrCorruptAsset();
     void reopenRejectsEnginePinAndSessionMismatch();
+    void createAndReopenRejectMixedAuthorityContracts();
+    void rawReopenRejectsCanonicalAuthoritySession();
     void staleAppendLeavesControllerUnchanged();
 };
 
@@ -162,6 +183,21 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
     };
 }
 
+[[nodiscard]] model::WorkflowDefinition mixedAuthorityWorkflow() {
+    auto definition = workflow();
+    definition.operations.front().authority.primary.provenance = model::AuthorityProvenance{
+        model::AuthorityType::Rule,
+        "us.ca4",
+        "us.ca4.clerk",
+        model::PrecedentialStatus::NotApplicable,
+        true,
+        "2026-08-11",
+        "Synthetic workflow rule",
+        "https://www.uscourts.gov/rules-policies/current-rules-practice-procedure",
+    };
+    return definition;
+}
+
 [[nodiscard]] model::CaseDefinition caseDefinition() {
     return model::CaseDefinition{
         model::CaseId{"test.case.workflow"},
@@ -266,7 +302,7 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
         return std::unexpected(app::WorkflowSessionError{
             app::WorkflowSessionErrorCode::SessionStoreFailure, opened.error().message});
     }
-    return app::WorkflowSessionController::create(
+    return app::WorkflowSessionControllerTestAccess::create(
         workflow(), caseDefinition(), initialState(), storage::AssetStore(asset_root, 1024 * 1024),
         std::move(*opened), QString::fromLatin1(engine_revision),
         QStringLiteral("2026-08-11T09:00:00Z"), pins());
@@ -603,6 +639,55 @@ void WorkflowSessionResumeTest::reopenRejectsEnginePinAndSessionMismatch() {
     QVERIFY(
         !openFor(QString::fromLatin1(engine_revision), pins(), initialState("test.session.other"))
              .has_value());
+}
+
+void WorkflowSessionResumeTest::createAndReopenRejectMixedAuthorityContracts() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto database_path = QDir(directory.path()).filePath(QStringLiteral("sessions.sqlite"));
+    const auto asset_root = QDir(directory.path()).filePath(QStringLiteral("assets"));
+
+    auto store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto rejected_create = app::WorkflowSessionControllerTestAccess::create(
+        mixedAuthorityWorkflow(), caseDefinition(), initialState(),
+        storage::AssetStore(asset_root, 1024 * 1024), std::move(*store),
+        QString::fromLatin1(engine_revision), QStringLiteral("2026-08-11T09:00:00Z"), pins());
+    QVERIFY(!rejected_create.has_value());
+    QCOMPARE(rejected_create.error().code, app::WorkflowSessionErrorCode::InvalidConfiguration);
+
+    auto legacy = createController(database_path, asset_root);
+    QVERIFY(legacy.has_value());
+    legacy->reset();
+    store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto rejected_reopen = app::WorkflowSessionController::reopen(
+        mixedAuthorityWorkflow(), caseDefinition(), initialState(),
+        storage::AssetStore(asset_root, 1024 * 1024), std::move(*store),
+        QString::fromLatin1(engine_revision), pins());
+    QVERIFY(!rejected_reopen.has_value());
+    QCOMPARE(rejected_reopen.error().code, app::WorkflowSessionErrorCode::InvalidConfiguration);
+}
+
+void WorkflowSessionResumeTest::rawReopenRejectsCanonicalAuthoritySession() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto database_path = QDir(directory.path()).filePath(QStringLiteral("sessions.sqlite"));
+    const auto asset_root = QDir(directory.path()).filePath(QStringLiteral("assets"));
+    {
+        auto store = storage::SessionStore::open(database_path);
+        QVERIFY(store.has_value());
+        QVERIFY((*store)
+                    ->createSession(QString::fromLatin1(session_id),
+                                    QString::fromLatin1(engine_revision),
+                                    QStringLiteral("2026-08-11T09:00:00Z"), pins(),
+                                    storage::SessionAuthorityContract::CanonicalV2)
+                    .has_value());
+    }
+
+    const auto reopened = reopenController(database_path, asset_root);
+    QVERIFY(!reopened.has_value());
+    QCOMPARE(reopened.error().code, app::WorkflowSessionErrorCode::CorruptSession);
 }
 
 void WorkflowSessionResumeTest::staleAppendLeavesControllerUnchanged() {

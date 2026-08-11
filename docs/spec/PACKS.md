@@ -58,6 +58,35 @@ kind, normalized path, size, media type, and digest fields.
 | `record` | Docket entries, immutable document digests, and stable page anchors | Case and asset paths |
 | `workflow` | Typed stages, roles, routes, deadlines, calendar, and authority bases | Filing catalog and authority IDs |
 
+### Canonical authority provenance
+
+Schema version 1 remains frozen: authority references keep their original citation, source date,
+proposition, and optional public URL shape, and their bytes and revision digests do not change.
+Schema version 2 makes authority identity a closed, canonical contract. Every authority-set entry
+must declare its type, jurisdiction ID, issuing-body ID, precedential status, official-source
+flag, citation, source version, verification date, locator, HTTPS source URL, and proposition.
+The source version may not be later than the set's source cutoff, and the verification date may
+not predate the source version.
+
+Authority source URLs use one deliberately narrow representation at every boundary: lowercase
+DNS host, no credentials or explicit port, no fragment, printable ASCII path/query bytes, and
+uppercase percent escapes. Pack reading, dependency resolution, runtime projection, engine
+validation, and journal decoding all apply the same predicate so a pack cannot install
+successfully and then fail only when a sourced event is replayed.
+
+Version-2 workflow authority bases contain only `primary_authority_id` and a bounded unique list
+of `supporting_authority_ids`. Runtime projection resolves those IDs through the exact authority
+sets visible in the pack's dependency closure and copies the complete authority snapshot into
+each emitted event. Whether an authority is primary or supporting, and what legal effect it has
+for a particular operation, remain contextual rather than intrinsic source metadata. Duplicate
+authority IDs anywhere in a resolved closure are fatal; there is no metadata merge or override.
+
+Any version-2 pack containing authority-bearing resources must declare
+`workbench.pack.canonical-authority` version 1 in addition to its generation baseline. The
+canonical-authority event envelopes use persistence schema version 2. Legacy authority events
+remain schema version 1 byte-for-byte; mixed legacy/canonical bases and schema relabeling fail
+closed.
+
 ### Record metadata and grounding
 
 The original version-1 record fields remain valid. A record may additionally declare bounded
@@ -187,6 +216,17 @@ transitive revision pins before its first command, sorted by pack ID. Reopen req
 same complete pin set; a missing or changed dependency pin is treated as a corrupt session.
 Catalog-backed session-controller entry points accept the `ResolvedPack` itself and derive this
 pin set centrally rather than asking UI code to reconstruct it.
+
+Every persisted session also records an immutable authority contract: `legacy-v1` or
+`canonical-v2`. Existing schema-1 SQLite databases migrate to `legacy-v1` without rewriting
+their command or event bytes. A schema-version-2 workflow session can be created or reopened only
+by selecting a root-owned case ID from an exact `ResolvedPack`; the controller reconstructs its
+workflow, case, complete authority snapshots, and revision pins from that closure. Caller-supplied
+definition creation remains available only for an exact schema-version-1 `ResolvedPack`; raw
+vector-pin creation seams are private to tests. Raw definition reopen remains public solely to
+restore existing `legacy-v1` rows. Reopen compares the stored contract before decoding the journal,
+so stripping provenance and relabeling events cannot route a canonical session through a legacy
+API.
 
 ## Import transaction
 

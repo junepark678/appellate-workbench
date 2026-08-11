@@ -17,6 +17,7 @@ using appellate::storage::CommitBatch;
 using appellate::storage::DocketWrite;
 using appellate::storage::EventWrite;
 using appellate::storage::RevisionPin;
+using appellate::storage::SessionAuthorityContract;
 using appellate::storage::SessionStore;
 using appellate::storage::StoredCommand;
 using appellate::storage::StoreErrorCode;
@@ -24,14 +25,20 @@ using appellate::storage::StoreErrorCode;
 constexpr auto digest = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 constexpr auto second_digest = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789";
 constexpr auto third_digest = "1111111111111111111111111111111111111111111111111111111111111111";
+constexpr auto frozen_legacy_command_json =
+    R"({"schema_version":1,"command_type":"submit_filing","marker":"frozen-command-v1"})";
+constexpr auto frozen_legacy_event_json =
+    R"({"schema_version":1,"event_type":"filing.accepted","marker":"frozen-event-v1"})";
 
 class SessionStoreTest final : public QObject {
     Q_OBJECT
 
   private slots:
     void migratesFreshDatabase();
+    void migratesLegacySessionAsLegacyAuthorityContract();
     void refusesNewerSchemaWithoutMutation();
     void persistsAndReopensPinnedSession();
+    void persistsCanonicalAuthorityContract();
     void rejectsStaleSequenceWithoutPartialWrite();
     void rollsBackDuplicateCommand();
     void rejectsInvalidAndDuplicateAssetReferencesWithoutWrites();
@@ -51,15 +58,65 @@ class SessionStoreTest final : public QObject {
         database.setDatabaseName(path);
         if (database.open()) {
             QSqlQuery query(database);
-            created = query.exec(QStringLiteral(
-                          "CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, "
-                          "applied_at_utc TEXT NOT NULL) STRICT")) &&
-                      query.exec(QStringLiteral(
-                          "INSERT INTO schema_migrations VALUES(2, 'future')")) &&
-                      query.exec(QStringLiteral(
-                          "CREATE TABLE future_sentinel (value TEXT NOT NULL) STRICT")) &&
-                      query.exec(QStringLiteral(
-                          "INSERT INTO future_sentinel VALUES('untouched')"));
+            created =
+                query.exec(
+                    QStringLiteral("CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, "
+                                   "applied_at_utc TEXT NOT NULL) STRICT")) &&
+                query.exec(QStringLiteral("INSERT INTO schema_migrations VALUES(3, 'future')")) &&
+                query.exec(
+                    QStringLiteral("CREATE TABLE future_sentinel (value TEXT NOT NULL) STRICT")) &&
+                query.exec(QStringLiteral("INSERT INTO future_sentinel VALUES('untouched')"));
+            database.close();
+        }
+        database = QSqlDatabase{};
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return created;
+}
+
+[[nodiscard]] bool createLegacyDatabase(const QString& path) {
+    const auto connection =
+        QStringLiteral("legacy-schema-%1").arg(QUuid::createUuid().toString(QUuid::Id128));
+    bool created = false;
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        database.setDatabaseName(path);
+        QFile migration(QStringLiteral(":/appellate/storage/migrations/001_initial.sql"));
+        if (database.open() && migration.open(QIODevice::ReadOnly)) {
+            created = true;
+            const auto statements =
+                QString::fromUtf8(migration.readAll()).split(u';', Qt::SkipEmptyParts);
+            for (const auto& statement : statements) {
+                if (!statement.trimmed().isEmpty()) {
+                    QSqlQuery query(database);
+                    created = created && query.exec(statement);
+                }
+            }
+            QSqlQuery seed(database);
+            created =
+                created &&
+                seed.exec(QStringLiteral(
+                    "INSERT INTO schema_migrations VALUES(1, '2026-08-11T00:00:00Z')")) &&
+                seed.exec(QStringLiteral(
+                    "INSERT INTO sessions(session_id, engine_revision, sequence, created_at_utc) "
+                    "VALUES('legacy-session', 'engine-legacy', 1, "
+                    "'2026-08-11T00:00:00Z')")) &&
+                seed.exec(QStringLiteral(
+                    "INSERT INTO session_pins(session_id, pack_id, version, digest) VALUES("
+                    "'legacy-session', 'example.appellate.ca4', '0.1.0', "
+                    "'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef')"));
+            QSqlQuery command(database);
+            command.prepare(QStringLiteral(
+                "INSERT INTO command_log(session_id, command_id, expected_sequence, payload_json, "
+                "recorded_at_utc) VALUES('legacy-session', 'legacy-command', 0, ?, "
+                "'2026-08-11T00:00:00Z')"));
+            command.addBindValue(QByteArray{frozen_legacy_command_json});
+            QSqlQuery event(database);
+            event.prepare(QStringLiteral(
+                "INSERT INTO event_log(session_id, sequence, event_type, payload_json, "
+                "authority_id) VALUES('legacy-session', 1, 'filing.accepted', ?, 'frap.3')"));
+            event.addBindValue(QByteArray{frozen_legacy_event_json});
+            created = created && command.exec() && event.exec();
             database.close();
         }
         database = QSqlDatabase{};
@@ -115,7 +172,37 @@ void SessionStoreTest::migratesFreshDatabase() {
     if (!store.has_value()) {
         QFAIL(qPrintable(store.error().message));
     }
-    QCOMPARE((*store)->schemaVersion(), 1);
+    QCOMPARE((*store)->schemaVersion(), 2);
+}
+
+void SessionStoreTest::migratesLegacySessionAsLegacyAuthorityContract() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto path = temporary.filePath(QStringLiteral("legacy.sqlite"));
+    const auto restored_path = temporary.filePath(QStringLiteral("restored.sqlite"));
+    QVERIFY(createLegacyDatabase(path));
+    QVERIFY(SessionStore::restoreBackup(path, restored_path).has_value());
+
+    {
+        auto migrated = SessionStore::open(restored_path);
+        if (!migrated.has_value()) {
+            QFAIL(qPrintable(migrated.error().message));
+        }
+        QCOMPARE((*migrated)->schemaVersion(), 2);
+    }
+
+    auto store = SessionStore::open(restored_path);
+    QVERIFY(store.has_value());
+    QCOMPARE((*store)->schemaVersion(), 2);
+    const auto snapshot = (*store)->loadSession(QStringLiteral("legacy-session"));
+    QVERIFY(snapshot.has_value());
+    QCOMPARE(snapshot->engine_revision, QStringLiteral("engine-legacy"));
+    QCOMPARE(snapshot->authority_contract, SessionAuthorityContract::LegacyV1);
+    QCOMPARE(snapshot->pins, pins());
+    QCOMPARE(snapshot->commands.size(), std::size_t{1});
+    QCOMPARE(snapshot->commands.front().payload_json, QByteArray{frozen_legacy_command_json});
+    QCOMPARE(snapshot->events.size(), std::size_t{1});
+    QCOMPARE(snapshot->events.front().payload_json, QByteArray{frozen_legacy_event_json});
 }
 
 void SessionStoreTest::refusesNewerSchemaWithoutMutation() {
@@ -151,6 +238,7 @@ void SessionStoreTest::persistsAndReopensPinnedSession() {
     const auto snapshot = (*reopened)->loadSession(QStringLiteral("session-1"));
     QVERIFY(snapshot.has_value());
     QCOMPARE(snapshot->engine_revision, QStringLiteral("engine-1"));
+    QCOMPARE(snapshot->authority_contract, SessionAuthorityContract::LegacyV1);
     QCOMPARE(snapshot->sequence, 1);
     QCOMPARE(snapshot->pins, pins());
     const std::vector expected_commands{
@@ -167,6 +255,21 @@ void SessionStoreTest::persistsAndReopensPinnedSession() {
         AssetReference{QString::fromLatin1(digest), QStringLiteral("record.exhibit")},
     };
     QCOMPARE(snapshot->asset_references, expected_assets);
+}
+
+void SessionStoreTest::persistsCanonicalAuthorityContract() {
+    QTemporaryDir temporary;
+    auto store = SessionStore::open(temporary.filePath(QStringLiteral("sessions.sqlite")));
+    QVERIFY(store.has_value());
+    QVERIFY((*store)
+                ->createSession(QStringLiteral("session-canonical"), QStringLiteral("engine-1"),
+                                QStringLiteral("2026-08-11T00:00:00Z"), pins(),
+                                SessionAuthorityContract::CanonicalV2)
+                .has_value());
+
+    const auto snapshot = (*store)->loadSession(QStringLiteral("session-canonical"));
+    QVERIFY(snapshot.has_value());
+    QCOMPARE(snapshot->authority_contract, SessionAuthorityContract::CanonicalV2);
 }
 
 void SessionStoreTest::rejectsStaleSequenceWithoutPartialWrite() {
@@ -303,8 +406,8 @@ void SessionStoreTest::rejectsMalformedOrUnboundedCommitDataWithoutWrites() {
     QCOMPARE(result.error().code, StoreErrorCode::InvalidArgument);
 
     batch = acceptedFiling(QStringLiteral("overflow"));
-    result = (*store)->append(QStringLiteral("session-1"),
-                              std::numeric_limits<qint64>::max(), batch);
+    result =
+        (*store)->append(QStringLiteral("session-1"), std::numeric_limits<qint64>::max(), batch);
     QVERIFY(!result.has_value());
     QCOMPARE(result.error().code, StoreErrorCode::InvalidArgument);
 
@@ -327,6 +430,12 @@ void SessionStoreTest::rejectsInvalidSessionMetadataWithoutWrites() {
     QVERIFY(!invalid_time.has_value());
     QCOMPARE(invalid_time.error().code, StoreErrorCode::InvalidArgument);
 
+    const auto empty_pins =
+        (*store)->createSession(QStringLiteral("session-1"), QStringLiteral("engine-1"),
+                                QStringLiteral("2026-08-11T00:00:00Z"), {});
+    QVERIFY(!empty_pins.has_value());
+    QCOMPARE(empty_pins.error().code, StoreErrorCode::InvalidArgument);
+
     auto duplicate_pins = pins();
     duplicate_pins.push_back(duplicate_pins.front());
     const auto duplicate =
@@ -334,6 +443,12 @@ void SessionStoreTest::rejectsInvalidSessionMetadataWithoutWrites() {
                                 QStringLiteral("2026-08-11T00:00:00Z"), duplicate_pins);
     QVERIFY(!duplicate.has_value());
     QCOMPARE(duplicate.error().code, StoreErrorCode::InvalidArgument);
+
+    const auto invalid_contract = (*store)->createSession(
+        QStringLiteral("session-1"), QStringLiteral("engine-1"),
+        QStringLiteral("2026-08-11T00:00:00Z"), pins(), static_cast<SessionAuthorityContract>(99));
+    QVERIFY(!invalid_contract.has_value());
+    QCOMPARE(invalid_contract.error().code, StoreErrorCode::InvalidArgument);
 
     const auto missing = (*store)->loadSession(QStringLiteral("session-1"));
     QVERIFY(!missing.has_value());

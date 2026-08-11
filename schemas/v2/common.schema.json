@@ -28,28 +28,72 @@
       "minLength": 1,
       "maxLength": 4096
     },
-    "authority_ref": {
+    "canonical_authority_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "canonical_authority": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["authority_id", "citation", "source_version", "proposition"],
+      "required": [
+        "authority_id",
+        "authority_type",
+        "jurisdiction_id",
+        "issuing_body_id",
+        "precedential_status",
+        "official_source",
+        "citation",
+        "source_version",
+        "checked_on",
+        "locator",
+        "source_url",
+        "proposition"
+      ],
       "properties": {
         "authority_id": { "$ref": "#/$defs/namespaced_id" },
-        "citation": { "$ref": "#/$defs/nonempty_text" },
+        "authority_type": {
+          "enum": [
+            "constitution",
+            "statute",
+            "rule",
+            "regulation",
+            "case",
+            "order",
+            "administrative_decision",
+            "other"
+          ]
+        },
+        "jurisdiction_id": { "$ref": "#/$defs/namespaced_id" },
+        "issuing_body_id": { "$ref": "#/$defs/namespaced_id" },
+        "precedential_status": {
+          "enum": ["not_applicable", "precedential", "nonprecedential"]
+        },
+        "official_source": { "type": "boolean" },
+        "citation": { "$ref": "#/$defs/canonical_authority_text" },
         "source_version": { "type": "string", "format": "date" },
-        "proposition": { "$ref": "#/$defs/nonempty_text" },
-        "source_url": { "type": "string", "format": "uri", "maxLength": 2048 }
+        "checked_on": { "type": "string", "format": "date" },
+        "locator": { "$ref": "#/$defs/canonical_authority_text" },
+        "source_url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048,
+          "pattern": "^https://[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?:[/?][^#]*)?$"
+        },
+        "proposition": { "$ref": "#/$defs/canonical_authority_text" }
       }
     },
     "authority_basis": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["primary", "supporting"],
+      "required": ["primary_authority_id", "supporting_authority_ids"],
       "properties": {
-        "primary": { "$ref": "#/$defs/authority_ref" },
-        "supporting": {
+        "primary_authority_id": { "$ref": "#/$defs/namespaced_id" },
+        "supporting_authority_ids": {
           "type": "array",
           "maxItems": 32,
-          "items": { "$ref": "#/$defs/authority_ref" }
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/namespaced_id" }
         }
       }
     }

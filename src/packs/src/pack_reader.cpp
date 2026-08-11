@@ -1,9 +1,11 @@
 #include "appellate/packs/pack_reader.hpp"
+#include "appellate/model/authority_ref.hpp"
 #include "appellate/packs/capability_registry.hpp"
 #include "appellate/packs/schema_validator.hpp"
 
 #include <QByteArrayView>
 #include <QCryptographicHash>
+#include <QDate>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
@@ -174,7 +176,7 @@ constexpr std::array v2_kind_registry{
 [[nodiscard]] bool isNamespacedId(const QString& value) {
     static const QRegularExpression pattern(
         QStringLiteral(R"(^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$)"));
-    return value.size() >= 3 && value.size() <= 128 && pattern.match(value).hasMatch();
+    return value.size() >= 3 && value.size() <= 160 && pattern.match(value).hasMatch();
 }
 
 [[nodiscard]] bool isSemanticVersion(const QString& value) {
@@ -822,9 +824,11 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     QHash<QString, QSet<QString>> catalog_filings;
     QHash<QString, QSet<QString>> filing_required_fields;
     QHash<QString, QSet<QString>> filing_authorized_roles;
+    QHash<QString, QSet<QString>> catalog_authority_ids;
     QHash<QString, QSet<QString>> form_fields_by_filing;
     QHash<QString, QSet<QString>> workflow_stages;
     QHash<QString, QSet<QString>> workflow_operations;
+    QHash<QString, QSet<QString>> workflow_authority_ids;
     QHash<QString, QSet<QString>> record_entries;
     QHash<QString, QSet<QString>> case_issues;
     QHash<QString, QSet<QString>> catalog_roles;
@@ -833,19 +837,56 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
         const auto id = QString::fromStdString(resource.descriptor.id);
         const auto& document = resource.document;
         switch (resource.descriptor.kind) {
-        case model::ResourceKind::AuthoritySet:
+        case model::ResourceKind::AuthoritySet: {
+            const auto source_cutoff = QDate::fromString(
+                document.value(QStringLiteral("source_cutoff")).toString(), Qt::ISODate);
             for (const auto& value : document.value(QStringLiteral("authorities")).toArray()) {
+                const auto authority = value.toObject();
                 const auto authority_id =
-                    value.toObject().value(QStringLiteral("authority_id")).toString();
+                    authority.value(QStringLiteral("authority_id")).toString();
                 if (authority_ids.contains(authority_id)) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("authorities"),
                         QStringLiteral("duplicate authority id %1").arg(authority_id));
                 }
                 authority_ids.insert(authority_id);
-                authorities_by_id.insert(authority_id, value.toObject());
+                authorities_by_id.insert(authority_id, authority);
+                if (resource.descriptor.schema_version == 2) {
+                    const auto source_version = QDate::fromString(
+                        authority.value(QStringLiteral("source_version")).toString(), Qt::ISODate);
+                    const auto checked_on = QDate::fromString(
+                        authority.value(QStringLiteral("checked_on")).toString(), Qt::ISODate);
+                    const auto source_url = authority.value(QStringLiteral("source_url"))
+                                                .toString()
+                                                .toUtf8()
+                                                .toStdString();
+                    const auto citation = authority.value(QStringLiteral("citation"))
+                                              .toString()
+                                              .toUtf8()
+                                              .toStdString();
+                    const auto proposition = authority.value(QStringLiteral("proposition"))
+                                                 .toString()
+                                                 .toUtf8()
+                                                 .toStdString();
+                    const auto locator = authority.value(QStringLiteral("locator"))
+                                             .toString()
+                                             .toUtf8()
+                                             .toStdString();
+                    if (!source_cutoff.isValid() || !source_version.isValid() ||
+                        !checked_on.isValid() || source_version > source_cutoff ||
+                        checked_on < source_version ||
+                        !model::isCanonicalAuthorityText(citation, 4096) ||
+                        !model::isCanonicalAuthorityText(proposition, 4096) ||
+                        !model::isCanonicalAuthorityText(locator, 4096) ||
+                        !model::isCanonicalAuthoritySourceUrl(source_url)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("authorities/provenance"),
+                            QStringLiteral("authority source chronology or URL is noncanonical"));
+                    }
+                }
             }
             break;
+        }
         case model::ResourceKind::FilingCatalog:
             for (const auto& value : document.value(QStringLiteral("filings")).toArray()) {
                 const auto filing = value.toObject();
@@ -862,6 +903,8 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                     stringSet(filing.value(QStringLiteral("required_field_ids")).toArray()));
                 filing_authorized_roles.insert(
                     filing_id, stringSet(filing.value(QStringLiteral("actor_role_ids")).toArray()));
+                catalog_authority_ids[id].insert(
+                    filing.value(QStringLiteral("authority_id")).toString());
             }
             break;
         case model::ResourceKind::Form: {
@@ -906,6 +949,23 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 }
                 operations.insert(operation_id);
                 operation_documents.insert(operation_id, operation);
+                const auto authority = operation.value(QStringLiteral("authority")).toObject();
+                if (resource.descriptor.schema_version == 2) {
+                    workflow_authority_ids[id].insert(
+                        authority.value(QStringLiteral("primary_authority_id")).toString());
+                    workflow_authority_ids[id].unite(stringSet(
+                        authority.value(QStringLiteral("supporting_authority_ids")).toArray()));
+                } else {
+                    workflow_authority_ids[id].insert(authority.value(QStringLiteral("primary"))
+                                                          .toObject()
+                                                          .value(QStringLiteral("authority_id"))
+                                                          .toString());
+                    for (const auto& supporting :
+                         authority.value(QStringLiteral("supporting")).toArray()) {
+                        workflow_authority_ids[id].insert(
+                            supporting.toObject().value(QStringLiteral("authority_id")).toString());
+                    }
+                }
                 if (!stages.contains(operation.value(QStringLiteral("stage_id")).toString())) {
                     return crossReferenceFailure(resource, QStringLiteral("operations/stage_id"),
                                                  QStringLiteral("stage is not declared"));
@@ -1275,12 +1335,52 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
         if (!workflow) {
             return std::unexpected(workflow.error());
         }
+        QSet<QString> procedure_authority_ids;
+        const auto procedure_authority_set_ids =
+            stringSet(document.value(QStringLiteral("authority_set_ids")).toArray());
+        if (resource.descriptor.schema_version == 2) {
+            const auto court_authority_set_ids =
+                stringSet((*court)->document.value(QStringLiteral("authority_set_ids")).toArray());
+            if (!std::ranges::all_of(procedure_authority_set_ids,
+                                     [&court_authority_set_ids](const QString& set_id) {
+                                         return court_authority_set_ids.contains(set_id);
+                                     })) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("authority_set_ids"),
+                    QStringLiteral("procedure authority sets must be declared by its court"));
+            }
+        }
         for (const auto& value : document.value(QStringLiteral("authority_set_ids")).toArray()) {
             const auto authority_set =
                 requireKind(resource, QStringLiteral("authority_set_ids"), value.toString(),
                             model::ResourceKind::AuthoritySet);
             if (!authority_set) {
                 return std::unexpected(authority_set.error());
+            }
+            for (const auto& authority_value :
+                 (*authority_set)->document.value(QStringLiteral("authorities")).toArray()) {
+                procedure_authority_ids.insert(
+                    authority_value.toObject().value(QStringLiteral("authority_id")).toString());
+            }
+        }
+        if (resource.descriptor.schema_version == 2) {
+            const auto workflow_id = document.value(QStringLiteral("workflow_id")).toString();
+            const auto workflow_authorities = workflow_authority_ids.value(workflow_id);
+            const auto catalog_authorities = catalog_authority_ids.value(catalog_id);
+            const auto undeclared_workflow_authority = std::ranges::find_if(
+                workflow_authorities, [&procedure_authority_ids](const QString& authority_id) {
+                    return !procedure_authority_ids.contains(authority_id);
+                });
+            const auto undeclared_catalog_authority = std::ranges::find_if(
+                catalog_authorities, [&procedure_authority_ids](const QString& authority_id) {
+                    return !procedure_authority_ids.contains(authority_id);
+                });
+            if (undeclared_workflow_authority != workflow_authorities.end() ||
+                undeclared_catalog_authority != catalog_authorities.end()) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("authority_set_ids"),
+                    QStringLiteral("procedure authority sets do not cover its workflow and filing "
+                                   "catalog authority ids"));
             }
         }
         const auto procedure_roles =
@@ -1389,6 +1489,31 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
             for (const auto& value : document.value(QStringLiteral("operations")).toArray()) {
                 const auto authority =
                     value.toObject().value(QStringLiteral("authority")).toObject();
+                if (resource.descriptor.schema_version == 2) {
+                    const auto primary_id =
+                        authority.value(QStringLiteral("primary_authority_id")).toString();
+                    if (!authority_ids.contains(primary_id)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("operations/authority/primary_authority_id"),
+                            QStringLiteral("unresolved canonical authority %1").arg(primary_id));
+                    }
+                    QSet<QString> basis_ids{primary_id};
+                    for (const auto& supporting :
+                         authority.value(QStringLiteral("supporting_authority_ids")).toArray()) {
+                        const auto supporting_id = supporting.toString();
+                        if (basis_ids.contains(supporting_id) ||
+                            !authority_ids.contains(supporting_id)) {
+                            return crossReferenceFailure(
+                                resource,
+                                QStringLiteral("operations/authority/supporting_authority_ids"),
+                                QStringLiteral(
+                                    "supporting authority ids must be unique, resolved, and "
+                                    "different from the primary authority"));
+                        }
+                        basis_ids.insert(supporting_id);
+                    }
+                    continue;
+                }
                 const auto authorityMatchesCanonical =
                     [&authorities_by_id](const QJsonObject& reference) {
                         const auto found = authorities_by_id.constFind(
@@ -1444,6 +1569,26 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
             }
             const auto roles =
                 stringSet((*procedure)->document.value(QStringLiteral("actor_roles")).toArray());
+            QSet<QString> case_authority_ids;
+            if (resource.descriptor.schema_version == 2) {
+                for (const auto& set_id :
+                     (*procedure)->document.value(QStringLiteral("authority_set_ids")).toArray()) {
+                    const auto authority_set = requireKind(
+                        resource, QStringLiteral("procedure_profile_id/authority_set_ids"),
+                        set_id.toString(), model::ResourceKind::AuthoritySet);
+                    if (!authority_set) {
+                        return std::unexpected(authority_set.error());
+                    }
+                    for (const auto& authority_value :
+                         (*authority_set)
+                             ->document.value(QStringLiteral("authorities"))
+                             .toArray()) {
+                        case_authority_ids.insert(authority_value.toObject()
+                                                      .value(QStringLiteral("authority_id"))
+                                                      .toString());
+                    }
+                }
+            }
             for (const auto& value : document.value(QStringLiteral("actors")).toArray()) {
                 const auto role_id = value.toObject().value(QStringLiteral("role_id")).toString();
                 if (!roles.contains(role_id)) {
@@ -1456,7 +1601,9 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 const auto issue = value.toObject();
                 for (const auto& authority :
                      issue.value(QStringLiteral("authority_ids")).toArray()) {
-                    if (!authority_ids.contains(authority.toString())) {
+                    if (!authority_ids.contains(authority.toString()) ||
+                        (resource.descriptor.schema_version == 2 &&
+                         !case_authority_ids.contains(authority.toString()))) {
                         return crossReferenceFailure(
                             resource, QStringLiteral("issues/authority_ids"),
                             QStringLiteral("unresolved authority %1").arg(authority.toString()));
