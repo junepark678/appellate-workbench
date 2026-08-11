@@ -7,10 +7,14 @@
 
 #include <expected>
 #include <memory>
+#include <optional>
+#include <string>
 #include <vector>
 
 namespace appellate::packs {
 class ResolvedPack;
+struct RuntimeArgumentConfigId;
+struct RuntimePack;
 }
 
 namespace appellate::app {
@@ -53,8 +57,9 @@ class OralArgumentSessionController final {
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
 
     [[nodiscard]] static auto
-    create(QString session_id, model::OralArgumentConfiguration configuration,
-           model::BenchConfiguration bench, model::ArgumentGrounding grounding,
+    create(QString session_id, const model::CaseId& case_id,
+           const packs::RuntimeArgumentConfigId& argument_configuration_id,
+           std::string legal_state_digest,
            std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
            QString created_at_utc, const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
@@ -67,8 +72,9 @@ class OralArgumentSessionController final {
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
 
     [[nodiscard]] static auto
-    reopen(QString session_id, model::OralArgumentConfiguration configuration,
-           model::BenchConfiguration bench, model::ArgumentGrounding grounding,
+    reopen(QString session_id, const model::CaseId& case_id,
+           const packs::RuntimeArgumentConfigId& argument_configuration_id,
+           std::string legal_state_digest,
            std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
            const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
@@ -81,8 +87,12 @@ class OralArgumentSessionController final {
     [[nodiscard]] const model::OralArgumentState& initialState() const noexcept;
     [[nodiscard]] const model::OralArgumentState& state() const noexcept;
     [[nodiscard]] const storage::SessionSnapshot& snapshot() const noexcept;
+    [[nodiscard]] const model::CanonicalOralArgumentDefinition*
+    canonicalDefinition() const noexcept;
 
   private:
+    friend class OralArgumentSessionControllerTestAccess;
+
     OralArgumentSessionController(
         QString session_id, model::OralArgumentConfiguration configuration,
         model::BenchConfiguration bench, model::ArgumentGrounding grounding,
@@ -90,10 +100,35 @@ class OralArgumentSessionController final {
         std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
         std::vector<storage::RevisionPin> pins, storage::SessionSnapshot snapshot);
 
+    OralArgumentSessionController(
+        QString session_id, model::CanonicalOralArgumentDefinition definition,
+        model::OralArgumentState initial_state, model::OralArgumentState state,
+        std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+        std::vector<storage::RevisionPin> pins, storage::SessionSnapshot snapshot);
+
+    [[nodiscard]] static auto createCanonicalForTesting(
+        QString session_id, model::CanonicalOralArgumentDefinition definition,
+        std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+        QString created_at_utc, std::vector<storage::RevisionPin> pins)
+        -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
+
+    [[nodiscard]] static auto reopenCanonicalForTesting(
+        QString session_id, model::CanonicalOralArgumentDefinition definition,
+        std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+        std::vector<storage::RevisionPin> expected_pins)
+        -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
+
+    [[nodiscard]] static auto deriveCanonicalDefinitionForTesting(
+        const model::CaseId& case_id,
+        const packs::RuntimeArgumentConfigId& argument_configuration_id,
+        std::string legal_state_digest, const packs::RuntimePack& runtime_pack)
+        -> std::expected<model::CanonicalOralArgumentDefinition, OralArgumentSessionError>;
+
     QString session_id_;
     model::OralArgumentConfiguration configuration_;
     model::BenchConfiguration bench_;
     model::ArgumentGrounding grounding_;
+    std::optional<model::CanonicalOralArgumentDefinition> canonical_definition_;
     model::OralArgumentState initial_state_;
     model::OralArgumentState state_;
     std::unique_ptr<storage::SessionStore> session_store_;

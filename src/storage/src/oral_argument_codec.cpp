@@ -1,6 +1,7 @@
 #include "appellate/storage/oral_argument_codec.hpp"
 
 #include <QDateTime>
+#include <QDate>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -20,13 +21,14 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace appellate::storage {
 namespace {
 
-constexpr auto schema_version = "1";
+constexpr auto canonical_schema_version = "2";
 constexpr auto configuration_type = "oral_argument.configuration";
 constexpr auto counsel_answer_type = "oral_argument.counsel_answer";
 constexpr auto opening_command_type = "oral_argument.opening_command";
@@ -40,9 +42,12 @@ constexpr qsizetype maximum_utterance_bytes = 32 * 1024;
 constexpr qsizetype maximum_probability_bytes = 1'100;
 constexpr qsizetype maximum_citations = 32;
 constexpr qsizetype maximum_grounding_refs = 64;
+constexpr qsizetype maximum_canonical_grounding_refs = 16;
 constexpr std::uint64_t maximum_event_sequence = 4'096;
+constexpr std::uint64_t maximum_canonical_event_sequence = 64;
 constexpr std::uint64_t maximum_argument_seconds = 24 * 60 * 60;
 constexpr std::uint64_t maximum_follow_up_depth = 16;
+constexpr std::uint32_t maximum_document_pages = 10'000;
 constexpr int maximum_json_depth = 64;
 
 [[nodiscard]] auto fail(OralArgumentCodecErrorCode code, QString message)
@@ -657,7 +662,8 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
     return result;
 }
 
-[[nodiscard]] auto parseRoot(QByteArrayView encoded, const QString& expected_type)
+[[nodiscard]] auto parseRoot(QByteArrayView encoded, const QString& expected_type,
+                             QStringView expected_schema_version = u"1")
     -> std::expected<QJsonObject, OralArgumentCodecError> {
     if (encoded.isEmpty() || encoded.size() > maximum_payload_bytes) {
         return fail(OralArgumentCodecErrorCode::OutOfRange,
@@ -684,7 +690,7 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
         return fail(OralArgumentCodecErrorCode::InvalidField,
                     QStringLiteral("Oral-argument envelope is invalid"));
     }
-    if (*version != QLatin1StringView(schema_version)) {
+    if (*version != expected_schema_version) {
         return fail(OralArgumentCodecErrorCode::InvalidField,
                     QStringLiteral("Unsupported oral-argument schema version"));
     }
@@ -699,10 +705,11 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
     return root.value(u"payload").toObject();
 }
 
-[[nodiscard]] QByteArray envelope(QString type, QJsonObject payload) {
+[[nodiscard]] QByteArray envelope(QString type, QJsonObject payload,
+                                  QString schema = QStringLiteral("1")) {
     return QJsonDocument{QJsonObject{
                              {QStringLiteral("payload"), std::move(payload)},
-                             {QStringLiteral("schema_version"), QStringLiteral("1")},
+                             {QStringLiteral("schema_version"), std::move(schema)},
                              {QStringLiteral("type"), std::move(type)},
                          }}
         .toJson(QJsonDocument::Compact);
@@ -990,14 +997,19 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
 [[nodiscard]] auto encodeQuestion(const model::GroundedQuestion& question, model::BenchActKind kind,
                                   std::uint64_t event_sequence)
     -> std::expected<QJsonObject, OralArgumentCodecError> {
+    const auto* selection = std::get_if<model::LegacyQuestionSelection>(&question.selection);
+    if (selection == nullptr) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Schema-1 event requires a legacy question selection"));
+    }
     const auto issue_id = checkedId(question.issue_id, u"event.bench.question.issue_id");
     const auto prompt =
-        checkedText(question.prompt, maximum_prompt_bytes, u"event.bench.question.prompt");
+        checkedText(selection->prompt, maximum_prompt_bytes, u"event.bench.question.prompt");
     if (!issue_id || !prompt) {
         return !issue_id ? std::unexpected(issue_id.error()) : std::unexpected(prompt.error());
     }
-    if (question.grounding.empty() ||
-        question.grounding.size() > static_cast<std::size_t>(maximum_grounding_refs) ||
+    if (selection->grounding.empty() ||
+        selection->grounding.size() > static_cast<std::size_t>(maximum_grounding_refs) ||
         (question.parent_act_sequence.has_value() &&
          (*question.parent_act_sequence == 0 || *question.parent_act_sequence >= event_sequence)) ||
         (question.recalls_concession && kind != model::BenchActKind::FollowUp)) {
@@ -1007,7 +1019,7 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
     QJsonArray grounding;
     QSet<QString> seen;
     bool has_record_page = false;
-    for (const auto& reference : question.grounding) {
+    for (const auto& reference : selection->grounding) {
         const auto encoded = encodeGroundingRef(reference);
         if (!encoded) {
             return std::unexpected(encoded.error());
@@ -1116,7 +1128,532 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
                                    parent, recalls};
 }
 
-[[nodiscard]] auto encodeEventPayload(const model::OralArgumentEvent& event)
+[[nodiscard]] bool isCanonicalDate(std::string_view value) {
+    if (value.size() != 10 || value[4] != '-' || value[7] != '-') {
+        return false;
+    }
+    const auto text = QString::fromLatin1(value.data(), static_cast<qsizetype>(value.size()));
+    const auto parsed = QDate::fromString(text, QStringLiteral("yyyy-MM-dd"));
+    return parsed.isValid() && parsed.toString(QStringLiteral("yyyy-MM-dd")) == text;
+}
+
+[[nodiscard]] auto checkedAuthorityText(std::string_view value, std::size_t maximum_scalars,
+                                        QStringView context)
+    -> std::expected<QString, OralArgumentCodecError> {
+    if (!model::isCanonicalAuthorityText(value, maximum_scalars) || !roundTripsUtf8(value)) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("%1 is not canonical authority text").arg(context));
+    }
+    return QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
+}
+
+[[nodiscard]] auto authorityTypeName(model::AuthorityType type)
+    -> std::expected<QString, OralArgumentCodecError> {
+    switch (type) {
+    case model::AuthorityType::Constitution:
+        return QStringLiteral("constitution");
+    case model::AuthorityType::Statute:
+        return QStringLiteral("statute");
+    case model::AuthorityType::Rule:
+        return QStringLiteral("rule");
+    case model::AuthorityType::Regulation:
+        return QStringLiteral("regulation");
+    case model::AuthorityType::Case:
+        return QStringLiteral("case");
+    case model::AuthorityType::Order:
+        return QStringLiteral("order");
+    case model::AuthorityType::AdministrativeDecision:
+        return QStringLiteral("administrative_decision");
+    case model::AuthorityType::Other:
+        return QStringLiteral("other");
+    }
+    return fail(OralArgumentCodecErrorCode::InvalidField,
+                QStringLiteral("Unknown authority type"));
+}
+
+[[nodiscard]] auto parseAuthorityType(QStringView value)
+    -> std::expected<model::AuthorityType, OralArgumentCodecError> {
+    if (value == u"constitution") return model::AuthorityType::Constitution;
+    if (value == u"statute") return model::AuthorityType::Statute;
+    if (value == u"rule") return model::AuthorityType::Rule;
+    if (value == u"regulation") return model::AuthorityType::Regulation;
+    if (value == u"case") return model::AuthorityType::Case;
+    if (value == u"order") return model::AuthorityType::Order;
+    if (value == u"administrative_decision") {
+        return model::AuthorityType::AdministrativeDecision;
+    }
+    if (value == u"other") return model::AuthorityType::Other;
+    return fail(OralArgumentCodecErrorCode::InvalidField,
+                QStringLiteral("Unknown authority type"));
+}
+
+[[nodiscard]] auto precedentialStatusName(model::PrecedentialStatus status)
+    -> std::expected<QString, OralArgumentCodecError> {
+    switch (status) {
+    case model::PrecedentialStatus::NotApplicable:
+        return QStringLiteral("not_applicable");
+    case model::PrecedentialStatus::Precedential:
+        return QStringLiteral("precedential");
+    case model::PrecedentialStatus::Nonprecedential:
+        return QStringLiteral("nonprecedential");
+    }
+    return fail(OralArgumentCodecErrorCode::InvalidField,
+                QStringLiteral("Unknown precedential status"));
+}
+
+[[nodiscard]] auto parsePrecedentialStatus(QStringView value)
+    -> std::expected<model::PrecedentialStatus, OralArgumentCodecError> {
+    if (value == u"not_applicable") return model::PrecedentialStatus::NotApplicable;
+    if (value == u"precedential") return model::PrecedentialStatus::Precedential;
+    if (value == u"nonprecedential") return model::PrecedentialStatus::Nonprecedential;
+    return fail(OralArgumentCodecErrorCode::InvalidField,
+                QStringLiteral("Unknown precedential status"));
+}
+
+[[nodiscard]] auto encodeAuthority(const model::AuthorityRef& authority)
+    -> std::expected<QJsonObject, OralArgumentCodecError> {
+    if (!authority.provenance.has_value() || !isCanonicalDate(authority.source_version)) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Canonical authority provenance and source date are required"));
+    }
+    const auto id = checkedId(authority.id.value, u"canonical_question.authority.id");
+    const auto citation =
+        checkedAuthorityText(authority.citation, 4'096, u"canonical_question.authority.citation");
+    const auto proposition = checkedAuthorityText(authority.proposition, 4'096,
+                                                  u"canonical_question.authority.proposition");
+    const auto& provenance = *authority.provenance;
+    const auto type = authorityTypeName(provenance.type);
+    const auto jurisdiction =
+        checkedId(provenance.jurisdiction_id, u"canonical_question.authority.jurisdiction_id");
+    const auto issuing_body =
+        checkedId(provenance.issuing_body_id, u"canonical_question.authority.issuing_body_id");
+    const auto status = precedentialStatusName(provenance.precedential_status);
+    const auto locator = checkedAuthorityText(provenance.locator, 1'024,
+                                              u"canonical_question.authority.locator");
+    if (!id || !citation || !proposition || !type || !jurisdiction || !issuing_body || !status ||
+        !locator || !isCanonicalDate(provenance.checked_on) ||
+        !model::authorityVerificationNotBeforeSource(authority.source_version,
+                                                     provenance.checked_on) ||
+        !model::isCanonicalAuthoritySourceUrl(provenance.source_url)) {
+        if (!id) return std::unexpected(id.error());
+        if (!citation) return std::unexpected(citation.error());
+        if (!proposition) return std::unexpected(proposition.error());
+        if (!type) return std::unexpected(type.error());
+        if (!jurisdiction) return std::unexpected(jurisdiction.error());
+        if (!issuing_body) return std::unexpected(issuing_body.error());
+        if (!status) return std::unexpected(status.error());
+        if (!locator) return std::unexpected(locator.error());
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Canonical authority dates or source URL are invalid"));
+    }
+    return QJsonObject{
+        {QStringLiteral("citation"), *citation},
+        {QStringLiteral("id"), *id},
+        {QStringLiteral("proposition"), *proposition},
+        {QStringLiteral("provenance"),
+         QJsonObject{{QStringLiteral("authority_type"), *type},
+                     {QStringLiteral("checked_on"), QString::fromStdString(provenance.checked_on)},
+                     {QStringLiteral("issuing_body_id"), *issuing_body},
+                     {QStringLiteral("jurisdiction_id"), *jurisdiction},
+                     {QStringLiteral("locator"), *locator},
+                     {QStringLiteral("official_source"), provenance.official_source},
+                     {QStringLiteral("precedential_status"), *status},
+                     {QStringLiteral("source_url"), QString::fromStdString(provenance.source_url)}}},
+        {QStringLiteral("source_version"), QString::fromStdString(authority.source_version)},
+    };
+}
+
+[[nodiscard]] auto decodeAuthority(const QJsonObject& object)
+    -> std::expected<model::AuthorityRef, OralArgumentCodecError> {
+    constexpr auto context = u"event.bench.question.grounding[].authority";
+    if (const auto keys = exactKeys(
+            object, {u"citation", u"id", u"proposition", u"provenance", u"source_version"},
+            context);
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto id = readId(object, u"id", context);
+    const auto citation = readString(object, u"citation", 16 * 1024, context);
+    const auto proposition = readString(object, u"proposition", 16 * 1024, context);
+    const auto source = readString(object, u"source_version", 10, context);
+    if (!id || !citation || !proposition || !source ||
+        !model::isCanonicalAuthorityText(citation->toUtf8().toStdString(), 4'096) ||
+        !model::isCanonicalAuthorityText(proposition->toUtf8().toStdString(), 4'096) ||
+        !isCanonicalDate(source->toLatin1().toStdString()) || !object.value(u"provenance").isObject()) {
+        if (!id) return std::unexpected(id.error());
+        if (!citation) return std::unexpected(citation.error());
+        if (!proposition) return std::unexpected(proposition.error());
+        if (!source) return std::unexpected(source.error());
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Canonical authority body is invalid"));
+    }
+    const auto provenance = object.value(u"provenance").toObject();
+    if (const auto keys = exactKeys(
+            provenance,
+            {u"authority_type", u"checked_on", u"issuing_body_id", u"jurisdiction_id",
+             u"locator", u"official_source", u"precedential_status", u"source_url"},
+            u"event.bench.question.grounding[].authority.provenance");
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto type_text = readString(provenance, u"authority_type", 32, context);
+    const auto checked_on = readString(provenance, u"checked_on", 10, context);
+    const auto issuing_body = readId(provenance, u"issuing_body_id", context);
+    const auto jurisdiction = readId(provenance, u"jurisdiction_id", context);
+    const auto locator = readString(provenance, u"locator", 4 * 1024, context);
+    const auto status_text = readString(provenance, u"precedential_status", 32, context);
+    const auto source_url = readString(provenance, u"source_url", 2'048, context);
+    const auto official = provenance.value(u"official_source");
+    if (!type_text || !checked_on || !issuing_body || !jurisdiction || !locator || !status_text ||
+        !source_url || !official.isBool()) {
+        if (!type_text) return std::unexpected(type_text.error());
+        if (!checked_on) return std::unexpected(checked_on.error());
+        if (!issuing_body) return std::unexpected(issuing_body.error());
+        if (!jurisdiction) return std::unexpected(jurisdiction.error());
+        if (!locator) return std::unexpected(locator.error());
+        if (!status_text) return std::unexpected(status_text.error());
+        if (!source_url) return std::unexpected(source_url.error());
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Canonical authority provenance is invalid"));
+    }
+    const auto type = parseAuthorityType(*type_text);
+    const auto status = parsePrecedentialStatus(*status_text);
+    const auto source_string = source->toLatin1().toStdString();
+    const auto checked_string = checked_on->toLatin1().toStdString();
+    const auto locator_string = locator->toUtf8().toStdString();
+    const auto url_string = source_url->toUtf8().toStdString();
+    if (!type || !status || !isCanonicalDate(checked_string) ||
+        !model::authorityVerificationNotBeforeSource(source_string, checked_string) ||
+        !model::isCanonicalAuthorityText(locator_string, 1'024) ||
+        !model::isCanonicalAuthoritySourceUrl(url_string)) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Canonical authority provenance values are invalid"));
+    }
+    return model::AuthorityRef{
+        model::AuthorityId{*id}, citation->toUtf8().toStdString(), source_string,
+        proposition->toUtf8().toStdString(),
+        model::AuthorityProvenance{*type, *jurisdiction, *issuing_body, *status, official.toBool(),
+                                   checked_string, locator_string, url_string}};
+}
+
+[[nodiscard]] auto oralArgumentModeName(model::OralArgumentMode mode)
+    -> std::expected<QString, OralArgumentCodecError> {
+    switch (mode) {
+    case model::OralArgumentMode::ActualRecord:
+        return QStringLiteral("actual_record");
+    case model::OralArgumentMode::CounterfactualTraining:
+        return QStringLiteral("counterfactual_training");
+    }
+    return fail(OralArgumentCodecErrorCode::InvalidField,
+                QStringLiteral("Unknown oral-argument mode"));
+}
+
+[[nodiscard]] auto parseOralArgumentMode(QStringView value)
+    -> std::expected<model::OralArgumentMode, OralArgumentCodecError> {
+    if (value == u"actual_record") return model::OralArgumentMode::ActualRecord;
+    if (value == u"counterfactual_training") {
+        return model::OralArgumentMode::CounterfactualTraining;
+    }
+    return fail(OralArgumentCodecErrorCode::InvalidField,
+                QStringLiteral("Unknown oral-argument mode"));
+}
+
+[[nodiscard]] auto encodeAuthoredGrounding(const model::AuthoredArgumentGrounding& grounding)
+    -> std::expected<QJsonObject, OralArgumentCodecError> {
+    return std::visit(
+        [](const auto& reference) -> std::expected<QJsonObject, OralArgumentCodecError> {
+            using Reference = std::remove_cvref_t<decltype(reference)>;
+            const auto grounding_id =
+                checkedId(reference.grounding_id, u"canonical_question.grounding[].grounding_id");
+            if (!grounding_id) return std::unexpected(grounding_id.error());
+            if constexpr (std::is_same_v<Reference, model::AuthorityArgumentGrounding>) {
+                const auto authority = encodeAuthority(reference.authority);
+                if (!authority) return std::unexpected(authority.error());
+                return QJsonObject{{QStringLiteral("authority"), *authority},
+                                   {QStringLiteral("grounding_id"), *grounding_id},
+                                   {QStringLiteral("kind"), QStringLiteral("authority")}};
+            } else if constexpr (std::is_same_v<Reference,
+                                                model::BriefPageArgumentGrounding>) {
+                const auto entry = checkedId(reference.record_entry_id,
+                                             u"canonical_question.grounding[].record_entry_id");
+                const auto digest = checkedDigest(reference.asset_sha256,
+                                                  u"canonical_question.grounding[].asset_sha256");
+                if (!entry || !digest || reference.page_number == 0 ||
+                    reference.page_number > maximum_document_pages) {
+                    if (!entry) return std::unexpected(entry.error());
+                    if (!digest) return std::unexpected(digest.error());
+                    return fail(OralArgumentCodecErrorCode::OutOfRange,
+                                QStringLiteral("Brief grounding page is outside its range"));
+                }
+                return QJsonObject{{QStringLiteral("asset_sha256"), *digest},
+                                   {QStringLiteral("grounding_id"), *grounding_id},
+                                   {QStringLiteral("kind"), QStringLiteral("brief_page")},
+                                   {QStringLiteral("page_number"),
+                                    decimalString(reference.page_number)},
+                                   {QStringLiteral("record_entry_id"), *entry}};
+            } else {
+                const auto anchor = checkedId(reference.record_anchor_id,
+                                              u"canonical_question.grounding[].record_anchor_id");
+                const auto entry = checkedId(reference.record_entry_id,
+                                             u"canonical_question.grounding[].record_entry_id");
+                const auto digest = checkedDigest(reference.asset_sha256,
+                                                  u"canonical_question.grounding[].asset_sha256");
+                std::expected<QString, OralArgumentCodecError> label{QString{}};
+                if (reference.citation_label.has_value()) {
+                    label = checkedText(*reference.citation_label, 120,
+                                        u"canonical_question.grounding[].citation_label");
+                }
+                if (!anchor || !entry || !digest || !label || reference.page_number == 0 ||
+                    reference.page_number > maximum_document_pages) {
+                    if (!anchor) return std::unexpected(anchor.error());
+                    if (!entry) return std::unexpected(entry.error());
+                    if (!digest) return std::unexpected(digest.error());
+                    if (!label) return std::unexpected(label.error());
+                    return fail(OralArgumentCodecErrorCode::OutOfRange,
+                                QStringLiteral("Record grounding page is outside its range"));
+                }
+                return QJsonObject{
+                    {QStringLiteral("asset_sha256"), *digest},
+                    {QStringLiteral("citation_label"),
+                     reference.citation_label.has_value() ? QJsonValue{*label}
+                                                          : QJsonValue{QJsonValue::Null}},
+                    {QStringLiteral("grounding_id"), *grounding_id},
+                    {QStringLiteral("kind"), QStringLiteral("record_page")},
+                    {QStringLiteral("page_number"), decimalString(reference.page_number)},
+                    {QStringLiteral("record_anchor_id"), *anchor},
+                    {QStringLiteral("record_entry_id"), *entry},
+                };
+            }
+        },
+        grounding);
+}
+
+[[nodiscard]] auto decodeAuthoredGrounding(const QJsonObject& object)
+    -> std::expected<model::AuthoredArgumentGrounding, OralArgumentCodecError> {
+    constexpr auto context = u"event.bench.question.grounding[]";
+    const auto kind = readString(object, u"kind", 32, context);
+    if (!kind) return std::unexpected(kind.error());
+    if (*kind == u"authority") {
+        if (const auto keys = exactKeys(object, {u"authority", u"grounding_id", u"kind"}, context);
+            !keys) return std::unexpected(keys.error());
+        const auto grounding_id = readId(object, u"grounding_id", context);
+        if (!grounding_id || !object.value(u"authority").isObject()) {
+            return !grounding_id
+                       ? std::unexpected(grounding_id.error())
+                       : fail(OralArgumentCodecErrorCode::InvalidField,
+                              QStringLiteral("Authority grounding body is invalid"));
+        }
+        const auto authority = decodeAuthority(object.value(u"authority").toObject());
+        if (!authority) return std::unexpected(authority.error());
+        return model::AuthorityArgumentGrounding{*grounding_id, *authority};
+    }
+    if (*kind == u"brief_page") {
+        if (const auto keys = exactKeys(object,
+                                        {u"asset_sha256", u"grounding_id", u"kind",
+                                         u"page_number", u"record_entry_id"},
+                                        context);
+            !keys) return std::unexpected(keys.error());
+        const auto grounding_id = readId(object, u"grounding_id", context);
+        const auto entry = readId(object, u"record_entry_id", context);
+        const auto digest = readDigest(object, u"asset_sha256", context);
+        const auto page = parseUnsigned<std::uint32_t>(object, u"page_number",
+                                                       maximum_document_pages, context);
+        if (!grounding_id || !entry || !digest || !page || *page == 0) {
+            if (!grounding_id) return std::unexpected(grounding_id.error());
+            if (!entry) return std::unexpected(entry.error());
+            if (!digest) return std::unexpected(digest.error());
+            if (!page) return std::unexpected(page.error());
+            return fail(OralArgumentCodecErrorCode::OutOfRange,
+                        QStringLiteral("Brief grounding page must be positive"));
+        }
+        return model::BriefPageArgumentGrounding{*grounding_id, *entry, *page, *digest};
+    }
+    if (*kind == u"record_page") {
+        if (const auto keys = exactKeys(object,
+                                        {u"asset_sha256", u"citation_label", u"grounding_id",
+                                         u"kind", u"page_number", u"record_anchor_id",
+                                         u"record_entry_id"},
+                                        context);
+            !keys) return std::unexpected(keys.error());
+        const auto grounding_id = readId(object, u"grounding_id", context);
+        const auto anchor = readId(object, u"record_anchor_id", context);
+        const auto entry = readId(object, u"record_entry_id", context);
+        const auto digest = readDigest(object, u"asset_sha256", context);
+        const auto page = parseUnsigned<std::uint32_t>(object, u"page_number",
+                                                       maximum_document_pages, context);
+        std::optional<std::string> label;
+        if (!object.value(u"citation_label").isNull()) {
+            const auto decoded = readString(object, u"citation_label", 120, context);
+            if (!decoded) return std::unexpected(decoded.error());
+            label = decoded->toUtf8().toStdString();
+        }
+        if (!grounding_id || !anchor || !entry || !digest || !page || *page == 0) {
+            if (!grounding_id) return std::unexpected(grounding_id.error());
+            if (!anchor) return std::unexpected(anchor.error());
+            if (!entry) return std::unexpected(entry.error());
+            if (!digest) return std::unexpected(digest.error());
+            if (!page) return std::unexpected(page.error());
+            return fail(OralArgumentCodecErrorCode::OutOfRange,
+                        QStringLiteral("Record grounding page must be positive"));
+        }
+        return model::RecordPageArgumentGrounding{*grounding_id, *anchor, *entry, *page, *digest,
+                                                   std::move(label)};
+    }
+    return fail(OralArgumentCodecErrorCode::InvalidField,
+                QStringLiteral("Unknown authored grounding kind"));
+}
+
+[[nodiscard]] auto encodeCanonicalQuestion(const model::GroundedQuestion& question,
+                                           model::BenchActKind kind,
+                                           std::uint64_t event_sequence)
+    -> std::expected<QJsonObject, OralArgumentCodecError> {
+    const auto* selection = std::get_if<model::AuthoredQuestionSelection>(&question.selection);
+    if (selection == nullptr) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Schema-2 event requires an authored question selection"));
+    }
+    const auto issue = checkedId(question.issue_id, u"canonical_question.issue_id");
+    const auto question_id = checkedId(selection->question_id, u"canonical_question.question_id");
+    const auto prompt = checkedText(selection->prompt, maximum_prompt_bytes,
+                                    u"canonical_question.prompt");
+    const auto mode = oralArgumentModeName(selection->mode);
+    const auto topic_id = model::argumentFocusTopicId(selection->topic);
+    if (!issue || !question_id || !prompt || !mode || topic_id.empty() ||
+        selection->grounding.empty() ||
+        selection->grounding.size() >
+            static_cast<std::size_t>(maximum_canonical_grounding_refs) ||
+        (question.parent_act_sequence.has_value() &&
+         (*question.parent_act_sequence == 0 || *question.parent_act_sequence >= event_sequence)) ||
+        (question.recalls_concession && kind != model::BenchActKind::FollowUp)) {
+        if (!issue) return std::unexpected(issue.error());
+        if (!question_id) return std::unexpected(question_id.error());
+        if (!prompt) return std::unexpected(prompt.error());
+        if (!mode) return std::unexpected(mode.error());
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Canonical question shape is invalid"));
+    }
+    QJsonArray grounding;
+    QSet<QString> seen;
+    bool has_record_page = false;
+    for (const auto& reference : selection->grounding) {
+        const auto encoded = encodeAuthoredGrounding(reference);
+        if (!encoded) return std::unexpected(encoded.error());
+        const auto id = encoded->value(u"grounding_id").toString();
+        if (seen.contains(id)) {
+            return fail(OralArgumentCodecErrorCode::InvalidField,
+                        QStringLiteral("Canonical question grounding IDs must be unique"));
+        }
+        seen.insert(id);
+        has_record_page = has_record_page ||
+                          std::holds_alternative<model::RecordPageArgumentGrounding>(reference);
+        grounding.append(*encoded);
+    }
+    if (kind == model::BenchActKind::RecordPinDemand && !has_record_page) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Record-pin demand requires record-page grounding"));
+    }
+    return QJsonObject{
+        {QStringLiteral("grounding"), grounding},
+        {QStringLiteral("issue_id"), *issue},
+        {QStringLiteral("mode"), *mode},
+        {QStringLiteral("parent_act_sequence"),
+         question.parent_act_sequence.has_value()
+             ? QJsonValue{decimalString(*question.parent_act_sequence)}
+             : QJsonValue{QJsonValue::Null}},
+        {QStringLiteral("prompt"), *prompt},
+        {QStringLiteral("question_id"), *question_id},
+        {QStringLiteral("recalls_concession"), question.recalls_concession},
+        {QStringLiteral("topic_id"),
+         QString::fromLatin1(topic_id.data(), static_cast<qsizetype>(topic_id.size()))},
+    };
+}
+
+[[nodiscard]] auto decodeCanonicalQuestion(const QJsonObject& object, model::BenchActKind kind,
+                                           std::uint64_t event_sequence)
+    -> std::expected<model::GroundedQuestion, OralArgumentCodecError> {
+    constexpr auto context = u"event.bench.question";
+    if (const auto keys = exactKeys(
+            object,
+            {u"grounding", u"issue_id", u"mode", u"parent_act_sequence", u"prompt",
+             u"question_id", u"recalls_concession", u"topic_id"},
+            context);
+        !keys) return std::unexpected(keys.error());
+    const auto issue = readId(object, u"issue_id", context);
+    const auto question_id = readId(object, u"question_id", context);
+    const auto prompt = readString(object, u"prompt", maximum_prompt_bytes, context);
+    const auto mode_text = readString(object, u"mode", 32, context);
+    const auto topic_text = readString(object, u"topic_id", maximum_id_bytes, context);
+    const auto recalls_value = object.value(u"recalls_concession");
+    if (!issue || !question_id || !prompt || !mode_text || !topic_text ||
+        !recalls_value.isBool()) {
+        if (!issue) return std::unexpected(issue.error());
+        if (!question_id) return std::unexpected(question_id.error());
+        if (!prompt) return std::unexpected(prompt.error());
+        if (!mode_text) return std::unexpected(mode_text.error());
+        if (!topic_text) return std::unexpected(topic_text.error());
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Canonical question header is invalid"));
+    }
+    const auto mode = parseOralArgumentMode(*mode_text);
+    const auto topic_bytes = topic_text->toLatin1();
+    const auto topic = model::argumentFocusTopicFromId(
+        std::string_view(topic_bytes.constData(), static_cast<std::size_t>(topic_bytes.size())));
+    const auto recalls = recalls_value.toBool();
+    if (!mode || !topic.has_value() || (recalls && kind != model::BenchActKind::FollowUp)) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Canonical question mode, topic, or recall is invalid"));
+    }
+    std::optional<std::uint64_t> parent;
+    if (!object.value(u"parent_act_sequence").isNull()) {
+        const auto decoded = parseUnsigned<std::uint64_t>(object, u"parent_act_sequence",
+                                                          maximum_event_sequence, context);
+        if (!decoded) return std::unexpected(decoded.error());
+        if (*decoded == 0 || *decoded >= event_sequence) {
+            return fail(OralArgumentCodecErrorCode::OutOfRange,
+                        QStringLiteral("Question parent sequence must precede its event"));
+        }
+        parent = *decoded;
+    }
+    const auto value = object.value(u"grounding");
+    if (!value.isArray() || value.toArray().isEmpty() ||
+        value.toArray().size() > maximum_canonical_grounding_refs) {
+        return fail(OralArgumentCodecErrorCode::OutOfRange,
+                    QStringLiteral("Canonical question grounding is empty or too large"));
+    }
+    std::vector<model::AuthoredArgumentGrounding> grounding;
+    QSet<QString> seen;
+    bool has_record_page = false;
+    for (const auto& item : value.toArray()) {
+        if (!item.isObject()) {
+            return fail(OralArgumentCodecErrorCode::InvalidField,
+                        QStringLiteral("Canonical question grounding entry must be an object"));
+        }
+        const auto decoded = decodeAuthoredGrounding(item.toObject());
+        if (!decoded) return std::unexpected(decoded.error());
+        const auto id = std::visit([](const auto& ref) { return QString::fromStdString(ref.grounding_id); },
+                                   *decoded);
+        if (seen.contains(id)) {
+            return fail(OralArgumentCodecErrorCode::InvalidField,
+                        QStringLiteral("Canonical question grounding IDs must be unique"));
+        }
+        seen.insert(id);
+        has_record_page = has_record_page ||
+                          std::holds_alternative<model::RecordPageArgumentGrounding>(*decoded);
+        grounding.push_back(*decoded);
+    }
+    if (kind == model::BenchActKind::RecordPinDemand && !has_record_page) {
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("Record-pin demand requires record-page grounding"));
+    }
+    return model::GroundedQuestion{
+        *issue,
+        model::AuthoredQuestionSelection{*question_id, *topic, *mode,
+                                         prompt->toUtf8().toStdString(), std::move(grounding)},
+        parent, recalls};
+}
+
+[[nodiscard]] auto encodeEventPayload(const model::OralArgumentEvent& event,
+                                      bool canonical = false)
     -> std::expected<QJsonObject, OralArgumentCodecError> {
     if (event.sequence == 0 || event.sequence > maximum_event_sequence) {
         return fail(OralArgumentCodecErrorCode::OutOfRange,
@@ -1149,8 +1686,11 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
             return fail(OralArgumentCodecErrorCode::InvalidField,
                         QStringLiteral("Non-question bench act cannot carry grounding"));
         }
-        const auto encoded =
-            encodeQuestion(*event.bench.question, event.bench.kind, event.sequence);
+        const auto encoded = canonical
+                                 ? encodeCanonicalQuestion(*event.bench.question, event.bench.kind,
+                                                           event.sequence)
+                                 : encodeQuestion(*event.bench.question, event.bench.kind,
+                                                  event.sequence);
         if (!encoded) {
             return std::unexpected(encoded.error());
         }
@@ -1172,7 +1712,7 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
     };
 }
 
-[[nodiscard]] auto decodeEventPayload(const QJsonObject& object)
+[[nodiscard]] auto decodeEventPayload(const QJsonObject& object, bool canonical = false)
     -> std::expected<model::OralArgumentEvent, OralArgumentCodecError> {
     if (const auto keys = exactKeys(object, {u"bench", u"counsel", u"sequence"}, u"event"); !keys) {
         return std::unexpected(keys.error());
@@ -1234,7 +1774,10 @@ template <typename Integer> [[nodiscard]] QString decimalString(Integer value) {
             return fail(OralArgumentCodecErrorCode::InvalidField,
                         QStringLiteral("event.bench.question has an invalid shape"));
         }
-        const auto decoded = decodeQuestion(question_value.toObject(), *kind, *sequence);
+        const auto decoded = canonical
+                                 ? decodeCanonicalQuestion(question_value.toObject(), *kind,
+                                                           *sequence)
+                                 : decodeQuestion(question_value.toObject(), *kind, *sequence);
         if (!decoded) {
             return std::unexpected(decoded.error());
         }
@@ -1546,6 +2089,161 @@ decodeOralArgumentEvent(QByteArrayView encoded) {
         return std::unexpected(payload.error());
     }
     return decodeEventPayload(*payload);
+}
+
+std::expected<QByteArray, OralArgumentCodecError>
+encodeCanonicalOralArgumentOpeningCommand(
+    const CanonicalOralArgumentOpeningCommand& command) {
+    const auto session_id =
+        checkedCanonicalId(command.session_id, u"opening_command.session_id");
+    const auto command_id =
+        checkedCanonicalId(command.command_id, u"opening_command.command_id");
+    const auto engine_revision =
+        checkedCanonicalId(command.engine_revision, u"opening_command.engine_revision");
+    const auto recorded_at =
+        checkedCanonicalUtc(command.recorded_at_utc, u"opening_command.recorded_at_utc");
+    const auto case_id = checkedId(command.case_id.value, u"opening_command.case_id");
+    const auto argument_configuration_id = checkedId(
+        command.argument_configuration_id, u"opening_command.argument_configuration_id");
+    if (!session_id || !command_id || !engine_revision || !recorded_at || !case_id ||
+        !argument_configuration_id) {
+        if (!session_id) return std::unexpected(session_id.error());
+        if (!command_id) return std::unexpected(command_id.error());
+        if (!engine_revision) return std::unexpected(engine_revision.error());
+        if (!recorded_at) return std::unexpected(recorded_at.error());
+        if (!case_id) return std::unexpected(case_id.error());
+        return std::unexpected(argument_configuration_id.error());
+    }
+    const auto configuration = encodeOralArgumentConfiguration(command.configuration);
+    if (!configuration) return std::unexpected(configuration.error());
+    const auto configuration_root = QJsonDocument::fromJson(*configuration).object();
+    return envelope(
+        QString::fromLatin1(opening_command_type),
+        QJsonObject{
+            {QStringLiteral("argument_configuration_id"), *argument_configuration_id},
+            {QStringLiteral("case_id"), *case_id},
+            {QStringLiteral("command_id"), *command_id},
+            {QStringLiteral("configuration"), configuration_root.value(u"payload")},
+            {QStringLiteral("engine_revision"), *engine_revision},
+            {QStringLiteral("recorded_at_utc"), *recorded_at},
+            {QStringLiteral("session_id"), *session_id},
+        },
+        QString::fromLatin1(canonical_schema_version));
+}
+
+std::expected<CanonicalOralArgumentOpeningCommand, OralArgumentCodecError>
+decodeCanonicalOralArgumentOpeningCommand(QByteArrayView encoded) {
+    const auto payload = parseRoot(encoded, QString::fromLatin1(opening_command_type), u"2");
+    if (!payload) return std::unexpected(payload.error());
+    if (const auto keys = exactKeys(
+            *payload,
+            {u"argument_configuration_id", u"case_id", u"command_id", u"configuration",
+             u"engine_revision", u"recorded_at_utc", u"session_id"},
+            u"opening_command");
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto session_id = readCanonicalId(*payload, u"session_id", u"opening_command");
+    const auto command_id = readCanonicalId(*payload, u"command_id", u"opening_command");
+    const auto engine_revision =
+        readCanonicalId(*payload, u"engine_revision", u"opening_command");
+    const auto recorded_at =
+        readCanonicalUtc(*payload, u"recorded_at_utc", u"opening_command");
+    const auto case_id = readId(*payload, u"case_id", u"opening_command");
+    const auto argument_configuration_id =
+        readId(*payload, u"argument_configuration_id", u"opening_command");
+    const auto configuration_value = payload->value(u"configuration");
+    if (!session_id || !command_id || !engine_revision || !recorded_at || !case_id ||
+        !argument_configuration_id || !configuration_value.isObject()) {
+        if (!session_id) return std::unexpected(session_id.error());
+        if (!command_id) return std::unexpected(command_id.error());
+        if (!engine_revision) return std::unexpected(engine_revision.error());
+        if (!recorded_at) return std::unexpected(recorded_at.error());
+        if (!case_id) return std::unexpected(case_id.error());
+        if (!argument_configuration_id) {
+            return std::unexpected(argument_configuration_id.error());
+        }
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("opening_command.configuration must be an object"));
+    }
+    const auto configuration = decodeOralArgumentConfiguration(
+        envelope(QString::fromLatin1(configuration_type), configuration_value.toObject()));
+    if (!configuration) return std::unexpected(configuration.error());
+    return CanonicalOralArgumentOpeningCommand{
+        *session_id, *command_id, *engine_revision, *recorded_at, model::CaseId{*case_id},
+        *argument_configuration_id, *configuration};
+}
+
+std::expected<QByteArray, OralArgumentCodecError>
+encodeCanonicalOralArgumentCounselCommand(const OralArgumentCounselCommand& command) {
+    const auto session_id = checkedCanonicalId(command.session_id, u"counsel_command.session_id");
+    const auto command_id = checkedCanonicalId(command.command_id, u"counsel_command.command_id");
+    const auto recorded_at =
+        checkedCanonicalUtc(command.recorded_at_utc, u"counsel_command.recorded_at_utc");
+    if (!session_id || !command_id || !recorded_at) {
+        if (!session_id) return std::unexpected(session_id.error());
+        if (!command_id) return std::unexpected(command_id.error());
+        return std::unexpected(recorded_at.error());
+    }
+    const auto answer = encodeCounselPayload(command.answer);
+    if (!answer) return std::unexpected(answer.error());
+    return envelope(QString::fromLatin1(counsel_command_type),
+                    QJsonObject{{QStringLiteral("answer"), *answer},
+                                {QStringLiteral("command_id"), *command_id},
+                                {QStringLiteral("recorded_at_utc"), *recorded_at},
+                                {QStringLiteral("session_id"), *session_id}},
+                    QString::fromLatin1(canonical_schema_version));
+}
+
+std::expected<OralArgumentCounselCommand, OralArgumentCodecError>
+decodeCanonicalOralArgumentCounselCommand(QByteArrayView encoded) {
+    const auto payload = parseRoot(encoded, QString::fromLatin1(counsel_command_type), u"2");
+    if (!payload) return std::unexpected(payload.error());
+    if (const auto keys =
+            exactKeys(*payload, {u"answer", u"command_id", u"recorded_at_utc", u"session_id"},
+                      u"counsel_command");
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto session_id = readCanonicalId(*payload, u"session_id", u"counsel_command");
+    const auto command_id = readCanonicalId(*payload, u"command_id", u"counsel_command");
+    const auto recorded_at = readCanonicalUtc(*payload, u"recorded_at_utc", u"counsel_command");
+    const auto answer_value = payload->value(u"answer");
+    if (!session_id || !command_id || !recorded_at || !answer_value.isObject()) {
+        if (!session_id) return std::unexpected(session_id.error());
+        if (!command_id) return std::unexpected(command_id.error());
+        if (!recorded_at) return std::unexpected(recorded_at.error());
+        return fail(OralArgumentCodecErrorCode::InvalidField,
+                    QStringLiteral("counsel_command.answer must be an object"));
+    }
+    const auto answer = decodeCounselPayload(answer_value.toObject(), u"counsel_command.answer");
+    if (!answer) return std::unexpected(answer.error());
+    return OralArgumentCounselCommand{*session_id, *command_id, *recorded_at, *answer};
+}
+
+std::expected<QByteArray, OralArgumentCodecError>
+encodeCanonicalOralArgumentEvent(const model::OralArgumentEvent& event) {
+    if (event.sequence == 0 || event.sequence > maximum_canonical_event_sequence) {
+        return fail(OralArgumentCodecErrorCode::OutOfRange,
+                    QStringLiteral("Canonical oral-argument event sequence is out of range"));
+    }
+    const auto payload = encodeEventPayload(event, true);
+    if (!payload) return std::unexpected(payload.error());
+    return envelope(QString::fromLatin1(event_type), *payload,
+                    QString::fromLatin1(canonical_schema_version));
+}
+
+std::expected<model::OralArgumentEvent, OralArgumentCodecError>
+decodeCanonicalOralArgumentEvent(QByteArrayView encoded) {
+    const auto payload = parseRoot(encoded, QString::fromLatin1(event_type), u"2");
+    if (!payload) return std::unexpected(payload.error());
+    const auto event = decodeEventPayload(*payload, true);
+    if (!event) return std::unexpected(event.error());
+    if (event->sequence > maximum_canonical_event_sequence) {
+        return fail(OralArgumentCodecErrorCode::OutOfRange,
+                    QStringLiteral("Canonical oral-argument event sequence is out of range"));
+    }
+    return *event;
 }
 
 } // namespace appellate::storage
