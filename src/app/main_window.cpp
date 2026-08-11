@@ -5,6 +5,8 @@
 #include "bench_profile_codec.hpp"
 #include "bench_profile_editor.hpp"
 #include "installed_record_controller.hpp"
+#include "oral_argument_launch_provider.hpp"
+#include "oral_argument_workspace.hpp"
 #include "record_workspace.hpp"
 
 #include <QAction>
@@ -118,7 +120,12 @@ void configureSummaryLabel(QLabel& label, const QString& object_name,
 } // namespace
 
 MainWindow::MainWindow(const QString& source_path, const QString& catalog_root, QWidget* parent)
-    : QMainWindow(parent) {
+    : MainWindow(source_path, catalog_root, parent, {}) {}
+
+MainWindow::MainWindow(const QString& source_path, const QString& catalog_root, QWidget* parent,
+                       std::shared_ptr<OralArgumentLaunchProvider> oral_argument_launch_provider)
+    : QMainWindow(parent),
+      oral_argument_launch_provider_(std::move(oral_argument_launch_provider)) {
     setWindowTitle(QStringLiteral("Appellate Workbench"));
     resize(1180, 780);
     setMinimumSize(840, 600);
@@ -231,6 +238,34 @@ void MainWindow::buildUi() {
         new QLabel(QStringLiteral("Selected &fictional/composite profile"), details);
     profile_label->setObjectName(QStringLiteral("profileSelectorLabel"));
     profile_label->setAccessibleName(QStringLiteral("Fictional/composite profile selector label"));
+    auto* argument_label = new QLabel(QStringLiteral("Oral-argument &configuration"), details);
+    argument_label->setObjectName(QStringLiteral("argumentConfigurationSelectorLabel"));
+    argument_label->setAccessibleName(QStringLiteral("Oral argument configuration selector label"));
+    argument_configuration_selector_ = new QComboBox(details);
+    argument_configuration_selector_->setObjectName(
+        QStringLiteral("argumentConfigurationSelector"));
+    argument_configuration_selector_->setAccessibleName(
+        QStringLiteral("Exact oral argument configuration"));
+    argument_configuration_selector_->setAccessibleDescription(QStringLiteral(
+        "Choose an exact installed-pack actual-record or counterfactual configuration"));
+    argument_configuration_selector_->setEnabled(false);
+    argument_label->setBuddy(argument_configuration_selector_);
+    details_layout->addWidget(argument_label);
+    details_layout->addWidget(argument_configuration_selector_);
+
+    argument_launch_boundary_label_ = new QLabel(details);
+    configureSummaryLabel(*argument_launch_boundary_label_,
+                          QStringLiteral("oralArgumentLaunchBoundary"),
+                          QStringLiteral("Oral argument launch boundary"));
+    argument_launch_boundary_label_->setText(
+        oral_argument_launch_provider_
+            ? QStringLiteral("A workflow-authoritative local session provider is available. "
+                             "Launch uses only the exact installed closure and selected IDs.")
+            : QStringLiteral("Oral argument launch is disabled until the application supplies a "
+                             "workflow-authoritative local session provider; this UI never "
+                             "invents legal-state or disposition pins."));
+    details_layout->addWidget(argument_launch_boundary_label_);
+
     profile_selector_ = new QComboBox(details);
     profile_selector_->setObjectName(QStringLiteral("profileSelector"));
     profile_selector_->setAccessibleName(QStringLiteral("Selected fictional/composite profile"));
@@ -263,12 +298,22 @@ void MainWindow::buildUi() {
         record_tab_index_,
         QStringLiteral("Review PDFs materialized from the selected installed pack"));
     workspace_tabs_->setTabEnabled(record_tab_index_, false);
+
+    oral_argument_workspace_ = new OralArgumentWorkspace(workspace_tabs_);
+    argument_tab_index_ =
+        workspace_tabs_->addTab(oral_argument_workspace_, QStringLiteral("Oral &Argument"));
+    workspace_tabs_->setTabToolTip(
+        argument_tab_index_,
+        QStringLiteral("Practice exact pack-authored questions against a fictional bench"));
+    workspace_tabs_->setTabEnabled(argument_tab_index_, false);
     setCentralWidget(workspace_tabs_);
 
     connect(case_list_, &QListWidget::currentRowChanged, this,
             [this](int row) { updateCaseSelection(row); });
     connect(profile_selector_, &QComboBox::currentIndexChanged, this,
             [this](int row) { updateProfileSelection(row); });
+    connect(argument_configuration_selector_, &QComboBox::currentIndexChanged, this,
+            [this](int row) { updateArgumentSelection(row); });
 }
 
 void MainWindow::buildFileMenu() {
@@ -295,6 +340,15 @@ void MainWindow::buildFileMenu() {
         QStringLiteral("Open selected installed case record"),
         QStringLiteral("Verify and open every record PDF from the selected installed pack"));
     open_record_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+R")));
+
+    open_oral_argument_action_ =
+        file_menu->addAction(QStringLiteral("Open Selected Oral &Argument"));
+    configureAction(
+        *open_oral_argument_action_, QStringLiteral("openSelectedOralArgumentAction"),
+        QStringLiteral("Open selected oral argument configuration"),
+        QStringLiteral("Open the exact grounded configuration through the authoritative local "
+                       "session provider"));
+    open_oral_argument_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+A")));
     file_menu->addSeparator();
 
     import_profile_action_ =
@@ -343,6 +397,8 @@ void MainWindow::buildFileMenu() {
     });
     connect(open_record_action_, &QAction::triggered, this,
             [this] { static_cast<void>(openSelectedRecord()); });
+    connect(open_oral_argument_action_, &QAction::triggered, this,
+            [this] { static_cast<void>(openSelectedOralArgument()); });
     connect(import_profile_action_, &QAction::triggered, this, [this] {
         const auto path =
             QFileDialog::getOpenFileName(this, QStringLiteral("Import Fictional/composite Profile"),
@@ -572,10 +628,81 @@ auto MainWindow::openSelectedRecord() -> std::expected<void, QString> {
     return {};
 }
 
+auto MainWindow::openSelectedOralArgument() -> std::expected<void, QString> {
+    const auto reject = [this](QString message) -> std::expected<void, QString> {
+        showError(message);
+        return std::unexpected(std::move(message));
+    };
+    if (!oral_argument_launch_provider_) {
+        return reject(QStringLiteral(
+            "No workflow-authoritative local oral-argument session provider is available"));
+    }
+    if (!installed_pack_ || !runtime_pack_) {
+        return reject(QStringLiteral(
+            "Oral argument can launch only from an exact pack closure installed on this device"));
+    }
+    const auto case_row = case_list_->currentRow();
+    const auto argument_row = argument_configuration_selector_->currentIndex();
+    if (case_row < 0 || argument_row < 0 ||
+        static_cast<std::size_t>(case_row) >= runtime_pack_->cases.size()) {
+        return reject(QStringLiteral(
+            "Select an installed-pack case and oral-argument configuration before launching"));
+    }
+    const auto& selected_case = runtime_pack_->cases.at(static_cast<std::size_t>(case_row));
+    if (static_cast<std::size_t>(argument_row) >= selected_case.argument_configurations.size()) {
+        return reject(QStringLiteral("Selected oral-argument configuration is outside the case"));
+    }
+    const auto& selected_argument =
+        selected_case.argument_configurations.at(static_cast<std::size_t>(argument_row));
+    if (!selected_argument.grounded_question_bank.has_value()) {
+        return reject(QStringLiteral(
+            "Selected oral-argument configuration has no grounded authored question bank"));
+    }
+
+    auto opened = oral_argument_launch_provider_->open(
+        *installed_pack_, selected_case.definition.id, selected_argument.id);
+    if (!opened) {
+        return reject(
+            QStringLiteral("Oral argument could not be opened: %1").arg(opened.error().message));
+    }
+    auto candidate = std::make_unique<OralArgumentWorkspace>(std::move(*opened));
+    if (!candidate->isReady()) {
+        return reject(
+            QStringLiteral("Oral argument could not be opened: %1").arg(candidate->lastError()));
+    }
+
+    auto* previous_workspace = oral_argument_workspace_;
+    workspace_tabs_->removeTab(argument_tab_index_);
+    oral_argument_workspace_ = candidate.release();
+    oral_argument_workspace_->setParent(workspace_tabs_);
+    argument_tab_index_ = workspace_tabs_->insertTab(
+        argument_tab_index_, oral_argument_workspace_,
+        QStringLiteral("Oral &Argument — %1").arg(utf8(selected_argument.id.value)));
+    workspace_tabs_->setTabToolTip(argument_tab_index_,
+                                   QStringLiteral("Exact grounded oral argument configuration %1")
+                                       .arg(utf8(selected_argument.id.value)));
+    delete previous_workspace;
+
+    argument_revision_ = runtime_pack_->revision;
+    argument_case_id_ = selected_case.definition.id;
+    argument_configuration_id_ = selected_argument.id;
+    workspace_tabs_->setTabEnabled(argument_tab_index_, true);
+    workspace_tabs_->setCurrentIndex(argument_tab_index_);
+    showStatus(QStringLiteral("Opened exact %1 oral-argument configuration %2.")
+                   .arg(selected_argument.grounded_question_bank->mode ==
+                                model::OralArgumentMode::ActualRecord
+                            ? QStringLiteral("actual-record")
+                            : QStringLiteral("counterfactual-training"),
+                        utf8(selected_argument.id.value)));
+    updateActionStates();
+    return {};
+}
+
 void MainWindow::commitRuntime(packs::RuntimePack runtime, const QString& source_path,
                                const QString& success_message,
                                std::optional<packs::ResolvedPack> installed_pack) {
     invalidateRecordSelection();
+    invalidateArgumentSelection();
     runtime_pack_ = std::move(runtime);
     installed_pack_ = std::move(installed_pack);
     current_source_path_ = source_path;
@@ -613,6 +740,19 @@ void MainWindow::invalidateRecordSelection() {
     }
 }
 
+void MainWindow::invalidateArgumentSelection() {
+    argument_revision_.reset();
+    argument_case_id_.reset();
+    argument_configuration_id_.reset();
+    if (workspace_tabs_ != nullptr && oral_argument_workspace_ != nullptr) {
+        workspace_tabs_->setTabEnabled(argument_tab_index_, false);
+        workspace_tabs_->setTabText(argument_tab_index_, QStringLiteral("Oral &Argument"));
+        if (workspace_tabs_->currentIndex() == argument_tab_index_) {
+            workspace_tabs_->setCurrentIndex(browser_tab_index_);
+        }
+    }
+}
+
 bool MainWindow::selectedCaseHasLoadedRecord() const {
     if (!record_revision_ || !record_case_id_ || !runtime_pack_ ||
         *record_revision_ != runtime_pack_->revision || case_list_->currentRow() < 0) {
@@ -623,6 +763,22 @@ bool MainWindow::selectedCaseHasLoadedRecord() const {
            runtime_pack_->cases.at(selected_index).definition.id == *record_case_id_;
 }
 
+bool MainWindow::selectedCaseHasLoadedArgument() const {
+    if (!argument_revision_ || !argument_case_id_ || !argument_configuration_id_ ||
+        !runtime_pack_ || *argument_revision_ != runtime_pack_->revision ||
+        case_list_->currentRow() < 0 || argument_configuration_selector_->currentIndex() < 0) {
+        return false;
+    }
+    const auto case_index = static_cast<std::size_t>(case_list_->currentRow());
+    const auto argument_index =
+        static_cast<std::size_t>(argument_configuration_selector_->currentIndex());
+    return case_index < runtime_pack_->cases.size() &&
+           runtime_pack_->cases.at(case_index).definition.id == *argument_case_id_ &&
+           argument_index < runtime_pack_->cases.at(case_index).argument_configurations.size() &&
+           runtime_pack_->cases.at(case_index).argument_configurations.at(argument_index).id ==
+               *argument_configuration_id_;
+}
+
 void MainWindow::updateCaseSelection(int row) {
     if (!runtime_pack_ || row < 0 || static_cast<std::size_t>(row) >= runtime_pack_->cases.size()) {
         workspace_tabs_->setTabEnabled(record_tab_index_, false);
@@ -630,6 +786,8 @@ void MainWindow::updateCaseSelection(int row) {
             workspace_tabs_->setCurrentIndex(browser_tab_index_);
         }
         profile_selector_->setEnabled(false);
+        argument_configuration_selector_->setEnabled(false);
+        workspace_tabs_->setTabEnabled(argument_tab_index_, false);
         profile_editor_->setEnabled(false);
         updateActionStates();
         return;
@@ -680,29 +838,72 @@ void MainWindow::updateCaseSelection(int row) {
                  benches.join(QStringLiteral("; "))));
 
     {
+        const QSignalBlocker blocker(argument_configuration_selector_);
+        argument_configuration_selector_->clear();
+        for (const auto& argument : runtime_case.argument_configurations) {
+            QString mode = QStringLiteral("ungrounded");
+            if (argument.grounded_question_bank.has_value()) {
+                mode =
+                    argument.grounded_question_bank->mode == model::OralArgumentMode::ActualRecord
+                        ? QStringLiteral("actual record")
+                        : QStringLiteral("counterfactual training");
+            }
+            argument_configuration_selector_->addItem(
+                QStringLiteral("%1 — %2").arg(utf8(argument.id.value), mode));
+        }
+        argument_configuration_selector_->setEnabled(argument_configuration_selector_->count() > 0);
+        argument_configuration_selector_->setCurrentIndex(
+            argument_configuration_selector_->count() > 0 ? 0 : -1);
+    }
+    updateArgumentSelection(argument_configuration_selector_->currentIndex());
+}
+
+void MainWindow::updateArgumentSelection(int row) {
+    const auto case_row = case_list_->currentRow();
+    if (!runtime_pack_ || case_row < 0 || row < 0 ||
+        static_cast<std::size_t>(case_row) >= runtime_pack_->cases.size()) {
+        profile_selector_->clear();
+        profile_selector_->setEnabled(false);
+        workspace_tabs_->setTabEnabled(argument_tab_index_, false);
+        updateActionStates();
+        return;
+    }
+    const auto& runtime_case = runtime_pack_->cases.at(static_cast<std::size_t>(case_row));
+    const auto argument_index = static_cast<std::size_t>(row);
+    if (argument_index >= runtime_case.argument_configurations.size()) {
+        profile_selector_->clear();
+        profile_selector_->setEnabled(false);
+        workspace_tabs_->setTabEnabled(argument_tab_index_, false);
+        updateActionStates();
+        return;
+    }
+
+    {
         const QSignalBlocker blocker(profile_selector_);
         profile_selector_->clear();
-        for (std::size_t argument_index = 0;
-             argument_index < runtime_case.argument_configurations.size(); ++argument_index) {
-            const auto& argument = runtime_case.argument_configurations.at(argument_index);
-            for (std::size_t seat_index = 0; seat_index < argument.bench.seats.size();
-                 ++seat_index) {
-                const auto& seat = argument.bench.seats.at(seat_index);
-                profile_selector_->addItem(QStringLiteral("%1 — fictional/composite")
-                                               .arg(utf8(seat.profile.display_name)));
-                const auto item_index = profile_selector_->count() - 1;
-                profile_selector_->setItemData(
-                    item_index, QVariant::fromValue(static_cast<qulonglong>(argument_index)),
-                    Qt::UserRole);
-                profile_selector_->setItemData(
-                    item_index, QVariant::fromValue(static_cast<qulonglong>(seat_index)),
-                    Qt::UserRole + 1);
-            }
+        const auto& argument = runtime_case.argument_configurations.at(argument_index);
+        for (std::size_t seat_index = 0; seat_index < argument.bench.seats.size(); ++seat_index) {
+            const auto& seat = argument.bench.seats.at(seat_index);
+            profile_selector_->addItem(
+                QStringLiteral("%1 — fictional/composite").arg(utf8(seat.profile.display_name)));
+            const auto item_index = profile_selector_->count() - 1;
+            profile_selector_->setItemData(
+                item_index, QVariant::fromValue(static_cast<qulonglong>(argument_index)),
+                Qt::UserRole);
+            profile_selector_->setItemData(item_index,
+                                           QVariant::fromValue(static_cast<qulonglong>(seat_index)),
+                                           Qt::UserRole + 1);
         }
         profile_selector_->setEnabled(profile_selector_->count() > 0);
         profile_selector_->setCurrentIndex(profile_selector_->count() > 0 ? 0 : -1);
     }
+    const auto argument_matches_selection = selectedCaseHasLoadedArgument();
+    workspace_tabs_->setTabEnabled(argument_tab_index_, argument_matches_selection);
+    if (!argument_matches_selection && workspace_tabs_->currentIndex() == argument_tab_index_) {
+        workspace_tabs_->setCurrentIndex(browser_tab_index_);
+    }
     updateProfileSelection(profile_selector_->currentIndex());
+    updateActionStates();
 }
 
 void MainWindow::updateProfileSelection(int row) {
@@ -763,6 +964,18 @@ void MainWindow::updateActionStates() {
     open_record_action_->setEnabled(
         catalog_ != nullptr && installed_pack_.has_value() && runtime_pack_.has_value() &&
         selected_row >= 0 && static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size());
+    bool can_open_argument = false;
+    if (oral_argument_launch_provider_ && installed_pack_ && runtime_pack_ && selected_row >= 0 &&
+        argument_configuration_selector_->currentIndex() >= 0 &&
+        static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size()) {
+        const auto& runtime_case = runtime_pack_->cases.at(static_cast<std::size_t>(selected_row));
+        const auto argument_index =
+            static_cast<std::size_t>(argument_configuration_selector_->currentIndex());
+        can_open_argument = argument_index < runtime_case.argument_configurations.size() &&
+                            runtime_case.argument_configurations.at(argument_index)
+                                .grounded_question_bank.has_value();
+    }
+    open_oral_argument_action_->setEnabled(can_open_argument);
 }
 
 void MainWindow::showError(const QString& message) {
@@ -803,9 +1016,17 @@ QListWidget* MainWindow::caseList() const noexcept { return case_list_; }
 
 QComboBox* MainWindow::profileSelector() const noexcept { return profile_selector_; }
 
+QComboBox* MainWindow::argumentConfigurationSelector() const noexcept {
+    return argument_configuration_selector_;
+}
+
 BenchProfileEditor* MainWindow::profileEditor() const noexcept { return profile_editor_; }
 
 RecordWorkspace* MainWindow::recordWorkspace() const noexcept { return record_workspace_; }
+
+OralArgumentWorkspace* MainWindow::oralArgumentWorkspace() const noexcept {
+    return oral_argument_workspace_;
+}
 
 QTabWidget* MainWindow::workspaceTabs() const noexcept { return workspace_tabs_; }
 
@@ -820,5 +1041,7 @@ QAction* MainWindow::cloneProfileAction() const noexcept { return clone_profile_
 QAction* MainWindow::exportProfileAction() const noexcept { return export_profile_action_; }
 
 QAction* MainWindow::openRecordAction() const noexcept { return open_record_action_; }
+
+QAction* MainWindow::openOralArgumentAction() const noexcept { return open_oral_argument_action_; }
 
 } // namespace appellate::ui

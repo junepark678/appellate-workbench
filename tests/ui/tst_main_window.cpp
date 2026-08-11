@@ -1,6 +1,9 @@
 #include "appellate/packs/pack_archive.hpp"
+#include "appellate/packs/resolved_pack.hpp"
 #include "bench_profile_editor.hpp"
 #include "main_window.hpp"
+#include "oral_argument_launch_provider.hpp"
+#include "oral_argument_workspace.hpp"
 #include "record_workspace.hpp"
 
 #include <QAction>
@@ -22,9 +25,11 @@
 #include <QVariant>
 
 #include <array>
+#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace {
 
@@ -38,11 +43,42 @@ class MainWindowTest final : public QObject {
     void caseAndProfileSelectionStayInSync();
     void installedRecordActionOpensSearchablePdf();
     void recordFailuresPreserveLastGoodWorkspace();
+    void argumentLaunchUsesExactSelectedConfigurationAndPreservesWorkspaceOnError();
     void actionsExposeAccessibleUsefulStates();
 };
 
 using appellate::packs::PackArchive;
 using appellate::ui::MainWindow;
+
+class RecordingLaunchProvider final : public appellate::ui::OralArgumentLaunchProvider {
+  public:
+    struct Call final {
+        appellate::model::PackRevision root_revision;
+        appellate::model::CaseId case_id;
+        appellate::packs::RuntimeArgumentConfigId argument_configuration_id;
+        std::optional<appellate::model::PackRevision> configuration_owner;
+    };
+
+    [[nodiscard]] auto
+    open(const appellate::packs::ResolvedPack& resolved_pack,
+         const appellate::model::CaseId& case_id,
+         const appellate::packs::RuntimeArgumentConfigId& argument_configuration_id)
+        -> std::expected<std::unique_ptr<appellate::app::OralArgumentSessionController>,
+                         appellate::app::OralArgumentSessionError> override {
+        calls.push_back(Call{
+            resolved_pack.root().revision,
+            case_id,
+            argument_configuration_id,
+            resolved_pack.resourceOwner(argument_configuration_id.value),
+        });
+        return std::unexpected(appellate::app::OralArgumentSessionError{
+            appellate::app::OralArgumentSessionErrorCode::InvalidConfiguration,
+            QStringLiteral("Injected provider refusal after exact launch capture"),
+        });
+    }
+
+    std::vector<Call> calls;
+};
 
 [[nodiscard]] QString fixture(const QString& name) {
     return QStringLiteral(APPELLATE_TEST_FIXTURES) + u'/' + name;
@@ -413,6 +449,92 @@ void MainWindowTest::recordFailuresPreserveLastGoodWorkspace() {
     QCOMPARE(last_good_workspace->currentDocumentId(), last_good_document);
 }
 
+void MainWindowTest::argumentLaunchUsesExactSelectedConfigurationAndPreservesWorkspaceOnError() {
+    QTemporaryDir state;
+    QVERIFY(state.isValid());
+    const auto archive_path = QDir(state.path()).filePath(QStringLiteral("fixture-v2.awpack"));
+    const auto exported = PackArchive::exportDirectory(
+        fixture(QStringLiteral("full-resource-pack-v2")), archive_path);
+    if (!exported) {
+        QFAIL(qPrintable(exported.error().message));
+    }
+
+    auto provider = std::make_shared<RecordingLaunchProvider>();
+    MainWindow window({}, QDir(state.path()).filePath(QStringLiteral("catalog")), nullptr,
+                      provider);
+    const auto installed = window.loadSource(archive_path);
+    if (!installed) {
+        QFAIL(qPrintable(installed.error()));
+    }
+    QVERIFY(window.currentRuntime() != nullptr);
+    QCOMPARE(window.currentRuntime()->cases.size(), std::size_t{1});
+    const auto& runtime_case = window.currentRuntime()->cases.front();
+    QCOMPARE(runtime_case.argument_configurations.size(), std::size_t{2});
+    QCOMPARE(window.argumentConfigurationSelector()->count(), 2);
+    QVERIFY(
+        window.argumentConfigurationSelector()->accessibleName().contains(QStringLiteral("Exact")));
+    int actual_index = -1;
+    int counterfactual_index = -1;
+    for (int index = 0; index < window.argumentConfigurationSelector()->count(); ++index) {
+        const auto& configuration =
+            runtime_case.argument_configurations.at(static_cast<std::size_t>(index));
+        if (configuration.grounded_question_bank->mode ==
+            appellate::model::OralArgumentMode::ActualRecord) {
+            actual_index = index;
+            QVERIFY(window.argumentConfigurationSelector()->itemText(index).contains(
+                QStringLiteral("actual record")));
+        } else {
+            counterfactual_index = index;
+            QVERIFY(window.argumentConfigurationSelector()->itemText(index).contains(
+                QStringLiteral("counterfactual training")));
+        }
+    }
+    QVERIFY(actual_index >= 0);
+    QVERIFY(counterfactual_index >= 0);
+    window.argumentConfigurationSelector()->setCurrentIndex(actual_index);
+    QVERIFY(window.openOralArgumentAction()->isEnabled());
+    QVERIFY(!window.openOralArgumentAction()->property("accessibleName").toString().isEmpty());
+    QCOMPARE(window.openOralArgumentAction()->shortcut(),
+             QKeySequence(QStringLiteral("Ctrl+Shift+A")));
+
+    auto* const placeholder = window.oralArgumentWorkspace();
+    QVERIFY(placeholder != nullptr);
+    QVERIFY(!placeholder->isReady());
+    const auto actual = window.openSelectedOralArgument();
+    QVERIFY(!actual.has_value());
+    QVERIFY(actual.error().contains(QStringLiteral("Injected provider refusal")));
+    QCOMPARE(provider->calls.size(), std::size_t{1});
+    QCOMPARE(provider->calls.front().root_revision, *exported);
+    QCOMPARE(provider->calls.front().case_id, runtime_case.definition.id);
+    QCOMPARE(provider->calls.front().argument_configuration_id,
+             runtime_case.argument_configurations.at(static_cast<std::size_t>(actual_index)).id);
+    QVERIFY(provider->calls.front().configuration_owner.has_value());
+    QCOMPARE(*provider->calls.front().configuration_owner, *exported);
+    QCOMPARE(window.oralArgumentWorkspace(), placeholder);
+    QVERIFY(!window.workspaceTabs()->isTabEnabled(
+        window.workspaceTabs()->indexOf(window.oralArgumentWorkspace())));
+
+    window.argumentConfigurationSelector()->setCurrentIndex(counterfactual_index);
+    QVERIFY(window.openOralArgumentAction()->isEnabled());
+    const auto counterfactual = window.openSelectedOralArgument();
+    QVERIFY(!counterfactual.has_value());
+    QCOMPARE(provider->calls.size(), std::size_t{2});
+    QCOMPARE(provider->calls.back().case_id, runtime_case.definition.id);
+    QCOMPARE(
+        provider->calls.back().argument_configuration_id,
+        runtime_case.argument_configurations.at(static_cast<std::size_t>(counterfactual_index)).id);
+    QVERIFY(provider->calls.back().argument_configuration_id !=
+            provider->calls.front().argument_configuration_id);
+    QCOMPARE(runtime_case.argument_configurations.at(static_cast<std::size_t>(actual_index))
+                 .grounded_question_bank->mode,
+             appellate::model::OralArgumentMode::ActualRecord);
+    QCOMPARE(runtime_case.argument_configurations.at(static_cast<std::size_t>(counterfactual_index))
+                 .grounded_question_bank->mode,
+             appellate::model::OralArgumentMode::CounterfactualTraining);
+    QCOMPARE(window.oralArgumentWorkspace(), placeholder);
+    QVERIFY(window.errorLabel()->text().contains(QStringLiteral("Injected provider refusal")));
+}
+
 void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QTemporaryDir state;
     QVERIFY(state.isValid());
@@ -424,10 +546,13 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(!window.cloneProfileAction()->isEnabled());
     QVERIFY(!window.exportProfileAction()->isEnabled());
     QVERIFY(!window.openRecordAction()->isEnabled());
+    QVERIFY(!window.openOralArgumentAction()->isEnabled());
 
     const std::array actions{
-        window.openDirectoryAction(), window.installArchiveAction(), window.importProfileAction(),
-        window.cloneProfileAction(),  window.exportProfileAction(),  window.openRecordAction(),
+        window.openDirectoryAction(),    window.installArchiveAction(),
+        window.importProfileAction(),    window.cloneProfileAction(),
+        window.exportProfileAction(),    window.openRecordAction(),
+        window.openOralArgumentAction(),
     };
     for (const auto* action : actions) {
         QVERIFY(action != nullptr);
@@ -445,10 +570,16 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(window.cloneProfileAction()->isEnabled());
     QVERIFY(window.exportProfileAction()->isEnabled());
     QVERIFY(!window.openRecordAction()->isEnabled());
+    QVERIFY(!window.openOralArgumentAction()->isEnabled());
     QVERIFY(!window.caseList()->accessibleName().isEmpty());
+    QVERIFY(!window.argumentConfigurationSelector()->accessibleName().isEmpty());
     QVERIFY(!window.profileSelector()->accessibleName().isEmpty());
     QVERIFY(window.caseList()->focusPolicy() != Qt::NoFocus);
     QVERIFY(window.profileSelector()->focusPolicy() != Qt::NoFocus);
+    const auto* boundary = window.findChild<QLabel*>(QStringLiteral("oralArgumentLaunchBoundary"));
+    QVERIFY(boundary != nullptr);
+    QVERIFY(boundary->text().contains(QStringLiteral("disabled")));
+    QVERIFY(boundary->text().contains(QStringLiteral("never invents")));
 
     const auto export_path = QDir(state.path()).filePath(QStringLiteral("profile.json"));
     QVERIFY(window.exportProfile(export_path).has_value());
@@ -470,6 +601,7 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(!unavailable.installArchiveAction()->isEnabled());
     QVERIFY(unavailable.importProfileAction()->isEnabled());
     QVERIFY(unavailable.errorLabel()->text().contains(QStringLiteral("catalog unavailable")));
+    QVERIFY(!unavailable.openOralArgumentAction()->isEnabled());
 }
 
 } // namespace

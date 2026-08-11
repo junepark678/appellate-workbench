@@ -63,6 +63,9 @@ qt_add_library(
     appellate_desktop_ui STATIC
     main_window.cpp
     main_window.hpp
+    oral_argument_launch_provider.hpp
+    oral_argument_workspace.cpp
+    oral_argument_workspace.hpp
 )
 add_library(appellate::desktop_ui ALIAS appellate_desktop_ui)
 target_include_directories(
@@ -72,6 +75,7 @@ target_include_directories(
 target_link_libraries(
     appellate_desktop_ui
     PUBLIC
+        appellate::application
         appellate::bench_profile_ui
         appellate::packs
         appellate::record_ui

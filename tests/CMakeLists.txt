@@ -362,6 +362,32 @@ target_compile_definitions(
 )
 target_compile_features(tst_main_window PRIVATE cxx_std_26)
 add_test(NAME main_window COMMAND tst_main_window)
-set_tests_properties(main_window PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+set_tests_properties(
+    main_window
+    PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        LABELS "ui;local"
+)
+
+qt_add_executable(
+    tst_oral_argument_workspace
+    ui/tst_oral_argument_workspace.cpp
+)
+target_link_libraries(
+    tst_oral_argument_workspace
+    PRIVATE
+        appellate::desktop_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_oral_argument_workspace PRIVATE cxx_std_26)
+add_test(NAME oral_argument_workspace COMMAND tst_oral_argument_workspace)
+set_tests_properties(
+    oral_argument_workspace
+    PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        LABELS "ui;local"
+)
 
 add_subdirectory(content)

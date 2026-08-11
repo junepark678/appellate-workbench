@@ -7,6 +7,7 @@
 #include <expected>
 #include <memory>
 #include <optional>
+#include <utility>
 
 class QAction;
 class QComboBox;
@@ -21,12 +22,16 @@ class PackCatalog;
 namespace appellate::ui {
 
 class BenchProfileEditor;
+class OralArgumentLaunchProvider;
+class OralArgumentWorkspace;
 class RecordWorkspace;
 
 class MainWindow final : public QMainWindow {
   public:
     explicit MainWindow(const QString& source_path = {}, const QString& catalog_root = {},
                         QWidget* parent = nullptr);
+    MainWindow(const QString& source_path, const QString& catalog_root, QWidget* parent,
+               std::shared_ptr<OralArgumentLaunchProvider> oral_argument_launch_provider);
     ~MainWindow() override;
 
     MainWindow(const MainWindow&) = delete;
@@ -40,6 +45,7 @@ class MainWindow final : public QMainWindow {
         -> std::expected<void, QString>;
     [[nodiscard]] auto exportProfile(const QString& path) -> std::expected<void, QString>;
     [[nodiscard]] auto openSelectedRecord() -> std::expected<void, QString>;
+    [[nodiscard]] auto openSelectedOralArgument() -> std::expected<void, QString>;
 
     [[nodiscard]] const packs::RuntimePack* currentRuntime() const noexcept;
     [[nodiscard]] QString currentSourcePath() const;
@@ -54,7 +60,9 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] QLabel* benchSummaryLabel() const noexcept;
     [[nodiscard]] QListWidget* caseList() const noexcept;
     [[nodiscard]] QComboBox* profileSelector() const noexcept;
+    [[nodiscard]] QComboBox* argumentConfigurationSelector() const noexcept;
     [[nodiscard]] BenchProfileEditor* profileEditor() const noexcept;
+    [[nodiscard]] OralArgumentWorkspace* oralArgumentWorkspace() const noexcept;
     [[nodiscard]] RecordWorkspace* recordWorkspace() const noexcept;
     [[nodiscard]] QTabWidget* workspaceTabs() const noexcept;
 
@@ -64,6 +72,7 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] QAction* cloneProfileAction() const noexcept;
     [[nodiscard]] QAction* exportProfileAction() const noexcept;
     [[nodiscard]] QAction* openRecordAction() const noexcept;
+    [[nodiscard]] QAction* openOralArgumentAction() const noexcept;
 
   private:
     void buildUi();
@@ -73,8 +82,11 @@ class MainWindow final : public QMainWindow {
                        const QString& success_message,
                        std::optional<packs::ResolvedPack> installed_pack = std::nullopt);
     void invalidateRecordSelection();
+    void invalidateArgumentSelection();
     [[nodiscard]] bool selectedCaseHasLoadedRecord() const;
+    [[nodiscard]] bool selectedCaseHasLoadedArgument() const;
     void updateCaseSelection(int row);
+    void updateArgumentSelection(int row);
     void updateProfileSelection(int row);
     void updateActionStates();
     void showError(const QString& message);
@@ -85,6 +97,10 @@ class MainWindow final : public QMainWindow {
     std::optional<packs::ResolvedPack> installed_pack_;
     std::optional<model::PackRevision> record_revision_;
     std::optional<model::CaseId> record_case_id_;
+    std::optional<model::PackRevision> argument_revision_;
+    std::optional<model::CaseId> argument_case_id_;
+    std::optional<packs::RuntimeArgumentConfigId> argument_configuration_id_;
+    std::shared_ptr<OralArgumentLaunchProvider> oral_argument_launch_provider_;
     QString current_source_path_;
     QString catalog_root_;
 
@@ -96,12 +112,16 @@ class MainWindow final : public QMainWindow {
     QLabel* record_summary_label_{};
     QLabel* bench_summary_label_{};
     QListWidget* case_list_{};
+    QComboBox* argument_configuration_selector_{};
+    QLabel* argument_launch_boundary_label_{};
     QComboBox* profile_selector_{};
     BenchProfileEditor* profile_editor_{};
     RecordWorkspace* record_workspace_{};
+    OralArgumentWorkspace* oral_argument_workspace_{};
     QTabWidget* workspace_tabs_{};
     int browser_tab_index_{};
     int record_tab_index_{};
+    int argument_tab_index_{};
 
     QAction* open_directory_action_{};
     QAction* install_archive_action_{};
@@ -109,6 +129,7 @@ class MainWindow final : public QMainWindow {
     QAction* clone_profile_action_{};
     QAction* export_profile_action_{};
     QAction* open_record_action_{};
+    QAction* open_oral_argument_action_{};
 };
 
 } // namespace appellate::ui
