@@ -26,6 +26,14 @@ find_package(LibArchive REQUIRED)
 find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Pdf PdfWidgets Sql Widgets)
 qt_standard_project_setup(REQUIRES 6.8)
 
+option(APPELLATE_ENABLE_SYNC "Build optional encrypted immutable-object sync support" ON)
+set(APPELLATE_SYNC_AVAILABLE OFF)
+if(APPELLATE_ENABLE_SYNC)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(Sodium REQUIRED IMPORTED_TARGET "libsodium>=1.0.14")
+    set(APPELLATE_SYNC_AVAILABLE ON)
+endif()
+
 include(cmake/ProjectOptions.cmake)
 add_subdirectory(src)
 

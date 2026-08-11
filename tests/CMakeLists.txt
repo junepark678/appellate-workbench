@@ -198,6 +198,10 @@ target_link_libraries(
 target_compile_features(tst_oral_argument_codec PRIVATE cxx_std_26)
 add_test(NAME oral_argument_codec COMMAND tst_oral_argument_codec)
 
+if(APPELLATE_SYNC_AVAILABLE)
+    add_subdirectory(sync)
+endif()
+
 qt_add_executable(tst_initiation_resume integration/tst_initiation_resume.cpp)
 target_link_libraries(
     tst_initiation_resume
