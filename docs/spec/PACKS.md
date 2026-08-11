@@ -297,14 +297,16 @@ Version-2 workflow operations may declare one to 32 all-of preconditions. The cl
 
 - filing type present or absent;
 - exact order ID with granted, denied, or other disposition;
-- exact deadline ID with open, satisfied, elapsed, or not-elapsed condition;
+- exact deadline ID with open, satisfied, elapsed, not-elapsed, or reached condition;
 - argument scheduled or not scheduled; and
 - judgment issued or not issued.
 
-Filing types must belong to a declared route. Order and deadline IDs are runtime-created and are
-therefore syntax-checked rather than required to appear in a static inventory; a missing runtime
-record makes the guard unmet. Deadline status and deadline elapsedness are separate axes, so an
-open deadline may also be elapsed, while open+satisfied and elapsed+not-elapsed are contradictions.
+Filing types must belong to a declared route. Order IDs are runtime-created and therefore receive
+syntax checks rather than static-inventory resolution; a missing runtime order makes its guard
+unmet. A deadline ID used by a guard must instead resolve statically to an exact named output or
+accepted-filing deadline producer, and a missing runtime instance makes the guard unmet. Deadline
+status and deadline elapsedness are separate axes, so an open deadline may also be elapsed, while
+open+satisfied and elapsed+not-elapsed are contradictions.
 Every guard is evaluated against command-start state and the command's explicit court date. An
 otherwise valid command with an unmet guard is rejected without mutation. Each emitted event
 snapshots the operation's exact precondition vector, so replay rejects a changed definition even
@@ -317,12 +319,62 @@ using its feature is allowed as a supported lower bound, but using a feature wit
 capability fails at reader, resolved-catalog, and runtime boundaries. Existing version-2 packs
 without the fields remain valid.
 
+Dependent deadlines are a separate schema-version-2 feature owned by
+`workbench.pack.dependent-deadlines` version 1. A `calculate_deadline` operation may name
+`deadline_base_id`; the engine then uses the exact stored due date of that existing deadline as
+the new rule's base date, not the command date. A `reached` deadline guard is true when the
+command court date is greater than or equal to the stored due date, while `elapsed` remains
+strictly greater than that date. Either `deadline_base_id` or a `reached` guard activates the
+capability requirement independently of `workbench.pack.workflow-preconditions`. Declaring the
+capability without using the feature is allowed; using either feature without declaring it fails
+at reader, resolved-catalog, and runtime boundaries.
+
+Named deadline outputs are owned by `workbench.pack.named-deadlines` version 1. A schema-version-2
+`calculate_deadline` operation may declare one `produced_deadline_id`; that ID is globally unique
+among named outputs and route-produced deadline IDs, and an explicit calculation command must use
+it exactly. An unnamed calculation cannot claim a named output reserved by another operation.
+Every `deadline_base_id`, deadline-status precondition, and `satisfies_deadline_id` must resolve to
+an exact producer: a named output or an accepted-filing deadline plan. A base-bearing calculation
+must itself have a named output, so it requires both the named- and dependent-deadline
+capabilities. Filing-route accepted and deficiency deadline plans remain limited to independent,
+unnamed calculations; dependent and named calculations are explicit court commands. An accepted
+deadline ID is an exact route reservation, while a deficiency plan reserves every ID in its
+`deadline_id.*` namespace. Named outputs, accepted IDs, and deficiency namespaces must not
+overlap, including nested deficiency prefixes. A direct calculation cannot claim any route
+reservation, regardless of operation, even when it uses the route plan's operation. Automatic
+route emission may claim one only through the exact plan operation and, for a deficiency, the
+exact filing command-derived ID; the operation may retain authorized roles for compatibility with
+explicit calculations that use unreserved IDs.
+
+Event-date deadline bases are owned by `workbench.pack.event-date-deadlines` version 1. A named
+calculation may use `deadline_event_base` instead of `deadline_base_id`. The closed forms are the
+recorded judgment occurrence and an entered order selected by both exact `order_id` and exact
+originating `operation_id`. The engine uses the replay-derived occurrence date, even when the
+calculation command is entered later. An order selector must name an `enter_order` operation and
+must match the operation and time stored with that exact order record.
+
+Argument-date guards are owned by `workbench.pack.argument-date-guards` version 1. The
+schema-version-2 `argument_date_status: reached` precondition requires a scheduled argument and is
+true only when the command court date is on or after that scheduled date. It conflicts with an
+`argument_scheduled: false` guard and may accompany `argument_scheduled: true`.
+
 Persistence schema version 3 is reserved for a structured judgment command/event or an event
 with a nonempty precondition snapshot. Schema-3 events require canonical authority provenance and
 always carry the precondition array, including an empty array on a structured judgment with no
 guards. Legacy schema-1 and canonical-authority schema-2 bytes remain unchanged. Relabeling,
 mixing disposition forms, omitting the schema-3 snapshot, or using schema 3 for an old form fails
 closed.
+
+Persistence schema version 4 is the extended workflow-event form. It is selected when an event
+snapshot contains `reached` or `argument_date_status`, or when a `deadline.calculated` event binds
+a named, dependent, or event-date output. Every schema-4 event requires canonical authority and an
+explicit precondition array. A schema-4 deadline event additionally carries a required non-null
+`produced_deadline_id`, plus explicit nullable `deadline_base_id` and `deadline_event_base` fields;
+the produced ID must equal the event deadline ID and the two base forms are mutually exclusive.
+Replay compares all three fields to the pinned operation definition and verifies the exact stored
+base occurrence. Schema-4 non-deadline events carry no deadline-binding keys. Schema 3 rejects the
+new guard forms, and relabeling between schema 3 and 4 fails closed. Existing schema-1, schema-2,
+and schema-3 bytes and behavior remain unchanged.
 
 ## Dependencies and compatibility
 
@@ -353,8 +405,10 @@ compatibility with frozen revisions. Every schema-version-2 pack must declare
 `workbench.pack.declarative-resources` version 2. A version-2 pack containing a `judge_profile`
 must additionally declare `workbench.pack.judge-profile` version 2 and
 `workbench.pack.voice-style` version 2. Structured dispositions and workflow preconditions require
-their version-1 feature capabilities described above. Authored grounded questions and exact
-realism evidence likewise require `workbench.pack.grounded-questions` version 1 and
+their version-1 feature capabilities described above. Named deadlines, dependent deadlines,
+event-date deadline bases, and argument-date guards each require their independently negotiated
+version-1 capability described above. Authored grounded questions and exact realism evidence
+likewise require `workbench.pack.grounded-questions` version 1 and
 `workbench.pack.realism-evidence` version 1, respectively. An empty list, an unrelated-only
 declaration, or a declaration missing any required capability fails at pack read,
 resolved-catalog load, and independent runtime projection. Unknown IDs, unsupported versions,

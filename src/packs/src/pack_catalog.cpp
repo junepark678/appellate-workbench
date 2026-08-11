@@ -1270,6 +1270,72 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
                                            .isEmpty();
                            });
             });
+        const auto uses_dependent_deadlines =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+                    return false;
+                }
+                return std::ranges::any_of(
+                    resource.document.value(QStringLiteral("operations")).toArray(),
+                    [](const QJsonValue& operation_value) {
+                        const auto operation = operation_value.toObject();
+                        if (operation.contains(QStringLiteral("deadline_base_id"))) {
+                            return true;
+                        }
+                        return std::ranges::any_of(
+                            operation.value(QStringLiteral("preconditions")).toArray(),
+                            [](const QJsonValue& precondition_value) {
+                                const auto precondition = precondition_value.toObject();
+                                return precondition.value(QStringLiteral("kind")).toString() ==
+                                           QStringLiteral("deadline_status") &&
+                                       precondition.value(QStringLiteral("status")).toString() ==
+                                           QStringLiteral("reached");
+                            });
+                    });
+            });
+        const auto uses_named_deadlines =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+                    return false;
+                }
+                return std::ranges::any_of(
+                    resource.document.value(QStringLiteral("operations")).toArray(),
+                    [](const QJsonValue& operation_value) {
+                        return operation_value.toObject().contains(
+                            QStringLiteral("produced_deadline_id"));
+                    });
+            });
+        const auto uses_event_date_deadlines =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+                    return false;
+                }
+                return std::ranges::any_of(
+                    resource.document.value(QStringLiteral("operations")).toArray(),
+                    [](const QJsonValue& operation_value) {
+                        return operation_value.toObject().contains(
+                            QStringLiteral("deadline_event_base"));
+                    });
+            });
+        const auto uses_argument_date_guards =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+                    return false;
+                }
+                return std::ranges::any_of(
+                    resource.document.value(QStringLiteral("operations")).toArray(),
+                    [](const QJsonValue& operation_value) {
+                        return std::ranges::any_of(
+                            operation_value.toObject()
+                                .value(QStringLiteral("preconditions"))
+                                .toArray(),
+                            [](const QJsonValue& precondition_value) {
+                                return precondition_value.toObject()
+                                           .value(QStringLiteral("kind"))
+                                           .toString() == QStringLiteral("argument_date_status");
+                            });
+                    });
+            });
         const auto uses_structured_disposition =
             std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
                 if (resource.descriptor.kind != model::ResourceKind::Case) {
@@ -1307,8 +1373,9 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
             });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds,
-            uses_workflow_preconditions, uses_structured_disposition, uses_grounded_questions,
-            uses_realism_evidence, uses_sealed_record_twins);
+            uses_workflow_preconditions, uses_dependent_deadlines, uses_named_deadlines,
+            uses_event_date_deadlines, uses_argument_date_guards, uses_structured_disposition,
+            uses_grounded_questions, uses_realism_evidence, uses_sealed_record_twins);
         if (!capabilities) {
             return fail(CatalogErrorCode::UnsupportedCapability,
                         QStringLiteral("Pack %1 requires an unsupported capability: %2")

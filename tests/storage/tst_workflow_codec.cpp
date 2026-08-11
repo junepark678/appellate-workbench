@@ -238,6 +238,7 @@ class WorkflowCodecTest final : public QObject {
     void roundTripsStructuredDispositionSchemaThree();
     void roundTripsMaximumStructuredPayload();
     void roundTripsPreconditionSnapshotsSchemaThree();
+    void roundTripsAndFencesExtendedSchemaFour();
     void rejectsStructuredVersionConfusionAndTampering();
     void rejectsAuthoritySchemaDowngradesAndMixedForms();
     void rejectsMutatedProvenance();
@@ -546,6 +547,163 @@ void WorkflowCodecTest::roundTripsPreconditionSnapshotsSchemaThree() {
     const auto not_elapsed_decoded = storage::decodeWorkflowEvent(*not_elapsed);
     QVERIFY(not_elapsed_decoded.has_value());
     QVERIFY(*not_elapsed_decoded == model::WorkflowEvent{event});
+
+    event.header.preconditions.at(3) =
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.response"},
+                                            model::WorkflowDeadlineCondition::Reached};
+    const auto reached = storage::encodeWorkflowEvent(model::WorkflowEvent{event});
+    QVERIFY(reached.has_value());
+    const auto reached_envelope = QJsonDocument::fromJson(*reached).object();
+    const auto reached_preconditions = reached_envelope.value(QStringLiteral("payload"))
+                                           .toObject()
+                                           .value(QStringLiteral("preconditions"))
+                                           .toArray();
+    QCOMPARE(reached_preconditions.at(3).toObject().value(QStringLiteral("status")).toString(),
+             QStringLiteral("reached"));
+    const auto reached_decoded = storage::decodeWorkflowEvent(*reached);
+    QVERIFY(reached_decoded.has_value());
+    QVERIFY(*reached_decoded == model::WorkflowEvent{event});
+}
+
+void WorkflowCodecTest::roundTripsAndFencesExtendedSchemaFour() {
+    auto named = std::get<model::WorkflowDeadlineCalculated>(events().at(3));
+    named.header.authority = authority(true);
+    named.produced_deadline_id = named.deadline_id;
+    const auto named_encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{named});
+    QVERIFY(named_encoded.has_value());
+    auto named_envelope = QJsonDocument::fromJson(*named_encoded).object();
+    QCOMPARE(named_envelope.value(QStringLiteral("schema_version")).toInt(), 4);
+    auto named_payload = named_envelope.value(QStringLiteral("payload")).toObject();
+    QCOMPARE(named_payload.value(QStringLiteral("produced_deadline_id")).toString(),
+             QString::fromUtf8(named.deadline_id.value));
+    QVERIFY(named_payload.value(QStringLiteral("deadline_base_id")).isNull());
+    QVERIFY(named_payload.value(QStringLiteral("deadline_event_base")).isNull());
+    QVERIFY(named_payload.value(QStringLiteral("preconditions")).toArray().isEmpty());
+    const auto named_decoded = storage::decodeWorkflowEvent(*named_encoded);
+    QVERIFY(named_decoded.has_value());
+    QVERIFY(*named_decoded == model::WorkflowEvent{named});
+    const auto named_reencoded = storage::encodeWorkflowEvent(*named_decoded);
+    QVERIFY(named_reencoded.has_value());
+    QCOMPARE(*named_reencoded, *named_encoded);
+
+    auto dependent = named;
+    dependent.deadline_base_id = model::WorkflowDeadlineId{"test.deadline.prior"};
+    const auto dependent_encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{dependent});
+    QVERIFY(dependent_encoded.has_value());
+    const auto dependent_payload = QJsonDocument::fromJson(*dependent_encoded)
+                                       .object()
+                                       .value(QStringLiteral("payload"))
+                                       .toObject();
+    QCOMPARE(dependent_payload.value(QStringLiteral("deadline_base_id")).toString(),
+             QStringLiteral("test.deadline.prior"));
+    const auto dependent_decoded = storage::decodeWorkflowEvent(*dependent_encoded);
+    QVERIFY(dependent_decoded.has_value());
+    QVERIFY(*dependent_decoded == model::WorkflowEvent{dependent});
+
+    auto judgment_based = named;
+    judgment_based.deadline_event_base = model::WorkflowJudgmentOccurredDeadlineBase{};
+    const auto judgment_encoded =
+        storage::encodeWorkflowEvent(model::WorkflowEvent{judgment_based});
+    QVERIFY(judgment_encoded.has_value());
+    const auto judgment_base = QJsonDocument::fromJson(*judgment_encoded)
+                                   .object()
+                                   .value(QStringLiteral("payload"))
+                                   .toObject()
+                                   .value(QStringLiteral("deadline_event_base"))
+                                   .toObject();
+    QCOMPARE(judgment_base.value(QStringLiteral("kind")).toString(),
+             QStringLiteral("judgment_occurred"));
+    const auto judgment_decoded = storage::decodeWorkflowEvent(*judgment_encoded);
+    QVERIFY(judgment_decoded.has_value());
+    QVERIFY(*judgment_decoded == model::WorkflowEvent{judgment_based});
+
+    auto order_based = named;
+    order_based.deadline_event_base = model::WorkflowOrderOccurredDeadlineBase{
+        model::WorkflowOrderId{"test.order.rehearing"},
+        model::WorkflowOperationId{"test.operation.enter-rehearing-order"}};
+    const auto order_encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{order_based});
+    QVERIFY(order_encoded.has_value());
+    const auto order_decoded = storage::decodeWorkflowEvent(*order_encoded);
+    QVERIFY(order_decoded.has_value());
+    QVERIFY(*order_decoded == model::WorkflowEvent{order_based});
+
+    auto extended = std::get<model::WorkflowSealedSet>(events().at(6));
+    extended.header.authority = authority(true);
+    extended.header.preconditions = {
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.response"},
+                                            model::WorkflowDeadlineCondition::Reached},
+        model::WorkflowArgumentPrecondition{true},
+        model::WorkflowArgumentDatePrecondition{model::WorkflowArgumentDateCondition::Reached},
+    };
+    const auto extended_encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{extended});
+    QVERIFY(extended_encoded.has_value());
+    auto extended_envelope = QJsonDocument::fromJson(*extended_encoded).object();
+    QCOMPARE(extended_envelope.value(QStringLiteral("schema_version")).toInt(), 4);
+    auto extended_payload = extended_envelope.value(QStringLiteral("payload")).toObject();
+    QVERIFY(!extended_payload.contains(QStringLiteral("deadline_base_id")));
+    QVERIFY(!extended_payload.contains(QStringLiteral("deadline_event_base")));
+    QVERIFY(!extended_payload.contains(QStringLiteral("produced_deadline_id")));
+    const auto extended_decoded = storage::decodeWorkflowEvent(*extended_encoded);
+    QVERIFY(extended_decoded.has_value());
+    QVERIFY(*extended_decoded == model::WorkflowEvent{extended});
+
+    auto downgraded = extended_envelope;
+    downgraded.insert(QStringLiteral("schema_version"), 3);
+    auto rejected = storage::decodeWorkflowEvent(compact(downgraded));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, WorkflowCodecErrorCode::UnsupportedVersion);
+
+    auto relabeled =
+        eventObject(model::WorkflowEvent{std::get<model::WorkflowSealedSet>(events().at(6))});
+    relabeled.insert(QStringLiteral("schema_version"), 4);
+    auto relabeled_payload = relabeled.value(QStringLiteral("payload")).toObject();
+    relabeled_payload.insert(QStringLiteral("preconditions"), QJsonArray{});
+    relabeled.insert(QStringLiteral("payload"), relabeled_payload);
+    rejected = storage::decodeWorkflowEvent(compact(relabeled));
+    QVERIFY(!rejected.has_value());
+
+    auto deadline_downgrade = named_envelope;
+    deadline_downgrade.insert(QStringLiteral("schema_version"), 3);
+    rejected = storage::decodeWorkflowEvent(compact(deadline_downgrade));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, WorkflowCodecErrorCode::UnexpectedField);
+
+    auto missing_output = named_envelope;
+    auto tampered_payload = missing_output.value(QStringLiteral("payload")).toObject();
+    tampered_payload.remove(QStringLiteral("produced_deadline_id"));
+    missing_output.insert(QStringLiteral("payload"), tampered_payload);
+    rejected = storage::decodeWorkflowEvent(compact(missing_output));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, WorkflowCodecErrorCode::MissingField);
+
+    auto mismatched_output = named_envelope;
+    tampered_payload = mismatched_output.value(QStringLiteral("payload")).toObject();
+    tampered_payload.insert(QStringLiteral("produced_deadline_id"),
+                            QStringLiteral("test.deadline.substituted"));
+    mismatched_output.insert(QStringLiteral("payload"), tampered_payload);
+    rejected = storage::decodeWorkflowEvent(compact(mismatched_output));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, WorkflowCodecErrorCode::InvalidField);
+
+    auto dual_base = QJsonDocument::fromJson(*dependent_encoded).object();
+    tampered_payload = dual_base.value(QStringLiteral("payload")).toObject();
+    tampered_payload.insert(
+        QStringLiteral("deadline_event_base"),
+        QJsonObject{{QStringLiteral("kind"), QStringLiteral("judgment_occurred")}});
+    dual_base.insert(QStringLiteral("payload"), tampered_payload);
+    rejected = storage::decodeWorkflowEvent(compact(dual_base));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, WorkflowCodecErrorCode::InvalidField);
+
+    auto unnamed_reached = named;
+    unnamed_reached.produced_deadline_id.reset();
+    unnamed_reached.header.preconditions = {
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.prior"},
+                                            model::WorkflowDeadlineCondition::Reached}};
+    const auto unnamed_encoding =
+        storage::encodeWorkflowEvent(model::WorkflowEvent{unnamed_reached});
+    QVERIFY(!unnamed_encoding.has_value());
+    QCOMPARE(unnamed_encoding.error().code, WorkflowCodecErrorCode::InvalidField);
 }
 
 void WorkflowCodecTest::rejectsStructuredVersionConfusionAndTampering() {

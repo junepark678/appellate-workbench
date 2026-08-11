@@ -3,7 +3,9 @@
 
 #include <QCryptographicHash>
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -37,6 +39,7 @@ class PackCatalogTest final : public QObject {
     void refusesInstallOverCorruptBlobObject();
     void detectsTamperedBlobDescriptor();
     void migratesV1BlobDescriptors();
+    void resolvesCatalogPackWithExtendedDeadlineCapabilities();
 };
 
 [[nodiscard]] QByteArray sha256(const QByteArray& bytes) {
@@ -51,6 +54,29 @@ class PackCatalogTest final : public QObject {
     QFile file(path);
     return file.open(QIODevice::WriteOnly | QIODevice::NewOnly) &&
            file.write(bytes) == bytes.size();
+}
+
+[[nodiscard]] bool replaceAll(const QString& path, const QByteArray& bytes) {
+    QFile file(path);
+    return file.open(QIODevice::WriteOnly | QIODevice::Truncate) &&
+           file.write(bytes) == bytes.size();
+}
+
+[[nodiscard]] bool copyTree(const QString& source, const QString& destination) {
+    const QDir root(source);
+    QDirIterator iterator(source, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    while (iterator.hasNext()) {
+        const auto source_path = iterator.next();
+        QFile input(source_path);
+        const auto destination_path =
+            QDir(destination).filePath(root.relativeFilePath(source_path));
+        if (!input.open(QIODevice::ReadOnly) ||
+            !QDir{}.mkpath(QFileInfo(destination_path).absolutePath()) ||
+            !writeAll(destination_path, input.readAll())) {
+            return false;
+        }
+    }
+    return true;
 }
 
 [[nodiscard]] bool executeCatalogSql(const QString& catalog_root,
@@ -645,6 +671,110 @@ void PackCatalogTest::migratesV1BlobDescriptors() {
     QFile opened(blob->local_path);
     QVERIFY(opened.open(QIODevice::ReadOnly));
     QCOMPARE(opened.readAll(), testPdf());
+}
+
+void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto fixture_root = QFINDTESTDATA("../fixtures/full-resource-pack-v2");
+    QVERIFY(!fixture_root.isEmpty());
+    const auto source = QDir(temporary.path()).filePath(QStringLiteral("extended-pack"));
+    QVERIFY(copyTree(fixture_root, source));
+
+    const auto workflow_path = QDir(source).filePath(QStringLiteral("resources/workflow.json"));
+    QFile workflow_file(workflow_path);
+    QVERIFY(workflow_file.open(QIODevice::ReadOnly));
+    auto workflow = QJsonDocument::fromJson(workflow_file.readAll()).object();
+    workflow_file.close();
+    auto operations = workflow.value(QStringLiteral("operations")).toArray();
+    QJsonObject calculation;
+    for (const auto& value : operations) {
+        const auto operation = value.toObject();
+        if (operation.value(QStringLiteral("operation_id")).toString() ==
+            QStringLiteral("example.operation.calculate-cure")) {
+            calculation = operation;
+            break;
+        }
+    }
+    QVERIFY(!calculation.isEmpty());
+    auto named = calculation;
+    named.insert(QStringLiteral("operation_id"),
+                 QStringLiteral("example.operation.calculate-named"));
+    named.insert(QStringLiteral("produced_deadline_id"), QStringLiteral("example.deadline.named"));
+    operations.push_back(named);
+    auto event_based = calculation;
+    event_based.insert(QStringLiteral("operation_id"),
+                       QStringLiteral("example.operation.calculate-from-judgment"));
+    event_based.insert(QStringLiteral("stage_id"), QStringLiteral("example.stage.submitted"));
+    event_based.insert(QStringLiteral("produced_deadline_id"),
+                       QStringLiteral("example.deadline.from-judgment"));
+    event_based.insert(QStringLiteral("deadline_event_base"),
+                       QJsonObject{{QStringLiteral("kind"), QStringLiteral("judgment_occurred")}});
+    event_based.insert(QStringLiteral("authorized_role_ids"),
+                       QJsonArray{QStringLiteral("example.role.court")});
+    operations.push_back(event_based);
+    for (qsizetype index = 0; index < operations.size(); ++index) {
+        auto operation = operations.at(index).toObject();
+        if (operation.value(QStringLiteral("operation_id")).toString() !=
+            QStringLiteral("example.operation.issue-judgment")) {
+            continue;
+        }
+        auto preconditions = operation.value(QStringLiteral("preconditions")).toArray();
+        preconditions.push_back(QJsonObject{
+            {QStringLiteral("kind"), QStringLiteral("deadline_status")},
+            {QStringLiteral("deadline_id"), QStringLiteral("example.deadline.named")},
+            {QStringLiteral("status"), QStringLiteral("reached")},
+        });
+        preconditions.push_back(QJsonObject{
+            {QStringLiteral("kind"), QStringLiteral("argument_date_status")},
+            {QStringLiteral("status"), QStringLiteral("reached")},
+        });
+        operation.insert(QStringLiteral("preconditions"), preconditions);
+        operations.replace(index, operation);
+        break;
+    }
+    workflow.insert(QStringLiteral("operations"), operations);
+    const auto workflow_bytes = QJsonDocument(workflow).toJson(QJsonDocument::Indented);
+    QVERIFY(replaceAll(workflow_path, workflow_bytes));
+
+    const auto manifest_path = QDir(source).filePath(QStringLiteral("manifest.json"));
+    QFile manifest_file(manifest_path);
+    QVERIFY(manifest_file.open(QIODevice::ReadOnly));
+    auto manifest = QJsonDocument::fromJson(manifest_file.readAll()).object();
+    manifest_file.close();
+    auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+    for (const auto* capability :
+         {"workbench.pack.dependent-deadlines", "workbench.pack.named-deadlines",
+          "workbench.pack.event-date-deadlines", "workbench.pack.argument-date-guards"}) {
+        capabilities.push_back(QJsonObject{{QStringLiteral("id"), QString::fromLatin1(capability)},
+                                           {QStringLiteral("version"), 1}});
+    }
+    manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+    auto contents = manifest.value(QStringLiteral("contents")).toArray();
+    for (qsizetype index = 0; index < contents.size(); ++index) {
+        auto descriptor = contents.at(index).toObject();
+        if (descriptor.value(QStringLiteral("path")).toString() ==
+            QStringLiteral("resources/workflow.json")) {
+            descriptor.insert(QStringLiteral("sha256"),
+                              QString::fromLatin1(sha256(workflow_bytes)));
+            contents.replace(index, descriptor);
+            break;
+        }
+    }
+    manifest.insert(QStringLiteral("contents"), contents);
+    QVERIFY(replaceAll(manifest_path, QJsonDocument(manifest).toJson(QJsonDocument::Indented)));
+
+    const auto archive_path = QDir(temporary.path()).filePath(QStringLiteral("extended.awpack"));
+    const auto exported = PackArchive::exportDirectory(source, archive_path);
+    QVERIFY2(exported.has_value(), exported ? "" : qPrintable(exported.error().message));
+    auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
+    QVERIFY(catalog.has_value());
+    const auto installed =
+        (*catalog)->installArchive(archive_path, QStringLiteral("2026-08-11T11:00:00Z"));
+    QVERIFY2(installed.has_value(), installed ? "" : qPrintable(installed.error().message));
+    const auto resolved = (*catalog)->loadResolved(*exported);
+    QVERIFY2(resolved.has_value(), resolved ? "" : qPrintable(resolved.error().message));
+    QCOMPARE(resolved->root().revision, *exported);
 }
 
 } // namespace

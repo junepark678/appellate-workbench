@@ -30,6 +30,7 @@ namespace {
 constexpr auto legacy_schema_version = 1;
 constexpr auto provenance_schema_version = 2;
 constexpr auto structured_schema_version = 3;
+constexpr auto deadline_snapshot_schema_version = 4;
 constexpr qsizetype maximum_payload_bytes = 1024 * 1024;
 constexpr qsizetype maximum_id_characters = 160;
 constexpr qsizetype maximum_text_characters = 4096;
@@ -988,6 +989,80 @@ template <typename Id>
     return QJsonValue{*encoded};
 }
 
+[[nodiscard]] auto
+encodeDeadlineEventBase(const std::optional<model::WorkflowDeadlineEventBase>& base)
+    -> std::expected<QJsonValue, WorkflowCodecError> {
+    if (!base.has_value()) {
+        return QJsonValue{QJsonValue::Null};
+    }
+    return std::visit(
+        [](const auto& concrete) -> std::expected<QJsonValue, WorkflowCodecError> {
+            using Base = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Base, model::WorkflowJudgmentOccurredDeadlineBase>) {
+                return QJsonObject{{QStringLiteral("kind"), QStringLiteral("judgment_occurred")}};
+            } else {
+                const auto order_id =
+                    checkedId(concrete.order_id.value, u"payload.deadline_event_base.order_id");
+                const auto operation_id = checkedId(concrete.operation_id.value,
+                                                    u"payload.deadline_event_base.operation_id");
+                if (!order_id) {
+                    return std::unexpected(order_id.error());
+                }
+                if (!operation_id) {
+                    return std::unexpected(operation_id.error());
+                }
+                return QJsonObject{{QStringLiteral("kind"), QStringLiteral("order_occurred")},
+                                   {QStringLiteral("operation_id"), *operation_id},
+                                   {QStringLiteral("order_id"), *order_id}};
+            }
+        },
+        *base);
+}
+
+[[nodiscard]] auto decodeDeadlineEventBase(const QJsonObject& payload)
+    -> std::expected<std::optional<model::WorkflowDeadlineEventBase>, WorkflowCodecError> {
+    const auto value = payload.value(u"deadline_event_base");
+    if (value.isNull()) {
+        return std::nullopt;
+    }
+    if (!value.isObject()) {
+        return fail(WorkflowCodecErrorCode::InvalidField,
+                    QStringLiteral("payload.deadline_event_base must be an object or null"));
+    }
+    const auto object = value.toObject();
+    const auto kind = readString(object, u"kind", 32, u"payload.deadline_event_base");
+    if (!kind) {
+        return std::unexpected(kind.error());
+    }
+    if (*kind == u"judgment_occurred") {
+        if (const auto keys = exactKeys(object, {u"kind"}, u"payload.deadline_event_base"); !keys) {
+            return std::unexpected(keys.error());
+        }
+        return model::WorkflowDeadlineEventBase{model::WorkflowJudgmentOccurredDeadlineBase{}};
+    }
+    if (*kind == u"order_occurred") {
+        if (const auto keys = exactKeys(object, {u"kind", u"operation_id", u"order_id"},
+                                        u"payload.deadline_event_base");
+            !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto order_id =
+            decodeId<model::WorkflowOrderId>(object, u"order_id", u"payload.deadline_event_base");
+        const auto operation_id = decodeId<model::WorkflowOperationId>(
+            object, u"operation_id", u"payload.deadline_event_base");
+        if (!order_id) {
+            return std::unexpected(order_id.error());
+        }
+        if (!operation_id) {
+            return std::unexpected(operation_id.error());
+        }
+        return model::WorkflowDeadlineEventBase{
+            model::WorkflowOrderOccurredDeadlineBase{*order_id, *operation_id}};
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("payload.deadline_event_base.kind is unknown"));
+}
+
 template <typename Id>
 [[nodiscard]] auto decodeOptionalId(const QJsonObject& object, QStringView key, QStringView context)
     -> std::expected<std::optional<Id>, WorkflowCodecError> {
@@ -1215,6 +1290,8 @@ template <typename Id>
         return QStringLiteral("open");
     case model::WorkflowDeadlineCondition::Satisfied:
         return QStringLiteral("satisfied");
+    case model::WorkflowDeadlineCondition::Reached:
+        return QStringLiteral("reached");
     case model::WorkflowDeadlineCondition::Elapsed:
         return QStringLiteral("elapsed");
     case model::WorkflowDeadlineCondition::NotElapsed:
@@ -1237,6 +1314,9 @@ template <typename Id>
     if (*value == u"satisfied") {
         return model::WorkflowDeadlineCondition::Satisfied;
     }
+    if (*value == u"reached") {
+        return model::WorkflowDeadlineCondition::Reached;
+    }
     if (*value == u"elapsed") {
         return model::WorkflowDeadlineCondition::Elapsed;
     }
@@ -1256,20 +1336,75 @@ template <typename Id>
             } else if constexpr (std::same_as<Precondition, model::WorkflowOrderPrecondition>) {
                 return QStringLiteral("order:") + QString::fromUtf8(concrete.order_id.value);
             } else if constexpr (std::same_as<Precondition, model::WorkflowDeadlinePrecondition>) {
-                const auto axis =
-                    concrete.condition == model::WorkflowDeadlineCondition::Open ||
-                            concrete.condition == model::WorkflowDeadlineCondition::Satisfied
-                        ? QStringLiteral("status:")
-                        : QStringLiteral("time:");
-                return QStringLiteral("deadline:") + axis +
-                       QString::fromUtf8(concrete.deadline_id.value);
+                QString condition;
+                switch (concrete.condition) {
+                case model::WorkflowDeadlineCondition::Open:
+                    condition = QStringLiteral("open");
+                    break;
+                case model::WorkflowDeadlineCondition::Satisfied:
+                    condition = QStringLiteral("satisfied");
+                    break;
+                case model::WorkflowDeadlineCondition::Elapsed:
+                    condition = QStringLiteral("elapsed");
+                    break;
+                case model::WorkflowDeadlineCondition::NotElapsed:
+                    condition = QStringLiteral("not_elapsed");
+                    break;
+                case model::WorkflowDeadlineCondition::Reached:
+                    condition = QStringLiteral("reached");
+                    break;
+                }
+                return QStringLiteral("deadline:") + QString::fromUtf8(concrete.deadline_id.value) +
+                       u':' + condition;
             } else if constexpr (std::same_as<Precondition, model::WorkflowArgumentPrecondition>) {
-                return QStringLiteral("argument");
+                return QStringLiteral("argument:") +
+                       (concrete.scheduled ? QStringLiteral("true") : QStringLiteral("false"));
+            } else if constexpr (std::same_as<Precondition,
+                                              model::WorkflowArgumentDatePrecondition>) {
+                return QStringLiteral("argument-date:reached");
             } else {
                 return QStringLiteral("judgment");
             }
         },
         precondition);
+}
+
+[[nodiscard]] auto
+contradictoryPreconditionSubjects(const model::WorkflowPrecondition& precondition) -> QStringList {
+    if (const auto* argument = std::get_if<model::WorkflowArgumentPrecondition>(&precondition)) {
+        QStringList result{argument->scheduled ? QStringLiteral("argument:false")
+                                               : QStringLiteral("argument:true")};
+        if (!argument->scheduled) {
+            result.push_back(QStringLiteral("argument-date:reached"));
+        }
+        return result;
+    }
+    if (std::holds_alternative<model::WorkflowArgumentDatePrecondition>(precondition)) {
+        return {QStringLiteral("argument:false")};
+    }
+    const auto* deadline = std::get_if<model::WorkflowDeadlinePrecondition>(&precondition);
+    if (deadline == nullptr) {
+        return {};
+    }
+    QString opposite;
+    switch (deadline->condition) {
+    case model::WorkflowDeadlineCondition::Open:
+        opposite = QStringLiteral("satisfied");
+        break;
+    case model::WorkflowDeadlineCondition::Satisfied:
+        opposite = QStringLiteral("open");
+        break;
+    case model::WorkflowDeadlineCondition::Elapsed:
+        opposite = QStringLiteral("not_elapsed");
+        break;
+    case model::WorkflowDeadlineCondition::NotElapsed:
+        opposite = QStringLiteral("elapsed");
+        break;
+    case model::WorkflowDeadlineCondition::Reached:
+        return {};
+    }
+    return {QStringLiteral("deadline:") + QString::fromUtf8(deadline->deadline_id.value) + u':' +
+            opposite};
 }
 
 [[nodiscard]] auto encodePrecondition(const model::WorkflowPrecondition& precondition)
@@ -1315,6 +1450,14 @@ template <typename Id>
             } else if constexpr (std::same_as<Precondition, model::WorkflowArgumentPrecondition>) {
                 return QJsonObject{{QStringLiteral("kind"), QStringLiteral("argument_scheduled")},
                                    {QStringLiteral("scheduled"), concrete.scheduled}};
+            } else if constexpr (std::same_as<Precondition,
+                                              model::WorkflowArgumentDatePrecondition>) {
+                if (concrete.condition != model::WorkflowArgumentDateCondition::Reached) {
+                    return fail(WorkflowCodecErrorCode::InvalidField,
+                                QStringLiteral("Unknown argument-date condition"));
+                }
+                return QJsonObject{{QStringLiteral("kind"), QStringLiteral("argument_date_status")},
+                                   {QStringLiteral("status"), QStringLiteral("reached")}};
             } else {
                 return QJsonObject{{QStringLiteral("issued"), concrete.issued},
                                    {QStringLiteral("kind"), QStringLiteral("judgment_issued")}};
@@ -1334,7 +1477,10 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
     QJsonArray result;
     for (const auto& precondition : preconditions) {
         const auto subject = preconditionSubject(precondition);
-        if (subjects.contains(subject)) {
+        const auto contradictory = contradictoryPreconditionSubjects(precondition);
+        if (subjects.contains(subject) ||
+            std::ranges::any_of(contradictory,
+                                [&](const QString& item) { return subjects.contains(item); })) {
             return fail(
                 WorkflowCodecErrorCode::InvalidField,
                 QStringLiteral("payload.preconditions has duplicate or conflicting subjects"));
@@ -1349,7 +1495,20 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
     return result;
 }
 
-[[nodiscard]] auto decodePrecondition(const QJsonObject& object, QStringView context)
+[[nodiscard]] bool
+usesExtendedPreconditions(const std::vector<model::WorkflowPrecondition>& preconditions) {
+    return std::ranges::any_of(preconditions, [](const auto& precondition) {
+        if (std::holds_alternative<model::WorkflowArgumentDatePrecondition>(precondition)) {
+            return true;
+        }
+        const auto* deadline = std::get_if<model::WorkflowDeadlinePrecondition>(&precondition);
+        return deadline != nullptr &&
+               deadline->condition == model::WorkflowDeadlineCondition::Reached;
+    });
+}
+
+[[nodiscard]] auto decodePrecondition(const QJsonObject& object, QStringView context,
+                                      bool allow_extended)
     -> std::expected<model::WorkflowPrecondition, WorkflowCodecError> {
     const auto kind = readString(object, u"kind", 32, context);
     if (!kind) {
@@ -1400,6 +1559,10 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
         if (!condition) {
             return std::unexpected(condition.error());
         }
+        if (*condition == model::WorkflowDeadlineCondition::Reached && !allow_extended) {
+            return fail(WorkflowCodecErrorCode::UnsupportedVersion,
+                        QStringLiteral("deadline reached requires workflow event schema 4"));
+        }
         return model::WorkflowDeadlinePrecondition{*deadline_id, *condition};
     }
     if (*kind == u"argument_scheduled") {
@@ -1412,6 +1575,25 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
                         QStringLiteral("%1.scheduled must be a boolean").arg(context));
         }
         return model::WorkflowArgumentPrecondition{scheduled.toBool()};
+    }
+    if (*kind == u"argument_date_status") {
+        if (!allow_extended) {
+            return fail(WorkflowCodecErrorCode::UnsupportedVersion,
+                        QStringLiteral("argument-date guards require workflow event schema 4"));
+        }
+        if (const auto keys = exactKeys(object, {u"kind", u"status"}, context); !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto status = readString(object, u"status", 16, context);
+        if (!status) {
+            return std::unexpected(status.error());
+        }
+        if (*status != u"reached") {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("%1.status is unknown").arg(context));
+        }
+        return model::WorkflowArgumentDatePrecondition{
+            model::WorkflowArgumentDateCondition::Reached};
     }
     if (*kind == u"judgment_issued") {
         if (const auto keys = exactKeys(object, {u"issued", u"kind"}, context); !keys) {
@@ -1428,7 +1610,7 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
                 QStringLiteral("%1.kind is unknown").arg(context));
 }
 
-[[nodiscard]] auto decodePreconditions(const QJsonValue& value)
+[[nodiscard]] auto decodePreconditions(const QJsonValue& value, bool allow_extended)
     -> std::expected<std::vector<model::WorkflowPrecondition>, WorkflowCodecError> {
     if (!value.isArray()) {
         return fail(WorkflowCodecErrorCode::InvalidField,
@@ -1448,12 +1630,16 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
                         QStringLiteral("payload.preconditions[%1] must be an object").arg(index));
         }
         const auto decoded = decodePrecondition(
-            array.at(index).toObject(), QStringLiteral("payload.preconditions[%1]").arg(index));
+            array.at(index).toObject(), QStringLiteral("payload.preconditions[%1]").arg(index),
+            allow_extended);
         if (!decoded) {
             return std::unexpected(decoded.error());
         }
         const auto subject = preconditionSubject(*decoded);
-        if (subjects.contains(subject)) {
+        const auto contradictory = contradictoryPreconditionSubjects(*decoded);
+        if (subjects.contains(subject) ||
+            std::ranges::any_of(contradictory,
+                                [&](const QString& item) { return subjects.contains(item); })) {
             return fail(
                 WorkflowCodecErrorCode::InvalidField,
                 QStringLiteral("payload.preconditions has duplicate or conflicting subjects"));
@@ -2582,6 +2768,11 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
     const auto purpose = encodeDeadlinePurpose(event.purpose);
     const auto base_date = formatDate(event.base_date);
     const auto due_date = formatDate(event.due_date);
+    const auto deadline_base_id =
+        encodeOptionalId(event.deadline_base_id, u"payload.deadline_base_id");
+    const auto produced_deadline_id =
+        encodeOptionalId(event.produced_deadline_id, u"payload.produced_deadline_id");
+    const auto deadline_event_base = encodeDeadlineEventBase(event.deadline_event_base);
     if (!payload) {
         return std::unexpected(payload.error());
     }
@@ -2597,10 +2788,34 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
     if (!due_date) {
         return std::unexpected(due_date.error());
     }
+    if (!deadline_base_id) {
+        return std::unexpected(deadline_base_id.error());
+    }
+    if (!produced_deadline_id) {
+        return std::unexpected(produced_deadline_id.error());
+    }
+    if (!deadline_event_base) {
+        return std::unexpected(deadline_event_base.error());
+    }
+    const auto uses_snapshot = event.deadline_base_id.has_value() ||
+                               event.produced_deadline_id.has_value() ||
+                               event.deadline_event_base.has_value();
+    if (uses_snapshot &&
+        (!event.produced_deadline_id.has_value() ||
+         event.deadline_id != *event.produced_deadline_id ||
+         (event.deadline_base_id.has_value() && event.deadline_event_base.has_value()))) {
+        return fail(WorkflowCodecErrorCode::InvalidField,
+                    QStringLiteral("A deadline snapshot requires its exact named output"));
+    }
     payload->insert(QStringLiteral("base_date"), *base_date);
     payload->insert(QStringLiteral("deadline_id"), *deadline_id);
     payload->insert(QStringLiteral("due_date"), *due_date);
     payload->insert(QStringLiteral("purpose"), *purpose);
+    if (uses_snapshot) {
+        payload->insert(QStringLiteral("deadline_base_id"), *deadline_base_id);
+        payload->insert(QStringLiteral("deadline_event_base"), *deadline_event_base);
+        payload->insert(QStringLiteral("produced_deadline_id"), *produced_deadline_id);
+    }
     return payload;
 }
 
@@ -2883,15 +3098,23 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
                                            *deadline_id};
 }
 
-[[nodiscard]] auto decodeDeadlineCalculated(const QJsonObject& payload)
+[[nodiscard]] auto decodeDeadlineCalculated(const QJsonObject& payload, int schema_version)
     -> std::expected<model::WorkflowEvent, WorkflowCodecError> {
-    if (const auto keys =
-            exactKeys(payload,
-                      {u"authority", u"base_date", u"command_event_count", u"command_event_index",
-                       u"command_id", u"deadline_id", u"due_date", u"occurred_at", u"operation_id",
-                       u"purpose", u"sequence", u"session_id", u"workflow_id"},
-                      u"payload");
-        !keys) {
+    const auto snapshot = schema_version == deadline_snapshot_schema_version;
+    const auto keys =
+        snapshot
+            ? exactKeys(payload,
+                        {u"authority", u"base_date", u"command_event_count", u"command_event_index",
+                         u"command_id", u"deadline_base_id", u"deadline_event_base", u"deadline_id",
+                         u"due_date", u"occurred_at", u"operation_id", u"produced_deadline_id",
+                         u"purpose", u"sequence", u"session_id", u"workflow_id"},
+                        u"payload")
+            : exactKeys(payload,
+                        {u"authority", u"base_date", u"command_event_count", u"command_event_index",
+                         u"command_id", u"deadline_id", u"due_date", u"occurred_at",
+                         u"operation_id", u"purpose", u"sequence", u"session_id", u"workflow_id"},
+                        u"payload");
+    if (!keys) {
         return std::unexpected(keys.error());
     }
     const auto header = decodeEventHeader(payload);
@@ -2900,6 +3123,20 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
     const auto purpose = decodeDeadlinePurpose(payload);
     const auto base_date = parseDate(payload, u"base_date", u"payload");
     const auto due_date = parseDate(payload, u"due_date", u"payload");
+    const auto deadline_base_id =
+        snapshot
+            ? decodeOptionalId<model::WorkflowDeadlineId>(payload, u"deadline_base_id", u"payload")
+            : std::expected<std::optional<model::WorkflowDeadlineId>, WorkflowCodecError>{
+                  std::nullopt};
+    const auto produced_deadline_id =
+        snapshot ? decodeId<model::WorkflowDeadlineId>(payload, u"produced_deadline_id", u"payload")
+                 : std::expected<model::WorkflowDeadlineId, WorkflowCodecError>{
+                       model::WorkflowDeadlineId{}};
+    const auto deadline_event_base =
+        snapshot
+            ? decodeDeadlineEventBase(payload)
+            : std::expected<std::optional<model::WorkflowDeadlineEventBase>, WorkflowCodecError>{
+                  std::nullopt};
     if (!header) {
         return std::unexpected(header.error());
     }
@@ -2915,8 +3152,29 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
     if (!due_date) {
         return std::unexpected(due_date.error());
     }
-    return model::WorkflowDeadlineCalculated{*header, *deadline_id, *purpose, *base_date,
-                                             *due_date};
+    if (!deadline_base_id) {
+        return std::unexpected(deadline_base_id.error());
+    }
+    if (!produced_deadline_id) {
+        return std::unexpected(produced_deadline_id.error());
+    }
+    if (!deadline_event_base) {
+        return std::unexpected(deadline_event_base.error());
+    }
+    if (snapshot && (*deadline_id != *produced_deadline_id ||
+                     (deadline_base_id->has_value() && deadline_event_base->has_value()))) {
+        return fail(WorkflowCodecErrorCode::InvalidField,
+                    QStringLiteral("A deadline snapshot must match its named output"));
+    }
+    return model::WorkflowDeadlineCalculated{*header,
+                                             *deadline_id,
+                                             *purpose,
+                                             *base_date,
+                                             *due_date,
+                                             *deadline_base_id,
+                                             snapshot ? std::optional{*produced_deadline_id}
+                                                      : std::nullopt,
+                                             *deadline_event_base};
 }
 
 [[nodiscard]] auto decodeOrderEntered(const QJsonObject& payload)
@@ -3120,7 +3378,8 @@ struct DecodedEnvelope final {
 
 [[nodiscard]] auto decodeEnvelope(QByteArrayView encoded, QStringView type_key,
                                   QStringView envelope_context, bool allow_provenance,
-                                  bool allow_structured = false)
+                                  bool allow_structured = false,
+                                  bool allow_deadline_snapshot = false)
     -> std::expected<DecodedEnvelope, WorkflowCodecError> {
     if (encoded.isEmpty() || encoded.size() > maximum_payload_bytes) {
         return fail(WorkflowCodecErrorCode::PayloadTooLarge,
@@ -3145,7 +3404,8 @@ struct DecodedEnvelope final {
     if (!version.isDouble() ||
         (version.toDouble() != legacy_schema_version &&
          (!allow_provenance || version.toDouble() != provenance_schema_version) &&
-         (!allow_structured || version.toDouble() != structured_schema_version))) {
+         (!allow_structured || version.toDouble() != structured_schema_version) &&
+         (!allow_deadline_snapshot || version.toDouble() != deadline_snapshot_schema_version))) {
         return fail(WorkflowCodecErrorCode::UnsupportedVersion,
                     QStringLiteral("Unsupported workflow schema version"));
     }
@@ -3305,14 +3565,32 @@ encodeWorkflowEvent(const model::WorkflowEvent& event) {
             return false;
         },
         event);
+    const auto deadline_snapshot = std::visit(
+        [](const auto& concrete) {
+            using Event = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Event, model::WorkflowDeadlineCalculated>) {
+                return concrete.deadline_base_id.has_value() ||
+                       concrete.produced_deadline_id.has_value() ||
+                       concrete.deadline_event_base.has_value();
+            }
+            return false;
+        },
+        event);
     const auto& preconditions = std::visit(
         [](const auto& concrete) -> const std::vector<model::WorkflowPrecondition>& {
             return concrete.header.preconditions;
         },
         event);
     const auto structured = structured_disposition || !preconditions.empty();
+    const auto extended_preconditions = usesExtendedPreconditions(preconditions);
+    const auto extended = deadline_snapshot || extended_preconditions;
+    if (extended_preconditions && !deadline_snapshot &&
+        std::holds_alternative<model::WorkflowDeadlineCalculated>(event)) {
+        return fail(WorkflowCodecErrorCode::InvalidField,
+                    QStringLiteral("Schema-4 deadline events require exact named bindings"));
+    }
     auto encoded_payload = *payload;
-    if (structured) {
+    if (structured || extended) {
         if (*authority_version != provenance_schema_version) {
             return fail(WorkflowCodecErrorCode::IncompleteAuthority,
                         QStringLiteral("Structured workflow events require canonical authorities"));
@@ -3324,24 +3602,28 @@ encodeWorkflowEvent(const model::WorkflowEvent& event) {
         encoded_payload.insert(QStringLiteral("preconditions"), *encoded_preconditions);
     }
     return encodeEnvelope(workflowEventType(event), encoded_payload, u"event_type",
-                          structured ? structured_schema_version : *authority_version);
+                          extended     ? deadline_snapshot_schema_version
+                          : structured ? structured_schema_version
+                                       : *authority_version);
 }
 
 std::expected<model::WorkflowEvent, WorkflowCodecError>
 decodeWorkflowEvent(QByteArrayView encoded) {
-    const auto envelope = decodeEnvelope(encoded, u"event_type", u"event", true, true);
+    const auto envelope = decodeEnvelope(encoded, u"event_type", u"event", true, true, true);
     if (!envelope) {
         return std::unexpected(envelope.error());
     }
     const auto& type = envelope->type;
     auto payload = envelope->payload;
     std::vector<model::WorkflowPrecondition> preconditions;
-    if (envelope->version == structured_schema_version) {
+    if (envelope->version == structured_schema_version ||
+        envelope->version == deadline_snapshot_schema_version) {
         if (!payload.contains(u"preconditions")) {
             return fail(WorkflowCodecErrorCode::MissingField,
                         QStringLiteral("Missing payload.preconditions"));
         }
-        const auto decoded_preconditions = decodePreconditions(payload.value(u"preconditions"));
+        const auto decoded_preconditions = decodePreconditions(
+            payload.value(u"preconditions"), envelope->version == deadline_snapshot_schema_version);
         if (!decoded_preconditions) {
             return std::unexpected(decoded_preconditions.error());
         }
@@ -3359,7 +3641,7 @@ decodeWorkflowEvent(QByteArrayView encoded) {
             return decodeDeficiencyIssued(payload);
         }
         if (type == QLatin1StringView(deadline_calculated_type)) {
-            return decodeDeadlineCalculated(payload);
+            return decodeDeadlineCalculated(payload, envelope->version);
         }
         if (type == QLatin1StringView(order_entered_type)) {
             return decodeOrderEntered(payload);
@@ -3404,9 +3686,29 @@ decodeWorkflowEvent(QByteArrayView encoded) {
         structured_disposition ||
         std::visit([](const auto& concrete) { return !concrete.header.preconditions.empty(); },
                    *decoded);
-    if ((structured && (envelope->version != structured_schema_version ||
-                        *authority_version != provenance_schema_version)) ||
-        (!structured && *authority_version != envelope->version)) {
+    const auto extended_preconditions = std::visit(
+        [](const auto& concrete) {
+            return usesExtendedPreconditions(concrete.header.preconditions);
+        },
+        *decoded);
+    const auto deadline_snapshot = std::visit(
+        [](const auto& concrete) {
+            using Event = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Event, model::WorkflowDeadlineCalculated>) {
+                return concrete.deadline_base_id.has_value() ||
+                       concrete.produced_deadline_id.has_value() ||
+                       concrete.deadline_event_base.has_value();
+            }
+            return false;
+        },
+        *decoded);
+    const auto extended = deadline_snapshot || extended_preconditions;
+    if ((extended && (envelope->version != deadline_snapshot_schema_version ||
+                      *authority_version != provenance_schema_version)) ||
+        (!extended && structured &&
+         (envelope->version != structured_schema_version ||
+          *authority_version != provenance_schema_version)) ||
+        (!extended && !structured && *authority_version != envelope->version)) {
         return fail(
             WorkflowCodecErrorCode::IncompleteAuthority,
             QStringLiteral("Event schema version does not match its authority or feature form"));

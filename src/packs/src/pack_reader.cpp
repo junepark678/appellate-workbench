@@ -194,6 +194,14 @@ constexpr std::array v2_kind_registry{
     return value.size() >= 3 && value.size() <= 160 && pattern.match(value).hasMatch();
 }
 
+[[nodiscard]] bool deadlineNamespaceContains(const QString& prefix, const QString& id) {
+    return id == prefix || id.startsWith(prefix + u'.');
+}
+
+[[nodiscard]] bool deadlineNamespacesOverlap(const QString& left, const QString& right) {
+    return deadlineNamespaceContains(left, right) || deadlineNamespaceContains(right, left);
+}
+
 [[nodiscard]] bool isSha256(const QString& value) {
     static const QRegularExpression pattern(QStringLiteral(R"(^[a-f0-9]{64}$)"));
     return pattern.match(value).hasMatch();
@@ -969,6 +977,76 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
     });
 }
 
+[[nodiscard]] bool usesDependentDeadlines(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+            return false;
+        }
+        return std::ranges::any_of(
+            resource.document.value(QStringLiteral("operations")).toArray(),
+            [](const QJsonValue& operation_value) {
+                const auto operation = operation_value.toObject();
+                if (operation.contains(QStringLiteral("deadline_base_id"))) {
+                    return true;
+                }
+                return std::ranges::any_of(
+                    operation.value(QStringLiteral("preconditions")).toArray(),
+                    [](const QJsonValue& precondition_value) {
+                        const auto precondition = precondition_value.toObject();
+                        return precondition.value(QStringLiteral("kind")).toString() ==
+                                   QStringLiteral("deadline_status") &&
+                               precondition.value(QStringLiteral("status")).toString() ==
+                                   QStringLiteral("reached");
+                    });
+            });
+    });
+}
+
+[[nodiscard]] bool usesNamedDeadlines(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+            return false;
+        }
+        return std::ranges::any_of(resource.document.value(QStringLiteral("operations")).toArray(),
+                                   [](const QJsonValue& operation_value) {
+                                       return operation_value.toObject().contains(
+                                           QStringLiteral("produced_deadline_id"));
+                                   });
+    });
+}
+
+[[nodiscard]] bool usesEventDateDeadlines(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+            return false;
+        }
+        return std::ranges::any_of(resource.document.value(QStringLiteral("operations")).toArray(),
+                                   [](const QJsonValue& operation_value) {
+                                       return operation_value.toObject().contains(
+                                           QStringLiteral("deadline_event_base"));
+                                   });
+    });
+}
+
+[[nodiscard]] bool usesArgumentDateGuards(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+            return false;
+        }
+        return std::ranges::any_of(
+            resource.document.value(QStringLiteral("operations")).toArray(),
+            [](const QJsonValue& operation_value) {
+                return std::ranges::any_of(
+                    operation_value.toObject().value(QStringLiteral("preconditions")).toArray(),
+                    [](const QJsonValue& precondition_value) {
+                        return precondition_value.toObject()
+                                   .value(QStringLiteral("kind"))
+                                   .toString() == QStringLiteral("argument_date_status");
+                    });
+            });
+    });
+}
+
 [[nodiscard]] bool usesStructuredDisposition(std::span<const ValidatedResource> resources) {
     return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
         if (resource.descriptor.kind != model::ResourceKind::Case) {
@@ -1188,6 +1266,10 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
             QSet<QString> operations;
             QHash<QString, QJsonObject> operation_documents;
             QSet<QString> precondition_filing_ids;
+            QSet<QString> named_deadline_ids;
+            QSet<QString> deadline_base_ids;
+            QSet<QString> precondition_deadline_ids;
+            QVector<QPair<QString, QString>> order_event_bases;
             for (const auto& value : document.value(QStringLiteral("operations")).toArray()) {
                 const auto operation = value.toObject();
                 const auto operation_id =
@@ -1228,6 +1310,21 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 }
                 const auto has_days = operation.contains(QStringLiteral("deadline_days"));
                 const auto has_counting = operation.contains(QStringLiteral("deadline_counting"));
+                const auto has_base = operation.contains(QStringLiteral("deadline_base_id"));
+                const auto has_produced =
+                    operation.contains(QStringLiteral("produced_deadline_id"));
+                const auto has_event_base =
+                    operation.contains(QStringLiteral("deadline_event_base"));
+                const auto uses_extended_event_precondition = std::ranges::any_of(
+                    operation.value(QStringLiteral("preconditions")).toArray(),
+                    [](const QJsonValue& precondition_value) {
+                        const auto precondition = precondition_value.toObject();
+                        const auto kind = precondition.value(QStringLiteral("kind")).toString();
+                        return kind == QStringLiteral("argument_date_status") ||
+                               (kind == QStringLiteral("deadline_status") &&
+                                precondition.value(QStringLiteral("status")).toString() ==
+                                    QStringLiteral("reached"));
+                    });
                 if (has_days != has_counting) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("operations/deadline"),
@@ -1244,6 +1341,62 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     return crossReferenceFailure(
                         resource, QStringLiteral("operations/deadline_days"),
                         QStringLiteral("this opcode cannot carry a deadline rule"));
+                }
+                if (has_base &&
+                    (resource.descriptor.schema_version != 2 ||
+                     opcode != QStringLiteral("calculate_deadline") || !has_produced ||
+                     has_event_base ||
+                     !isNamespacedId(
+                         operation.value(QStringLiteral("deadline_base_id")).toString()))) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/deadline_base_id"),
+                        QStringLiteral("only a schema-2 calculate_deadline operation can depend "
+                                       "on an existing deadline"));
+                }
+                const auto produced_deadline_id =
+                    operation.value(QStringLiteral("produced_deadline_id")).toString();
+                if (has_produced && (resource.descriptor.schema_version != 2 ||
+                                     opcode != QStringLiteral("calculate_deadline") ||
+                                     !isNamespacedId(produced_deadline_id) ||
+                                     named_deadline_ids.contains(produced_deadline_id))) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/produced_deadline_id"),
+                        QStringLiteral("schema-2 named deadline outputs must be canonical, unique, "
+                                       "and owned by calculate_deadline operations"));
+                }
+                if (has_produced) {
+                    named_deadline_ids.insert(produced_deadline_id);
+                }
+                if (has_event_base) {
+                    const auto event_base =
+                        operation.value(QStringLiteral("deadline_event_base")).toObject();
+                    const auto kind = event_base.value(QStringLiteral("kind")).toString();
+                    if (resource.descriptor.schema_version != 2 ||
+                        opcode != QStringLiteral("calculate_deadline") || !has_produced ||
+                        has_base ||
+                        (kind != QStringLiteral("judgment_occurred") &&
+                         kind != QStringLiteral("order_occurred"))) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("operations/deadline_event_base"),
+                            QStringLiteral("event-date bases require a named schema-2 deadline "
+                                           "calculation and cannot mix with a deadline-id base"));
+                    }
+                    if (kind == QStringLiteral("order_occurred")) {
+                        order_event_bases.push_back(
+                            {event_base.value(QStringLiteral("order_id")).toString(),
+                             event_base.value(QStringLiteral("operation_id")).toString()});
+                    }
+                }
+                if (opcode == QStringLiteral("calculate_deadline") &&
+                    uses_extended_event_precondition && !has_produced) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/preconditions"),
+                        QStringLiteral("extended deadline-event preconditions require an exact "
+                                       "named output"));
+                }
+                if (has_base) {
+                    deadline_base_ids.insert(
+                        operation.value(QStringLiteral("deadline_base_id")).toString());
                 }
                 if (opcode == QStringLiteral("advance_stage") &&
                     !operation.contains(QStringLiteral("next_stage_id"))) {
@@ -1282,6 +1435,7 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         const auto precondition = precondition_value_item.toObject();
                         const auto kind = precondition.value(QStringLiteral("kind")).toString();
                         QString subject_key;
+                        QStringList contradictory_subject_keys;
                         if (kind == QStringLiteral("filing_presence") &&
                             hasExactKeys(precondition, {"kind", "filing_type_id", "present"}) &&
                             precondition.value(QStringLiteral("present")).isBool()) {
@@ -1313,7 +1467,8 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                                    hasExactKeys(precondition, {"kind", "deadline_id", "status"}) &&
                                    QSet<QString>{
                                        QStringLiteral("open"), QStringLiteral("satisfied"),
-                                       QStringLiteral("elapsed"), QStringLiteral("not_elapsed")}
+                                       QStringLiteral("reached"), QStringLiteral("elapsed"),
+                                       QStringLiteral("not_elapsed")}
                                        .contains(precondition.value(QStringLiteral("status"))
                                                      .toString())) {
                             const auto deadline_id =
@@ -1325,15 +1480,41 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                             }
                             const auto status =
                                 precondition.value(QStringLiteral("status")).toString();
-                            const auto axis = status == QStringLiteral("open") ||
-                                                      status == QStringLiteral("satisfied")
-                                                  ? QStringLiteral("status")
-                                                  : QStringLiteral("elapsed");
-                            subject_key = kind + u':' + deadline_id + u':' + axis;
+                            precondition_deadline_ids.insert(deadline_id);
+                            subject_key = kind + u':' + deadline_id + u':' + status;
+                            if (status == QStringLiteral("open")) {
+                                contradictory_subject_keys.push_back(
+                                    kind + u':' + deadline_id + u':' + QStringLiteral("satisfied"));
+                            } else if (status == QStringLiteral("satisfied")) {
+                                contradictory_subject_keys.push_back(kind + u':' + deadline_id +
+                                                                     u':' + QStringLiteral("open"));
+                            } else if (status == QStringLiteral("elapsed")) {
+                                contradictory_subject_keys.push_back(kind + u':' + deadline_id +
+                                                                     u':' +
+                                                                     QStringLiteral("not_elapsed"));
+                            } else if (status == QStringLiteral("not_elapsed")) {
+                                contradictory_subject_keys.push_back(
+                                    kind + u':' + deadline_id + u':' + QStringLiteral("elapsed"));
+                            }
                         } else if (kind == QStringLiteral("argument_scheduled") &&
                                    hasExactKeys(precondition, {"kind", "scheduled"}) &&
                                    precondition.value(QStringLiteral("scheduled")).isBool()) {
-                            subject_key = kind;
+                            const auto scheduled =
+                                precondition.value(QStringLiteral("scheduled")).toBool();
+                            subject_key = kind + u':' + (scheduled ? u"true" : u"false");
+                            contradictory_subject_keys.push_back(kind + u':' +
+                                                                 (scheduled ? u"false" : u"true"));
+                            if (!scheduled) {
+                                contradictory_subject_keys.push_back(
+                                    QStringLiteral("argument_date_status:reached"));
+                            }
+                        } else if (kind == QStringLiteral("argument_date_status") &&
+                                   hasExactKeys(precondition, {"kind", "status"}) &&
+                                   precondition.value(QStringLiteral("status")).toString() ==
+                                       QStringLiteral("reached")) {
+                            subject_key = QStringLiteral("argument_date_status:reached");
+                            contradictory_subject_keys.push_back(
+                                QStringLiteral("argument_scheduled:false"));
                         } else if (kind == QStringLiteral("judgment_issued") &&
                                    hasExactKeys(precondition, {"kind", "issued"}) &&
                                    precondition.value(QStringLiteral("issued")).isBool()) {
@@ -1344,7 +1525,11 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                                 QStringLiteral("precondition tag and operands do not match a "
                                                "closed supported form"));
                         }
-                        if (subject_key.isEmpty() || precondition_subjects.contains(subject_key)) {
+                        if (subject_key.isEmpty() || precondition_subjects.contains(subject_key) ||
+                            std::ranges::any_of(
+                                contradictory_subject_keys, [&](const QString& contradictory) {
+                                    return precondition_subjects.contains(contradictory);
+                                })) {
                             return crossReferenceFailure(
                                 resource, QStringLiteral("operations/preconditions"),
                                 QStringLiteral("an operation repeats or contradicts a "
@@ -1352,6 +1537,18 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         }
                         precondition_subjects.insert(subject_key);
                     }
+                }
+            }
+
+            for (const auto& [order_id, operation_id] : order_event_bases) {
+                const auto operation = operation_documents.constFind(operation_id);
+                if (!isNamespacedId(order_id) || operation == operation_documents.constEnd() ||
+                    operation->value(QStringLiteral("opcode")).toString() !=
+                        QStringLiteral("enter_order")) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/deadline_event_base"),
+                        QStringLiteral("order-occurrence bases must identify a canonical order and "
+                                       "an EnterOrder operation"));
                 }
             }
 
@@ -1365,8 +1562,9 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
             };
             QSet<QString> route_keys;
             QSet<QString> declared_filing_type_ids;
-            QSet<QString> declared_deadline_ids;
-            QSet<QString> accepted_deadline_ids;
+            QSet<QString> declared_deadline_ids = named_deadline_ids;
+            QSet<QString> exact_deadline_ids = named_deadline_ids;
+            QSet<QString> deficiency_deadline_prefixes;
             const auto filing_routes = document.value(QStringLiteral("filing_routes")).toArray();
             if (filing_routes.isEmpty()) {
                 return crossReferenceFailure(
@@ -1409,22 +1607,56 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         QStringLiteral("route deficiency behavior is incompatible"));
                 }
                 const auto validateDeadlinePlan =
-                    [&](const QJsonObject& plan) -> std::expected<void, Error> {
+                    [&](const QJsonObject& plan, bool deficiency) -> std::expected<void, Error> {
                     const auto deadline_id = plan.value(QStringLiteral("deadline_id")).toString();
+                    const auto operation_id = plan.value(QStringLiteral("operation_id")).toString();
+                    const auto operation = operation_documents.constFind(operation_id);
                     if (declared_deadline_ids.contains(deadline_id) ||
-                        !operationForId(plan.value(QStringLiteral("operation_id")).toString(),
-                                        QStringLiteral("calculate_deadline"), stage_id)) {
+                        operation == operation_documents.constEnd() ||
+                        operation->value(QStringLiteral("opcode")).toString() !=
+                            QStringLiteral("calculate_deadline") ||
+                        operation->value(QStringLiteral("stage_id")).toString() != stage_id ||
+                        operation->contains(QStringLiteral("deadline_base_id")) ||
+                        operation->contains(QStringLiteral("produced_deadline_id")) ||
+                        operation->contains(QStringLiteral("deadline_event_base"))) {
                         return crossReferenceFailure(
                             resource, QStringLiteral("filing_routes/deadline"),
                             QStringLiteral(
-                                "deadline ids must be unique and use a local calculation"));
+                                "deadline ids must be unique and use a local, independent "
+                                "calculation"));
+                    }
+                    const auto namespace_overlap =
+                        deficiency ? std::ranges::any_of(exact_deadline_ids,
+                                                         [&](const QString& exact) {
+                                                             return deadlineNamespacesOverlap(
+                                                                 deadline_id, exact);
+                                                         }) ||
+                                         std::ranges::any_of(deficiency_deadline_prefixes,
+                                                             [&](const QString& prefix) {
+                                                                 return deadlineNamespacesOverlap(
+                                                                     deadline_id, prefix);
+                                                             })
+                                   : std::ranges::any_of(
+                                         deficiency_deadline_prefixes, [&](const QString& prefix) {
+                                             return deadlineNamespacesOverlap(deadline_id, prefix);
+                                         });
+                    if (namespace_overlap) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("filing_routes/deadline"),
+                            QStringLiteral("deadline ids and dynamic deficiency namespaces must "
+                                           "be disjoint"));
                     }
                     declared_deadline_ids.insert(deadline_id);
+                    if (deficiency) {
+                        deficiency_deadline_prefixes.insert(deadline_id);
+                    } else {
+                        exact_deadline_ids.insert(deadline_id);
+                    }
                     return {};
                 };
                 if (has_deficiency_deadline) {
                     const auto deficiency_plan = validateDeadlinePlan(
-                        route.value(QStringLiteral("deficiency_deadline")).toObject());
+                        route.value(QStringLiteral("deficiency_deadline")).toObject(), true);
                     if (!deficiency_plan) {
                         return std::unexpected(deficiency_plan.error());
                     }
@@ -1432,12 +1664,10 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 if (route.contains(QStringLiteral("accepted_deadline"))) {
                     const auto accepted_plan =
                         route.value(QStringLiteral("accepted_deadline")).toObject();
-                    const auto accepted_result = validateDeadlinePlan(accepted_plan);
+                    const auto accepted_result = validateDeadlinePlan(accepted_plan, false);
                     if (!accepted_result) {
                         return std::unexpected(accepted_result.error());
                     }
-                    accepted_deadline_ids.insert(
-                        accepted_plan.value(QStringLiteral("deadline_id")).toString());
                 }
                 if (route.contains(QStringLiteral("advance_operation_id")) &&
                     !operationForId(route.value(QStringLiteral("advance_operation_id")).toString(),
@@ -1450,12 +1680,28 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
             for (const auto& value : filing_routes) {
                 const auto route = value.toObject();
                 if (route.contains(QStringLiteral("satisfies_deadline_id")) &&
-                    !accepted_deadline_ids.contains(
+                    !exact_deadline_ids.contains(
                         route.value(QStringLiteral("satisfies_deadline_id")).toString())) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("filing_routes/satisfies_deadline_id"),
                         QStringLiteral("satisfied deadline is not produced by this workflow"));
                 }
+            }
+            if (!std::ranges::all_of(deadline_base_ids, [&](const QString& deadline_id) {
+                    return exact_deadline_ids.contains(deadline_id);
+                })) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("operations/deadline_base_id"),
+                    QStringLiteral("dependent deadline bases must resolve to exact produced "
+                                   "deadline ids"));
+            }
+            if (!std::ranges::all_of(precondition_deadline_ids, [&](const QString& deadline_id) {
+                    return exact_deadline_ids.contains(deadline_id);
+                })) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("operations/preconditions/deadline_id"),
+                    QStringLiteral("deadline preconditions must resolve to exact produced "
+                                   "deadline ids"));
             }
             if (!std::ranges::all_of(precondition_filing_ids,
                                      [&declared_filing_type_ids](const QString& filing_id) {
@@ -2861,7 +3107,7 @@ readDirectoryImpl(const QString& directory, PackValidationScope scope,
 
     const auto capability_coverage = CapabilityRegistry::validateCoverage(
         static_cast<std::uint32_t>(manifest_schema_version), capabilities, resource_kinds, false,
-        false, false, false, false);
+        false, false, false, false, false, false, false, false);
     if (!capability_coverage) {
         return std::unexpected(capability_coverage.error());
     }
@@ -3005,7 +3251,9 @@ readDirectoryImpl(const QString& directory, PackValidationScope scope,
     }
     const auto content_capability_coverage = CapabilityRegistry::validateCoverage(
         static_cast<std::uint32_t>(manifest_schema_version), capabilities, resource_kinds,
-        usesWorkflowPreconditions(resources), usesStructuredDisposition(resources),
+        usesWorkflowPreconditions(resources), usesDependentDeadlines(resources),
+        usesNamedDeadlines(resources), usesEventDateDeadlines(resources),
+        usesArgumentDateGuards(resources), usesStructuredDisposition(resources),
         usesGroundedQuestions(resources), usesRealismEvidence(resources),
         usesSealedRecordTwins(resources));
     if (!content_capability_coverage) {
@@ -3094,7 +3342,9 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
         }
         return CapabilityRegistry::validateCoverage(
             pack.manifest_schema_version, pack.required_capabilities, resource_kinds,
-            usesWorkflowPreconditions(pack.resources), usesStructuredDisposition(pack.resources),
+            usesWorkflowPreconditions(pack.resources), usesDependentDeadlines(pack.resources),
+            usesNamedDeadlines(pack.resources), usesEventDateDeadlines(pack.resources),
+            usesArgumentDateGuards(pack.resources), usesStructuredDisposition(pack.resources),
             usesGroundedQuestions(pack.resources), usesRealismEvidence(pack.resources),
             usesSealedRecordTwins(pack.resources));
     };

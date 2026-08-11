@@ -19,6 +19,10 @@ constexpr std::array supported_capabilities{
     SupportedCapability{"workbench.pack.canonical-authority", 1, 2, 2},
     SupportedCapability{"workbench.pack.structured-disposition", 1, 2, 2},
     SupportedCapability{"workbench.pack.workflow-preconditions", 1, 2, 2},
+    SupportedCapability{"workbench.pack.dependent-deadlines", 1, 2, 2},
+    SupportedCapability{"workbench.pack.named-deadlines", 1, 2, 2},
+    SupportedCapability{"workbench.pack.event-date-deadlines", 1, 2, 2},
+    SupportedCapability{"workbench.pack.argument-date-guards", 1, 2, 2},
     SupportedCapability{"workbench.pack.grounded-questions", 1, 2, 2},
     SupportedCapability{"workbench.pack.realism-evidence", 1, 2, 2},
     SupportedCapability{"workbench.pack.sealed-record-twins", 1, 2, 2},
@@ -70,8 +74,9 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
     std::uint32_t manifest_schema_version,
     std::span<const model::RequiredCapability> required_capabilities,
     std::span<const model::ResourceKind> resource_kinds, bool uses_workflow_preconditions,
-    bool uses_structured_disposition, bool uses_grounded_questions, bool uses_realism_evidence,
-    bool uses_sealed_record_twins) {
+    bool uses_dependent_deadlines, bool uses_named_deadlines, bool uses_event_date_deadlines,
+    bool uses_argument_date_guards, bool uses_structured_disposition, bool uses_grounded_questions,
+    bool uses_realism_evidence, bool uses_sealed_record_twins) {
     const auto declarations = validateDeclarations(manifest_schema_version, required_capabilities);
     if (!declarations) {
         return declarations;
@@ -129,6 +134,26 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
         !hasCapability(required_capabilities, "workbench.pack.workflow-preconditions", 1)) {
         return fail(QStringLiteral("Schema-2 nonempty workflow preconditions require "
                                    "workbench.pack.workflow-preconditions version 1"));
+    }
+    if (uses_dependent_deadlines &&
+        !hasCapability(required_capabilities, "workbench.pack.dependent-deadlines", 1)) {
+        return fail(QStringLiteral("Schema-2 dependent deadline bases and reached conditions "
+                                   "require workbench.pack.dependent-deadlines version 1"));
+    }
+    if (uses_named_deadlines &&
+        !hasCapability(required_capabilities, "workbench.pack.named-deadlines", 1)) {
+        return fail(QStringLiteral("Schema-2 named deadline outputs require "
+                                   "workbench.pack.named-deadlines version 1"));
+    }
+    if (uses_event_date_deadlines &&
+        !hasCapability(required_capabilities, "workbench.pack.event-date-deadlines", 1)) {
+        return fail(QStringLiteral("Schema-2 event-date deadline bases require "
+                                   "workbench.pack.event-date-deadlines version 1"));
+    }
+    if (uses_argument_date_guards &&
+        !hasCapability(required_capabilities, "workbench.pack.argument-date-guards", 1)) {
+        return fail(QStringLiteral("Schema-2 argument-date guards require "
+                                   "workbench.pack.argument-date-guards version 1"));
     }
     if (uses_grounded_questions &&
         !hasCapability(required_capabilities, "workbench.pack.grounded-questions", 1)) {

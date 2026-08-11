@@ -59,6 +59,8 @@ struct WorkflowOrderRecord final {
     WorkflowOrderId order_id;
     WorkflowOrderDisposition disposition{};
     std::string document_sha256;
+    std::optional<WorkflowOperationId> operation_id{};
+    std::optional<LegalTime> entered_at{};
 
     friend bool operator==(const WorkflowOrderRecord&, const WorkflowOrderRecord&) = default;
 };
@@ -80,6 +82,7 @@ struct WorkflowState final {
     std::optional<std::string> mandate_sha256;
     std::optional<LegalTime> legal_time_cursor;
     std::optional<WorkflowJudgmentDisposition> judgment_disposition{};
+    std::optional<LegalTime> judgment_issued_at{};
 
     friend bool operator==(const WorkflowState&, const WorkflowState&) = default;
 };

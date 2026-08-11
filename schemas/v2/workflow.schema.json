@@ -61,6 +61,30 @@
           "next_stage_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
           "deadline_days": { "type": "integer", "minimum": 0, "maximum": 3650 },
           "deadline_counting": { "enum": ["calendar_days", "business_days"] },
+          "deadline_base_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "produced_deadline_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "deadline_event_base": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind"],
+                "properties": {
+                  "kind": { "const": "judgment_occurred" }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind", "order_id", "operation_id"],
+                "properties": {
+                  "kind": { "const": "order_occurred" },
+                  "order_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                  "operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+                }
+              }
+            ]
+          },
           "authorized_role_ids": {
             "type": "array",
             "maxItems": 64,
@@ -104,7 +128,7 @@
                     "kind": { "const": "deadline_status" },
                     "deadline_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
                     "status": {
-                      "enum": ["open", "satisfied", "elapsed", "not_elapsed"]
+                      "enum": ["open", "satisfied", "reached", "elapsed", "not_elapsed"]
                     }
                   }
                 },
@@ -124,6 +148,15 @@
                   "properties": {
                     "kind": { "const": "judgment_issued" },
                     "issued": { "type": "boolean" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "status"],
+                  "properties": {
+                    "kind": { "const": "argument_date_status" },
+                    "status": { "const": "reached" }
                   }
                 }
               ]

@@ -51,6 +51,8 @@ class SchemaDispatchTest final : public QObject {
     void preservesLegacyV2WithoutOptionalFeatures();
     void rejectsUnderdeclaredDispositionAndPreconditionCapabilities();
     void validatesClosedWorkflowPreconditions();
+    void validatesDependentDeadlineBasesAndReachedCondition();
+    void validatesNamedEventDateAndArgumentDateFeatures();
     void validatesStructuredDispositionPlans();
     void enforcesStructuredFeatureBounds();
     void closureAndRuntimeRejectForgedCapabilityCoverage();
@@ -2548,6 +2550,15 @@ void SchemaDispatchTest::validatesClosedWorkflowPreconditions() {
     QVERIFY(orthogonal.isValid());
     QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), orthogonal.path()));
     QVERIFY(mutateResource(orthogonal.path(), workflow_path, [&](QJsonObject& document) {
+        auto routes = document.value(QStringLiteral("filing_routes")).toArray();
+        auto route = routes.first().toObject();
+        route.insert(
+            QStringLiteral("accepted_deadline"),
+            QJsonObject{{QStringLiteral("deadline_id"), QStringLiteral("example.deadline.dynamic")},
+                        {QStringLiteral("operation_id"),
+                         QStringLiteral("example.operation.calculate-cure")}});
+        routes.replace(0, route);
+        document.insert(QStringLiteral("filing_routes"), routes);
         set_preconditions(
             document,
             QJsonArray{
@@ -2562,10 +2573,6 @@ void SchemaDispatchTest::validatesClosedWorkflowPreconditions() {
                 QJsonObject{{QStringLiteral("kind"), QStringLiteral("order_disposition")},
                             {QStringLiteral("order_id"), QStringLiteral("example.order.dynamic")},
                             {QStringLiteral("disposition"), QStringLiteral("granted")}},
-                QJsonObject{
-                    {QStringLiteral("kind"), QStringLiteral("deadline_status")},
-                    {QStringLiteral("deadline_id"), QStringLiteral("example.deadline.pending")},
-                    {QStringLiteral("status"), QStringLiteral("not_elapsed")}},
                 QJsonObject{{QStringLiteral("kind"), QStringLiteral("argument_scheduled")},
                             {QStringLiteral("scheduled"), false}},
                 QJsonObject{{QStringLiteral("kind"), QStringLiteral("judgment_issued")},
@@ -2583,25 +2590,22 @@ void SchemaDispatchTest::validatesClosedWorkflowPreconditions() {
                           appellate::model::WorkflowOperationId{"example.operation.issue-judgment"},
                           &appellate::model::WorkflowOperation::id);
     QVERIFY(judgment != orthogonal_runtime->cases.front().workflow.operations.end());
-    QCOMPARE(judgment->preconditions.size(), std::size_t{6});
+    QCOMPARE(judgment->preconditions.size(), std::size_t{5});
     const auto* open =
         std::get_if<appellate::model::WorkflowDeadlinePrecondition>(&judgment->preconditions.at(0));
     const auto* elapsed =
         std::get_if<appellate::model::WorkflowDeadlinePrecondition>(&judgment->preconditions.at(1));
     const auto* order =
         std::get_if<appellate::model::WorkflowOrderPrecondition>(&judgment->preconditions.at(2));
-    const auto* not_elapsed =
-        std::get_if<appellate::model::WorkflowDeadlinePrecondition>(&judgment->preconditions.at(3));
     const auto* argument =
-        std::get_if<appellate::model::WorkflowArgumentPrecondition>(&judgment->preconditions.at(4));
+        std::get_if<appellate::model::WorkflowArgumentPrecondition>(&judgment->preconditions.at(3));
     const auto* issued =
-        std::get_if<appellate::model::WorkflowJudgmentPrecondition>(&judgment->preconditions.at(5));
-    QVERIFY(open != nullptr && elapsed != nullptr && order != nullptr && not_elapsed != nullptr &&
-            argument != nullptr && issued != nullptr);
+        std::get_if<appellate::model::WorkflowJudgmentPrecondition>(&judgment->preconditions.at(4));
+    QVERIFY(open != nullptr && elapsed != nullptr && order != nullptr && argument != nullptr &&
+            issued != nullptr);
     QCOMPARE(open->condition, appellate::model::WorkflowDeadlineCondition::Open);
     QCOMPARE(elapsed->condition, appellate::model::WorkflowDeadlineCondition::Elapsed);
     QCOMPARE(order->disposition, appellate::model::WorkflowOrderDisposition::Granted);
-    QCOMPARE(not_elapsed->condition, appellate::model::WorkflowDeadlineCondition::NotElapsed);
     QVERIFY(!argument->scheduled);
     QVERIFY(issued->issued);
 
@@ -2619,6 +2623,773 @@ void SchemaDispatchTest::validatesClosedWorkflowPreconditions() {
     const auto forged_runtime = appellate::packs::loadRuntimePack(forged);
     QVERIFY(!forged_runtime.has_value());
     QCOMPARE(forged_runtime.error().code, appellate::packs::RuntimePackErrorCode::InvalidResource);
+}
+
+void SchemaDispatchTest::validatesDependentDeadlineBasesAndReachedCondition() {
+    const auto workflow_path = QStringLiteral("resources/workflow.json");
+    const auto declare_capability = [](QJsonObject& manifest) {
+        auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+        capabilities.push_back(QJsonObject{
+            {QStringLiteral("id"), QStringLiteral("workbench.pack.dependent-deadlines")},
+            {QStringLiteral("version"), 1}});
+        manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+    };
+    const auto declare_named_capability = [](QJsonObject& manifest) {
+        auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+        capabilities.push_back(
+            QJsonObject{{QStringLiteral("id"), QStringLiteral("workbench.pack.named-deadlines")},
+                        {QStringLiteral("version"), 1}});
+        manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+    };
+    const auto mutate_operation = [](QJsonObject& document, const QString& operation_id,
+                                     const std::function<void(QJsonObject&)>& mutation) {
+        auto operations = document.value(QStringLiteral("operations")).toArray();
+        for (qsizetype index = 0; index < operations.size(); ++index) {
+            auto operation = operations.at(index).toObject();
+            if (operation.value(QStringLiteral("operation_id")).toString() == operation_id) {
+                mutation(operation);
+                operations.replace(index, operation);
+                break;
+            }
+        }
+        document.insert(QStringLiteral("operations"), operations);
+    };
+    const auto add_dependent_operation = [](QJsonObject& document,
+                                            const std::function<void(QJsonObject&)>& mutation) {
+        auto operations = document.value(QStringLiteral("operations")).toArray();
+        for (qsizetype index = 0; index < operations.size(); ++index) {
+            auto operation = operations.at(index).toObject();
+            if (operation.value(QStringLiteral("operation_id")).toString() ==
+                QStringLiteral("example.operation.calculate-cure")) {
+                auto prior = operation;
+                prior.insert(QStringLiteral("operation_id"),
+                             QStringLiteral("example.operation.calculate-prior"));
+                prior.insert(QStringLiteral("produced_deadline_id"),
+                             QStringLiteral("example.deadline.prior"));
+                operations.push_back(prior);
+                operation.insert(QStringLiteral("operation_id"),
+                                 QStringLiteral("example.operation.calculate-dependent"));
+                operation.insert(QStringLiteral("produced_deadline_id"),
+                                 QStringLiteral("example.deadline.dependent"));
+                mutation(operation);
+                operations.push_back(operation);
+                break;
+            }
+        }
+        document.insert(QStringLiteral("operations"), operations);
+    };
+    const auto bind_dependent_to_route = [](QJsonObject& document, bool deficiency) {
+        auto routes = document.value(QStringLiteral("filing_routes")).toArray();
+        auto route = routes.first().toObject();
+        const QJsonObject plan{
+            {QStringLiteral("deadline_id"),
+             deficiency ? QStringLiteral("example.deadline.notice-cure")
+                        : QStringLiteral("example.deadline.after-acceptance")},
+            {QStringLiteral("operation_id"),
+             QStringLiteral("example.operation.calculate-dependent")},
+        };
+        route.insert(deficiency ? QStringLiteral("deficiency_deadline")
+                                : QStringLiteral("accepted_deadline"),
+                     plan);
+        routes.replace(0, route);
+        document.insert(QStringLiteral("filing_routes"), routes);
+    };
+    const auto authorize_route_deadline = [&](QJsonObject& document) {
+        mutate_operation(document, QStringLiteral("example.operation.calculate-cure"),
+                         [](QJsonObject& operation) {
+                             operation.insert(QStringLiteral("authorized_role_ids"),
+                                              QJsonArray{QStringLiteral("example.role.court")});
+                         });
+    };
+    const auto overlap_named_with_deficiency = [&](QJsonObject& document) {
+        const auto collision = QStringLiteral("example.deadline.notice-cure.command.future");
+        mutate_operation(document, QStringLiteral("example.operation.calculate-prior"),
+                         [&](QJsonObject& operation) {
+                             operation.insert(QStringLiteral("produced_deadline_id"), collision);
+                         });
+        mutate_operation(document, QStringLiteral("example.operation.calculate-dependent"),
+                         [&](QJsonObject& operation) {
+                             operation.insert(QStringLiteral("deadline_base_id"), collision);
+                             auto preconditions =
+                                 operation.value(QStringLiteral("preconditions")).toArray();
+                             for (qsizetype index = 0; index < preconditions.size(); ++index) {
+                                 auto precondition = preconditions.at(index).toObject();
+                                 precondition.insert(QStringLiteral("deadline_id"), collision);
+                                 preconditions.replace(index, precondition);
+                             }
+                             operation.insert(QStringLiteral("preconditions"), preconditions);
+                         });
+    };
+    const auto add_nested_deficiency_route = [](QJsonObject& document) {
+        auto operations = document.value(QStringLiteral("operations")).toArray();
+        const auto clone_operation = [&](const QString& source_id, const QString& target_id) {
+            for (qsizetype index = 0; index < operations.size(); ++index) {
+                auto operation = operations.at(index).toObject();
+                if (operation.value(QStringLiteral("operation_id")).toString() != source_id) {
+                    continue;
+                }
+                operation.insert(QStringLiteral("operation_id"), target_id);
+                operation.insert(QStringLiteral("stage_id"),
+                                 QStringLiteral("example.stage.submitted"));
+                operations.push_back(operation);
+                return;
+            }
+        };
+        clone_operation(QStringLiteral("example.operation.accept-notice"),
+                        QStringLiteral("example.operation.accept-notice-submitted"));
+        clone_operation(QStringLiteral("example.operation.issue-deficiency"),
+                        QStringLiteral("example.operation.issue-deficiency-submitted"));
+        clone_operation(QStringLiteral("example.operation.calculate-cure"),
+                        QStringLiteral("example.operation.calculate-cure-submitted"));
+        document.insert(QStringLiteral("operations"), operations);
+
+        auto routes = document.value(QStringLiteral("filing_routes")).toArray();
+        auto route = routes.first().toObject();
+        route.insert(QStringLiteral("stage_id"), QStringLiteral("example.stage.submitted"));
+        route.insert(QStringLiteral("accept_operation_id"),
+                     QStringLiteral("example.operation.accept-notice-submitted"));
+        route.insert(QStringLiteral("reject_operation_id"),
+                     QStringLiteral("example.operation.reject-submitted"));
+        route.insert(QStringLiteral("deficiency_operation_id"),
+                     QStringLiteral("example.operation.issue-deficiency-submitted"));
+        route.insert(QStringLiteral("deficiency_deadline"),
+                     QJsonObject{
+                         {QStringLiteral("deadline_id"),
+                          QStringLiteral("example.deadline.notice-cure.child")},
+                         {QStringLiteral("operation_id"),
+                          QStringLiteral("example.operation.calculate-cure-submitted")},
+                     });
+        route.remove(QStringLiteral("accepted_deadline"));
+        route.remove(QStringLiteral("advance_operation_id"));
+        routes.push_back(route);
+        document.insert(QStringLiteral("filing_routes"), routes);
+    };
+
+    QTemporaryDir valid;
+    QVERIFY(valid.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), valid.path()));
+    QVERIFY(mutateManifest(valid.path(), declare_capability));
+    QVERIFY(mutateManifest(valid.path(), declare_named_capability));
+    QVERIFY(mutateResource(valid.path(), workflow_path, [&](QJsonObject& document) {
+        add_dependent_operation(document, [](QJsonObject& operation) {
+            operation.insert(QStringLiteral("deadline_base_id"),
+                             QStringLiteral("example.deadline.prior"));
+            operation.insert(
+                QStringLiteral("preconditions"),
+                QJsonArray{
+                    QJsonObject{
+                        {QStringLiteral("kind"), QStringLiteral("deadline_status")},
+                        {QStringLiteral("deadline_id"), QStringLiteral("example.deadline.prior")},
+                        {QStringLiteral("status"), QStringLiteral("reached")},
+                    },
+                    QJsonObject{
+                        {QStringLiteral("kind"), QStringLiteral("deadline_status")},
+                        {QStringLiteral("deadline_id"), QStringLiteral("example.deadline.prior")},
+                        {QStringLiteral("status"), QStringLiteral("not_elapsed")},
+                    },
+                });
+        });
+    }));
+    const auto loaded = PackReader::readDirectory(valid.path());
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+    const auto runtime = appellate::packs::loadRuntimePack(*loaded);
+    QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+    const auto parsed_operation = std::ranges::find(
+        runtime->cases.front().workflow.operations,
+        appellate::model::WorkflowOperationId{"example.operation.calculate-dependent"},
+        &appellate::model::WorkflowOperation::id);
+    QVERIFY(parsed_operation != runtime->cases.front().workflow.operations.end());
+    QCOMPARE(parsed_operation->deadline_base_id,
+             std::optional{appellate::model::WorkflowDeadlineId{"example.deadline.prior"}});
+    QCOMPARE(parsed_operation->produced_deadline_id,
+             std::optional{appellate::model::WorkflowDeadlineId{"example.deadline.dependent"}});
+    QCOMPARE(parsed_operation->preconditions.size(), std::size_t{2});
+    const auto* reached = std::get_if<appellate::model::WorkflowDeadlinePrecondition>(
+        &parsed_operation->preconditions[0]);
+    QVERIFY(reached != nullptr);
+    QCOMPARE(reached->condition, appellate::model::WorkflowDeadlineCondition::Reached);
+    const auto* not_elapsed = std::get_if<appellate::model::WorkflowDeadlinePrecondition>(
+        &parsed_operation->preconditions[1]);
+    QVERIFY(not_elapsed != nullptr);
+    QCOMPARE(not_elapsed->condition, appellate::model::WorkflowDeadlineCondition::NotElapsed);
+
+    QTemporaryDir missing_capability;
+    QVERIFY(missing_capability.isValid());
+    QVERIFY(copyTree(valid.path(), missing_capability.path()));
+    QVERIFY(mutateManifest(missing_capability.path(), [](QJsonObject& manifest) {
+        auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+        for (qsizetype index = capabilities.size(); index > 0; --index) {
+            if (capabilities.at(index - 1).toObject().value(QStringLiteral("id")).toString() ==
+                QStringLiteral("workbench.pack.dependent-deadlines")) {
+                capabilities.removeAt(index - 1);
+            }
+        }
+        manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+    }));
+    const auto missing_capability_result = PackReader::readDirectory(missing_capability.path());
+    QVERIFY(!missing_capability_result.has_value());
+    QCOMPARE(missing_capability_result.error().code, ErrorCode::UnsupportedCapability);
+
+    QTemporaryDir missing_named_capability;
+    QVERIFY(missing_named_capability.isValid());
+    QVERIFY(copyTree(valid.path(), missing_named_capability.path()));
+    QVERIFY(mutateManifest(missing_named_capability.path(), [](QJsonObject& manifest) {
+        auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+        for (qsizetype index = capabilities.size(); index > 0; --index) {
+            if (capabilities.at(index - 1).toObject().value(QStringLiteral("id")).toString() ==
+                QStringLiteral("workbench.pack.named-deadlines")) {
+                capabilities.removeAt(index - 1);
+            }
+        }
+        manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+    }));
+    const auto missing_named_result = PackReader::readDirectory(missing_named_capability.path());
+    QVERIFY(!missing_named_result.has_value());
+    QCOMPARE(missing_named_result.error().code, ErrorCode::UnsupportedCapability);
+
+    QTemporaryDir base_only_without_capability;
+    QVERIFY(base_only_without_capability.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")),
+                     base_only_without_capability.path()));
+    QVERIFY(mutateManifest(base_only_without_capability.path(), declare_named_capability));
+    QVERIFY(mutateResource(base_only_without_capability.path(), workflow_path,
+                           [&](QJsonObject& document) {
+                               add_dependent_operation(document, [](QJsonObject& operation) {
+                                   operation.insert(QStringLiteral("deadline_base_id"),
+                                                    QStringLiteral("example.deadline.prior"));
+                               });
+                           }));
+    const auto base_only_result = PackReader::readDirectory(base_only_without_capability.path());
+    QVERIFY(!base_only_result.has_value());
+    QCOMPARE(base_only_result.error().code, ErrorCode::UnsupportedCapability);
+
+    QTemporaryDir reached_only_without_capability;
+    QVERIFY(reached_only_without_capability.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")),
+                     reached_only_without_capability.path()));
+    QVERIFY(mutateManifest(reached_only_without_capability.path(), declare_named_capability));
+    QVERIFY(mutateResource(
+        reached_only_without_capability.path(), workflow_path, [&](QJsonObject& document) {
+            add_dependent_operation(document, [](QJsonObject& operation) {
+                operation.insert(
+                    QStringLiteral("preconditions"),
+                    QJsonArray{QJsonObject{
+                        {QStringLiteral("kind"), QStringLiteral("deadline_status")},
+                        {QStringLiteral("deadline_id"), QStringLiteral("example.deadline.prior")},
+                        {QStringLiteral("status"), QStringLiteral("reached")},
+                    }});
+            });
+        }));
+    const auto reached_only_result =
+        PackReader::readDirectory(reached_only_without_capability.path());
+    QVERIFY(!reached_only_result.has_value());
+    QCOMPARE(reached_only_result.error().code, ErrorCode::UnsupportedCapability);
+
+    for (const auto& capability_id :
+         {"workbench.pack.dependent-deadlines", "workbench.pack.named-deadlines"}) {
+        auto forged_missing_capability = *loaded;
+        std::erase_if(forged_missing_capability.required_capabilities,
+                      [&](const auto& capability) { return capability.id == capability_id; });
+        const auto forged_missing_graph =
+            PackReader::validateResolvedGraph(forged_missing_capability, {});
+        QVERIFY(!forged_missing_graph.has_value());
+        QCOMPARE(forged_missing_graph.error().code, ErrorCode::UnsupportedCapability);
+        const auto forged_missing_runtime =
+            appellate::packs::loadRuntimePack(forged_missing_capability);
+        QVERIFY(!forged_missing_runtime.has_value());
+        QCOMPARE(forged_missing_runtime.error().code,
+                 appellate::packs::RuntimePackErrorCode::InvalidPack);
+    }
+
+    QTemporaryDir declared_unused;
+    QVERIFY(declared_unused.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), declared_unused.path()));
+    QVERIFY(mutateManifest(declared_unused.path(), declare_capability));
+    QVERIFY(mutateManifest(declared_unused.path(), declare_named_capability));
+    const auto declared_unused_result = PackReader::readDirectory(declared_unused.path());
+    QVERIFY2(declared_unused_result.has_value(),
+             declared_unused_result ? "" : qPrintable(declared_unused_result.error().message));
+
+    for (const bool deficiency : {false, true}) {
+        QTemporaryDir route_bound;
+        QVERIFY(route_bound.isValid());
+        QVERIFY(copyTree(valid.path(), route_bound.path()));
+        QVERIFY(mutateResource(route_bound.path(), workflow_path, [&](QJsonObject& document) {
+            bind_dependent_to_route(document, deficiency);
+        }));
+        const auto route_bound_result = PackReader::readDirectory(route_bound.path());
+        QVERIFY(!route_bound_result.has_value());
+        QCOMPARE(route_bound_result.error().code, ErrorCode::CrossReferenceFailure);
+    }
+
+    QTemporaryDir authorized_route;
+    QVERIFY(authorized_route.isValid());
+    QVERIFY(copyTree(valid.path(), authorized_route.path()));
+    QVERIFY(mutateResource(authorized_route.path(), workflow_path, authorize_route_deadline));
+    const auto authorized_route_result = PackReader::readDirectory(authorized_route.path());
+    QVERIFY2(authorized_route_result.has_value(),
+             authorized_route_result ? "" : qPrintable(authorized_route_result.error().message));
+    const auto authorized_route_runtime =
+        appellate::packs::loadRuntimePack(*authorized_route_result);
+    QVERIFY2(authorized_route_runtime.has_value(),
+             authorized_route_runtime ? "" : authorized_route_runtime.error().message.c_str());
+
+    QTemporaryDir exact_namespace_overlap;
+    QVERIFY(exact_namespace_overlap.isValid());
+    QVERIFY(copyTree(valid.path(), exact_namespace_overlap.path()));
+    QVERIFY(mutateResource(exact_namespace_overlap.path(), workflow_path,
+                           overlap_named_with_deficiency));
+    const auto exact_namespace_result = PackReader::readDirectory(exact_namespace_overlap.path());
+    QVERIFY(!exact_namespace_result.has_value());
+    QCOMPARE(exact_namespace_result.error().code, ErrorCode::CrossReferenceFailure);
+
+    QTemporaryDir nested_namespace_overlap;
+    QVERIFY(nested_namespace_overlap.isValid());
+    QVERIFY(copyTree(valid.path(), nested_namespace_overlap.path()));
+    QVERIFY(mutateResource(nested_namespace_overlap.path(), workflow_path,
+                           add_nested_deficiency_route));
+    const auto nested_namespace_result = PackReader::readDirectory(nested_namespace_overlap.path());
+    QVERIFY(!nested_namespace_result.has_value());
+    QCOMPARE(nested_namespace_result.error().code, ErrorCode::CrossReferenceFailure);
+
+    QTemporaryDir wrong_opcode;
+    QVERIFY(wrong_opcode.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), wrong_opcode.path()));
+    QVERIFY(mutateManifest(wrong_opcode.path(), declare_capability));
+    QVERIFY(mutateResource(wrong_opcode.path(), workflow_path, [&](QJsonObject& document) {
+        mutate_operation(document, QStringLiteral("example.operation.issue-judgment"),
+                         [](QJsonObject& operation) {
+                             operation.insert(QStringLiteral("deadline_base_id"),
+                                              QStringLiteral("example.deadline.prior"));
+                         });
+    }));
+    const auto wrong_opcode_result = PackReader::readDirectory(wrong_opcode.path());
+    QVERIFY(!wrong_opcode_result.has_value());
+    QCOMPARE(wrong_opcode_result.error().code, ErrorCode::CrossReferenceFailure);
+
+    QTemporaryDir malformed;
+    QVERIFY(malformed.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), malformed.path()));
+    QVERIFY(mutateManifest(malformed.path(), declare_capability));
+    QVERIFY(mutateManifest(malformed.path(), declare_named_capability));
+    QVERIFY(mutateResource(malformed.path(), workflow_path, [&](QJsonObject& document) {
+        add_dependent_operation(document, [](QJsonObject& operation) {
+            operation.insert(QStringLiteral("deadline_base_id"), QStringLiteral("not_namespaced"));
+        });
+    }));
+    const auto malformed_result = PackReader::readDirectory(malformed.path());
+    QVERIFY(!malformed_result.has_value());
+    QCOMPARE(malformed_result.error().code, ErrorCode::SchemaViolation);
+
+    QTemporaryDir v1;
+    QVERIFY(v1.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), v1.path()));
+    QVERIFY(mutateResource(v1.path(), workflow_path, [&](QJsonObject& document) {
+        auto operations = document.value(QStringLiteral("operations")).toArray();
+        auto operation = operations.first().toObject();
+        operation.insert(QStringLiteral("deadline_base_id"),
+                         QStringLiteral("example.deadline.prior"));
+        operations.replace(0, operation);
+        document.insert(QStringLiteral("operations"), operations);
+    }));
+    const auto v1_result = PackReader::readDirectory(v1.path());
+    QVERIFY(!v1_result.has_value());
+    QCOMPARE(v1_result.error().code, ErrorCode::SchemaViolation);
+
+    QTemporaryDir v1_declaration;
+    QVERIFY(v1_declaration.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), v1_declaration.path()));
+    QVERIFY(mutateManifest(v1_declaration.path(), declare_capability));
+    const auto v1_declaration_result = PackReader::readDirectory(v1_declaration.path());
+    QVERIFY(!v1_declaration_result.has_value());
+    QCOMPARE(v1_declaration_result.error().code, ErrorCode::UnsupportedCapability);
+
+    auto forged = *loaded;
+    const auto forged_workflow = std::ranges::find_if(forged.resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::Workflow;
+    });
+    QVERIFY(forged_workflow != forged.resources.end());
+    mutate_operation(forged_workflow->document, QStringLiteral("example.operation.issue-judgment"),
+                     [](QJsonObject& forged_operation) {
+                         forged_operation.insert(QStringLiteral("deadline_base_id"),
+                                                 QStringLiteral("example.deadline.prior"));
+                     });
+    const auto forged_graph = PackReader::validateResolvedGraph(forged, {});
+    QVERIFY(!forged_graph.has_value());
+    QCOMPARE(forged_graph.error().code, ErrorCode::CrossReferenceFailure);
+    const auto forged_runtime = appellate::packs::loadRuntimePack(forged);
+    QVERIFY(!forged_runtime.has_value());
+    QCOMPARE(forged_runtime.error().code, appellate::packs::RuntimePackErrorCode::InvalidResource);
+
+    for (const bool deficiency : {false, true}) {
+        auto forged_route = *loaded;
+        const auto forged_route_workflow =
+            std::ranges::find_if(forged_route.resources, [](const auto& resource) {
+                return resource.descriptor.kind == appellate::model::ResourceKind::Workflow;
+            });
+        QVERIFY(forged_route_workflow != forged_route.resources.end());
+        bind_dependent_to_route(forged_route_workflow->document, deficiency);
+        const auto forged_route_graph = PackReader::validateResolvedGraph(forged_route, {});
+        QVERIFY(!forged_route_graph.has_value());
+        QCOMPARE(forged_route_graph.error().code, ErrorCode::CrossReferenceFailure);
+        const auto forged_route_runtime = appellate::packs::loadRuntimePack(forged_route);
+        QVERIFY(!forged_route_runtime.has_value());
+        QCOMPARE(forged_route_runtime.error().code,
+                 appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+    }
+
+    auto forged_authorized_route = *loaded;
+    const auto forged_authorized_workflow =
+        std::ranges::find_if(forged_authorized_route.resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Workflow;
+        });
+    QVERIFY(forged_authorized_workflow != forged_authorized_route.resources.end());
+    authorize_route_deadline(forged_authorized_workflow->document);
+    const auto forged_authorized_graph =
+        PackReader::validateResolvedGraph(forged_authorized_route, {});
+    QVERIFY2(forged_authorized_graph.has_value(),
+             forged_authorized_graph ? "" : qPrintable(forged_authorized_graph.error().message));
+    const auto forged_authorized_runtime =
+        appellate::packs::loadRuntimePack(forged_authorized_route);
+    QVERIFY2(forged_authorized_runtime.has_value(),
+             forged_authorized_runtime ? "" : forged_authorized_runtime.error().message.c_str());
+
+    const std::array<std::function<void(QJsonObject&)>, 2> namespace_mutations{
+        overlap_named_with_deficiency,
+        add_nested_deficiency_route,
+    };
+    for (const auto& mutation : namespace_mutations) {
+        auto forged_namespace = *loaded;
+        const auto forged_namespace_workflow =
+            std::ranges::find_if(forged_namespace.resources, [](const auto& resource) {
+                return resource.descriptor.kind == appellate::model::ResourceKind::Workflow;
+            });
+        QVERIFY(forged_namespace_workflow != forged_namespace.resources.end());
+        mutation(forged_namespace_workflow->document);
+        const auto forged_namespace_graph = PackReader::validateResolvedGraph(forged_namespace, {});
+        QVERIFY(!forged_namespace_graph.has_value());
+        QCOMPARE(forged_namespace_graph.error().code, ErrorCode::CrossReferenceFailure);
+        const auto forged_namespace_runtime = appellate::packs::loadRuntimePack(forged_namespace);
+        QVERIFY(!forged_namespace_runtime.has_value());
+        QCOMPARE(forged_namespace_runtime.error().code,
+                 appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+    }
+
+    QTemporaryDir unnamed_extended;
+    QVERIFY(unnamed_extended.isValid());
+    QVERIFY(copyTree(valid.path(), unnamed_extended.path()));
+    QVERIFY(mutateResource(unnamed_extended.path(), workflow_path, [&](QJsonObject& document) {
+        mutate_operation(document, QStringLiteral("example.operation.calculate-dependent"),
+                         [](QJsonObject& operation) {
+                             operation.remove(QStringLiteral("deadline_base_id"));
+                             operation.remove(QStringLiteral("produced_deadline_id"));
+                         });
+    }));
+    const auto unnamed_extended_result = PackReader::readDirectory(unnamed_extended.path());
+    QVERIFY(!unnamed_extended_result.has_value());
+    QCOMPARE(unnamed_extended_result.error().code, ErrorCode::CrossReferenceFailure);
+
+    auto forged_unnamed_extended = *loaded;
+    const auto forged_unnamed_workflow =
+        std::ranges::find_if(forged_unnamed_extended.resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Workflow;
+        });
+    QVERIFY(forged_unnamed_workflow != forged_unnamed_extended.resources.end());
+    mutate_operation(forged_unnamed_workflow->document,
+                     QStringLiteral("example.operation.calculate-dependent"),
+                     [](QJsonObject& operation) {
+                         operation.remove(QStringLiteral("deadline_base_id"));
+                         operation.remove(QStringLiteral("produced_deadline_id"));
+                     });
+    const auto forged_unnamed_graph =
+        PackReader::validateResolvedGraph(forged_unnamed_extended, {});
+    QVERIFY(!forged_unnamed_graph.has_value());
+    QCOMPARE(forged_unnamed_graph.error().code, ErrorCode::CrossReferenceFailure);
+    const auto forged_unnamed_runtime = appellate::packs::loadRuntimePack(forged_unnamed_extended);
+    QVERIFY(!forged_unnamed_runtime.has_value());
+    QCOMPARE(forged_unnamed_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+}
+
+void SchemaDispatchTest::validatesNamedEventDateAndArgumentDateFeatures() {
+    const auto workflow_path = QStringLiteral("resources/workflow.json");
+    const auto declare = [](QJsonObject& manifest, const QString& id) {
+        auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+        capabilities.push_back(
+            QJsonObject{{QStringLiteral("id"), id}, {QStringLiteral("version"), 1}});
+        manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+    };
+    const auto add_capabilities = [&](QJsonObject& manifest) {
+        declare(manifest, QStringLiteral("workbench.pack.named-deadlines"));
+        declare(manifest, QStringLiteral("workbench.pack.event-date-deadlines"));
+        declare(manifest, QStringLiteral("workbench.pack.argument-date-guards"));
+    };
+    const auto mutate_operation = [](QJsonObject& document, const QString& operation_id,
+                                     const std::function<void(QJsonObject&)>& mutation) {
+        auto operations = document.value(QStringLiteral("operations")).toArray();
+        for (qsizetype index = 0; index < operations.size(); ++index) {
+            auto operation = operations.at(index).toObject();
+            if (operation.value(QStringLiteral("operation_id")).toString() == operation_id) {
+                mutation(operation);
+                operations.replace(index, operation);
+                break;
+            }
+        }
+        document.insert(QStringLiteral("operations"), operations);
+    };
+    const auto add_features = [](QJsonObject& document) {
+        auto operations = document.value(QStringLiteral("operations")).toArray();
+        QJsonObject deadline_template;
+        QJsonObject court_template;
+        for (const auto& value : operations) {
+            const auto operation = value.toObject();
+            if (operation.value(QStringLiteral("operation_id")).toString() ==
+                QStringLiteral("example.operation.calculate-cure")) {
+                deadline_template = operation;
+            } else if (operation.value(QStringLiteral("operation_id")).toString() ==
+                       QStringLiteral("example.operation.issue-judgment")) {
+                court_template = operation;
+            }
+        }
+
+        auto named = deadline_template;
+        named.insert(QStringLiteral("operation_id"),
+                     QStringLiteral("example.operation.calculate-named"));
+        named.insert(QStringLiteral("produced_deadline_id"),
+                     QStringLiteral("example.deadline.named"));
+        operations.push_back(named);
+
+        auto source_order = court_template;
+        source_order.insert(QStringLiteral("operation_id"),
+                            QStringLiteral("example.operation.enter-clock-order"));
+        source_order.insert(QStringLiteral("opcode"), QStringLiteral("enter_order"));
+        source_order.remove(QStringLiteral("preconditions"));
+        operations.push_back(source_order);
+
+        auto schedule = court_template;
+        schedule.insert(QStringLiteral("operation_id"),
+                        QStringLiteral("example.operation.schedule-argument"));
+        schedule.insert(QStringLiteral("opcode"), QStringLiteral("schedule_argument"));
+        schedule.remove(QStringLiteral("preconditions"));
+        operations.push_back(schedule);
+
+        auto judgment_clock = deadline_template;
+        judgment_clock.insert(QStringLiteral("operation_id"),
+                              QStringLiteral("example.operation.calculate-judgment-clock"));
+        judgment_clock.insert(QStringLiteral("stage_id"),
+                              QStringLiteral("example.stage.submitted"));
+        judgment_clock.insert(QStringLiteral("produced_deadline_id"),
+                              QStringLiteral("example.deadline.judgment-clock"));
+        judgment_clock.insert(
+            QStringLiteral("deadline_event_base"),
+            QJsonObject{{QStringLiteral("kind"), QStringLiteral("judgment_occurred")}});
+        judgment_clock.insert(QStringLiteral("authorized_role_ids"),
+                              QJsonArray{QStringLiteral("example.role.court")});
+        operations.push_back(judgment_clock);
+
+        auto order_clock = deadline_template;
+        order_clock.insert(QStringLiteral("operation_id"),
+                           QStringLiteral("example.operation.calculate-order-clock"));
+        order_clock.insert(QStringLiteral("stage_id"), QStringLiteral("example.stage.submitted"));
+        order_clock.insert(QStringLiteral("produced_deadline_id"),
+                           QStringLiteral("example.deadline.order-clock"));
+        order_clock.insert(
+            QStringLiteral("deadline_event_base"),
+            QJsonObject{
+                {QStringLiteral("kind"), QStringLiteral("order_occurred")},
+                {QStringLiteral("order_id"), QStringLiteral("example.order.clock-source")},
+                {QStringLiteral("operation_id"),
+                 QStringLiteral("example.operation.enter-clock-order")},
+            });
+        order_clock.insert(QStringLiteral("authorized_role_ids"),
+                           QJsonArray{QStringLiteral("example.role.court")});
+        operations.push_back(order_clock);
+
+        for (qsizetype index = 0; index < operations.size(); ++index) {
+            auto operation = operations.at(index).toObject();
+            if (operation.value(QStringLiteral("operation_id")).toString() !=
+                QStringLiteral("example.operation.issue-judgment")) {
+                continue;
+            }
+            auto preconditions = operation.value(QStringLiteral("preconditions")).toArray();
+            preconditions.push_back(QJsonObject{
+                {QStringLiteral("kind"), QStringLiteral("deadline_status")},
+                {QStringLiteral("deadline_id"), QStringLiteral("example.deadline.named")},
+                {QStringLiteral("status"), QStringLiteral("open")},
+            });
+            preconditions.push_back(QJsonObject{
+                {QStringLiteral("kind"), QStringLiteral("argument_scheduled")},
+                {QStringLiteral("scheduled"), true},
+            });
+            preconditions.push_back(QJsonObject{
+                {QStringLiteral("kind"), QStringLiteral("argument_date_status")},
+                {QStringLiteral("status"), QStringLiteral("reached")},
+            });
+            operation.insert(QStringLiteral("preconditions"), preconditions);
+            operations.replace(index, operation);
+            break;
+        }
+        document.insert(QStringLiteral("operations"), operations);
+    };
+
+    QTemporaryDir valid;
+    QVERIFY(valid.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), valid.path()));
+    QVERIFY(mutateManifest(valid.path(), add_capabilities));
+    QVERIFY(mutateResource(valid.path(), workflow_path, add_features));
+    const auto loaded = PackReader::readDirectory(valid.path());
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+    const auto runtime = appellate::packs::loadRuntimePack(*loaded);
+    QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+    const auto& operations = runtime->cases.front().workflow.operations;
+    const auto judgment_clock = std::ranges::find(
+        operations,
+        appellate::model::WorkflowOperationId{"example.operation.calculate-judgment-clock"},
+        &appellate::model::WorkflowOperation::id);
+    QVERIFY(judgment_clock != operations.end());
+    QVERIFY(std::holds_alternative<appellate::model::WorkflowJudgmentOccurredDeadlineBase>(
+        *judgment_clock->deadline_event_base));
+    const auto order_clock = std::ranges::find(
+        operations,
+        appellate::model::WorkflowOperationId{"example.operation.calculate-order-clock"},
+        &appellate::model::WorkflowOperation::id);
+    QVERIFY(order_clock != operations.end());
+    const auto* order_base = std::get_if<appellate::model::WorkflowOrderOccurredDeadlineBase>(
+        &*order_clock->deadline_event_base);
+    QVERIFY(order_base != nullptr);
+    QCOMPARE(order_base->order_id, appellate::model::WorkflowOrderId{"example.order.clock-source"});
+    QCOMPARE(order_base->operation_id,
+             appellate::model::WorkflowOperationId{"example.operation.enter-clock-order"});
+    const auto judgment = std::ranges::find(
+        operations, appellate::model::WorkflowOperationId{"example.operation.issue-judgment"},
+        &appellate::model::WorkflowOperation::id);
+    QVERIFY(judgment != operations.end());
+    QVERIFY(std::ranges::any_of(judgment->preconditions, [](const auto& precondition) {
+        return std::holds_alternative<appellate::model::WorkflowArgumentDatePrecondition>(
+            precondition);
+    }));
+
+    for (const auto& capability_id : {QStringLiteral("workbench.pack.named-deadlines"),
+                                      QStringLiteral("workbench.pack.event-date-deadlines"),
+                                      QStringLiteral("workbench.pack.argument-date-guards")}) {
+        QTemporaryDir missing;
+        QVERIFY(missing.isValid());
+        QVERIFY(copyTree(valid.path(), missing.path()));
+        QVERIFY(mutateManifest(missing.path(), [&](QJsonObject& manifest) {
+            auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+            for (qsizetype index = capabilities.size(); index > 0; --index) {
+                if (capabilities.at(index - 1).toObject().value(QStringLiteral("id")).toString() ==
+                    capability_id) {
+                    capabilities.removeAt(index - 1);
+                }
+            }
+            manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+        }));
+        const auto missing_result = PackReader::readDirectory(missing.path());
+        QVERIFY(!missing_result.has_value());
+        QCOMPARE(missing_result.error().code, ErrorCode::UnsupportedCapability);
+
+        auto forged_missing = *loaded;
+        std::erase_if(forged_missing.required_capabilities, [&](const auto& capability) {
+            return capability.id == capability_id.toStdString();
+        });
+        const auto forged_graph = PackReader::validateResolvedGraph(forged_missing, {});
+        QVERIFY(!forged_graph.has_value());
+        QCOMPARE(forged_graph.error().code, ErrorCode::UnsupportedCapability);
+        const auto forged_runtime = appellate::packs::loadRuntimePack(forged_missing);
+        QVERIFY(!forged_runtime.has_value());
+        QCOMPARE(forged_runtime.error().code, appellate::packs::RuntimePackErrorCode::InvalidPack);
+    }
+
+    QTemporaryDir declared_unused;
+    QVERIFY(declared_unused.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), declared_unused.path()));
+    QVERIFY(mutateManifest(declared_unused.path(), add_capabilities));
+    const auto unused_result = PackReader::readDirectory(declared_unused.path());
+    QVERIFY2(unused_result.has_value(),
+             unused_result ? "" : qPrintable(unused_result.error().message));
+
+    QTemporaryDir unknown_precondition;
+    QVERIFY(unknown_precondition.isValid());
+    QVERIFY(copyTree(valid.path(), unknown_precondition.path()));
+    QVERIFY(mutateResource(unknown_precondition.path(), workflow_path, [&](QJsonObject& document) {
+        mutate_operation(document, QStringLiteral("example.operation.issue-judgment"),
+                         [](QJsonObject& operation) {
+                             auto preconditions =
+                                 operation.value(QStringLiteral("preconditions")).toArray();
+                             auto deadline = preconditions.at(1).toObject();
+                             deadline.insert(QStringLiteral("deadline_id"),
+                                             QStringLiteral("example.deadline.unknown"));
+                             preconditions.replace(1, deadline);
+                             operation.insert(QStringLiteral("preconditions"), preconditions);
+                         });
+    }));
+    const auto unknown_result = PackReader::readDirectory(unknown_precondition.path());
+    QVERIFY(!unknown_result.has_value());
+    QCOMPARE(unknown_result.error().code, ErrorCode::CrossReferenceFailure);
+
+    auto forged_unknown = *loaded;
+    const auto forged_unknown_workflow =
+        std::ranges::find_if(forged_unknown.resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Workflow;
+        });
+    QVERIFY(forged_unknown_workflow != forged_unknown.resources.end());
+    mutate_operation(
+        forged_unknown_workflow->document, QStringLiteral("example.operation.issue-judgment"),
+        [](QJsonObject& operation) {
+            auto preconditions = operation.value(QStringLiteral("preconditions")).toArray();
+            auto deadline = preconditions.at(1).toObject();
+            deadline.insert(QStringLiteral("deadline_id"),
+                            QStringLiteral("example.deadline.unknown"));
+            preconditions.replace(1, deadline);
+            operation.insert(QStringLiteral("preconditions"), preconditions);
+        });
+    const auto forged_unknown_graph = PackReader::validateResolvedGraph(forged_unknown, {});
+    QVERIFY(!forged_unknown_graph.has_value());
+    QCOMPARE(forged_unknown_graph.error().code, ErrorCode::CrossReferenceFailure);
+    const auto forged_unknown_runtime = appellate::packs::loadRuntimePack(forged_unknown);
+    QVERIFY(!forged_unknown_runtime.has_value());
+    QCOMPARE(forged_unknown_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+
+    for (const bool remove_output : {false, true}) {
+        QTemporaryDir invalid_event_base;
+        QVERIFY(invalid_event_base.isValid());
+        QVERIFY(copyTree(valid.path(), invalid_event_base.path()));
+        QVERIFY(
+            mutateResource(invalid_event_base.path(), workflow_path, [&](QJsonObject& document) {
+                mutate_operation(
+                    document, QStringLiteral("example.operation.calculate-order-clock"),
+                    [&](QJsonObject& operation) {
+                        if (remove_output) {
+                            operation.remove(QStringLiteral("produced_deadline_id"));
+                        } else {
+                            auto event_base =
+                                operation.value(QStringLiteral("deadline_event_base")).toObject();
+                            event_base.insert(QStringLiteral("operation_id"),
+                                              QStringLiteral("example.operation.issue-judgment"));
+                            operation.insert(QStringLiteral("deadline_event_base"), event_base);
+                        }
+                    });
+            }));
+        const auto invalid_result = PackReader::readDirectory(invalid_event_base.path());
+        QVERIFY(!invalid_result.has_value());
+        QCOMPARE(invalid_result.error().code, ErrorCode::CrossReferenceFailure);
+    }
+
+    QTemporaryDir named_collision;
+    QVERIFY(named_collision.isValid());
+    QVERIFY(copyTree(valid.path(), named_collision.path()));
+    QVERIFY(mutateResource(named_collision.path(), workflow_path, [&](QJsonObject& document) {
+        mutate_operation(document, QStringLiteral("example.operation.calculate-named"),
+                         [](QJsonObject& operation) {
+                             operation.insert(QStringLiteral("produced_deadline_id"),
+                                              QStringLiteral("example.deadline.notice-cure"));
+                         });
+    }));
+    const auto collision_result = PackReader::readDirectory(named_collision.path());
+    QVERIFY(!collision_result.has_value());
+    QCOMPARE(collision_result.error().code, ErrorCode::CrossReferenceFailure);
 }
 
 void SchemaDispatchTest::validatesStructuredDispositionPlans() {

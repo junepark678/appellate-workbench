@@ -33,13 +33,13 @@ class CapabilityRegistry final {
     // declared every capability required by the resource kinds it contains.
     // Schema v1 remains declaration-only for byte/behavior compatibility;
     // schema v2 and later fail closed on an incomplete declaration.
-    [[nodiscard]] static std::expected<void, Error>
-    validateCoverage(std::uint32_t manifest_schema_version,
-                     std::span<const model::RequiredCapability> required_capabilities,
-                     std::span<const model::ResourceKind> resource_kinds,
-                     bool uses_workflow_preconditions, bool uses_structured_disposition,
-                     bool uses_grounded_questions, bool uses_realism_evidence,
-                     bool uses_sealed_record_twins);
+    [[nodiscard]] static std::expected<void, Error> validateCoverage(
+        std::uint32_t manifest_schema_version,
+        std::span<const model::RequiredCapability> required_capabilities,
+        std::span<const model::ResourceKind> resource_kinds, bool uses_workflow_preconditions,
+        bool uses_dependent_deadlines, bool uses_named_deadlines, bool uses_event_date_deadlines,
+        bool uses_argument_date_guards, bool uses_structured_disposition,
+        bool uses_grounded_questions, bool uses_realism_evidence, bool uses_sealed_record_twins);
 };
 
 } // namespace appellate::packs

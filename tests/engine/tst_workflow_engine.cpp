@@ -35,6 +35,12 @@ constexpr auto structured_plan_id = "example.disposition.fictional";
 constexpr auto structured_plan_digest =
     "d9c97181a59eb4a0fd79aa3fcad32bd9cd5e4128aad8a49a68384900a1eb5121";
 
+static_assert(static_cast<int>(model::WorkflowDeadlineCondition::Open) == 0);
+static_assert(static_cast<int>(model::WorkflowDeadlineCondition::Satisfied) == 1);
+static_assert(static_cast<int>(model::WorkflowDeadlineCondition::Elapsed) == 2);
+static_assert(static_cast<int>(model::WorkflowDeadlineCondition::NotElapsed) == 3);
+static_assert(static_cast<int>(model::WorkflowDeadlineCondition::Reached) == 4);
+
 [[nodiscard]] model::LegalDate date(int year, unsigned month, unsigned day) {
     return model::LegalDate{std::chrono::year{year} / std::chrono::month{month} /
                             std::chrono::day{day}};
@@ -84,7 +90,9 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
                                     std::move(next),
                                     days,
                                     counting,
-                                    std::move(authorized)};
+                                    std::move(authorized),
+                                    {},
+                                    std::nullopt};
 }
 
 [[nodiscard]] model::WorkflowDefinition workflow() {
@@ -585,6 +593,8 @@ class WorkflowEngineTest final : public QObject {
     void rejectsUnauthorizedIneligibleAndLateFilings();
     void usesRouteLocalRejectionAuthoritiesAndExplicitNonconformance();
     void courtRecordsSourcedDeadlineTriggers();
+    void usesExistingDeadlineAsExactBaseAndReachedBoundary();
+    void usesExactEventDatesAndArgumentDateBoundary();
     void courtExplicitlyAdvancesSourcedStages();
     void rejectsUnauthorizedCourtActionAndMissingAuthority();
     void validatesCompleteProvenanceAndRejectsMutations();
@@ -905,6 +915,459 @@ void WorkflowEngineTest::courtRecordsSourcedDeadlineTriggers() {
                                                          model::WorkflowCommand{duplicate});
     QVERIFY(!duplicate_result.has_value());
     QCOMPARE(duplicate_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
+}
+
+void WorkflowEngineTest::usesExistingDeadlineAsExactBaseAndReachedBoundary() {
+    auto definition = canonicalWorkflow();
+    auto base_operation = std::ranges::find(definition.operations,
+                                            model::WorkflowOperationId{"test.op.court.deadline"},
+                                            &model::WorkflowOperation::id);
+    QVERIFY(base_operation != definition.operations.end());
+    base_operation->produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.base"};
+    auto same_date_base = *base_operation;
+    same_date_base.id = model::WorkflowOperationId{"test.op.same-date-base"};
+    same_date_base.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.same-date"};
+    definition.operations.push_back(same_date_base);
+    auto dependent = operation("test.op.dependent-deadline", appellant_stage,
+                               model::WorkflowOpcode::CalculateDeadline, std::nullopt, 7,
+                               model::DeadlineCounting::CalendarDays, {court_role});
+    dependent.authority.primary.provenance = provenance();
+    dependent.deadline_base_id = model::WorkflowDeadlineId{"test.deadline.base"};
+    dependent.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.dependent"};
+    dependent.preconditions = {
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.base"},
+                                            model::WorkflowDeadlineCondition::Reached}};
+    definition.operations.push_back(dependent);
+    const auto case_definition = caseDefinition();
+    const auto initial = initialState();
+
+    const auto base_command = model::CalculateWorkflowDeadline{
+        header("command.base-deadline", "test.actor.court", date(2026, 8, 14)),
+        model::WorkflowOperationId{"test.op.court.deadline"},
+        model::WorkflowDeadlineId{"test.deadline.base"}};
+    const auto base_decision = engine::decideWorkflow(definition, case_definition, initial,
+                                                      model::WorkflowCommand{base_command});
+    QVERIFY(base_decision.has_value());
+    const auto* base_event =
+        std::get_if<model::WorkflowDeadlineCalculated>(&base_decision->front());
+    QVERIFY(base_event != nullptr);
+    QCOMPARE(base_event->base_date, date(2026, 8, 14));
+    QCOMPARE(base_event->due_date, date(2026, 8, 18));
+
+    std::vector base_journal{
+        model::WorkflowJournalEntry{model::WorkflowCommand{base_command}, *base_decision}};
+    const auto first_base_state =
+        engine::replayWorkflow(definition, case_definition, initial, base_journal);
+    QVERIFY(first_base_state.has_value());
+    const auto same_date_command = model::CalculateWorkflowDeadline{
+        header("command.same-date-base", "test.actor.court", date(2026, 8, 14)), same_date_base.id,
+        model::WorkflowDeadlineId{"test.deadline.same-date"}};
+    const auto same_date_decision = engine::decideWorkflow(
+        definition, case_definition, *first_base_state, model::WorkflowCommand{same_date_command});
+    QVERIFY(same_date_decision.has_value());
+    base_journal.push_back(model::WorkflowJournalEntry{model::WorkflowCommand{same_date_command},
+                                                       *same_date_decision});
+    const auto base_state =
+        engine::replayWorkflow(definition, case_definition, initial, base_journal);
+    QVERIFY(base_state.has_value());
+
+    const auto before_reached = model::CalculateWorkflowDeadline{
+        header("command.dependent-too-early", "test.actor.court", date(2026, 8, 17)), dependent.id,
+        model::WorkflowDeadlineId{"test.deadline.dependent"}};
+    const auto rejected = engine::decideWorkflow(definition, case_definition, *base_state,
+                                                 model::WorkflowCommand{before_reached});
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+
+    const auto at_reached = model::CalculateWorkflowDeadline{
+        header("command.dependent-at-boundary", "test.actor.court", date(2026, 8, 18)),
+        dependent.id, model::WorkflowDeadlineId{"test.deadline.dependent"}};
+    const auto dependent_decision = engine::decideWorkflow(definition, case_definition, *base_state,
+                                                           model::WorkflowCommand{at_reached});
+    QVERIFY(dependent_decision.has_value());
+    const auto* dependent_event =
+        std::get_if<model::WorkflowDeadlineCalculated>(&dependent_decision->front());
+    QVERIFY(dependent_event != nullptr);
+    QCOMPARE(dependent_event->base_date, date(2026, 8, 18));
+    QCOMPARE(dependent_event->due_date, date(2026, 8, 25));
+    QCOMPARE(dependent_event->deadline_base_id,
+             std::optional{model::WorkflowDeadlineId{"test.deadline.base"}});
+    QCOMPARE(dependent_event->produced_deadline_id,
+             std::optional{model::WorkflowDeadlineId{"test.deadline.dependent"}});
+
+    auto compatible_guards = dependent;
+    compatible_guards.id = model::WorkflowOperationId{"test.op.compatible-deadline-guards"};
+    compatible_guards.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.compatible"};
+    compatible_guards.preconditions.push_back(
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.base"},
+                                            model::WorkflowDeadlineCondition::NotElapsed});
+    definition.operations.push_back(compatible_guards);
+    const auto exact_boundary = model::CalculateWorkflowDeadline{
+        header("command.compatible-deadline-guards", "test.actor.court", date(2026, 8, 18)),
+        compatible_guards.id, model::WorkflowDeadlineId{"test.deadline.compatible"}};
+    const auto compatible_decision = engine::decideWorkflow(
+        definition, case_definition, *base_state, model::WorkflowCommand{exact_boundary});
+    QVERIFY(compatible_decision.has_value());
+
+    auto elapsed_guard = compatible_guards;
+    elapsed_guard.id = model::WorkflowOperationId{"test.op.reached-and-elapsed"};
+    elapsed_guard.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.after-boundary"};
+    elapsed_guard.preconditions.back() = model::WorkflowDeadlinePrecondition{
+        model::WorkflowDeadlineId{"test.deadline.base"}, model::WorkflowDeadlineCondition::Elapsed};
+    definition.operations.push_back(elapsed_guard);
+    const auto after_boundary = model::CalculateWorkflowDeadline{
+        header("command.reached-and-elapsed", "test.actor.court", date(2026, 8, 19)),
+        elapsed_guard.id, model::WorkflowDeadlineId{"test.deadline.after-boundary"}};
+    const auto elapsed_decision = engine::decideWorkflow(definition, case_definition, *base_state,
+                                                         model::WorkflowCommand{after_boundary});
+    QVERIFY(elapsed_decision.has_value());
+
+    auto journal = base_journal;
+    journal.push_back(
+        model::WorkflowJournalEntry{model::WorkflowCommand{at_reached}, *dependent_decision});
+    const auto replayed = engine::replayWorkflow(definition, case_definition, initial, journal);
+    QVERIFY(replayed.has_value());
+    QCOMPARE(replayed->deadlines.back().due_date, date(2026, 8, 25));
+
+    auto tampered = journal;
+    auto& tampered_event =
+        std::get<model::WorkflowDeadlineCalculated>(tampered.back().events.front());
+    tampered_event.base_date = date(2026, 8, 19);
+    tampered_event.due_date = date(2026, 8, 26);
+    const auto tampered_result =
+        engine::replayWorkflow(definition, case_definition, initial, tampered);
+    QVERIFY(!tampered_result.has_value());
+    QCOMPARE(tampered_result.error().code, engine::WorkflowErrorCode::InvalidEvent);
+
+    auto binding_tampered = journal;
+    auto& binding_event =
+        std::get<model::WorkflowDeadlineCalculated>(binding_tampered.back().events.front());
+    binding_event.deadline_base_id = model::WorkflowDeadlineId{"test.deadline.same-date"};
+    const auto binding_result =
+        engine::replayWorkflow(definition, case_definition, initial, binding_tampered);
+    QVERIFY(!binding_result.has_value());
+    QCOMPARE(binding_result.error().code, engine::WorkflowErrorCode::InvalidEvent);
+
+    auto definition_substituted = definition;
+    auto substituted_operation = std::ranges::find(definition_substituted.operations, dependent.id,
+                                                   &model::WorkflowOperation::id);
+    QVERIFY(substituted_operation != definition_substituted.operations.end());
+    substituted_operation->deadline_base_id = model::WorkflowDeadlineId{"test.deadline.same-date"};
+    const auto substituted_result =
+        engine::replayWorkflow(definition_substituted, case_definition, initial, journal);
+    QVERIFY(!substituted_result.has_value());
+    QCOMPARE(substituted_result.error().code, engine::WorkflowErrorCode::InvalidEvent);
+
+    const auto missing_base = engine::decideWorkflow(definition, case_definition, initial,
+                                                     model::WorkflowCommand{at_reached});
+    QVERIFY(!missing_base.has_value());
+    QCOMPARE(missing_base.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+
+    auto forged = definition;
+    auto wrong_opcode =
+        std::ranges::find(forged.operations, model::WorkflowOperationId{"test.op.opening.accept"},
+                          &model::WorkflowOperation::id);
+    QVERIFY(wrong_opcode != forged.operations.end());
+    wrong_opcode->deadline_base_id = model::WorkflowDeadlineId{"test.deadline.base"};
+    const auto forged_result = engine::decideWorkflow(forged, case_definition, initial,
+                                                      model::WorkflowCommand{base_command});
+    QVERIFY(!forged_result.has_value());
+    QCOMPARE(forged_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    auto accepted_route_forgery = definition;
+    QVERIFY(accepted_route_forgery.filing_routes.front().accepted_deadline.has_value());
+    accepted_route_forgery.filing_routes.front().accepted_deadline->operation_id = dependent.id;
+    const auto accepted_route_result = engine::decideWorkflow(
+        accepted_route_forgery, case_definition, initial, model::WorkflowCommand{base_command});
+    QVERIFY(!accepted_route_result.has_value());
+    QCOMPARE(accepted_route_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    auto deficiency_route_forgery = definition;
+    QVERIFY(deficiency_route_forgery.filing_routes.front().deficiency_deadline.has_value());
+    deficiency_route_forgery.filing_routes.front().deficiency_deadline->operation_id = dependent.id;
+    const auto deficiency_route_result = engine::decideWorkflow(
+        deficiency_route_forgery, case_definition, initial, model::WorkflowCommand{base_command});
+    QVERIFY(!deficiency_route_result.has_value());
+    QCOMPARE(deficiency_route_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    auto reserved_definition = definition;
+    auto unnamed = operation("test.op.unnamed-deadline", appellant_stage,
+                             model::WorkflowOpcode::CalculateDeadline, std::nullopt, 1,
+                             model::DeadlineCounting::CalendarDays, {court_role});
+    unnamed.authority.primary.provenance = provenance();
+    reserved_definition.operations.push_back(unnamed);
+    const auto reserved_command = model::CalculateWorkflowDeadline{
+        header("command.reserved-deadline", "test.actor.court", date(2026, 8, 14)), unnamed.id,
+        model::WorkflowDeadlineId{"test.deadline.base"}};
+    const auto reserved_result = engine::decideWorkflow(
+        reserved_definition, case_definition, initial, model::WorkflowCommand{reserved_command});
+    QVERIFY(!reserved_result.has_value());
+    QCOMPARE(reserved_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    const model::CalculateWorkflowDeadline accepted_squat{
+        header("command.squat-accepted", "test.actor.court", date(2026, 8, 14)), unnamed.id,
+        model::WorkflowDeadlineId{response_deadline}};
+    const auto accepted_squat_result = engine::decideWorkflow(
+        reserved_definition, case_definition, initial, model::WorkflowCommand{accepted_squat});
+    QVERIFY(!accepted_squat_result.has_value());
+    QCOMPARE(accepted_squat_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    const model::CalculateWorkflowDeadline deficiency_squat{
+        header("command.squat-deficiency", "test.actor.court", date(2026, 8, 14)), unnamed.id,
+        model::WorkflowDeadlineId{"test.deadline.opening-cure.command.squat-deficiency"}};
+    const auto deficiency_squat_result = engine::decideWorkflow(
+        reserved_definition, case_definition, initial, model::WorkflowCommand{deficiency_squat});
+    QVERIFY(!deficiency_squat_result.has_value());
+    QCOMPARE(deficiency_squat_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    const model::CalculateWorkflowDeadline unreserved{
+        header("command.unreserved", "test.actor.court", date(2026, 8, 14)), unnamed.id,
+        model::WorkflowDeadlineId{"test.deadline.unreserved"}};
+    const auto unreserved_decision = engine::decideWorkflow(
+        reserved_definition, case_definition, initial, model::WorkflowCommand{unreserved});
+    QVERIFY(unreserved_decision.has_value());
+    for (const auto& squatted_id :
+         {model::WorkflowDeadlineId{response_deadline},
+          model::WorkflowDeadlineId{"test.deadline.opening-cure.command.unreserved"}}) {
+        auto squatted_events = *unreserved_decision;
+        std::get<model::WorkflowDeadlineCalculated>(squatted_events.front()).deadline_id =
+            squatted_id;
+        const auto squatted_replay = engine::replayWorkflow(
+            reserved_definition, case_definition, initial,
+            std::vector{model::WorkflowJournalEntry{model::WorkflowCommand{unreserved},
+                                                    std::move(squatted_events)}});
+        QVERIFY(!squatted_replay.has_value());
+        QCOMPARE(squatted_replay.error().code, engine::WorkflowErrorCode::InvalidEvent);
+    }
+
+    auto authorized_route_deadline = definition;
+    const auto route_calculation = std::ranges::find(
+        authorized_route_deadline.operations,
+        model::WorkflowOperationId{"test.op.response.deadline"}, &model::WorkflowOperation::id);
+    QVERIFY(route_calculation != authorized_route_deadline.operations.end());
+    route_calculation->authorized_roles = {model::ActorRoleId{court_role}};
+    const auto deficiency_calculation = std::ranges::find(
+        authorized_route_deadline.operations,
+        model::WorkflowOperationId{"test.op.opening.cure-deadline"}, &model::WorkflowOperation::id);
+    QVERIFY(deficiency_calculation != authorized_route_deadline.operations.end());
+    deficiency_calculation->authorized_roles = {model::ActorRoleId{court_role}};
+
+    auto accepted_route_run = emptyRun();
+    const auto accepted_route_execution =
+        execute(authorized_route_deadline, case_definition, accepted_route_run,
+                filing("command.authorized-route-accepted", "filing.authorized-route-accepted",
+                       "test.actor.appellant", "test.filing.opening", date(2026, 8, 14),
+                       {model::ActorId{"test.actor.appellee"}}));
+    QVERIFY2(accepted_route_execution.has_value(),
+             accepted_route_execution ? "" : accepted_route_execution.error().c_str());
+    QVERIFY(std::ranges::find(accepted_route_run.state.deadlines,
+                              model::WorkflowDeadlineId{response_deadline},
+                              &model::WorkflowDeadlineRecord::deadline_id) !=
+            accepted_route_run.state.deadlines.end());
+
+    auto deficiency_route_run = emptyRun();
+    const auto deficiency_route_execution =
+        execute(authorized_route_deadline, case_definition, deficiency_route_run,
+                filing("command.authorized-route-deficiency", "filing.authorized-route-deficiency",
+                       "test.actor.appellant", "test.filing.opening", date(2026, 8, 14),
+                       {model::ActorId{"test.actor.appellee"}}, false));
+    QVERIFY2(deficiency_route_execution.has_value(),
+             deficiency_route_execution ? "" : deficiency_route_execution.error().c_str());
+    const auto authorized_deficiency_deadline =
+        model::WorkflowDeadlineId{"test.deadline.opening-cure.command.authorized-route-deficiency"};
+    QVERIFY(std::ranges::find(deficiency_route_run.state.deadlines, authorized_deficiency_deadline,
+                              &model::WorkflowDeadlineRecord::deadline_id) !=
+            deficiency_route_run.state.deadlines.end());
+
+    const model::CalculateWorkflowDeadline authorized_unreserved{
+        header("command.authorized-route-unreserved", "test.actor.court", date(2026, 8, 14)),
+        route_calculation->id, model::WorkflowDeadlineId{"test.deadline.authorized-unreserved"}};
+    const auto authorized_unreserved_result =
+        engine::decideWorkflow(authorized_route_deadline, case_definition, initial,
+                               model::WorkflowCommand{authorized_unreserved});
+    QVERIFY(authorized_unreserved_result.has_value());
+    const model::CalculateWorkflowDeadline owning_route_squat{
+        header("command.owning-route-squat", "test.actor.court", date(2026, 8, 14)),
+        route_calculation->id, model::WorkflowDeadlineId{response_deadline}};
+    const auto owning_route_squat_result =
+        engine::decideWorkflow(authorized_route_deadline, case_definition, initial,
+                               model::WorkflowCommand{owning_route_squat});
+    QVERIFY(!owning_route_squat_result.has_value());
+    QCOMPARE(owning_route_squat_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
+    const model::CalculateWorkflowDeadline owning_deficiency_squat{
+        header("command.owning-deficiency-squat", "test.actor.court", date(2026, 8, 14)),
+        deficiency_calculation->id,
+        model::WorkflowDeadlineId{"test.deadline.opening-cure.command.owning-deficiency-squat"}};
+    const auto owning_deficiency_squat_result =
+        engine::decideWorkflow(authorized_route_deadline, case_definition, initial,
+                               model::WorkflowCommand{owning_deficiency_squat});
+    QVERIFY(!owning_deficiency_squat_result.has_value());
+    QCOMPARE(owning_deficiency_squat_result.error().code,
+             engine::WorkflowErrorCode::InvalidCommand);
+
+    auto overlapping_namespace = canonicalWorkflow();
+    const auto overlapping_calculation = std::ranges::find(
+        overlapping_namespace.operations, model::WorkflowOperationId{"test.op.court.deadline"},
+        &model::WorkflowOperation::id);
+    QVERIFY(overlapping_calculation != overlapping_namespace.operations.end());
+    overlapping_calculation->produced_deadline_id =
+        model::WorkflowDeadlineId{"test.deadline.opening-cure.command.future"};
+    const model::CalculateWorkflowDeadline overlapping_command{
+        header("command.overlapping-namespace", "test.actor.court", date(2026, 8, 14)),
+        overlapping_calculation->id, *overlapping_calculation->produced_deadline_id};
+    const auto overlapping_result =
+        engine::decideWorkflow(overlapping_namespace, case_definition, initial,
+                               model::WorkflowCommand{overlapping_command});
+    QVERIFY(!overlapping_result.has_value());
+    QCOMPARE(overlapping_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    auto unnamed_extended_definition = definition;
+    auto unnamed_extended = unnamed;
+    unnamed_extended.id = model::WorkflowOperationId{"test.op.unnamed-extended-deadline"};
+    unnamed_extended.preconditions = {
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.base"},
+                                            model::WorkflowDeadlineCondition::Reached},
+    };
+    unnamed_extended_definition.operations.push_back(unnamed_extended);
+    const auto unnamed_extended_result = engine::decideWorkflow(
+        unnamed_extended_definition, case_definition, *base_state,
+        model::WorkflowCommand{model::CalculateWorkflowDeadline{
+            header("command.unnamed-extended", "test.actor.court", date(2026, 8, 18)),
+            unnamed_extended.id, model::WorkflowDeadlineId{"test.deadline.unnamed-extended"}}});
+    QVERIFY(!unnamed_extended_result.has_value());
+    QCOMPARE(unnamed_extended_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+}
+
+void WorkflowEngineTest::usesExactEventDatesAndArgumentDateBoundary() {
+    auto definition = canonicalWorkflow();
+    auto judgment = std::ranges::find(definition.operations,
+                                      model::WorkflowOperationId{"test.op.issue-judgment"},
+                                      &model::WorkflowOperation::id);
+    QVERIFY(judgment != definition.operations.end());
+    judgment->preconditions = {
+        model::WorkflowArgumentPrecondition{true},
+        model::WorkflowArgumentDatePrecondition{model::WorkflowArgumentDateCondition::Reached},
+    };
+
+    auto source_order =
+        operation("test.op.clock-source-order", submitted_stage, model::WorkflowOpcode::EnterOrder,
+                  std::nullopt, std::nullopt, std::nullopt, {court_role});
+    source_order.authority.primary.provenance = provenance();
+    auto unrelated_order = source_order;
+    unrelated_order.id = model::WorkflowOperationId{"test.op.unrelated-order"};
+    unrelated_order.authority = authority(unrelated_order.id.value);
+    unrelated_order.authority.primary.provenance = provenance();
+    definition.operations.push_back(source_order);
+    definition.operations.push_back(unrelated_order);
+
+    auto order_clock = operation("test.op.calculate-order-clock", submitted_stage,
+                                 model::WorkflowOpcode::CalculateDeadline, std::nullopt, 3,
+                                 model::DeadlineCounting::CalendarDays, {court_role});
+    order_clock.authority.primary.provenance = provenance();
+    order_clock.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.order-clock"};
+    order_clock.deadline_event_base = model::WorkflowOrderOccurredDeadlineBase{
+        model::WorkflowOrderId{"test.order.clock-source"}, source_order.id};
+    definition.operations.push_back(order_clock);
+
+    auto judgment_clock = operation("test.op.calculate-judgment-clock", judgment_stage,
+                                    model::WorkflowOpcode::CalculateDeadline, std::nullopt, 45,
+                                    model::DeadlineCounting::CalendarDays, {court_role});
+    judgment_clock.authority.primary.provenance = provenance();
+    judgment_clock.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.judgment-clock"};
+    judgment_clock.deadline_event_base = model::WorkflowJudgmentOccurredDeadlineBase{};
+    definition.operations.push_back(judgment_clock);
+
+    const auto source = submittedRun();
+    QVERIFY2(source.has_value(), source ? "" : source.error().c_str());
+    const auto case_definition = caseDefinition();
+    auto run = emptyRun();
+    for (const auto& entry : source->journal) {
+        const auto result = execute(definition, case_definition, run, entry.command);
+        QVERIFY2(result.has_value(), result ? "" : result.error().c_str());
+    }
+
+    const model::WorkflowCommand order_command = model::EnterWorkflowOrder{
+        header("command.clock-source-order", "test.actor.court", date(2026, 10, 7)),
+        source_order.id,
+        model::WorkflowOrderId{"test.order.clock-source"},
+        model::WorkflowOrderDisposition::Other,
+        std::string(64, 'e'),
+        std::nullopt};
+    QVERIFY(execute(definition, case_definition, run, order_command).has_value());
+    QCOMPARE(run.state.orders.back().operation_id, std::optional{source_order.id});
+    QCOMPARE(run.state.orders.back().entered_at, std::optional{at(date(2026, 10, 7))});
+
+    auto wrong_selector = definition;
+    auto wrong_order_clock =
+        std::ranges::find(wrong_selector.operations, order_clock.id, &model::WorkflowOperation::id);
+    QVERIFY(wrong_order_clock != wrong_selector.operations.end());
+    wrong_order_clock->deadline_event_base = model::WorkflowOrderOccurredDeadlineBase{
+        model::WorkflowOrderId{"test.order.clock-source"}, unrelated_order.id};
+    const model::WorkflowCommand delayed_order_clock = model::CalculateWorkflowDeadline{
+        header("command.calculate-order-clock", "test.actor.court", date(2026, 10, 10)),
+        order_clock.id, *order_clock.produced_deadline_id};
+    const auto selector_rejected =
+        engine::decideWorkflow(wrong_selector, case_definition, run.state, delayed_order_clock);
+    QVERIFY(!selector_rejected.has_value());
+    QCOMPARE(selector_rejected.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+
+    QVERIFY(execute(definition, case_definition, run, delayed_order_clock).has_value());
+    const auto& order_deadline = run.state.deadlines.back();
+    QCOMPARE(order_deadline.deadline_id, *order_clock.produced_deadline_id);
+    QCOMPARE(order_deadline.due_date, date(2026, 10, 12));
+    const auto* order_deadline_event =
+        std::get_if<model::WorkflowDeadlineCalculated>(&run.trace.back());
+    QVERIFY(order_deadline_event != nullptr);
+    QCOMPARE(order_deadline_event->base_date, date(2026, 10, 7));
+    QCOMPARE(order_deadline_event->deadline_event_base, order_clock.deadline_event_base);
+
+    const model::WorkflowCommand schedule = model::ScheduleWorkflowArgument{
+        header("command.argument-date-guard", "test.actor.court", date(2026, 10, 12)),
+        model::WorkflowOperationId{"test.op.schedule-argument"}, date(2026, 10, 20)};
+    QVERIFY(execute(definition, case_definition, run, schedule).has_value());
+
+    const model::WorkflowCommand early_judgment = model::IssueWorkflowJudgment{
+        header("command.early-judgment", "test.actor.court", date(2026, 10, 19)), judgment->id,
+        std::string(64, 'c'), "affirmed"};
+    const auto early_result =
+        engine::decideWorkflow(definition, case_definition, run.state, early_judgment);
+    QVERIFY(!early_result.has_value());
+    QCOMPARE(early_result.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+
+    const model::WorkflowCommand on_date_judgment = model::IssueWorkflowJudgment{
+        header("command.on-date-judgment", "test.actor.court", date(2026, 10, 20)), judgment->id,
+        std::string(64, 'c'), "affirmed"};
+    QVERIFY(execute(definition, case_definition, run, on_date_judgment).has_value());
+    QCOMPARE(run.state.judgment_issued_at, std::optional{at(date(2026, 10, 20))});
+
+    const model::WorkflowCommand delayed_judgment_clock = model::CalculateWorkflowDeadline{
+        header("command.calculate-judgment-clock", "test.actor.court", date(2026, 11, 2)),
+        judgment_clock.id, *judgment_clock.produced_deadline_id};
+    const auto deadline_result =
+        engine::decideWorkflow(definition, case_definition, run.state, delayed_judgment_clock);
+    QVERIFY(deadline_result.has_value());
+    const auto* judgment_deadline =
+        std::get_if<model::WorkflowDeadlineCalculated>(&deadline_result->front());
+    QVERIFY(judgment_deadline != nullptr);
+    QCOMPARE(judgment_deadline->base_date, date(2026, 10, 20));
+    QCOMPARE(judgment_deadline->due_date, date(2026, 12, 4));
+    QCOMPARE(judgment_deadline->deadline_event_base, judgment_clock.deadline_event_base);
+
+    auto journal = run.journal;
+    journal.push_back(model::WorkflowJournalEntry{delayed_judgment_clock, *deadline_result});
+    const auto replayed =
+        engine::replayWorkflow(definition, case_definition, run.initial_state, journal);
+    QVERIFY(replayed.has_value());
+
+    auto tampered = journal;
+    auto& tampered_deadline =
+        std::get<model::WorkflowDeadlineCalculated>(tampered.back().events.front());
+    tampered_deadline.deadline_event_base = model::WorkflowOrderOccurredDeadlineBase{
+        model::WorkflowOrderId{"test.order.clock-source"}, source_order.id};
+    const auto tampered_result =
+        engine::replayWorkflow(definition, case_definition, run.initial_state, tampered);
+    QVERIFY(!tampered_result.has_value());
+    QCOMPARE(tampered_result.error().code, engine::WorkflowErrorCode::InvalidEvent);
 }
 
 void WorkflowEngineTest::courtExplicitlyAdvancesSourcedStages() {
@@ -1399,6 +1862,13 @@ void WorkflowEngineTest::enforcesBoundedAllOfPreconditionsAndReplaySnapshots() {
     QCOMPARE(result.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
 
     auto missing_deadline = canonicalWorkflow();
+    auto named_missing_deadline = operation("test.op.named-missing-deadline", appellant_stage,
+                                            model::WorkflowOpcode::CalculateDeadline, std::nullopt,
+                                            1, model::DeadlineCounting::CalendarDays, {court_role});
+    named_missing_deadline.authority.primary.provenance = provenance();
+    named_missing_deadline.produced_deadline_id =
+        model::WorkflowDeadlineId{"test.deadline.not-created"};
+    missing_deadline.operations.push_back(named_missing_deadline);
     guarded_opening = std::ranges::find(missing_deadline.operations,
                                         model::WorkflowOperationId{"test.op.opening.accept"},
                                         &model::WorkflowOperation::id);

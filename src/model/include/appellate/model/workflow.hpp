@@ -79,6 +79,7 @@ enum class WorkflowDeadlineCondition {
     Satisfied,
     Elapsed,
     NotElapsed,
+    Reached,
 };
 
 struct WorkflowDeadlinePrecondition final {
@@ -96,6 +97,17 @@ struct WorkflowArgumentPrecondition final {
                            const WorkflowArgumentPrecondition&) = default;
 };
 
+enum class WorkflowArgumentDateCondition {
+    Reached,
+};
+
+struct WorkflowArgumentDatePrecondition final {
+    WorkflowArgumentDateCondition condition{};
+
+    friend bool operator==(const WorkflowArgumentDatePrecondition&,
+                           const WorkflowArgumentDatePrecondition&) = default;
+};
+
 struct WorkflowJudgmentPrecondition final {
     bool issued{};
 
@@ -106,7 +118,23 @@ struct WorkflowJudgmentPrecondition final {
 using WorkflowPrecondition =
     std::variant<WorkflowFilingPrecondition, WorkflowOrderPrecondition,
                  WorkflowDeadlinePrecondition, WorkflowArgumentPrecondition,
-                 WorkflowJudgmentPrecondition>;
+                 WorkflowJudgmentPrecondition, WorkflowArgumentDatePrecondition>;
+
+struct WorkflowJudgmentOccurredDeadlineBase final {
+    friend bool operator==(const WorkflowJudgmentOccurredDeadlineBase&,
+                           const WorkflowJudgmentOccurredDeadlineBase&) = default;
+};
+
+struct WorkflowOrderOccurredDeadlineBase final {
+    WorkflowOrderId order_id;
+    WorkflowOperationId operation_id;
+
+    friend bool operator==(const WorkflowOrderOccurredDeadlineBase&,
+                           const WorkflowOrderOccurredDeadlineBase&) = default;
+};
+
+using WorkflowDeadlineEventBase =
+    std::variant<WorkflowJudgmentOccurredDeadlineBase, WorkflowOrderOccurredDeadlineBase>;
 
 enum class WorkflowOpcode {
     AcceptFiling,
@@ -131,6 +159,9 @@ struct WorkflowOperation final {
     std::optional<DeadlineCounting> deadline_counting;
     std::vector<ActorRoleId> authorized_roles;
     std::vector<WorkflowPrecondition> preconditions{};
+    std::optional<WorkflowDeadlineId> deadline_base_id{};
+    std::optional<WorkflowDeadlineId> produced_deadline_id{};
+    std::optional<WorkflowDeadlineEventBase> deadline_event_base{};
 
     friend bool operator==(const WorkflowOperation&, const WorkflowOperation&) = default;
 };

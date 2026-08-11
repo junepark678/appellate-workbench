@@ -80,6 +80,9 @@ struct WorkflowDeadlineCalculated final {
     WorkflowDeadlinePurpose purpose{};
     LegalDate base_date;
     LegalDate due_date;
+    std::optional<WorkflowDeadlineId> deadline_base_id{};
+    std::optional<WorkflowDeadlineId> produced_deadline_id{};
+    std::optional<WorkflowDeadlineEventBase> deadline_event_base{};
 
     friend bool operator==(const WorkflowDeadlineCalculated&,
                            const WorkflowDeadlineCalculated&) = default;

@@ -21,6 +21,7 @@
 #include <expected>
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
@@ -39,6 +40,31 @@ class WorkflowSessionControllerTestAccess final {
             std::move(workflow), std::move(case_definition), std::move(initial_state),
             std::move(asset_store), std::move(session_store), std::move(engine_revision),
             std::move(created_at_utc), std::move(pins));
+    }
+
+    [[nodiscard]] static auto
+    createCanonical(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+                    model::WorkflowState initial_state, storage::AssetStore asset_store,
+                    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+                    QString created_at_utc, std::vector<storage::RevisionPin> pins)
+        -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError> {
+        return WorkflowSessionController::createBound(
+            std::move(workflow), std::move(case_definition), std::move(initial_state),
+            std::move(asset_store), std::move(session_store), std::move(engine_revision),
+            std::move(created_at_utc), std::move(pins),
+            storage::SessionAuthorityContract::CanonicalV2, 2);
+    }
+
+    [[nodiscard]] static auto
+    reopenCanonical(model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+                    model::WorkflowState initial_state, storage::AssetStore asset_store,
+                    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+                    std::vector<storage::RevisionPin> pins)
+        -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError> {
+        return WorkflowSessionController::reopenBound(
+            std::move(workflow), std::move(case_definition), std::move(initial_state),
+            std::move(asset_store), std::move(session_store), std::move(engine_revision),
+            std::move(pins), storage::SessionAuthorityContract::CanonicalV2, 2);
     }
 };
 
@@ -60,6 +86,7 @@ class WorkflowSessionResumeTest final : public QObject {
     void rawVectorPinsRejectCalendarVersionBeforeMutation();
     void createAndReopenRejectMixedAuthorityContracts();
     void rawReopenRejectsCanonicalAuthoritySession();
+    void namedDependentDeadlinesSurviveReopenAndRejectBindingTamper();
     void staleAppendLeavesControllerUnchanged();
 };
 
@@ -96,6 +123,19 @@ constexpr auto engine_revision = "engine.workflow.test.1";
                             "Synthetic workflow rule for " + operation_id, "2026-08-11",
                             "Source-grounded proposition for " + operation_id},
         {}};
+}
+
+[[nodiscard]] model::AuthorityProvenance provenance() {
+    return model::AuthorityProvenance{
+        model::AuthorityType::Rule,
+        "us.federal",
+        "us.ca4",
+        model::PrecedentialStatus::NotApplicable,
+        true,
+        "2026-08-11",
+        "Fed. R. App. P. test",
+        "https://www.ca4.uscourts.gov/rules/Rule03.html",
+    };
 }
 
 [[nodiscard]] model::WorkflowOperation
@@ -196,6 +236,39 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
         "Synthetic workflow rule",
         "https://www.uscourts.gov/rules-policies/current-rules-practice-procedure",
     };
+    return definition;
+}
+
+[[nodiscard]] model::WorkflowDefinition deadlineWorkflow() {
+    auto definition = workflow();
+    for (auto& candidate : definition.operations) {
+        candidate.authority.primary.provenance = provenance();
+    }
+    auto base =
+        operation("test.op.deadline.base", filing_stage, model::WorkflowOpcode::CalculateDeadline,
+                  std::nullopt, 3, model::DeadlineCounting::CalendarDays, {court_role});
+    base.authority.primary.provenance = provenance();
+    base.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.base"};
+    definition.operations.push_back(base);
+
+    auto same_date = base;
+    same_date.id = model::WorkflowOperationId{"test.op.deadline.same-date"};
+    same_date.authority = authority(same_date.id.value);
+    same_date.authority.primary.provenance = provenance();
+    same_date.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.same-date"};
+    definition.operations.push_back(same_date);
+
+    auto dependent = operation("test.op.deadline.dependent", filing_stage,
+                               model::WorkflowOpcode::CalculateDeadline, std::nullopt, 7,
+                               model::DeadlineCounting::CalendarDays, {court_role});
+    dependent.authority.primary.provenance = provenance();
+    dependent.deadline_base_id = model::WorkflowDeadlineId{"test.deadline.base"};
+    dependent.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.dependent"};
+    dependent.preconditions = {
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.base"},
+                                            model::WorkflowDeadlineCondition::Reached},
+    };
+    definition.operations.push_back(dependent);
     return definition;
 }
 
@@ -722,6 +795,116 @@ void WorkflowSessionResumeTest::rawReopenRejectsCanonicalAuthoritySession() {
     const auto reopened = reopenController(database_path, asset_root);
     QVERIFY(!reopened.has_value());
     QCOMPARE(reopened.error().code, app::WorkflowSessionErrorCode::CorruptSession);
+}
+
+void WorkflowSessionResumeTest::namedDependentDeadlinesSurviveReopenAndRejectBindingTamper() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto database_path = QDir(directory.path()).filePath(QStringLiteral("sessions.sqlite"));
+    const auto asset_root = QDir(directory.path()).filePath(QStringLiteral("assets"));
+    const auto definition = deadlineWorkflow();
+
+    const auto create = [&](const model::WorkflowDefinition& configured)
+        -> std::expected<std::unique_ptr<app::WorkflowSessionController>,
+                         app::WorkflowSessionError> {
+        auto store = storage::SessionStore::open(database_path);
+        if (!store) {
+            return std::unexpected(app::WorkflowSessionError{
+                app::WorkflowSessionErrorCode::SessionStoreFailure, store.error().message});
+        }
+        return app::WorkflowSessionControllerTestAccess::createCanonical(
+            configured, caseDefinition(), initialState(),
+            storage::AssetStore(asset_root, 1024 * 1024), std::move(*store),
+            QString::fromLatin1(engine_revision), QStringLiteral("2026-08-11T09:00:00Z"), pins());
+    };
+    const auto reopen = [&](const model::WorkflowDefinition& configured)
+        -> std::expected<std::unique_ptr<app::WorkflowSessionController>,
+                         app::WorkflowSessionError> {
+        auto store = storage::SessionStore::open(database_path);
+        if (!store) {
+            return std::unexpected(app::WorkflowSessionError{
+                app::WorkflowSessionErrorCode::SessionStoreFailure, store.error().message});
+        }
+        return app::WorkflowSessionControllerTestAccess::reopenCanonical(
+            configured, caseDefinition(), initialState(),
+            storage::AssetStore(asset_root, 1024 * 1024), std::move(*store),
+            QString::fromLatin1(engine_revision), pins());
+    };
+
+    auto created = create(definition);
+    if (!created) {
+        QFAIL(qPrintable(created.error().message));
+    }
+    auto controller = std::move(*created);
+    const model::CalculateWorkflowDeadline base{
+        header("test.command.deadline.base", 11, "test.actor.court"),
+        model::WorkflowOperationId{"test.op.deadline.base"},
+        model::WorkflowDeadlineId{"test.deadline.base"}};
+    const model::CalculateWorkflowDeadline same_date{
+        header("test.command.deadline.same-date", 11, "test.actor.court"),
+        model::WorkflowOperationId{"test.op.deadline.same-date"},
+        model::WorkflowDeadlineId{"test.deadline.same-date"}};
+    const model::CalculateWorkflowDeadline dependent{
+        header("test.command.deadline.dependent", 14, "test.actor.court"),
+        model::WorkflowOperationId{"test.op.deadline.dependent"},
+        model::WorkflowDeadlineId{"test.deadline.dependent"}};
+    QVERIFY(
+        controller->submit(base, std::nullopt, QStringLiteral("2026-08-11T12:01:00Z")).has_value());
+    QVERIFY(controller->submit(same_date, std::nullopt, QStringLiteral("2026-08-11T12:02:00Z"))
+                .has_value());
+    QVERIFY(controller->submit(dependent, std::nullopt, QStringLiteral("2026-08-14T12:01:00Z"))
+                .has_value());
+    QCOMPARE(controller->state().deadlines.size(), std::size_t{3});
+    QCOMPARE(controller->state().deadlines.back().due_date, date(2026, 8, 21));
+    QCOMPARE(controller->snapshot().events.size(), std::size_t{3});
+    const auto dependent_envelope =
+        QJsonDocument::fromJson(controller->snapshot().events.back().payload_json).object();
+    QCOMPARE(dependent_envelope.value(QStringLiteral("schema_version")).toInt(), 4);
+    const auto dependent_payload = dependent_envelope.value(QStringLiteral("payload")).toObject();
+    QCOMPARE(dependent_payload.value(QStringLiteral("deadline_base_id")).toString(),
+             QStringLiteral("test.deadline.base"));
+    QCOMPARE(dependent_payload.value(QStringLiteral("produced_deadline_id")).toString(),
+             QStringLiteral("test.deadline.dependent"));
+    QVERIFY(dependent_payload.value(QStringLiteral("deadline_event_base")).isNull());
+
+    const auto expected_state = controller->state();
+    const auto expected_journal = controller->journal();
+    controller.reset();
+    auto reopened = reopen(definition);
+    if (!reopened) {
+        QFAIL(qPrintable(reopened.error().message));
+    }
+    QVERIFY((*reopened)->state() == expected_state);
+    QVERIFY((*reopened)->journal() == expected_journal);
+    reopened->reset();
+
+    auto substituted_definition = definition;
+    const auto substituted = std::ranges::find(
+        substituted_definition.operations, model::WorkflowOperationId{"test.op.deadline.dependent"},
+        &model::WorkflowOperation::id);
+    QVERIFY(substituted != substituted_definition.operations.end());
+    substituted->deadline_base_id = model::WorkflowDeadlineId{"test.deadline.same-date"};
+    const auto definition_rejected = reopen(substituted_definition);
+    QVERIFY(!definition_rejected.has_value());
+    QCOMPARE(definition_rejected.error().code, app::WorkflowSessionErrorCode::EngineFailure);
+
+    const auto connection_name = QStringLiteral("workflow-deadline-tamper-%1")
+                                     .arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    bool tampered = false;
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection_name);
+        database.setDatabaseName(database_path);
+        QVERIFY(database.open());
+        tampered =
+            mutateBlob(database, QStringLiteral("event_log"), QStringLiteral("sequence"), qint64{3},
+                       QByteArray("test.deadline.base"), QByteArray("test.deadline.same-date"));
+        database.close();
+    }
+    QSqlDatabase::removeDatabase(connection_name);
+    QVERIFY(tampered);
+    const auto payload_rejected = reopen(definition);
+    QVERIFY(!payload_rejected.has_value());
+    QCOMPARE(payload_rejected.error().code, app::WorkflowSessionErrorCode::EngineFailure);
 }
 
 void WorkflowSessionResumeTest::staleAppendLeavesControllerUnchanged() {
