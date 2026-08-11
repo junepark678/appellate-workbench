@@ -66,6 +66,68 @@
             "maxItems": 64,
             "uniqueItems": true,
             "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+          },
+          "preconditions": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 32,
+            "uniqueItems": true,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "filing_type_id", "present"],
+                  "properties": {
+                    "kind": { "const": "filing_presence" },
+                    "filing_type_id": {
+                      "$ref": "common.schema.json#/$defs/namespaced_id"
+                    },
+                    "present": { "type": "boolean" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "order_id", "disposition"],
+                  "properties": {
+                    "kind": { "const": "order_disposition" },
+                    "order_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "disposition": { "enum": ["granted", "denied", "other"] }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "deadline_id", "status"],
+                  "properties": {
+                    "kind": { "const": "deadline_status" },
+                    "deadline_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "status": {
+                      "enum": ["open", "satisfied", "elapsed", "not_elapsed"]
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "scheduled"],
+                  "properties": {
+                    "kind": { "const": "argument_scheduled" },
+                    "scheduled": { "type": "boolean" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "issued"],
+                  "properties": {
+                    "kind": { "const": "judgment_issued" },
+                    "issued": { "type": "boolean" }
+                  }
+                }
+              ]
+            }
           }
         }
       }

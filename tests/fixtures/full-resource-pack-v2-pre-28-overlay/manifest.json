@@ -18,14 +18,6 @@
     {
       "id": "workbench.pack.canonical-authority",
       "version": 1
-    },
-    {
-      "id": "workbench.pack.structured-disposition",
-      "version": 1
-    },
-    {
-      "id": "workbench.pack.workflow-preconditions",
-      "version": 1
     }
   ],
   "dependencies": [],
@@ -64,7 +56,7 @@
       "kind": "case",
       "schema_version": 2,
       "path": "resources/case.json",
-      "sha256": "cb3142b2f386fec0d71602a2a416a0ec4e0625ab83cf1659a01230d10b44eb5b"
+      "sha256": "4bbd0044865c4dc22178a570ca0f61a70bc3c4c98cbcdef8935f3f33ffc90b87"
     },
     {
       "id": "example.court.fictional",
@@ -120,7 +112,7 @@
       "kind": "workflow",
       "schema_version": 2,
       "path": "resources/workflow.json",
-      "sha256": "1dadbffdb7abff7553d7ed1ce2a8d52c3b7a030950b705813da63fd5d969e1a8"
+      "sha256": "df6a7eeb3ed10525793e234ed9c0ebcd8e356432d911f3bb791e0853aeb81bbb"
     }
   ]
 }

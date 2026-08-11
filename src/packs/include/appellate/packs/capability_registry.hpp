@@ -36,7 +36,8 @@ class CapabilityRegistry final {
     [[nodiscard]] static std::expected<void, Error>
     validateCoverage(std::uint32_t manifest_schema_version,
                      std::span<const model::RequiredCapability> required_capabilities,
-                     std::span<const model::ResourceKind> resource_kinds);
+                     std::span<const model::ResourceKind> resource_kinds,
+                     bool uses_workflow_preconditions, bool uses_structured_disposition);
 };
 
 } // namespace appellate::packs

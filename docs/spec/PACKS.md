@@ -163,6 +163,59 @@ the current stage and authorize the command actor's court role. Filing-route `ad
 references are limited to operations with no court-role restriction, so a party filing cannot
 silently exercise an operation reserved to the court.
 
+### Structured dispositions and bounded preconditions
+
+Schema-version-2 cases may opt into a structured authored disposition. The case declares stable
+issue/target pairs, one or more disposition plans, the authored plan ID, and the existing authored
+judgment-operation ID. Each plan has final or nonfinal status and at most 32 non-overlapping
+components. A component binds exactly one issue/target pair, `whole` or `part` scope, one action
+from `affirm`, `reverse`, `vacate`, `dismiss`, `grant`, or `deny`, an explicit remand flag, and
+bounded nonempty authority and record-anchor sets. Remand is valid only with reverse, vacate,
+dismiss, or grant. Every target, authority, and anchor must resolve through the case's declared
+issue graph. Target IDs are case-global and belong to exactly one issue; duplicate or overlapping
+targets and contradictory components fail closed.
+
+The plan digest is SHA-256 over a domain-separated, unsigned-64-bit big-endian length-framed
+canonical form. Its domain is exactly `appellate-workbench-disposition-plan-v1`; it binds the
+owning case ID, authored judgment-operation ID, plan ID, finality, and every component. Components
+are sorted by issue and target ID, while authority and record-anchor IDs are sorted within each
+component. Pack reading, runtime projection, and the workflow engine independently recompute the
+same digest. A judgment command selects the authored plan ID; it cannot substitute free-form
+authoritative outcome text. The resulting event snapshots the complete plan and the workflow
+state retains that plan through mandate and reopen. Legacy cases without a plan retain their
+existing authored-text behavior.
+
+Version-2 workflow operations may declare one to 32 all-of preconditions. The closed forms are:
+
+- filing type present or absent;
+- exact order ID with granted, denied, or other disposition;
+- exact deadline ID with open, satisfied, elapsed, or not-elapsed condition;
+- argument scheduled or not scheduled; and
+- judgment issued or not issued.
+
+Filing types must belong to a declared route. Order and deadline IDs are runtime-created and are
+therefore syntax-checked rather than required to appear in a static inventory; a missing runtime
+record makes the guard unmet. Deadline status and deadline elapsedness are separate axes, so an
+open deadline may also be elapsed, while open+satisfied and elapsed+not-elapsed are contradictions.
+Every guard is evaluated against command-start state and the command's explicit court date. An
+otherwise valid command with an unmet guard is rejected without mutation. Each emitted event
+snapshots the operation's exact precondition vector, so replay rejects a changed definition even
+when the changed predicates would still evaluate true.
+
+These optional fields are capability-owned. A pack using a structured plan must declare
+`workbench.pack.structured-disposition` version 1; a pack using operation preconditions must
+declare `workbench.pack.workflow-preconditions` version 1. Declaring either capability without
+using its feature is allowed as a supported lower bound, but using a feature without its
+capability fails at reader, resolved-catalog, and runtime boundaries. Existing version-2 packs
+without the fields remain valid.
+
+Persistence schema version 3 is reserved for a structured judgment command/event or an event
+with a nonempty precondition snapshot. Schema-3 events require canonical authority provenance and
+always carry the precondition array, including an empty array on a structured judgment with no
+guards. Legacy schema-1 and canonical-authority schema-2 bytes remain unchanged. Relabeling,
+mixing disposition forms, omitting the schema-3 snapshot, or using schema 3 for an old form fails
+closed.
+
 ## Dependencies and compatibility
 
 Dependencies lock an exact pack ID, version, and digest. Optional or version-range dependencies
@@ -191,12 +244,13 @@ version-2 packs use version-2 capabilities. Schema version 1 remains declaration
 compatibility with frozen revisions. Every schema-version-2 pack must declare
 `workbench.pack.declarative-resources` version 2. A version-2 pack containing a `judge_profile`
 must additionally declare `workbench.pack.judge-profile` version 2 and
-`workbench.pack.voice-style` version 2. An empty list, an unrelated-only declaration, or a
-declaration missing any required capability fails at pack read, resolved-catalog load, and
-independent runtime projection. Unknown IDs, unsupported versions, and capabilities declared for
-the wrong manifest generation fail before runtime projection. Unknown resource kinds, unsupported
-kind/version pairs, operation codes, schema versions, and mixed-version manifest/resource sets
-also fail closed.
+`workbench.pack.voice-style` version 2. Structured dispositions and workflow preconditions require
+their version-1 feature capabilities described above. An empty list, an unrelated-only
+declaration, or a declaration missing any required capability fails at pack read,
+resolved-catalog load, and independent runtime projection. Unknown IDs, unsupported versions,
+and capabilities declared for the wrong manifest generation fail before runtime projection.
+Unknown resource kinds, unsupported kind/version pairs, operation codes, schema versions, and
+mixed-version manifest/resource sets also fail closed.
 
 Schema and resource-kind registries are separate per manifest generation even where their current
 file names match. Adding a version-2-only schema or kind therefore cannot make the version-1

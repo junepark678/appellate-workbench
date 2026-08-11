@@ -1256,8 +1256,36 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
         for (const auto& resource : loaded->resources) {
             resource_kinds.push_back(resource.descriptor.kind);
         }
+        const auto uses_workflow_preconditions =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation) {
+                               return !operation.toObject()
+                                           .value(QStringLiteral("preconditions"))
+                                           .toArray()
+                                           .isEmpty();
+                           });
+            });
+        const auto uses_structured_disposition =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                if (resource.descriptor.kind != model::ResourceKind::Case) {
+                    return false;
+                }
+                if (resource.document.contains(QStringLiteral("disposition_plans")) ||
+                    resource.document.contains(QStringLiteral("authored_disposition_plan_id"))) {
+                    return true;
+                }
+                return std::ranges::any_of(
+                    resource.document.value(QStringLiteral("issues")).toArray(),
+                    [](const QJsonValue& issue) {
+                        return issue.toObject().contains(QStringLiteral("target_ids"));
+                    });
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
-            loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds);
+            loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds,
+            uses_workflow_preconditions, uses_structured_disposition);
         if (!capabilities) {
             return fail(CatalogErrorCode::UnsupportedCapability,
                         QStringLiteral("Pack %1 requires an unsupported capability: %2")

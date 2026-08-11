@@ -271,7 +271,8 @@ struct DocumentRequirement final {
            state.accepted_filings.empty() && state.deadlines.empty() &&
            state.deficiencies.empty() && state.orders.empty() && !state.sealed &&
            !state.argument_date.has_value() && !state.judgment_sha256.has_value() &&
-           !state.mandate_sha256.has_value() && !state.legal_time_cursor.has_value();
+           !state.mandate_sha256.has_value() && !state.legal_time_cursor.has_value() &&
+           !state.judgment_disposition.has_value();
 }
 
 [[nodiscard]] auto validateInitialConfiguration(const model::WorkflowDefinition& workflow,

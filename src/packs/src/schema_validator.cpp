@@ -434,6 +434,7 @@ struct ResolvedSchema final {
         QStringLiteral("items"),
         QStringLiteral("minimum"),
         QStringLiteral("maximum"),
+        QStringLiteral("oneOf"),
     };
     return keywords.contains(key);
 }
@@ -490,8 +491,30 @@ struct ResolvedSchema final {
                 ErrorCode::UnsupportedSchema,
                 QStringLiteral("Tuple and boolean schemas are not supported in %1").arg(file));
         }
-        return verifySchemaShape(schemas, file, schema.value(QStringLiteral("items")).toObject(),
-                                 depth + 1);
+        const auto verified = verifySchemaShape(
+            schemas, file, schema.value(QStringLiteral("items")).toObject(), depth + 1);
+        if (!verified) {
+            return verified;
+        }
+    }
+    if (schema.contains(QStringLiteral("oneOf"))) {
+        const auto alternatives = schema.value(QStringLiteral("oneOf"));
+        if (!alternatives.isArray() || alternatives.toArray().isEmpty() ||
+            alternatives.toArray().size() > 64) {
+            return fail(ErrorCode::UnsupportedSchema,
+                        QStringLiteral("oneOf must be a bounded nonempty array in %1").arg(file));
+        }
+        for (const auto& alternative : alternatives.toArray()) {
+            if (!alternative.isObject()) {
+                return fail(ErrorCode::UnsupportedSchema,
+                            QStringLiteral("Boolean schemas are not supported in %1").arg(file));
+            }
+            const auto verified =
+                verifySchemaShape(schemas, file, alternative.toObject(), depth + 1);
+            if (!verified) {
+                return verified;
+            }
+        }
     }
     return {};
 }
@@ -561,6 +584,23 @@ struct ResolvedSchema final {
             validateNode(schemas, resolved->file, resolved->schema, instance, path, depth + 1);
         if (!result) {
             return result;
+        }
+    }
+
+    if (schema.contains(QStringLiteral("oneOf"))) {
+        qsizetype matches = 0;
+        for (const auto& alternative : schema.value(QStringLiteral("oneOf")).toArray()) {
+            const auto result = validateNode(schemas, schema_file, alternative.toObject(), instance,
+                                             path, depth + 1);
+            if (result) {
+                ++matches;
+            } else if (result.error().code != ErrorCode::SchemaViolation) {
+                return result;
+            }
+        }
+        if (matches != 1) {
+            return violation(schema_file, path,
+                             QStringLiteral("value must match exactly one oneOf alternative"));
         }
     }
 

@@ -1,6 +1,8 @@
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/packs/capability_registry.hpp"
 
+#include <QByteArrayView>
+#include <QCryptographicHash>
 #include <QDate>
 #include <QDir>
 #include <QJsonArray>
@@ -13,12 +15,15 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <initializer_list>
 #include <iterator>
 #include <limits>
 #include <optional>
 #include <ranges>
 #include <span>
 #include <string>
+#include <string_view>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -36,6 +41,12 @@ constexpr qsizetype maximum_holidays = 4096;
 constexpr qsizetype maximum_case_items = 4096;
 constexpr qsizetype maximum_bench_seats = 32;
 constexpr qsizetype maximum_authorities = 32;
+constexpr qsizetype maximum_disposition_targets = 4096;
+constexpr qsizetype maximum_disposition_plans = 64;
+constexpr qsizetype maximum_disposition_components = 32;
+constexpr qsizetype maximum_workflow_preconditions = 32;
+constexpr qsizetype maximum_component_authorities = 32;
+constexpr qsizetype maximum_component_record_anchors = 32;
 
 template <typename Value> using Result = std::expected<Value, RuntimePackError>;
 
@@ -92,6 +103,111 @@ template <typename Value> using Result = std::expected<Value, RuntimePackError>;
         QStringLiteral(R"(^[a-z0-9][a-z0-9._-]*(?:/[a-z0-9][a-z0-9._-]*)*$)"));
     return !value.isEmpty() && value.size() <= 240 && !QDir::isAbsolutePath(value) &&
            QDir::cleanPath(value) == value && pattern.match(value).hasMatch();
+}
+
+[[nodiscard]] bool hasExactKeys(const QJsonObject& object,
+                                std::initializer_list<const char*> keys) {
+    if (object.size() != static_cast<qsizetype>(keys.size())) {
+        return false;
+    }
+    return std::ranges::all_of(
+        keys, [&object](const char* key) { return object.contains(QLatin1StringView(key)); });
+}
+
+void addDispositionUint64(QCryptographicHash& hash, std::uint64_t value) {
+    std::array<char, 8> bytes{};
+    for (int index = 7; index >= 0; --index) {
+        bytes[static_cast<std::size_t>(index)] = static_cast<char>(value & 0xffU);
+        value >>= 8U;
+    }
+    hash.addData(QByteArrayView(bytes.data(), static_cast<qsizetype>(bytes.size())));
+}
+
+void addDispositionFrame(QCryptographicHash& hash, const std::string& value) {
+    addDispositionUint64(hash, value.size());
+    hash.addData(QByteArrayView(value.data(), static_cast<qsizetype>(value.size())));
+}
+
+[[nodiscard]] std::string_view dispositionScopeName(model::DispositionScope value) {
+    switch (value) {
+    case model::DispositionScope::Whole:
+        return "whole";
+    case model::DispositionScope::Part:
+        return "part";
+    }
+    return {};
+}
+
+[[nodiscard]] std::string_view dispositionActionName(model::DispositionAction value) {
+    switch (value) {
+    case model::DispositionAction::Affirm:
+        return "affirm";
+    case model::DispositionAction::Reverse:
+        return "reverse";
+    case model::DispositionAction::Vacate:
+        return "vacate";
+    case model::DispositionAction::Dismiss:
+        return "dismiss";
+    case model::DispositionAction::Grant:
+        return "grant";
+    case model::DispositionAction::Deny:
+        return "deny";
+    }
+    return {};
+}
+
+[[nodiscard]] std::string_view dispositionFinalityName(model::DispositionFinality value) {
+    switch (value) {
+    case model::DispositionFinality::Final:
+        return "final";
+    case model::DispositionFinality::Nonfinal:
+        return "nonfinal";
+    }
+    return {};
+}
+
+[[nodiscard]] std::string canonicalDispositionPlanDigest(const std::string& case_id,
+                                                         const std::string& authored_operation_id,
+                                                         const model::DispositionPlan& plan) {
+    std::vector<const model::DispositionComponent*> components;
+    components.reserve(plan.components.size());
+    for (const auto& component : plan.components) {
+        components.push_back(&component);
+    }
+    std::ranges::sort(components, [](const auto* left, const auto* right) {
+        return std::tuple{left->issue_id.value, left->target_id.value} <
+               std::tuple{right->issue_id.value, right->target_id.value};
+    });
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addDispositionFrame(hash, "appellate-workbench-disposition-plan-v1");
+    addDispositionFrame(hash, case_id);
+    addDispositionFrame(hash, authored_operation_id);
+    addDispositionFrame(hash, plan.id.value);
+    addDispositionFrame(hash, std::string(dispositionFinalityName(plan.finality)));
+    addDispositionUint64(hash, components.size());
+    for (const auto* component : components) {
+        addDispositionFrame(hash, component->issue_id.value);
+        addDispositionFrame(hash, component->target_id.value);
+        addDispositionFrame(hash, std::string(dispositionScopeName(component->scope)));
+        addDispositionFrame(hash, std::string(dispositionActionName(component->action)));
+        addDispositionUint64(hash, component->remand ? 1U : 0U);
+
+        auto authority_ids = component->authority_ids;
+        std::ranges::sort(authority_ids, {}, &model::AuthorityId::value);
+        addDispositionUint64(hash, authority_ids.size());
+        for (const auto& authority_id : authority_ids) {
+            addDispositionFrame(hash, authority_id.value);
+        }
+
+        auto record_anchor_ids = component->record_anchor_ids;
+        std::ranges::sort(record_anchor_ids, {}, &model::RecordAnchorId::value);
+        addDispositionUint64(hash, record_anchor_ids.size());
+        for (const auto& anchor_id : record_anchor_ids) {
+            addDispositionFrame(hash, anchor_id.value);
+        }
+    }
+    return hash.result().toHex().toStdString();
 }
 
 [[nodiscard]] Result<std::string> requiredString(const QJsonObject& object, const char* key,
@@ -433,8 +549,36 @@ struct ResourceIndex final {
         resource_kinds.reserve(pack->resources.size());
         std::ranges::transform(pack->resources, std::back_inserter(resource_kinds),
                                [](const auto& resource) { return resource.descriptor.kind; });
+        const auto uses_workflow_preconditions =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation) {
+                               return !operation.toObject()
+                                           .value(QStringLiteral("preconditions"))
+                                           .toArray()
+                                           .isEmpty();
+                           });
+            });
+        const auto uses_structured_disposition =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                if (resource.descriptor.kind != model::ResourceKind::Case) {
+                    return false;
+                }
+                if (resource.document.contains(QStringLiteral("disposition_plans")) ||
+                    resource.document.contains(QStringLiteral("authored_disposition_plan_id"))) {
+                    return true;
+                }
+                return std::ranges::any_of(
+                    resource.document.value(QStringLiteral("issues")).toArray(),
+                    [](const QJsonValue& issue) {
+                        return issue.toObject().contains(QStringLiteral("target_ids"));
+                    });
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
-            pack->manifest_schema_version, pack->required_capabilities, resource_kinds);
+            pack->manifest_schema_version, pack->required_capabilities, resource_kinds,
+            uses_workflow_preconditions, uses_structured_disposition);
         if (!capabilities) {
             return fail(RuntimePackErrorCode::InvalidPack,
                         capabilities.error().message.toStdString());
@@ -812,6 +956,117 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
                                        model::WorkflowOperationId{*operation_id}};
 }
 
+[[nodiscard]] Result<std::vector<model::WorkflowPrecondition>>
+parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path,
+                           std::uint32_t schema_version) {
+    if (!operation.contains(QStringLiteral("preconditions"))) {
+        return std::vector<model::WorkflowPrecondition>{};
+    }
+    if (schema_version != 2) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + ".preconditions are supported only by schema 2 workflows");
+    }
+    const auto values =
+        requiredArray(operation, "preconditions", path, 1, maximum_workflow_preconditions);
+    if (!values) {
+        return std::unexpected(values.error());
+    }
+
+    std::vector<model::WorkflowPrecondition> result;
+    result.reserve(static_cast<std::size_t>(values->size()));
+    std::unordered_set<std::string> subjects;
+    for (qsizetype index = 0; index < values->size(); ++index) {
+        if (!values->at(index).isObject()) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + ".preconditions must contain objects");
+        }
+        const auto object = values->at(index).toObject();
+        const auto item_path = path + ".preconditions[" + std::to_string(index) + "]";
+        const auto kind = requiredString(object, "kind", item_path);
+        if (!kind) {
+            return std::unexpected(kind.error());
+        }
+
+        std::string subject;
+        if (*kind == "filing_presence" &&
+            hasExactKeys(object, {"kind", "filing_type_id", "present"})) {
+            const auto filing_type = requiredId(object, "filing_type_id", item_path);
+            const auto present = requiredBoolean(object, "present", item_path);
+            if (!filing_type || !present) {
+                return std::unexpected(!filing_type ? filing_type.error() : present.error());
+            }
+            subject = *kind + ':' + *filing_type;
+            result.emplace_back(
+                model::WorkflowFilingPrecondition{model::FilingTypeId{*filing_type}, *present});
+        } else if (*kind == "order_disposition" &&
+                   hasExactKeys(object, {"kind", "order_id", "disposition"})) {
+            const auto order_id = requiredId(object, "order_id", item_path);
+            const auto disposition = requiredString(object, "disposition", item_path);
+            if (!order_id || !disposition) {
+                return std::unexpected(!order_id ? order_id.error() : disposition.error());
+            }
+            static const std::unordered_map<std::string, model::WorkflowOrderDisposition>
+                dispositions{{"granted", model::WorkflowOrderDisposition::Granted},
+                             {"denied", model::WorkflowOrderDisposition::Denied},
+                             {"other", model::WorkflowOrderDisposition::Other}};
+            const auto found = dispositions.find(*disposition);
+            if (found == dispositions.end()) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            item_path + ".disposition has an unsupported value");
+            }
+            subject = *kind + ':' + *order_id;
+            result.emplace_back(
+                model::WorkflowOrderPrecondition{model::WorkflowOrderId{*order_id}, found->second});
+        } else if (*kind == "deadline_status" &&
+                   hasExactKeys(object, {"kind", "deadline_id", "status"})) {
+            const auto deadline_id = requiredId(object, "deadline_id", item_path);
+            const auto status = requiredString(object, "status", item_path);
+            if (!deadline_id || !status) {
+                return std::unexpected(!deadline_id ? deadline_id.error() : status.error());
+            }
+            static const std::unordered_map<std::string, model::WorkflowDeadlineCondition>
+                conditions{{"open", model::WorkflowDeadlineCondition::Open},
+                           {"satisfied", model::WorkflowDeadlineCondition::Satisfied},
+                           {"elapsed", model::WorkflowDeadlineCondition::Elapsed},
+                           {"not_elapsed", model::WorkflowDeadlineCondition::NotElapsed}};
+            const auto found = conditions.find(*status);
+            if (found == conditions.end()) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            item_path + ".status has an unsupported value");
+            }
+            const auto axis = found->second == model::WorkflowDeadlineCondition::Open ||
+                                      found->second == model::WorkflowDeadlineCondition::Satisfied
+                                  ? "status"
+                                  : "elapsed";
+            subject = *kind + ':' + *deadline_id + ':' + axis;
+            result.emplace_back(model::WorkflowDeadlinePrecondition{
+                model::WorkflowDeadlineId{*deadline_id}, found->second});
+        } else if (*kind == "argument_scheduled" && hasExactKeys(object, {"kind", "scheduled"})) {
+            const auto scheduled = requiredBoolean(object, "scheduled", item_path);
+            if (!scheduled) {
+                return std::unexpected(scheduled.error());
+            }
+            subject = *kind;
+            result.emplace_back(model::WorkflowArgumentPrecondition{*scheduled});
+        } else if (*kind == "judgment_issued" && hasExactKeys(object, {"kind", "issued"})) {
+            const auto issued = requiredBoolean(object, "issued", item_path);
+            if (!issued) {
+                return std::unexpected(issued.error());
+            }
+            subject = *kind;
+            result.emplace_back(model::WorkflowJudgmentPrecondition{*issued});
+        } else {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        item_path + " does not match a closed precondition form");
+        }
+        if (!subjects.emplace(std::move(subject)).second) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + ".preconditions repeat or contradict a subject");
+        }
+    }
+    return result;
+}
+
 [[nodiscard]] Result<model::WorkflowDefinition> parseWorkflow(const ValidatedResource& resource,
                                                               const ResourceIndex& resource_index,
                                                               std::uint32_t schema_version) {
@@ -862,8 +1117,9 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
         const auto days = optionalDeadlineDays(operation, operation_path);
         const auto counting = optionalDeadlineCounting(operation, operation_path);
         const auto roles = idArray(operation, "authorized_role_ids", operation_path, 0, 64);
+        auto preconditions = parseWorkflowPreconditions(operation, operation_path, schema_version);
         if (!id || !stage || !opcode || !authority_object || !next_stage || !days || !counting ||
-            !roles) {
+            !roles || !preconditions) {
             if (!id) {
                 return std::unexpected(id.error());
             }
@@ -885,7 +1141,10 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
             if (!counting) {
                 return std::unexpected(counting.error());
             }
-            return std::unexpected(roles.error());
+            if (!roles) {
+                return std::unexpected(roles.error());
+            }
+            return std::unexpected(preconditions.error());
         }
         auto authority = parseAuthorityBasis(*authority_object, operation_path + ".authority",
                                              resource_index, schema_version);
@@ -907,7 +1166,8 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
         }
         operations.push_back(model::WorkflowOperation{
             model::WorkflowOperationId{*id}, model::WorkflowStageId{*stage}, *opcode,
-            std::move(*authority), std::move(next), *days, *counting, std::move(authorized_roles)});
+            std::move(*authority), std::move(next), *days, *counting, std::move(authorized_roles),
+            std::move(*preconditions)});
     }
 
     std::vector<model::WorkflowFilingRoute> routes;
@@ -1091,6 +1351,7 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
     };
 
     std::unordered_set<std::string> route_keys;
+    std::unordered_set<std::string> declared_filing_types;
     std::unordered_set<std::string> deadline_ids;
     std::unordered_set<std::string> accepted_deadline_ids;
     for (const auto& route : definition.filing_routes) {
@@ -1103,6 +1364,7 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
             return fail(RuntimePackErrorCode::CrossReferenceFailure,
                         path + " has a duplicate or incompatible filing route");
         }
+        declared_filing_types.insert(route.filing_type.value);
         if (route.deficiency_operation_id.has_value() &&
             !operationForRoute(*route.deficiency_operation_id,
                                model::WorkflowOpcode::IssueDeficiency, route.stage_id)) {
@@ -1139,6 +1401,15 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
             !accepted_deadline_ids.contains(route.satisfies_deadline_id->value)) {
             return fail(RuntimePackErrorCode::CrossReferenceFailure,
                         path + " satisfies a deadline that this workflow does not produce");
+        }
+    }
+    for (const auto& operation : definition.operations) {
+        for (const auto& precondition : operation.preconditions) {
+            const auto* filing = std::get_if<model::WorkflowFilingPrecondition>(&precondition);
+            if (filing != nullptr && !declared_filing_types.contains(filing->filing_type.value)) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            path + " has a filing precondition outside its filing routes");
+            }
         }
     }
     return definition;
@@ -1217,6 +1488,21 @@ struct ParsedCase final {
     std::vector<RuntimeIssue> issues;
     issues.reserve(static_cast<std::size_t>(issue_values->size()));
     std::unordered_set<std::string> issue_ids;
+    std::unordered_map<std::string, std::unordered_set<std::string>> targets_by_issue;
+    std::unordered_map<std::string, std::unordered_set<std::string>> authorities_by_issue;
+    std::unordered_map<std::string, std::unordered_set<std::string>> anchors_by_issue;
+    std::unordered_set<std::string> all_target_ids;
+    std::vector<model::DispositionTarget> disposition_targets;
+    const auto uses_structured_disposition =
+        resource.document.contains(QStringLiteral("disposition_plans")) ||
+        resource.document.contains(QStringLiteral("authored_disposition_plan_id")) ||
+        std::ranges::any_of(*issue_values, [](const QJsonValue& value) {
+            return value.toObject().contains(QStringLiteral("target_ids"));
+        });
+    if (uses_structured_disposition && resource.descriptor.schema_version != 2) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + " uses structured disposition fields outside schema 2");
+    }
     for (qsizetype index = 0; index < issue_values->size(); ++index) {
         if (!issue_values->at(index).isObject()) {
             return fail(RuntimePackErrorCode::InvalidResource,
@@ -1244,6 +1530,32 @@ struct ParsedCase final {
             return fail(RuntimePackErrorCode::InvalidResource,
                         issue_path + " repeats an issue identifier");
         }
+        if (issue.contains(QStringLiteral("target_ids"))) {
+            const auto target_ids =
+                idArray(issue, "target_ids", issue_path, 1, maximum_disposition_targets);
+            if (!target_ids) {
+                return std::unexpected(target_ids.error());
+            }
+            if (disposition_targets.size() + target_ids->size() >
+                static_cast<std::size_t>(maximum_disposition_targets)) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            path + " exceeds the disposition target bound");
+            }
+            auto& issue_targets = targets_by_issue[*id];
+            for (const auto& target_id : *target_ids) {
+                if (!all_target_ids.emplace(target_id).second) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                path + " repeats a disposition target identifier");
+                }
+                issue_targets.insert(target_id);
+                disposition_targets.push_back(model::DispositionTarget{
+                    model::CaseIssueId{*id}, model::DispositionTargetId{target_id}});
+            }
+        }
+        authorities_by_issue.emplace(
+            *id, std::unordered_set<std::string>(authorities->begin(), authorities->end()));
+        anchors_by_issue.emplace(*id,
+                                 std::unordered_set<std::string>(anchors->begin(), anchors->end()));
         std::vector<model::AuthorityId> authority_ids;
         std::vector<model::AuthorityRef> authority_references;
         authority_ids.reserve(authorities->size());
@@ -1263,10 +1575,212 @@ struct ParsedCase final {
         issues.push_back(RuntimeIssue{RuntimeIssueId{*id}, *issue_title, std::move(authority_ids),
                                       std::move(authority_references), std::move(anchor_ids)});
     }
-    return ParsedCase{model::CaseDefinition{model::CaseId{resource.descriptor.id},
-                                            model::ProcedureId{*procedure}, std::move(actors)},
-                      *title, RuntimeRecordId{*record}, std::move(issues),
-                      model::WorkflowOperationId{*disposition}};
+
+    std::vector<model::DispositionPlan> disposition_plans;
+    std::optional<model::DispositionPlanId> authored_disposition_plan_id;
+    std::optional<model::WorkflowOperationId> authored_disposition_operation_id;
+    if (uses_structured_disposition) {
+        if (targets_by_issue.size() != issue_ids.size() ||
+            !resource.document.contains(QStringLiteral("disposition_plans")) ||
+            !resource.document.contains(QStringLiteral("authored_disposition_plan_id"))) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + " has an incomplete structured disposition contract");
+        }
+        const auto plan_values = requiredArray(resource.document, "disposition_plans", path, 1,
+                                               maximum_disposition_plans);
+        const auto authored_plan =
+            requiredId(resource.document, "authored_disposition_plan_id", path);
+        if (!plan_values || !authored_plan) {
+            return std::unexpected(!plan_values ? plan_values.error() : authored_plan.error());
+        }
+        disposition_plans.reserve(static_cast<std::size_t>(plan_values->size()));
+        std::unordered_set<std::string> plan_ids;
+        for (qsizetype plan_index = 0; plan_index < plan_values->size(); ++plan_index) {
+            if (!plan_values->at(plan_index).isObject()) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            path + ".disposition_plans must contain objects");
+            }
+            const auto plan_object = plan_values->at(plan_index).toObject();
+            const auto plan_path = path + ".disposition_plans[" + std::to_string(plan_index) + "]";
+            if (!hasExactKeys(plan_object, {"plan_id", "finality", "digest", "components"})) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            plan_path + " must use the closed disposition plan shape");
+            }
+            const auto plan_id = requiredId(plan_object, "plan_id", plan_path);
+            const auto finality_text = requiredString(plan_object, "finality", plan_path);
+            const auto digest = requiredSha256(plan_object, "digest", plan_path);
+            const auto component_values = requiredArray(plan_object, "components", plan_path, 1,
+                                                        maximum_disposition_components);
+            if (!plan_id || !finality_text || !digest || !component_values) {
+                if (!plan_id) {
+                    return std::unexpected(plan_id.error());
+                }
+                if (!finality_text) {
+                    return std::unexpected(finality_text.error());
+                }
+                if (!digest) {
+                    return std::unexpected(digest.error());
+                }
+                return std::unexpected(component_values.error());
+            }
+            if (!plan_ids.emplace(*plan_id).second) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            plan_path + " repeats a disposition plan identifier");
+            }
+            model::DispositionFinality finality;
+            if (*finality_text == "final") {
+                finality = model::DispositionFinality::Final;
+            } else if (*finality_text == "nonfinal") {
+                finality = model::DispositionFinality::Nonfinal;
+            } else {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            plan_path + ".finality has an unsupported value");
+            }
+
+            std::vector<model::DispositionComponent> components;
+            components.reserve(static_cast<std::size_t>(component_values->size()));
+            std::unordered_set<std::string> covered_targets;
+            for (qsizetype component_index = 0; component_index < component_values->size();
+                 ++component_index) {
+                if (!component_values->at(component_index).isObject()) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                plan_path + ".components must contain objects");
+                }
+                const auto component = component_values->at(component_index).toObject();
+                const auto component_path =
+                    plan_path + ".components[" + std::to_string(component_index) + "]";
+                if (!hasExactKeys(component, {"issue_id", "target_id", "scope", "action", "remand",
+                                              "authority_ids", "record_anchor_ids"})) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                component_path +
+                                    " must use the closed disposition component shape");
+                }
+                const auto issue_id = requiredId(component, "issue_id", component_path);
+                const auto target_id = requiredId(component, "target_id", component_path);
+                const auto scope_text = requiredString(component, "scope", component_path);
+                const auto action_text = requiredString(component, "action", component_path);
+                const auto remand = requiredBoolean(component, "remand", component_path);
+                const auto authority_ids = idArray(component, "authority_ids", component_path, 1,
+                                                   maximum_component_authorities);
+                const auto record_anchor_ids =
+                    idArray(component, "record_anchor_ids", component_path, 1,
+                            maximum_component_record_anchors);
+                if (!issue_id || !target_id || !scope_text || !action_text || !remand ||
+                    !authority_ids || !record_anchor_ids) {
+                    if (!issue_id) {
+                        return std::unexpected(issue_id.error());
+                    }
+                    if (!target_id) {
+                        return std::unexpected(target_id.error());
+                    }
+                    if (!scope_text) {
+                        return std::unexpected(scope_text.error());
+                    }
+                    if (!action_text) {
+                        return std::unexpected(action_text.error());
+                    }
+                    if (!remand) {
+                        return std::unexpected(remand.error());
+                    }
+                    if (!authority_ids) {
+                        return std::unexpected(authority_ids.error());
+                    }
+                    return std::unexpected(record_anchor_ids.error());
+                }
+                const auto target_key = *issue_id + '\n' + *target_id;
+                const auto target_issue = targets_by_issue.find(*issue_id);
+                if (target_issue == targets_by_issue.end() ||
+                    !target_issue->second.contains(*target_id) ||
+                    !covered_targets.emplace(target_key).second) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                component_path + " has an unresolved or overlapping target");
+                }
+
+                model::DispositionScope scope;
+                if (*scope_text == "whole") {
+                    scope = model::DispositionScope::Whole;
+                } else if (*scope_text == "part") {
+                    scope = model::DispositionScope::Part;
+                } else {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                component_path + ".scope has an unsupported value");
+                }
+                static const std::unordered_map<std::string, model::DispositionAction> actions{
+                    {"affirm", model::DispositionAction::Affirm},
+                    {"reverse", model::DispositionAction::Reverse},
+                    {"vacate", model::DispositionAction::Vacate},
+                    {"dismiss", model::DispositionAction::Dismiss},
+                    {"grant", model::DispositionAction::Grant},
+                    {"deny", model::DispositionAction::Deny},
+                };
+                const auto action = actions.find(*action_text);
+                if (action == actions.end()) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                component_path + ".action has an unsupported value");
+                }
+                const auto supports_remand = action->second == model::DispositionAction::Reverse ||
+                                             action->second == model::DispositionAction::Vacate ||
+                                             action->second == model::DispositionAction::Dismiss ||
+                                             action->second == model::DispositionAction::Grant;
+                if (*remand && !supports_remand) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                component_path + " uses remand with an incompatible action");
+                }
+
+                const auto issue_authorities = authorities_by_issue.find(*issue_id);
+                const auto issue_anchors = anchors_by_issue.find(*issue_id);
+                if (issue_authorities == authorities_by_issue.end() ||
+                    issue_anchors == anchors_by_issue.end() ||
+                    std::ranges::any_of(*authority_ids,
+                                        [&](const std::string& authority_id) {
+                                            return !issue_authorities->second.contains(
+                                                authority_id);
+                                        }) ||
+                    std::ranges::any_of(*record_anchor_ids, [&](const std::string& anchor_id) {
+                        return !issue_anchors->second.contains(anchor_id);
+                    })) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                component_path + " is grounded outside its issue");
+                }
+                std::vector<model::AuthorityId> component_authorities;
+                component_authorities.reserve(authority_ids->size());
+                for (const auto& authority_id : *authority_ids) {
+                    component_authorities.push_back(model::AuthorityId{authority_id});
+                }
+                std::vector<model::RecordAnchorId> component_anchors;
+                component_anchors.reserve(record_anchor_ids->size());
+                for (const auto& anchor_id : *record_anchor_ids) {
+                    component_anchors.push_back(model::RecordAnchorId{anchor_id});
+                }
+                components.push_back(model::DispositionComponent{
+                    model::CaseIssueId{*issue_id}, model::DispositionTargetId{*target_id}, scope,
+                    action->second, *remand, std::move(component_authorities),
+                    std::move(component_anchors)});
+            }
+            model::DispositionPlan plan{model::DispositionPlanId{*plan_id}, finality, *digest,
+                                        std::move(components)};
+            if (canonicalDispositionPlanDigest(resource.descriptor.id, *disposition, plan) !=
+                plan.canonical_sha256) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            plan_path + ".digest does not match its canonical disposition bytes");
+            }
+            disposition_plans.push_back(std::move(plan));
+        }
+        if (!plan_ids.contains(*authored_plan)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + ".authored_disposition_plan_id is not declared");
+        }
+        authored_disposition_plan_id = model::DispositionPlanId{*authored_plan};
+        authored_disposition_operation_id = model::WorkflowOperationId{*disposition};
+    }
+
+    return ParsedCase{
+        model::CaseDefinition{model::CaseId{resource.descriptor.id}, model::ProcedureId{*procedure},
+                              std::move(actors), std::move(disposition_targets),
+                              std::move(disposition_plans), std::move(authored_disposition_plan_id),
+                              std::move(authored_disposition_operation_id)},
+        *title, RuntimeRecordId{*record}, std::move(issues),
+        model::WorkflowOperationId{*disposition}};
 }
 
 [[nodiscard]] Result<RuntimeRecord> parseRecord(const ValidatedResource& resource) {

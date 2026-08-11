@@ -17,6 +17,8 @@ constexpr std::array supported_capabilities{
     SupportedCapability{"workbench.pack.voice-style", 1, 1, 1},
     SupportedCapability{"workbench.pack.voice-style", 2, 2, 2},
     SupportedCapability{"workbench.pack.canonical-authority", 1, 2, 2},
+    SupportedCapability{"workbench.pack.structured-disposition", 1, 2, 2},
+    SupportedCapability{"workbench.pack.workflow-preconditions", 1, 2, 2},
 };
 
 [[nodiscard]] auto fail(QString message) -> std::unexpected<Error> {
@@ -64,7 +66,8 @@ std::expected<void, Error> CapabilityRegistry::validateDeclarations(
 std::expected<void, Error> CapabilityRegistry::validateCoverage(
     std::uint32_t manifest_schema_version,
     std::span<const model::RequiredCapability> required_capabilities,
-    std::span<const model::ResourceKind> resource_kinds) {
+    std::span<const model::ResourceKind> resource_kinds, bool uses_workflow_preconditions,
+    bool uses_structured_disposition) {
     const auto declarations = validateDeclarations(manifest_schema_version, required_capabilities);
     if (!declarations) {
         return declarations;
@@ -112,6 +115,16 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
         !hasCapability(required_capabilities, "workbench.pack.canonical-authority", 1)) {
         return fail(QStringLiteral("Schema-2 authority-bearing content requires "
                                    "workbench.pack.canonical-authority version 1"));
+    }
+    if (uses_structured_disposition &&
+        !hasCapability(required_capabilities, "workbench.pack.structured-disposition", 1)) {
+        return fail(QStringLiteral("Schema-2 structured disposition plans require "
+                                   "workbench.pack.structured-disposition version 1"));
+    }
+    if (uses_workflow_preconditions &&
+        !hasCapability(required_capabilities, "workbench.pack.workflow-preconditions", 1)) {
+        return fail(QStringLiteral("Schema-2 nonempty workflow preconditions require "
+                                   "workbench.pack.workflow-preconditions version 1"));
     }
     return {};
 }

@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <initializer_list>
 #include <optional>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -42,6 +43,12 @@ constexpr quint64 maximum_total_blob_bytes = 3ULL * 1024ULL * 1024ULL * 1024ULL;
 constexpr qsizetype maximum_issue_focus_items = 32;
 constexpr qsizetype maximum_jurisdictions = 64;
 constexpr qsizetype maximum_voice_phrases = 8;
+constexpr qsizetype maximum_workflow_preconditions = 32;
+constexpr qsizetype maximum_disposition_targets = 4096;
+constexpr qsizetype maximum_disposition_plans = 64;
+constexpr qsizetype maximum_disposition_components = 32;
+constexpr qsizetype maximum_component_authorities = 32;
+constexpr qsizetype maximum_component_record_anchors = 32;
 constexpr qsizetype blob_stream_buffer_bytes = 64 * 1024;
 constexpr qsizetype pdf_tail_bytes = 1024;
 
@@ -764,6 +771,53 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     return QString::fromLatin1(hash.result().toHex()).toStdString();
 }
 
+[[nodiscard]] QString canonicalDispositionPlanDigest(const QString& case_id,
+                                                     const QString& authored_operation_id,
+                                                     const QJsonObject& plan) {
+    std::vector<QJsonObject> components;
+    const auto component_values = plan.value(QStringLiteral("components")).toArray();
+    components.reserve(static_cast<std::size_t>(component_values.size()));
+    for (const auto& value : component_values) {
+        components.push_back(value.toObject());
+    }
+    std::ranges::sort(components, [](const QJsonObject& left, const QJsonObject& right) {
+        return std::tuple{left.value(QStringLiteral("issue_id")).toString(),
+                          left.value(QStringLiteral("target_id")).toString()} <
+               std::tuple{right.value(QStringLiteral("issue_id")).toString(),
+                          right.value(QStringLiteral("target_id")).toString()};
+    });
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QByteArrayView("appellate-workbench-disposition-plan-v1"));
+    addFrame(hash, case_id);
+    addFrame(hash, authored_operation_id);
+    addFrame(hash, plan.value(QStringLiteral("plan_id")).toString());
+    addFrame(hash, plan.value(QStringLiteral("finality")).toString());
+    addUint64(hash, static_cast<quint64>(components.size()));
+    for (const auto& component : components) {
+        addFrame(hash, component.value(QStringLiteral("issue_id")).toString());
+        addFrame(hash, component.value(QStringLiteral("target_id")).toString());
+        addFrame(hash, component.value(QStringLiteral("scope")).toString());
+        addFrame(hash, component.value(QStringLiteral("action")).toString());
+        addUint64(hash, component.value(QStringLiteral("remand")).toBool() ? 1U : 0U);
+        for (const auto& field :
+             {QStringLiteral("authority_ids"), QStringLiteral("record_anchor_ids")}) {
+            std::vector<QString> identifiers;
+            const auto identifier_values = component.value(field).toArray();
+            identifiers.reserve(static_cast<std::size_t>(identifier_values.size()));
+            for (const auto& identifier : identifier_values) {
+                identifiers.push_back(identifier.toString());
+            }
+            std::ranges::sort(identifiers);
+            addUint64(hash, static_cast<quint64>(identifiers.size()));
+            for (const auto& identifier : identifiers) {
+                addFrame(hash, identifier);
+            }
+        }
+    }
+    return QString::fromLatin1(hash.result().toHex());
+}
+
 [[nodiscard]] auto crossReferenceFailure(const ValidatedResource& resource, QString field,
                                          QString detail) -> std::unexpected<Error> {
     return fail(ErrorCode::CrossReferenceFailure,
@@ -778,6 +832,38 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
         result.insert(value.toString());
     }
     return result;
+}
+
+[[nodiscard]] bool usesWorkflowPreconditions(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+            return false;
+        }
+        return std::ranges::any_of(resource.document.value(QStringLiteral("operations")).toArray(),
+                                   [](const QJsonValue& operation) {
+                                       return !operation.toObject()
+                                                   .value(QStringLiteral("preconditions"))
+                                                   .toArray()
+                                                   .isEmpty();
+                                   });
+    });
+}
+
+[[nodiscard]] bool usesStructuredDisposition(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        if (resource.descriptor.kind != model::ResourceKind::Case) {
+            return false;
+        }
+        if (resource.document.contains(QStringLiteral("disposition_plans")) ||
+            resource.document.contains(QStringLiteral("authored_disposition_plan_id"))) {
+            return true;
+        }
+        return std::ranges::any_of(resource.document.value(QStringLiteral("issues")).toArray(),
+                                   [](const QJsonValue& issue) {
+                                       return issue.toObject().contains(
+                                           QStringLiteral("target_ids"));
+                                   });
+    });
 }
 
 [[nodiscard]] auto validateResourceGraph(const std::vector<ValidatedResource>& resources,
@@ -938,6 +1024,7 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
             }
             QSet<QString> operations;
             QHash<QString, QJsonObject> operation_documents;
+            QSet<QString> precondition_filing_ids;
             for (const auto& value : document.value(QStringLiteral("operations")).toArray()) {
                 const auto operation = value.toObject();
                 const auto operation_id =
@@ -1012,6 +1099,97 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                         resource, QStringLiteral("operations/authorized_role_ids"),
                         QStringLiteral("court operations require an authorized role"));
                 }
+                if (operation.contains(QStringLiteral("preconditions"))) {
+                    const auto precondition_value =
+                        operation.value(QStringLiteral("preconditions"));
+                    if (resource.descriptor.schema_version != 2 || !precondition_value.isArray() ||
+                        precondition_value.toArray().isEmpty() ||
+                        precondition_value.toArray().size() > maximum_workflow_preconditions) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("operations/preconditions"),
+                            QStringLiteral("preconditions must be a bounded schema-2 array"));
+                    }
+                    QSet<QString> precondition_subjects;
+                    for (const auto& precondition_value_item : precondition_value.toArray()) {
+                        if (!precondition_value_item.isObject()) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("operations/preconditions"),
+                                QStringLiteral("preconditions must contain typed objects"));
+                        }
+                        const auto precondition = precondition_value_item.toObject();
+                        const auto kind = precondition.value(QStringLiteral("kind")).toString();
+                        QString subject_key;
+                        if (kind == QStringLiteral("filing_presence") &&
+                            hasExactKeys(precondition, {"kind", "filing_type_id", "present"}) &&
+                            precondition.value(QStringLiteral("present")).isBool()) {
+                            const auto filing_id =
+                                precondition.value(QStringLiteral("filing_type_id")).toString();
+                            if (!isNamespacedId(filing_id)) {
+                                return crossReferenceFailure(
+                                    resource, QStringLiteral("operations/preconditions"),
+                                    QStringLiteral("filing precondition id is not canonical"));
+                            }
+                            subject_key = kind + u':' + filing_id;
+                            precondition_filing_ids.insert(filing_id);
+                        } else if (kind == QStringLiteral("order_disposition") &&
+                                   hasExactKeys(precondition,
+                                                {"kind", "order_id", "disposition"}) &&
+                                   QSet<QString>{QStringLiteral("granted"),
+                                                 QStringLiteral("denied"), QStringLiteral("other")}
+                                       .contains(precondition.value(QStringLiteral("disposition"))
+                                                     .toString())) {
+                            const auto order_id =
+                                precondition.value(QStringLiteral("order_id")).toString();
+                            if (!isNamespacedId(order_id)) {
+                                return crossReferenceFailure(
+                                    resource, QStringLiteral("operations/preconditions"),
+                                    QStringLiteral("order precondition id is not canonical"));
+                            }
+                            subject_key = kind + u':' + order_id;
+                        } else if (kind == QStringLiteral("deadline_status") &&
+                                   hasExactKeys(precondition, {"kind", "deadline_id", "status"}) &&
+                                   QSet<QString>{
+                                       QStringLiteral("open"), QStringLiteral("satisfied"),
+                                       QStringLiteral("elapsed"), QStringLiteral("not_elapsed")}
+                                       .contains(precondition.value(QStringLiteral("status"))
+                                                     .toString())) {
+                            const auto deadline_id =
+                                precondition.value(QStringLiteral("deadline_id")).toString();
+                            if (!isNamespacedId(deadline_id)) {
+                                return crossReferenceFailure(
+                                    resource, QStringLiteral("operations/preconditions"),
+                                    QStringLiteral("deadline precondition id is not canonical"));
+                            }
+                            const auto status =
+                                precondition.value(QStringLiteral("status")).toString();
+                            const auto axis = status == QStringLiteral("open") ||
+                                                      status == QStringLiteral("satisfied")
+                                                  ? QStringLiteral("status")
+                                                  : QStringLiteral("elapsed");
+                            subject_key = kind + u':' + deadline_id + u':' + axis;
+                        } else if (kind == QStringLiteral("argument_scheduled") &&
+                                   hasExactKeys(precondition, {"kind", "scheduled"}) &&
+                                   precondition.value(QStringLiteral("scheduled")).isBool()) {
+                            subject_key = kind;
+                        } else if (kind == QStringLiteral("judgment_issued") &&
+                                   hasExactKeys(precondition, {"kind", "issued"}) &&
+                                   precondition.value(QStringLiteral("issued")).isBool()) {
+                            subject_key = kind;
+                        } else {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("operations/preconditions"),
+                                QStringLiteral("precondition tag and operands do not match a "
+                                               "closed supported form"));
+                        }
+                        if (subject_key.isEmpty() || precondition_subjects.contains(subject_key)) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("operations/preconditions"),
+                                QStringLiteral("an operation repeats or contradicts a "
+                                               "precondition subject"));
+                        }
+                        precondition_subjects.insert(subject_key);
+                    }
+                }
             }
 
             const auto operationForId = [&operation_documents](const QString& operation_id,
@@ -1023,6 +1201,7 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                        found->value(QStringLiteral("stage_id")).toString() == stage_id;
             };
             QSet<QString> route_keys;
+            QSet<QString> declared_filing_type_ids;
             QSet<QString> declared_deadline_ids;
             QSet<QString> accepted_deadline_ids;
             const auto filing_routes = document.value(QStringLiteral("filing_routes")).toArray();
@@ -1044,6 +1223,7 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                             "route stage and filing type pairs must be valid and unique"));
                 }
                 route_keys.insert(route_key);
+                declared_filing_type_ids.insert(filing_type_id);
                 if (!operationForId(route.value(QStringLiteral("accept_operation_id")).toString(),
                                     QStringLiteral("accept_filing"), stage_id) ||
                     !operationForId(route.value(QStringLiteral("reject_operation_id")).toString(),
@@ -1113,6 +1293,15 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                         resource, QStringLiteral("filing_routes/satisfies_deadline_id"),
                         QStringLiteral("satisfied deadline is not produced by this workflow"));
                 }
+            }
+            if (!std::ranges::all_of(precondition_filing_ids,
+                                     [&declared_filing_type_ids](const QString& filing_id) {
+                                         return declared_filing_type_ids.contains(filing_id);
+                                     })) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("operations/preconditions"),
+                    QStringLiteral(
+                        "filing preconditions must reference declarations in the workflow"));
             }
             workflow_stages.insert(id, stages);
             workflow_operations.insert(id, operations);
@@ -1597,8 +1786,46 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                         QStringLiteral("role %1 is not declared by the procedure").arg(role_id));
                 }
             }
+            QHash<QString, QSet<QString>> issue_targets;
+            QHash<QString, QSet<QString>> issue_authorities;
+            QHash<QString, QSet<QString>> issue_record_anchors;
+            QSet<QString> issue_ids;
+            QSet<QString> all_target_ids;
             for (const auto& value : document.value(QStringLiteral("issues")).toArray()) {
                 const auto issue = value.toObject();
+                const auto issue_id = issue.value(QStringLiteral("issue_id")).toString();
+                if (!isNamespacedId(issue_id) || issue_ids.contains(issue_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("issues/issue_id"),
+                        QStringLiteral("issue ids must be canonical and unique"));
+                }
+                issue_ids.insert(issue_id);
+                issue_authorities.insert(
+                    issue_id, stringSet(issue.value(QStringLiteral("authority_ids")).toArray()));
+                issue_record_anchors.insert(
+                    issue_id,
+                    stringSet(issue.value(QStringLiteral("record_anchor_ids")).toArray()));
+                if (issue.contains(QStringLiteral("target_ids"))) {
+                    const auto target_values = issue.value(QStringLiteral("target_ids"));
+                    const auto targets = stringSet(target_values.toArray());
+                    if (!target_values.isArray() || targets.isEmpty() ||
+                        target_values.toArray().size() > maximum_disposition_targets ||
+                        targets.size() != target_values.toArray().size() ||
+                        all_target_ids.size() + targets.size() > maximum_disposition_targets ||
+                        std::ranges::any_of(
+                            targets,
+                            [](const QString& target_id) { return !isNamespacedId(target_id); }) ||
+                        std::ranges::any_of(targets, [&all_target_ids](const QString& target_id) {
+                            return all_target_ids.contains(target_id);
+                        })) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("issues/target_ids"),
+                            QStringLiteral("disposition target ids must be nonempty and unique "
+                                           "across the case"));
+                    }
+                    issue_targets.insert(issue_id, targets);
+                    all_target_ids.unite(targets);
+                }
                 for (const auto& authority :
                      issue.value(QStringLiteral("authority_ids")).toArray()) {
                     if (!authority_ids.contains(authority.toString()) ||
@@ -1623,6 +1850,145 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 (*procedure)->document.value(QStringLiteral("workflow_id")).toString();
             const auto disposition =
                 document.value(QStringLiteral("authored_disposition_id")).toString();
+            const auto has_structured_plan =
+                document.contains(QStringLiteral("disposition_plans")) ||
+                document.contains(QStringLiteral("authored_disposition_plan_id")) ||
+                !issue_targets.isEmpty();
+            if (has_structured_plan) {
+                const auto plan_value = document.value(QStringLiteral("disposition_plans"));
+                const auto authored_plan_id =
+                    document.value(QStringLiteral("authored_disposition_plan_id")).toString();
+                if (issue_targets.size() !=
+                        document.value(QStringLiteral("issues")).toArray().size() ||
+                    !plan_value.isArray() || plan_value.toArray().isEmpty() ||
+                    plan_value.toArray().size() > maximum_disposition_plans ||
+                    !isNamespacedId(authored_plan_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("disposition_plans"),
+                        QStringLiteral("structured disposition fields must form one complete "
+                                       "capability-gated contract"));
+                }
+                QSet<QString> plan_ids;
+                for (const auto& plan_value_item : plan_value.toArray()) {
+                    if (!plan_value_item.isObject()) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("disposition_plans"),
+                            QStringLiteral("disposition plans must contain objects"));
+                    }
+                    const auto plan = plan_value_item.toObject();
+                    const auto plan_id = plan.value(QStringLiteral("plan_id")).toString();
+                    const auto finality = plan.value(QStringLiteral("finality")).toString();
+                    const auto digest = plan.value(QStringLiteral("digest")).toString();
+                    const auto components = plan.value(QStringLiteral("components")).toArray();
+                    if (!hasExactKeys(plan, {"plan_id", "finality", "digest", "components"}) ||
+                        !isNamespacedId(plan_id) || plan_ids.contains(plan_id) ||
+                        !plan.value(QStringLiteral("components")).isArray() ||
+                        components.isEmpty() ||
+                        components.size() > maximum_disposition_components || !isSha256(digest) ||
+                        (finality != QStringLiteral("final") &&
+                         finality != QStringLiteral("nonfinal")) ||
+                        digest != canonicalDispositionPlanDigest(
+                                      QString::fromStdString(resource.descriptor.id), disposition,
+                                      plan)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("disposition_plans"),
+                            QStringLiteral("plan ids, finality, components, and canonical digest "
+                                           "must be valid"));
+                    }
+                    plan_ids.insert(plan_id);
+                    QSet<QString> covered_targets;
+                    for (const auto& component_value : components) {
+                        if (!component_value.isObject()) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("disposition_plans/components"),
+                                QStringLiteral("components must be objects"));
+                        }
+                        const auto component = component_value.toObject();
+                        const auto component_issue =
+                            component.value(QStringLiteral("issue_id")).toString();
+                        const auto component_target =
+                            component.value(QStringLiteral("target_id")).toString();
+                        const auto target_key = component_issue + u'\n' + component_target;
+                        const auto scope = component.value(QStringLiteral("scope")).toString();
+                        const auto action = component.value(QStringLiteral("action")).toString();
+                        const auto remand = component.value(QStringLiteral("remand"));
+                        const auto component_authority_values =
+                            component.value(QStringLiteral("authority_ids"));
+                        const auto component_anchor_values =
+                            component.value(QStringLiteral("record_anchor_ids"));
+                        static const QSet<QString> actions{
+                            QStringLiteral("affirm"), QStringLiteral("reverse"),
+                            QStringLiteral("vacate"), QStringLiteral("dismiss"),
+                            QStringLiteral("grant"),  QStringLiteral("deny"),
+                        };
+                        static const QSet<QString> remand_actions{
+                            QStringLiteral("reverse"),
+                            QStringLiteral("vacate"),
+                            QStringLiteral("dismiss"),
+                            QStringLiteral("grant"),
+                        };
+                        if (!hasExactKeys(component,
+                                          {"issue_id", "target_id", "scope", "action", "remand",
+                                           "authority_ids", "record_anchor_ids"}) ||
+                            !isNamespacedId(component_issue) || !isNamespacedId(component_target) ||
+                            !issue_targets.value(component_issue).contains(component_target) ||
+                            covered_targets.contains(target_key) ||
+                            (scope != QStringLiteral("whole") && scope != QStringLiteral("part")) ||
+                            !actions.contains(action) || !remand.isBool() ||
+                            (remand.toBool() && !remand_actions.contains(action))) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("disposition_plans/components"),
+                                QStringLiteral("component targets, scope, action, remand, and "
+                                               "overlap must be valid"));
+                        }
+                        covered_targets.insert(target_key);
+                        const auto component_authorities =
+                            stringSet(component_authority_values.toArray());
+                        const auto component_anchors = stringSet(component_anchor_values.toArray());
+                        if (!component_authority_values.isArray() ||
+                            !component_anchor_values.isArray() || component_authorities.isEmpty() ||
+                            component_anchors.isEmpty() ||
+                            component_authority_values.toArray().size() >
+                                maximum_component_authorities ||
+                            component_anchor_values.toArray().size() >
+                                maximum_component_record_anchors ||
+                            component_authorities.size() !=
+                                component_authority_values.toArray().size() ||
+                            component_anchors.size() != component_anchor_values.toArray().size() ||
+                            std::ranges::any_of(component_authorities,
+                                                [](const QString& authority_id) {
+                                                    return !isNamespacedId(authority_id);
+                                                }) ||
+                            std::ranges::any_of(component_anchors,
+                                                [](const QString& anchor_id) {
+                                                    return !isNamespacedId(anchor_id);
+                                                }) ||
+                            !std::ranges::all_of(component_authorities,
+                                                 [&](const QString& authority_id) {
+                                                     return authority_ids.contains(authority_id) &&
+                                                            case_authority_ids.contains(
+                                                                authority_id) &&
+                                                            issue_authorities.value(component_issue)
+                                                                .contains(authority_id);
+                                                 }) ||
+                            !std::ranges::all_of(component_anchors, [&](const QString& anchor_id) {
+                                return record_entries.value(record_id).contains(anchor_id) &&
+                                       issue_record_anchors.value(component_issue)
+                                           .contains(anchor_id);
+                            })) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("disposition_plans/components"),
+                                QStringLiteral("component authority and record grounding must "
+                                               "resolve within its issue"));
+                        }
+                    }
+                }
+                if (!plan_ids.contains(authored_plan_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("authored_disposition_plan_id"),
+                        QStringLiteral("authored plan is not declared by the case"));
+                }
+            }
             const auto case_workflow =
                 requireKind(resource, QStringLiteral("authored_disposition_id"), workflow_id,
                             model::ResourceKind::Workflow);
@@ -1911,8 +2277,9 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         resource_kinds.push_back(definition->kind);
     }
 
-    const auto capability_coverage = CapabilityRegistry::validateCoverage(
-        static_cast<std::uint32_t>(manifest_schema_version), capabilities, resource_kinds);
+    const auto capability_coverage =
+        CapabilityRegistry::validateCoverage(static_cast<std::uint32_t>(manifest_schema_version),
+                                             capabilities, resource_kinds, false, false);
     if (!capability_coverage) {
         return std::unexpected(capability_coverage.error());
     }
@@ -2054,6 +2421,12 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
             judges.push_back(*judge);
         }
     }
+    const auto content_capability_coverage = CapabilityRegistry::validateCoverage(
+        static_cast<std::uint32_t>(manifest_schema_version), capabilities, resource_kinds,
+        usesWorkflowPreconditions(resources), usesStructuredDisposition(resources));
+    if (!content_capability_coverage) {
+        return std::unexpected(content_capability_coverage.error());
+    }
     std::ranges::sort(judges, {}, &model::JudgeProfile::id);
     std::ranges::sort(resources, [](const auto& left, const auto& right) {
         return left.descriptor.id < right.descriptor.id;
@@ -2089,8 +2462,9 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
         for (const auto& resource : pack.resources) {
             resource_kinds.push_back(resource.descriptor.kind);
         }
-        return CapabilityRegistry::validateCoverage(pack.manifest_schema_version,
-                                                    pack.required_capabilities, resource_kinds);
+        return CapabilityRegistry::validateCoverage(
+            pack.manifest_schema_version, pack.required_capabilities, resource_kinds,
+            usesWorkflowPreconditions(pack.resources), usesStructuredDisposition(pack.resources));
     };
     const auto root_capabilities = validate_capabilities(root);
     if (!root_capabilities) {
