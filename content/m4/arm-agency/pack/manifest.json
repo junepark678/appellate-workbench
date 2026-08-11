@@ -1,0 +1,51 @@
+{
+  "schema_version": 2,
+  "pack_id": "us.ca4.m4.arm-agency",
+  "version": "1.0.0",
+  "required_capabilities": [
+    {"id": "workbench.pack.declarative-resources", "version": 2},
+    {"id": "workbench.pack.canonical-authority", "version": 1},
+    {"id": "workbench.pack.workflow-preconditions", "version": 1},
+    {"id": "workbench.pack.dependent-deadlines", "version": 1},
+    {"id": "workbench.pack.named-deadlines", "version": 1},
+    {"id": "workbench.pack.event-date-deadlines", "version": 1},
+    {"id": "workbench.pack.argument-date-guards", "version": 1},
+    {"id": "workbench.pack.grounded-questions", "version": 1}
+  ],
+  "dependencies": [
+    {
+      "pack_id": "foundation.us-federal",
+      "version": "2025.12.01",
+      "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9"
+    },
+    {
+      "pack_id": "foundation.us-ca4",
+      "version": "2026.03.23",
+      "sha256": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262"
+    },
+    {
+      "pack_id": "foundation.us-ca4-fictional-bench",
+      "version": "1.0.0",
+      "sha256": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d"
+    }
+  ],
+  "contents": [
+    {"id": "ca4m4.arm.argument.actual-record", "kind": "argument_config", "schema_version": 2, "path": "resources/argument-actual.json", "sha256": "4a63649639293daacdc0f5b5935f5e39d4a1b861fb41525b8f5eb0b8d5245ae1"},
+    {"id": "ca4m4.arm.argument.counterfactual", "kind": "argument_config", "schema_version": 2, "path": "resources/argument-counterfactual.json", "sha256": "aa0396dbd016acce2d318011eb5a31586846a423e7e92d291efa5b9eed9ca27b"},
+    {"id": "ca4m4.arm.authorities.case-specific", "kind": "authority_set", "schema_version": 2, "path": "resources/authority-set.json", "sha256": "4b7cdcefbebbbaecacd01f6725ecd983d8d9821dbf773518dd5a29794ed7a28f"},
+    {"id": "ca4m4.arm.bench.three-judge", "kind": "bench_configuration", "schema_version": 2, "path": "resources/bench-configuration.json", "sha256": "280e7e6b0a8a0da79c871d75a64d69a9fc8076508e2b59269b986d2aa176b5a5"},
+    {"id": "ca4m4.case.arm-agency", "kind": "case", "schema_version": 2, "path": "resources/case.json", "sha256": "edb5dcebed595547450e4be6b8a142cb42c5b000635fe6b3921665b06a571186"},
+    {"id": "ca4m4.arm.procedure.agency-review", "kind": "procedure_profile", "schema_version": 2, "path": "resources/procedure-profile.json", "sha256": "a7b9ce6b197d8d943d51977a8193af877bc5f49207a67930ada063e32be09641"},
+    {"id": "ca4m4.arm.record", "kind": "record", "schema_version": 2, "path": "resources/record.json", "sha256": "d8bcac58f9cd9741cd19d5cfb25b134186a7de09634aba65b55d799f3d28521c"},
+    {"id": "ca4m4.arm.workflow.agency-review", "kind": "workflow", "schema_version": 2, "path": "resources/workflow.json", "sha256": "c5d217bbc313290e612ea4e718b0adbc4a37ef9d4adbbff8e3ecac5005ede12c"}
+  ],
+  "blobs": [
+    {"path": "assets/01-notice-to-appear.pdf", "media_type": "application/pdf", "byte_size": 43032, "sha256": "0944e748c511288708d4f4bc493260aefb73fdb4bf0cdd1cdbc0f266d3440695"},
+    {"path": "assets/02-master-calendar-pleadings.pdf", "media_type": "application/pdf", "byte_size": 52446, "sha256": "0f37235401b819d1d220514f22de4bd1c96d634e6de5a7fce89e921919434e49"},
+    {"path": "assets/03-cat-application.pdf", "media_type": "application/pdf", "byte_size": 51283, "sha256": "fae84fdf5552af2c483bed35a8fe8844855d670a97d6922623085a63184ed8ce"},
+    {"path": "assets/04-arm-sworn-declaration.pdf", "media_type": "application/pdf", "byte_size": 64296, "sha256": "08e8294532c23fe9feb5962ca5b7780ae958178e6c8e2b4840d1ee28f3c5d212"},
+    {"path": "assets/05-sibling-declaration.pdf", "media_type": "application/pdf", "byte_size": 45059, "sha256": "9e9a0b5eddccf2b01a9dd09afcff37bd1ff3acf09287c621b44a6ab22716fa2d"},
+    {"path": "assets/06-family-corroboration.pdf", "media_type": "application/pdf", "byte_size": 54453, "sha256": "2883204da0f65e7500d3350e503fd0e45bba7e7d2d12cedfbeb00ef9e7b41ee4"},
+    {"path": "assets/pa01-new-cousin-declaration.pdf", "media_type": "application/pdf", "byte_size": 40107, "sha256": "9eaf41da5d095f579e299260bc85ccc249580c50ae0e27e6a6102c43026fd6be"}
+  ]
+}

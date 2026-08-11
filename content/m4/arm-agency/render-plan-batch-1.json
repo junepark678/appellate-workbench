@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {"source_path": "documents/batch-1/01-notice-to-appear.md", "output_path": "assets/01-notice-to-appear.pdf", "page_label_prefix": "AR", "page_label_start": 1, "title": "Synthetic Notice to Appear, Charge, and Service History"},
+    {"source_path": "documents/batch-1/02-master-calendar-pleadings.md", "output_path": "assets/02-master-calendar-pleadings.pdf", "page_label_prefix": "AR", "page_label_start": 9, "title": "Synthetic Master-Calendar Pleadings, Concessions, and CAT-Only Schedule"},
+    {"source_path": "documents/batch-1/03-cat-application.md", "output_path": "assets/03-cat-application.pdf", "page_label_prefix": "AR", "page_label_start": 21, "title": "Synthetic CAT Application and Indexed Chronology"},
+    {"source_path": "documents/batch-1/04-arm-sworn-declaration.md", "output_path": "assets/04-arm-sworn-declaration.pdf", "page_label_prefix": "AR", "page_label_start": 33, "title": "Synthetic A.R.M. Sworn Declaration, Agency Exhibit P-7"},
+    {"source_path": "documents/batch-1/05-sibling-declaration.md", "output_path": "assets/05-sibling-declaration.pdf", "page_label_prefix": "AR", "page_label_start": 51, "title": "Synthetic S.M. Sibling Declaration and Communication Log"},
+    {"source_path": "documents/batch-1/06-family-corroboration.md", "output_path": "assets/06-family-corroboration.pdf", "page_label_prefix": "AR", "page_label_start": 61, "title": "Synthetic Family Corroboration, Employment, and Authentication Packet"},
+    {"source_path": "documents/batch-1/pa01-new-cousin-declaration.md", "output_path": "assets/pa01-new-cousin-declaration.pdf", "page_label_prefix": "PA", "page_label_start": 1, "title": "Synthetic Extra-Record T.R. Declaration and Proffer Notice"}
+  ]
+}

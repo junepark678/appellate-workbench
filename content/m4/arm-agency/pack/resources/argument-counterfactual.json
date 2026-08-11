@@ -1,0 +1,159 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.arm.argument.counterfactual",
+  "case_id": "ca4m4.case.arm-agency",
+  "bench_configuration_id": "ca4m4.arm.bench.three-judge",
+  "total_seconds": 900,
+  "rebuttal_seconds": 90,
+  "permitted_issue_ids": [
+    "ca4m4.arm.issue.record-composition",
+    "ca4m4.arm.issue.aggregate-cat-risk",
+    "ca4m4.arm.issue.official-acquiescence",
+    "ca4m4.arm.issue.review-standard",
+    "ca4m4.arm.issue.petition-timeliness"
+  ],
+  "grounded_question_bank": {
+    "mode": "counterfactual_training",
+    "grounding_digest": "35c097a6c824451c1315b994a39cc3a957e5c4c0f73a0c0a2b8927dea784e721",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_ids": ["workbench.topic.record-support"]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_ids": ["workbench.topic.governing-authority"]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_ids": ["workbench.topic.merits"]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_ids": ["workbench.topic.standard-of-review"]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_ids": ["workbench.topic.jurisdiction"]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-record-composition",
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Assume the deferred hearing receipt ultimately does not show P-7 admitted; would the current pages plus that absence support correction, supplementation, or neither?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-rule",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.frap-16-record"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-index",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar30"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-p7",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar33"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa1"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-aggregate-risk",
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Assume each feared source has a distinct pathway but none alone crosses fifty percent; how does the aggregate-risk rule structure the inquiry?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-rule",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-aggregation"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-page",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar29"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-acquiescence",
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Assume the complaint was routed to an independent office that interviewed S.M.; which current acquiescence facts would change and which would remain?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-acquiescence-rule",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-torture-acquiescence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-acquiescence-routing",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar66"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-acquiescence-authentication",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar71"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-review-standard",
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "Assume the agency credited the underlying events but gave no combined-risk explanation; what may the court review without finding facts itself?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-rule",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-application",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar31"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-limits",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar72"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-day-31",
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Assume the petition was filed on day 31 and the Government timely invoked Section 1252(b)(1); how does Riley change the analysis without making the rule jurisdictional?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-day-31-statute",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-deadline"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-day-31-riley",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.riley-claims-processing"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-day-31-page",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa1"
+          }
+        ]
+      }
+    ]
+  }
+}

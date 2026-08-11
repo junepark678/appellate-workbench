@@ -1,0 +1,111 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4m4.case.arm-agency",
+  "title": "A.R.M. v. Attorney General of the United States",
+  "procedure_profile_id": "ca4m4.arm.procedure.agency-review",
+  "record_id": "ca4m4.arm.record",
+  "actors": [
+    {
+      "actor_id": "ca4m4.arm.actor.petitioner",
+      "role_id": "us.ca4.role.initiating-party",
+      "display_name": "A.R.M. (fictional, initials only)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.arm.actor.respondent",
+      "role_id": "us.ca4.role.responding-party",
+      "display_name": "Fictional Attorney General institutional respondent actor",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.arm.actor.ca4-clerk",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional Fourth Circuit exercise clerk",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.arm.actor.composite-panel",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional composite Fourth Circuit panel",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4m4.arm.issue.record-composition",
+      "title": "Whether deferred agency materials establish that P-7 was admitted and omitted such that correction is proper, while the genuinely new PA proffer remains outside the administrative record",
+      "authority_ids": [
+        "ca4m4.arm.authority.frap-16-record",
+        "ca4m4.arm.authority.usc-1252-record-limit"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar30",
+        "ca4m4.arm.anchor.ar33",
+        "ca4m4.arm.anchor.ar50",
+        "ca4m4.arm.anchor.pa1",
+        "ca4m4.arm.anchor.pa7",
+        "ca4m4.arm.anchor.pa8"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+      "title": "Whether the CAT analysis must assess the combined risk from Unit Four, Harbor League, and the linked return-identification pathway",
+      "authority_ids": [
+        "ca4m4.arm.authority.cfr-1208-cat-burden",
+        "ca4m4.arm.authority.cfr-1208-all-evidence",
+        "ca4m4.arm.authority.rodriguez-arias-aggregation"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar24",
+        "ca4m4.arm.anchor.ar25",
+        "ca4m4.arm.anchor.ar26",
+        "ca4m4.arm.anchor.ar27",
+        "ca4m4.arm.anchor.ar29",
+        "ca4m4.arm.anchor.ar50"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.arm.issue.official-acquiescence",
+      "title": "Whether the recorded evidence of official detention, complaint routing, knowledge, and nonintervention is meaningfully considered under the acquiescence standard",
+      "authority_ids": [
+        "ca4m4.arm.authority.cfr-1208-torture-acquiescence",
+        "ca4m4.arm.authority.rodriguez-arias-consideration"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar28",
+        "ca4m4.arm.anchor.ar40",
+        "ca4m4.arm.anchor.ar44",
+        "ca4m4.arm.anchor.ar45",
+        "ca4m4.arm.anchor.ar47",
+        "ca4m4.arm.anchor.ar66",
+        "ca4m4.arm.anchor.ar71"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.arm.issue.review-standard",
+      "title": "How the statutory fact-review standard and meaningful-consideration requirement apply without appellate first-instance factfinding",
+      "authority_ids": [
+        "ca4m4.arm.authority.usc-1252-review-standard",
+        "ca4m4.arm.authority.rodriguez-arias-consideration"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar31",
+        "ca4m4.arm.anchor.ar60",
+        "ca4m4.arm.anchor.ar72"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.arm.issue.petition-timeliness",
+      "title": "Whether the actual day-29 petition satisfies Section 1252(b)(1), while a day-31 filing with timely government invocation remains counterfactual training",
+      "authority_ids": [
+        "ca4m4.arm.authority.usc-1252-deadline",
+        "ca4m4.arm.authority.riley-claims-processing"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.pa1"
+      ]
+    }
+  ],
+  "authored_disposition_id": "ca4m4.arm.operation.issue-judgment"
+}

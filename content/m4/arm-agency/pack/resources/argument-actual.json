@@ -1,0 +1,159 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.arm.argument.actual-record",
+  "case_id": "ca4m4.case.arm-agency",
+  "bench_configuration_id": "ca4m4.arm.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.arm.issue.record-composition",
+    "ca4m4.arm.issue.aggregate-cat-risk",
+    "ca4m4.arm.issue.official-acquiescence",
+    "ca4m4.arm.issue.review-standard",
+    "ca4m4.arm.issue.petition-timeliness"
+  ],
+  "grounded_question_bank": {
+    "mode": "actual_record",
+    "grounding_digest": "42723995341868f238d07f4b3ca69c7a562bcc679f2ba6f5aa2bb317f550088f",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_ids": ["workbench.topic.record-support"]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_ids": ["workbench.topic.governing-authority"]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_ids": ["workbench.topic.merits"]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_ids": ["workbench.topic.standard-of-review"]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_ids": ["workbench.topic.jurisdiction"]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.arm.question.actual-record-composition",
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Which current pages show that P-7 identifies itself as a pre-hearing filing while PA1–PA8 was created only after the agency proceedings, and which admission or correction facts remain deferred?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-rule",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.frap-16-record"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-index",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar30"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-p7",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar33"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa1"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-aggregate-risk",
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "What record-supported links require the risk from Unit Four, Harbor League, and return identification to be evaluated together?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-rule",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-aggregation"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-page",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar29"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-acquiescence",
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Which current pages connect official knowledge to a failure to intervene rather than relying only on formal prohibitions?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-acquiescence-rule",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-torture-acquiescence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-acquiescence-declaration",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar45"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-acquiescence-routing",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar66"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-review-standard",
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "How should the court apply the compelled-conclusion standard without supplying agency findings that the current record does not contain?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-rule",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-review-standard"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-application",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar31"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-limits",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar72"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-timeliness",
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "What current appellate page fixes the January 13 order and February 11 petition dates, and what follows under the 30-day rule?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-timeliness-statute",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-deadline"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-timeliness-riley",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.riley-claims-processing"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-timeliness-page",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa1"
+          }
+        ]
+      }
+    ]
+  }
+}

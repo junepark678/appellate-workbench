@@ -1,0 +1,637 @@
+{
+  "schema_version": 2,
+  "resource_kind": "record",
+  "resource_id": "ca4m4.arm.record",
+  "caption": "A.R.M. v. Attorney General of the United States",
+  "dockets": [
+    {
+      "docket_id": "ca4m4.arm.docket.agency",
+      "docket_type": "agency",
+      "court_ref": "Executive Office for Immigration Review fictional exercise docket",
+      "public_docket_number": "SYN-BIA-25-0113",
+      "caption": "In re A.R.M. (fictional exercise proceeding)"
+    },
+    {
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit",
+      "public_docket_number": "SYN-CA4-25-AG-4301",
+      "caption": "A.R.M. v. Attorney General of the United States"
+    }
+  ],
+  "docket_entries": [
+    {
+      "entry_id": "ca4m4.arm.record.ar01",
+      "entry_number": 1,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Record Entry 1",
+      "filed_on": "2024-01-09",
+      "title": "Notice to Appear, Charge, and Service History",
+      "actor": "Fictional DHS institutional actor",
+      "description": "Synthetic charging document, allegation set, hearing notice, and interpreted personal-service chain completed January 12, 2024.",
+      "tags": [
+        "certified_administrative_record",
+        "nta_pleading"
+      ],
+      "asset_path": "assets/01-notice-to-appear.pdf",
+      "asset_sha256": "0944e748c511288708d4f4bc493260aefb73fdb4bf0cdd1cdbc0f266d3440695",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar02",
+      "entry_number": 2,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Record Entry 2",
+      "filed_on": "2024-02-06",
+      "title": "Master-Calendar Pleadings, Concessions, and CAT-Only Schedule",
+      "actor": "Fictional exercise immigration court",
+      "description": "Synthetic hearing record fixing limited removability concessions, the CAT-only election, interpretation, country designation, exhibit protocol, and merits schedule.",
+      "tags": [
+        "certified_administrative_record",
+        "nta_pleading"
+      ],
+      "asset_path": "assets/02-master-calendar-pleadings.pdf",
+      "asset_sha256": "0f37235401b819d1d220514f22de4bd1c96d634e6de5a7fce89e921919434e49",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar03",
+      "entry_number": 3,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Exhibit P-1",
+      "filed_on": "2024-04-12",
+      "title": "CAT Application and Indexed Chronology",
+      "actor": "A.R.M. through fictional exercise counsel",
+      "description": "Synthetic CAT-only application identifying the burden, aggregate-risk theory, acquiescence theory, chronology, and contemporaneous exhibit index.",
+      "tags": [
+        "application_declaration_family",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/03-cat-application.pdf",
+      "asset_sha256": "fae84fdf5552af2c483bed35a8fe8844855d670a97d6922623085a63184ed8ce",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar04",
+      "entry_number": 4,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Exhibit P-7",
+      "filed_on": "2024-04-12",
+      "title": "A.R.M. Sworn Declaration",
+      "actor": "A.R.M. (fictional, initials only)",
+      "description": "Pre-hearing eighteen-page declaration lodged April 12. Its claimed later admission, omission from an initial certification, and restoration at planned corrected AR33-AR50 remain disputed until deferred agency materials are added.",
+      "tags": [
+        "application_declaration_family",
+        "claimed_admission",
+        "claimed_initial_omission",
+        "planned_certified_administrative_record",
+        "planned_corrected_record"
+      ],
+      "asset_path": "assets/04-arm-sworn-declaration.pdf",
+      "asset_sha256": "08e8294532c23fe9feb5962ca5b7780ae958178e6c8e2b4840d1ee28f3c5d212",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar05",
+      "entry_number": 5,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Exhibit P-2",
+      "filed_on": "2024-04-12",
+      "title": "S.M. Sibling Declaration and Communication Log",
+      "actor": "S.M. (fictional, initials only)",
+      "description": "Corroborating sibling declaration distinguishing firsthand observations, reported statements, contemporaneous notes, clinic chronology, threats, and authentication limits.",
+      "tags": [
+        "application_declaration_family",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/05-sibling-declaration.pdf",
+      "asset_sha256": "9e9a0b5eddccf2b01a9dd09afcff37bd1ff3acf09287c621b44a6ab22716fa2d",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar06",
+      "entry_number": 6,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Exhibit P-3",
+      "filed_on": "2024-04-12",
+      "title": "Family Corroboration, Employment, and Authentication Packet",
+      "actor": "A.R.M. through fictional exercise counsel",
+      "description": "Synthetic employment, procurement, complaint-routing, clinic-source, photograph, message, chain-of-custody, and Nadia Pel authentication components.",
+      "tags": [
+        "application_declaration_family",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/06-family-corroboration.pdf",
+      "asset_sha256": "2883204da0f65e7500d3350e503fd0e45bba7e7d2d12cedfbeb00ef9e7b41ee4",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.pa01",
+      "entry_number": 7,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 4",
+      "filed_on": "2025-02-24",
+      "title": "T.R. Post-Order Declaration and Proffer Notice",
+      "actor": "A.R.M. through fictional exercise counsel",
+      "description": "Generated appellate proffer concerning events after the BIA order; never presented to or admitted by the agency and not part of the certified administrative record.",
+      "tags": [
+        "extra_record_proffer",
+        "generated_appellate_filing",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/pa01-new-cousin-declaration.pdf",
+      "asset_sha256": "9eaf41da5d095f579e299260bc85ccc249580c50ae0e27e6a6102c43026fd6be",
+      "page_count": 8,
+      "sealed": false
+    }
+  ],
+  "page_anchors": [
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar1",
+      "entry_id": "ca4m4.arm.record.ar01",
+      "page_number": 1,
+      "citation_label": "AR1"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar2",
+      "entry_id": "ca4m4.arm.record.ar01",
+      "page_number": 2,
+      "citation_label": "AR2"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar3",
+      "entry_id": "ca4m4.arm.record.ar01",
+      "page_number": 3,
+      "citation_label": "AR3"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar4",
+      "entry_id": "ca4m4.arm.record.ar01",
+      "page_number": 4,
+      "citation_label": "AR4"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar5",
+      "entry_id": "ca4m4.arm.record.ar01",
+      "page_number": 5,
+      "citation_label": "AR5"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar6",
+      "entry_id": "ca4m4.arm.record.ar01",
+      "page_number": 6,
+      "citation_label": "AR6"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar7",
+      "entry_id": "ca4m4.arm.record.ar01",
+      "page_number": 7,
+      "citation_label": "AR7"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar8",
+      "entry_id": "ca4m4.arm.record.ar01",
+      "page_number": 8,
+      "citation_label": "AR8"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar9",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 1,
+      "citation_label": "AR9"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar10",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 2,
+      "citation_label": "AR10"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar11",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 3,
+      "citation_label": "AR11"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar12",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 4,
+      "citation_label": "AR12"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar13",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 5,
+      "citation_label": "AR13"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar14",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 6,
+      "citation_label": "AR14"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar15",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 7,
+      "citation_label": "AR15"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar16",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 8,
+      "citation_label": "AR16"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar17",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 9,
+      "citation_label": "AR17"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar18",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 10,
+      "citation_label": "AR18"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar19",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 11,
+      "citation_label": "AR19"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar20",
+      "entry_id": "ca4m4.arm.record.ar02",
+      "page_number": 12,
+      "citation_label": "AR20"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar21",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 1,
+      "citation_label": "AR21"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar22",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 2,
+      "citation_label": "AR22"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar23",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 3,
+      "citation_label": "AR23"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar24",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 4,
+      "citation_label": "AR24"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar25",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 5,
+      "citation_label": "AR25"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar26",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 6,
+      "citation_label": "AR26"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar27",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 7,
+      "citation_label": "AR27"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar28",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 8,
+      "citation_label": "AR28"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar29",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 9,
+      "citation_label": "AR29"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar30",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 10,
+      "citation_label": "AR30"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar31",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 11,
+      "citation_label": "AR31"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar32",
+      "entry_id": "ca4m4.arm.record.ar03",
+      "page_number": 12,
+      "citation_label": "AR32"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar33",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 1,
+      "citation_label": "AR33"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar34",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 2,
+      "citation_label": "AR34"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar35",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 3,
+      "citation_label": "AR35"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar36",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 4,
+      "citation_label": "AR36"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar37",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 5,
+      "citation_label": "AR37"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar38",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 6,
+      "citation_label": "AR38"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar39",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 7,
+      "citation_label": "AR39"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar40",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 8,
+      "citation_label": "AR40"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar41",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 9,
+      "citation_label": "AR41"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar42",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 10,
+      "citation_label": "AR42"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar43",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 11,
+      "citation_label": "AR43"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar44",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 12,
+      "citation_label": "AR44"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar45",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 13,
+      "citation_label": "AR45"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar46",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 14,
+      "citation_label": "AR46"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar47",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 15,
+      "citation_label": "AR47"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar48",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 16,
+      "citation_label": "AR48"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar49",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 17,
+      "citation_label": "AR49"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar50",
+      "entry_id": "ca4m4.arm.record.ar04",
+      "page_number": 18,
+      "citation_label": "AR50"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar51",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 1,
+      "citation_label": "AR51"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar52",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 2,
+      "citation_label": "AR52"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar53",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 3,
+      "citation_label": "AR53"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar54",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 4,
+      "citation_label": "AR54"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar55",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 5,
+      "citation_label": "AR55"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar56",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 6,
+      "citation_label": "AR56"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar57",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 7,
+      "citation_label": "AR57"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar58",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 8,
+      "citation_label": "AR58"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar59",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 9,
+      "citation_label": "AR59"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar60",
+      "entry_id": "ca4m4.arm.record.ar05",
+      "page_number": 10,
+      "citation_label": "AR60"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar61",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 1,
+      "citation_label": "AR61"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar62",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 2,
+      "citation_label": "AR62"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar63",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 3,
+      "citation_label": "AR63"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar64",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 4,
+      "citation_label": "AR64"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar65",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 5,
+      "citation_label": "AR65"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar66",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 6,
+      "citation_label": "AR66"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar67",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 7,
+      "citation_label": "AR67"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar68",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 8,
+      "citation_label": "AR68"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar69",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 9,
+      "citation_label": "AR69"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar70",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 10,
+      "citation_label": "AR70"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar71",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 11,
+      "citation_label": "AR71"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar72",
+      "entry_id": "ca4m4.arm.record.ar06",
+      "page_number": 12,
+      "citation_label": "AR72"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa1",
+      "entry_id": "ca4m4.arm.record.pa01",
+      "page_number": 1,
+      "citation_label": "PA1"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa2",
+      "entry_id": "ca4m4.arm.record.pa01",
+      "page_number": 2,
+      "citation_label": "PA2"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa3",
+      "entry_id": "ca4m4.arm.record.pa01",
+      "page_number": 3,
+      "citation_label": "PA3"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa4",
+      "entry_id": "ca4m4.arm.record.pa01",
+      "page_number": 4,
+      "citation_label": "PA4"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa5",
+      "entry_id": "ca4m4.arm.record.pa01",
+      "page_number": 5,
+      "citation_label": "PA5"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa6",
+      "entry_id": "ca4m4.arm.record.pa01",
+      "page_number": 6,
+      "citation_label": "PA6"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa7",
+      "entry_id": "ca4m4.arm.record.pa01",
+      "page_number": 7,
+      "citation_label": "PA7"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa8",
+      "entry_id": "ca4m4.arm.record.pa01",
+      "page_number": 8,
+      "citation_label": "PA8"
+    }
+  ]
+}
