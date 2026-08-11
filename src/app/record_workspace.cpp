@@ -21,6 +21,7 @@
 #include <QSpinBox>
 #include <QSplitter>
 #include <QTableView>
+#include <QTemporaryFile>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -72,11 +73,17 @@ namespace {
     return count;
 }
 
-[[nodiscard]] bool isBoundedText(QStringView text, qsizetype maximum,
-                                 bool allow_empty = false) {
+[[nodiscard]] bool isBoundedText(QStringView text, qsizetype maximum, bool allow_empty = false) {
     const auto count = unicodeScalarCount(text);
     return count.has_value() && *count <= maximum && (allow_empty || *count > 0) &&
            !text.contains(QChar::Null);
+}
+
+[[nodiscard]] bool isLowercaseSha256(QStringView text) {
+    return text.size() == 64 && std::ranges::all_of(text, [](QChar character) {
+               return (character >= u'0' && character <= u'9') ||
+                      (character >= u'a' && character <= u'f');
+           });
 }
 
 } // namespace
@@ -423,8 +430,8 @@ RecordWorkspace::~RecordWorkspace() {
 
     // Qt 6.11's QPdfPageRendererPrivate destructor stops its worker thread but omits deleting the
     // QThread. Switching through the public API first performs the complete quit/wait/delete path.
-    const auto renderers = pdf_view_->findChildren<QPdfPageRenderer*>(
-        QString{}, Qt::FindDirectChildrenOnly);
+    const auto renderers =
+        pdf_view_->findChildren<QPdfPageRenderer*>(QString{}, Qt::FindDirectChildrenOnly);
     for (auto* renderer : renderers) {
         renderer->setRenderMode(QPdfPageRenderer::RenderMode::SingleThreaded);
     }
@@ -447,21 +454,21 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
     QSet<QString> docket_descriptor_ids;
     for (const auto& docket : definition.dockets) {
         static const QSet<QString> docket_types{
-            QStringLiteral("district"), QStringLiteral("appellate"),
-            QStringLiteral("agency"), QStringLiteral("original")};
+            QStringLiteral("district"), QStringLiteral("appellate"), QStringLiteral("agency"),
+            QStringLiteral("original")};
         if (!isBoundedText(docket.id, 160) || !docket_types.contains(docket.type) ||
-            !isBoundedText(docket.court_id, 160, true) ||
-            !isBoundedText(docket.court_ref, 240) ||
+            !isBoundedText(docket.court_id, 160, true) || !isBoundedText(docket.court_ref, 240) ||
             !isBoundedText(docket.public_docket_number, 120) ||
-            !isBoundedText(docket.caption, 512) ||
-            docket_descriptor_ids.contains(docket.id)) {
-            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
-                        QStringLiteral("Docket descriptors require unique IDs and complete metadata"));
+            !isBoundedText(docket.caption, 512) || docket_descriptor_ids.contains(docket.id)) {
+            return fail(
+                RecordWorkspaceErrorCode::InvalidDefinition,
+                QStringLiteral("Docket descriptors require unique IDs and complete metadata"));
         }
         docket_descriptor_ids.insert(docket.id);
     }
 
     QSet<QString> document_ids;
+    QSet<QString> sealed_document_ids;
     QHash<QString, int> declared_page_counts;
     for (const auto& document : definition.documents) {
         if (!isBoundedText(document.id, 160) || !isBoundedText(document.title, 512) ||
@@ -470,6 +477,9 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
                         QStringLiteral("Document IDs and titles must be unique and nonempty"));
         }
         document_ids.insert(document.id);
+        if (document.sealed) {
+            sealed_document_ids.insert(document.id);
+        }
         declared_page_counts.insert(document.id, document.declared_page_count);
         if (!document.sealed) {
             const QFileInfo file(document.file_path);
@@ -496,9 +506,8 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
             return fail(RecordWorkspaceErrorCode::InvalidDefinition,
                         QStringLiteral("Docket entries require unique IDs and complete metadata"));
         }
-        if (std::ranges::any_of(entry.tags, [](const QString& tag) {
-                return !isBoundedText(tag, 64);
-            })) {
+        if (std::ranges::any_of(entry.tags,
+                                [](const QString& tag) { return !isBoundedText(tag, 64); })) {
             return fail(RecordWorkspaceErrorCode::InvalidDefinition,
                         QStringLiteral("Docket entry tags exceed their supported bounds"));
         }
@@ -518,8 +527,8 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
     }
     QHash<QString, QString> parent_by_entry;
     static const QSet<QString> relationships{
-        QStringLiteral("attachment"), QStringLiteral("amendment"),
-        QStringLiteral("supplement"), QStringLiteral("component")};
+        QStringLiteral("attachment"), QStringLiteral("amendment"), QStringLiteral("supplement"),
+        QStringLiteral("component")};
     for (const auto& entry : definition.docket) {
         if (entry.parent_entry_id.isEmpty() != entry.relationship.isEmpty()) {
             return fail(RecordWorkspaceErrorCode::InvalidDefinition,
@@ -535,14 +544,19 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
             return fail(RecordWorkspaceErrorCode::InvalidDefinition,
                         QStringLiteral("Parent links must resolve acyclically within one docket"));
         }
+        if (definition.disclosure_policy.has_value() &&
+            !sealed_document_ids.contains(entry.document_id) &&
+            sealed_document_ids.contains((*parent)->document_id)) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("A public docket entry cannot have a sealed parent"));
+        }
         parent_by_entry.insert(entry.id, entry.parent_entry_id);
     }
     QSet<QString> resolved_parent_chains;
     for (const auto& entry : definition.docket) {
         QSet<QString> chain;
         auto current = entry.id;
-        while (parent_by_entry.contains(current) &&
-               !resolved_parent_chains.contains(current)) {
+        while (parent_by_entry.contains(current) && !resolved_parent_chains.contains(current)) {
             if (chain.contains(current)) {
                 return fail(RecordWorkspaceErrorCode::InvalidDefinition,
                             QStringLiteral("Docket entry parent graph contains a cycle"));
@@ -562,6 +576,7 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
 
     QSet<QString> anchor_ids;
     QSet<QString> citation_labels;
+    QHash<QString, const RecordPageAnchor*> anchors_by_id;
     for (const auto& anchor : definition.anchors) {
         if (!isBoundedText(anchor.id, 160) || !isBoundedText(anchor.document_id, 160) ||
             !isBoundedText(anchor.citation_label, 120, true) || anchor.page_index < 0 ||
@@ -569,14 +584,170 @@ RecordWorkspace::validate(const RecordDefinition& definition) const {
             docket_ids.contains(anchor.id) || !document_ids.contains(anchor.document_id) ||
             (declared_page_counts.value(anchor.document_id) > 0 &&
              anchor.page_index >= declared_page_counts.value(anchor.document_id)) ||
-            (!anchor.citation_label.isEmpty() &&
-             citation_labels.contains(anchor.citation_label))) {
+            (!anchor.citation_label.isEmpty() && citation_labels.contains(anchor.citation_label))) {
             return fail(RecordWorkspaceErrorCode::InvalidPageAnchor,
                         QStringLiteral("Record page anchor is invalid: %1").arg(anchor.id));
         }
         anchor_ids.insert(anchor.id);
+        anchors_by_id.insert(anchor.id, &anchor);
         if (!anchor.citation_label.isEmpty()) {
             citation_labels.insert(anchor.citation_label);
+        }
+    }
+
+    if (!definition.disclosure_policy.has_value()) {
+        if (!definition.sealed_disclosures.empty()) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("Sealed disclosures require an explicit policy"));
+        }
+        return {};
+    }
+    const auto& policy = *definition.disclosure_policy;
+    if (!isBoundedText(policy.record_id, 160) || !isBoundedText(policy.policy_id, 160) ||
+        policy.unauthorized_projection != QStringLiteral("public_counterparts_only") ||
+        policy.authorized_projection != QStringLiteral("public_and_authorized_sealed") ||
+        policy.sealed_asset_access != QStringLiteral("session_event_grant_required") ||
+        definition.sealed_disclosures.empty()) {
+        return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                    QStringLiteral("Record disclosure policy is incomplete or unsupported"));
+    }
+
+    QHash<QString, const RecordDocument*> documents_by_id;
+    for (const auto& document : definition.documents) {
+        documents_by_id.insert(document.id, &document);
+    }
+    QHash<QString, QString> docket_by_document;
+    for (const auto& entry : definition.docket) {
+        if (!docket_by_document.contains(entry.document_id)) {
+            docket_by_document.insert(entry.document_id, entry.docket_id);
+        } else if (docket_by_document.value(entry.document_id) != entry.docket_id) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("A disclosure document cannot span multiple dockets"));
+        }
+    }
+
+    QSet<QString> sealed_documents;
+    QSet<QString> disclosure_ids;
+    QSet<QString> public_counterparts;
+    QSet<QString> stable_anchor_ids;
+    QSet<QString> mapped_sealed_anchors;
+    QSet<QString> mapped_public_anchors;
+    static const QSet<QString> requirement_kinds{QStringLiteral("motion"),
+                                                 QStringLiteral("certificate"),
+                                                 QStringLiteral("redacted_counterpart")};
+    for (const auto& disclosure : definition.sealed_disclosures) {
+        const auto sealed = documents_by_id.constFind(disclosure.sealed_document_id);
+        if (!isBoundedText(disclosure.disclosure_id, 160) ||
+            disclosure_ids.contains(disclosure.disclosure_id) ||
+            stable_anchor_ids.contains(disclosure.disclosure_id) ||
+            document_ids.contains(disclosure.disclosure_id) ||
+            docket_ids.contains(disclosure.disclosure_id) ||
+            anchor_ids.contains(disclosure.disclosure_id) ||
+            !isBoundedText(disclosure.sealed_document_id, 160) ||
+            !isBoundedText(disclosure.public_document_id, 160, true) ||
+            !isBoundedText(disclosure.motion_document_id, 160, true) ||
+            !isBoundedText(disclosure.certificate_document_id, 160, true) ||
+            !isBoundedText(disclosure.authorization_authority_id, 160) ||
+            sealed == documents_by_id.constEnd() || !(*sealed)->sealed ||
+            sealed_documents.contains(disclosure.sealed_document_id) ||
+            disclosure.required_items.size() > 3) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("Sealed disclosure identity or authority is invalid"));
+        }
+        disclosure_ids.insert(disclosure.disclosure_id);
+        sealed_documents.insert(disclosure.sealed_document_id);
+        QSet<QString> requirements;
+        for (const auto& requirement : disclosure.required_items) {
+            if (!requirement_kinds.contains(requirement) || requirements.contains(requirement)) {
+                return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                            QStringLiteral("Disclosure requirements must be typed and unique"));
+            }
+            requirements.insert(requirement);
+        }
+
+        const auto validatePublicDocument =
+            [&](const QString& id, QStringView role) -> std::expected<void, RecordWorkspaceError> {
+            if (id.isEmpty()) {
+                return {};
+            }
+            const auto document = documents_by_id.constFind(id);
+            if (document == documents_by_id.constEnd() || (*document)->sealed ||
+                id == disclosure.sealed_document_id) {
+                return fail(
+                    RecordWorkspaceErrorCode::InvalidDefinition,
+                    QStringLiteral("Disclosure %1 must resolve to a public document").arg(role));
+            }
+            return {};
+        };
+        if (const auto valid =
+                validatePublicDocument(disclosure.public_document_id, u"counterpart");
+            !valid) {
+            return valid;
+        }
+        if (const auto valid = validatePublicDocument(disclosure.motion_document_id, u"motion");
+            !valid) {
+            return valid;
+        }
+        if (const auto valid =
+                validatePublicDocument(disclosure.certificate_document_id, u"certificate");
+            !valid) {
+            return valid;
+        }
+        if (!disclosure.public_document_id.isEmpty() &&
+            (public_counterparts.contains(disclosure.public_document_id) ||
+             docket_by_document.value(disclosure.public_document_id) !=
+                 docket_by_document.value(disclosure.sealed_document_id))) {
+            return fail(
+                RecordWorkspaceErrorCode::InvalidDefinition,
+                QStringLiteral("Public counterparts must be one-to-one in the same docket"));
+        }
+        if (!disclosure.public_document_id.isEmpty()) {
+            public_counterparts.insert(disclosure.public_document_id);
+        }
+        QSet<QString> support_documents;
+        for (const auto& id : {disclosure.public_document_id, disclosure.motion_document_id,
+                               disclosure.certificate_document_id}) {
+            if (!id.isEmpty() && support_documents.contains(id)) {
+                return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                            QStringLiteral("Disclosure support documents must be distinct"));
+            }
+            if (!id.isEmpty()) {
+                support_documents.insert(id);
+            }
+        }
+        if (disclosure.public_document_id.isEmpty() && !disclosure.anchor_mappings.empty()) {
+            return fail(RecordWorkspaceErrorCode::InvalidPageAnchor,
+                        QStringLiteral("Stable twin anchors require a public counterpart"));
+        }
+        for (const auto& mapping : disclosure.anchor_mappings) {
+            const auto sealed_anchor = anchors_by_id.constFind(mapping.sealed_anchor_id);
+            const auto public_anchor = anchors_by_id.constFind(mapping.public_anchor_id);
+            if (!isBoundedText(mapping.stable_anchor_id, 160) ||
+                !isBoundedText(mapping.sealed_anchor_id, 160) ||
+                !isBoundedText(mapping.public_anchor_id, 160) ||
+                stable_anchor_ids.contains(mapping.stable_anchor_id) ||
+                anchor_ids.contains(mapping.stable_anchor_id) ||
+                document_ids.contains(mapping.stable_anchor_id) ||
+                docket_ids.contains(mapping.stable_anchor_id) ||
+                mapped_sealed_anchors.contains(mapping.sealed_anchor_id) ||
+                mapped_public_anchors.contains(mapping.public_anchor_id) ||
+                sealed_anchor == anchors_by_id.constEnd() ||
+                public_anchor == anchors_by_id.constEnd() ||
+                (*sealed_anchor)->document_id != disclosure.sealed_document_id ||
+                (*public_anchor)->document_id != disclosure.public_document_id) {
+                return fail(
+                    RecordWorkspaceErrorCode::InvalidPageAnchor,
+                    QStringLiteral("Twin page anchors are duplicate, ambiguous, or orphaned"));
+            }
+            stable_anchor_ids.insert(mapping.stable_anchor_id);
+            mapped_sealed_anchors.insert(mapping.sealed_anchor_id);
+            mapped_public_anchors.insert(mapping.public_anchor_id);
+        }
+    }
+    for (const auto& document : definition.documents) {
+        if (document.sealed && !sealed_documents.contains(document.id)) {
+            return fail(RecordWorkspaceErrorCode::InvalidDefinition,
+                        QStringLiteral("Every sealed document requires one disclosure rule"));
         }
     }
     return {};
@@ -589,35 +760,148 @@ std::expected<void, RecordWorkspaceError> RecordWorkspace::setRecord(RecordDefin
         return std::unexpected(valid.error());
     }
 
-    docket_model_->setRecordData(definition);
+    full_definition_ = std::move(definition);
+    authorized_document_ids_.clear();
+    access_projection_.reset();
+    docket_filter_->clear();
+    document_search_->clear();
+    clearLoadedDocument();
+    rebuildDisclosureProjection();
+    clearError();
+    return {};
+}
+
+bool RecordWorkspace::applyRecordAccessProjection(model::RecordAccessProjection projection) {
+    return applyAccessProjection(std::move(projection)).has_value();
+}
+
+std::expected<void, RecordWorkspaceError>
+RecordWorkspace::setAccessProjectionForTest(model::RecordAccessProjection projection) {
+    return applyAccessProjection(std::move(projection));
+}
+
+std::expected<void, RecordWorkspaceError>
+RecordWorkspace::applyAccessProjection(model::RecordAccessProjection projection) {
+    if (!full_definition_.disclosure_policy.has_value()) {
+        return recordError(RecordWorkspaceErrorCode::AccessProjectionMismatch,
+                           QStringLiteral("This record has no session access policy"));
+    }
+    const auto& policy = *full_definition_.disclosure_policy;
+    const auto zero_head = projection.head_digest == std::string(64, '0');
+    if (QString::fromUtf8(projection.record_id) != policy.record_id ||
+        QString::fromUtf8(projection.policy_id) != policy.policy_id ||
+        projection.session_id.empty() ||
+        !isLowercaseSha256(QString::fromLatin1(projection.head_digest)) ||
+        (projection.through_sequence == 0) != zero_head ||
+        (access_projection_.has_value() &&
+         (access_projection_->session_id != projection.session_id ||
+          projection.through_sequence < access_projection_->through_sequence ||
+          (projection.through_sequence == access_projection_->through_sequence &&
+           projection != *access_projection_)))) {
+        return recordError(RecordWorkspaceErrorCode::AccessProjectionMismatch,
+                           QStringLiteral("Session access projection does not match this record"));
+    }
+    QSet<QString> permitted;
+    for (const auto& disclosure : full_definition_.sealed_disclosures) {
+        permitted.insert(disclosure.sealed_document_id);
+    }
+    QSet<QString> authorized;
+    for (const auto& document_id : projection.authorized_document_ids) {
+        const auto id = QString::fromUtf8(document_id);
+        if (!permitted.contains(id) || authorized.contains(id)) {
+            return recordError(
+                RecordWorkspaceErrorCode::AccessProjectionMismatch,
+                QStringLiteral("Session access projection contains an invalid grant"));
+        }
+        authorized.insert(id);
+    }
+
+    if (!current_document_id_.isEmpty()) {
+        const auto loaded = std::ranges::find(full_definition_.documents, current_document_id_,
+                                              &RecordDocument::id);
+        if (loaded != full_definition_.documents.end() && loaded->sealed &&
+            !authorized.contains(loaded->id)) {
+            clearLoadedDocument();
+        }
+    }
+    authorized_document_ids_ = std::move(authorized);
+    access_projection_ = std::move(projection);
+    rebuildDisclosureProjection();
+    clearError();
+    return {};
+}
+
+void RecordWorkspace::rebuildDisclosureProjection() {
+    RecordDefinition projected;
+    projected.dockets = full_definition_.dockets;
+    projected.disclosure_policy = full_definition_.disclosure_policy;
+    projected.sealed_disclosures = full_definition_.sealed_disclosures;
+    QSet<QString> visible_document_ids;
+    for (const auto& document : full_definition_.documents) {
+        const auto visible = !full_definition_.disclosure_policy.has_value() || !document.sealed ||
+                             authorized_document_ids_.contains(document.id);
+        if (visible) {
+            projected.documents.push_back(document);
+            visible_document_ids.insert(document.id);
+        }
+    }
+    for (const auto& entry : full_definition_.docket) {
+        if (visible_document_ids.contains(entry.document_id)) {
+            projected.docket.push_back(entry);
+        }
+    }
+    QHash<QString, RecordPageAnchor> authored_anchors;
+    for (const auto& anchor : full_definition_.anchors) {
+        authored_anchors.insert(anchor.id, anchor);
+        if (visible_document_ids.contains(anchor.document_id)) {
+            projected.anchors.push_back(anchor);
+        }
+    }
+    if (full_definition_.disclosure_policy.has_value()) {
+        for (const auto& disclosure : full_definition_.sealed_disclosures) {
+            const auto use_sealed =
+                authorized_document_ids_.contains(disclosure.sealed_document_id);
+            for (const auto& mapping : disclosure.anchor_mappings) {
+                const auto physical_id =
+                    use_sealed ? mapping.sealed_anchor_id : mapping.public_anchor_id;
+                const auto physical = authored_anchors.constFind(physical_id);
+                if (physical != authored_anchors.constEnd() &&
+                    visible_document_ids.contains(physical->document_id)) {
+                    auto stable = *physical;
+                    stable.id = mapping.stable_anchor_id;
+                    projected.anchors.push_back(std::move(stable));
+                }
+            }
+        }
+    }
+
+    docket_model_->setRecordData(projected);
     QHash<QString, RecordDocument> documents;
-    documents.reserve(static_cast<qsizetype>(definition.documents.size()));
-    for (auto& document : definition.documents) {
+    for (auto& document : projected.documents) {
         documents.insert(document.id, std::move(document));
     }
     QHash<QString, RecordPageAnchor> anchors;
-    anchors.reserve(static_cast<qsizetype>(definition.anchors.size()));
-    for (auto& anchor : definition.anchors) {
+    for (auto& anchor : projected.anchors) {
         anchors.insert(anchor.id, std::move(anchor));
     }
     QHash<QString, QString> citation_anchors;
-    citation_anchors.reserve(anchors.size());
     for (auto anchor = anchors.constBegin(); anchor != anchors.constEnd(); ++anchor) {
         if (!anchor->citation_label.isEmpty()) {
             citation_anchors.insert(anchor->citation_label, anchor.key());
         }
     }
-
     documents_ = std::move(documents);
     anchors_ = std::move(anchors);
     citation_anchors_ = std::move(citation_anchors);
-    docket_filter_->clear();
+}
+
+void RecordWorkspace::clearLoadedDocument() {
+    pdf_search_model_->setSearchString({});
     document_search_->clear();
     pdf_document_->close();
+    current_asset_snapshot_.reset();
     current_document_id_.clear();
-    clearError();
     updatePageControls(-1);
-    return {};
 }
 
 std::expected<void, RecordWorkspaceError> RecordWorkspace::openDocketEntry(QStringView docket_id) {
@@ -677,21 +961,58 @@ RecordWorkspace::navigateToCitation(QStringView citation_label) {
 
 std::expected<void, RecordWorkspaceError>
 RecordWorkspace::openDocument(const RecordDocument& document, int page_index) {
-    if (document.sealed) {
-        return recordError(RecordWorkspaceErrorCode::SealedDocument,
-                           QStringLiteral("This record item is sealed and cannot be opened"));
+    if (document.sealed && (!full_definition_.disclosure_policy.has_value() ||
+                            !authorized_document_ids_.contains(document.id))) {
+        return recordError(
+            RecordWorkspaceErrorCode::SealedDocument,
+            QStringLiteral("This record item is unavailable in the current session"));
+    }
+
+    QString source = document.file_path;
+    std::shared_ptr<QTemporaryFile> authorized_snapshot;
+    if (document.sealed && full_definition_.disclosure_policy.has_value() &&
+        document.deferred_asset) {
+        const auto resolved = document.deferred_asset();
+        if (!resolved || resolved->file_path.isEmpty()) {
+            clearLoadedDocument();
+            return recordError(
+                RecordWorkspaceErrorCode::PdfLoadFailed,
+                QStringLiteral("Authorized sealed record asset failed local verification"));
+        }
+        source = resolved->file_path;
+        authorized_snapshot = std::move(resolved->owned_snapshot);
+    }
+    if (source.isEmpty()) {
+        clearLoadedDocument();
+        return recordError(RecordWorkspaceErrorCode::PdfLoadFailed,
+                           document.sealed
+                               ? QStringLiteral("Authorized sealed record asset is unavailable")
+                               : QStringLiteral("Record PDF asset is unavailable"));
     }
 
     pdf_search_model_->setSearchString({});
     document_search_->clear();
     pdf_document_->close();
-    const auto error = pdf_document_->load(document.file_path);
+    current_asset_snapshot_.reset();
+    const auto error = pdf_document_->load(source);
     if (error != QPdfDocument::Error::None ||
         pdf_document_->status() != QPdfDocument::Status::Ready || pdf_document_->pageCount() <= 0) {
         current_document_id_.clear();
         updatePageControls(-1);
         return recordError(RecordWorkspaceErrorCode::PdfLoadFailed,
-                           QStringLiteral("Cannot load record PDF: %1").arg(document.title));
+                           document.sealed
+                               ? QStringLiteral("Authorized sealed record PDF cannot be loaded")
+                               : QStringLiteral("Cannot load record PDF: %1").arg(document.title));
+    }
+    if (document.declared_page_count > 0 &&
+        pdf_document_->pageCount() != document.declared_page_count) {
+        current_document_id_.clear();
+        pdf_document_->close();
+        updatePageControls(-1);
+        return recordError(
+            RecordWorkspaceErrorCode::PdfLoadFailed,
+            document.sealed ? QStringLiteral("Authorized sealed record PDF failed local validation")
+                            : QStringLiteral("Record PDF page count differs from its declaration"));
     }
     if (page_index < 0 || page_index >= pdf_document_->pageCount()) {
         current_document_id_.clear();
@@ -702,6 +1023,7 @@ RecordWorkspace::openDocument(const RecordDocument& document, int page_index) {
     }
 
     current_document_id_ = document.id;
+    current_asset_snapshot_ = std::move(authorized_snapshot);
     clearError();
     return goToPage(page_index);
 }
@@ -744,6 +1066,26 @@ const QString& RecordWorkspace::currentDocumentId() const noexcept { return curr
 
 const std::optional<RecordWorkspaceError>& RecordWorkspace::lastError() const noexcept {
     return last_error_;
+}
+
+std::vector<model::RecordDisclosureDeficiency> RecordWorkspace::disclosureDeficiencies() const {
+    std::vector<model::RecordDisclosureDeficiency> deficiencies;
+    for (const auto& disclosure : full_definition_.sealed_disclosures) {
+        const auto appendIfMissing = [&](QStringView requirement, const QString& document_id,
+                                         model::RecordDisclosureDeficiencyKind kind) {
+            if (disclosure.required_items.contains(requirement) && document_id.isEmpty()) {
+                deficiencies.push_back(model::RecordDisclosureDeficiency{
+                    disclosure.disclosure_id.toUtf8().toStdString(), kind});
+            }
+        };
+        appendIfMissing(u"motion", disclosure.motion_document_id,
+                        model::RecordDisclosureDeficiencyKind::MissingPublicMotion);
+        appendIfMissing(u"certificate", disclosure.certificate_document_id,
+                        model::RecordDisclosureDeficiencyKind::MissingCertificate);
+        appendIfMissing(u"redacted_counterpart", disclosure.public_document_id,
+                        model::RecordDisclosureDeficiencyKind::MissingRedactedCounterpart);
+    }
+    return deficiencies;
 }
 
 QLineEdit* RecordWorkspace::docketFilterEdit() const noexcept { return docket_filter_; }

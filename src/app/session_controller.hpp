@@ -4,6 +4,7 @@
 #include "appellate/model/command.hpp"
 #include "appellate/model/event.hpp"
 #include "appellate/model/procedure.hpp"
+#include "appellate/model/record_access.hpp"
 #include "appellate/model/session.hpp"
 #include "appellate/storage/asset_store.hpp"
 #include "appellate/storage/session_store.hpp"
@@ -13,6 +14,7 @@
 
 #include <expected>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 namespace appellate::packs {
@@ -103,6 +105,75 @@ class SessionController final {
     storage::AssetStore asset_store_;
     std::unique_ptr<storage::SessionStore> session_store_;
     storage::SessionSnapshot snapshot_;
+};
+
+// Owns a dedicated local SQLite session journal for sealed-record access. It
+// never invents authority: production entry points derive every transition
+// from the exact root-owned policy and canonical authority in the resolved
+// pack, then persist and replay it before returning the new projection.
+class RecordAccessSessionController final {
+  public:
+    RecordAccessSessionController(const RecordAccessSessionController&) = delete;
+    RecordAccessSessionController& operator=(const RecordAccessSessionController&) = delete;
+    RecordAccessSessionController(RecordAccessSessionController&&) = delete;
+    RecordAccessSessionController& operator=(RecordAccessSessionController&&) = delete;
+    ~RecordAccessSessionController() = default;
+
+    [[nodiscard]] static auto create(QString session_id, const model::CaseId& selected_case_id,
+                                     std::unique_ptr<storage::SessionStore> session_store,
+                                     QString engine_revision, QString created_at_utc,
+                                     const packs::ResolvedPack& resolved_pack)
+        -> std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError>;
+
+    [[nodiscard]] static auto reopen(QString session_id, const model::CaseId& selected_case_id,
+                                     std::unique_ptr<storage::SessionStore> session_store,
+                                     QString expected_engine_revision,
+                                     const packs::ResolvedPack& resolved_pack)
+        -> std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError>;
+
+    [[nodiscard]] auto grant(std::string_view disclosure_id, std::string_view event_id,
+                             const QString& recorded_at_utc)
+        -> std::expected<void, SessionControllerError>;
+    [[nodiscard]] auto revoke(std::string_view disclosure_id, std::string_view event_id,
+                              const QString& recorded_at_utc)
+        -> std::expected<void, SessionControllerError>;
+
+    [[nodiscard]] auto applyCurrentProjection(model::RecordAccessProjectionTarget& target)
+        -> std::expected<void, SessionControllerError>;
+    [[nodiscard]] std::vector<model::RecordAccessDisclosureStatus> disclosures() const;
+    [[nodiscard]] auto auditProjectionAt(qint64 through_sequence) const
+        -> std::expected<model::RecordAccessAuditProjection, SessionControllerError>;
+    [[nodiscard]] const storage::SessionSnapshot& snapshot() const noexcept;
+
+  private:
+    friend class RecordAccessSessionControllerTestAccess;
+
+    [[nodiscard]] static auto create(QString session_id, model::RecordAccessPolicy policy,
+                                     std::unique_ptr<storage::SessionStore> session_store,
+                                     QString engine_revision, QString created_at_utc,
+                                     std::vector<storage::RevisionPin> pins)
+        -> std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError>;
+
+    [[nodiscard]] static auto reopen(QString session_id, model::RecordAccessPolicy policy,
+                                     std::unique_ptr<storage::SessionStore> session_store,
+                                     QString expected_engine_revision,
+                                     std::vector<storage::RevisionPin> expected_pins)
+        -> std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError>;
+
+    RecordAccessSessionController(model::RecordAccessPolicy policy,
+                                  std::unique_ptr<storage::SessionStore> session_store,
+                                  storage::SessionSnapshot snapshot,
+                                  model::RecordAccessProjection projection);
+
+    [[nodiscard]] auto transition(std::string_view sealed_document_id, std::string_view event_id,
+                                  model::RecordAccessAction action, const QString& recorded_at_utc)
+        -> std::expected<model::RecordAccessProjection, SessionControllerError>;
+    [[nodiscard]] auto refresh() -> std::expected<void, SessionControllerError>;
+
+    model::RecordAccessPolicy policy_;
+    std::unique_ptr<storage::SessionStore> session_store_;
+    storage::SessionSnapshot snapshot_;
+    model::RecordAccessProjection projection_;
 };
 
 } // namespace appellate::app

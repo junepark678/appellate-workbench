@@ -41,6 +41,7 @@ class SchemaDispatchTest final : public QObject {
     void preservesPinnedPre28V2Revision();
     void preservesPinnedPre25V2Revision();
     void loadsV2AndProjectsRuntime();
+    void validatesSealedRecordTwins();
     void validatesGroundedQuestionBanks();
     void normalizesGroundedQuestionBankOrdering();
     void enforcesGroundedQuestionBoundsAndPrompts();
@@ -417,6 +418,82 @@ void refreshDispositionDigests(QJsonObject& case_document) {
     });
 }
 
+[[nodiscard]] bool addSealedRecordTwins(const QString& root) {
+    if (!mutateResource(root, QStringLiteral("resources/record.json"), [](QJsonObject& document) {
+            auto entries = document.value(QStringLiteral("docket_entries")).toArray();
+            auto sealed = entries.at(0).toObject();
+            sealed.insert(QStringLiteral("entry_id"), QStringLiteral("example.record.psr-sealed"));
+            sealed.insert(QStringLiteral("entry_number"), 3);
+            sealed.insert(QStringLiteral("entry_label"), QStringLiteral("ECF No. 42-S"));
+            sealed.insert(QStringLiteral("title"),
+                          QStringLiteral("Confidential PSR fixture title"));
+            sealed.insert(QStringLiteral("description"),
+                          QStringLiteral("Secret fixture description"));
+            sealed.insert(QStringLiteral("tags"), QJsonArray{QStringLiteral("psr-secret-tag")});
+            sealed.insert(QStringLiteral("sealed"), true);
+            entries.push_back(sealed);
+            document.insert(QStringLiteral("docket_entries"), entries);
+
+            auto anchors = document.value(QStringLiteral("page_anchors")).toArray();
+            anchors.push_back(QJsonObject{
+                {QStringLiteral("anchor_id"), QStringLiteral("example.record.anchor.psr-sealed")},
+                {QStringLiteral("entry_id"), QStringLiteral("example.record.psr-sealed")},
+                {QStringLiteral("page_number"), 2},
+                {QStringLiteral("citation_label"), QStringLiteral("SECRET-JA-2")},
+            });
+            anchors.push_back(QJsonObject{
+                {QStringLiteral("anchor_id"), QStringLiteral("example.record.anchor.psr-unmapped")},
+                {QStringLiteral("entry_id"), QStringLiteral("example.record.psr-sealed")},
+                {QStringLiteral("page_number"), 1},
+                {QStringLiteral("citation_label"), QStringLiteral("SECRET-JA-UNMAPPED")},
+            });
+            document.insert(QStringLiteral("page_anchors"), anchors);
+            document.insert(
+                QStringLiteral("disclosure_policy"),
+                QJsonObject{
+                    {QStringLiteral("policy_id"), QStringLiteral("example.record.policy.psr")},
+                    {QStringLiteral("unauthorized_projection"),
+                     QStringLiteral("public_counterparts_only")},
+                    {QStringLiteral("authorized_projection"),
+                     QStringLiteral("public_and_authorized_sealed")},
+                    {QStringLiteral("sealed_asset_access"),
+                     QStringLiteral("session_event_grant_required")},
+                });
+            document.insert(
+                QStringLiteral("sealed_disclosures"),
+                QJsonArray{QJsonObject{
+                    {QStringLiteral("disclosure_id"), QStringLiteral("example.disclosure.psr")},
+                    {QStringLiteral("sealed_entry_id"),
+                     QStringLiteral("example.record.psr-sealed")},
+                    {QStringLiteral("public_entry_id"), QStringLiteral("example.record.entry-one")},
+                    {QStringLiteral("authorization_authority_id"),
+                     QStringLiteral("example.authority.rule-one")},
+                    {QStringLiteral("required_items"),
+                     QJsonArray{QStringLiteral("motion"), QStringLiteral("certificate"),
+                                QStringLiteral("redacted_counterpart")}},
+                    {QStringLiteral("anchor_mappings"),
+                     QJsonArray{QJsonObject{
+                         {QStringLiteral("stable_anchor_id"),
+                          QStringLiteral("example.record.anchor.psr-stable")},
+                         {QStringLiteral("sealed_anchor_id"),
+                          QStringLiteral("example.record.anchor.psr-sealed")},
+                         {QStringLiteral("public_anchor_id"),
+                          QStringLiteral("example.record.anchor.ja2")},
+                     }}},
+                }});
+        })) {
+        return false;
+    }
+    return mutateManifest(root, [](QJsonObject& manifest) {
+        auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+        capabilities.push_back(QJsonObject{
+            {QStringLiteral("id"), QStringLiteral("workbench.pack.sealed-record-twins")},
+            {QStringLiteral("version"), 1},
+        });
+        manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+    });
+}
+
 [[nodiscard]] std::vector<QJsonObject>
 objects(const QJsonArray& values,
         const std::function<bool(const QJsonObject&, const QJsonObject&)>& less) {
@@ -634,9 +711,8 @@ executedFixtureTrace(const appellate::packs::LoadedPack& case_owner) {
         {appellate::model::ActorId{"example.actor.appellee"}},
         std::nullopt,
     };
-    const auto events = appellate::engine::decideWorkflow(runtime_case.workflow,
-                                                           runtime_case.definition, initial_state,
-                                                           command);
+    const auto events = appellate::engine::decideWorkflow(
+        runtime_case.workflow, runtime_case.definition, initial_state, command);
     if (!events || events->empty()) {
         return std::nullopt;
     }
@@ -679,16 +755,15 @@ executedFixtureTrace(const appellate::packs::LoadedPack& case_owner) {
         {QStringLiteral("engine_revision"), QStringLiteral("engine.example.realism.v1")},
         {QStringLiteral("command_count"), static_cast<qint64>(journal.size())},
         {QStringLiteral("event_count"), static_cast<qint64>(events->size())},
-        {QStringLiteral("journal_sha256"),
-         QString::fromLatin1(journal_hash.result().toHex())},
+        {QStringLiteral("journal_sha256"), QString::fromLatin1(journal_hash.result().toHex())},
         {QStringLiteral("journal"), encoded_journal},
         {QStringLiteral("operation_ids"), operation_ids},
         {QStringLiteral("terminal_stage_id"),
          QString::fromStdString(replayed->current_stage_id.value)},
     };
-    trace.insert(QStringLiteral("digest"),
-                 realismTraceDigest(QString::fromStdString(runtime_case.definition.id.value),
-                                    trace));
+    trace.insert(
+        QStringLiteral("digest"),
+        realismTraceDigest(QString::fromStdString(runtime_case.definition.id.value), trace));
     return trace;
 }
 
@@ -1295,6 +1370,209 @@ void SchemaDispatchTest::loadsV2AndProjectsRuntime() {
              std::string("398c9797ae359c4a317ababe2db7e27c1dad8b11d4059f36a71d01262edf11d5"));
     QCOMPARE(counterfactual_bank.issue_topics.size(), std::size_t{2});
     QCOMPARE(counterfactual_bank.questions.size(), std::size_t{2});
+}
+
+void SchemaDispatchTest::validatesSealedRecordTwins() {
+    QTemporaryDir valid_pack;
+    QVERIFY(valid_pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), valid_pack.path()));
+    QVERIFY(addSealedRecordTwins(valid_pack.path()));
+    const auto loaded = PackReader::readDirectory(valid_pack.path());
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+    const auto runtime = appellate::packs::loadRuntimePack(*loaded);
+    QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+    const auto& record = runtime->cases.front().record;
+    QVERIFY(record.disclosure_policy.has_value());
+    QCOMPARE(record.disclosure_policy->policy_id, std::string("example.record.policy.psr"));
+    QCOMPARE(record.sealed_disclosures.size(), std::size_t{1});
+    const auto& disclosure = record.sealed_disclosures.front();
+    QCOMPARE(disclosure.disclosure_id.value, std::string("example.disclosure.psr"));
+    QCOMPARE(disclosure.sealed_entry_id.value, std::string("example.record.psr-sealed"));
+    QCOMPARE(disclosure.authorization_authority_id.value,
+             std::string("example.authority.rule-one"));
+    QCOMPARE(disclosure.anchor_mappings.front().stable_anchor_id.value,
+             std::string("example.record.anchor.psr-stable"));
+
+    QTemporaryDir stable_issue_pack;
+    QVERIFY(stable_issue_pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), stable_issue_pack.path()));
+    QVERIFY(addSealedRecordTwins(stable_issue_pack.path()));
+    QVERIFY(mutateResource(
+        stable_issue_pack.path(), QStringLiteral("resources/case.json"), [](QJsonObject& document) {
+            auto issues = document.value(QStringLiteral("issues")).toArray();
+            auto issue = issues.at(0).toObject();
+            auto anchors = issue.value(QStringLiteral("record_anchor_ids")).toArray();
+            anchors.push_back(QStringLiteral("example.record.anchor.psr-stable"));
+            issue.insert(QStringLiteral("record_anchor_ids"), anchors);
+            issues.replace(0, issue);
+            document.insert(QStringLiteral("issues"), issues);
+        }));
+    const auto stable_issue = PackReader::readDirectory(stable_issue_pack.path());
+    QVERIFY2(stable_issue.has_value(),
+             stable_issue ? "" : qPrintable(stable_issue.error().message));
+    QVERIFY(appellate::packs::loadRuntimePack(*stable_issue).has_value());
+
+    const auto introduce_ordered_identity_collision = [](QJsonObject& document) {
+        auto entries = document.value(QStringLiteral("docket_entries")).toArray();
+        auto second_sealed = entries.at(0).toObject();
+        second_sealed.insert(QStringLiteral("entry_id"),
+                             QStringLiteral("example.record.second-sealed"));
+        second_sealed.insert(QStringLiteral("entry_number"), 4);
+        second_sealed.insert(QStringLiteral("entry_label"), QStringLiteral("ECF No. 43-S"));
+        second_sealed.insert(QStringLiteral("title"), QStringLiteral("Second sealed filing"));
+        second_sealed.insert(QStringLiteral("sealed"), true);
+        entries.push_back(second_sealed);
+        document.insert(QStringLiteral("docket_entries"), entries);
+
+        auto disclosures = document.value(QStringLiteral("sealed_disclosures")).toArray();
+        disclosures.push_back(QJsonObject{
+            {QStringLiteral("disclosure_id"), QStringLiteral("example.record.anchor.psr-stable")},
+            {QStringLiteral("sealed_entry_id"), QStringLiteral("example.record.second-sealed")},
+            {QStringLiteral("authorization_authority_id"),
+             QStringLiteral("example.authority.rule-one")},
+            {QStringLiteral("required_items"), QJsonArray{}},
+            {QStringLiteral("anchor_mappings"), QJsonArray{}},
+        });
+        document.insert(QStringLiteral("sealed_disclosures"), disclosures);
+    };
+
+    for (int variant = 0; variant < 7; ++variant) {
+        QTemporaryDir invalid_pack;
+        QVERIFY(invalid_pack.isValid());
+        QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), invalid_pack.path()));
+        QVERIFY(addSealedRecordTwins(invalid_pack.path()));
+        if (variant == 0) {
+            QVERIFY(mutateManifest(invalid_pack.path(), [](QJsonObject& manifest) {
+                QJsonArray retained;
+                for (const auto& value :
+                     manifest.value(QStringLiteral("required_capabilities")).toArray()) {
+                    if (value.toObject().value(QStringLiteral("id")).toString() !=
+                        QStringLiteral("workbench.pack.sealed-record-twins")) {
+                        retained.push_back(value);
+                    }
+                }
+                manifest.insert(QStringLiteral("required_capabilities"), retained);
+            }));
+        } else if (variant == 1) {
+            QVERIFY(mutateResource(invalid_pack.path(), QStringLiteral("resources/record.json"),
+                                   [](QJsonObject& document) {
+                                       document.remove(QStringLiteral("disclosure_policy"));
+                                   }));
+        } else if (variant == 2) {
+            QVERIFY(mutateResource(
+                invalid_pack.path(), QStringLiteral("resources/record.json"),
+                [](QJsonObject& document) {
+                    auto disclosures =
+                        document.value(QStringLiteral("sealed_disclosures")).toArray();
+                    auto invalid_disclosure = disclosures.at(0).toObject();
+                    invalid_disclosure.insert(QStringLiteral("authorization_authority_id"),
+                                              QStringLiteral("example.authority.missing"));
+                    disclosures.replace(0, invalid_disclosure);
+                    document.insert(QStringLiteral("sealed_disclosures"), disclosures);
+                }));
+        } else if (variant == 3 || variant == 4) {
+            QVERIFY(mutateResource(
+                invalid_pack.path(), QStringLiteral("resources/case.json"),
+                [variant](QJsonObject& document) {
+                    auto issues = document.value(QStringLiteral("issues")).toArray();
+                    auto issue = issues.at(0).toObject();
+                    auto anchors = issue.value(QStringLiteral("record_anchor_ids")).toArray();
+                    anchors.push_back(variant == 3
+                                          ? QStringLiteral("example.record.anchor.psr-sealed")
+                                          : QStringLiteral("example.record.anchor.psr-unmapped"));
+                    issue.insert(QStringLiteral("record_anchor_ids"), anchors);
+                    issues.replace(0, issue);
+                    document.insert(QStringLiteral("issues"), issues);
+                }));
+        } else if (variant == 5) {
+            QVERIFY(mutateResource(
+                invalid_pack.path(), QStringLiteral("resources/record.json"),
+                [](QJsonObject& document) {
+                    auto entries = document.value(QStringLiteral("docket_entries")).toArray();
+                    auto public_entry = entries.at(0).toObject();
+                    public_entry.insert(QStringLiteral("parent_entry_id"),
+                                        QStringLiteral("example.record.psr-sealed"));
+                    public_entry.insert(QStringLiteral("relationship"),
+                                        QStringLiteral("supplement"));
+                    entries.replace(0, public_entry);
+                    document.insert(QStringLiteral("docket_entries"), entries);
+                }));
+        } else {
+            QVERIFY(mutateResource(invalid_pack.path(), QStringLiteral("resources/record.json"),
+                                   introduce_ordered_identity_collision));
+        }
+        const auto rejected = PackReader::readDirectory(invalid_pack.path());
+        QVERIFY(!rejected.has_value());
+        QCOMPARE(rejected.error().code, variant == 0 ? ErrorCode::UnsupportedCapability
+                                                     : ErrorCode::CrossReferenceFailure);
+    }
+
+    auto forged = *loaded;
+    const auto record_resource = std::ranges::find_if(
+        forged.resources, [](const appellate::packs::ValidatedResource& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Record;
+        });
+    QVERIFY(record_resource != forged.resources.end());
+    auto disclosures =
+        record_resource->document.value(QStringLiteral("sealed_disclosures")).toArray();
+    auto forged_disclosure = disclosures.at(0).toObject();
+    forged_disclosure.insert(QStringLiteral("authorization_authority_id"),
+                             QStringLiteral("example.authority.forged"));
+    disclosures.replace(0, forged_disclosure);
+    record_resource->document.insert(QStringLiteral("sealed_disclosures"), disclosures);
+    const auto forged_runtime = appellate::packs::loadRuntimePack(forged);
+    QVERIFY(!forged_runtime.has_value());
+    QCOMPARE(forged_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+
+    auto forged_unmapped_anchor = *loaded;
+    const auto case_resource = std::ranges::find_if(
+        forged_unmapped_anchor.resources, [](const appellate::packs::ValidatedResource& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Case;
+        });
+    QVERIFY(case_resource != forged_unmapped_anchor.resources.end());
+    auto issues = case_resource->document.value(QStringLiteral("issues")).toArray();
+    auto issue = issues.at(0).toObject();
+    auto issue_anchors = issue.value(QStringLiteral("record_anchor_ids")).toArray();
+    issue_anchors.push_back(QStringLiteral("example.record.anchor.psr-unmapped"));
+    issue.insert(QStringLiteral("record_anchor_ids"), issue_anchors);
+    issues.replace(0, issue);
+    case_resource->document.insert(QStringLiteral("issues"), issues);
+    const auto forged_unmapped_runtime = appellate::packs::loadRuntimePack(forged_unmapped_anchor);
+    QVERIFY(!forged_unmapped_runtime.has_value());
+    QCOMPARE(forged_unmapped_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+
+    auto forged_parent = *loaded;
+    const auto forged_parent_record = std::ranges::find_if(
+        forged_parent.resources, [](const appellate::packs::ValidatedResource& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Record;
+        });
+    QVERIFY(forged_parent_record != forged_parent.resources.end());
+    auto entries = forged_parent_record->document.value(QStringLiteral("docket_entries")).toArray();
+    auto public_entry = entries.at(0).toObject();
+    public_entry.insert(QStringLiteral("parent_entry_id"),
+                        QStringLiteral("example.record.psr-sealed"));
+    public_entry.insert(QStringLiteral("relationship"), QStringLiteral("supplement"));
+    entries.replace(0, public_entry);
+    forged_parent_record->document.insert(QStringLiteral("docket_entries"), entries);
+    const auto forged_parent_runtime = appellate::packs::loadRuntimePack(forged_parent);
+    QVERIFY(!forged_parent_runtime.has_value());
+    QCOMPARE(forged_parent_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+
+    auto forged_identity_collision = *loaded;
+    const auto collision_record = std::ranges::find_if(
+        forged_identity_collision.resources,
+        [](const appellate::packs::ValidatedResource& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Record;
+        });
+    QVERIFY(collision_record != forged_identity_collision.resources.end());
+    introduce_ordered_identity_collision(collision_record->document);
+    const auto collision_runtime = appellate::packs::loadRuntimePack(forged_identity_collision);
+    QVERIFY(!collision_runtime.has_value());
+    QCOMPARE(collision_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
 }
 
 void SchemaDispatchTest::validatesGroundedQuestionBanks() {
@@ -3065,9 +3343,9 @@ void SchemaDispatchTest::rejectsTamperedAndIncompleteRealismEvidence() {
              auto traces = evidence.value(QStringLiteral("traces")).toArray();
              auto trace = traces.first().toObject();
              trace.insert(QStringLiteral("event_count"), 3);
-             trace.insert(QStringLiteral("digest"),
-                          realismTraceDigest(document.value(QStringLiteral("case_id")).toString(),
-                                             trace));
+             trace.insert(
+                 QStringLiteral("digest"),
+                 realismTraceDigest(document.value(QStringLiteral("case_id")).toString(), trace));
              traces.replace(0, trace);
              evidence.insert(QStringLiteral("traces"), traces);
              document.insert(QStringLiteral("evidence"), evidence);
@@ -3160,11 +3438,11 @@ void SchemaDispatchTest::rejectsTamperedAndIncompleteRealismEvidence() {
     QTemporaryDir changed_subject;
     QVERIFY(changed_subject.isValid());
     QVERIFY(copyTree(valid.path(), changed_subject.path()));
-    QVERIFY(mutateResource(
-        changed_subject.path(), QStringLiteral("resources/court.json"), [](QJsonObject& court) {
-            court.insert(QStringLiteral("name"),
-                         QStringLiteral("Changed Fictional Court of Appeals"));
-        }));
+    QVERIFY(mutateResource(changed_subject.path(), QStringLiteral("resources/court.json"),
+                           [](QJsonObject& court) {
+                               court.insert(QStringLiteral("name"),
+                                            QStringLiteral("Changed Fictional Court of Appeals"));
+                           }));
     const auto stale_after_subject_change = PackReader::readDirectory(changed_subject.path());
     QVERIFY(!stale_after_subject_change.has_value());
     QCOMPARE(stale_after_subject_change.error().code, ErrorCode::CrossReferenceFailure);
@@ -3204,8 +3482,7 @@ void SchemaDispatchTest::rejectsTamperedAndIncompleteRealismEvidence() {
     QCOMPARE(forged_graph.error().code, ErrorCode::CrossReferenceFailure);
     const auto forged_runtime = appellate::packs::loadRuntimePack(forged);
     QVERIFY(!forged_runtime.has_value());
-    QCOMPARE(forged_runtime.error().code,
-             appellate::packs::RuntimePackErrorCode::InvalidPack);
+    QCOMPARE(forged_runtime.error().code, appellate::packs::RuntimePackErrorCode::InvalidPack);
 
     auto forged_pinned_revision = *loaded;
     const auto forged_pinned_review =
@@ -3213,18 +3490,16 @@ void SchemaDispatchTest::rejectsTamperedAndIncompleteRealismEvidence() {
             return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
         });
     QVERIFY(forged_pinned_review != forged_pinned_revision.resources.end());
-    const auto exact_legacy_review = readObject(
-        fixture(QStringLiteral("full-resource-pack-v2-pre-27-overlay/resources/realism-review.json")));
+    const auto exact_legacy_review = readObject(fixture(
+        QStringLiteral("full-resource-pack-v2-pre-27-overlay/resources/realism-review.json")));
     QVERIFY(!exact_legacy_review.isEmpty());
     forged_pinned_review->document = exact_legacy_review;
     forged_pinned_revision.revision.digest =
         "a9c912ad7e23620f9a5c9f5fb81c9edabe1d00010551c4636e8a621b00655bd4";
-    const auto forged_pinned_graph =
-        PackReader::validateResolvedGraph(forged_pinned_revision, {});
+    const auto forged_pinned_graph = PackReader::validateResolvedGraph(forged_pinned_revision, {});
     QVERIFY(!forged_pinned_graph.has_value());
     QCOMPARE(forged_pinned_graph.error().code, ErrorCode::CrossReferenceFailure);
-    const auto forged_pinned_runtime =
-        appellate::packs::loadRuntimePack(forged_pinned_revision);
+    const auto forged_pinned_runtime = appellate::packs::loadRuntimePack(forged_pinned_revision);
     QVERIFY(!forged_pinned_runtime.has_value());
     QCOMPARE(forged_pinned_runtime.error().code,
              appellate::packs::RuntimePackErrorCode::InvalidPack);

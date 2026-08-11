@@ -1,10 +1,13 @@
 #include "appellate/packs/pack_archive.hpp"
+#include "appellate/packs/pack_catalog.hpp"
 #include "appellate/packs/resolved_pack.hpp"
+#include "appellate/storage/session_store.hpp"
 #include "bench_profile_editor.hpp"
 #include "main_window.hpp"
 #include "oral_argument_launch_provider.hpp"
 #include "oral_argument_workspace.hpp"
 #include "record_workspace.hpp"
+#include "session_controller.hpp"
 
 #include <QAction>
 #include <QApplication>
@@ -14,14 +17,22 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QFont>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
 #include <QListWidget>
+#include <QMenu>
+#include <QPageSize>
+#include <QPainter>
+#include <QPdfWriter>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QTabWidget>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QUuid>
 #include <QVariant>
 
 #include <array>
@@ -43,6 +54,7 @@ class MainWindowTest final : public QObject {
     void caseAndProfileSelectionStayInSync();
     void installedRecordActionOpensSearchablePdf();
     void recordFailuresPreserveLastGoodWorkspace();
+    void sealedRecordAccessPersistsAndRejectsTamperedReplay();
     void argumentLaunchUsesExactSelectedConfigurationAndPreservesWorkspaceOnError();
     void actionsExposeAccessibleUsefulStates();
 };
@@ -78,6 +90,37 @@ class RecordingLaunchProvider final : public appellate::ui::OralArgumentLaunchPr
     }
 
     std::vector<Call> calls;
+};
+
+class RecordingRecordAccessProvider final : public appellate::ui::RecordAccessTransitionProvider {
+  public:
+    struct Transition final {
+        QString session_id;
+        std::uint64_t sequence{};
+        std::string disclosure_id;
+        appellate::model::RecordAccessAction action{};
+    };
+
+    [[nodiscard]] auto createdAtUtc(QStringView session_id)
+        -> std::expected<QString, QString> override {
+        created_sessions.push_back(session_id.toString());
+        return QStringLiteral("2026-08-11T09:00:00Z");
+    }
+
+    [[nodiscard]] auto next(QStringView session_id, std::uint64_t next_sequence,
+                            const appellate::packs::RuntimeRecordDisclosureId& disclosure_id,
+                            appellate::model::RecordAccessAction action)
+        -> std::expected<appellate::ui::RecordAccessTransitionStamp, QString> override {
+        transitions.push_back(
+            Transition{session_id.toString(), next_sequence, disclosure_id.value, action});
+        return appellate::ui::RecordAccessTransitionStamp{
+            QStringLiteral("test.record.access.event.%1").arg(next_sequence),
+            QStringLiteral("2026-08-11T09:00:%1Z").arg(next_sequence, 2, 10, QLatin1Char('0')),
+        };
+    }
+
+    std::vector<QString> created_sessions;
+    std::vector<Transition> transitions;
 };
 
 [[nodiscard]] QString fixture(const QString& name) {
@@ -124,6 +167,27 @@ class RecordingLaunchProvider final : public appellate::ui::OralArgumentLaunchPr
     }
     return QString::fromLatin1(
         QCryptographicHash::hash(document, QCryptographicHash::Sha256).toHex());
+}
+
+[[nodiscard]] bool writePdf(const QString& path, const QStringList& pages) {
+    if (pages.isEmpty() || !QDir{}.mkpath(QFileInfo(path).absolutePath())) {
+        return false;
+    }
+    QPdfWriter writer(path);
+    writer.setPageSize(QPageSize(QPageSize::Letter));
+    writer.setResolution(72);
+    QPainter painter(&writer);
+    if (!painter.isActive()) {
+        return false;
+    }
+    painter.setFont(QFont(QStringLiteral("DejaVu Sans"), 12));
+    for (qsizetype index = 0; index < pages.size(); ++index) {
+        painter.drawText(QRect(40, 40, 520, 700), Qt::AlignCenter, pages.at(index));
+        if (index + 1 < pages.size() && !writer.newPage()) {
+            return false;
+        }
+    }
+    return painter.end();
 }
 
 [[nodiscard]] QJsonObject descriptor(const QString& id, const QString& kind, const QString& path,
@@ -218,6 +282,141 @@ class RecordingLaunchProvider final : public appellate::ui::OralArgumentLaunchPr
         return {};
     }
     return destination;
+}
+
+[[nodiscard]] QString createSealedTwinsPack(const QString& root) {
+    const auto destination = QDir(root).filePath(QStringLiteral("sealed-twins-pack"));
+    if (!copyTree(fixture(QStringLiteral("full-resource-pack-v2")), destination)) {
+        return {};
+    }
+    const auto record_path = QDir(destination).filePath(QStringLiteral("resources/record.json"));
+    const auto manifest_path = QDir(destination).filePath(QStringLiteral("manifest.json"));
+    auto record = readObject(record_path);
+    auto manifest = readObject(manifest_path);
+    if (!record || !manifest) {
+        return {};
+    }
+
+    const auto sealed_asset_path = QStringLiteral("objects/sealed-psr.pdf");
+    const auto sealed_file_path = QDir(destination).filePath(sealed_asset_path);
+    if (!writePdf(sealed_file_path, {QStringLiteral("Sealed desktop PSR cover"),
+                                     QStringLiteral("ultrasecret-main-window-text")})) {
+        return {};
+    }
+    QFile sealed_file(sealed_file_path);
+    if (!sealed_file.open(QIODevice::ReadOnly)) {
+        return {};
+    }
+    const auto sealed_bytes = sealed_file.readAll();
+    sealed_file.close();
+    const auto sealed_digest = QString::fromLatin1(
+        QCryptographicHash::hash(sealed_bytes, QCryptographicHash::Sha256).toHex());
+
+    auto entries = record->value(QStringLiteral("docket_entries")).toArray();
+    auto sealed = entries.at(0).toObject();
+    sealed.insert(QStringLiteral("entry_id"), QStringLiteral("example.record.psr-sealed"));
+    sealed.insert(QStringLiteral("entry_number"), 3);
+    sealed.insert(QStringLiteral("entry_label"), QStringLiteral("ECF No. 42-S"));
+    sealed.insert(QStringLiteral("title"), QStringLiteral("Confidential PSR title"));
+    sealed.insert(QStringLiteral("description"),
+                  QStringLiteral("Never disclose desktop PSR description"));
+    sealed.insert(QStringLiteral("tags"), QJsonArray{QStringLiteral("psr-secret-desktop-tag")});
+    sealed.insert(QStringLiteral("asset_path"), sealed_asset_path);
+    sealed.insert(QStringLiteral("asset_sha256"), sealed_digest);
+    sealed.insert(QStringLiteral("page_count"), 2);
+    sealed.insert(QStringLiteral("sealed"), true);
+    entries.push_back(sealed);
+    record->insert(QStringLiteral("docket_entries"), entries);
+    auto anchors = record->value(QStringLiteral("page_anchors")).toArray();
+    anchors.push_back(QJsonObject{
+        {QStringLiteral("anchor_id"), QStringLiteral("example.record.anchor.psr-sealed")},
+        {QStringLiteral("entry_id"), QStringLiteral("example.record.psr-sealed")},
+        {QStringLiteral("page_number"), 2},
+        {QStringLiteral("citation_label"), QStringLiteral("SECRET-JA-2")},
+    });
+    record->insert(QStringLiteral("page_anchors"), anchors);
+    record->insert(
+        QStringLiteral("disclosure_policy"),
+        QJsonObject{
+            {QStringLiteral("policy_id"), QStringLiteral("example.record.policy.psr")},
+            {QStringLiteral("unauthorized_projection"), QStringLiteral("public_counterparts_only")},
+            {QStringLiteral("authorized_projection"),
+             QStringLiteral("public_and_authorized_sealed")},
+            {QStringLiteral("sealed_asset_access"), QStringLiteral("session_event_grant_required")},
+        });
+    record->insert(
+        QStringLiteral("sealed_disclosures"),
+        QJsonArray{QJsonObject{
+            {QStringLiteral("disclosure_id"), QStringLiteral("example.disclosure.psr")},
+            {QStringLiteral("sealed_entry_id"), QStringLiteral("example.record.psr-sealed")},
+            {QStringLiteral("public_entry_id"), QStringLiteral("example.record.entry-one")},
+            {QStringLiteral("authorization_authority_id"),
+             QStringLiteral("example.authority.deficiency")},
+            {QStringLiteral("required_items"), QJsonArray{QStringLiteral("redacted_counterpart")}},
+            {QStringLiteral("anchor_mappings"),
+             QJsonArray{QJsonObject{
+                 {QStringLiteral("stable_anchor_id"),
+                  QStringLiteral("example.record.anchor.psr-stable")},
+                 {QStringLiteral("sealed_anchor_id"),
+                  QStringLiteral("example.record.anchor.psr-sealed")},
+                 {QStringLiteral("public_anchor_id"), QStringLiteral("example.record.anchor.ja2")},
+             }}},
+        }});
+    const auto record_digest = writeObject(record_path, *record);
+    if (!record_digest) {
+        return {};
+    }
+    auto contents = manifest->value(QStringLiteral("contents")).toArray();
+    bool updated_record = false;
+    for (qsizetype index = 0; index < contents.size(); ++index) {
+        auto item = contents.at(index).toObject();
+        if (item.value(QStringLiteral("path")).toString() !=
+            QStringLiteral("resources/record.json")) {
+            continue;
+        }
+        item.insert(QStringLiteral("sha256"), *record_digest);
+        contents.replace(index, item);
+        updated_record = true;
+        break;
+    }
+    if (!updated_record) {
+        return {};
+    }
+    manifest->insert(QStringLiteral("contents"), contents);
+    auto blobs = manifest->value(QStringLiteral("blobs")).toArray();
+    blobs.push_back(QJsonObject{
+        {QStringLiteral("path"), sealed_asset_path},
+        {QStringLiteral("media_type"), QStringLiteral("application/pdf")},
+        {QStringLiteral("byte_size"), sealed_bytes.size()},
+        {QStringLiteral("sha256"), sealed_digest},
+    });
+    manifest->insert(QStringLiteral("blobs"), blobs);
+    auto capabilities = manifest->value(QStringLiteral("required_capabilities")).toArray();
+    capabilities.push_back(QJsonObject{
+        {QStringLiteral("id"), QStringLiteral("workbench.pack.sealed-record-twins")},
+        {QStringLiteral("version"), 1},
+    });
+    manifest->insert(QStringLiteral("required_capabilities"), capabilities);
+    return writeObject(manifest_path, *manifest).has_value() ? destination : QString{};
+}
+
+[[nodiscard]] bool executeSql(const QString& database_path, const QString& statement) {
+    const auto connection = QStringLiteral("main-window-record-access-%1")
+                                .arg(QUuid::createUuid().toString(QUuid::Id128));
+    bool succeeded = false;
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        database.setDatabaseName(database_path);
+        succeeded = database.open();
+        if (succeeded) {
+            QSqlQuery query(database);
+            succeeded = query.exec(statement) && query.numRowsAffected() == 1;
+        }
+        database.close();
+        database = QSqlDatabase{};
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return succeeded;
 }
 
 void MainWindowTest::loadsValidAuthoringDirectory() {
@@ -447,6 +646,249 @@ void MainWindowTest::recordFailuresPreserveLastGoodWorkspace() {
     QCOMPARE(window.recordWorkspace(), last_good_workspace);
     QCOMPARE(last_good_workspace->loadedPageCount(), 3);
     QCOMPARE(last_good_workspace->currentDocumentId(), last_good_document);
+}
+
+void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
+    QTemporaryDir state;
+    QVERIFY(state.isValid());
+    const auto source = createSealedTwinsPack(state.path());
+    QVERIFY2(!source.isEmpty(), "Failed to create schema-v2 sealed-twins fixture");
+    const auto archive_path = QDir(state.path()).filePath(QStringLiteral("sealed-twins.awpack"));
+    const auto exported = PackArchive::exportDirectory(source, archive_path);
+    QVERIFY2(exported.has_value(), exported ? "" : qPrintable(exported.error().message));
+    const auto database_path =
+        QDir(state.path()).filePath(QStringLiteral("sessions/record-access.sqlite"));
+    auto provider = std::make_shared<RecordingRecordAccessProvider>();
+
+    {
+        MainWindow authoring(
+            source, QDir(state.path()).filePath(QStringLiteral("authoring-catalog")), nullptr, {},
+            provider,
+            QDir(state.path()).filePath(QStringLiteral("authoring-record-access.sqlite")));
+        QVERIFY(authoring.currentRuntime() != nullptr);
+        QVERIFY(!authoring.openRecordAction()->isEnabled());
+        QVERIFY(!authoring.recordAccessMenu()->isEnabled());
+        QVERIFY(authoring.recordAccessMenu()->actions().empty());
+    }
+    QVERIFY(provider->created_sessions.empty());
+
+    const auto catalog = QDir(state.path()).filePath(QStringLiteral("installed-catalog"));
+    QString session_id;
+    {
+        MainWindow window({}, catalog, nullptr, {}, provider, database_path);
+        const auto installed = window.loadSource(archive_path);
+        QVERIFY2(installed.has_value(), installed ? "" : qPrintable(installed.error()));
+        const auto opened = window.openSelectedRecord();
+        QVERIFY2(opened.has_value(), opened ? "" : qPrintable(opened.error()));
+        QCOMPARE(provider->created_sessions.size(), std::size_t{1});
+        session_id = provider->created_sessions.front();
+        QVERIFY(!session_id.isEmpty());
+
+        auto* grant = window.findChild<QAction*>(
+            QStringLiteral("grantRecordAccessAction.example.disclosure.psr"));
+        auto* revoke = window.findChild<QAction*>(
+            QStringLiteral("revokeRecordAccessAction.example.disclosure.psr"));
+        QVERIFY(grant != nullptr);
+        QVERIFY(revoke != nullptr);
+        QVERIFY(window.recordAccessMenu()->isEnabled());
+        QVERIFY(grant->isEnabled());
+        QVERIFY(!revoke->isEnabled());
+        QVERIFY(grant->property("accessibleName")
+                    .toString()
+                    .contains(QStringLiteral("example.disclosure.psr")));
+
+        QString public_surface = window.recordSummaryLabel()->text();
+        for (const auto* label : window.findChildren<QLabel*>()) {
+            public_surface += label->text();
+            public_surface += label->accessibleName();
+        }
+        for (const auto* action : window.findChildren<QAction*>()) {
+            public_surface += action->text();
+            public_surface += action->statusTip();
+            public_surface += action->property("accessibleName").toString();
+        }
+        for (const auto& secret :
+             {QStringLiteral("Confidential PSR"), QStringLiteral("psr-secret-desktop-tag"),
+              QStringLiteral("SECRET-JA-2"), QStringLiteral("example.record.psr-sealed")}) {
+            QVERIFY2(!public_surface.contains(secret), qPrintable(secret));
+        }
+        QVERIFY(!window.recordSummaryLabel()->text().contains(QStringLiteral("sealed"),
+                                                              Qt::CaseInsensitive));
+
+        auto* workspace = window.recordWorkspace();
+        QVERIFY(workspace != nullptr);
+        QCOMPARE(workspace->currentDocumentId(), QStringLiteral("example.record.entry-one"));
+        for (const auto& query :
+             {QStringLiteral("Confidential PSR"), QStringLiteral("psr-secret-desktop-tag"),
+              QStringLiteral("SECRET-JA-2")}) {
+            workspace->setDocketFilter(query);
+            QCOMPARE(workspace->visibleDocketCount(), qsizetype{0});
+        }
+        workspace->setDocketFilter({});
+        QVERIFY(!workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-sealed"))
+                     .has_value());
+        QVERIFY(workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"))
+                    .has_value());
+        QCOMPARE(workspace->currentDocumentId(), QStringLiteral("example.record.entry-one"));
+
+        const auto& sealed_entry =
+            window.currentRuntime()->cases.front().record.docket_entries.back();
+        QVERIFY(sealed_entry.sealed);
+        const auto sealed_object = QDir(catalog).filePath(
+            QStringLiteral("blobs/") + QString::fromStdString(sealed_entry.asset_sha256));
+        QFile sealed_input(sealed_object);
+        QVERIFY(sealed_input.open(QIODevice::ReadOnly));
+        const auto sealed_bytes = sealed_input.readAll();
+        sealed_input.close();
+        QDir installed_archives(QDir(catalog).filePath(QStringLiteral("archives")));
+        const auto archives = installed_archives.entryList({QStringLiteral("*.awpack")},
+                                                           QDir::Files | QDir::NoSymLinks);
+        QCOMPARE(archives.size(), 1);
+        const auto installed_archive_path = installed_archives.filePath(archives.front());
+        auto second_catalog = appellate::packs::PackCatalog::open(catalog);
+        QVERIFY(second_catalog.has_value());
+        const auto second_resolved =
+            (*second_catalog)->loadResolved(window.currentRuntime()->revision);
+        QVERIFY2(second_resolved.has_value(),
+                 second_resolved ? "" : qPrintable(second_resolved.error().message));
+        QVERIFY(QFile::remove(installed_archive_path));
+        QVERIFY(QFile::remove(sealed_object));
+
+        grant->trigger();
+        QCOMPARE(provider->transitions.size(), std::size_t{1});
+        QCOMPARE(provider->transitions.front().sequence, std::uint64_t{1});
+        QCOMPARE(provider->transitions.front().disclosure_id,
+                 std::string("example.disclosure.psr"));
+        QVERIFY(!grant->isEnabled());
+        QVERIFY(revoke->isEnabled());
+        const auto missing =
+            workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"));
+        QVERIFY(!missing.has_value());
+        QCOMPARE(missing.error().code, appellate::ui::RecordWorkspaceErrorCode::PdfLoadFailed);
+        QVERIFY(workspace->openDocketEntry(QStringLiteral("example.record.entry-one")).has_value());
+
+        QFile restored(sealed_object);
+        QVERIFY(restored.open(QIODevice::WriteOnly | QIODevice::Truncate));
+        QCOMPARE(restored.write(sealed_bytes), static_cast<qint64>(sealed_bytes.size()));
+        restored.close();
+        QVERIFY(workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"))
+                    .has_value());
+        QCOMPARE(workspace->currentDocumentId(), QStringLiteral("example.record.psr-sealed"));
+        QCOMPARE(workspace->loadedPageCount(), 2);
+        workspace->setDocumentSearch(QStringLiteral("ultrasecret-main-window-text"));
+        QTRY_COMPARE_WITH_TIMEOUT(workspace->documentSearchResultCount(), 1, 10'000);
+
+        auto corrupt_bytes = sealed_bytes;
+        corrupt_bytes[corrupt_bytes.size() / 2] =
+            corrupt_bytes.at(corrupt_bytes.size() / 2) == 'x' ? 'y' : 'x';
+        QVERIFY(restored.open(QIODevice::WriteOnly | QIODevice::Truncate));
+        QCOMPARE(restored.write(corrupt_bytes), static_cast<qint64>(corrupt_bytes.size()));
+        restored.close();
+        workspace->setDocumentSearch(QStringLiteral("ultrasecret-main-window-text"));
+        QTRY_COMPARE_WITH_TIMEOUT(workspace->documentSearchResultCount(), 1, 10'000);
+
+        auto second_store = appellate::storage::SessionStore::open(database_path);
+        QVERIFY(second_store.has_value());
+        auto second_controller = appellate::app::RecordAccessSessionController::reopen(
+            session_id, window.currentRuntime()->cases.front().definition.id,
+            std::move(*second_store), QStringLiteral("engine.record-access.v1"), *second_resolved);
+        QVERIFY2(second_controller.has_value(),
+                 second_controller ? "" : qPrintable(second_controller.error().message));
+        const auto external_revoke =
+            (*second_controller)
+                ->revoke("example.disclosure.psr", "test.record.access.external-revoke",
+                         QStringLiteral("2026-08-11T09:00:02Z"));
+        QVERIFY2(external_revoke.has_value(),
+                 external_revoke ? "" : qPrintable(external_revoke.error().message));
+
+        // This action is stale in A. Its pre-transition reconciliation must
+        // apply B's revoke before the redundant local command fails.
+        revoke->trigger();
+        QCOMPARE(provider->transitions.size(), std::size_t{2});
+        QCOMPARE(provider->transitions.back().sequence, std::uint64_t{3});
+        QVERIFY(workspace->currentDocumentId().isEmpty());
+        QCOMPARE(workspace->loadedPageCount(), 0);
+        QCOMPARE(workspace->documentSearchResultCount(), 0);
+        QVERIFY(grant->isEnabled());
+        QVERIFY(!revoke->isEnabled());
+
+        // A revoked controller has no exportable authorization token. Opening
+        // a fresh workspace can apply only the controller's current live head,
+        // never the previously granted state.
+        const auto reopened_after_revoke = window.openSelectedRecord();
+        QVERIFY2(reopened_after_revoke.has_value(),
+                 reopened_after_revoke ? "" : qPrintable(reopened_after_revoke.error()));
+        workspace = window.recordWorkspace();
+        QVERIFY(workspace != nullptr);
+        QVERIFY(!workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-sealed"))
+                     .has_value());
+        QVERIFY(workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"))
+                    .has_value());
+        QCOMPARE(workspace->currentDocumentId(), QStringLiteral("example.record.entry-one"));
+        grant = window.findChild<QAction*>(
+            QStringLiteral("grantRecordAccessAction.example.disclosure.psr"));
+        revoke = window.findChild<QAction*>(
+            QStringLiteral("revokeRecordAccessAction.example.disclosure.psr"));
+        QVERIFY(grant != nullptr);
+        QVERIFY(revoke != nullptr);
+        QVERIFY(grant->isEnabled());
+        QVERIFY(!revoke->isEnabled());
+
+        grant->trigger();
+        QCOMPARE(provider->transitions.size(), std::size_t{3});
+        const auto corrupt =
+            workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"));
+        QVERIFY(!corrupt.has_value());
+        QCOMPARE(corrupt.error().code, appellate::ui::RecordWorkspaceErrorCode::PdfLoadFailed);
+        QVERIFY(restored.open(QIODevice::WriteOnly | QIODevice::Truncate));
+        QCOMPARE(restored.write(sealed_bytes), static_cast<qint64>(sealed_bytes.size()));
+        restored.close();
+        QVERIFY(workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"))
+                    .has_value());
+        QVERIFY(QFile::copy(archive_path, installed_archive_path));
+    }
+
+    QCOMPARE(provider->created_sessions.size(), std::size_t{1});
+    QCOMPARE(provider->transitions.size(), std::size_t{3});
+    {
+        MainWindow reopened({}, catalog, nullptr, {}, provider, database_path);
+        const auto installed = reopened.loadSource(archive_path);
+        QVERIFY2(installed.has_value(), installed ? "" : qPrintable(installed.error()));
+        const auto opened = reopened.openSelectedRecord();
+        QVERIFY2(opened.has_value(), opened ? "" : qPrintable(opened.error()));
+        QCOMPARE(provider->created_sessions.size(), std::size_t{1});
+        auto* grant = reopened.findChild<QAction*>(
+            QStringLiteral("grantRecordAccessAction.example.disclosure.psr"));
+        auto* revoke = reopened.findChild<QAction*>(
+            QStringLiteral("revokeRecordAccessAction.example.disclosure.psr"));
+        QVERIFY(grant != nullptr);
+        QVERIFY(revoke != nullptr);
+        QVERIFY(!grant->isEnabled());
+        QVERIFY(revoke->isEnabled());
+        auto* const last_good = reopened.recordWorkspace();
+        QVERIFY(last_good->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"))
+                    .has_value());
+        QCOMPARE(last_good->currentDocumentId(), QStringLiteral("example.record.psr-sealed"));
+        const auto last_good_document = last_good->currentDocumentId();
+        auto* const last_good_revoke = revoke;
+
+        QVERIFY(executeSql(database_path,
+                           QStringLiteral("UPDATE command_log SET recorded_at_utc = "
+                                          "'2026-08-11T09:00:59Z' WHERE session_id = '%1' AND "
+                                          "expected_sequence = 0")
+                               .arg(session_id)));
+        const auto tampered = reopened.openSelectedRecord();
+        QVERIFY(!tampered.has_value());
+        QVERIFY(tampered.error().contains(QStringLiteral("exact replay")));
+        QCOMPARE(reopened.recordWorkspace(), last_good);
+        QCOMPARE(last_good->currentDocumentId(), last_good_document);
+        QCOMPARE(reopened.workspaceTabs()->currentWidget(), last_good);
+        QCOMPARE(reopened.findChild<QAction*>(
+                     QStringLiteral("revokeRecordAccessAction.example.disclosure.psr")),
+                 last_good_revoke);
+        QVERIFY(last_good_revoke->isEnabled());
+        QVERIFY(reopened.recordAccessMenu()->isEnabled());
+    }
 }
 
 void MainWindowTest::argumentLaunchUsesExactSelectedConfigurationAndPreservesWorkspaceOnError() {

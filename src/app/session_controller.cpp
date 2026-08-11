@@ -3,6 +3,7 @@
 #include "resolved_session_pins.hpp"
 
 #include "appellate/engine/procedure_engine.hpp"
+#include "appellate/packs/runtime_pack.hpp"
 #include "appellate/storage/event_codec.hpp"
 
 #include <QJsonArray>
@@ -199,6 +200,129 @@ namespace {
                         .arg(QString::fromStdString(replayed.error().message)));
     }
     return *replayed;
+}
+
+[[nodiscard]] QByteArray encodeRecordAccessCommand(const model::RecordAccessEvent& event) {
+    return QJsonDocument(
+               QJsonObject{
+                   {QStringLiteral("action"), event.action == model::RecordAccessAction::Grant
+                                                  ? QStringLiteral("grant")
+                                                  : QStringLiteral("revoke")},
+                   {QStringLiteral("command_type"), QStringLiteral("record_access_transition")},
+                   {QStringLiteral("event_digest"), QString::fromLatin1(event.event_digest)},
+                   {QStringLiteral("event_id"), QString::fromUtf8(event.event_id)},
+                   {QStringLiteral("policy_id"), QString::fromUtf8(event.policy_id)},
+                   {QStringLiteral("record_id"), QString::fromUtf8(event.record_id)},
+                   {QStringLiteral("recorded_at_utc"), QString::fromUtf8(event.recorded_at_utc)},
+                   {QStringLiteral("sealed_document_id"),
+                    QString::fromUtf8(event.sealed_document_id)},
+                   {QStringLiteral("schema_version"), 1},
+                   {QStringLiteral("session_id"), QString::fromUtf8(event.session_id)},
+               })
+        .toJson(QJsonDocument::Compact);
+}
+
+[[nodiscard]] auto replayRecordAccessSnapshot(const storage::SessionSnapshot& snapshot,
+                                              const model::RecordAccessPolicy& policy)
+    -> std::expected<model::RecordAccessProjection, SessionControllerError> {
+    if (snapshot.sequence < 0 ||
+        snapshot.sequence > static_cast<qint64>(storage::maximum_record_access_events) ||
+        snapshot.events.size() > storage::maximum_record_access_events ||
+        snapshot.commands.size() > storage::maximum_record_access_events ||
+        static_cast<std::uint64_t>(snapshot.sequence) != snapshot.events.size() ||
+        snapshot.commands.size() != snapshot.events.size() || !snapshot.docket.empty() ||
+        !snapshot.asset_references.empty()) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Stored record-access journal shape is inconsistent"));
+    }
+    for (std::size_t index = 0; index < snapshot.events.size(); ++index) {
+        const auto& stored = snapshot.events[index];
+        const auto& command = snapshot.commands[index];
+        const auto expected_sequence = static_cast<qint64>(index) + 1;
+        const auto decoded = storage::decodeRecordAccessEvent(stored.payload_json);
+        if (!decoded || stored.sequence != expected_sequence ||
+            stored.event_type != storage::recordAccessEventType(decoded->action) ||
+            stored.authority_id != QString::fromUtf8(decoded->authority_id) ||
+            command.expected_sequence != static_cast<qint64>(index) ||
+            command.command_id != QString::fromUtf8(decoded->event_id) ||
+            command.recorded_at_utc != QString::fromUtf8(decoded->recorded_at_utc) ||
+            command.payload_json != encodeRecordAccessCommand(*decoded)) {
+            return fail(SessionControllerErrorCode::CorruptSession,
+                        QStringLiteral("Stored record-access command/event pair was altered"));
+        }
+    }
+    const auto projection = storage::projectRecordAccess(snapshot, policy);
+    if (!projection) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Stored record-access journal cannot be replayed: %1")
+                        .arg(projection.error().message));
+    }
+    return *projection;
+}
+
+[[nodiscard]] auto deriveRecordAccessPolicy(const model::CaseId& selected_case_id,
+                                            const packs::ResolvedPack& resolved_pack)
+    -> std::expected<model::RecordAccessPolicy, SessionControllerError> {
+    const auto runtime = packs::loadRuntimePack(resolved_pack);
+    if (!runtime) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Cannot project the resolved record-access pack: %1")
+                        .arg(QString::fromStdString(runtime.error().message)));
+    }
+    const auto selected = std::ranges::find(
+        runtime->cases, selected_case_id,
+        [](const packs::RuntimeCase& candidate) { return candidate.definition.id; });
+    if (selected == runtime->cases.end() || !selected->record.disclosure_policy.has_value() ||
+        selected->record.sealed_disclosures.empty()) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("The selected root case has no sealed-record access policy"));
+    }
+    const auto owner = resolved_pack.resourceOwner(selected->record.id.value);
+    if (!owner.has_value() || *owner != resolved_pack.root().revision) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("The sealed-record policy is not owned by the exact root"));
+    }
+    model::RecordAccessPolicy policy{
+        selected->record.id.value, selected->record.disclosure_policy->policy_id, {}};
+    policy.rules.reserve(selected->record.sealed_disclosures.size());
+    for (const auto& disclosure : selected->record.sealed_disclosures) {
+        std::vector<model::RecordDisclosureDeficiency> deficiencies;
+        for (const auto requirement : disclosure.required_items) {
+            std::optional<model::RecordDisclosureDeficiencyKind> missing;
+            switch (requirement) {
+            case packs::RuntimeDisclosureRequirement::Motion:
+                if (!disclosure.motion_entry_id.has_value()) {
+                    missing = model::RecordDisclosureDeficiencyKind::MissingPublicMotion;
+                }
+                break;
+            case packs::RuntimeDisclosureRequirement::Certificate:
+                if (!disclosure.certificate_entry_id.has_value()) {
+                    missing = model::RecordDisclosureDeficiencyKind::MissingCertificate;
+                }
+                break;
+            case packs::RuntimeDisclosureRequirement::RedactedCounterpart:
+                if (!disclosure.public_entry_id.has_value()) {
+                    missing = model::RecordDisclosureDeficiencyKind::MissingRedactedCounterpart;
+                }
+                break;
+            }
+            if (missing.has_value()) {
+                deficiencies.push_back(
+                    model::RecordDisclosureDeficiency{disclosure.disclosure_id.value, *missing});
+            }
+        }
+        policy.rules.push_back(model::RecordAccessRule{
+            disclosure.sealed_entry_id.value, disclosure.authorization_authority_id.value,
+            disclosure.disclosure_id.value, std::move(deficiencies)});
+    }
+    std::ranges::sort(policy.rules, {}, &model::RecordAccessRule::sealed_document_id);
+    storage::SessionSnapshot preflight;
+    preflight.session_id = QStringLiteral("record.access.policy.preflight");
+    if (const auto valid = storage::projectRecordAccess(preflight, policy); !valid) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("The exact root record-access policy is invalid"));
+    }
+    return policy;
 }
 
 } // namespace
@@ -401,5 +525,274 @@ SessionController::submit(const model::SubmitFiling& command, QByteArrayView doc
 const model::SessionState& SessionController::state() const noexcept { return state_; }
 
 const storage::SessionSnapshot& SessionController::snapshot() const noexcept { return snapshot_; }
+
+RecordAccessSessionController::RecordAccessSessionController(
+    model::RecordAccessPolicy policy, std::unique_ptr<storage::SessionStore> session_store,
+    storage::SessionSnapshot snapshot, model::RecordAccessProjection projection)
+    : policy_(std::move(policy)), session_store_(std::move(session_store)),
+      snapshot_(std::move(snapshot)), projection_(std::move(projection)) {}
+
+std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError>
+RecordAccessSessionController::create(QString session_id, const model::CaseId& selected_case_id,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString engine_revision, QString created_at_utc,
+                                      const packs::ResolvedPack& resolved_pack) {
+    if (resolved_pack.root().manifest_schema_version != 2) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Cannot create the record-access session"));
+    }
+    const auto policy = deriveRecordAccessPolicy(selected_case_id, resolved_pack);
+    if (!policy) {
+        return std::unexpected(policy.error());
+    }
+    return create(std::move(session_id), *policy, std::move(session_store),
+                  std::move(engine_revision), std::move(created_at_utc),
+                  revisionPinsForSession(resolved_pack));
+}
+
+std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError>
+RecordAccessSessionController::create(QString session_id, model::RecordAccessPolicy policy,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString engine_revision, QString created_at_utc,
+                                      std::vector<storage::RevisionPin> pins) {
+    if (!session_store || session_id.isEmpty() || engine_revision.isEmpty() ||
+        created_at_utc.isEmpty() || pins.empty()) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Cannot create the record-access session"));
+    }
+    storage::SessionSnapshot preflight;
+    preflight.session_id = session_id;
+    const auto valid_policy = storage::projectRecordAccess(preflight, policy);
+    if (!valid_policy) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Record-access policy is invalid: %1")
+                        .arg(valid_policy.error().message));
+    }
+    const auto created =
+        session_store->createSession(session_id, engine_revision, created_at_utc, pins,
+                                     storage::SessionAuthorityContract::CanonicalV2);
+    if (!created) {
+        return fail(SessionControllerErrorCode::SessionStoreFailure, created.error().message);
+    }
+    const auto loaded = session_store->loadSession(session_id);
+    if (!loaded) {
+        return fail(SessionControllerErrorCode::SessionStoreFailure, loaded.error().message);
+    }
+    if (loaded->authority_contract != storage::SessionAuthorityContract::CanonicalV2) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Record-access authority contract is not canonical-v2"));
+    }
+    const auto projection = replayRecordAccessSnapshot(*loaded, policy);
+    if (!projection) {
+        return std::unexpected(projection.error());
+    }
+    return std::unique_ptr<RecordAccessSessionController>(new RecordAccessSessionController(
+        std::move(policy), std::move(session_store), *loaded, *projection));
+}
+
+std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError>
+RecordAccessSessionController::reopen(QString session_id, const model::CaseId& selected_case_id,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString expected_engine_revision,
+                                      const packs::ResolvedPack& resolved_pack) {
+    if (resolved_pack.root().manifest_schema_version != 2) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Cannot reopen the record-access session"));
+    }
+    const auto policy = deriveRecordAccessPolicy(selected_case_id, resolved_pack);
+    if (!policy) {
+        return std::unexpected(policy.error());
+    }
+    return reopen(std::move(session_id), *policy, std::move(session_store),
+                  std::move(expected_engine_revision), revisionPinsForSession(resolved_pack));
+}
+
+std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError>
+RecordAccessSessionController::reopen(QString session_id, model::RecordAccessPolicy policy,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString expected_engine_revision,
+                                      std::vector<storage::RevisionPin> expected_pins) {
+    if (!session_store || session_id.isEmpty() || expected_engine_revision.isEmpty() ||
+        expected_pins.empty()) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Cannot reopen the record-access session"));
+    }
+    std::ranges::sort(expected_pins, {}, &storage::RevisionPin::pack_id);
+    const auto loaded = session_store->loadSession(session_id);
+    if (!loaded) {
+        return fail(SessionControllerErrorCode::SessionStoreFailure, loaded.error().message);
+    }
+    if (loaded->engine_revision != expected_engine_revision || loaded->pins != expected_pins ||
+        loaded->authority_contract != storage::SessionAuthorityContract::CanonicalV2) {
+        return fail(
+            SessionControllerErrorCode::CorruptSession,
+            QStringLiteral("Stored record-access engine, pins, or authority contract differ"));
+    }
+    const auto projection = replayRecordAccessSnapshot(*loaded, policy);
+    if (!projection) {
+        return std::unexpected(projection.error());
+    }
+    return std::unique_ptr<RecordAccessSessionController>(new RecordAccessSessionController(
+        std::move(policy), std::move(session_store), *loaded, *projection));
+}
+
+std::expected<void, SessionControllerError>
+RecordAccessSessionController::grant(std::string_view disclosure_id, std::string_view event_id,
+                                     const QString& recorded_at_utc) {
+    const auto rule =
+        std::ranges::find(policy_.rules, disclosure_id, &model::RecordAccessRule::disclosure_id);
+    if (rule == policy_.rules.end()) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Record disclosure is unavailable"));
+    }
+    const auto projected = transition(rule->sealed_document_id, event_id,
+                                      model::RecordAccessAction::Grant, recorded_at_utc);
+    if (!projected) {
+        return std::unexpected(projected.error());
+    }
+    return {};
+}
+
+std::expected<void, SessionControllerError>
+RecordAccessSessionController::revoke(std::string_view disclosure_id, std::string_view event_id,
+                                      const QString& recorded_at_utc) {
+    const auto rule =
+        std::ranges::find(policy_.rules, disclosure_id, &model::RecordAccessRule::disclosure_id);
+    if (rule == policy_.rules.end()) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Record disclosure is unavailable"));
+    }
+    const auto projected = transition(rule->sealed_document_id, event_id,
+                                      model::RecordAccessAction::Revoke, recorded_at_utc);
+    if (!projected) {
+        return std::unexpected(projected.error());
+    }
+    return {};
+}
+
+std::expected<model::RecordAccessProjection, SessionControllerError>
+RecordAccessSessionController::transition(std::string_view sealed_document_id,
+                                          std::string_view event_id,
+                                          model::RecordAccessAction action,
+                                          const QString& recorded_at_utc) {
+    if (recorded_at_utc.isEmpty()) {
+        return fail(SessionControllerErrorCode::InvalidConfiguration,
+                    QStringLiteral("Record-access transition time is required"));
+    }
+    if (const auto refreshed = refresh(); !refreshed) {
+        return std::unexpected(refreshed.error());
+    }
+    const auto event =
+        storage::makeRecordAccessEvent(snapshot_, policy_, event_id, sealed_document_id, action,
+                                       recorded_at_utc.toUtf8().toStdString());
+    if (!event) {
+        return fail(SessionControllerErrorCode::EventCodecFailure, event.error().message);
+    }
+    const auto encoded = storage::encodeRecordAccessEvent(*event);
+    if (!encoded) {
+        return fail(SessionControllerErrorCode::EventCodecFailure, encoded.error().message);
+    }
+    storage::CommitBatch batch;
+    batch.command_id = QString::fromUtf8(event->event_id);
+    batch.command_json = encodeRecordAccessCommand(*event);
+    batch.recorded_at_utc = recorded_at_utc;
+    batch.events.push_back(storage::EventWrite{storage::recordAccessEventType(event->action),
+                                               *encoded, QString::fromUtf8(event->authority_id)});
+    const auto appended = session_store_->append(snapshot_.session_id, snapshot_.sequence, batch);
+    if (!appended) {
+        return fail(SessionControllerErrorCode::SessionStoreFailure, appended.error().message);
+    }
+    const auto loaded = session_store_->loadSession(snapshot_.session_id);
+    if (!loaded) {
+        return fail(SessionControllerErrorCode::SessionStoreFailure, loaded.error().message);
+    }
+    if (loaded->sequence != *appended || loaded->engine_revision != snapshot_.engine_revision ||
+        loaded->pins != snapshot_.pins ||
+        loaded->authority_contract != storage::SessionAuthorityContract::CanonicalV2) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Persisted record-access session identity changed"));
+    }
+    const auto replayed = replayRecordAccessSnapshot(*loaded, policy_);
+    if (!replayed) {
+        return std::unexpected(replayed.error());
+    }
+    snapshot_ = *loaded;
+    projection_ = *replayed;
+    return projection_;
+}
+
+std::expected<void, SessionControllerError>
+RecordAccessSessionController::applyCurrentProjection(model::RecordAccessProjectionTarget& target) {
+    if (const auto refreshed = refresh(); !refreshed) {
+        return std::unexpected(refreshed.error());
+    }
+    if (!target.applyRecordAccessProjection(projection_)) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Live record-access projection was rejected by its workspace"));
+    }
+    return {};
+}
+
+std::expected<void, SessionControllerError> RecordAccessSessionController::refresh() {
+    const auto loaded = session_store_->loadSession(snapshot_.session_id);
+    if (!loaded) {
+        return fail(SessionControllerErrorCode::SessionStoreFailure, loaded.error().message);
+    }
+    if (loaded->engine_revision != snapshot_.engine_revision || loaded->pins != snapshot_.pins ||
+        loaded->authority_contract != storage::SessionAuthorityContract::CanonicalV2 ||
+        loaded->sequence < snapshot_.sequence) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Stored record-access identity or sequence regressed"));
+    }
+    const auto replayed = replayRecordAccessSnapshot(*loaded, policy_);
+    if (!replayed) {
+        return std::unexpected(replayed.error());
+    }
+    if (loaded->sequence == snapshot_.sequence && *replayed != projection_) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Stored record-access head changed without advancing"));
+    }
+    snapshot_ = *loaded;
+    projection_ = *replayed;
+    return {};
+}
+
+std::vector<model::RecordAccessDisclosureStatus>
+RecordAccessSessionController::disclosures() const {
+    std::vector<model::RecordAccessDisclosureStatus> disclosures;
+    disclosures.reserve(policy_.rules.size());
+    for (const auto& rule : policy_.rules) {
+        disclosures.push_back(model::RecordAccessDisclosureStatus{
+            rule.disclosure_id, rule.blocking_deficiencies,
+            std::ranges::find(projection_.authorized_document_ids, rule.sealed_document_id) !=
+                projection_.authorized_document_ids.end()});
+    }
+    std::ranges::sort(disclosures, {}, &model::RecordAccessDisclosureStatus::disclosure_id);
+    return disclosures;
+}
+
+std::expected<model::RecordAccessAuditProjection, SessionControllerError>
+RecordAccessSessionController::auditProjectionAt(qint64 through_sequence) const {
+    const auto projected = storage::projectRecordAccess(snapshot_, policy_, through_sequence);
+    if (!projected) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Record-access prefix cannot be projected: %1")
+                        .arg(projected.error().message));
+    }
+    std::vector<std::string> authorized_disclosures;
+    for (const auto& rule : policy_.rules) {
+        if (std::ranges::find(projected->authorized_document_ids, rule.sealed_document_id) !=
+            projected->authorized_document_ids.end()) {
+            authorized_disclosures.push_back(rule.disclosure_id);
+        }
+    }
+    std::ranges::sort(authorized_disclosures);
+    return model::RecordAccessAuditProjection{projected->through_sequence,
+                                              std::move(authorized_disclosures)};
+}
+
+const storage::SessionSnapshot& RecordAccessSessionController::snapshot() const noexcept {
+    return snapshot_;
+}
 
 } // namespace appellate::app

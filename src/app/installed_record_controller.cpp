@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QPdfDocument>
+#include <QTemporaryFile>
 
 #include <algorithm>
 #include <array>
@@ -170,6 +171,101 @@ constexpr std::size_t hash_buffer_bytes = 64 * 1'024;
     return {};
 }
 
+[[nodiscard]] auto snapshotMaterializedBlob(const packs::PackCatalog& catalog,
+                                            const packs::MaterializedBlob& blob, int expected_pages)
+    -> std::expected<ui::RecordAssetLease, InstalledRecordError> {
+    if (const auto verified = verifyMaterializedBlob(catalog, blob); !verified) {
+        return std::unexpected(verified.error());
+    }
+
+    QFile source(blob.local_path);
+    if (!source.open(QIODevice::ReadOnly)) {
+        return fail(InstalledRecordErrorCode::AssetVerificationFailure,
+                    QStringLiteral("Authorized sealed asset cannot be snapshotted"));
+    }
+    auto snapshot = std::make_shared<QTemporaryFile>(
+        QDir(QDir::tempPath()).filePath(QStringLiteral("appellate-sealed-XXXXXX.pdf")));
+    snapshot->setAutoRemove(true);
+    if (!snapshot->open() ||
+        !snapshot->setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
+        return fail(InstalledRecordErrorCode::MaterializationFailure,
+                    QStringLiteral("Authorized sealed snapshot cannot be created"));
+    }
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    std::array<char, hash_buffer_bytes> buffer{};
+    std::uint64_t total = 0;
+    while (true) {
+        const auto read = source.read(buffer.data(), static_cast<qint64>(buffer.size()));
+        if (read < 0) {
+            return fail(InstalledRecordErrorCode::AssetVerificationFailure,
+                        QStringLiteral("Authorized sealed asset snapshot is incomplete"));
+        }
+        if (read == 0) {
+            break;
+        }
+        const auto chunk = static_cast<std::uint64_t>(read);
+        if (chunk > blob.descriptor.byte_size || total > blob.descriptor.byte_size - chunk ||
+            snapshot->write(buffer.data(), read) != read) {
+            return fail(InstalledRecordErrorCode::AssetVerificationFailure,
+                        QStringLiteral("Authorized sealed asset snapshot is invalid"));
+        }
+        hash.addData(QByteArrayView(buffer.data(), read));
+        total += chunk;
+    }
+    if (source.error() != QFileDevice::NoError || total != blob.descriptor.byte_size ||
+        QString::fromLatin1(hash.result().toHex()).toStdString() != blob.descriptor.sha256 ||
+        !snapshot->flush() || snapshot->size() != static_cast<qint64>(total)) {
+        return fail(InstalledRecordErrorCode::AssetVerificationFailure,
+                    QStringLiteral("Authorized sealed asset snapshot failed verification"));
+    }
+    snapshot->close();
+
+    QPdfDocument pdf;
+    const auto pdf_error = pdf.load(snapshot->fileName());
+    if (pdf_error != QPdfDocument::Error::None || pdf.status() != QPdfDocument::Status::Ready ||
+        pdf.pageCount() != expected_pages) {
+        pdf.close();
+        return fail(InstalledRecordErrorCode::PageCountMismatch,
+                    QStringLiteral("Authorized sealed PDF validation failed"));
+    }
+    pdf.close();
+
+    QFile snapshot_input(snapshot->fileName());
+    if (!snapshot_input.open(QIODevice::ReadOnly)) {
+        return fail(InstalledRecordErrorCode::AssetVerificationFailure,
+                    QStringLiteral("Authorized sealed snapshot cannot be reopened"));
+    }
+    QCryptographicHash snapshot_hash(QCryptographicHash::Sha256);
+    total = 0;
+    while (true) {
+        const auto read = snapshot_input.read(buffer.data(), static_cast<qint64>(buffer.size()));
+        if (read < 0) {
+            return fail(InstalledRecordErrorCode::AssetVerificationFailure,
+                        QStringLiteral("Authorized sealed snapshot cannot be reread"));
+        }
+        if (read == 0) {
+            break;
+        }
+        const auto chunk = static_cast<std::uint64_t>(read);
+        if (chunk > blob.descriptor.byte_size || total > blob.descriptor.byte_size - chunk) {
+            return fail(InstalledRecordErrorCode::AssetVerificationFailure,
+                        QStringLiteral("Authorized sealed snapshot exceeds its descriptor"));
+        }
+        snapshot_hash.addData(QByteArrayView(buffer.data(), read));
+        total += chunk;
+    }
+    snapshot_input.close();
+    if (total != blob.descriptor.byte_size ||
+        QString::fromLatin1(snapshot_hash.result().toHex()).toStdString() !=
+            blob.descriptor.sha256 ||
+        !snapshot->setPermissions(QFileDevice::ReadOwner)) {
+        return fail(InstalledRecordErrorCode::AssetVerificationFailure,
+                    QStringLiteral("Authorized sealed snapshot changed during validation"));
+    }
+    return ui::RecordAssetLease{snapshot->fileName(), std::move(snapshot)};
+}
+
 [[nodiscard]] auto matchingResource(const packs::LoadedPack& pack, model::ResourceKind kind,
                                     const std::string& id)
     -> std::expected<const packs::ValidatedResource*, InstalledRecordError> {
@@ -319,6 +415,48 @@ std::expected<InstalledRecordLoad, InstalledRecordError> InstalledRecordControll
     definition.documents.reserve(runtime_case.record.docket_entries.size());
     definition.docket.reserve(runtime_case.record.docket_entries.size());
     definition.anchors.reserve(runtime_case.record.page_anchors.size());
+    if (runtime_case.record.disclosure_policy.has_value()) {
+        const auto& policy = *runtime_case.record.disclosure_policy;
+        definition.disclosure_policy = ui::RecordDisclosurePolicy{
+            asQString(runtime_case.record.id.value), asQString(policy.policy_id),
+            asQString(policy.unauthorized_projection), asQString(policy.authorized_projection),
+            asQString(policy.sealed_asset_access)};
+        definition.sealed_disclosures.reserve(runtime_case.record.sealed_disclosures.size());
+        for (const auto& disclosure : runtime_case.record.sealed_disclosures) {
+            QStringList required_items;
+            for (const auto requirement : disclosure.required_items) {
+                switch (requirement) {
+                case packs::RuntimeDisclosureRequirement::Motion:
+                    required_items.push_back(QStringLiteral("motion"));
+                    break;
+                case packs::RuntimeDisclosureRequirement::Certificate:
+                    required_items.push_back(QStringLiteral("certificate"));
+                    break;
+                case packs::RuntimeDisclosureRequirement::RedactedCounterpart:
+                    required_items.push_back(QStringLiteral("redacted_counterpart"));
+                    break;
+                }
+            }
+            std::vector<ui::RecordTwinAnchor> mappings;
+            mappings.reserve(disclosure.anchor_mappings.size());
+            for (const auto& mapping : disclosure.anchor_mappings) {
+                mappings.push_back(ui::RecordTwinAnchor{asQString(mapping.stable_anchor_id.value),
+                                                        asQString(mapping.sealed_anchor_id.value),
+                                                        asQString(mapping.public_anchor_id.value)});
+            }
+            const auto optional_entry = [](const auto& value) {
+                return value.has_value() ? asQString(value->value) : QString{};
+            };
+            definition.sealed_disclosures.push_back(
+                ui::RecordSealedDisclosure{asQString(disclosure.disclosure_id.value),
+                                           asQString(disclosure.sealed_entry_id.value),
+                                           optional_entry(disclosure.public_entry_id),
+                                           optional_entry(disclosure.motion_entry_id),
+                                           optional_entry(disclosure.certificate_entry_id),
+                                           asQString(disclosure.authorization_authority_id.value),
+                                           std::move(required_items), std::move(mappings)});
+        }
+    }
     std::vector<InstalledRecordAsset> assets;
     assets.reserve(runtime_case.record.docket_entries.size());
 
@@ -457,38 +595,72 @@ std::expected<InstalledRecordLoad, InstalledRecordError> InstalledRecordControll
                         QStringLiteral("Runtime record asset is not declared as a PDF"));
         }
 
-        const auto materialized =
-            catalog_.materializeBlob(canonical_pack.revision, entry.asset_path);
-        if (!materialized) {
-            return fail(InstalledRecordErrorCode::MaterializationFailure,
-                        QStringLiteral("Installed record asset could not be materialized: %1")
-                            .arg(materialized.error().message));
-        }
-        if (materialized->descriptor != **declared) {
-            return fail(
-                InstalledRecordErrorCode::AssetDigestMismatch,
-                QStringLiteral("Loaded pack and installed catalog blob descriptors differ"));
-        }
-        if (const auto verified = verifyMaterializedBlob(catalog_, *materialized); !verified) {
-            return std::unexpected(verified.error());
-        }
+        const auto defer_sealed_asset =
+            entry.sealed && runtime_case.record.disclosure_policy.has_value();
+        QString local_path;
+        auto actual_page_count = static_cast<int>(entry.page_count);
+        ui::DeferredRecordAsset deferred_asset;
+        if (defer_sealed_asset) {
+            const auto catalog_root = catalog_.rootDirectory();
+            const auto revision = canonical_pack.revision;
+            const auto asset_path = entry.asset_path;
+            const auto expected_descriptor = **declared;
+            const auto expected_pages = actual_page_count;
+            deferred_asset = [catalog_root, revision, asset_path, expected_descriptor,
+                              expected_pages]() -> std::expected<ui::RecordAssetLease, QString> {
+                const auto opened = packs::PackCatalog::open(catalog_root);
+                if (!opened) {
+                    return std::unexpected(
+                        QStringLiteral("Authorized sealed catalog cannot be reopened"));
+                }
+                const auto materialized = (*opened)->materializeBlob(revision, asset_path);
+                if (!materialized || materialized->descriptor != expected_descriptor) {
+                    return std::unexpected(
+                        QStringLiteral("Authorized sealed asset materialization failed"));
+                }
+                const auto snapshot =
+                    snapshotMaterializedBlob(**opened, *materialized, expected_pages);
+                if (!snapshot) {
+                    return std::unexpected(
+                        QStringLiteral("Authorized sealed asset verification failed"));
+                }
+                return *snapshot;
+            };
+        } else {
+            const auto materialized =
+                catalog_.materializeBlob(canonical_pack.revision, entry.asset_path);
+            if (!materialized) {
+                return fail(InstalledRecordErrorCode::MaterializationFailure,
+                            QStringLiteral("Installed record asset could not be materialized: %1")
+                                .arg(materialized.error().message));
+            }
+            if (materialized->descriptor != **declared) {
+                return fail(
+                    InstalledRecordErrorCode::AssetDigestMismatch,
+                    QStringLiteral("Loaded pack and installed catalog blob descriptors differ"));
+            }
+            if (const auto verified = verifyMaterializedBlob(catalog_, *materialized); !verified) {
+                return std::unexpected(verified.error());
+            }
 
-        QPdfDocument pdf;
-        const auto pdf_error = pdf.load(materialized->local_path);
-        if (pdf_error != QPdfDocument::Error::None || pdf.status() != QPdfDocument::Status::Ready ||
-            pdf.pageCount() <= 0) {
-            return fail(InstalledRecordErrorCode::PdfLoadFailure,
-                        QStringLiteral("Materialized record asset is not a readable PDF"));
-        }
-        const auto actual_page_count = pdf.pageCount();
-        if (actual_page_count != static_cast<int>(entry.page_count)) {
+            QPdfDocument pdf;
+            const auto pdf_error = pdf.load(materialized->local_path);
+            if (pdf_error != QPdfDocument::Error::None ||
+                pdf.status() != QPdfDocument::Status::Ready || pdf.pageCount() <= 0) {
+                return fail(InstalledRecordErrorCode::PdfLoadFailure,
+                            QStringLiteral("Materialized record asset is not a readable PDF"));
+            }
+            actual_page_count = pdf.pageCount();
+            if (actual_page_count != static_cast<int>(entry.page_count)) {
+                pdf.close();
+                return fail(InstalledRecordErrorCode::PageCountMismatch,
+                            QStringLiteral("Record PDF page count differs from its declaration"));
+            }
             pdf.close();
-            return fail(InstalledRecordErrorCode::PageCountMismatch,
-                        QStringLiteral("Record PDF page count differs from its declaration"));
-        }
-        pdf.close();
-        if (const auto verified = verifyMaterializedBlob(catalog_, *materialized); !verified) {
-            return std::unexpected(verified.error());
+            if (const auto verified = verifyMaterializedBlob(catalog_, *materialized); !verified) {
+                return std::unexpected(verified.error());
+            }
+            local_path = materialized->local_path;
         }
 
         const auto entry_id = asQString(entry.id.value);
@@ -542,8 +714,9 @@ std::expected<InstalledRecordLoad, InstalledRecordError> InstalledRecordControll
                             docket->court_id.has_value() ? asQString(docket->court_id->value)
                                                          : QStringLiteral("Not specified by pack"));
         }
-        definition.documents.push_back(ui::RecordDocument{
-            entry_id, title, materialized->local_path, entry.sealed, metadata, actual_page_count});
+        definition.documents.push_back(ui::RecordDocument{entry_id, title, local_path, entry.sealed,
+                                                          metadata, actual_page_count,
+                                                          std::move(deferred_asset)});
         definition.docket.push_back(ui::RecordDocketEntry{
             entry_id,
             filed_on,
@@ -560,8 +733,10 @@ std::expected<InstalledRecordLoad, InstalledRecordError> InstalledRecordControll
             parent_id,
             relationship,
         });
-        assets.push_back(InstalledRecordAsset{entry.id, materialized->descriptor,
-                                              materialized->local_path, actual_page_count});
+        if (!defer_sealed_asset) {
+            assets.push_back(
+                InstalledRecordAsset{entry.id, **declared, local_path, actual_page_count});
+        }
     }
 
     const auto workspace_result = workspace_.setRecord(definition);
@@ -571,8 +746,43 @@ std::expected<InstalledRecordLoad, InstalledRecordError> InstalledRecordControll
                         .arg(workspace_result.error().message));
     }
 
+    auto public_definition = definition;
+    if (definition.disclosure_policy.has_value()) {
+        QSet<QString> sealed_document_ids;
+        QHash<QString, ui::RecordPageAnchor> authored_anchors;
+        for (const auto& document : definition.documents) {
+            if (document.sealed) {
+                sealed_document_ids.insert(document.id);
+            }
+        }
+        for (const auto& anchor : definition.anchors) {
+            authored_anchors.insert(anchor.id, anchor);
+        }
+        std::erase_if(public_definition.documents,
+                      [](const ui::RecordDocument& document) { return document.sealed; });
+        std::erase_if(public_definition.docket, [&sealed_document_ids](const auto& entry) {
+            return sealed_document_ids.contains(entry.document_id);
+        });
+        std::erase_if(public_definition.anchors, [&sealed_document_ids](const auto& anchor) {
+            return sealed_document_ids.contains(anchor.document_id);
+        });
+        for (const auto& disclosure : definition.sealed_disclosures) {
+            for (const auto& mapping : disclosure.anchor_mappings) {
+                const auto public_anchor = authored_anchors.constFind(mapping.public_anchor_id);
+                if (public_anchor != authored_anchors.constEnd()) {
+                    auto stable = *public_anchor;
+                    stable.id = mapping.stable_anchor_id;
+                    public_definition.anchors.push_back(std::move(stable));
+                }
+            }
+        }
+        public_definition.disclosure_policy.reset();
+        public_definition.sealed_disclosures.clear();
+    }
+
     return InstalledRecordLoad{canonical_pack.revision, runtime_case.definition.id,
-                               runtime_case.record.id, std::move(definition), std::move(assets)};
+                               runtime_case.record.id, std::move(public_definition),
+                               std::move(assets)};
 }
 
 } // namespace appellate::app

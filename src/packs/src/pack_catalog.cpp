@@ -843,6 +843,8 @@ QString PackCatalog::blobObjectsDirectory() const {
     return QDir(root_directory_).filePath(QStringLiteral("blobs"));
 }
 
+QString PackCatalog::rootDirectory() const { return root_directory_; }
+
 std::expected<InstalledPack, CatalogError>
 PackCatalog::installArchive(const QString& archive_path, const QString& installed_at_utc) {
     if (!validText(installed_at_utc)) {
@@ -1297,10 +1299,16 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
                             resource.document.value(QStringLiteral("known_uncertainty")).toArray(),
                             [](const QJsonValue& uncertainty) { return uncertainty.isObject(); }));
             });
+        const auto uses_sealed_record_twins =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Record &&
+                       (resource.document.contains(QStringLiteral("disclosure_policy")) ||
+                        resource.document.contains(QStringLiteral("sealed_disclosures")));
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds,
             uses_workflow_preconditions, uses_structured_disposition, uses_grounded_questions,
-            uses_realism_evidence);
+            uses_realism_evidence, uses_sealed_record_twins);
         if (!capabilities) {
             return fail(CatalogErrorCode::UnsupportedCapability,
                         QStringLiteral("Pack %1 requires an unsupported capability: %2")

@@ -1,6 +1,8 @@
 #include "appellate/storage/event_codec.hpp"
 #include "strict_json_scan.hpp"
 
+#include <QCryptographicHash>
+#include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -10,13 +12,16 @@
 #include <QStringList>
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <charconv>
 #include <chrono>
 #include <cstdint>
 #include <limits>
+#include <map>
 #include <optional>
 #include <ranges>
+#include <set>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -41,6 +46,10 @@ constexpr qsizetype maximum_missing_fields = 256;
 constexpr auto accepted_type = "filing.accepted";
 constexpr auto deficiency_type = "filing.deficiency_issued";
 constexpr auto rejected_type = "filing.rejected";
+constexpr auto access_granted_type = "record.access.granted";
+constexpr auto access_revoked_type = "record.access.revoked";
+constexpr auto access_digest_domain = "appellate-workbench-record-access-event-v1";
+constexpr auto zero_digest = "0000000000000000000000000000000000000000000000000000000000000000";
 
 [[nodiscard]] auto fail(EventCodecErrorCode code, QString message)
     -> std::unexpected<EventCodecError> {
@@ -1067,6 +1076,417 @@ QString primaryAuthorityId(const model::LegalEvent& event) {
     return std::visit(
         [](const auto& concrete) { return QString::fromUtf8(concrete.authority.primary.id.value); },
         event);
+}
+
+namespace {
+
+void addAccessUint64(QCryptographicHash& hash, std::uint64_t value) {
+    std::array<char, 8> encoded{};
+    for (int index = 7; index >= 0; --index) {
+        encoded[static_cast<std::size_t>(index)] = static_cast<char>(value & 0xffU);
+        value >>= 8U;
+    }
+    hash.addData(QByteArrayView(encoded.data(), static_cast<qsizetype>(encoded.size())));
+}
+
+void addAccessFrame(QCryptographicHash& hash, std::string_view value) {
+    addAccessUint64(hash, value.size());
+    hash.addData(QByteArrayView(value.data(), static_cast<qsizetype>(value.size())));
+}
+
+[[nodiscard]] std::string accessDigest(const model::RecordAccessEvent& event) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addAccessFrame(hash, access_digest_domain);
+    addAccessFrame(hash, event.action == model::RecordAccessAction::Grant ? access_granted_type
+                                                                          : access_revoked_type);
+    addAccessFrame(hash, event.event_id);
+    addAccessFrame(hash, event.session_id);
+    addAccessFrame(hash, event.record_id);
+    addAccessFrame(hash, event.policy_id);
+    addAccessFrame(hash, event.sealed_document_id);
+    addAccessFrame(hash, event.authority_id);
+    addAccessFrame(hash, event.recorded_at_utc);
+    addAccessUint64(hash, event.sequence);
+    addAccessFrame(hash, event.previous_digest);
+    return hash.result().toHex().toStdString();
+}
+
+[[nodiscard]] bool validCanonicalId(std::string_view value) {
+    const auto text = QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
+    return text.toUtf8() == QByteArrayView(value.data(), static_cast<qsizetype>(value.size())) &&
+           isCanonicalId(text);
+}
+
+[[nodiscard]] bool validNamespacedId(std::string_view value) {
+    const auto text = QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
+    return text.toUtf8() == QByteArrayView(value.data(), static_cast<qsizetype>(value.size())) &&
+           isNamespacedId(text);
+}
+
+[[nodiscard]] bool validCanonicalUtc(std::string_view value) {
+    if (!roundTripsUtf8(value)) {
+        return false;
+    }
+    const auto text = QString::fromUtf8(value.data(), static_cast<qsizetype>(value.size()));
+    if (text.size() != 20 || !text.endsWith(u'Z')) {
+        return false;
+    }
+    const auto parsed = QDateTime::fromString(text, Qt::ISODate);
+    return parsed.isValid() && parsed.offsetFromUtc() == 0 &&
+           parsed.toUTC().toString(QStringLiteral("yyyy-MM-dd'T'HH:mm:ss'Z'")) == text;
+}
+
+[[nodiscard]] auto validateAccessEvent(const model::RecordAccessEvent& event)
+    -> std::expected<void, EventCodecError> {
+    if (!validCanonicalId(event.event_id) || !validCanonicalId(event.session_id) ||
+        !validNamespacedId(event.record_id) || !validNamespacedId(event.policy_id) ||
+        !validNamespacedId(event.sealed_document_id) || !validNamespacedId(event.authority_id) ||
+        !validCanonicalUtc(event.recorded_at_utc) || event.sequence == 0 ||
+        !isLowercaseDigest(QString::fromLatin1(event.previous_digest)) ||
+        !isLowercaseDigest(QString::fromLatin1(event.event_digest))) {
+        return fail(EventCodecErrorCode::InvalidField,
+                    QStringLiteral("Record-access event identity or digest is invalid"));
+    }
+    if (accessDigest(event) != event.event_digest) {
+        return fail(EventCodecErrorCode::DigestMismatch,
+                    QStringLiteral("Record-access event digest does not match its payload"));
+    }
+    return {};
+}
+
+[[nodiscard]] auto accessAction(QStringView type)
+    -> std::expected<model::RecordAccessAction, EventCodecError> {
+    if (type == QLatin1StringView(access_granted_type)) {
+        return model::RecordAccessAction::Grant;
+    }
+    if (type == QLatin1StringView(access_revoked_type)) {
+        return model::RecordAccessAction::Revoke;
+    }
+    return fail(EventCodecErrorCode::UnknownEventType,
+                QStringLiteral("Unknown record-access event type %1").arg(type));
+}
+
+struct ValidatedAccessRule final {
+    std::string authority_id;
+    std::vector<model::RecordDisclosureDeficiency> blocking_deficiencies;
+};
+
+[[nodiscard]] auto validatePolicy(const model::RecordAccessPolicy& policy)
+    -> std::expected<std::map<std::string, ValidatedAccessRule>, EventCodecError> {
+    if (!validNamespacedId(policy.record_id) || !validNamespacedId(policy.policy_id) ||
+        policy.rules.empty() || policy.rules.size() > 4096) {
+        return fail(EventCodecErrorCode::InvalidField,
+                    QStringLiteral("Record-access policy identity or bounds are invalid"));
+    }
+    std::map<std::string, ValidatedAccessRule> rules;
+    std::set<std::string> disclosure_ids;
+    for (const auto& rule : policy.rules) {
+        if (!validNamespacedId(rule.sealed_document_id) || !validNamespacedId(rule.authority_id) ||
+            !validNamespacedId(rule.disclosure_id) ||
+            !disclosure_ids.emplace(rule.disclosure_id).second ||
+            rule.blocking_deficiencies.size() > 3) {
+            return fail(EventCodecErrorCode::InvalidField,
+                        QStringLiteral("Record-access policy rules must be canonical and unique"));
+        }
+        std::set<model::RecordDisclosureDeficiencyKind> deficiency_kinds;
+        for (const auto& deficiency : rule.blocking_deficiencies) {
+            if (deficiency.disclosure_id != rule.disclosure_id ||
+                !deficiency_kinds.emplace(deficiency.kind).second) {
+                return fail(
+                    EventCodecErrorCode::InvalidField,
+                    QStringLiteral("Record-access deficiencies must be canonical and unique"));
+            }
+        }
+        if (!rules
+                 .emplace(rule.sealed_document_id,
+                          ValidatedAccessRule{rule.authority_id, rule.blocking_deficiencies})
+                 .second) {
+            return fail(EventCodecErrorCode::InvalidField,
+                        QStringLiteral("Record-access policy rules must be canonical and unique"));
+        }
+    }
+    return rules;
+}
+
+[[nodiscard]] bool mightBeAccessEvent(const StoredEvent& stored) {
+    if (stored.event_type.startsWith(QStringLiteral("record.access."))) {
+        return true;
+    }
+    QJsonParseError error;
+    const auto parsed = QJsonDocument::fromJson(stored.payload_json, &error);
+    return error.error == QJsonParseError::NoError && parsed.isObject() &&
+           parsed.object()
+               .value(QStringLiteral("event_type"))
+               .toString()
+               .startsWith(QStringLiteral("record.access."));
+}
+
+} // namespace
+
+QString recordAccessEventType(model::RecordAccessAction action) {
+    return QString::fromLatin1(action == model::RecordAccessAction::Grant ? access_granted_type
+                                                                          : access_revoked_type);
+}
+
+std::expected<QByteArray, EventCodecError>
+encodeRecordAccessEvent(const model::RecordAccessEvent& event) {
+    if (const auto valid = validateAccessEvent(event); !valid) {
+        return std::unexpected(valid.error());
+    }
+    const QJsonObject payload{
+        {QStringLiteral("authority_id"), QString::fromUtf8(event.authority_id)},
+        {QStringLiteral("event_digest"), QString::fromLatin1(event.event_digest)},
+        {QStringLiteral("event_id"), QString::fromUtf8(event.event_id)},
+        {QStringLiteral("policy_id"), QString::fromUtf8(event.policy_id)},
+        {QStringLiteral("previous_digest"), QString::fromLatin1(event.previous_digest)},
+        {QStringLiteral("record_id"), QString::fromUtf8(event.record_id)},
+        {QStringLiteral("recorded_at_utc"), QString::fromUtf8(event.recorded_at_utc)},
+        {QStringLiteral("sealed_document_id"), QString::fromUtf8(event.sealed_document_id)},
+        {QStringLiteral("sequence"), QString::fromStdString(std::to_string(event.sequence))},
+        {QStringLiteral("session_id"), QString::fromUtf8(event.session_id)},
+    };
+    const QJsonObject envelope{
+        {QStringLiteral("event_type"), recordAccessEventType(event.action)},
+        {QStringLiteral("payload"), payload},
+        {QStringLiteral("schema_version"), 1},
+    };
+    const auto encoded = QJsonDocument(envelope).toJson(QJsonDocument::Compact);
+    if (encoded.size() > maximum_payload_bytes) {
+        return fail(EventCodecErrorCode::PayloadTooLarge,
+                    QStringLiteral("Encoded record-access event exceeds the size limit"));
+    }
+    return encoded;
+}
+
+std::expected<model::RecordAccessEvent, EventCodecError>
+decodeRecordAccessEvent(QByteArrayView encoded) {
+    if (encoded.isEmpty() || encoded.size() > maximum_payload_bytes) {
+        return fail(EventCodecErrorCode::PayloadTooLarge,
+                    QStringLiteral("Record-access event is empty or exceeds the size limit"));
+    }
+    if (const auto scan = detail::scanStrictJson(encoded); !scan) {
+        return fail(scan.error().code == detail::StrictJsonErrorCode::DuplicateMember
+                        ? EventCodecErrorCode::DuplicateMember
+                        : EventCodecErrorCode::InvalidJson,
+                    scan.error().message);
+    }
+    QJsonParseError parse_error;
+    const auto document = QJsonDocument::fromJson(encoded.toByteArray(), &parse_error);
+    if (parse_error.error != QJsonParseError::NoError || !document.isObject()) {
+        return fail(EventCodecErrorCode::InvalidJson,
+                    QStringLiteral("Invalid record-access event JSON"));
+    }
+    const auto envelope = document.object();
+    if (const auto keys =
+            exactKeys(envelope, {u"event_type", u"payload", u"schema_version"}, u"event");
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto version = envelope.value(u"schema_version");
+    if (!version.isDouble() || version.toDouble() != 1.0 ||
+        !envelope.value(u"payload").isObject()) {
+        return fail(EventCodecErrorCode::UnsupportedVersion,
+                    QStringLiteral("Unsupported record-access event envelope"));
+    }
+    const auto type = readString(envelope, u"event_type", 64, u"event");
+    if (!type) {
+        return std::unexpected(type.error());
+    }
+    const auto action = accessAction(*type);
+    if (!action) {
+        return std::unexpected(action.error());
+    }
+    const auto payload = envelope.value(u"payload").toObject();
+    if (const auto keys = exactKeys(payload,
+                                    {u"authority_id", u"event_digest", u"event_id", u"policy_id",
+                                     u"previous_digest", u"record_id", u"recorded_at_utc",
+                                     u"sealed_document_id", u"sequence", u"session_id"},
+                                    u"payload");
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto event_id = readId(payload, u"event_id", u"payload");
+    const auto session_id = readId(payload, u"session_id", u"payload");
+    const auto record_id = readString(payload, u"record_id", 160, u"payload");
+    const auto policy_id = readString(payload, u"policy_id", 160, u"payload");
+    const auto document_id = readString(payload, u"sealed_document_id", 160, u"payload");
+    const auto authority_id = readString(payload, u"authority_id", 160, u"payload");
+    const auto recorded_at = readString(payload, u"recorded_at_utc", 20, u"payload");
+    const auto sequence = parseInteger<std::uint64_t>(payload, u"sequence", u"payload", false);
+    const auto previous = readDigest(payload, u"previous_digest", u"payload");
+    const auto digest = readDigest(payload, u"event_digest", u"payload");
+    if (!event_id || !session_id || !record_id || !policy_id || !document_id || !authority_id ||
+        !recorded_at || !sequence || !previous || !digest) {
+        if (!event_id)
+            return std::unexpected(event_id.error());
+        if (!session_id)
+            return std::unexpected(session_id.error());
+        if (!record_id)
+            return std::unexpected(record_id.error());
+        if (!policy_id)
+            return std::unexpected(policy_id.error());
+        if (!document_id)
+            return std::unexpected(document_id.error());
+        if (!authority_id)
+            return std::unexpected(authority_id.error());
+        if (!recorded_at)
+            return std::unexpected(recorded_at.error());
+        if (!sequence)
+            return std::unexpected(sequence.error());
+        if (!previous)
+            return std::unexpected(previous.error());
+        return std::unexpected(digest.error());
+    }
+    model::RecordAccessEvent event{*event_id,
+                                   *session_id,
+                                   record_id->toUtf8().toStdString(),
+                                   policy_id->toUtf8().toStdString(),
+                                   document_id->toUtf8().toStdString(),
+                                   authority_id->toUtf8().toStdString(),
+                                   recorded_at->toUtf8().toStdString(),
+                                   *action,
+                                   *sequence,
+                                   *previous,
+                                   *digest};
+    if (const auto valid = validateAccessEvent(event); !valid) {
+        return std::unexpected(valid.error());
+    }
+    return event;
+}
+
+std::expected<model::RecordAccessProjection, EventCodecError>
+projectRecordAccess(const SessionSnapshot& snapshot, const model::RecordAccessPolicy& policy,
+                    std::optional<qint64> through_sequence) {
+    const auto rules = validatePolicy(policy);
+    if (!rules) {
+        return std::unexpected(rules.error());
+    }
+    if (!validCanonicalId(snapshot.session_id.toUtf8().toStdString()) || snapshot.sequence < 0) {
+        return fail(EventCodecErrorCode::InvalidField,
+                    QStringLiteral("Stored session identity or sequence is invalid"));
+    }
+    if (snapshot.sequence > static_cast<qint64>(maximum_record_access_events) ||
+        snapshot.events.size() > maximum_record_access_events) {
+        return fail(EventCodecErrorCode::OutOfRange,
+                    QStringLiteral("Record-access journal exceeds its hard event limit"));
+    }
+    const auto cutoff = through_sequence.value_or(snapshot.sequence);
+    if (cutoff < 0 || cutoff > snapshot.sequence) {
+        return fail(EventCodecErrorCode::OutOfRange,
+                    QStringLiteral("Record-access replay boundary is outside the session"));
+    }
+
+    std::string head = zero_digest;
+    std::map<std::string, bool> authorized;
+    qint64 previous_stored_sequence = 0;
+    for (const auto& stored : snapshot.events) {
+        if (stored.sequence <= previous_stored_sequence || stored.sequence > snapshot.sequence) {
+            return fail(EventCodecErrorCode::SequenceMismatch,
+                        QStringLiteral("Stored session events are not in strict sequence order"));
+        }
+        previous_stored_sequence = stored.sequence;
+        if (stored.sequence > cutoff) {
+            break;
+        }
+        if (!mightBeAccessEvent(stored)) {
+            continue;
+        }
+        const auto decoded = decodeRecordAccessEvent(stored.payload_json);
+        if (!decoded) {
+            return std::unexpected(decoded.error());
+        }
+        const auto expected_type = recordAccessEventType(decoded->action);
+        if (stored.event_type != expected_type ||
+            stored.authority_id.toUtf8().toStdString() != decoded->authority_id ||
+            decoded->sequence != static_cast<std::uint64_t>(stored.sequence) ||
+            decoded->session_id != snapshot.session_id.toUtf8().toStdString() ||
+            decoded->previous_digest != head) {
+            return fail(
+                EventCodecErrorCode::SequenceMismatch,
+                QStringLiteral("Stored record-access envelope, sequence, or chain differs"));
+        }
+        const auto rule = rules->find(decoded->sealed_document_id);
+        if (decoded->record_id != policy.record_id || decoded->policy_id != policy.policy_id ||
+            rule == rules->end() || rule->second.authority_id != decoded->authority_id) {
+            return fail(EventCodecErrorCode::InvalidField,
+                        QStringLiteral("Record-access event is outside its exact pinned policy"));
+        }
+        const auto active = authorized[decoded->sealed_document_id];
+        if (decoded->action == model::RecordAccessAction::Grant &&
+            !rule->second.blocking_deficiencies.empty()) {
+            return fail(EventCodecErrorCode::InvalidTransition,
+                        QStringLiteral("Required public disclosure items are missing"));
+        }
+        if ((decoded->action == model::RecordAccessAction::Grant && active) ||
+            (decoded->action == model::RecordAccessAction::Revoke && !active)) {
+            return fail(EventCodecErrorCode::InvalidTransition,
+                        QStringLiteral("Record-access grant/revoke transition is redundant"));
+        }
+        authorized[decoded->sealed_document_id] = !active;
+        head = decoded->event_digest;
+    }
+
+    std::vector<std::string> granted;
+    for (const auto& [document_id, active] : authorized) {
+        if (active) {
+            granted.push_back(document_id);
+        }
+    }
+    return model::RecordAccessProjection{
+        snapshot.session_id.toUtf8().toStdString(), policy.record_id, policy.policy_id,
+        static_cast<std::uint64_t>(cutoff),         std::move(head),  std::move(granted)};
+}
+
+std::expected<model::RecordAccessEvent, EventCodecError>
+makeRecordAccessEvent(const SessionSnapshot& snapshot, const model::RecordAccessPolicy& policy,
+                      std::string_view event_id, std::string_view sealed_document_id,
+                      model::RecordAccessAction action, std::string_view recorded_at_utc) {
+    if (snapshot.sequence >= static_cast<qint64>(maximum_record_access_events) ||
+        snapshot.events.size() >= maximum_record_access_events) {
+        return fail(EventCodecErrorCode::OutOfRange,
+                    QStringLiteral("Record-access journal reached its hard event limit"));
+    }
+    const auto rules = validatePolicy(policy);
+    if (!rules) {
+        return std::unexpected(rules.error());
+    }
+    const auto rule = rules->find(std::string(sealed_document_id));
+    if (rule == rules->end()) {
+        return fail(EventCodecErrorCode::InvalidField,
+                    QStringLiteral("Record-access target is not authorized by the policy"));
+    }
+    const auto current = projectRecordAccess(snapshot, policy);
+    if (!current) {
+        return std::unexpected(current.error());
+    }
+    const auto active = std::ranges::find(current->authorized_document_ids, sealed_document_id) !=
+                        current->authorized_document_ids.end();
+    if (action == model::RecordAccessAction::Grant && !rule->second.blocking_deficiencies.empty()) {
+        return fail(EventCodecErrorCode::InvalidTransition,
+                    QStringLiteral("Required public disclosure items are missing"));
+    }
+    if ((action == model::RecordAccessAction::Grant && active) ||
+        (action == model::RecordAccessAction::Revoke && !active) || snapshot.sequence < 0 ||
+        snapshot.sequence == std::numeric_limits<qint64>::max()) {
+        return fail(EventCodecErrorCode::InvalidTransition,
+                    QStringLiteral("Requested record-access transition is invalid"));
+    }
+    model::RecordAccessEvent event{std::string(event_id),
+                                   snapshot.session_id.toUtf8().toStdString(),
+                                   policy.record_id,
+                                   policy.policy_id,
+                                   std::string(sealed_document_id),
+                                   rule->second.authority_id,
+                                   std::string(recorded_at_utc),
+                                   action,
+                                   static_cast<std::uint64_t>(snapshot.sequence + 1),
+                                   current->head_digest,
+                                   {}};
+    event.event_digest = accessDigest(event);
+    if (const auto valid = validateAccessEvent(event); !valid) {
+        return std::unexpected(valid.error());
+    }
+    return event;
 }
 
 } // namespace appellate::storage

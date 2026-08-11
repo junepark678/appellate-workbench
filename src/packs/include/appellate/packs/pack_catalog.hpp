@@ -89,6 +89,7 @@ class PackCatalog final {
 
     [[nodiscard]] QString archivesDirectory() const;
     [[nodiscard]] QString blobObjectsDirectory() const;
+    [[nodiscard]] QString rootDirectory() const;
     [[nodiscard]] int schemaVersion() const;
 
   private:

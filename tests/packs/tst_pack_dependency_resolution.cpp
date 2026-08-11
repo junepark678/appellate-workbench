@@ -1,15 +1,16 @@
+#include "appellate/engine/oral_argument_engine.hpp"
 #include "appellate/packs/pack_archive.hpp"
 #include "appellate/packs/pack_catalog.hpp"
 #include "appellate/packs/pack_reader.hpp"
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/storage/asset_store.hpp"
 #include "appellate/storage/session_store.hpp"
-#include "appellate/engine/oral_argument_engine.hpp"
 #include "installed_record_controller.hpp"
 #include "oral_argument_session_controller.hpp"
 #include "pack_cli.hpp"
 #include "record_workspace.hpp"
 #include "resolved_session_pins.hpp"
+#include "session_controller.hpp"
 #include "workflow_session_controller.hpp"
 
 #include <QBuffer>
@@ -55,23 +56,31 @@ struct LegacyOralDefinitions final {
         "Legacy Resolved Composite",
         appellate::model::ProfileClass::FictionalComposite,
         appellate::model::ProfileCompatibility{{appellate::model::CourtRole::Appellate},
-                                                {"us.ca4"}},
+                                               {"us.ca4"}},
         appellate::model::InteractionStyle{
-            0.8, 0.8, 0.4, 0.5, 0.5, 0.2, 0.5, 0.5, 0.5,
+            0.8,
+            0.8,
+            0.4,
+            0.5,
+            0.5,
+            0.2,
+            0.5,
+            0.5,
+            0.5,
             {appellate::model::IssueFocus{"issue.legacy-resolved", 1.0}}},
-        appellate::model::VoiceStyle{
-            appellate::model::VoiceRegister::Technical,
-            appellate::model::VoiceCadence::Measured,
-            appellate::model::QuestionFraming::Direct,
-            appellate::model::CounselAddress::Counsel,
-            0.4,
-            0.4,
-            {"answer the question"},
-            {"before you continue"},
-            {"clarify that point"}},
+        appellate::model::VoiceStyle{appellate::model::VoiceRegister::Technical,
+                                     appellate::model::VoiceCadence::Measured,
+                                     appellate::model::QuestionFraming::Direct,
+                                     appellate::model::CounselAddress::Counsel,
+                                     0.4,
+                                     0.4,
+                                     {"answer the question"},
+                                     {"before you continue"},
+                                     {"clarify that point"}},
     };
     appellate::model::BenchConfiguration bench{
-        "us.ca4", appellate::model::CourtRole::Appellate,
+        "us.ca4",
+        appellate::model::CourtRole::Appellate,
         {appellate::model::BenchSeat{"seat.legacy-resolved", std::move(profile)}},
         "seat.legacy-resolved"};
     appellate::model::ArgumentGrounding grounding{{appellate::model::ArgumentIssue{
@@ -84,11 +93,11 @@ struct LegacyOralDefinitions final {
     const auto grounding_digest = appellate::engine::groundingDigest(grounding);
     Q_ASSERT(behavior.has_value());
     Q_ASSERT(grounding_digest.has_value());
-    return LegacyOralDefinitions{
-        appellate::model::OralArgumentConfiguration{
-            std::chrono::seconds{90}, std::chrono::seconds{0}, 0.7, 3, *behavior,
-            *grounding_digest, std::string(64, 'a'), "disposition.legacy-resolved"},
-        std::move(bench), std::move(grounding)};
+    return LegacyOralDefinitions{appellate::model::OralArgumentConfiguration{
+                                     std::chrono::seconds{90}, std::chrono::seconds{0}, 0.7, 3,
+                                     *behavior, *grounding_digest, std::string(64, 'a'),
+                                     "disposition.legacy-resolved"},
+                                 std::move(bench), std::move(grounding)};
 }
 
 class PackDependencyResolutionTest final : public QObject {
@@ -106,6 +115,8 @@ class PackDependencyResolutionTest final : public QObject {
     void resolvesV2CanonicalAuthoritiesAcrossExactDependencies();
     void rejectsGroundedQuestionBankTargetingDependencyCase();
     void rejectsSiblingAssistedDependencyReference();
+    void rejectsSiblingInvisibleDisclosureAuthority();
+    void derivesSealedRecordAccessFromExactResolvedRoot();
     void rejectsWrongExactDigestForBlobStreaming();
     void serializesPublicationAcrossCatalogInstances();
     void rollsBackNewArchiveAndBlobAfterFinalizationFailure();
@@ -155,6 +166,12 @@ void addFrame(QCryptographicHash& hash, const std::string& value) {
         return {};
     }
     return file.readAll();
+}
+
+[[nodiscard]] bool overwriteAll(const QString& path, const QByteArray& bytes) {
+    QFile file(path);
+    return file.open(QIODevice::WriteOnly | QIODevice::Truncate) &&
+           file.write(bytes) == bytes.size();
 }
 
 [[nodiscard]] QJsonObject dependency(const PackRevision& revision) {
@@ -420,6 +437,138 @@ void addFrame(QCryptographicHash& hash, const std::string& value) {
     if (!writeAll(QDir(source).filePath(QStringLiteral("manifest.json")), manifest) ||
         !QDir{}.mkpath(QFileInfo(archive).path())) {
         return std::unexpected(QStringLiteral("cannot write partition manifest"));
+    }
+    const auto exported = PackArchive::exportDirectory(
+        source, archive, {}, appellate::packs::PackValidationScope::ResolvedClosure);
+    if (!exported) {
+        return std::unexpected(exported.error().message);
+    }
+    return *exported;
+}
+
+[[nodiscard]] bool rewritePartitionResource(const QString& source, const QString& path,
+                                            const QJsonObject& document) {
+    const auto bytes = QJsonDocument(document).toJson(QJsonDocument::Compact);
+    if (!overwriteAll(QDir(source).filePath(path), bytes)) {
+        return false;
+    }
+    const auto manifest_path = QDir(source).filePath(QStringLiteral("manifest.json"));
+    auto manifest = QJsonDocument::fromJson(readAll(manifest_path)).object();
+    auto contents = manifest.value(QStringLiteral("contents")).toArray();
+    for (qsizetype index = 0; index < contents.size(); ++index) {
+        auto descriptor = contents.at(index).toObject();
+        if (descriptor.value(QStringLiteral("path")).toString() != path) {
+            continue;
+        }
+        descriptor.insert(QStringLiteral("sha256"), QString::fromLatin1(sha256(bytes)));
+        contents.replace(index, descriptor);
+        manifest.insert(QStringLiteral("contents"), contents);
+        return overwriteAll(manifest_path, QJsonDocument(manifest).toJson(QJsonDocument::Compact));
+    }
+    return false;
+}
+
+[[nodiscard]] auto addSealedTwinsToPartition(
+    const QString& root, const QString& stem, bool mutate_authority_metadata = false,
+    const QString& authorization_authority_id = QStringLiteral("example.authority.deficiency"),
+    bool require_missing_support = false) -> std::expected<PackRevision, QString> {
+    const auto source = QDir(root).filePath(QStringLiteral("sources/") + stem);
+    const auto record_path = QStringLiteral("resources/record.json");
+    auto record = QJsonDocument::fromJson(readAll(QDir(source).filePath(record_path))).object();
+    auto entries = record.value(QStringLiteral("docket_entries")).toArray();
+    if (record.isEmpty() || entries.isEmpty()) {
+        return std::unexpected(QStringLiteral("sealed-twins fixture record is missing"));
+    }
+    auto sealed = entries.at(0).toObject();
+    sealed.insert(QStringLiteral("entry_id"), QStringLiteral("example.record.psr-sealed"));
+    sealed.insert(QStringLiteral("entry_number"), 3);
+    sealed.insert(QStringLiteral("entry_label"), QStringLiteral("ECF No. 42-S"));
+    sealed.insert(QStringLiteral("title"), QStringLiteral("Confidential PSR title"));
+    sealed.insert(QStringLiteral("description"), QStringLiteral("Secret PSR description"));
+    sealed.insert(QStringLiteral("tags"), QJsonArray{QStringLiteral("psr-secret-tag")});
+    sealed.insert(QStringLiteral("sealed"), true);
+    entries.push_back(sealed);
+    record.insert(QStringLiteral("docket_entries"), entries);
+    auto anchors = record.value(QStringLiteral("page_anchors")).toArray();
+    anchors.push_back(QJsonObject{
+        {QStringLiteral("anchor_id"), QStringLiteral("example.record.anchor.psr-sealed")},
+        {QStringLiteral("entry_id"), QStringLiteral("example.record.psr-sealed")},
+        {QStringLiteral("page_number"), 2},
+        {QStringLiteral("citation_label"), QStringLiteral("SECRET-JA-2")},
+    });
+    record.insert(QStringLiteral("page_anchors"), anchors);
+    QJsonArray required_items{QStringLiteral("redacted_counterpart")};
+    if (require_missing_support) {
+        required_items.push_back(QStringLiteral("motion"));
+        required_items.push_back(QStringLiteral("certificate"));
+    }
+    record.insert(
+        QStringLiteral("disclosure_policy"),
+        QJsonObject{
+            {QStringLiteral("policy_id"), QStringLiteral("example.record.policy.psr")},
+            {QStringLiteral("unauthorized_projection"), QStringLiteral("public_counterparts_only")},
+            {QStringLiteral("authorized_projection"),
+             QStringLiteral("public_and_authorized_sealed")},
+            {QStringLiteral("sealed_asset_access"), QStringLiteral("session_event_grant_required")},
+        });
+    record.insert(
+        QStringLiteral("sealed_disclosures"),
+        QJsonArray{QJsonObject{
+            {QStringLiteral("disclosure_id"), QStringLiteral("example.disclosure.psr")},
+            {QStringLiteral("sealed_entry_id"), QStringLiteral("example.record.psr-sealed")},
+            {QStringLiteral("public_entry_id"), QStringLiteral("example.record.entry-one")},
+            {QStringLiteral("authorization_authority_id"), authorization_authority_id},
+            {QStringLiteral("required_items"), required_items},
+            {QStringLiteral("anchor_mappings"),
+             QJsonArray{QJsonObject{
+                 {QStringLiteral("stable_anchor_id"),
+                  QStringLiteral("example.record.anchor.psr-stable")},
+                 {QStringLiteral("sealed_anchor_id"),
+                  QStringLiteral("example.record.anchor.psr-sealed")},
+                 {QStringLiteral("public_anchor_id"), QStringLiteral("example.record.anchor.ja2")},
+             }}},
+        }});
+    if (!rewritePartitionResource(source, record_path, record)) {
+        return std::unexpected(QStringLiteral("cannot rewrite sealed-twins record"));
+    }
+
+    if (mutate_authority_metadata) {
+        const auto authority_path = QStringLiteral("resources/authority-set.json");
+        auto authority_set =
+            QJsonDocument::fromJson(readAll(QDir(source).filePath(authority_path))).object();
+        auto authorities = authority_set.value(QStringLiteral("authorities")).toArray();
+        for (qsizetype index = 0; index < authorities.size(); ++index) {
+            auto authority = authorities.at(index).toObject();
+            if (authority.value(QStringLiteral("authority_id")).toString() !=
+                QStringLiteral("example.authority.deficiency")) {
+                continue;
+            }
+            authority.insert(QStringLiteral("source_url"),
+                             QStringLiteral("https://example.invalid/rules/3-revised"));
+            authorities.replace(index, authority);
+            break;
+        }
+        authority_set.insert(QStringLiteral("authorities"), authorities);
+        if (!rewritePartitionResource(source, authority_path, authority_set)) {
+            return std::unexpected(QStringLiteral("cannot mutate disclosure authority"));
+        }
+    }
+
+    const auto manifest_path = QDir(source).filePath(QStringLiteral("manifest.json"));
+    auto manifest = QJsonDocument::fromJson(readAll(manifest_path)).object();
+    auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+    capabilities.push_back(QJsonObject{
+        {QStringLiteral("id"), QStringLiteral("workbench.pack.sealed-record-twins")},
+        {QStringLiteral("version"), 1},
+    });
+    manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+    if (!overwriteAll(manifest_path, QJsonDocument(manifest).toJson(QJsonDocument::Compact))) {
+        return std::unexpected(QStringLiteral("cannot add sealed-twins capability"));
+    }
+    const auto archive =
+        QDir(root).filePath(QStringLiteral("archives/") + stem + QStringLiteral(".awpack"));
+    if (!QFile::remove(archive)) {
+        return std::unexpected(QStringLiteral("cannot replace base sealed-twins archive"));
     }
     const auto exported = PackArchive::exportDirectory(
         source, archive, {}, appellate::packs::PackValidationScope::ResolvedClosure);
@@ -1021,8 +1170,8 @@ void PackDependencyResolutionTest::
         const auto created = appellate::app::OralArgumentSessionController::create(
             QStringLiteral("test.session.legacy-resolved"), std::move(definitions.configuration),
             std::move(definitions.bench), std::move(definitions.grounding), std::move(*store),
-            QStringLiteral("engine.legacy-resolved.1"),
-            QStringLiteral("2026-08-11T11:00:00Z"), *resolved);
+            QStringLiteral("engine.legacy-resolved.1"), QStringLiteral("2026-08-11T11:00:00Z"),
+            *resolved);
         QVERIFY2(created.has_value(), created ? "" : qPrintable(created.error().message));
         QVERIFY((*created)->snapshot().pins == pins);
         QCOMPARE((*created)->snapshot().authority_contract,
@@ -1163,10 +1312,10 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
     QCOMPARE(runtime_case.filing_authorities.front().authority.provenance->locator,
              std::string("Rule 1"));
     QCOMPARE(runtime_case.argument_configurations.size(), std::size_t{2});
-    const auto actual_argument = std::ranges::find(
-        runtime_case.argument_configurations,
-        appellate::packs::RuntimeArgumentConfigId{"example.argument.fictional"},
-        &appellate::packs::RuntimeArgumentConfiguration::id);
+    const auto actual_argument =
+        std::ranges::find(runtime_case.argument_configurations,
+                          appellate::packs::RuntimeArgumentConfigId{"example.argument.fictional"},
+                          &appellate::packs::RuntimeArgumentConfiguration::id);
     QVERIFY(actual_argument != runtime_case.argument_configurations.end());
     QVERIFY(actual_argument->grounded_question_bank.has_value());
     const auto& question_bank = *actual_argument->grounded_question_bank;
@@ -1195,11 +1344,10 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
         auto store = appellate::storage::SessionStore::open(oral_database);
         QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
         const auto created = appellate::app::OralArgumentSessionController::create(
-            QStringLiteral("test.session.resolved-oral-%1").arg(index),
-            runtime_case.definition.id, canonical_arguments[index].first,
-            std::string(64, 'c'), std::move(*store),
-            QStringLiteral("engine.resolved-oral.2"),
-            QStringLiteral("2026-08-11T10:00:00Z"), *resolved);
+            QStringLiteral("test.session.resolved-oral-%1").arg(index), runtime_case.definition.id,
+            canonical_arguments[index].first, std::string(64, 'c'), std::move(*store),
+            QStringLiteral("engine.resolved-oral.2"), QStringLiteral("2026-08-11T10:00:00Z"),
+            *resolved);
         QVERIFY2(created.has_value(), created ? "" : qPrintable(created.error().message));
         QVERIFY((*created)->canonicalDefinition() != nullptr);
         QCOMPARE((*created)->canonicalDefinition()->question_bank.mode,
@@ -1213,11 +1361,10 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
         auto store = appellate::storage::SessionStore::open(oral_database);
         QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
         const auto rejected = appellate::app::OralArgumentSessionController::create(
-            QStringLiteral("test.session.v2-legacy-refused"),
-            std::move(definitions.configuration), std::move(definitions.bench),
-            std::move(definitions.grounding), std::move(*store),
-            QStringLiteral("engine.legacy-resolved.1"),
-            QStringLiteral("2026-08-11T10:00:00Z"), *resolved);
+            QStringLiteral("test.session.v2-legacy-refused"), std::move(definitions.configuration),
+            std::move(definitions.bench), std::move(definitions.grounding), std::move(*store),
+            QStringLiteral("engine.legacy-resolved.1"), QStringLiteral("2026-08-11T10:00:00Z"),
+            *resolved);
         QVERIFY(!rejected.has_value());
         QCOMPARE(rejected.error().code,
                  appellate::app::OralArgumentSessionErrorCode::InvalidConfiguration);
@@ -1604,6 +1751,214 @@ void PackDependencyResolutionTest::rejectsSiblingAssistedDependencyReference() {
                  .entryList(QStringList{QStringLiteral("*.awpack")}, QDir::Files)
                  .size(),
              2);
+}
+
+void PackDependencyResolutionTest::rejectsSiblingInvisibleDisclosureAuthority() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto support = buildPartitionArchive(
+        temporary.path(), QStringLiteral("sealed-record-support"),
+        QStringLiteral("test.sealed.record-support"),
+        {QStringLiteral("resources/authority-set.json"), QStringLiteral("resources/court.json")},
+        {}, false, {}, 2);
+    QVERIFY2(support.has_value(), support ? "" : qPrintable(support.error()));
+    const auto sibling = buildPartitionArchive(
+        temporary.path(), QStringLiteral("sealed-authority-sibling"),
+        QStringLiteral("test.sealed.authority-sibling"),
+        {QStringLiteral("resources/authority-set.json")}, {}, false, QByteArray("sibling."), 2);
+    QVERIFY2(sibling.has_value(), sibling ? "" : qPrintable(sibling.error()));
+    const auto dependent =
+        buildPartitionArchive(temporary.path(), QStringLiteral("sealed-record-dependent"),
+                              QStringLiteral("test.sealed.record-dependent"),
+                              {QStringLiteral("resources/record.json")}, {*support}, true, {}, 2);
+    QVERIFY2(dependent.has_value(), dependent ? "" : qPrintable(dependent.error()));
+    const auto sealed_dependent =
+        addSealedTwinsToPartition(temporary.path(), QStringLiteral("sealed-record-dependent"),
+                                  false, QStringLiteral("sibling.authority.deficiency"));
+    QVERIFY2(sealed_dependent.has_value(),
+             sealed_dependent ? "" : qPrintable(sealed_dependent.error()));
+
+    auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
+    QVERIFY(catalog.has_value());
+    QVERIFY(install(**catalog, temporary.path(), QStringLiteral("sealed-record-support"), 1));
+    QVERIFY(install(**catalog, temporary.path(), QStringLiteral("sealed-authority-sibling"), 2));
+    const auto installed = (*catalog)->installArchive(
+        archivePath(temporary.path(), QStringLiteral("sealed-record-dependent")),
+        QStringLiteral("2026-08-11T00:00:03Z"));
+    QVERIFY(!installed.has_value());
+    QCOMPARE(installed.error().code, CatalogErrorCode::InvalidResolvedGraph);
+    const auto listed = (*catalog)->list();
+    QVERIFY(listed.has_value());
+    QCOMPARE(listed->size(), std::size_t{2});
+}
+
+void PackDependencyResolutionTest::derivesSealedRecordAccessFromExactResolvedRoot() {
+    const std::vector<QString> resources{
+        QStringLiteral("resources/argument-config.json"),
+        QStringLiteral("resources/argument-config-counterfactual.json"),
+        QStringLiteral("resources/authority-set.json"),
+        QStringLiteral("resources/bench-configuration.json"),
+        QStringLiteral("resources/case.json"),
+        QStringLiteral("resources/court.json"),
+        QStringLiteral("resources/filing-catalog.json"),
+        QStringLiteral("resources/form.json"),
+        QStringLiteral("resources/judge-profile.json"),
+        QStringLiteral("resources/procedure-profile.json"),
+        QStringLiteral("resources/record.json"),
+        QStringLiteral("resources/workflow.json"),
+    };
+
+    QTemporaryDir exact;
+    QVERIFY(exact.isValid());
+    const auto base =
+        buildPartitionArchive(exact.path(), QStringLiteral("sealed-root"),
+                              QStringLiteral("test.sealed.root"), resources, {}, true, {}, 2);
+    QVERIFY2(base.has_value(), base ? "" : qPrintable(base.error()));
+    const auto revision = addSealedTwinsToPartition(exact.path(), QStringLiteral("sealed-root"));
+    QVERIFY2(revision.has_value(), revision ? "" : qPrintable(revision.error()));
+    auto catalog = PackCatalog::open(QDir(exact.path()).filePath(QStringLiteral("catalog")));
+    QVERIFY(catalog.has_value());
+    QVERIFY(install(**catalog, exact.path(), QStringLiteral("sealed-root"), 1));
+    const auto resolved = (*catalog)->loadResolved(*revision);
+    QVERIFY2(resolved.has_value(), resolved ? "" : qPrintable(resolved.error().message));
+    const auto runtime = appellate::packs::loadRuntimePack(*resolved);
+    QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+
+    const auto database_path = QDir(exact.path()).filePath(QStringLiteral("record-access.sqlite"));
+    auto store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    auto controller = appellate::app::RecordAccessSessionController::create(
+        QStringLiteral("test.session.sealed-root"), runtime->cases.front().definition.id,
+        std::move(*store), QStringLiteral("engine.record-access.v1"),
+        QStringLiteral("2026-08-11T10:00:00Z"), *resolved);
+    QVERIFY2(controller.has_value(), controller ? "" : qPrintable(controller.error().message));
+    const auto disclosures = (*controller)->disclosures();
+    QCOMPARE(disclosures.size(), std::size_t{1});
+    QCOMPARE(disclosures.front().disclosure_id, std::string("example.disclosure.psr"));
+    QVERIFY(disclosures.front().blocking_deficiencies.empty());
+    QVERIFY(!disclosures.front().authorized);
+    const auto raw_target = (*controller)
+                                ->grant("example.record.psr-sealed", "test.event.raw-target",
+                                        QStringLiteral("2026-08-11T10:00:30Z"));
+    QVERIFY(!raw_target.has_value());
+    QCOMPARE(raw_target.error().code,
+             appellate::app::SessionControllerErrorCode::InvalidConfiguration);
+    const auto granted = (*controller)
+                             ->grant("example.disclosure.psr", "test.event.disclosure-grant",
+                                     QStringLiteral("2026-08-11T10:01:00Z"));
+    QVERIFY2(granted.has_value(), granted ? "" : qPrintable(granted.error().message));
+    QVERIFY((*controller)->disclosures().front().authorized);
+    controller->reset();
+
+    auto store_a = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store_a.has_value());
+    auto controller_a = appellate::app::RecordAccessSessionController::reopen(
+        QStringLiteral("test.session.sealed-root"), runtime->cases.front().definition.id,
+        std::move(*store_a), QStringLiteral("engine.record-access.v1"), *resolved);
+    QVERIFY2(controller_a.has_value(),
+             controller_a ? "" : qPrintable(controller_a.error().message));
+    QVERIFY((*controller_a)->disclosures().front().authorized);
+
+    auto store_b = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store_b.has_value());
+    auto controller_b = appellate::app::RecordAccessSessionController::reopen(
+        QStringLiteral("test.session.sealed-root"), runtime->cases.front().definition.id,
+        std::move(*store_b), QStringLiteral("engine.record-access.v1"), *resolved);
+    QVERIFY2(controller_b.has_value(),
+             controller_b ? "" : qPrintable(controller_b.error().message));
+    const auto revoked = (*controller_b)
+                             ->revoke("example.disclosure.psr", "test.event.disclosure-revoke",
+                                      QStringLiteral("2026-08-11T10:01:30Z"));
+    QVERIFY2(revoked.has_value(), revoked ? "" : qPrintable(revoked.error().message));
+
+    appellate::ui::RecordWorkspace fresh_workspace;
+    appellate::app::InstalledRecordController installed_controller(**catalog, fresh_workspace);
+    const auto installed =
+        installed_controller.load(*resolved, *runtime, runtime->cases.front().definition.id);
+    QVERIFY2(installed.has_value(), installed ? "" : qPrintable(installed.error().message));
+    const auto applied = (*controller_a)->applyCurrentProjection(fresh_workspace);
+    QVERIFY2(applied.has_value(), applied ? "" : qPrintable(applied.error().message));
+    QVERIFY(!(*controller_a)->disclosures().front().authorized);
+    QVERIFY(
+        !fresh_workspace.openDocketEntry(QStringLiteral("example.record.psr-sealed")).has_value());
+    QVERIFY(fresh_workspace.navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"))
+                .has_value());
+    QCOMPARE(fresh_workspace.currentDocumentId(), QStringLiteral("example.record.entry-one"));
+    controller_a->reset();
+    controller_b->reset();
+
+    QTemporaryDir revised;
+    QVERIFY(revised.isValid());
+    const auto revised_base =
+        buildPartitionArchive(revised.path(), QStringLiteral("sealed-root"),
+                              QStringLiteral("test.sealed.root"), resources, {}, true, {}, 2);
+    QVERIFY2(revised_base.has_value(), revised_base ? "" : qPrintable(revised_base.error()));
+    const auto revised_revision =
+        addSealedTwinsToPartition(revised.path(), QStringLiteral("sealed-root"), true);
+    QVERIFY2(revised_revision.has_value(),
+             revised_revision ? "" : qPrintable(revised_revision.error()));
+    QVERIFY(revised_revision->digest != revision->digest);
+    auto revised_catalog =
+        PackCatalog::open(QDir(revised.path()).filePath(QStringLiteral("catalog")));
+    QVERIFY(revised_catalog.has_value());
+    QVERIFY(install(**revised_catalog, revised.path(), QStringLiteral("sealed-root"), 2));
+    const auto revised_resolved = (*revised_catalog)->loadResolved(*revised_revision);
+    QVERIFY(revised_resolved.has_value());
+
+    store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto metadata_mutation = appellate::app::RecordAccessSessionController::reopen(
+        QStringLiteral("test.session.sealed-root"), runtime->cases.front().definition.id,
+        std::move(*store), QStringLiteral("engine.record-access.v1"), *revised_resolved);
+    QVERIFY(!metadata_mutation.has_value());
+    QCOMPARE(metadata_mutation.error().code,
+             appellate::app::SessionControllerErrorCode::CorruptSession);
+
+    QTemporaryDir deficient;
+    QVERIFY(deficient.isValid());
+    const auto deficient_base =
+        buildPartitionArchive(deficient.path(), QStringLiteral("sealed-deficient"),
+                              QStringLiteral("test.sealed.deficient"), resources, {}, true, {}, 2);
+    QVERIFY(deficient_base.has_value());
+    const auto deficient_revision =
+        addSealedTwinsToPartition(deficient.path(), QStringLiteral("sealed-deficient"), false,
+                                  QStringLiteral("example.authority.deficiency"), true);
+    QVERIFY2(deficient_revision.has_value(),
+             deficient_revision ? "" : qPrintable(deficient_revision.error()));
+    auto deficient_catalog =
+        PackCatalog::open(QDir(deficient.path()).filePath(QStringLiteral("catalog")));
+    QVERIFY(deficient_catalog.has_value());
+    QVERIFY(install(**deficient_catalog, deficient.path(), QStringLiteral("sealed-deficient"), 3));
+    const auto deficient_resolved = (*deficient_catalog)->loadResolved(*deficient_revision);
+    QVERIFY(deficient_resolved.has_value());
+    const auto deficient_runtime = appellate::packs::loadRuntimePack(*deficient_resolved);
+    QVERIFY(deficient_runtime.has_value());
+    store = appellate::storage::SessionStore::open(
+        QDir(deficient.path()).filePath(QStringLiteral("record-access.sqlite")));
+    QVERIFY(store.has_value());
+    auto deficient_controller = appellate::app::RecordAccessSessionController::create(
+        QStringLiteral("test.session.sealed-deficient"),
+        deficient_runtime->cases.front().definition.id, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), QStringLiteral("2026-08-11T10:02:00Z"),
+        *deficient_resolved);
+    QVERIFY(deficient_controller.has_value());
+    const auto blocking = (*deficient_controller)->disclosures();
+    QCOMPARE(blocking.size(), std::size_t{1});
+    QCOMPARE(blocking.front().blocking_deficiencies.size(), std::size_t{2});
+    QVERIFY(std::ranges::any_of(blocking.front().blocking_deficiencies, [](const auto& deficiency) {
+        return deficiency.kind ==
+               appellate::model::RecordDisclosureDeficiencyKind::MissingPublicMotion;
+    }));
+    QVERIFY(std::ranges::any_of(blocking.front().blocking_deficiencies, [](const auto& deficiency) {
+        return deficiency.kind ==
+               appellate::model::RecordDisclosureDeficiencyKind::MissingCertificate;
+    }));
+    const auto blocked = (*deficient_controller)
+                             ->grant("example.disclosure.psr", "test.event.blocked-disclosure",
+                                     QStringLiteral("2026-08-11T10:03:00Z"));
+    QVERIFY(!blocked.has_value());
+    QCOMPARE(blocked.error().code, appellate::app::SessionControllerErrorCode::EventCodecFailure);
+    QCOMPARE((*deficient_controller)->snapshot().sequence, qint64{0});
 }
 
 void PackDependencyResolutionTest::rejectsWrongExactDigestForBlobStreaming() {

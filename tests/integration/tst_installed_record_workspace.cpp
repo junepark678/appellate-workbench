@@ -9,10 +9,14 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
+#include <QFont>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QPageSize>
+#include <QPainter>
 #include <QPdfDocument>
+#include <QPdfWriter>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -20,6 +24,19 @@
 #include <memory>
 #include <optional>
 #include <string>
+
+namespace appellate::ui {
+
+class RecordWorkspaceTestAccess final {
+  public:
+    [[nodiscard]] static auto apply(RecordWorkspace& workspace,
+                                    model::RecordAccessProjection projection)
+        -> std::expected<void, RecordWorkspaceError> {
+        return workspace.setAccessProjectionForTest(std::move(projection));
+    }
+};
+
+} // namespace appellate::ui
 
 namespace {
 
@@ -30,6 +47,10 @@ namespace ui = appellate::ui;
 
 [[nodiscard]] QString fullPackPath() {
     return QStringLiteral(APPELLATE_TEST_FIXTURES) + QStringLiteral("/full-resource-pack");
+}
+
+[[nodiscard]] QString fullPackV2Path() {
+    return QStringLiteral(APPELLATE_TEST_FIXTURES) + QStringLiteral("/full-resource-pack-v2");
 }
 
 [[nodiscard]] bool copyTree(const QString& source, const QString& destination) {
@@ -64,6 +85,27 @@ namespace ui = appellate::ui;
            file.write(bytes) == static_cast<qint64>(bytes.size());
 }
 
+[[nodiscard]] bool writePdf(const QString& path, const QStringList& pages) {
+    if (pages.isEmpty() || !QDir{}.mkpath(QFileInfo(path).absolutePath())) {
+        return false;
+    }
+    QPdfWriter writer(path);
+    writer.setPageSize(QPageSize(QPageSize::Letter));
+    writer.setResolution(72);
+    QPainter painter(&writer);
+    if (!painter.isActive()) {
+        return false;
+    }
+    painter.setFont(QFont(QStringLiteral("DejaVu Sans"), 12));
+    for (qsizetype index = 0; index < pages.size(); ++index) {
+        painter.drawText(QRect(40, 40, 520, 700), Qt::AlignCenter, pages.at(index));
+        if (index + 1 < pages.size() && !writer.newPage()) {
+            return false;
+        }
+    }
+    return painter.end();
+}
+
 [[nodiscard]] bool rewriteResource(const QString& root, const QString& relative_path,
                                    const QJsonObject& resource) {
     const auto bytes = jsonBytes(resource);
@@ -91,10 +133,19 @@ namespace ui = appellate::ui;
     return false;
 }
 
-enum class FixtureVariant { Rich, Legacy, WrongPageCount, Sealed, HangulBoundary };
+enum class FixtureVariant {
+    Rich,
+    Legacy,
+    WrongPageCount,
+    Sealed,
+    HangulBoundary,
+    PreFeatureV2,
+    SealedTwinsV2,
+    SealedTwinsWrongPageV2,
+};
 
 [[nodiscard]] bool applyVariant(const QString& source, FixtureVariant variant) {
-    if (variant == FixtureVariant::Rich) {
+    if (variant == FixtureVariant::Rich || variant == FixtureVariant::PreFeatureV2) {
         return true;
     }
     const auto record_path = QStringLiteral("resources/record.json");
@@ -106,12 +157,110 @@ enum class FixtureVariant { Rich, Legacy, WrongPageCount, Sealed, HangulBoundary
     record_file.close();
     auto entries = record.value(QStringLiteral("docket_entries")).toArray();
     auto entry = entries.at(0).toObject();
+    if (variant == FixtureVariant::SealedTwinsV2 ||
+        variant == FixtureVariant::SealedTwinsWrongPageV2) {
+        const auto sealed_path = QStringLiteral("objects/sealed-psr.pdf");
+        if (!writePdf(QDir(source).filePath(sealed_path),
+                      {QStringLiteral("Sealed PSR cover"),
+                       QStringLiteral("ultrasecret-installed-cas-text")})) {
+            return false;
+        }
+        QFile sealed_file(QDir(source).filePath(sealed_path));
+        if (!sealed_file.open(QIODevice::ReadOnly)) {
+            return false;
+        }
+        const auto sealed_bytes = sealed_file.readAll();
+        sealed_file.close();
+        const auto sealed_digest = sha256(sealed_bytes);
+
+        const auto manifest_path = QDir(source).filePath(QStringLiteral("manifest.json"));
+        QFile manifest_file(manifest_path);
+        if (!manifest_file.open(QIODevice::ReadOnly)) {
+            return false;
+        }
+        auto manifest = QJsonDocument::fromJson(manifest_file.readAll()).object();
+        manifest_file.close();
+        auto blobs = manifest.value(QStringLiteral("blobs")).toArray();
+        blobs.push_back(QJsonObject{
+            {QStringLiteral("path"), sealed_path},
+            {QStringLiteral("media_type"), QStringLiteral("application/pdf")},
+            {QStringLiteral("byte_size"), sealed_bytes.size()},
+            {QStringLiteral("sha256"), sealed_digest},
+        });
+        manifest.insert(QStringLiteral("blobs"), blobs);
+        auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+        capabilities.push_back(QJsonObject{
+            {QStringLiteral("id"), QStringLiteral("workbench.pack.sealed-record-twins")},
+            {QStringLiteral("version"), 1},
+        });
+        manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+        if (!writeBytes(manifest_path, jsonBytes(manifest))) {
+            return false;
+        }
+
+        auto sealed = entry;
+        sealed.insert(QStringLiteral("entry_id"), QStringLiteral("example.record.psr-sealed"));
+        sealed.insert(QStringLiteral("entry_number"), 3);
+        sealed.insert(QStringLiteral("entry_label"), QStringLiteral("ECF No. 42-S"));
+        sealed.insert(QStringLiteral("title"), QStringLiteral("Confidential PSR title"));
+        sealed.insert(QStringLiteral("description"),
+                      QStringLiteral("Never disclose installed PSR description"));
+        sealed.insert(QStringLiteral("tags"),
+                      QJsonArray{QStringLiteral("psr-secret-installed-tag")});
+        sealed.insert(QStringLiteral("asset_path"), sealed_path);
+        sealed.insert(QStringLiteral("asset_sha256"), sealed_digest);
+        sealed.insert(QStringLiteral("page_count"),
+                      variant == FixtureVariant::SealedTwinsWrongPageV2 ? 3 : 2);
+        sealed.insert(QStringLiteral("sealed"), true);
+        entries.push_back(sealed);
+        record.insert(QStringLiteral("docket_entries"), entries);
+        auto anchors = record.value(QStringLiteral("page_anchors")).toArray();
+        anchors.push_back(QJsonObject{
+            {QStringLiteral("anchor_id"), QStringLiteral("example.record.anchor.psr-sealed")},
+            {QStringLiteral("entry_id"), QStringLiteral("example.record.psr-sealed")},
+            {QStringLiteral("page_number"), 2},
+            {QStringLiteral("citation_label"), QStringLiteral("SECRET-JA-2")},
+        });
+        record.insert(QStringLiteral("page_anchors"), anchors);
+        record.insert(
+            QStringLiteral("disclosure_policy"),
+            QJsonObject{
+                {QStringLiteral("policy_id"), QStringLiteral("example.record.policy.psr")},
+                {QStringLiteral("unauthorized_projection"),
+                 QStringLiteral("public_counterparts_only")},
+                {QStringLiteral("authorized_projection"),
+                 QStringLiteral("public_and_authorized_sealed")},
+                {QStringLiteral("sealed_asset_access"),
+                 QStringLiteral("session_event_grant_required")},
+            });
+        record.insert(
+            QStringLiteral("sealed_disclosures"),
+            QJsonArray{QJsonObject{
+                {QStringLiteral("disclosure_id"), QStringLiteral("example.disclosure.psr")},
+                {QStringLiteral("sealed_entry_id"), QStringLiteral("example.record.psr-sealed")},
+                {QStringLiteral("public_entry_id"), QStringLiteral("example.record.entry-one")},
+                {QStringLiteral("authorization_authority_id"),
+                 QStringLiteral("example.authority.deficiency")},
+                {QStringLiteral("required_items"),
+                 QJsonArray{QStringLiteral("redacted_counterpart")}},
+                {QStringLiteral("anchor_mappings"),
+                 QJsonArray{QJsonObject{
+                     {QStringLiteral("stable_anchor_id"),
+                      QStringLiteral("example.record.anchor.psr-stable")},
+                     {QStringLiteral("sealed_anchor_id"),
+                      QStringLiteral("example.record.anchor.psr-sealed")},
+                     {QStringLiteral("public_anchor_id"),
+                      QStringLiteral("example.record.anchor.ja2")},
+                 }}},
+            }});
+        return rewriteResource(source, record_path, record);
+    }
     if (variant == FixtureVariant::Legacy) {
         record.remove(QStringLiteral("dockets"));
         record.remove(QStringLiteral("page_anchors"));
-        for (const auto& field : {QStringLiteral("docket_id"), QStringLiteral("entry_label"),
-                                  QStringLiteral("actor"), QStringLiteral("description"),
-                                  QStringLiteral("tags")}) {
+        for (const auto& field :
+             {QStringLiteral("docket_id"), QStringLiteral("entry_label"), QStringLiteral("actor"),
+              QStringLiteral("description"), QStringLiteral("tags")}) {
             entry.remove(field);
         }
     } else if (variant == FixtureVariant::WrongPageCount) {
@@ -153,15 +302,17 @@ struct InstalledFixture final {
     packs::LoadedPack loaded;
     packs::RuntimePack runtime;
 
-    [[nodiscard]] std::optional<QString> initialize(
-        FixtureVariant variant = FixtureVariant::Rich) {
+    [[nodiscard]] std::optional<QString> initialize(FixtureVariant variant = FixtureVariant::Rich) {
         if (!temporary.isValid()) {
             return QStringLiteral("cannot create temporary root");
         }
         staging_root = QDir(temporary.path()).filePath(QStringLiteral("ephemeral-staging"));
         const auto source = QDir(staging_root).filePath(QStringLiteral("source"));
         const auto archive = QDir(staging_root).filePath(QStringLiteral("full.awpack"));
-        if (!copyTree(fullPackPath(), source)) {
+        const auto v2 = variant == FixtureVariant::PreFeatureV2 ||
+                        variant == FixtureVariant::SealedTwinsV2 ||
+                        variant == FixtureVariant::SealedTwinsWrongPageV2;
+        if (!copyTree(v2 ? fullPackV2Path() : fullPackPath(), source)) {
             return QStringLiteral("cannot stage full-resource-pack fixture");
         }
         if (!applyVariant(source, variant)) {
@@ -212,6 +363,7 @@ class InstalledRecordWorkspaceTest final : public QObject {
     void rejectsRevisionAndRuntimeMutation();
     void rejectsMissingBlobWrongPageCountAndOrphanRecord();
     void mapsLegacyFallbackAndKeepsSealedAnchorsClosed();
+    void defersInstalledSealedCasAndReopensOffline();
 };
 
 void InstalledRecordWorkspaceTest::loadsSearchablePdfOnlyFromInstalledCatalog() {
@@ -245,8 +397,7 @@ void InstalledRecordWorkspaceTest::loadsSearchablePdfOnlyFromInstalledCatalog() 
     QCOMPARE(loaded->definition.docket.front().document_id,
              loaded->definition.documents.front().id);
     QCOMPARE(loaded->definition.docket.front().filed_on, QDate(2026, 1, 2));
-    QCOMPARE(loaded->definition.docket.front().docket_label,
-             QStringLiteral("1:25-cv-0042"));
+    QCOMPARE(loaded->definition.docket.front().docket_label, QStringLiteral("1:25-cv-0042"));
     QCOMPARE(loaded->definition.docket.front().entry_label, QStringLiteral("ECF No. 42"));
     QCOMPARE(loaded->definition.docket.front().actor, QStringLiteral("District clerk"));
     QCOMPARE(
@@ -304,10 +455,8 @@ void InstalledRecordWorkspaceTest::rejectsRevisionAndRuntimeMutation() {
     QCOMPARE(workspace.visibleDocketCount(), qsizetype{0});
 
     auto changed_anchor = fixture.runtime;
-    changed_anchor.cases.front().record.page_anchors.front().citation_label =
-        std::string("JA999");
-    const auto anchor_result =
-        controller.load(fixture.loaded, changed_anchor, fixture.caseId());
+    changed_anchor.cases.front().record.page_anchors.front().citation_label = std::string("JA999");
+    const auto anchor_result = controller.load(fixture.loaded, changed_anchor, fixture.caseId());
     QVERIFY(!anchor_result.has_value());
     QCOMPARE(anchor_result.error().code, app::InstalledRecordErrorCode::RuntimeMismatch);
     QCOMPARE(workspace.visibleDocketCount(), qsizetype{0});
@@ -320,8 +469,8 @@ void InstalledRecordWorkspaceTest::rejectsRevisionAndRuntimeMutation() {
     auto unsealed_runtime = sealed_fixture.runtime;
     QVERIFY(unsealed_runtime.cases.front().record.docket_entries.front().sealed);
     unsealed_runtime.cases.front().record.docket_entries.front().sealed = false;
-    const auto sealed_result = sealed_controller.load(
-        sealed_fixture.loaded, unsealed_runtime, sealed_fixture.caseId());
+    const auto sealed_result =
+        sealed_controller.load(sealed_fixture.loaded, unsealed_runtime, sealed_fixture.caseId());
     QVERIFY(!sealed_result.has_value());
     QCOMPARE(sealed_result.error().code, app::InstalledRecordErrorCode::RuntimeMismatch);
     QCOMPARE(sealed_workspace.visibleDocketCount(), qsizetype{0});
@@ -337,13 +486,12 @@ void InstalledRecordWorkspaceTest::rejectsMissingBlobWrongPageCountAndOrphanReco
 
     InstalledFixture wrong_pages;
     const auto wrong_page_error = wrong_pages.initialize(FixtureVariant::WrongPageCount);
-    QVERIFY2(!wrong_page_error.has_value(),
-             wrong_page_error ? qPrintable(*wrong_page_error) : "");
+    QVERIFY2(!wrong_page_error.has_value(), wrong_page_error ? qPrintable(*wrong_page_error) : "");
     ui::RecordWorkspace wrong_page_workspace;
     app::InstalledRecordController wrong_page_controller(*wrong_pages.catalog,
-                                                          wrong_page_workspace);
-    const auto page_result = wrong_page_controller.load(
-        wrong_pages.loaded, wrong_pages.runtime, wrong_pages.caseId());
+                                                         wrong_page_workspace);
+    const auto page_result =
+        wrong_page_controller.load(wrong_pages.loaded, wrong_pages.runtime, wrong_pages.caseId());
     QVERIFY(!page_result.has_value());
     QCOMPARE(page_result.error().code, app::InstalledRecordErrorCode::PageCountMismatch);
     QCOMPARE(wrong_page_workspace.visibleDocketCount(), qsizetype{0});
@@ -384,8 +532,7 @@ void InstalledRecordWorkspaceTest::mapsLegacyFallbackAndKeepsSealedAnchorsClosed
              QStringLiteral("Not specified by pack"));
     QCOMPARE(loaded->definition.docket.front().entry_label,
              QStringLiteral("Not specified by pack"));
-    QCOMPARE(loaded->definition.docket.front().actor,
-             QStringLiteral("Not specified by pack"));
+    QCOMPARE(loaded->definition.docket.front().actor, QStringLiteral("Not specified by pack"));
     QCOMPARE(loaded->definition.docket.front().description,
              QStringLiteral("Not specified by pack"));
 
@@ -394,12 +541,11 @@ void InstalledRecordWorkspaceTest::mapsLegacyFallbackAndKeepsSealedAnchorsClosed
     QVERIFY2(!sealed_error.has_value(), sealed_error ? qPrintable(*sealed_error) : "");
     ui::RecordWorkspace sealed_workspace;
     app::InstalledRecordController sealed_controller(*sealed_fixture.catalog, sealed_workspace);
-    const auto sealed_loaded = sealed_controller.load(
-        sealed_fixture.loaded, sealed_fixture.runtime, sealed_fixture.caseId());
+    const auto sealed_loaded = sealed_controller.load(sealed_fixture.loaded, sealed_fixture.runtime,
+                                                      sealed_fixture.caseId());
     QVERIFY2(sealed_loaded.has_value(),
              sealed_loaded ? "" : qPrintable(sealed_loaded.error().message));
-    const auto anchor =
-        sealed_workspace.navigateToCitation(QStringLiteral("JA2"));
+    const auto anchor = sealed_workspace.navigateToCitation(QStringLiteral("JA2"));
     QVERIFY(!anchor.has_value());
     QCOMPARE(anchor.error().code, ui::RecordWorkspaceErrorCode::SealedDocument);
     QVERIFY(sealed_workspace.currentDocumentId().isEmpty());
@@ -408,14 +554,163 @@ void InstalledRecordWorkspaceTest::mapsLegacyFallbackAndKeepsSealedAnchorsClosed
     const auto hangul_error = hangul_fixture.initialize(FixtureVariant::HangulBoundary);
     QVERIFY2(!hangul_error.has_value(), hangul_error ? qPrintable(*hangul_error) : "");
     ui::RecordWorkspace hangul_workspace;
-    app::InstalledRecordController hangul_controller(*hangul_fixture.catalog,
-                                                      hangul_workspace);
-    const auto hangul_loaded = hangul_controller.load(
-        hangul_fixture.loaded, hangul_fixture.runtime, hangul_fixture.caseId());
+    app::InstalledRecordController hangul_controller(*hangul_fixture.catalog, hangul_workspace);
+    const auto hangul_loaded = hangul_controller.load(hangul_fixture.loaded, hangul_fixture.runtime,
+                                                      hangul_fixture.caseId());
     QVERIFY2(hangul_loaded.has_value(),
              hangul_loaded ? "" : qPrintable(hangul_loaded.error().message));
-    QCOMPARE(hangul_loaded->definition.docket.front().actor,
-             QString(240, QChar(0xD55C)));
+    QCOMPARE(hangul_loaded->definition.docket.front().actor, QString(240, QChar(0xD55C)));
+}
+
+void InstalledRecordWorkspaceTest::defersInstalledSealedCasAndReopensOffline() {
+    InstalledFixture fixture;
+    const auto fixture_error = fixture.initialize(FixtureVariant::SealedTwinsV2);
+    QVERIFY2(!fixture_error.has_value(), fixture_error ? qPrintable(*fixture_error) : "");
+    QVERIFY(fixture.runtime.cases.front().record.disclosure_policy.has_value());
+    QCOMPARE(fixture.runtime.cases.front().record.sealed_disclosures.size(), std::size_t{1});
+    QCOMPARE(fixture.runtime.cases.front().record.docket_entries.size(), std::size_t{3});
+    QVERIFY(fixture.runtime.cases.front().record.docket_entries.back().sealed);
+    const auto sealed_descriptor = std::ranges::find(
+        fixture.loaded.blobs, std::string("objects/sealed-psr.pdf"), &model::BlobDescriptor::path);
+    QVERIFY(sealed_descriptor != fixture.loaded.blobs.end());
+    const auto sealed_object = QDir(fixture.catalog->blobObjectsDirectory())
+                                   .filePath(QString::fromStdString(sealed_descriptor->sha256));
+    QFile sealed_input(sealed_object);
+    QVERIFY(sealed_input.open(QIODevice::ReadOnly));
+    const auto sealed_bytes = sealed_input.readAll();
+    sealed_input.close();
+    QCOMPARE(sha256(sealed_bytes), QString::fromStdString(sealed_descriptor->sha256));
+    const auto archive =
+        QDir(fixture.catalog->archivesDirectory())
+            .filePath(fixture.installed.archive_sha256 + QStringLiteral(".awpack"));
+    QVERIFY(QFile::remove(archive));
+    QVERIFY(QFile::remove(sealed_object));
+
+    ui::RecordWorkspace workspace;
+    {
+        app::InstalledRecordController controller(*fixture.catalog, workspace);
+        const auto loaded = controller.load(fixture.loaded, fixture.runtime, fixture.caseId());
+        QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+        QCOMPARE(loaded->assets.size(), std::size_t{2});
+        QCOMPARE(loaded->definition.documents.size(), std::size_t{2});
+        QCOMPARE(loaded->definition.docket.size(), std::size_t{2});
+        QCOMPARE(loaded->definition.anchors.size(), std::size_t{2});
+        QVERIFY(!loaded->definition.disclosure_policy.has_value());
+        QVERIFY(loaded->definition.sealed_disclosures.empty());
+        QString public_text;
+        for (const auto& document : loaded->definition.documents) {
+            public_text += document.id + document.title + document.file_path;
+        }
+        for (const auto& entry : loaded->definition.docket) {
+            public_text += entry.id + entry.document_id + entry.title + entry.description +
+                           entry.tags.join(u' ') + entry.parent_entry_id;
+            QVERIFY(entry.parent_entry_id != QStringLiteral("example.record.psr-sealed"));
+        }
+        for (const auto& anchor : loaded->definition.anchors) {
+            public_text += anchor.id + anchor.document_id + anchor.citation_label;
+        }
+        for (const auto& secret : {QStringLiteral("Confidential"), QStringLiteral("psr-secret"),
+                                   QStringLiteral("SECRET-JA"), QStringLiteral("psr-sealed")}) {
+            QVERIFY(!public_text.contains(secret));
+        }
+    }
+    QVERIFY(workspace.openDocketEntry(QStringLiteral("example.record.entry-one")).has_value());
+    QCOMPARE(workspace.loadedPageCount(), 3);
+    workspace.setDocketFilter(QStringLiteral("psr-secret-installed-tag"));
+    QCOMPARE(workspace.visibleDocketCount(), qsizetype{0});
+    workspace.setDocketFilter({});
+
+    // The controller and original catalog may die before authorization. The
+    // resolver owns only immutable catalog-root/revision/descriptor data.
+    fixture.catalog.reset();
+    const appellate::model::RecordAccessProjection granted{"test.session.installed-sealed",
+                                                           "example.record.fictional",
+                                                           "example.record.policy.psr",
+                                                           1,
+                                                           std::string(64, 'a'),
+                                                           {"example.record.psr-sealed"}};
+    const appellate::model::RecordAccessProjection regranted{"test.session.installed-sealed",
+                                                             "example.record.fictional",
+                                                             "example.record.policy.psr",
+                                                             3,
+                                                             std::string(64, 'c'),
+                                                             {"example.record.psr-sealed"}};
+    QVERIFY(ui::RecordWorkspaceTestAccess::apply(workspace, granted).has_value());
+    const auto missing =
+        workspace.navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"));
+    QVERIFY(!missing.has_value());
+    QCOMPARE(missing.error().code, ui::RecordWorkspaceErrorCode::PdfLoadFailed);
+    QVERIFY(workspace.openDocketEntry(QStringLiteral("example.record.entry-one")).has_value());
+
+    QVERIFY(writeBytes(sealed_object, sealed_bytes));
+    QVERIFY(
+        workspace.navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable")).has_value());
+    QCOMPARE(workspace.currentDocumentId(), QStringLiteral("example.record.psr-sealed"));
+    QCOMPARE(workspace.loadedPageCount(), 2);
+    workspace.setDocumentSearch(QStringLiteral("ultrasecret-installed-cas-text"));
+    QTRY_COMPARE_WITH_TIMEOUT(workspace.documentSearchResultCount(), 1, 10'000);
+
+    // The loaded PDF is a private verified snapshot, not the now-mutated CAS
+    // pathname. Corrupting CAS cannot alter the active document.
+    auto corrupted_bytes = sealed_bytes;
+    corrupted_bytes[corrupted_bytes.size() / 2] =
+        corrupted_bytes.at(corrupted_bytes.size() / 2) == 'x' ? 'y' : 'x';
+    QVERIFY(writeBytes(sealed_object, corrupted_bytes));
+    workspace.setDocumentSearch(QStringLiteral("ultrasecret-installed-cas-text"));
+    QTRY_COMPARE_WITH_TIMEOUT(workspace.documentSearchResultCount(), 1, 10'000);
+
+    const appellate::model::RecordAccessProjection revoked{"test.session.installed-sealed",
+                                                           "example.record.fictional",
+                                                           "example.record.policy.psr",
+                                                           2,
+                                                           std::string(64, 'b'),
+                                                           {}};
+    QVERIFY(ui::RecordWorkspaceTestAccess::apply(workspace, revoked).has_value());
+    QVERIFY(workspace.currentDocumentId().isEmpty());
+    QVERIFY(
+        workspace.navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable")).has_value());
+    QCOMPARE(workspace.currentDocumentId(), QStringLiteral("example.record.entry-one"));
+    QVERIFY(ui::RecordWorkspaceTestAccess::apply(workspace, regranted).has_value());
+    const auto corrupt =
+        workspace.navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"));
+    QVERIFY(!corrupt.has_value());
+    QCOMPARE(corrupt.error().code, ui::RecordWorkspaceErrorCode::PdfLoadFailed);
+    QVERIFY(writeBytes(sealed_object, sealed_bytes));
+
+    InstalledFixture wrong_pages;
+    const auto wrong_error = wrong_pages.initialize(FixtureVariant::SealedTwinsWrongPageV2);
+    QVERIFY2(!wrong_error.has_value(), wrong_error ? qPrintable(*wrong_error) : "");
+    ui::RecordWorkspace wrong_workspace;
+    app::InstalledRecordController wrong_controller(*wrong_pages.catalog, wrong_workspace);
+    const auto wrong_loaded =
+        wrong_controller.load(wrong_pages.loaded, wrong_pages.runtime, wrong_pages.caseId());
+    QVERIFY2(wrong_loaded.has_value(),
+             wrong_loaded ? "" : qPrintable(wrong_loaded.error().message));
+    QVERIFY(
+        wrong_workspace.openDocketEntry(QStringLiteral("example.record.entry-one")).has_value());
+    QVERIFY(ui::RecordWorkspaceTestAccess::apply(wrong_workspace, granted).has_value());
+    const auto wrong_page =
+        wrong_workspace.navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"));
+    QVERIFY(!wrong_page.has_value());
+    QCOMPARE(wrong_page.error().code, ui::RecordWorkspaceErrorCode::PdfLoadFailed);
+
+    for (const auto variant : {FixtureVariant::Rich, FixtureVariant::PreFeatureV2}) {
+        InstalledFixture compatible;
+        const auto compatible_error = compatible.initialize(variant);
+        QVERIFY2(!compatible_error.has_value(),
+                 compatible_error ? qPrintable(*compatible_error) : "");
+        ui::RecordWorkspace compatible_workspace;
+        app::InstalledRecordController compatible_controller(*compatible.catalog,
+                                                             compatible_workspace);
+        const auto compatible_load =
+            compatible_controller.load(compatible.loaded, compatible.runtime, compatible.caseId());
+        QVERIFY2(compatible_load.has_value(),
+                 compatible_load ? "" : qPrintable(compatible_load.error().message));
+        QCOMPARE(compatible_load->assets.size(),
+                 variant == FixtureVariant::Rich ? std::size_t{1} : std::size_t{2});
+        QVERIFY(!compatible_load->definition.documents.front().file_path.isEmpty());
+        QVERIFY(!compatible_load->definition.documents.front().deferred_asset);
+    }
 }
 
 } // namespace

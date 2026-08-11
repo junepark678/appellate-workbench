@@ -1009,6 +1009,14 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
     });
 }
 
+[[nodiscard]] bool usesSealedRecordTwins(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::Record &&
+               (resource.document.contains(QStringLiteral("disclosure_policy")) ||
+                resource.document.contains(QStringLiteral("sealed_disclosures")));
+    });
+}
+
 [[nodiscard]] auto validateResourceGraph(const std::vector<ValidatedResource>& resources,
                                          const std::vector<model::BlobDescriptor>& blobs)
     -> std::expected<void, Error> {
@@ -1067,6 +1075,25 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
     QHash<QString, QHash<QString, QSet<QString>>> case_issue_record_anchors;
     QHash<QString, QSet<QString>> catalog_roles;
 
+    // Authority references may appear before their authority-set resource in
+    // manifest order, so index identities before validating resource bodies.
+    for (const auto& resource : resources) {
+        if (resource.descriptor.kind != model::ResourceKind::AuthoritySet) {
+            continue;
+        }
+        for (const auto& value : resource.document.value(QStringLiteral("authorities")).toArray()) {
+            const auto authority = value.toObject();
+            const auto authority_id = authority.value(QStringLiteral("authority_id")).toString();
+            if (authority_ids.contains(authority_id)) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("authorities"),
+                    QStringLiteral("duplicate authority id %1").arg(authority_id));
+            }
+            authority_ids.insert(authority_id);
+            authorities_by_id.insert(authority_id, authority);
+        }
+    }
+
     for (const auto& resource : resources) {
         const auto id = QString::fromStdString(resource.descriptor.id);
         const auto& document = resource.document;
@@ -1078,13 +1105,6 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 const auto authority = value.toObject();
                 const auto authority_id =
                     authority.value(QStringLiteral("authority_id")).toString();
-                if (authority_ids.contains(authority_id)) {
-                    return crossReferenceFailure(
-                        resource, QStringLiteral("authorities"),
-                        QStringLiteral("duplicate authority id %1").arg(authority_id));
-                }
-                authority_ids.insert(authority_id);
-                authorities_by_id.insert(authority_id, authority);
                 if (resource.descriptor.schema_version == 2) {
                     const auto source_version = QDate::fromString(
                         authority.value(QStringLiteral("source_version")).toString(), Qt::ISODate);
@@ -1600,9 +1620,201 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     citation_labels.insert(citation);
                 }
             }
+
+            const auto has_policy = document.contains(QStringLiteral("disclosure_policy"));
+            const auto has_disclosures = document.contains(QStringLiteral("sealed_disclosures"));
+            if (has_policy != has_disclosures) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("disclosure_policy"),
+                    QStringLiteral("disclosure_policy and sealed_disclosures must be declared "
+                                   "together"));
+            }
+            QSet<QString> sealed_issue_hidden_ids;
+            if (has_policy) {
+                const auto policy = document.value(QStringLiteral("disclosure_policy")).toObject();
+                if (policy.value(QStringLiteral("unauthorized_projection")).toString() !=
+                        QStringLiteral("public_counterparts_only") ||
+                    policy.value(QStringLiteral("authorized_projection")).toString() !=
+                        QStringLiteral("public_and_authorized_sealed") ||
+                    policy.value(QStringLiteral("sealed_asset_access")).toString() !=
+                        QStringLiteral("session_event_grant_required")) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("disclosure_policy"),
+                        QStringLiteral("disclosure projection semantics must use the closed "
+                                       "schema-v2 contract"));
+                }
+
+                QSet<QString> disclosure_ids;
+                QSet<QString> disclosed_sealed_entries;
+                QSet<QString> public_counterparts;
+                QSet<QString> stable_anchor_ids;
+                QSet<QString> mapped_sealed_anchors;
+                QSet<QString> mapped_public_anchors;
+                QHash<QString, QJsonObject> stable_public_anchors;
+                for (const auto& disclosure_value :
+                     document.value(QStringLiteral("sealed_disclosures")).toArray()) {
+                    const auto disclosure = disclosure_value.toObject();
+                    const auto disclosure_id =
+                        disclosure.value(QStringLiteral("disclosure_id")).toString();
+                    const auto sealed_id =
+                        disclosure.value(QStringLiteral("sealed_entry_id")).toString();
+                    const auto public_id =
+                        disclosure.value(QStringLiteral("public_entry_id")).toString();
+                    const auto motion_id =
+                        disclosure.value(QStringLiteral("motion_entry_id")).toString();
+                    const auto certificate_id =
+                        disclosure.value(QStringLiteral("certificate_entry_id")).toString();
+                    const auto authorization_authority_id =
+                        disclosure.value(QStringLiteral("authorization_authority_id")).toString();
+                    if (disclosure_ids.contains(disclosure_id) ||
+                        stable_anchor_ids.contains(disclosure_id) ||
+                        entries.contains(disclosure_id) || dockets.contains(disclosure_id) ||
+                        page_anchor_ids.contains(disclosure_id) ||
+                        !entries_by_id.contains(sealed_id) ||
+                        !entries_by_id.value(sealed_id).value(QStringLiteral("sealed")).toBool() ||
+                        disclosed_sealed_entries.contains(sealed_id)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("sealed_disclosures"),
+                            QStringLiteral("disclosure and sealed-entry identities must be "
+                                           "unique, unambiguous, and sealed"));
+                    }
+                    const auto canonical_authority =
+                        authorities_by_id.constFind(authorization_authority_id);
+                    if (canonical_authority == authorities_by_id.constEnd() ||
+                        !canonical_authority.value().contains(QStringLiteral("authority_type")) ||
+                        !canonical_authority.value().contains(QStringLiteral("source_url"))) {
+                        return crossReferenceFailure(
+                            resource,
+                            QStringLiteral("sealed_disclosures/authorization_authority_id"),
+                            QStringLiteral("authorization authority must resolve to exact "
+                                           "canonical provenance"));
+                    }
+                    disclosure_ids.insert(disclosure_id);
+                    disclosed_sealed_entries.insert(sealed_id);
+                    sealed_issue_hidden_ids.insert(sealed_id);
+
+                    const auto valid_public_entry = [&](const QString& entry_id) {
+                        return entry_id.isEmpty() || (entries_by_id.contains(entry_id) &&
+                                                      !entries_by_id.value(entry_id)
+                                                           .value(QStringLiteral("sealed"))
+                                                           .toBool() &&
+                                                      entry_id != sealed_id);
+                    };
+                    if (!valid_public_entry(public_id) || !valid_public_entry(motion_id) ||
+                        !valid_public_entry(certificate_id)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("sealed_disclosures"),
+                            QStringLiteral("counterpart, motion, and certificate must resolve to "
+                                           "distinct public entries"));
+                    }
+                    if (!public_id.isEmpty() &&
+                        (public_counterparts.contains(public_id) ||
+                         entries_by_id.value(public_id).value(QStringLiteral("docket_id")) !=
+                             entries_by_id.value(sealed_id).value(QStringLiteral("docket_id")))) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("sealed_disclosures/public_entry_id"),
+                            QStringLiteral("public counterpart must be one-to-one in the same "
+                                           "docket"));
+                    }
+                    if (!public_id.isEmpty()) {
+                        public_counterparts.insert(public_id);
+                    }
+                    QSet<QString> support_ids;
+                    for (const auto& support_id : {public_id, motion_id, certificate_id}) {
+                        if (!support_id.isEmpty() && support_ids.contains(support_id)) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("sealed_disclosures"),
+                                QStringLiteral("public disclosure support entries must be "
+                                               "distinct"));
+                        }
+                        if (!support_id.isEmpty()) {
+                            support_ids.insert(support_id);
+                        }
+                    }
+
+                    const auto mappings =
+                        disclosure.value(QStringLiteral("anchor_mappings")).toArray();
+                    if (public_id.isEmpty() && !mappings.isEmpty()) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("sealed_disclosures/anchor_mappings"),
+                            QStringLiteral("stable anchors require a public counterpart"));
+                    }
+                    for (const auto& mapping_value : mappings) {
+                        const auto mapping = mapping_value.toObject();
+                        const auto stable_id =
+                            mapping.value(QStringLiteral("stable_anchor_id")).toString();
+                        const auto sealed_anchor_id =
+                            mapping.value(QStringLiteral("sealed_anchor_id")).toString();
+                        const auto public_anchor_id =
+                            mapping.value(QStringLiteral("public_anchor_id")).toString();
+                        if (stable_anchor_ids.contains(stable_id) || entries.contains(stable_id) ||
+                            dockets.contains(stable_id) || page_anchor_ids.contains(stable_id) ||
+                            disclosure_ids.contains(stable_id) ||
+                            mapped_sealed_anchors.contains(sealed_anchor_id) ||
+                            mapped_public_anchors.contains(public_anchor_id) ||
+                            !anchors_by_id.contains(sealed_anchor_id) ||
+                            !anchors_by_id.contains(public_anchor_id) ||
+                            anchors_by_id.value(sealed_anchor_id)
+                                    .value(QStringLiteral("entry_id"))
+                                    .toString() != sealed_id ||
+                            anchors_by_id.value(public_anchor_id)
+                                    .value(QStringLiteral("entry_id"))
+                                    .toString() != public_id) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("sealed_disclosures/anchor_mappings"),
+                                QStringLiteral("twin anchors must be unique and resolve to their "
+                                               "declared sides"));
+                        }
+                        stable_anchor_ids.insert(stable_id);
+                        mapped_sealed_anchors.insert(sealed_anchor_id);
+                        mapped_public_anchors.insert(public_anchor_id);
+                        sealed_issue_hidden_ids.insert(sealed_anchor_id);
+                        auto public_anchor = anchors_by_id.value(public_anchor_id);
+                        public_anchor.insert(QStringLiteral("anchor_id"), stable_id);
+                        stable_public_anchors.insert(stable_id, std::move(public_anchor));
+                    }
+                }
+                // Every physical anchor on a disclosed sealed entry is
+                // sensitive, including anchors that have no public twin.
+                // Case issues may ground only through declared stable IDs.
+                for (auto anchor = anchors_by_id.constBegin(); anchor != anchors_by_id.constEnd();
+                     ++anchor) {
+                    if (disclosed_sealed_entries.contains(
+                            anchor.value().value(QStringLiteral("entry_id")).toString())) {
+                        sealed_issue_hidden_ids.insert(anchor.key());
+                    }
+                }
+                // A projected public child must never retain a raw reference
+                // to a sealed parent that is absent from the public graph.
+                for (auto parent = parent_by_entry.constBegin();
+                     parent != parent_by_entry.constEnd(); ++parent) {
+                    const auto& child = entries_by_id.value(parent.key());
+                    if (!child.value(QStringLiteral("sealed")).toBool() &&
+                        disclosed_sealed_entries.contains(parent.value())) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("docket_entries/parent_entry_id"),
+                            QStringLiteral("a public entry cannot have a sealed parent"));
+                    }
+                }
+                for (auto entry = entries_by_id.constBegin(); entry != entries_by_id.constEnd();
+                     ++entry) {
+                    if (entry.value().value(QStringLiteral("sealed")).toBool() &&
+                        !disclosed_sealed_entries.contains(entry.key())) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("sealed_disclosures"),
+                            QStringLiteral("every sealed entry requires exactly one disclosure"));
+                    }
+                }
+                for (auto stable = stable_public_anchors.constBegin();
+                     stable != stable_public_anchors.constEnd(); ++stable) {
+                    anchors_by_id.insert(stable.key(), stable.value());
+                    page_anchor_ids.insert(stable.key());
+                }
+            }
             record_docket_entries.insert(id, entries_by_id);
             record_page_anchors.insert(id, anchors_by_id);
             entries.unite(page_anchor_ids);
+            entries.subtract(sealed_issue_hidden_ids);
             record_entries.insert(id, entries);
             break;
         }
@@ -2266,7 +2478,8 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
             }
 
             QSet<QString> bank_topics;
-            for (auto topics = topics_by_issue.cbegin(); topics != topics_by_issue.cend(); ++topics) {
+            for (auto topics = topics_by_issue.cbegin(); topics != topics_by_issue.cend();
+                 ++topics) {
                 bank_topics.unite(topics.value());
             }
             for (const auto& seat_value :
@@ -2660,10 +2873,9 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         resource_kinds.push_back(definition->kind);
     }
 
-    const auto capability_coverage =
-        CapabilityRegistry::validateCoverage(static_cast<std::uint32_t>(manifest_schema_version),
-                                             capabilities, resource_kinds, false, false, false,
-                                             false);
+    const auto capability_coverage = CapabilityRegistry::validateCoverage(
+        static_cast<std::uint32_t>(manifest_schema_version), capabilities, resource_kinds, false,
+        false, false, false, false);
     if (!capability_coverage) {
         return std::unexpected(capability_coverage.error());
     }
@@ -2808,7 +3020,8 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     const auto content_capability_coverage = CapabilityRegistry::validateCoverage(
         static_cast<std::uint32_t>(manifest_schema_version), capabilities, resource_kinds,
         usesWorkflowPreconditions(resources), usesStructuredDisposition(resources),
-        usesGroundedQuestions(resources), usesRealismEvidence(resources));
+        usesGroundedQuestions(resources), usesRealismEvidence(resources),
+        usesSealedRecordTwins(resources));
     if (!content_capability_coverage) {
         return std::unexpected(content_capability_coverage.error());
     }
@@ -2873,7 +3086,8 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
         return CapabilityRegistry::validateCoverage(
             pack.manifest_schema_version, pack.required_capabilities, resource_kinds,
             usesWorkflowPreconditions(pack.resources), usesStructuredDisposition(pack.resources),
-            usesGroundedQuestions(pack.resources), usesRealismEvidence(pack.resources));
+            usesGroundedQuestions(pack.resources), usesRealismEvidence(pack.resources),
+            usesSealedRecordTwins(pack.resources));
     };
     const auto root_capabilities = validate_capabilities(root);
     if (!root_capabilities) {
@@ -2899,6 +3113,95 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
         }
         total_resources += dependency->resources.size();
         total_blobs += dependency->blobs.size();
+    }
+
+    QHash<QString, const LoadedPack*> packs_by_id;
+    for (const auto* dependency : dependencies_dependency_first) {
+        packs_by_id.insert(QString::fromStdString(dependency->revision.id.value), dependency);
+    }
+    packs_by_id.insert(QString::fromStdString(root.revision.id.value), &root);
+    const auto validate_disclosure_authorities =
+        [&packs_by_id](const LoadedPack& owner) -> std::expected<void, Error> {
+        QSet<QString> visible_pack_ids{QString::fromStdString(owner.revision.id.value)};
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            const auto visible_snapshot = visible_pack_ids;
+            for (const auto& visible_id : visible_snapshot) {
+                const auto pack = packs_by_id.constFind(visible_id);
+                if (pack == packs_by_id.constEnd()) {
+                    return fail(ErrorCode::CrossReferenceFailure,
+                                QStringLiteral("Resolved closure contains an unknown pack"));
+                }
+                for (const auto& dependency : (*pack)->dependencies) {
+                    const auto dependency_id = QString::fromStdString(dependency.revision.id.value);
+                    const auto resolved = packs_by_id.constFind(dependency_id);
+                    if (resolved == packs_by_id.constEnd() ||
+                        (*resolved)->revision != dependency.revision) {
+                        return fail(ErrorCode::CrossReferenceFailure,
+                                    QStringLiteral("Resolved closure dependency revision differs"));
+                    }
+                    if (!visible_pack_ids.contains(dependency_id)) {
+                        visible_pack_ids.insert(dependency_id);
+                        changed = true;
+                    }
+                }
+            }
+        }
+
+        for (const auto& resource : owner.resources) {
+            if (resource.descriptor.kind != model::ResourceKind::Record ||
+                !resource.document.contains(QStringLiteral("sealed_disclosures"))) {
+                continue;
+            }
+            for (const auto& disclosure_value :
+                 resource.document.value(QStringLiteral("sealed_disclosures")).toArray()) {
+                const auto authority_id = disclosure_value.toObject()
+                                              .value(QStringLiteral("authorization_authority_id"))
+                                              .toString();
+                qsizetype matches = 0;
+                for (const auto& visible_id : visible_pack_ids) {
+                    const auto pack = *packs_by_id.constFind(visible_id);
+                    for (const auto& authority_resource : pack->resources) {
+                        if (authority_resource.descriptor.kind !=
+                            model::ResourceKind::AuthoritySet) {
+                            continue;
+                        }
+                        for (const auto& authority_value :
+                             authority_resource.document.value(QStringLiteral("authorities"))
+                                 .toArray()) {
+                            const auto authority = authority_value.toObject();
+                            if (authority.value(QStringLiteral("authority_id")).toString() ==
+                                authority_id) {
+                                ++matches;
+                                if (!authority.contains(QStringLiteral("authority_type")) ||
+                                    !authority.contains(QStringLiteral("source_url"))) {
+                                    return crossReferenceFailure(
+                                        resource,
+                                        QStringLiteral("sealed_disclosures/"
+                                                       "authorization_authority_id"),
+                                        QStringLiteral("authorization authority lacks exact "
+                                                       "canonical provenance"));
+                                }
+                            }
+                        }
+                    }
+                }
+                if (matches != 1) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("sealed_disclosures/authorization_authority_id"),
+                        QStringLiteral("authorization authority is missing, duplicated, or "
+                                       "outside the owner dependency closure"));
+                }
+            }
+        }
+        return {};
+    };
+    for (auto pack = packs_by_id.constBegin(); pack != packs_by_id.constEnd(); ++pack) {
+        const auto authorities = validate_disclosure_authorities(**pack);
+        if (!authorities) {
+            return std::unexpected(authorities.error());
+        }
     }
     if (total_resources > maximum_contents || total_blobs > maximum_contents ||
         total_blobs > maximum_contents - total_resources) {

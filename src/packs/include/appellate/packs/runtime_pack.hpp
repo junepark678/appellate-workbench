@@ -47,6 +47,12 @@ struct RuntimeRecordPageAnchorId final {
                            const RuntimeRecordPageAnchorId&) = default;
 };
 
+struct RuntimeRecordDisclosureId final {
+    std::string value;
+    friend bool operator==(const RuntimeRecordDisclosureId&,
+                           const RuntimeRecordDisclosureId&) = default;
+};
+
 struct RuntimeRecordAnchorId final {
     std::string value;
     friend bool operator==(const RuntimeRecordAnchorId&, const RuntimeRecordAnchorId&) = default;
@@ -152,12 +158,53 @@ struct RuntimeRecordPageAnchor final {
                            const RuntimeRecordPageAnchor&) = default;
 };
 
+enum class RuntimeDisclosureRequirement {
+    Motion,
+    Certificate,
+    RedactedCounterpart,
+};
+
+struct RuntimeRecordTwinAnchor final {
+    RuntimeRecordPageAnchorId stable_anchor_id;
+    RuntimeRecordPageAnchorId sealed_anchor_id;
+    RuntimeRecordPageAnchorId public_anchor_id;
+
+    friend bool operator==(const RuntimeRecordTwinAnchor&,
+                           const RuntimeRecordTwinAnchor&) = default;
+};
+
+struct RuntimeRecordDisclosurePolicy final {
+    std::string policy_id;
+    std::string unauthorized_projection;
+    std::string authorized_projection;
+    std::string sealed_asset_access;
+
+    friend bool operator==(const RuntimeRecordDisclosurePolicy&,
+                           const RuntimeRecordDisclosurePolicy&) = default;
+};
+
+struct RuntimeSealedDisclosure final {
+    RuntimeRecordDisclosureId disclosure_id;
+    RuntimeRecordEntryId sealed_entry_id;
+    std::optional<RuntimeRecordEntryId> public_entry_id;
+    std::optional<RuntimeRecordEntryId> motion_entry_id;
+    std::optional<RuntimeRecordEntryId> certificate_entry_id;
+    model::AuthorityId authorization_authority_id;
+    std::vector<RuntimeDisclosureRequirement> required_items;
+    std::vector<RuntimeRecordTwinAnchor> anchor_mappings;
+
+    friend bool operator==(const RuntimeSealedDisclosure&,
+                           const RuntimeSealedDisclosure&) = default;
+};
+
 struct RuntimeRecord final {
     RuntimeRecordId id;
     std::string caption;
     std::vector<RuntimeDocketDescriptor> dockets;
     std::vector<RuntimeDocketEntry> docket_entries;
     std::vector<RuntimeRecordPageAnchor> page_anchors;
+    std::optional<RuntimeRecordDisclosurePolicy> disclosure_policy;
+    std::vector<RuntimeSealedDisclosure> sealed_disclosures;
 
     friend bool operator==(const RuntimeRecord&, const RuntimeRecord&) = default;
 };

@@ -10,6 +10,76 @@
     "resource_kind": { "const": "record" },
     "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
     "caption": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "disclosure_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "unauthorized_projection",
+        "authorized_projection",
+        "sealed_asset_access"
+      ],
+      "properties": {
+        "policy_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "unauthorized_projection": { "const": "public_counterparts_only" },
+        "authorized_projection": { "const": "public_and_authorized_sealed" },
+        "sealed_asset_access": { "const": "session_event_grant_required" }
+      }
+    },
+    "sealed_disclosures": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "disclosure_id",
+          "sealed_entry_id",
+          "authorization_authority_id",
+          "required_items",
+          "anchor_mappings"
+        ],
+        "properties": {
+          "disclosure_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "sealed_entry_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "public_entry_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "motion_entry_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "certificate_entry_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "authorization_authority_id": {
+            "$ref": "common.schema.json#/$defs/namespaced_id"
+          },
+          "required_items": {
+            "type": "array",
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {
+              "enum": ["motion", "certificate", "redacted_counterpart"]
+            }
+          },
+          "anchor_mappings": {
+            "type": "array",
+            "maxItems": 32768,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["stable_anchor_id", "sealed_anchor_id", "public_anchor_id"],
+              "properties": {
+                "stable_anchor_id": {
+                  "$ref": "common.schema.json#/$defs/namespaced_id"
+                },
+                "sealed_anchor_id": {
+                  "$ref": "common.schema.json#/$defs/namespaced_id"
+                },
+                "public_anchor_id": {
+                  "$ref": "common.schema.json#/$defs/namespaced_id"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "dockets": {
       "type": "array",
       "minItems": 1,

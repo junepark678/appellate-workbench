@@ -1,7 +1,7 @@
 #include "appellate/packs/runtime_pack.hpp"
+#include "appellate/packs/capability_registry.hpp"
 #include "realism_evidence.hpp"
 #include "runtime_pack_internal.hpp"
-#include "appellate/packs/capability_registry.hpp"
 
 #include <QByteArrayView>
 #include <QCryptographicHash>
@@ -750,10 +750,16 @@ struct ResourceIndex final {
                             resource.document.value(QStringLiteral("known_uncertainty")).toArray(),
                             [](const QJsonValue& uncertainty) { return uncertainty.isObject(); }));
             });
+        const auto uses_sealed_record_twins =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Record &&
+                       (resource.document.contains(QStringLiteral("disclosure_policy")) ||
+                        resource.document.contains(QStringLiteral("sealed_disclosures")));
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             pack->manifest_schema_version, pack->required_capabilities, resource_kinds,
             uses_workflow_preconditions, uses_structured_disposition, uses_grounded_questions,
-            uses_realism_evidence);
+            uses_realism_evidence, uses_sealed_record_twins);
         if (!capabilities) {
             return fail(RuntimePackErrorCode::InvalidPack,
                         capabilities.error().message.toStdString());
@@ -1958,7 +1964,8 @@ struct ParsedCase final {
         model::WorkflowOperationId{*disposition}};
 }
 
-[[nodiscard]] Result<RuntimeRecord> parseRecord(const ValidatedResource& resource) {
+[[nodiscard]] Result<RuntimeRecord> parseRecord(const ValidatedResource& resource,
+                                                const ResourceIndex& resource_index) {
     const auto path = "record " + resource.descriptor.id;
     const auto caption = requiredString(resource.document, "caption", path);
     QJsonArray docket_descriptors;
@@ -2213,6 +2220,7 @@ struct ParsedCase final {
     std::vector<RuntimeRecordPageAnchor> anchors;
     anchors.reserve(static_cast<std::size_t>(anchor_values.size()));
     std::unordered_set<std::string> anchor_ids;
+    std::unordered_map<std::string, std::size_t> anchor_indexes;
     std::unordered_set<std::string> citation_labels;
     for (qsizetype index = 0; index < anchor_values.size(); ++index) {
         if (!anchor_values.at(index).isObject()) {
@@ -2244,18 +2252,262 @@ struct ParsedCase final {
                         anchor_path +
                             " is duplicate, ambiguous, orphaned, or outside the declared PDF");
         }
-        if (citation->has_value() &&
-            (!model::isCanonicalAuthorityText(**citation, 120) ||
-             !citation_labels.emplace(**citation).second)) {
+        if (citation->has_value() && (!model::isCanonicalAuthorityText(**citation, 120) ||
+                                      !citation_labels.emplace(**citation).second)) {
             return fail(RuntimePackErrorCode::InvalidResource,
                         anchor_path + ".citation_label is noncanonical or duplicated");
         }
+        anchor_indexes.emplace(*id, anchors.size());
         anchors.push_back(RuntimeRecordPageAnchor{RuntimeRecordPageAnchorId{*id},
                                                   RuntimeRecordEntryId{*entry_id}, *page_number,
                                                   std::move(*citation)});
     }
-    return RuntimeRecord{RuntimeRecordId{resource.descriptor.id}, *caption,
-                         std::move(runtime_dockets), std::move(docket), std::move(anchors)};
+
+    const auto has_policy = resource.document.contains(QStringLiteral("disclosure_policy"));
+    const auto has_disclosures = resource.document.contains(QStringLiteral("sealed_disclosures"));
+    if (has_policy != has_disclosures) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + " must declare disclosure_policy and sealed_disclosures together");
+    }
+
+    std::optional<RuntimeRecordDisclosurePolicy> disclosure_policy;
+    std::vector<RuntimeSealedDisclosure> sealed_disclosures;
+    if (has_policy) {
+        const auto policy_value = resource.document.value(QStringLiteral("disclosure_policy"));
+        if (!policy_value.isObject()) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + ".disclosure_policy must be an object");
+        }
+        const auto policy = policy_value.toObject();
+        const auto policy_id = requiredId(policy, "policy_id", path + ".disclosure_policy");
+        const auto unauthorized =
+            requiredString(policy, "unauthorized_projection", path + ".disclosure_policy");
+        const auto authorized =
+            requiredString(policy, "authorized_projection", path + ".disclosure_policy");
+        const auto asset_access =
+            requiredString(policy, "sealed_asset_access", path + ".disclosure_policy");
+        if (!hasExactKeys(policy, {"policy_id", "unauthorized_projection", "authorized_projection",
+                                   "sealed_asset_access"}) ||
+            !policy_id || !unauthorized || !authorized || !asset_access) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + ".disclosure_policy has an invalid closed shape");
+        }
+        if (*unauthorized != "public_counterparts_only" ||
+            *authorized != "public_and_authorized_sealed" ||
+            *asset_access != "session_event_grant_required") {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + ".disclosure_policy has unsupported projection semantics");
+        }
+        disclosure_policy =
+            RuntimeRecordDisclosurePolicy{*policy_id, *unauthorized, *authorized, *asset_access};
+
+        const auto disclosure_values =
+            requiredArray(resource.document, "sealed_disclosures", path, 1, maximum_case_items);
+        if (!disclosure_values) {
+            return std::unexpected(disclosure_values.error());
+        }
+        sealed_disclosures.reserve(static_cast<std::size_t>(disclosure_values->size()));
+        std::unordered_set<std::string> disclosure_ids;
+        std::unordered_set<std::string> disclosed_sealed_entries;
+        std::unordered_set<std::string> public_counterparts;
+        std::unordered_set<std::string> stable_anchor_ids;
+        std::unordered_set<std::string> mapped_sealed_anchors;
+        std::unordered_set<std::string> mapped_public_anchors;
+        for (qsizetype index = 0; index < disclosure_values->size(); ++index) {
+            if (!disclosure_values->at(index).isObject()) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            path + ".sealed_disclosures must contain objects");
+            }
+            const auto disclosure = disclosure_values->at(index).toObject();
+            const auto disclosure_path =
+                path + ".sealed_disclosures[" + std::to_string(index) + "]";
+            static const QSet<QString> allowed_disclosure_keys{
+                QStringLiteral("disclosure_id"),
+                QStringLiteral("sealed_entry_id"),
+                QStringLiteral("public_entry_id"),
+                QStringLiteral("motion_entry_id"),
+                QStringLiteral("certificate_entry_id"),
+                QStringLiteral("authorization_authority_id"),
+                QStringLiteral("required_items"),
+                QStringLiteral("anchor_mappings"),
+            };
+            if (std::ranges::any_of(disclosure.keys(), [](const QString& key) {
+                    return !allowed_disclosure_keys.contains(key);
+                })) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            disclosure_path + " contains an unsupported field");
+            }
+            const auto disclosure_id = requiredId(disclosure, "disclosure_id", disclosure_path);
+            const auto sealed_id = requiredId(disclosure, "sealed_entry_id", disclosure_path);
+            const auto public_id = optionalId(disclosure, "public_entry_id", disclosure_path);
+            const auto motion_id = optionalId(disclosure, "motion_entry_id", disclosure_path);
+            const auto certificate_id =
+                optionalId(disclosure, "certificate_entry_id", disclosure_path);
+            const auto authority_id =
+                requiredId(disclosure, "authorization_authority_id", disclosure_path);
+            const auto requirements =
+                requiredArray(disclosure, "required_items", disclosure_path, 0, 3);
+            const auto mappings =
+                requiredArray(disclosure, "anchor_mappings", disclosure_path, 0, 32'768);
+            if (!disclosure_id || !sealed_id || !public_id || !motion_id || !certificate_id ||
+                !authority_id || !requirements || !mappings) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            disclosure_path + " is incomplete or invalid");
+            }
+            const auto canonical_authority =
+                resource_index.requireAuthority(*authority_id, disclosure_path);
+            if (!canonical_authority || !canonical_authority->provenance.has_value()) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            disclosure_path +
+                                " authorization authority is missing canonical provenance");
+            }
+            const auto sealed_entry = entry_indexes.find(*sealed_id);
+            if (!disclosure_ids.emplace(*disclosure_id).second || ids.contains(*disclosure_id) ||
+                docket_ids.contains(*disclosure_id) || anchor_ids.contains(*disclosure_id) ||
+                stable_anchor_ids.contains(*disclosure_id) || sealed_entry == entry_indexes.end() ||
+                !docket[sealed_entry->second].sealed ||
+                !disclosed_sealed_entries.emplace(*sealed_id).second) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            disclosure_path +
+                                " has a duplicate, ambiguous, missing, or public sealed target");
+            }
+
+            const auto valid_public_entry = [&](const std::optional<std::string>& entry_id) {
+                if (!entry_id.has_value()) {
+                    return true;
+                }
+                const auto found = entry_indexes.find(*entry_id);
+                return found != entry_indexes.end() && !docket[found->second].sealed &&
+                       *entry_id != *sealed_id;
+            };
+            if (!valid_public_entry(*public_id) || !valid_public_entry(*motion_id) ||
+                !valid_public_entry(*certificate_id)) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            disclosure_path +
+                                " public counterpart/support entries must resolve as public");
+            }
+            if (public_id->has_value()) {
+                const auto public_entry = entry_indexes.at(**public_id);
+                if (!public_counterparts.emplace(**public_id).second ||
+                    docket[public_entry].docket_id != docket[sealed_entry->second].docket_id) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                disclosure_path +
+                                    " public counterpart must be one-to-one in the same docket");
+                }
+            }
+            std::unordered_set<std::string> support_ids;
+            for (const auto* candidate : {&*public_id, &*motion_id, &*certificate_id}) {
+                if (candidate->has_value() && !support_ids.emplace(**candidate).second) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                disclosure_path + " support entries must be distinct");
+                }
+            }
+
+            std::vector<RuntimeDisclosureRequirement> runtime_requirements;
+            runtime_requirements.reserve(static_cast<std::size_t>(requirements->size()));
+            std::unordered_set<std::string> requirement_names;
+            for (const auto& value : *requirements) {
+                if (!value.isString()) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                disclosure_path + ".required_items must contain strings");
+                }
+                const auto name = utf8(value.toString());
+                if (!requirement_names.emplace(name).second) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                disclosure_path + ".required_items contains duplicates");
+                }
+                if (name == "motion") {
+                    runtime_requirements.push_back(RuntimeDisclosureRequirement::Motion);
+                } else if (name == "certificate") {
+                    runtime_requirements.push_back(RuntimeDisclosureRequirement::Certificate);
+                } else if (name == "redacted_counterpart") {
+                    runtime_requirements.push_back(
+                        RuntimeDisclosureRequirement::RedactedCounterpart);
+                } else {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                disclosure_path + ".required_items contains an unsupported kind");
+                }
+            }
+
+            if (!public_id->has_value() && !mappings->isEmpty()) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            disclosure_path +
+                                " stable anchor mappings require a public counterpart");
+            }
+            std::vector<RuntimeRecordTwinAnchor> runtime_mappings;
+            runtime_mappings.reserve(static_cast<std::size_t>(mappings->size()));
+            for (qsizetype mapping_index = 0; mapping_index < mappings->size(); ++mapping_index) {
+                if (!mappings->at(mapping_index).isObject()) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                disclosure_path + ".anchor_mappings must contain objects");
+                }
+                const auto mapping = mappings->at(mapping_index).toObject();
+                const auto mapping_path =
+                    disclosure_path + ".anchor_mappings[" + std::to_string(mapping_index) + "]";
+                const auto stable_id = requiredId(mapping, "stable_anchor_id", mapping_path);
+                const auto sealed_anchor_id = requiredId(mapping, "sealed_anchor_id", mapping_path);
+                const auto public_anchor_id = requiredId(mapping, "public_anchor_id", mapping_path);
+                if (!hasExactKeys(mapping,
+                                  {"stable_anchor_id", "sealed_anchor_id", "public_anchor_id"}) ||
+                    !stable_id || !sealed_anchor_id || !public_anchor_id) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                mapping_path + " has an invalid closed shape");
+                }
+                const auto sealed_anchor = anchor_indexes.find(*sealed_anchor_id);
+                const auto public_anchor = anchor_indexes.find(*public_anchor_id);
+                if (!stable_anchor_ids.emplace(*stable_id).second || ids.contains(*stable_id) ||
+                    docket_ids.contains(*stable_id) || anchor_ids.contains(*stable_id) ||
+                    disclosure_ids.contains(*stable_id) ||
+                    !mapped_sealed_anchors.emplace(*sealed_anchor_id).second ||
+                    !mapped_public_anchors.emplace(*public_anchor_id).second ||
+                    sealed_anchor == anchor_indexes.end() ||
+                    public_anchor == anchor_indexes.end() ||
+                    anchors[sealed_anchor->second].entry_id.value != *sealed_id ||
+                    anchors[public_anchor->second].entry_id.value != **public_id) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                mapping_path +
+                                    " is duplicate, ambiguous, orphaned, or on the wrong twin");
+                }
+                runtime_mappings.push_back(
+                    RuntimeRecordTwinAnchor{RuntimeRecordPageAnchorId{*stable_id},
+                                            RuntimeRecordPageAnchorId{*sealed_anchor_id},
+                                            RuntimeRecordPageAnchorId{*public_anchor_id}});
+            }
+
+            const auto typed_optional_entry =
+                [](const std::optional<std::string>& value) -> std::optional<RuntimeRecordEntryId> {
+                if (!value.has_value()) {
+                    return std::nullopt;
+                }
+                return RuntimeRecordEntryId{*value};
+            };
+            sealed_disclosures.push_back(RuntimeSealedDisclosure{
+                RuntimeRecordDisclosureId{*disclosure_id}, RuntimeRecordEntryId{*sealed_id},
+                typed_optional_entry(*public_id), typed_optional_entry(*motion_id),
+                typed_optional_entry(*certificate_id), model::AuthorityId{*authority_id},
+                std::move(runtime_requirements), std::move(runtime_mappings)});
+        }
+        for (const auto& entry : docket) {
+            if (!entry.sealed && entry.parent_entry_id.has_value() &&
+                docket[entry_indexes.at(entry.parent_entry_id->value)].sealed) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            path + " gives a public entry a sealed parent");
+            }
+        }
+        for (const auto& entry : docket) {
+            if (entry.sealed && !disclosed_sealed_entries.contains(entry.id.value)) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            path + " leaves a sealed entry outside the disclosure policy");
+            }
+        }
+    }
+    return RuntimeRecord{RuntimeRecordId{resource.descriptor.id},
+                         *caption,
+                         std::move(runtime_dockets),
+                         std::move(docket),
+                         std::move(anchors),
+                         std::move(disclosure_policy),
+                         std::move(sealed_disclosures)};
 }
 
 struct RuntimeCatalogFiling final {
@@ -2629,7 +2881,8 @@ parseQuestionBank(const ValidatedResource& resource, const ResourceIndex& index,
                 return !model::argumentFocusTopicFromId(focus.topic_id).has_value();
             });
         const auto has_positive_bank_focus = std::ranges::any_of(
-            seat.profile.interaction.issue_focus, [&bank_topic_ids](const model::IssueFocus& focus) {
+            seat.profile.interaction.issue_focus,
+            [&bank_topic_ids](const model::IssueFocus& focus) {
                 return focus.weight > 0.0 && bank_topic_ids.contains(focus.topic_id);
             });
         if (has_invalid_focus || !has_positive_bank_focus) {
@@ -2777,9 +3030,28 @@ parseQuestionBank(const ValidatedResource& resource, const ResourceIndex& index,
                 if (!anchor_id) {
                     return std::unexpected(anchor_id.error());
                 }
-                const auto anchor = std::ranges::find(
+                auto anchor = std::ranges::find(
                     record.page_anchors, *anchor_id,
                     [](const RuntimeRecordPageAnchor& item) { return item.id.value; });
+                if (anchor == record.page_anchors.end()) {
+                    const RuntimeRecordTwinAnchor* twin = nullptr;
+                    for (const auto& disclosure : record.sealed_disclosures) {
+                        const auto mapped =
+                            std::ranges::find(disclosure.anchor_mappings, *anchor_id,
+                                              [](const RuntimeRecordTwinAnchor& item) {
+                                                  return item.stable_anchor_id.value;
+                                              });
+                        if (mapped != disclosure.anchor_mappings.end()) {
+                            twin = &*mapped;
+                            break;
+                        }
+                    }
+                    if (twin != nullptr) {
+                        anchor = std::ranges::find(
+                            record.page_anchors, twin->public_anchor_id.value,
+                            [](const RuntimeRecordPageAnchor& item) { return item.id.value; });
+                    }
+                }
                 const auto issue_scoped =
                     std::ranges::any_of(issue->record_anchor_ids, [&anchor_id](const auto& id) {
                         return id.value == *anchor_id;
@@ -2971,7 +3243,7 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
     auto workflow =
         parseWorkflow(**workflow_resource, index, (*workflow_resource)->descriptor.schema_version);
     auto court = parseCourt(**court_resource);
-    auto record = parseRecord(**record_resource);
+    auto record = parseRecord(**record_resource, index);
     auto catalog = parseFilingCatalog(**catalog_resource, index);
     if (!workflow) {
         return std::unexpected(workflow.error());
@@ -3101,11 +3373,28 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         }
     }
     std::unordered_set<std::string> record_entries;
+    std::unordered_set<std::string> policy_hidden_ids;
+    std::unordered_set<std::string> disclosed_sealed_entries;
+    if (record->disclosure_policy.has_value()) {
+        for (const auto& disclosure : record->sealed_disclosures) {
+            policy_hidden_ids.insert(disclosure.sealed_entry_id.value);
+            disclosed_sealed_entries.insert(disclosure.sealed_entry_id.value);
+            for (const auto& mapping : disclosure.anchor_mappings) {
+                policy_hidden_ids.insert(mapping.sealed_anchor_id.value);
+                record_entries.insert(mapping.stable_anchor_id.value);
+            }
+        }
+    }
     for (const auto& entry : record->docket_entries) {
-        record_entries.insert(entry.id.value);
+        if (!policy_hidden_ids.contains(entry.id.value)) {
+            record_entries.insert(entry.id.value);
+        }
     }
     for (const auto& anchor : record->page_anchors) {
-        record_entries.insert(anchor.id.value);
+        if (!policy_hidden_ids.contains(anchor.id.value) &&
+            !disclosed_sealed_entries.contains(anchor.entry_id.value)) {
+            record_entries.insert(anchor.id.value);
+        }
     }
     for (const auto& issue : parsed_case->issues) {
         for (const auto& anchor : issue.record_anchor_ids) {
@@ -3235,11 +3524,9 @@ std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& p
         return fail(RuntimePackErrorCode::InvalidPack,
                     "dependency-bearing or deferred pack requires a catalog-resolved closure");
     }
-    const auto evidence =
-        validateRealismEvidence(pack, std::span<const LoadedPack* const>{});
+    const auto evidence = validateRealismEvidence(pack, std::span<const LoadedPack* const>{});
     if (!evidence) {
-        return fail(RuntimePackErrorCode::InvalidPack,
-                    evidence.error().message.toStdString());
+        return fail(RuntimePackErrorCode::InvalidPack, evidence.error().message.toStdString());
     }
     const std::array packs{&pack};
     const auto index = makeIndex(packs, pack.manifest_schema_version);

@@ -1,15 +1,21 @@
 #pragma once
 
+#include "appellate/model/record_access.hpp"
+
 #include <QAbstractTableModel>
 #include <QDate>
 #include <QHash>
 #include <QMap>
+#include <QSet>
 #include <QString>
 #include <QStringList>
 #include <QWidget>
 
 #include <expected>
+#include <functional>
+#include <memory>
 #include <optional>
+#include <utility>
 #include <vector>
 
 class QLabel;
@@ -20,8 +26,18 @@ class QPdfView;
 class QPushButton;
 class QSpinBox;
 class QTableView;
+class QTemporaryFile;
 
 namespace appellate::ui {
+
+struct RecordAssetLease final {
+    QString file_path;
+    // When present, owns the private verified snapshot for as long as the PDF
+    // document is loaded. Public/legacy assets continue to use catalog paths.
+    std::shared_ptr<QTemporaryFile> owned_snapshot;
+};
+
+using DeferredRecordAsset = std::function<std::expected<RecordAssetLease, QString>()>;
 
 struct RecordDocument final {
     QString id;
@@ -30,8 +46,25 @@ struct RecordDocument final {
     bool sealed{};
     QMap<QString, QString> metadata;
     int declared_page_count{};
+    // Sealed pack assets use a resolver so validation/materialization and PDF
+    // parsing cannot happen until the exact document is authorized and opened.
+    DeferredRecordAsset deferred_asset;
 
-    friend bool operator==(const RecordDocument&, const RecordDocument&) = default;
+    RecordDocument() = default;
+    RecordDocument(QString id_value, QString title_value, QString file_path_value,
+                   bool sealed_value, QMap<QString, QString> metadata_value, int page_count_value,
+                   DeferredRecordAsset deferred_asset_value = {})
+        : id(std::move(id_value)), title(std::move(title_value)),
+          file_path(std::move(file_path_value)), sealed(sealed_value),
+          metadata(std::move(metadata_value)), declared_page_count(page_count_value),
+          deferred_asset(std::move(deferred_asset_value)) {}
+
+    // Asset resolvers are execution capabilities, not authored record data.
+    friend bool operator==(const RecordDocument& lhs, const RecordDocument& rhs) {
+        return lhs.id == rhs.id && lhs.title == rhs.title && lhs.file_path == rhs.file_path &&
+               lhs.sealed == rhs.sealed && lhs.metadata == rhs.metadata &&
+               lhs.declared_page_count == rhs.declared_page_count;
+    }
 };
 
 struct RecordDocketDescriptor final {
@@ -42,8 +75,7 @@ struct RecordDocketDescriptor final {
     QString public_docket_number;
     QString caption;
 
-    friend bool operator==(const RecordDocketDescriptor&,
-                           const RecordDocketDescriptor&) = default;
+    friend bool operator==(const RecordDocketDescriptor&, const RecordDocketDescriptor&) = default;
 };
 
 struct RecordDocketEntry final {
@@ -73,11 +105,56 @@ struct RecordPageAnchor final {
     friend bool operator==(const RecordPageAnchor&, const RecordPageAnchor&) = default;
 };
 
+struct RecordTwinAnchor final {
+    QString stable_anchor_id;
+    QString sealed_anchor_id;
+    QString public_anchor_id;
+
+    friend bool operator==(const RecordTwinAnchor&, const RecordTwinAnchor&) = default;
+};
+
+struct RecordSealedDisclosure final {
+    QString disclosure_id;
+    QString sealed_document_id;
+    QString public_document_id;
+    QString motion_document_id;
+    QString certificate_document_id;
+    QString authorization_authority_id;
+    QStringList required_items;
+    std::vector<RecordTwinAnchor> anchor_mappings;
+
+    friend bool operator==(const RecordSealedDisclosure&, const RecordSealedDisclosure&) = default;
+};
+
+struct RecordDisclosurePolicy final {
+    QString record_id;
+    QString policy_id;
+    QString unauthorized_projection;
+    QString authorized_projection;
+    QString sealed_asset_access;
+
+    friend bool operator==(const RecordDisclosurePolicy&, const RecordDisclosurePolicy&) = default;
+};
+
 struct RecordDefinition final {
     std::vector<RecordDocument> documents;
     std::vector<RecordDocketEntry> docket;
     std::vector<RecordPageAnchor> anchors;
     std::vector<RecordDocketDescriptor> dockets;
+    std::optional<RecordDisclosurePolicy> disclosure_policy;
+    std::vector<RecordSealedDisclosure> sealed_disclosures;
+
+    RecordDefinition() = default;
+    RecordDefinition(std::vector<RecordDocument> documents_value,
+                     std::vector<RecordDocketEntry> docket_value,
+                     std::vector<RecordPageAnchor> anchors_value,
+                     std::vector<RecordDocketDescriptor> dockets_value,
+                     std::optional<RecordDisclosurePolicy> policy_value = std::nullopt,
+                     std::vector<RecordSealedDisclosure> disclosures_value = {})
+        : documents(std::move(documents_value)), docket(std::move(docket_value)),
+          anchors(std::move(anchors_value)), dockets(std::move(dockets_value)),
+          disclosure_policy(std::move(policy_value)),
+          sealed_disclosures(std::move(disclosures_value)) {}
 };
 
 enum class RecordWorkspaceErrorCode {
@@ -90,6 +167,7 @@ enum class RecordWorkspaceErrorCode {
     SealedDocument,
     PdfLoadFailed,
     NoDocumentSelected,
+    AccessProjectionMismatch,
 };
 
 struct RecordWorkspaceError final {
@@ -146,7 +224,7 @@ class RecordDocketModel final : public QAbstractTableModel {
 
 class DocketFilterProxyModel;
 
-class RecordWorkspace final : public QWidget {
+class RecordWorkspace final : public QWidget, public model::RecordAccessProjectionTarget {
   public:
     explicit RecordWorkspace(QWidget* parent = nullptr);
     ~RecordWorkspace() override;
@@ -172,6 +250,7 @@ class RecordWorkspace final : public QWidget {
     [[nodiscard]] int documentSearchResultCount() const;
     [[nodiscard]] const QString& currentDocumentId() const noexcept;
     [[nodiscard]] const std::optional<RecordWorkspaceError>& lastError() const noexcept;
+    [[nodiscard]] std::vector<model::RecordDisclosureDeficiency> disclosureDeficiencies() const;
 
     [[nodiscard]] QLineEdit* docketFilterEdit() const noexcept;
     [[nodiscard]] QLineEdit* documentSearchEdit() const noexcept;
@@ -183,6 +262,14 @@ class RecordWorkspace final : public QWidget {
     [[nodiscard]] QSpinBox* pageSpinBox() const noexcept;
 
   private:
+    friend class RecordWorkspaceTestAccess;
+
+    [[nodiscard]] bool
+    applyRecordAccessProjection(model::RecordAccessProjection projection) override;
+    [[nodiscard]] auto setAccessProjectionForTest(model::RecordAccessProjection projection)
+        -> std::expected<void, RecordWorkspaceError>;
+    [[nodiscard]] auto applyAccessProjection(model::RecordAccessProjection projection)
+        -> std::expected<void, RecordWorkspaceError>;
     [[nodiscard]] auto validate(const RecordDefinition& definition) const
         -> std::expected<void, RecordWorkspaceError>;
     [[nodiscard]] auto openDocument(const RecordDocument& document, int page_index)
@@ -190,6 +277,8 @@ class RecordWorkspace final : public QWidget {
     [[nodiscard]] auto recordError(RecordWorkspaceErrorCode code, QString message)
         -> std::unexpected<RecordWorkspaceError>;
     void clearError();
+    void clearLoadedDocument();
+    void rebuildDisclosureProjection();
     void updatePageControls(int page_index);
     void selectSourceRow(int source_row);
 
@@ -212,6 +301,10 @@ class RecordWorkspace final : public QWidget {
     QHash<QString, RecordDocument> documents_;
     QHash<QString, RecordPageAnchor> anchors_;
     QHash<QString, QString> citation_anchors_;
+    RecordDefinition full_definition_;
+    QSet<QString> authorized_document_ids_;
+    std::optional<model::RecordAccessProjection> access_projection_;
+    std::shared_ptr<QTemporaryFile> current_asset_snapshot_;
     QString current_document_id_;
     std::optional<RecordWorkspaceError> last_error_;
 };

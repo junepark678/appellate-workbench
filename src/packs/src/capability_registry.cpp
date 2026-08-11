@@ -21,6 +21,7 @@ constexpr std::array supported_capabilities{
     SupportedCapability{"workbench.pack.workflow-preconditions", 1, 2, 2},
     SupportedCapability{"workbench.pack.grounded-questions", 1, 2, 2},
     SupportedCapability{"workbench.pack.realism-evidence", 1, 2, 2},
+    SupportedCapability{"workbench.pack.sealed-record-twins", 1, 2, 2},
 };
 
 [[nodiscard]] auto fail(QString message) -> std::unexpected<Error> {
@@ -69,7 +70,8 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
     std::uint32_t manifest_schema_version,
     std::span<const model::RequiredCapability> required_capabilities,
     std::span<const model::ResourceKind> resource_kinds, bool uses_workflow_preconditions,
-    bool uses_structured_disposition, bool uses_grounded_questions, bool uses_realism_evidence) {
+    bool uses_structured_disposition, bool uses_grounded_questions, bool uses_realism_evidence,
+    bool uses_sealed_record_twins) {
     const auto declarations = validateDeclarations(manifest_schema_version, required_capabilities);
     if (!declarations) {
         return declarations;
@@ -137,6 +139,11 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
         !hasCapability(required_capabilities, "workbench.pack.realism-evidence", 1)) {
         return fail(QStringLiteral("Schema-2 exact realism evidence requires "
                                    "workbench.pack.realism-evidence version 1"));
+    }
+    if (uses_sealed_record_twins &&
+        !hasCapability(required_capabilities, "workbench.pack.sealed-record-twins", 1)) {
+        return fail(QStringLiteral("Schema-2 sealed/public record twins require "
+                                   "workbench.pack.sealed-record-twins version 1"));
     }
     return {};
 }

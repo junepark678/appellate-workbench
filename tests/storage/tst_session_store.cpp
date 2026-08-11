@@ -1,3 +1,4 @@
+#include "appellate/storage/event_codec.hpp"
 #include "appellate/storage/session_store.hpp"
 
 #include <QFile>
@@ -47,6 +48,7 @@ class SessionStoreTest final : public QObject {
     void rollsBackDuplicateStoredAssetReference();
     void backsUpAndRestoresConsistentSnapshot();
     void rejectsCorruptRestoreWithoutCreatingDestination();
+    void persistsRecordAccessAcrossCloseAndReopen();
 };
 
 [[nodiscard]] bool createFutureDatabase(const QString& path) {
@@ -553,6 +555,80 @@ void SessionStoreTest::rejectsCorruptRestoreWithoutCreatingDestination() {
     QVERIFY(!restored.has_value());
     QCOMPARE(restored.error().code, StoreErrorCode::RestoreFailed);
     QVERIFY(!QFileInfo::exists(destination_path));
+}
+
+void SessionStoreTest::persistsRecordAccessAcrossCloseAndReopen() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto path = temporary.filePath(QStringLiteral("record-access.sqlite"));
+    const appellate::model::RecordAccessPolicy policy{
+        "test.record.one",
+        "test.record.access-policy",
+        {{"test.document.psr", "test.authority.psr-access", "test.disclosure.psr", {}}}};
+
+    {
+        auto store = SessionStore::open(path);
+        QVERIFY(store.has_value());
+        QVERIFY((*store)
+                    ->createSession(QStringLiteral("test.session.access"),
+                                    QStringLiteral("engine.record-access.v1"),
+                                    QStringLiteral("2026-08-11T00:00:00Z"), pins(),
+                                    SessionAuthorityContract::CanonicalV2)
+                    .has_value());
+        auto snapshot = (*store)->loadSession(QStringLiteral("test.session.access"));
+        QVERIFY(snapshot.has_value());
+        const auto grant = appellate::storage::makeRecordAccessEvent(
+            *snapshot, policy, "test.event.grant-psr", "test.document.psr",
+            appellate::model::RecordAccessAction::Grant, "2026-08-11T00:01:00Z");
+        QVERIFY(grant.has_value());
+        const auto encoded = appellate::storage::encodeRecordAccessEvent(*grant);
+        QVERIFY(encoded.has_value());
+        const CommitBatch batch{
+            QString::fromUtf8(grant->event_id),
+            QByteArrayLiteral(R"({"command_type":"record_access_transition"})"),
+            QStringLiteral("2026-08-11T00:01:00Z"),
+            {EventWrite{appellate::storage::recordAccessEventType(grant->action), *encoded,
+                        QString::fromUtf8(grant->authority_id)}},
+            {},
+            {}};
+        QVERIFY((*store)->append(snapshot->session_id, 0, batch).has_value());
+    }
+
+    {
+        auto store = SessionStore::open(path);
+        QVERIFY(store.has_value());
+        auto snapshot = (*store)->loadSession(QStringLiteral("test.session.access"));
+        QVERIFY(snapshot.has_value());
+        auto projection = appellate::storage::projectRecordAccess(*snapshot, policy);
+        QVERIFY(projection.has_value());
+        QCOMPARE(projection->authorized_document_ids,
+                 std::vector<std::string>{"test.document.psr"});
+
+        const auto revoke = appellate::storage::makeRecordAccessEvent(
+            *snapshot, policy, "test.event.revoke-psr", "test.document.psr",
+            appellate::model::RecordAccessAction::Revoke, "2026-08-11T00:02:00Z");
+        QVERIFY(revoke.has_value());
+        const auto encoded = appellate::storage::encodeRecordAccessEvent(*revoke);
+        QVERIFY(encoded.has_value());
+        const CommitBatch batch{
+            QString::fromUtf8(revoke->event_id),
+            QByteArrayLiteral(R"({"command_type":"record_access_transition"})"),
+            QStringLiteral("2026-08-11T00:02:00Z"),
+            {EventWrite{appellate::storage::recordAccessEventType(revoke->action), *encoded,
+                        QString::fromUtf8(revoke->authority_id)}},
+            {},
+            {}};
+        QVERIFY((*store)->append(snapshot->session_id, 1, batch).has_value());
+    }
+
+    auto reopened = SessionStore::open(path);
+    QVERIFY(reopened.has_value());
+    const auto snapshot = (*reopened)->loadSession(QStringLiteral("test.session.access"));
+    QVERIFY(snapshot.has_value());
+    const auto projection = appellate::storage::projectRecordAccess(*snapshot, policy);
+    QVERIFY(projection.has_value());
+    QVERIFY(projection->authorized_document_ids.empty());
+    QCOMPARE(projection->through_sequence, std::uint64_t{2});
 }
 
 } // namespace

@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QTest>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <limits>
@@ -141,7 +142,34 @@ class EventCodecTest final : public QObject {
     void rejectsMalformedDateTimeAndInteger();
     void rejectsIncompleteAuthority();
     void enforcesPayloadAndCollectionBounds();
+    void replaysSessionScopedRecordAccessBranches();
+    void boundsRecordAccessJournal();
+    void rejectsTamperedReorderedAndRedundantRecordAccess();
 };
+
+[[nodiscard]] appellate::model::RecordAccessPolicy accessPolicy() {
+    return {"test.record.one",
+            "test.record.access-policy",
+            {{"test.document.psr", "test.authority.psr-access", "test.disclosure.psr", {}},
+             {"test.document.exhibit",
+              "test.authority.exhibit-access",
+              "test.disclosure.exhibit",
+              {}}}};
+}
+
+void appendAccess(appellate::storage::SessionSnapshot& snapshot,
+                  const appellate::model::RecordAccessEvent& event) {
+    const auto encoded = appellate::storage::encodeRecordAccessEvent(event);
+    if (!encoded) {
+        QTest::qFail(qPrintable(encoded.error().message), __FILE__, __LINE__);
+        return;
+    }
+    snapshot.sequence = static_cast<qint64>(event.sequence);
+    snapshot.events.push_back(
+        appellate::storage::StoredEvent{static_cast<qint64>(event.sequence),
+                                        appellate::storage::recordAccessEventType(event.action),
+                                        *encoded, QString::fromUtf8(event.authority_id)});
+}
 
 void EventCodecTest::roundTripsEveryEventVariant() {
     std::vector<LegalEvent> events{accepted(), deficiency()};
@@ -463,6 +491,155 @@ void EventCodecTest::enforcesPayloadAndCollectionBounds() {
     const auto encoded = appellate::storage::encodeEvent(LegalEvent{event});
     QVERIFY(!encoded.has_value());
     QCOMPARE(encoded.error().code, EventCodecErrorCode::InvalidField);
+}
+
+void EventCodecTest::replaysSessionScopedRecordAccessBranches() {
+    appellate::storage::SessionSnapshot snapshot;
+    snapshot.session_id = QStringLiteral("test.session.one");
+    const auto policy = accessPolicy();
+
+    const auto grant = appellate::storage::makeRecordAccessEvent(
+        snapshot, policy, "test.event.grant-psr", "test.document.psr",
+        appellate::model::RecordAccessAction::Grant, "2026-08-11T10:00:00Z");
+    QVERIFY(grant.has_value());
+    appendAccess(snapshot, *grant);
+
+    const auto reopened = appellate::storage::projectRecordAccess(snapshot, policy);
+    QVERIFY(reopened.has_value());
+    QCOMPARE(reopened->authorized_document_ids, std::vector<std::string>{"test.document.psr"});
+
+    const auto revoke = appellate::storage::makeRecordAccessEvent(
+        snapshot, policy, "test.event.revoke-psr", "test.document.psr",
+        appellate::model::RecordAccessAction::Revoke, "2026-08-11T10:01:00Z");
+    QVERIFY(revoke.has_value());
+    appendAccess(snapshot, *revoke);
+    const auto full = appellate::storage::projectRecordAccess(snapshot, policy);
+    QVERIFY(full.has_value());
+    QVERIFY(full->authorized_document_ids.empty());
+
+    const auto prefix = appellate::storage::projectRecordAccess(snapshot, policy, 1);
+    QVERIFY(prefix.has_value());
+    QCOMPARE(prefix->authorized_document_ids, std::vector<std::string>{"test.document.psr"});
+
+    appellate::storage::SessionSnapshot divergent;
+    divergent.session_id = snapshot.session_id;
+    appendAccess(divergent, *grant);
+    const auto exhibit = appellate::storage::makeRecordAccessEvent(
+        divergent, policy, "test.event.grant-exhibit", "test.document.exhibit",
+        appellate::model::RecordAccessAction::Grant, "2026-08-11T10:02:00Z");
+    QVERIFY(exhibit.has_value());
+    appendAccess(divergent, *exhibit);
+    const auto branch = appellate::storage::projectRecordAccess(divergent, policy);
+    QVERIFY(branch.has_value());
+    QCOMPARE(branch->authorized_document_ids,
+             (std::vector<std::string>{"test.document.exhibit", "test.document.psr"}));
+}
+
+void EventCodecTest::boundsRecordAccessJournal() {
+    appellate::storage::SessionSnapshot at_limit;
+    at_limit.session_id = QStringLiteral("test.session.journal-bound");
+    at_limit.events.reserve(appellate::storage::maximum_record_access_events);
+    for (std::size_t index = 0; index < appellate::storage::maximum_record_access_events; ++index) {
+        at_limit.events.push_back(appellate::storage::StoredEvent{
+            static_cast<qint64>(index + 1), QStringLiteral("workflow.non-access"),
+            QByteArrayLiteral("{}"), QStringLiteral("test.authority.workflow")});
+    }
+    at_limit.sequence = static_cast<qint64>(appellate::storage::maximum_record_access_events);
+
+    const auto projected = appellate::storage::projectRecordAccess(at_limit, accessPolicy());
+    QVERIFY2(projected.has_value(), projected ? "" : qPrintable(projected.error().message));
+    QCOMPARE(projected->through_sequence,
+             std::uint64_t{appellate::storage::maximum_record_access_events});
+
+    const auto rejected_append = appellate::storage::makeRecordAccessEvent(
+        at_limit, accessPolicy(), "test.event.over-journal-bound", "test.document.psr",
+        appellate::model::RecordAccessAction::Grant, "2026-08-11T10:03:00Z");
+    QVERIFY(!rejected_append.has_value());
+    QCOMPARE(rejected_append.error().code, EventCodecErrorCode::OutOfRange);
+
+    auto over_limit = at_limit;
+    ++over_limit.sequence;
+    over_limit.events.push_back(appellate::storage::StoredEvent{
+        over_limit.sequence, QStringLiteral("workflow.non-access"), QByteArrayLiteral("{}"),
+        QStringLiteral("test.authority.workflow")});
+    const auto rejected_replay =
+        appellate::storage::projectRecordAccess(over_limit, accessPolicy());
+    QVERIFY(!rejected_replay.has_value());
+    QCOMPARE(rejected_replay.error().code, EventCodecErrorCode::OutOfRange);
+}
+
+void EventCodecTest::rejectsTamperedReorderedAndRedundantRecordAccess() {
+    appellate::storage::SessionSnapshot snapshot;
+    snapshot.session_id = QStringLiteral("test.session.one");
+    const auto policy = accessPolicy();
+    auto deficient_policy = policy;
+    deficient_policy.rules.front().blocking_deficiencies.push_back(
+        appellate::model::RecordDisclosureDeficiency{
+            "test.disclosure.psr",
+            appellate::model::RecordDisclosureDeficiencyKind::MissingCertificate});
+    const auto blocked = appellate::storage::makeRecordAccessEvent(
+        snapshot, deficient_policy, "test.event.blocked-psr", "test.document.psr",
+        appellate::model::RecordAccessAction::Grant, "2026-08-11T09:59:00Z");
+    QVERIFY(!blocked.has_value());
+    QCOMPARE(blocked.error().code, EventCodecErrorCode::InvalidTransition);
+
+    const auto grant = appellate::storage::makeRecordAccessEvent(
+        snapshot, policy, "test.event.grant-psr", "test.document.psr",
+        appellate::model::RecordAccessAction::Grant, "2026-08-11T10:00:00Z");
+    QVERIFY(grant.has_value());
+    appendAccess(snapshot, *grant);
+
+    const auto redundant = appellate::storage::makeRecordAccessEvent(
+        snapshot, policy, "test.event.grant-psr-again", "test.document.psr",
+        appellate::model::RecordAccessAction::Grant, "2026-08-11T10:00:30Z");
+    QVERIFY(!redundant.has_value());
+    QCOMPARE(redundant.error().code, EventCodecErrorCode::InvalidTransition);
+
+    auto tampered = snapshot;
+    auto envelope = QJsonDocument::fromJson(tampered.events.front().payload_json).object();
+    auto payload = envelope.value(QStringLiteral("payload")).toObject();
+    payload.insert(QStringLiteral("sealed_document_id"), QStringLiteral("test.document.exhibit"));
+    envelope.insert(QStringLiteral("payload"), payload);
+    tampered.events.front().payload_json = compact(envelope);
+    const auto tampered_result = appellate::storage::projectRecordAccess(tampered, policy);
+    QVERIFY(!tampered_result.has_value());
+    QCOMPARE(tampered_result.error().code, EventCodecErrorCode::DigestMismatch);
+
+    auto timestamp_tampered = snapshot;
+    envelope = QJsonDocument::fromJson(timestamp_tampered.events.front().payload_json).object();
+    payload = envelope.value(QStringLiteral("payload")).toObject();
+    payload.insert(QStringLiteral("recorded_at_utc"), QStringLiteral("2026-08-11T10:00:01Z"));
+    envelope.insert(QStringLiteral("payload"), payload);
+    timestamp_tampered.events.front().payload_json = compact(envelope);
+    const auto timestamp_result =
+        appellate::storage::projectRecordAccess(timestamp_tampered, policy);
+    QVERIFY(!timestamp_result.has_value());
+    QCOMPARE(timestamp_result.error().code, EventCodecErrorCode::DigestMismatch);
+
+    appellate::storage::SessionSnapshot time_snapshot;
+    time_snapshot.session_id = QStringLiteral("test.session.time");
+    const auto noncanonical_time = appellate::storage::makeRecordAccessEvent(
+        time_snapshot, policy, "test.event.bad-time", "test.document.psr",
+        appellate::model::RecordAccessAction::Grant, "2026-08-11 10:00:00Z");
+    QVERIFY(!noncanonical_time.has_value());
+    QCOMPARE(noncanonical_time.error().code, EventCodecErrorCode::InvalidField);
+
+    auto wrong_authority = snapshot;
+    wrong_authority.events.front().authority_id = QStringLiteral("test.authority.other");
+    const auto authority_result = appellate::storage::projectRecordAccess(wrong_authority, policy);
+    QVERIFY(!authority_result.has_value());
+    QCOMPARE(authority_result.error().code, EventCodecErrorCode::SequenceMismatch);
+
+    auto two_events = snapshot;
+    const auto revoke = appellate::storage::makeRecordAccessEvent(
+        two_events, policy, "test.event.revoke-psr", "test.document.psr",
+        appellate::model::RecordAccessAction::Revoke, "2026-08-11T10:01:00Z");
+    QVERIFY(revoke.has_value());
+    appendAccess(two_events, *revoke);
+    std::ranges::reverse(two_events.events);
+    const auto reordered = appellate::storage::projectRecordAccess(two_events, policy);
+    QVERIFY(!reordered.has_value());
+    QCOMPARE(reordered.error().code, EventCodecErrorCode::SequenceMismatch);
 }
 
 } // namespace

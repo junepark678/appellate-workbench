@@ -5,8 +5,11 @@
 
 #include <QCryptographicHash>
 #include <QDir>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QUuid>
 
 #include <chrono>
 #include <memory>
@@ -32,6 +35,35 @@ class SessionControllerTestAccess final {
     }
 };
 
+class RecordAccessSessionControllerTestAccess final {
+  public:
+    [[nodiscard]] static auto create(QString session_id, model::RecordAccessPolicy policy,
+                                     std::unique_ptr<storage::SessionStore> session_store,
+                                     QString engine_revision, QString created_at_utc,
+                                     std::vector<storage::RevisionPin> pins)
+        -> std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError> {
+        return RecordAccessSessionController::create(
+            std::move(session_id), std::move(policy), std::move(session_store),
+            std::move(engine_revision), std::move(created_at_utc), std::move(pins));
+    }
+
+    [[nodiscard]] static auto reopen(QString session_id, model::RecordAccessPolicy policy,
+                                     std::unique_ptr<storage::SessionStore> session_store,
+                                     QString engine_revision,
+                                     std::vector<storage::RevisionPin> pins)
+        -> std::expected<std::unique_ptr<RecordAccessSessionController>, SessionControllerError> {
+        return RecordAccessSessionController::reopen(std::move(session_id), std::move(policy),
+                                                     std::move(session_store),
+                                                     std::move(engine_revision), std::move(pins));
+    }
+};
+
+template <typename Controller>
+concept ExposesRecordAccessProjection =
+    requires(const Controller& controller) { controller.projection(); };
+
+static_assert(!ExposesRecordAccessProjection<RecordAccessSessionController>);
+
 } // namespace appellate::app
 
 namespace {
@@ -43,6 +75,9 @@ class InitiationResumeTest final : public QObject {
     void initiationSurvivesCloseAndReopen_data();
     void initiationSurvivesCloseAndReopen();
     void rejectsCanonicalAuthorityDefinitions();
+    void recordAccessGrantAndRevokeSurviveCloseAndReopen();
+    void recordAccessReopenRejectsTampering();
+    void recordAccessReopenRejectsTimestampTampering();
 };
 
 using appellate::app::SessionController;
@@ -263,6 +298,207 @@ void InitiationResumeTest::rejectsCanonicalAuthorityDefinitions() {
     QVERIFY(!rejected_reopen.has_value());
     QCOMPARE(rejected_reopen.error().code,
              appellate::app::SessionControllerErrorCode::InvalidConfiguration);
+}
+
+void InitiationResumeTest::recordAccessGrantAndRevokeSurviveCloseAndReopen() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto database_path = directory.filePath(QStringLiteral("record-access.sqlite"));
+    const RecordAccessPolicy policy{
+        "test.record.psr",
+        "test.policy.psr",
+        {{"test.document.psr", "test.authority.psr-access", "test.disclosure.psr", {}}}};
+    const std::vector<appellate::storage::RevisionPin> revision_pins{
+        {QStringLiteral("test.pack.psr"), QStringLiteral("2.0.0"), QString(64, u'a')}};
+
+    auto store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    auto controller = appellate::app::RecordAccessSessionControllerTestAccess::create(
+        QStringLiteral("test.session.psr"), policy, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), QStringLiteral("2026-08-11T10:00:00Z"),
+        revision_pins);
+    QVERIFY2(controller.has_value(), controller ? "" : qPrintable(controller.error().message));
+    const auto raw_id_rejected = (*controller)
+                                     ->grant("test.document.psr", "test.event.raw-id-rejected",
+                                             QStringLiteral("2026-08-11T10:00:30Z"));
+    QVERIFY(!raw_id_rejected.has_value());
+    QCOMPARE(raw_id_rejected.error().code,
+             appellate::app::SessionControllerErrorCode::InvalidConfiguration);
+    QCOMPARE((*controller)->snapshot().sequence, qint64{0});
+    const auto granted = (*controller)
+                             ->grant("test.disclosure.psr", "test.event.psr-grant",
+                                     QStringLiteral("2026-08-11T10:01:00Z"));
+    QVERIFY2(granted.has_value(), granted ? "" : qPrintable(granted.error().message));
+    QVERIFY((*controller)->disclosures().front().authorized);
+    const auto redundant = (*controller)
+                               ->grant("test.disclosure.psr", "test.event.psr-grant-again",
+                                       QStringLiteral("2026-08-11T10:01:30Z"));
+    QVERIFY(!redundant.has_value());
+    QCOMPARE((*controller)->snapshot().sequence, qint64{1});
+    controller->reset();
+
+    store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    controller = appellate::app::RecordAccessSessionControllerTestAccess::reopen(
+        QStringLiteral("test.session.psr"), policy, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), revision_pins);
+    QVERIFY2(controller.has_value(), controller ? "" : qPrintable(controller.error().message));
+    QVERIFY((*controller)->disclosures().front().authorized);
+    const auto revoked = (*controller)
+                             ->revoke("test.disclosure.psr", "test.event.psr-revoke",
+                                      QStringLiteral("2026-08-11T10:02:00Z"));
+    QVERIFY2(revoked.has_value(), revoked ? "" : qPrintable(revoked.error().message));
+    QVERIFY(!(*controller)->disclosures().front().authorized);
+    const auto prefix = (*controller)->auditProjectionAt(1);
+    QVERIFY2(prefix.has_value(), prefix ? "" : qPrintable(prefix.error().message));
+    QCOMPARE(prefix->authorizedDisclosureIds(), std::vector<std::string>{"test.disclosure.psr"});
+    controller->reset();
+
+    store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    controller = appellate::app::RecordAccessSessionControllerTestAccess::reopen(
+        QStringLiteral("test.session.psr"), policy, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), revision_pins);
+    QVERIFY2(controller.has_value(), controller ? "" : qPrintable(controller.error().message));
+    QVERIFY(!(*controller)->disclosures().front().authorized);
+    QCOMPARE((*controller)->snapshot().authority_contract,
+             appellate::storage::SessionAuthorityContract::CanonicalV2);
+
+    auto blocked_policy = policy;
+    blocked_policy.rules.front().blocking_deficiencies.push_back(RecordDisclosureDeficiency{
+        "test.disclosure.psr", RecordDisclosureDeficiencyKind::MissingCertificate});
+    store = appellate::storage::SessionStore::open(
+        directory.filePath(QStringLiteral("blocked-record-access.sqlite")));
+    QVERIFY(store.has_value());
+    auto blocked_controller = appellate::app::RecordAccessSessionControllerTestAccess::create(
+        QStringLiteral("test.session.psr-blocked"), blocked_policy, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), QStringLiteral("2026-08-11T10:03:00Z"),
+        revision_pins);
+    QVERIFY(blocked_controller.has_value());
+    const auto blocked = (*blocked_controller)
+                             ->grant("test.disclosure.psr", "test.event.psr-blocked",
+                                     QStringLiteral("2026-08-11T10:04:00Z"));
+    QVERIFY(!blocked.has_value());
+    QCOMPARE(blocked.error().code, appellate::app::SessionControllerErrorCode::EventCodecFailure);
+    QCOMPARE((*blocked_controller)->snapshot().sequence, qint64{0});
+}
+
+void InitiationResumeTest::recordAccessReopenRejectsTampering() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto database_path = directory.filePath(QStringLiteral("tampered-access.sqlite"));
+    const RecordAccessPolicy policy{
+        "test.record.psr",
+        "test.policy.psr",
+        {{"test.document.psr", "test.authority.psr-access", "test.disclosure.psr", {}}}};
+    const std::vector<appellate::storage::RevisionPin> revision_pins{
+        {QStringLiteral("test.pack.psr"), QStringLiteral("2.0.0"), QString(64, u'a')}};
+    auto store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    auto controller = appellate::app::RecordAccessSessionControllerTestAccess::create(
+        QStringLiteral("test.session.psr-tamper"), policy, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), QStringLiteral("2026-08-11T10:00:00Z"),
+        revision_pins);
+    QVERIFY(controller.has_value());
+    QVERIFY((*controller)
+                ->grant("test.disclosure.psr", "test.event.psr-grant",
+                        QStringLiteral("2026-08-11T10:01:00Z"))
+                .has_value());
+    controller->reset();
+
+    store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    auto changed_authority = policy;
+    changed_authority.rules.front().authority_id = "test.authority.changed";
+    const auto forged_authority = appellate::app::RecordAccessSessionControllerTestAccess::reopen(
+        QStringLiteral("test.session.psr-tamper"), changed_authority, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), revision_pins);
+    QVERIFY(!forged_authority.has_value());
+    QCOMPARE(forged_authority.error().code,
+             appellate::app::SessionControllerErrorCode::CorruptSession);
+
+    store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    auto stripped_policy = policy;
+    stripped_policy.rules.clear();
+    const auto forged_policy = appellate::app::RecordAccessSessionControllerTestAccess::reopen(
+        QStringLiteral("test.session.psr-tamper"), stripped_policy, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), revision_pins);
+    QVERIFY(!forged_policy.has_value());
+    QCOMPARE(forged_policy.error().code,
+             appellate::app::SessionControllerErrorCode::CorruptSession);
+
+    const auto connection =
+        QStringLiteral("tamper-record-access-%1").arg(QUuid::createUuid().toString(QUuid::Id128));
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        database.setDatabaseName(database_path);
+        QVERIFY(database.open());
+        QSqlQuery query(database);
+        QVERIFY(query.exec(
+            QStringLiteral("UPDATE event_log SET authority_id = 'test.authority.forged' "
+                           "WHERE session_id = 'test.session.psr-tamper' AND sequence = 1")));
+        QCOMPARE(query.numRowsAffected(), qint64{1});
+        database.close();
+        database = QSqlDatabase{};
+    }
+    QSqlDatabase::removeDatabase(connection);
+
+    store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto reopened = appellate::app::RecordAccessSessionControllerTestAccess::reopen(
+        QStringLiteral("test.session.psr-tamper"), policy, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), revision_pins);
+    QVERIFY(!reopened.has_value());
+    QCOMPARE(reopened.error().code, appellate::app::SessionControllerErrorCode::CorruptSession);
+}
+
+void InitiationResumeTest::recordAccessReopenRejectsTimestampTampering() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto database_path = directory.filePath(QStringLiteral("tampered-access-time.sqlite"));
+    const RecordAccessPolicy policy{
+        "test.record.psr",
+        "test.policy.psr",
+        {{"test.document.psr", "test.authority.psr-access", "test.disclosure.psr", {}}}};
+    const std::vector<appellate::storage::RevisionPin> revision_pins{
+        {QStringLiteral("test.pack.psr"), QStringLiteral("2.0.0"), QString(64, u'a')}};
+    auto store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    auto controller = appellate::app::RecordAccessSessionControllerTestAccess::create(
+        QStringLiteral("test.session.psr-time-tamper"), policy, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), QStringLiteral("2026-08-11T10:00:00Z"),
+        revision_pins);
+    QVERIFY(controller.has_value());
+    QVERIFY((*controller)
+                ->grant("test.disclosure.psr", "test.event.psr-time-grant",
+                        QStringLiteral("2026-08-11T10:01:00Z"))
+                .has_value());
+    controller->reset();
+
+    const auto connection = QStringLiteral("tamper-record-access-time-%1")
+                                .arg(QUuid::createUuid().toString(QUuid::Id128));
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        database.setDatabaseName(database_path);
+        QVERIFY(database.open());
+        QSqlQuery query(database);
+        QVERIFY(query.exec(
+            QStringLiteral("UPDATE command_log SET recorded_at_utc = '2026-08-11T10:01:01Z' "
+                           "WHERE session_id = 'test.session.psr-time-tamper'")));
+        QCOMPARE(query.numRowsAffected(), qint64{1});
+        database.close();
+        database = QSqlDatabase{};
+    }
+    QSqlDatabase::removeDatabase(connection);
+
+    store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto reopened = appellate::app::RecordAccessSessionControllerTestAccess::reopen(
+        QStringLiteral("test.session.psr-time-tamper"), policy, std::move(*store),
+        QStringLiteral("engine.record-access.v1"), revision_pins);
+    QVERIFY(!reopened.has_value());
+    QCOMPARE(reopened.error().code, appellate::app::SessionControllerErrorCode::CorruptSession);
 }
 
 } // namespace
