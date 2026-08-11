@@ -1,7 +1,8 @@
 # Encrypted immutable-object sync protocol
 
-Status: protocol version 1. The envelope and identity codec are implemented; provider adapters,
-OS-key-store integration, logical object payload codecs, and branch import remain separate slices.
+Status: protocol version 1. The envelope/identity codec and create-only local-folder provider are
+implemented; OS-key-store integration, logical object payload codecs, S3-compatible transport,
+and branch import remain separate slices.
 
 Sync is an optional replica layer. It is never a database, a requirement for simulation, or a
 channel for executable code. The application remains fully usable when this target is disabled,
@@ -214,7 +215,29 @@ modified capsules, unsupported parameters, duplicate slots, or invalid vault ide
 no key-store mutation. Export and restore require an explicit user action and a rehearsal from a
 clean local profile.
 
-## Provider and branch invariants for later slices
+## Local-folder provider
+
+The implemented local-folder adapter exposes the common provider operations only: bounded paged
+list, stat, create-if-absent upload, and download. Remote IDs are revalidated as exactly 64
+lowercase hexadecimal characters before path construction. Ciphertext is staged in an owner-only
+temporary file under the final two-character prefix, flushed, and atomically hard-linked into its
+final path without replacement. A complete pre-existing regular object returns `AlreadyPresent`;
+the adapter never authenticates that object and the caller must download and decrypt it before
+treating it as deduplicated. Interrupted writes are never published under a final object name.
+
+Listing is lexicographically stable and uses the last returned opaque ID as its continuation
+token. Symlinked/nonregular objects, malformed prefix directories, wrong-prefix names, oversized
+objects, and unexpected namespace entries fail closed. Stale hidden upload files are ignored and
+contain ciphertext only. The interface intentionally has no overwrite, delete, rename, plaintext
+metadata, or recursive filesystem operation. The provider root is canonicalized once when opened;
+callers must choose a dedicated directory protected by their local account.
+
+The local-folder E2E test encrypts a session segment, publishes it through the provider, downloads
+it into a new buffer, authenticates/decrypts it into quarantine, and compares the exact plaintext
+and identity. Separate tests freeze no-overwrite behavior, pagination, owner-only permissions,
+limits, malformed namespace rejection, and absence of partial final objects.
+
+## Remote provider and branch invariants for later slices
 
 The provider interface will expose only paged list, stat, create-if-absent upload, and download.
 It will have no overwrite, delete, rename, SQL, or plaintext metadata operation. A local-folder

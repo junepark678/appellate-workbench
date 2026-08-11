@@ -1,6 +1,9 @@
 qt_add_library(
     appellate_sync STATIC
+    src/local_folder_provider.cpp
     src/protocol_codec.cpp
+    include/appellate/sync/local_folder_provider.hpp
+    include/appellate/sync/object_provider.hpp
     include/appellate/sync/protocol_codec.hpp
     include/appellate/sync/sync_object.hpp
 )

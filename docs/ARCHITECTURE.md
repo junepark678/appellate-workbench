@@ -59,7 +59,7 @@ state.
 ## Sync boundary
 
 Sync is a replica layer, never the database. It transfers encrypted immutable objects through
-a minimal provider interface. A local-folder adapter supports user-chosen tools such as
-Syncthing or a cloud-drive folder; a later S3-compatible adapter is the reference remote.
+a minimal provider interface. The create-only local-folder adapter supports user-chosen tools
+such as Syncthing or a cloud-drive folder; a later S3-compatible adapter is the reference remote.
 SQLite, WAL files, plaintext records, and live row mutations are never uploaded. Conflicts
 produce explicit branches.
