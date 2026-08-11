@@ -41,3 +41,12 @@ if(BUILD_TESTING)
     find_package(Qt6 6.8 REQUIRED COMPONENTS Test)
     add_subdirectory(tests)
 endif()
+
+option(
+    APPELLATE_ENABLE_LINUX_PACKAGING
+    "Configure the relocatable Linux x86_64 MVP archive and its install smoke test"
+    OFF
+)
+if(APPELLATE_ENABLE_LINUX_PACKAGING)
+    include(cmake/Packaging.cmake)
+endif()

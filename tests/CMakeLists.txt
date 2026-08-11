@@ -270,6 +270,33 @@ set_tests_properties(
         LABELS "e2e;ui;local"
 )
 
+qt_add_executable(
+    tst_desktop_command_line
+    integration/tst_desktop_command_line.cpp
+)
+target_link_libraries(
+    tst_desktop_command_line
+    PRIVATE
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_desktop_command_line
+    PRIVATE
+        APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+        APPELLATE_WORKBENCH_EXECUTABLE="$<TARGET_FILE:appellate-workbench>"
+)
+target_compile_features(tst_desktop_command_line PRIVATE cxx_std_26)
+add_dependencies(tst_desktop_command_line appellate-workbench)
+add_test(NAME desktop_command_line COMMAND tst_desktop_command_line)
+set_tests_properties(
+    desktop_command_line
+    PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        LABELS "e2e;ui;local;packaging"
+)
+
 qt_add_executable(tst_out_of_tree_pack integration/tst_out_of_tree_pack.cpp)
 target_link_libraries(
     tst_out_of_tree_pack

@@ -52,7 +52,7 @@ ctest --preset dev
 Run the dedicated local desktop end-to-end test after building the development preset:
 
 ```sh
-cmake --build --preset dev --target tst_oral_argument_desktop_e2e
+cmake --build --preset dev --target tst_oral_argument_desktop_e2e tst_desktop_command_line
 ctest --preset e2e
 ```
 

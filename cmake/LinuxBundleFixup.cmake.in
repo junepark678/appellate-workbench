@@ -1,0 +1,27 @@
+set(_appellate_bundle_library_dir
+    "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/@CMAKE_INSTALL_LIBDIR@"
+)
+file(GLOB _appellate_bundle_libraries
+    LIST_DIRECTORIES FALSE
+    "${_appellate_bundle_library_dir}/*.so*"
+)
+foreach(_appellate_library IN LISTS _appellate_bundle_libraries)
+    if(IS_SYMLINK "${_appellate_library}")
+        continue()
+    endif()
+    execute_process(
+        COMMAND
+            "@APPELLATE_PATCHELF_EXECUTABLE@"
+            --set-rpath "$ORIGIN"
+            "${_appellate_library}"
+        RESULT_VARIABLE _appellate_patchelf_result
+        ERROR_VARIABLE _appellate_patchelf_error
+    )
+    if(NOT _appellate_patchelf_result EQUAL 0)
+        message(
+            FATAL_ERROR
+            "Cannot make ${_appellate_library} relocatable: "
+            "${_appellate_patchelf_error}"
+        )
+    endif()
+endforeach()

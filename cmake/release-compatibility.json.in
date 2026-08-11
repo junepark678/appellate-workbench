@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "application": {
+    "version": "@PROJECT_VERSION@",
+    "source_revision": "@APPELLATE_RELEASE_SOURCE_REVISION@"
+  },
+  "release_identity": {
+    "status": "@APPELLATE_RELEASE_IDENTITY_STATUS@",
+    "required_tag": "v@PROJECT_VERSION@",
+    "signing_fingerprint": "@APPELLATE_RELEASE_SIGNING_FINGERPRINT@"
+  },
+  "platform": {
+    "operating_system": "linux",
+    "architecture": "x86_64",
+    "glibc_floor": "@APPELLATE_GLIBC_FLOOR@"
+  },
+  "toolchain": {
+    "compiler_id": "@CMAKE_CXX_COMPILER_ID@",
+    "compiler_version": "@CMAKE_CXX_COMPILER_VERSION@",
+    "qt_version": "@Qt6_VERSION@",
+    "cmake_version": "@CMAKE_VERSION@"
+  },
+  "compatibility": {
+    "pack_schema_versions": [1, 2],
+    "workflow_persistence_schema_versions": [1, 2, 3],
+    "oral_argument_persistence_schema_versions": [1, 2],
+    "session_store_schema_version": 2
+  },
+  "bundled_packs": [
+    {
+      "pack_id": "us.ca4.rule54b.asterglen",
+      "version": "0.1.0",
+      "revision_sha256": "@APPELLATE_GOLD_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_GOLD_ARCHIVE_SHA256@",
+      "path": "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
+    }
+  ]
+}

@@ -87,6 +87,10 @@ target_link_libraries(
 target_compile_features(appellate_desktop_ui PUBLIC cxx_std_26)
 
 qt_add_executable(appellate-workbench main.cpp)
+target_compile_definitions(
+    appellate-workbench
+    PRIVATE APPELLATE_APPLICATION_VERSION="${PROJECT_VERSION}"
+)
 
 target_link_libraries(
     appellate-workbench
