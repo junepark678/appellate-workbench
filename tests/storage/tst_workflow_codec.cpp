@@ -78,6 +78,41 @@ eventHeader(std::string command_id, std::string operation_id, std::uint64_t sequ
                                       authority()};
 }
 
+[[nodiscard]] model::DispositionPlan dispositionPlan() {
+    return model::DispositionPlan{
+        model::DispositionPlanId{"test.disposition.partial"},
+        model::DispositionFinality::Final,
+        std::string(64, 'e'),
+        {model::DispositionComponent{model::CaseIssueId{"test.issue.finality"},
+                                     model::DispositionTargetId{"test.target.claim-one"},
+                                     model::DispositionScope::Whole,
+                                     model::DispositionAction::Dismiss,
+                                     true,
+                                     {model::AuthorityId{"test.authority.primary"}},
+                                     {model::RecordAnchorId{"test.anchor.order"}}},
+         model::DispositionComponent{model::CaseIssueId{"test.issue.merits"},
+                                     model::DispositionTargetId{"test.target.claim-two"},
+                                     model::DispositionScope::Part,
+                                     model::DispositionAction::Deny,
+                                     false,
+                                     {model::AuthorityId{"test.authority.supporting"}},
+                                     {model::RecordAnchorId{"test.anchor.brief"}}}}};
+}
+
+[[nodiscard]] std::vector<model::WorkflowPrecondition> preconditions() {
+    return {
+        model::WorkflowFilingPrecondition{model::FilingTypeId{"test.filing-type.opening"}, true},
+        model::WorkflowOrderPrecondition{model::WorkflowOrderId{"test.order.submission"},
+                                         model::WorkflowOrderDisposition::Granted},
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.response"},
+                                            model::WorkflowDeadlineCondition::Open},
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.response"},
+                                            model::WorkflowDeadlineCondition::Elapsed},
+        model::WorkflowArgumentPrecondition{false},
+        model::WorkflowJudgmentPrecondition{false},
+    };
+}
+
 [[nodiscard]] model::SubmitWorkflowFiling submitCommand() {
     auto header = commandHeader("test.command.submit");
     header.actor_id = model::ActorId{"test.actor.appellant"};
@@ -200,6 +235,10 @@ class WorkflowCodecTest final : public QObject {
     void roundTripsEveryEventVariant();
     void preservesLegacyEventSchemaOneBytes();
     void roundTripsCompleteProvenanceInEventSchemaTwo();
+    void roundTripsStructuredDispositionSchemaThree();
+    void roundTripsMaximumStructuredPayload();
+    void roundTripsPreconditionSnapshotsSchemaThree();
+    void rejectsStructuredVersionConfusionAndTampering();
     void rejectsAuthoritySchemaDowngradesAndMixedForms();
     void rejectsMutatedProvenance();
     void roundTripsEveryEnumValue();
@@ -281,6 +320,35 @@ void WorkflowCodecTest::roundTripsEveryEventVariant() {
 }
 
 void WorkflowCodecTest::preservesLegacyEventSchemaOneBytes() {
+    const QByteArray frozen_command{
+        R"json({"command_type":"judgment.issue","payload":{"actor_id":"test.actor.court","command_id":"test.command.judgment","disposition":"Affirmed in part","document_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","occurred_at":{"court_date":"2026-08-14","instant_unix_seconds":"9007199254740993"},"operation_id":"test.operation.judgment","session_id":"test.session.one"},"schema_version":1})json"};
+    const auto decoded_command = storage::decodeWorkflowCommand(frozen_command);
+    QVERIFY(decoded_command.has_value());
+    QVERIFY(*decoded_command == commands().at(4));
+    const auto reencoded_command = storage::encodeWorkflowCommand(*decoded_command);
+    QVERIFY(reencoded_command.has_value());
+    QCOMPARE(*reencoded_command, frozen_command);
+
+    const QByteArray frozen_judgment_event{
+        R"json({"event_type":"judgment.issued","payload":{"authority":{"primary":{"citation":"Fed. R. App. P. test","id":"test.authority.primary","proposition":"Primary workflow proposition","source_version":"2026-08-11"},"supporting":[{"citation":"Fed. R. App. P. test","id":"test.authority.supporting","proposition":"Supporting workflow proposition","source_version":"2026-08-11"}]},"command_event_count":"1","command_event_index":"0","command_id":"test.command.judgment","disposition":"Affirmed in part","document_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","next_stage_id":"test.stage.mandate","occurred_at":{"court_date":"2026-08-14","instant_unix_seconds":"9007199254740993"},"operation_id":"test.operation.judgment","sequence":"9","session_id":"test.session.one","workflow_id":"test.workflow.appeal"},"schema_version":1})json"};
+    const auto decoded_judgment_event = storage::decodeWorkflowEvent(frozen_judgment_event);
+    QVERIFY(decoded_judgment_event.has_value());
+    QVERIFY(*decoded_judgment_event == events().at(8));
+    const auto reencoded_judgment_event = storage::encodeWorkflowEvent(*decoded_judgment_event);
+    QVERIFY(reencoded_judgment_event.has_value());
+    QCOMPARE(*reencoded_judgment_event, frozen_judgment_event);
+
+    const QByteArray frozen_schema_two_judgment_event{
+        R"json({"event_type":"judgment.issued","payload":{"authority":{"primary":{"citation":"Fed. R. App. P. test","id":"test.authority.primary","proposition":"Primary workflow proposition","provenance":{"authority_type":"rule","checked_on":"2026-08-11","issuing_body_id":"us.ca4","jurisdiction_id":"us.federal","locator":"Fed. R. App. P. test","official_source":true,"precedential_status":"not_applicable","source_url":"https://www.ca4.uscourts.gov/rules/Rule03.html"},"source_version":"2026-08-11"},"supporting":[{"citation":"Fed. R. App. P. test","id":"test.authority.supporting","proposition":"Supporting workflow proposition","provenance":{"authority_type":"rule","checked_on":"2026-08-11","issuing_body_id":"us.ca4","jurisdiction_id":"us.federal","locator":"Fed. R. App. P. test","official_source":true,"precedential_status":"not_applicable","source_url":"https://www.ca4.uscourts.gov/rules/Rule03.html"},"source_version":"2026-08-11"}]},"command_event_count":"1","command_event_index":"0","command_id":"test.command.judgment","disposition":"Affirmed in part","document_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","next_stage_id":"test.stage.mandate","occurred_at":{"court_date":"2026-08-14","instant_unix_seconds":"9007199254740993"},"operation_id":"test.operation.judgment","sequence":"9","session_id":"test.session.one","workflow_id":"test.workflow.appeal"},"schema_version":2})json"};
+    const auto decoded_schema_two = storage::decodeWorkflowEvent(frozen_schema_two_judgment_event);
+    QVERIFY(decoded_schema_two.has_value());
+    auto expected_schema_two = std::get<model::WorkflowJudgmentIssued>(events().at(8));
+    expected_schema_two.header.authority = authority(true);
+    QVERIFY(*decoded_schema_two == model::WorkflowEvent{expected_schema_two});
+    const auto reencoded_schema_two = storage::encodeWorkflowEvent(*decoded_schema_two);
+    QVERIFY(reencoded_schema_two.has_value());
+    QCOMPARE(*reencoded_schema_two, frozen_schema_two_judgment_event);
+
     const auto event = events().front();
     const auto encoded = storage::encodeWorkflowEvent(event);
     QVERIFY(encoded.has_value());
@@ -352,6 +420,238 @@ void WorkflowCodecTest::roundTripsCompleteProvenanceInEventSchemaTwo() {
     encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{unicode});
     QVERIFY(!encoded.has_value());
     QCOMPARE(encoded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+}
+
+void WorkflowCodecTest::roundTripsStructuredDispositionSchemaThree() {
+    const model::WorkflowCommand command = model::IssueWorkflowJudgment{
+        commandHeader("test.command.structured-judgment"),
+        model::WorkflowOperationId{"test.operation.judgment"}, std::string(64, 'f'),
+        model::DispositionPlanId{"test.disposition.partial"}};
+    const auto encoded_command = storage::encodeWorkflowCommand(command);
+    QVERIFY(encoded_command.has_value());
+    const auto command_envelope = QJsonDocument::fromJson(*encoded_command).object();
+    QCOMPARE(command_envelope.value(QStringLiteral("schema_version")).toInt(), 3);
+    QVERIFY(command_envelope.value(QStringLiteral("payload"))
+                .toObject()
+                .value(QStringLiteral("disposition"))
+                .isObject());
+    const auto decoded_command = storage::decodeWorkflowCommand(*encoded_command);
+    QVERIFY(decoded_command.has_value());
+    QVERIFY(*decoded_command == command);
+    const auto reencoded_command = storage::encodeWorkflowCommand(*decoded_command);
+    QVERIFY(reencoded_command.has_value());
+    QCOMPARE(*reencoded_command, *encoded_command);
+
+    auto header = eventHeader("test.command.structured-judgment", "test.operation.judgment", 12);
+    header.authority = authority(true);
+    const model::WorkflowEvent event =
+        model::WorkflowJudgmentIssued{std::move(header), std::string(64, 'f'), dispositionPlan(),
+                                      model::WorkflowStageId{"test.stage.mandate"}};
+    const auto encoded_event = storage::encodeWorkflowEvent(event);
+    QVERIFY(encoded_event.has_value());
+    const auto event_envelope = QJsonDocument::fromJson(*encoded_event).object();
+    QCOMPARE(event_envelope.value(QStringLiteral("schema_version")).toInt(), 3);
+    const auto payload = event_envelope.value(QStringLiteral("payload")).toObject();
+    QVERIFY(payload.value(QStringLiteral("disposition")).isObject());
+    QVERIFY(payload.value(QStringLiteral("preconditions")).isArray());
+    QVERIFY(payload.value(QStringLiteral("preconditions")).toArray().isEmpty());
+    const auto decoded_event = storage::decodeWorkflowEvent(*encoded_event);
+    QVERIFY(decoded_event.has_value());
+    QVERIFY(*decoded_event == event);
+    const auto reencoded_event = storage::encodeWorkflowEvent(*decoded_event);
+    QVERIFY(reencoded_event.has_value());
+    QCOMPARE(*reencoded_event, *encoded_event);
+
+    auto schema_two = std::get<model::WorkflowJudgmentIssued>(events().at(8));
+    schema_two.header.authority = authority(true);
+    const auto encoded_schema_two = storage::encodeWorkflowEvent(model::WorkflowEvent{schema_two});
+    QVERIFY(encoded_schema_two.has_value());
+    const auto schema_two_envelope = QJsonDocument::fromJson(*encoded_schema_two).object();
+    QCOMPARE(schema_two_envelope.value(QStringLiteral("schema_version")).toInt(), 2);
+    QVERIFY(!schema_two_envelope.value(QStringLiteral("payload"))
+                 .toObject()
+                 .contains(QStringLiteral("preconditions")));
+    const auto decoded_schema_two = storage::decodeWorkflowEvent(*encoded_schema_two);
+    QVERIFY(decoded_schema_two.has_value());
+    const auto reencoded_schema_two = storage::encodeWorkflowEvent(*decoded_schema_two);
+    QVERIFY(reencoded_schema_two.has_value());
+    QCOMPARE(*reencoded_schema_two, *encoded_schema_two);
+}
+
+void WorkflowCodecTest::roundTripsMaximumStructuredPayload() {
+    const auto maximumId = [](std::string prefix, int component, int reference) {
+        const auto suffix = std::to_string(component) + "-" + std::to_string(reference);
+        return prefix + std::string(160 - prefix.size() - suffix.size(), 'x') + suffix;
+    };
+    auto plan = dispositionPlan();
+    plan.components.clear();
+    for (int component_index = 0; component_index < 32; ++component_index) {
+        std::vector<model::AuthorityId> authorities;
+        std::vector<model::RecordAnchorId> anchors;
+        authorities.reserve(32);
+        anchors.reserve(32);
+        for (int reference_index = 0; reference_index < 32; ++reference_index) {
+            authorities.push_back(
+                model::AuthorityId{maximumId("test.authority.", component_index, reference_index)});
+            anchors.push_back(
+                model::RecordAnchorId{maximumId("test.anchor.", component_index, reference_index)});
+        }
+        plan.components.push_back(model::DispositionComponent{
+            model::CaseIssueId{maximumId("test.issue.", component_index, 0)},
+            model::DispositionTargetId{maximumId("test.target.", component_index, 0)},
+            model::DispositionScope::Part, model::DispositionAction::Vacate, true,
+            std::move(authorities), std::move(anchors)});
+    }
+    auto header = eventHeader("test.command.maximum-judgment", "test.operation.judgment", 14);
+    header.authority = authority(true);
+    const model::WorkflowEvent event = model::WorkflowJudgmentIssued{
+        std::move(header), std::string(64, 'f'), std::move(plan), std::nullopt};
+    const auto encoded = storage::encodeWorkflowEvent(event);
+    QVERIFY(encoded.has_value());
+    QVERIFY(encoded->size() < 1024 * 1024);
+    const auto decoded = storage::decodeWorkflowEvent(*encoded);
+    QVERIFY(decoded.has_value());
+    QVERIFY(*decoded == event);
+}
+
+void WorkflowCodecTest::roundTripsPreconditionSnapshotsSchemaThree() {
+    auto event = std::get<model::WorkflowSealedSet>(events().at(6));
+    event.header.authority = authority(true);
+    event.header.preconditions = preconditions();
+    const auto encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{event});
+    QVERIFY(encoded.has_value());
+    const auto envelope = QJsonDocument::fromJson(*encoded).object();
+    QCOMPARE(envelope.value(QStringLiteral("schema_version")).toInt(), 3);
+    const auto encoded_preconditions = envelope.value(QStringLiteral("payload"))
+                                           .toObject()
+                                           .value(QStringLiteral("preconditions"))
+                                           .toArray();
+    QCOMPARE(encoded_preconditions.size(), 6);
+    QCOMPARE(encoded_preconditions.at(2).toObject().value(QStringLiteral("status")).toString(),
+             QStringLiteral("open"));
+    QCOMPARE(encoded_preconditions.at(3).toObject().value(QStringLiteral("status")).toString(),
+             QStringLiteral("elapsed"));
+    const auto decoded = storage::decodeWorkflowEvent(*encoded);
+    QVERIFY(decoded.has_value());
+    QVERIFY(*decoded == model::WorkflowEvent{event});
+    const auto reencoded = storage::encodeWorkflowEvent(*decoded);
+    QVERIFY(reencoded.has_value());
+    QCOMPARE(*reencoded, *encoded);
+
+    event.header.preconditions.at(3) =
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.response"},
+                                            model::WorkflowDeadlineCondition::NotElapsed};
+    const auto not_elapsed = storage::encodeWorkflowEvent(model::WorkflowEvent{event});
+    QVERIFY(not_elapsed.has_value());
+    const auto not_elapsed_decoded = storage::decodeWorkflowEvent(*not_elapsed);
+    QVERIFY(not_elapsed_decoded.has_value());
+    QVERIFY(*not_elapsed_decoded == model::WorkflowEvent{event});
+}
+
+void WorkflowCodecTest::rejectsStructuredVersionConfusionAndTampering() {
+    const model::WorkflowCommand command = model::IssueWorkflowJudgment{
+        commandHeader("test.command.structured-judgment"),
+        model::WorkflowOperationId{"test.operation.judgment"}, std::string(64, 'f'),
+        model::DispositionPlanId{"test.disposition.partial"}};
+    auto command_envelope = commandObject(command);
+    command_envelope.insert(QStringLiteral("schema_version"), 1);
+    auto decoded_command = storage::decodeWorkflowCommand(compact(command_envelope));
+    QVERIFY(!decoded_command.has_value());
+    QCOMPARE(decoded_command.error().code, WorkflowCodecErrorCode::UnsupportedVersion);
+
+    command_envelope = commandObject(commands().at(4));
+    command_envelope.insert(QStringLiteral("schema_version"), 3);
+    decoded_command = storage::decodeWorkflowCommand(compact(command_envelope));
+    QVERIFY(!decoded_command.has_value());
+    QCOMPARE(decoded_command.error().code, WorkflowCodecErrorCode::UnsupportedVersion);
+
+    auto header = eventHeader("test.command.structured-judgment", "test.operation.judgment", 12);
+    header.authority = authority(true);
+    model::WorkflowEvent event =
+        model::WorkflowJudgmentIssued{std::move(header), std::string(64, 'f'), dispositionPlan(),
+                                      model::WorkflowStageId{"test.stage.mandate"}};
+    auto event_envelope = eventObject(event);
+    event_envelope.insert(QStringLiteral("schema_version"), 2);
+    auto decoded_event = storage::decodeWorkflowEvent(compact(event_envelope));
+    QVERIFY(!decoded_event.has_value());
+
+    event_envelope = eventObject(event);
+    auto payload = event_envelope.value(QStringLiteral("payload")).toObject();
+    payload.remove(QStringLiteral("preconditions"));
+    event_envelope.insert(QStringLiteral("payload"), payload);
+    decoded_event = storage::decodeWorkflowEvent(compact(event_envelope));
+    QVERIFY(!decoded_event.has_value());
+    QCOMPARE(decoded_event.error().code, WorkflowCodecErrorCode::MissingField);
+
+    auto guarded = std::get<model::WorkflowSealedSet>(events().at(6));
+    guarded.header.authority = authority(true);
+    guarded.header.preconditions = preconditions();
+    event_envelope = eventObject(model::WorkflowEvent{guarded});
+    payload = event_envelope.value(QStringLiteral("payload")).toObject();
+    auto guards = payload.value(QStringLiteral("preconditions")).toArray();
+    auto malformed = guards.first().toObject();
+    malformed.insert(QStringLiteral("order_id"), QStringLiteral("test.order.injected"));
+    guards.replace(0, malformed);
+    payload.insert(QStringLiteral("preconditions"), guards);
+    event_envelope.insert(QStringLiteral("payload"), payload);
+    decoded_event = storage::decodeWorkflowEvent(compact(event_envelope));
+    QVERIFY(!decoded_event.has_value());
+    QCOMPARE(decoded_event.error().code, WorkflowCodecErrorCode::UnexpectedField);
+
+    event_envelope = eventObject(model::WorkflowEvent{guarded});
+    payload = event_envelope.value(QStringLiteral("payload")).toObject();
+    guards = payload.value(QStringLiteral("preconditions")).toArray();
+    auto conflict = guards.at(2).toObject();
+    conflict.insert(QStringLiteral("status"), QStringLiteral("satisfied"));
+    guards.append(conflict);
+    payload.insert(QStringLiteral("preconditions"), guards);
+    event_envelope.insert(QStringLiteral("payload"), payload);
+    decoded_event = storage::decodeWorkflowEvent(compact(event_envelope));
+    QVERIFY(!decoded_event.has_value());
+    QCOMPARE(decoded_event.error().code, WorkflowCodecErrorCode::InvalidField);
+
+    guarded.header.authority = authority(false);
+    const auto legacy_guarded = storage::encodeWorkflowEvent(model::WorkflowEvent{guarded});
+    QVERIFY(!legacy_guarded.has_value());
+    QCOMPARE(legacy_guarded.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+
+    auto invalid_plan = dispositionPlan();
+    invalid_plan.components.front().action = model::DispositionAction::Affirm;
+    auto invalid_header =
+        eventHeader("test.command.invalid-judgment", "test.operation.judgment", 13);
+    invalid_header.authority = authority(true);
+    const auto invalid_event = storage::encodeWorkflowEvent(model::WorkflowEvent{
+        model::WorkflowJudgmentIssued{std::move(invalid_header), std::string(64, 'f'),
+                                      std::move(invalid_plan), std::nullopt}});
+    QVERIFY(!invalid_event.has_value());
+    QCOMPARE(invalid_event.error().code, WorkflowCodecErrorCode::InvalidField);
+
+    auto oversized_plan = dispositionPlan();
+    while (oversized_plan.components.size() <= 32) {
+        const auto index = oversized_plan.components.size();
+        auto component = oversized_plan.components.front();
+        component.issue_id.value = "test.issue.oversized-" + std::to_string(index);
+        component.target_id.value = "test.target.oversized-" + std::to_string(index);
+        oversized_plan.components.push_back(std::move(component));
+    }
+    invalid_header = eventHeader("test.command.oversized-judgment", "test.operation.judgment", 14);
+    invalid_header.authority = authority(true);
+    const auto oversized_event = storage::encodeWorkflowEvent(model::WorkflowEvent{
+        model::WorkflowJudgmentIssued{std::move(invalid_header), std::string(64, 'f'),
+                                      std::move(oversized_plan), std::nullopt}});
+    QVERIFY(!oversized_event.has_value());
+    QCOMPARE(oversized_event.error().code, WorkflowCodecErrorCode::OutOfRange);
+
+    auto oversized_guards = std::get<model::WorkflowSealedSet>(events().at(6));
+    oversized_guards.header.authority = authority(true);
+    for (int index = 0; index < 33; ++index) {
+        oversized_guards.header.preconditions.push_back(model::WorkflowFilingPrecondition{
+            model::FilingTypeId{"test.filing-type.guard-" + std::to_string(index)}, true});
+    }
+    const auto oversized_guard_event =
+        storage::encodeWorkflowEvent(model::WorkflowEvent{oversized_guards});
+    QVERIFY(!oversized_guard_event.has_value());
+    QCOMPARE(oversized_guard_event.error().code, WorkflowCodecErrorCode::OutOfRange);
 }
 
 void WorkflowCodecTest::rejectsAuthoritySchemaDowngradesAndMixedForms() {

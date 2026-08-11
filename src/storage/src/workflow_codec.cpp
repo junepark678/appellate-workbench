@@ -29,6 +29,7 @@ namespace {
 
 constexpr auto legacy_schema_version = 1;
 constexpr auto provenance_schema_version = 2;
+constexpr auto structured_schema_version = 3;
 constexpr qsizetype maximum_payload_bytes = 1024 * 1024;
 constexpr qsizetype maximum_id_characters = 160;
 constexpr qsizetype maximum_text_characters = 4096;
@@ -37,6 +38,10 @@ constexpr qsizetype maximum_fields = 256;
 constexpr qsizetype maximum_served_actors = 1024;
 constexpr qsizetype maximum_requirements = 256;
 constexpr qsizetype maximum_supporting_authorities = 32;
+constexpr qsizetype maximum_preconditions = 32;
+constexpr qsizetype maximum_disposition_components = 32;
+constexpr qsizetype maximum_disposition_authorities = 32;
+constexpr qsizetype maximum_disposition_record_anchors = 32;
 constexpr qsizetype maximum_source_url_characters = 2048;
 constexpr qsizetype maximum_canonical_text_code_units = 8192;
 constexpr std::uint32_t maximum_events_per_command = 3;
@@ -1203,6 +1208,554 @@ template <typename Id>
                 QStringLiteral("%1.%2 is an unknown order disposition").arg(context, key));
 }
 
+[[nodiscard]] auto encodeDeadlineCondition(model::WorkflowDeadlineCondition condition)
+    -> std::expected<QString, WorkflowCodecError> {
+    switch (condition) {
+    case model::WorkflowDeadlineCondition::Open:
+        return QStringLiteral("open");
+    case model::WorkflowDeadlineCondition::Satisfied:
+        return QStringLiteral("satisfied");
+    case model::WorkflowDeadlineCondition::Elapsed:
+        return QStringLiteral("elapsed");
+    case model::WorkflowDeadlineCondition::NotElapsed:
+        return QStringLiteral("not_elapsed");
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("Unknown workflow deadline condition"));
+}
+
+[[nodiscard]] auto decodeDeadlineCondition(const QJsonObject& object, QStringView key,
+                                           QStringView context)
+    -> std::expected<model::WorkflowDeadlineCondition, WorkflowCodecError> {
+    const auto value = readString(object, key, 16, context);
+    if (!value) {
+        return std::unexpected(value.error());
+    }
+    if (*value == u"open") {
+        return model::WorkflowDeadlineCondition::Open;
+    }
+    if (*value == u"satisfied") {
+        return model::WorkflowDeadlineCondition::Satisfied;
+    }
+    if (*value == u"elapsed") {
+        return model::WorkflowDeadlineCondition::Elapsed;
+    }
+    if (*value == u"not_elapsed") {
+        return model::WorkflowDeadlineCondition::NotElapsed;
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("%1.%2 is an unknown deadline condition").arg(context, key));
+}
+
+[[nodiscard]] auto preconditionSubject(const model::WorkflowPrecondition& precondition) -> QString {
+    return std::visit(
+        [](const auto& concrete) {
+            using Precondition = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Precondition, model::WorkflowFilingPrecondition>) {
+                return QStringLiteral("filing:") + QString::fromUtf8(concrete.filing_type.value);
+            } else if constexpr (std::same_as<Precondition, model::WorkflowOrderPrecondition>) {
+                return QStringLiteral("order:") + QString::fromUtf8(concrete.order_id.value);
+            } else if constexpr (std::same_as<Precondition, model::WorkflowDeadlinePrecondition>) {
+                const auto axis =
+                    concrete.condition == model::WorkflowDeadlineCondition::Open ||
+                            concrete.condition == model::WorkflowDeadlineCondition::Satisfied
+                        ? QStringLiteral("status:")
+                        : QStringLiteral("time:");
+                return QStringLiteral("deadline:") + axis +
+                       QString::fromUtf8(concrete.deadline_id.value);
+            } else if constexpr (std::same_as<Precondition, model::WorkflowArgumentPrecondition>) {
+                return QStringLiteral("argument");
+            } else {
+                return QStringLiteral("judgment");
+            }
+        },
+        precondition);
+}
+
+[[nodiscard]] auto encodePrecondition(const model::WorkflowPrecondition& precondition)
+    -> std::expected<QJsonObject, WorkflowCodecError> {
+    return std::visit(
+        [](const auto& concrete) -> std::expected<QJsonObject, WorkflowCodecError> {
+            using Precondition = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Precondition, model::WorkflowFilingPrecondition>) {
+                const auto filing_type =
+                    checkedId(concrete.filing_type.value, u"payload.preconditions.filing_type_id");
+                if (!filing_type) {
+                    return std::unexpected(filing_type.error());
+                }
+                return QJsonObject{{QStringLiteral("filing_type_id"), *filing_type},
+                                   {QStringLiteral("kind"), QStringLiteral("filing_presence")},
+                                   {QStringLiteral("present"), concrete.present}};
+            } else if constexpr (std::same_as<Precondition, model::WorkflowOrderPrecondition>) {
+                const auto order_id =
+                    checkedId(concrete.order_id.value, u"payload.preconditions.order_id");
+                const auto disposition = encodeOrderDisposition(concrete.disposition);
+                if (!order_id) {
+                    return std::unexpected(order_id.error());
+                }
+                if (!disposition) {
+                    return std::unexpected(disposition.error());
+                }
+                return QJsonObject{{QStringLiteral("disposition"), *disposition},
+                                   {QStringLiteral("kind"), QStringLiteral("order_disposition")},
+                                   {QStringLiteral("order_id"), *order_id}};
+            } else if constexpr (std::same_as<Precondition, model::WorkflowDeadlinePrecondition>) {
+                const auto deadline_id =
+                    checkedId(concrete.deadline_id.value, u"payload.preconditions.deadline_id");
+                const auto condition = encodeDeadlineCondition(concrete.condition);
+                if (!deadline_id) {
+                    return std::unexpected(deadline_id.error());
+                }
+                if (!condition) {
+                    return std::unexpected(condition.error());
+                }
+                return QJsonObject{{QStringLiteral("deadline_id"), *deadline_id},
+                                   {QStringLiteral("kind"), QStringLiteral("deadline_status")},
+                                   {QStringLiteral("status"), *condition}};
+            } else if constexpr (std::same_as<Precondition, model::WorkflowArgumentPrecondition>) {
+                return QJsonObject{{QStringLiteral("kind"), QStringLiteral("argument_scheduled")},
+                                   {QStringLiteral("scheduled"), concrete.scheduled}};
+            } else {
+                return QJsonObject{{QStringLiteral("issued"), concrete.issued},
+                                   {QStringLiteral("kind"), QStringLiteral("judgment_issued")}};
+            }
+        },
+        precondition);
+}
+
+[[nodiscard]] auto
+encodePreconditions(const std::vector<model::WorkflowPrecondition>& preconditions)
+    -> std::expected<QJsonArray, WorkflowCodecError> {
+    if (preconditions.size() > static_cast<std::size_t>(maximum_preconditions)) {
+        return fail(WorkflowCodecErrorCode::OutOfRange,
+                    QStringLiteral("payload.preconditions exceeds its bound"));
+    }
+    QSet<QString> subjects;
+    QJsonArray result;
+    for (const auto& precondition : preconditions) {
+        const auto subject = preconditionSubject(precondition);
+        if (subjects.contains(subject)) {
+            return fail(
+                WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("payload.preconditions has duplicate or conflicting subjects"));
+        }
+        subjects.insert(subject);
+        const auto encoded = encodePrecondition(precondition);
+        if (!encoded) {
+            return std::unexpected(encoded.error());
+        }
+        result.append(*encoded);
+    }
+    return result;
+}
+
+[[nodiscard]] auto decodePrecondition(const QJsonObject& object, QStringView context)
+    -> std::expected<model::WorkflowPrecondition, WorkflowCodecError> {
+    const auto kind = readString(object, u"kind", 32, context);
+    if (!kind) {
+        return std::unexpected(kind.error());
+    }
+    if (*kind == u"filing_presence") {
+        if (const auto keys = exactKeys(object, {u"filing_type_id", u"kind", u"present"}, context);
+            !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto filing_type = decodeId<model::FilingTypeId>(object, u"filing_type_id", context);
+        const auto present = object.value(u"present");
+        if (!filing_type) {
+            return std::unexpected(filing_type.error());
+        }
+        if (!present.isBool()) {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("%1.present must be a boolean").arg(context));
+        }
+        return model::WorkflowFilingPrecondition{*filing_type, present.toBool()};
+    }
+    if (*kind == u"order_disposition") {
+        if (const auto keys = exactKeys(object, {u"disposition", u"kind", u"order_id"}, context);
+            !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto order_id = decodeId<model::WorkflowOrderId>(object, u"order_id", context);
+        const auto disposition = decodeOrderDisposition(object, u"disposition", context);
+        if (!order_id) {
+            return std::unexpected(order_id.error());
+        }
+        if (!disposition) {
+            return std::unexpected(disposition.error());
+        }
+        return model::WorkflowOrderPrecondition{*order_id, *disposition};
+    }
+    if (*kind == u"deadline_status") {
+        if (const auto keys = exactKeys(object, {u"deadline_id", u"kind", u"status"}, context);
+            !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto deadline_id =
+            decodeId<model::WorkflowDeadlineId>(object, u"deadline_id", context);
+        const auto condition = decodeDeadlineCondition(object, u"status", context);
+        if (!deadline_id) {
+            return std::unexpected(deadline_id.error());
+        }
+        if (!condition) {
+            return std::unexpected(condition.error());
+        }
+        return model::WorkflowDeadlinePrecondition{*deadline_id, *condition};
+    }
+    if (*kind == u"argument_scheduled") {
+        if (const auto keys = exactKeys(object, {u"kind", u"scheduled"}, context); !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto scheduled = object.value(u"scheduled");
+        if (!scheduled.isBool()) {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("%1.scheduled must be a boolean").arg(context));
+        }
+        return model::WorkflowArgumentPrecondition{scheduled.toBool()};
+    }
+    if (*kind == u"judgment_issued") {
+        if (const auto keys = exactKeys(object, {u"issued", u"kind"}, context); !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto issued = object.value(u"issued");
+        if (!issued.isBool()) {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("%1.issued must be a boolean").arg(context));
+        }
+        return model::WorkflowJudgmentPrecondition{issued.toBool()};
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("%1.kind is unknown").arg(context));
+}
+
+[[nodiscard]] auto decodePreconditions(const QJsonValue& value)
+    -> std::expected<std::vector<model::WorkflowPrecondition>, WorkflowCodecError> {
+    if (!value.isArray()) {
+        return fail(WorkflowCodecErrorCode::InvalidField,
+                    QStringLiteral("payload.preconditions must be an array"));
+    }
+    const auto array = value.toArray();
+    if (array.size() > maximum_preconditions) {
+        return fail(WorkflowCodecErrorCode::OutOfRange,
+                    QStringLiteral("payload.preconditions exceeds its bound"));
+    }
+    QSet<QString> subjects;
+    std::vector<model::WorkflowPrecondition> result;
+    result.reserve(static_cast<std::size_t>(array.size()));
+    for (qsizetype index = 0; index < array.size(); ++index) {
+        if (!array.at(index).isObject()) {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("payload.preconditions[%1] must be an object").arg(index));
+        }
+        const auto decoded = decodePrecondition(
+            array.at(index).toObject(), QStringLiteral("payload.preconditions[%1]").arg(index));
+        if (!decoded) {
+            return std::unexpected(decoded.error());
+        }
+        const auto subject = preconditionSubject(*decoded);
+        if (subjects.contains(subject)) {
+            return fail(
+                WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("payload.preconditions has duplicate or conflicting subjects"));
+        }
+        subjects.insert(subject);
+        result.push_back(*decoded);
+    }
+    return result;
+}
+
+[[nodiscard]] auto encodeDispositionScope(model::DispositionScope scope)
+    -> std::expected<QString, WorkflowCodecError> {
+    switch (scope) {
+    case model::DispositionScope::Whole:
+        return QStringLiteral("whole");
+    case model::DispositionScope::Part:
+        return QStringLiteral("part");
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField, QStringLiteral("Unknown disposition scope"));
+}
+
+[[nodiscard]] auto decodeDispositionScope(const QJsonObject& object, QStringView context)
+    -> std::expected<model::DispositionScope, WorkflowCodecError> {
+    const auto value = readString(object, u"scope", 16, context);
+    if (!value) {
+        return std::unexpected(value.error());
+    }
+    if (*value == u"whole") {
+        return model::DispositionScope::Whole;
+    }
+    if (*value == u"part") {
+        return model::DispositionScope::Part;
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("%1.scope is unknown").arg(context));
+}
+
+[[nodiscard]] auto encodeDispositionAction(model::DispositionAction action)
+    -> std::expected<QString, WorkflowCodecError> {
+    switch (action) {
+    case model::DispositionAction::Affirm:
+        return QStringLiteral("affirm");
+    case model::DispositionAction::Reverse:
+        return QStringLiteral("reverse");
+    case model::DispositionAction::Vacate:
+        return QStringLiteral("vacate");
+    case model::DispositionAction::Dismiss:
+        return QStringLiteral("dismiss");
+    case model::DispositionAction::Grant:
+        return QStringLiteral("grant");
+    case model::DispositionAction::Deny:
+        return QStringLiteral("deny");
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField, QStringLiteral("Unknown disposition action"));
+}
+
+[[nodiscard]] auto decodeDispositionAction(const QJsonObject& object, QStringView context)
+    -> std::expected<model::DispositionAction, WorkflowCodecError> {
+    const auto value = readString(object, u"action", 16, context);
+    if (!value) {
+        return std::unexpected(value.error());
+    }
+    if (*value == u"affirm") {
+        return model::DispositionAction::Affirm;
+    }
+    if (*value == u"reverse") {
+        return model::DispositionAction::Reverse;
+    }
+    if (*value == u"vacate") {
+        return model::DispositionAction::Vacate;
+    }
+    if (*value == u"dismiss") {
+        return model::DispositionAction::Dismiss;
+    }
+    if (*value == u"grant") {
+        return model::DispositionAction::Grant;
+    }
+    if (*value == u"deny") {
+        return model::DispositionAction::Deny;
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("%1.action is unknown").arg(context));
+}
+
+[[nodiscard]] bool actionMayRemand(model::DispositionAction action) {
+    return action == model::DispositionAction::Reverse ||
+           action == model::DispositionAction::Vacate ||
+           action == model::DispositionAction::Dismiss || action == model::DispositionAction::Grant;
+}
+
+[[nodiscard]] auto encodeDispositionFinality(model::DispositionFinality finality)
+    -> std::expected<QString, WorkflowCodecError> {
+    switch (finality) {
+    case model::DispositionFinality::Final:
+        return QStringLiteral("final");
+    case model::DispositionFinality::Nonfinal:
+        return QStringLiteral("nonfinal");
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("Unknown disposition finality"));
+}
+
+[[nodiscard]] auto decodeDispositionFinality(const QJsonObject& object, QStringView context)
+    -> std::expected<model::DispositionFinality, WorkflowCodecError> {
+    const auto value = readString(object, u"finality", 16, context);
+    if (!value) {
+        return std::unexpected(value.error());
+    }
+    if (*value == u"final") {
+        return model::DispositionFinality::Final;
+    }
+    if (*value == u"nonfinal") {
+        return model::DispositionFinality::Nonfinal;
+    }
+    return fail(WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("%1.finality is unknown").arg(context));
+}
+
+[[nodiscard]] auto encodeDispositionComponent(const model::DispositionComponent& component)
+    -> std::expected<QJsonObject, WorkflowCodecError> {
+    const auto issue_id = checkedId(component.issue_id.value, u"disposition.components.issue_id");
+    const auto target_id =
+        checkedId(component.target_id.value, u"disposition.components.target_id");
+    const auto scope = encodeDispositionScope(component.scope);
+    const auto action = encodeDispositionAction(component.action);
+    const auto authorities = encodeIdArray(component.authority_ids, maximum_disposition_authorities,
+                                           true, u"disposition.components.authority_ids");
+    const auto anchors =
+        encodeIdArray(component.record_anchor_ids, maximum_disposition_record_anchors, true,
+                      u"disposition.components.record_anchor_ids");
+    if (!issue_id) {
+        return std::unexpected(issue_id.error());
+    }
+    if (!target_id) {
+        return std::unexpected(target_id.error());
+    }
+    if (!scope) {
+        return std::unexpected(scope.error());
+    }
+    if (!action) {
+        return std::unexpected(action.error());
+    }
+    if (!authorities) {
+        return std::unexpected(authorities.error());
+    }
+    if (!anchors) {
+        return std::unexpected(anchors.error());
+    }
+    if (component.remand && !actionMayRemand(component.action)) {
+        return fail(WorkflowCodecErrorCode::InvalidField,
+                    QStringLiteral("Disposition action cannot carry remand"));
+    }
+    return QJsonObject{{QStringLiteral("action"), *action},
+                       {QStringLiteral("authority_ids"), *authorities},
+                       {QStringLiteral("issue_id"), *issue_id},
+                       {QStringLiteral("record_anchor_ids"), *anchors},
+                       {QStringLiteral("remand"), component.remand},
+                       {QStringLiteral("scope"), *scope},
+                       {QStringLiteral("target_id"), *target_id}};
+}
+
+[[nodiscard]] auto decodeDispositionComponent(const QJsonObject& object, QStringView context)
+    -> std::expected<model::DispositionComponent, WorkflowCodecError> {
+    if (const auto keys = exactKeys(object,
+                                    {u"action", u"authority_ids", u"issue_id", u"record_anchor_ids",
+                                     u"remand", u"scope", u"target_id"},
+                                    context);
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto issue_id = decodeId<model::CaseIssueId>(object, u"issue_id", context);
+    const auto target_id = decodeId<model::DispositionTargetId>(object, u"target_id", context);
+    const auto scope = decodeDispositionScope(object, context);
+    const auto action = decodeDispositionAction(object, context);
+    const auto authorities = decodeIdArray<model::AuthorityId>(
+        object.value(u"authority_ids"), maximum_disposition_authorities, true,
+        QStringLiteral("%1.authority_ids").arg(context));
+    const auto anchors = decodeIdArray<model::RecordAnchorId>(
+        object.value(u"record_anchor_ids"), maximum_disposition_record_anchors, true,
+        QStringLiteral("%1.record_anchor_ids").arg(context));
+    const auto remand = object.value(u"remand");
+    if (!issue_id) {
+        return std::unexpected(issue_id.error());
+    }
+    if (!target_id) {
+        return std::unexpected(target_id.error());
+    }
+    if (!scope) {
+        return std::unexpected(scope.error());
+    }
+    if (!action) {
+        return std::unexpected(action.error());
+    }
+    if (!authorities) {
+        return std::unexpected(authorities.error());
+    }
+    if (!anchors) {
+        return std::unexpected(anchors.error());
+    }
+    if (!remand.isBool() || (remand.toBool() && !actionMayRemand(*action))) {
+        return fail(WorkflowCodecErrorCode::InvalidField,
+                    QStringLiteral("%1.remand is invalid for its action").arg(context));
+    }
+    return model::DispositionComponent{
+        *issue_id,          *target_id, *scope, *action, remand.toBool(), std::move(*authorities),
+        std::move(*anchors)};
+}
+
+[[nodiscard]] auto encodeDispositionPlan(const model::DispositionPlan& plan)
+    -> std::expected<QJsonObject, WorkflowCodecError> {
+    const auto plan_id = checkedId(plan.id.value, u"disposition.plan_id");
+    const auto finality = encodeDispositionFinality(plan.finality);
+    const auto digest = checkedDigest(plan.canonical_sha256, u"disposition.digest");
+    if (!plan_id) {
+        return std::unexpected(plan_id.error());
+    }
+    if (!finality) {
+        return std::unexpected(finality.error());
+    }
+    if (!digest) {
+        return std::unexpected(digest.error());
+    }
+    if (plan.components.empty() ||
+        plan.components.size() > static_cast<std::size_t>(maximum_disposition_components)) {
+        return fail(WorkflowCodecErrorCode::OutOfRange,
+                    QStringLiteral("Disposition plan components are empty or exceed their bound"));
+    }
+    QSet<QString> targets;
+    QJsonArray components;
+    for (const auto& component : plan.components) {
+        const auto target = QString::fromUtf8(component.issue_id.value) + u'\n' +
+                            QString::fromUtf8(component.target_id.value);
+        if (targets.contains(target)) {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("Disposition plan repeats an issue/target pair"));
+        }
+        targets.insert(target);
+        const auto encoded = encodeDispositionComponent(component);
+        if (!encoded) {
+            return std::unexpected(encoded.error());
+        }
+        components.append(*encoded);
+    }
+    return QJsonObject{{QStringLiteral("components"), components},
+                       {QStringLiteral("digest"), *digest},
+                       {QStringLiteral("finality"), *finality},
+                       {QStringLiteral("plan_id"), *plan_id}};
+}
+
+[[nodiscard]] auto decodeDispositionPlan(const QJsonObject& object, QStringView context)
+    -> std::expected<model::DispositionPlan, WorkflowCodecError> {
+    if (const auto keys =
+            exactKeys(object, {u"components", u"digest", u"finality", u"plan_id"}, context);
+        !keys) {
+        return std::unexpected(keys.error());
+    }
+    const auto plan_id = decodeId<model::DispositionPlanId>(object, u"plan_id", context);
+    const auto finality = decodeDispositionFinality(object, context);
+    const auto digest = readDigest(object, u"digest", context);
+    const auto components_value = object.value(u"components");
+    if (!plan_id) {
+        return std::unexpected(plan_id.error());
+    }
+    if (!finality) {
+        return std::unexpected(finality.error());
+    }
+    if (!digest) {
+        return std::unexpected(digest.error());
+    }
+    if (!components_value.isArray() || components_value.toArray().isEmpty() ||
+        components_value.toArray().size() > maximum_disposition_components) {
+        return fail(WorkflowCodecErrorCode::OutOfRange,
+                    QStringLiteral("%1.components is empty or exceeds its bound").arg(context));
+    }
+    const auto array = components_value.toArray();
+    QSet<QString> targets;
+    std::vector<model::DispositionComponent> components;
+    components.reserve(static_cast<std::size_t>(array.size()));
+    for (qsizetype index = 0; index < array.size(); ++index) {
+        if (!array.at(index).isObject()) {
+            return fail(
+                WorkflowCodecErrorCode::InvalidField,
+                QStringLiteral("%1.components[%2] must be an object").arg(context).arg(index));
+        }
+        const auto decoded =
+            decodeDispositionComponent(array.at(index).toObject(),
+                                       QStringLiteral("%1.components[%2]").arg(context).arg(index));
+        if (!decoded) {
+            return std::unexpected(decoded.error());
+        }
+        const auto target = QString::fromUtf8(decoded->issue_id.value) + u'\n' +
+                            QString::fromUtf8(decoded->target_id.value);
+        if (targets.contains(target)) {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("Disposition plan repeats an issue/target pair"));
+        }
+        targets.insert(target);
+        components.push_back(*decoded);
+    }
+    return model::DispositionPlan{*plan_id, *finality, *digest, std::move(components)};
+}
+
 [[nodiscard]] auto encodeCommandPayload(const model::SubmitWorkflowFiling& command)
     -> std::expected<QJsonObject, WorkflowCodecError> {
     auto payload = encodeCommandHeader(command.header);
@@ -1365,15 +1918,27 @@ template <typename Id>
     if (!digest) {
         return std::unexpected(digest.error());
     }
-    if (!roundTripsUtf8(command.disposition)) {
-        return fail(WorkflowCodecErrorCode::InvalidField,
-                    QStringLiteral("payload.disposition is not valid UTF-8"));
-    }
-    const auto disposition = QString::fromUtf8(command.disposition);
-    if (disposition.isEmpty() || disposition.toUtf8().size() > maximum_text_characters ||
-        containsNull(disposition)) {
-        return fail(WorkflowCodecErrorCode::OutOfRange,
-                    QStringLiteral("payload.disposition is empty or exceeds its bound"));
+    QJsonValue disposition;
+    if (const auto* legacy = std::get_if<std::string>(&command.disposition)) {
+        if (!roundTripsUtf8(*legacy)) {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("payload.disposition is not valid UTF-8"));
+        }
+        const auto text = QString::fromUtf8(*legacy);
+        if (text.isEmpty() || text.toUtf8().size() > maximum_text_characters ||
+            containsNull(text)) {
+            return fail(WorkflowCodecErrorCode::OutOfRange,
+                        QStringLiteral("payload.disposition is empty or exceeds its bound"));
+        }
+        disposition = text;
+    } else {
+        const auto plan_id =
+            checkedId(std::get<model::DispositionPlanId>(command.disposition).value,
+                      u"payload.disposition.plan_id");
+        if (!plan_id) {
+            return std::unexpected(plan_id.error());
+        }
+        disposition = QJsonObject{{QStringLiteral("plan_id"), *plan_id}};
     }
     payload->insert(QStringLiteral("disposition"), disposition);
     payload->insert(QStringLiteral("document_sha256"), *digest);
@@ -1598,8 +2163,6 @@ template <typename Id>
     const auto operation_id =
         decodeId<model::WorkflowOperationId>(payload, u"operation_id", u"payload");
     const auto digest = readDigest(payload, u"document_sha256", u"payload");
-    const auto disposition =
-        readString(payload, u"disposition", maximum_text_characters, u"payload");
     if (!header) {
         return std::unexpected(header.error());
     }
@@ -1609,11 +2172,31 @@ template <typename Id>
     if (!digest) {
         return std::unexpected(digest.error());
     }
-    if (!disposition) {
-        return std::unexpected(disposition.error());
+    model::WorkflowJudgmentSelection disposition;
+    const auto disposition_value = payload.value(u"disposition");
+    if (disposition_value.isString()) {
+        const auto legacy =
+            readString(payload, u"disposition", maximum_text_characters, u"payload");
+        if (!legacy) {
+            return std::unexpected(legacy.error());
+        }
+        disposition = legacy->toUtf8().toStdString();
+    } else if (disposition_value.isObject()) {
+        const auto object = disposition_value.toObject();
+        if (const auto keys = exactKeys(object, {u"plan_id"}, u"payload.disposition"); !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto plan_id =
+            decodeId<model::DispositionPlanId>(object, u"plan_id", u"payload.disposition");
+        if (!plan_id) {
+            return std::unexpected(plan_id.error());
+        }
+        disposition = *plan_id;
+    } else {
+        return fail(WorkflowCodecErrorCode::InvalidField,
+                    QStringLiteral("payload.disposition must be text or a plan selection"));
     }
-    return model::IssueWorkflowJudgment{*header, *operation_id, *digest,
-                                        disposition->toUtf8().toStdString()};
+    return model::IssueWorkflowJudgment{*header, *operation_id, *digest, std::move(disposition)};
 }
 
 [[nodiscard]] auto decodeIssueMandate(const QJsonObject& payload)
@@ -2116,15 +2699,26 @@ template <typename Id>
     if (!next) {
         return std::unexpected(next.error());
     }
-    if (!roundTripsUtf8(event.disposition)) {
-        return fail(WorkflowCodecErrorCode::InvalidField,
-                    QStringLiteral("payload.disposition is not valid UTF-8"));
-    }
-    const auto disposition = QString::fromUtf8(event.disposition);
-    if (disposition.isEmpty() || disposition.toUtf8().size() > maximum_text_characters ||
-        containsNull(disposition)) {
-        return fail(WorkflowCodecErrorCode::OutOfRange,
-                    QStringLiteral("payload.disposition is empty or exceeds its bound"));
+    QJsonValue disposition;
+    if (const auto* legacy = std::get_if<std::string>(&event.disposition)) {
+        if (!roundTripsUtf8(*legacy)) {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("payload.disposition is not valid UTF-8"));
+        }
+        const auto text = QString::fromUtf8(*legacy);
+        if (text.isEmpty() || text.toUtf8().size() > maximum_text_characters ||
+            containsNull(text)) {
+            return fail(WorkflowCodecErrorCode::OutOfRange,
+                        QStringLiteral("payload.disposition is empty or exceeds its bound"));
+        }
+        disposition = text;
+    } else {
+        const auto plan =
+            encodeDispositionPlan(std::get<model::DispositionPlan>(event.disposition));
+        if (!plan) {
+            return std::unexpected(plan.error());
+        }
+        disposition = *plan;
     }
     payload->insert(QStringLiteral("disposition"), disposition);
     payload->insert(QStringLiteral("document_sha256"), *digest);
@@ -2457,8 +3051,6 @@ template <typename Id>
     }
     const auto header = decodeEventHeader(payload);
     const auto digest = readDigest(payload, u"document_sha256", u"payload");
-    const auto disposition =
-        readString(payload, u"disposition", maximum_text_characters, u"payload");
     const auto next =
         decodeOptionalId<model::WorkflowStageId>(payload, u"next_stage_id", u"payload");
     if (!header) {
@@ -2467,14 +3059,30 @@ template <typename Id>
     if (!digest) {
         return std::unexpected(digest.error());
     }
-    if (!disposition) {
-        return std::unexpected(disposition.error());
-    }
     if (!next) {
         return std::unexpected(next.error());
     }
-    return model::WorkflowJudgmentIssued{*header, *digest, disposition->toUtf8().toStdString(),
-                                         *next};
+    model::WorkflowJudgmentDisposition disposition;
+    const auto disposition_value = payload.value(u"disposition");
+    if (disposition_value.isString()) {
+        const auto legacy =
+            readString(payload, u"disposition", maximum_text_characters, u"payload");
+        if (!legacy) {
+            return std::unexpected(legacy.error());
+        }
+        disposition = legacy->toUtf8().toStdString();
+    } else if (disposition_value.isObject()) {
+        const auto plan =
+            decodeDispositionPlan(disposition_value.toObject(), u"payload.disposition");
+        if (!plan) {
+            return std::unexpected(plan.error());
+        }
+        disposition = std::move(*plan);
+    } else {
+        return fail(WorkflowCodecErrorCode::InvalidField,
+                    QStringLiteral("payload.disposition must be text or a disposition plan"));
+    }
+    return model::WorkflowJudgmentIssued{*header, *digest, std::move(disposition), *next};
 }
 
 [[nodiscard]] auto decodeMandateIssued(const QJsonObject& payload)
@@ -2511,7 +3119,8 @@ struct DecodedEnvelope final {
 };
 
 [[nodiscard]] auto decodeEnvelope(QByteArrayView encoded, QStringView type_key,
-                                  QStringView envelope_context, bool allow_provenance)
+                                  QStringView envelope_context, bool allow_provenance,
+                                  bool allow_structured = false)
     -> std::expected<DecodedEnvelope, WorkflowCodecError> {
     if (encoded.isEmpty() || encoded.size() > maximum_payload_bytes) {
         return fail(WorkflowCodecErrorCode::PayloadTooLarge,
@@ -2535,7 +3144,8 @@ struct DecodedEnvelope final {
     const auto version = envelope.value(u"schema_version");
     if (!version.isDouble() ||
         (version.toDouble() != legacy_schema_version &&
-         (!allow_provenance || version.toDouble() != provenance_schema_version))) {
+         (!allow_provenance || version.toDouble() != provenance_schema_version) &&
+         (!allow_structured || version.toDouble() != structured_schema_version))) {
         return fail(WorkflowCodecErrorCode::UnsupportedVersion,
                     QStringLiteral("Unsupported workflow schema version"));
     }
@@ -2578,43 +3188,73 @@ encodeWorkflowCommand(const model::WorkflowCommand& command) {
     if (!payload) {
         return std::unexpected(payload.error());
     }
-    return encodeEnvelope(workflowCommandType(command), *payload, u"command_type");
+    const auto structured = std::visit(
+        [](const auto& concrete) {
+            using Command = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Command, model::IssueWorkflowJudgment>) {
+                return std::holds_alternative<model::DispositionPlanId>(concrete.disposition);
+            }
+            return false;
+        },
+        command);
+    return encodeEnvelope(workflowCommandType(command), *payload, u"command_type",
+                          structured ? structured_schema_version : legacy_schema_version);
 }
 
 std::expected<model::WorkflowCommand, WorkflowCodecError>
 decodeWorkflowCommand(QByteArrayView encoded) {
-    const auto envelope = decodeEnvelope(encoded, u"command_type", u"command", false);
+    const auto envelope = decodeEnvelope(encoded, u"command_type", u"command", false, true);
     if (!envelope) {
         return std::unexpected(envelope.error());
     }
     const auto& type = envelope->type;
     const auto& payload = envelope->payload;
-    if (type == QLatin1StringView(submit_filing_type)) {
-        return decodeSubmitFiling(payload);
+    auto decoded = [&]() -> std::expected<model::WorkflowCommand, WorkflowCodecError> {
+        if (type == QLatin1StringView(submit_filing_type)) {
+            return decodeSubmitFiling(payload);
+        }
+        if (type == QLatin1StringView(enter_order_type)) {
+            return decodeEnterOrder(payload);
+        }
+        if (type == QLatin1StringView(set_sealed_type)) {
+            return decodeSetSealed(payload);
+        }
+        if (type == QLatin1StringView(schedule_argument_type)) {
+            return decodeScheduleArgument(payload);
+        }
+        if (type == QLatin1StringView(issue_judgment_type)) {
+            return decodeIssueJudgment(payload);
+        }
+        if (type == QLatin1StringView(issue_mandate_type)) {
+            return decodeIssueMandate(payload);
+        }
+        if (type == QLatin1StringView(calculate_deadline_command_type)) {
+            return decodeCalculateDeadline(payload);
+        }
+        if (type == QLatin1StringView(advance_stage_command_type)) {
+            return decodeAdvanceStage(payload);
+        }
+        return fail(WorkflowCodecErrorCode::UnknownCommandType,
+                    QStringLiteral("Unknown workflow command type %1").arg(type));
+    }();
+    if (!decoded) {
+        return std::unexpected(decoded.error());
     }
-    if (type == QLatin1StringView(enter_order_type)) {
-        return decodeEnterOrder(payload);
+    const auto structured = std::visit(
+        [](const auto& concrete) {
+            using Command = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Command, model::IssueWorkflowJudgment>) {
+                return std::holds_alternative<model::DispositionPlanId>(concrete.disposition);
+            }
+            return false;
+        },
+        *decoded);
+    const auto expected_version = structured ? structured_schema_version : legacy_schema_version;
+    if (envelope->version != expected_version) {
+        return fail(WorkflowCodecErrorCode::UnsupportedVersion,
+                    QStringLiteral("Command schema version does not match its disposition form"));
     }
-    if (type == QLatin1StringView(set_sealed_type)) {
-        return decodeSetSealed(payload);
-    }
-    if (type == QLatin1StringView(schedule_argument_type)) {
-        return decodeScheduleArgument(payload);
-    }
-    if (type == QLatin1StringView(issue_judgment_type)) {
-        return decodeIssueJudgment(payload);
-    }
-    if (type == QLatin1StringView(issue_mandate_type)) {
-        return decodeIssueMandate(payload);
-    }
-    if (type == QLatin1StringView(calculate_deadline_command_type)) {
-        return decodeCalculateDeadline(payload);
-    }
-    if (type == QLatin1StringView(advance_stage_command_type)) {
-        return decodeAdvanceStage(payload);
-    }
-    return fail(WorkflowCodecErrorCode::UnknownCommandType,
-                QStringLiteral("Unknown workflow command type %1").arg(type));
+    return decoded;
 }
 
 QString workflowCommandType(const model::WorkflowCommand& command) {
@@ -2644,9 +3284,9 @@ QString workflowCommandType(const model::WorkflowCommand& command) {
 
 std::expected<QByteArray, WorkflowCodecError>
 encodeWorkflowEvent(const model::WorkflowEvent& event) {
-    const auto version = authoritySchemaVersion(authorityOf(event));
-    if (!version) {
-        return std::unexpected(version.error());
+    const auto authority_version = authoritySchemaVersion(authorityOf(event));
+    if (!authority_version) {
+        return std::unexpected(authority_version.error());
     }
     const auto payload = std::visit(
         [](const auto& concrete) -> std::expected<QJsonObject, WorkflowCodecError> {
@@ -2656,17 +3296,58 @@ encodeWorkflowEvent(const model::WorkflowEvent& event) {
     if (!payload) {
         return std::unexpected(payload.error());
     }
-    return encodeEnvelope(workflowEventType(event), *payload, u"event_type", *version);
+    const auto structured_disposition = std::visit(
+        [](const auto& concrete) {
+            using Event = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Event, model::WorkflowJudgmentIssued>) {
+                return std::holds_alternative<model::DispositionPlan>(concrete.disposition);
+            }
+            return false;
+        },
+        event);
+    const auto& preconditions = std::visit(
+        [](const auto& concrete) -> const std::vector<model::WorkflowPrecondition>& {
+            return concrete.header.preconditions;
+        },
+        event);
+    const auto structured = structured_disposition || !preconditions.empty();
+    auto encoded_payload = *payload;
+    if (structured) {
+        if (*authority_version != provenance_schema_version) {
+            return fail(WorkflowCodecErrorCode::IncompleteAuthority,
+                        QStringLiteral("Structured workflow events require canonical authorities"));
+        }
+        const auto encoded_preconditions = encodePreconditions(preconditions);
+        if (!encoded_preconditions) {
+            return std::unexpected(encoded_preconditions.error());
+        }
+        encoded_payload.insert(QStringLiteral("preconditions"), *encoded_preconditions);
+    }
+    return encodeEnvelope(workflowEventType(event), encoded_payload, u"event_type",
+                          structured ? structured_schema_version : *authority_version);
 }
 
 std::expected<model::WorkflowEvent, WorkflowCodecError>
 decodeWorkflowEvent(QByteArrayView encoded) {
-    const auto envelope = decodeEnvelope(encoded, u"event_type", u"event", true);
+    const auto envelope = decodeEnvelope(encoded, u"event_type", u"event", true, true);
     if (!envelope) {
         return std::unexpected(envelope.error());
     }
     const auto& type = envelope->type;
-    const auto& payload = envelope->payload;
+    auto payload = envelope->payload;
+    std::vector<model::WorkflowPrecondition> preconditions;
+    if (envelope->version == structured_schema_version) {
+        if (!payload.contains(u"preconditions")) {
+            return fail(WorkflowCodecErrorCode::MissingField,
+                        QStringLiteral("Missing payload.preconditions"));
+        }
+        const auto decoded_preconditions = decodePreconditions(payload.value(u"preconditions"));
+        if (!decoded_preconditions) {
+            return std::unexpected(decoded_preconditions.error());
+        }
+        preconditions = std::move(*decoded_preconditions);
+        payload.remove(u"preconditions");
+    }
     auto decoded = [&]() -> std::expected<model::WorkflowEvent, WorkflowCodecError> {
         if (type == QLatin1StringView(filing_accepted_type)) {
             return decodeFilingAccepted(payload);
@@ -2704,10 +3385,31 @@ decodeWorkflowEvent(QByteArrayView encoded) {
     if (!decoded) {
         return std::unexpected(decoded.error());
     }
+    std::visit([&](auto& concrete) { concrete.header.preconditions = std::move(preconditions); },
+               *decoded);
     const auto authority_version = authoritySchemaVersion(authorityOf(*decoded));
-    if (!authority_version || *authority_version != envelope->version) {
-        return fail(WorkflowCodecErrorCode::IncompleteAuthority,
-                    QStringLiteral("Event schema version does not match its authority form"));
+    if (!authority_version) {
+        return std::unexpected(authority_version.error());
+    }
+    const auto structured_disposition = std::visit(
+        [](const auto& concrete) {
+            using Event = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Event, model::WorkflowJudgmentIssued>) {
+                return std::holds_alternative<model::DispositionPlan>(concrete.disposition);
+            }
+            return false;
+        },
+        *decoded);
+    const auto structured =
+        structured_disposition ||
+        std::visit([](const auto& concrete) { return !concrete.header.preconditions.empty(); },
+                   *decoded);
+    if ((structured && (envelope->version != structured_schema_version ||
+                        *authority_version != provenance_schema_version)) ||
+        (!structured && *authority_version != envelope->version)) {
+        return fail(
+            WorkflowCodecErrorCode::IncompleteAuthority,
+            QStringLiteral("Event schema version does not match its authority or feature form"));
     }
     return decoded;
 }
