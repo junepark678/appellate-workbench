@@ -240,6 +240,32 @@ target_link_libraries(
 target_compile_features(tst_oral_argument_session_resume PRIVATE cxx_std_26)
 add_test(NAME oral_argument_session_resume COMMAND tst_oral_argument_session_resume)
 
+qt_add_executable(
+    tst_oral_argument_desktop_e2e
+    integration/tst_oral_argument_desktop_e2e.cpp
+)
+target_link_libraries(
+    tst_oral_argument_desktop_e2e
+    PRIVATE
+        appellate::desktop_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Sql
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_oral_argument_desktop_e2e
+    PRIVATE APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+)
+target_compile_features(tst_oral_argument_desktop_e2e PRIVATE cxx_std_26)
+add_test(NAME oral_argument_desktop_e2e COMMAND tst_oral_argument_desktop_e2e)
+set_tests_properties(
+    oral_argument_desktop_e2e
+    PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        LABELS "e2e;ui;local"
+)
+
 qt_add_executable(tst_out_of_tree_pack integration/tst_out_of_tree_pack.cpp)
 target_link_libraries(
     tst_out_of_tree_pack

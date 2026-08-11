@@ -49,6 +49,17 @@ cmake --build --preset dev
 ctest --preset dev
 ```
 
+Run the dedicated local desktop end-to-end test after building the development preset:
+
+```sh
+cmake --build --preset dev --target tst_oral_argument_desktop_e2e
+ctest --preset e2e
+```
+
+The E2E preset runs the real Qt desktop shell offscreen against an exported and installed
+fixture pack, local SQLite session storage, and content-addressed assets. It requires no server,
+cloud service, browser driver, account, or GitHub Actions runner.
+
 Run the shell with the included fixture pack:
 
 ```sh

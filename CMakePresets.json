@@ -72,6 +72,22 @@
       "output": {
         "outputOnFailure": true
       }
+    },
+    {
+      "name": "e2e",
+      "displayName": "Local desktop end-to-end tests",
+      "configurePreset": "dev",
+      "environment": {
+        "QT_QPA_PLATFORM": "offscreen"
+      },
+      "filter": {
+        "include": {
+          "label": "e2e"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
     }
   ]
 }
