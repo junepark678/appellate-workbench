@@ -115,6 +115,8 @@ class PackDependencyResolutionTest final : public QObject {
     void resolvesV2CanonicalAuthoritiesAcrossExactDependencies();
     void rejectsGroundedQuestionBankTargetingDependencyCase();
     void rejectsSiblingAssistedDependencyReference();
+    void rejectsSiblingOnlyProcedureAuthoritySet();
+    void rejectsAuthorityOutsideRootProcedureSets();
     void rejectsSiblingInvisibleDisclosureAuthority();
     void derivesSealedRecordAccessFromExactResolvedRoot();
     void rejectsWrongExactDigestForBlobStreaming();
@@ -467,6 +469,117 @@ void addFrame(QCryptographicHash& hash, const std::string& value) {
         return overwriteAll(manifest_path, QJsonDocument(manifest).toJson(QJsonDocument::Compact));
     }
     return false;
+}
+
+[[nodiscard]] auto reexportPartition(const QString& root, const QString& stem)
+    -> std::expected<PackRevision, QString> {
+    const auto archive =
+        QDir(root).filePath(QStringLiteral("archives/") + stem + QStringLiteral(".awpack"));
+    if (!QFile::remove(archive)) {
+        return std::unexpected(QStringLiteral("cannot replace partition archive"));
+    }
+    const auto exported = PackArchive::exportDirectory(
+        QDir(root).filePath(QStringLiteral("sources/") + stem), archive, {},
+        appellate::packs::PackValidationScope::ResolvedClosure);
+    if (!exported) {
+        return std::unexpected(exported.error().message);
+    }
+    return *exported;
+}
+
+[[nodiscard]] auto addCaseAuthoritySetToPartition(const QString& root, const QString& stem,
+                                                  bool declare_for_procedure = true)
+    -> std::expected<PackRevision, QString> {
+    const auto source = QDir(root).filePath(QStringLiteral("sources/") + stem);
+    const auto fixture_authority_set =
+        QJsonDocument::fromJson(
+            readAll(QDir(QStringLiteral(APPELLATE_TEST_FIXTURES) +
+                         QStringLiteral("/full-resource-pack-v2"))
+                        .filePath(QStringLiteral("resources/authority-set.json"))))
+            .object();
+    auto authorities = fixture_authority_set.value(QStringLiteral("authorities")).toArray();
+    if (fixture_authority_set.isEmpty() || authorities.isEmpty()) {
+        return std::unexpected(QStringLiteral("case authority fixture is missing"));
+    }
+    auto authority = authorities.first().toObject();
+    authority.insert(QStringLiteral("authority_id"),
+                     QStringLiteral("example.authority.case-specific"));
+    authority.insert(QStringLiteral("citation"), QStringLiteral("Fictional Case Rule 7"));
+    authority.insert(QStringLiteral("locator"), QStringLiteral("Rule 7"));
+    authority.insert(QStringLiteral("source_url"),
+                     QStringLiteral("https://example.invalid/rules/7"));
+    authority.insert(QStringLiteral("proposition"),
+                     QStringLiteral("The case-specific issue is reviewable."));
+    auto case_authority_set = fixture_authority_set;
+    case_authority_set.insert(QStringLiteral("resource_id"),
+                              QStringLiteral("example.authorities.case-specific"));
+    case_authority_set.insert(QStringLiteral("authorities"), QJsonArray{authority});
+    const auto authority_set_path = QStringLiteral("resources/authority-set-case.json");
+    const auto authority_set_bytes =
+        QJsonDocument(case_authority_set).toJson(QJsonDocument::Compact);
+    if (!writeAll(QDir(source).filePath(authority_set_path), authority_set_bytes)) {
+        return std::unexpected(QStringLiteral("cannot add case authority set"));
+    }
+
+    const auto manifest_path = QDir(source).filePath(QStringLiteral("manifest.json"));
+    auto manifest = QJsonDocument::fromJson(readAll(manifest_path)).object();
+    auto contents = manifest.value(QStringLiteral("contents")).toArray();
+    contents.push_back(QJsonObject{
+        {QStringLiteral("id"), QStringLiteral("example.authorities.case-specific")},
+        {QStringLiteral("kind"), QStringLiteral("authority_set")},
+        {QStringLiteral("schema_version"), 2},
+        {QStringLiteral("path"), authority_set_path},
+        {QStringLiteral("sha256"), QString::fromLatin1(sha256(authority_set_bytes))},
+    });
+    manifest.insert(QStringLiteral("contents"), contents);
+    if (!overwriteAll(manifest_path, QJsonDocument(manifest).toJson(QJsonDocument::Compact))) {
+        return std::unexpected(QStringLiteral("cannot update case authority manifest"));
+    }
+
+    const auto procedure_path = QStringLiteral("resources/procedure-profile.json");
+    auto procedure =
+        QJsonDocument::fromJson(readAll(QDir(source).filePath(procedure_path))).object();
+    auto set_ids = procedure.value(QStringLiteral("authority_set_ids")).toArray();
+    if (declare_for_procedure) {
+        set_ids.push_back(QStringLiteral("example.authorities.case-specific"));
+        procedure.insert(QStringLiteral("authority_set_ids"), set_ids);
+    }
+    const auto case_path = QStringLiteral("resources/case.json");
+    auto case_document =
+        QJsonDocument::fromJson(readAll(QDir(source).filePath(case_path))).object();
+    auto issues = case_document.value(QStringLiteral("issues")).toArray();
+    if (procedure.isEmpty() || issues.isEmpty()) {
+        return std::unexpected(QStringLiteral("case authority consumer fixture is missing"));
+    }
+    auto issue = issues.first().toObject();
+    auto authority_ids = issue.value(QStringLiteral("authority_ids")).toArray();
+    authority_ids.push_back(QStringLiteral("example.authority.case-specific"));
+    issue.insert(QStringLiteral("authority_ids"), authority_ids);
+    issues.replace(0, issue);
+    case_document.insert(QStringLiteral("issues"), issues);
+    if ((declare_for_procedure && !rewritePartitionResource(source, procedure_path, procedure)) ||
+        !rewritePartitionResource(source, case_path, case_document)) {
+        return std::unexpected(QStringLiteral("cannot bind case authority set"));
+    }
+    return reexportPartition(root, stem);
+}
+
+[[nodiscard]] auto addProcedureAuthoritySetReference(const QString& root, const QString& stem,
+                                                     const QString& authority_set_id)
+    -> std::expected<PackRevision, QString> {
+    const auto source = QDir(root).filePath(QStringLiteral("sources/") + stem);
+    const auto path = QStringLiteral("resources/procedure-profile.json");
+    auto procedure = QJsonDocument::fromJson(readAll(QDir(source).filePath(path))).object();
+    auto set_ids = procedure.value(QStringLiteral("authority_set_ids")).toArray();
+    if (procedure.isEmpty() || set_ids.isEmpty()) {
+        return std::unexpected(QStringLiteral("procedure authority fixture is missing"));
+    }
+    set_ids.push_back(authority_set_id);
+    procedure.insert(QStringLiteral("authority_set_ids"), set_ids);
+    if (!rewritePartitionResource(source, path, procedure)) {
+        return std::unexpected(QStringLiteral("cannot rewrite procedure authority sets"));
+    }
+    return reexportPartition(root, stem);
 }
 
 [[nodiscard]] auto addSealedTwinsToPartition(
@@ -1256,18 +1369,20 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
     const auto procedure = buildPartitionArchive(
         temporary.path(), QStringLiteral("v2-procedure"), QStringLiteral("test.v2.procedure"),
         {QStringLiteral("resources/court.json"), QStringLiteral("resources/filing-catalog.json"),
-         QStringLiteral("resources/form.json"), QStringLiteral("resources/procedure-profile.json"),
-         QStringLiteral("resources/workflow.json")},
+         QStringLiteral("resources/form.json"), QStringLiteral("resources/workflow.json")},
         {*authorities}, false, {}, 2, false, QStringLiteral("2026.03.22"));
     QVERIFY2(procedure.has_value(), procedure ? "" : qPrintable(procedure.error()));
-    const auto root = buildPartitionArchive(
+    const auto root_base = buildPartitionArchive(
         temporary.path(), QStringLiteral("v2-root"), QStringLiteral("test.v2.root"),
         {QStringLiteral("resources/argument-config-counterfactual.json"),
          QStringLiteral("resources/argument-config.json"),
          QStringLiteral("resources/bench-configuration.json"),
          QStringLiteral("resources/case.json"), QStringLiteral("resources/judge-profile.json"),
+         QStringLiteral("resources/procedure-profile.json"),
          QStringLiteral("resources/record.json")},
         {*procedure}, true, {}, 2, false, QStringLiteral("2026.03.23"));
+    QVERIFY2(root_base.has_value(), root_base ? "" : qPrintable(root_base.error()));
+    const auto root = addCaseAuthoritySetToPartition(temporary.path(), QStringLiteral("v2-root"));
     QVERIFY2(root.has_value(), root ? "" : qPrintable(root.error()));
     QCOMPARE(authorities->version, std::string("2024.02.29"));
     QCOMPARE(procedure->version, std::string("2026.03.22"));
@@ -1297,6 +1412,10 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
     QCOMPARE(root_pin->version, QStringLiteral("2026.03.23"));
     QCOMPARE(resolved->resourceOwner("example.authorities.fictional"),
              std::optional<PackRevision>(*authorities));
+    QCOMPARE(resolved->resourceOwner("example.procedure.fictional"),
+             std::optional<PackRevision>(*root));
+    QCOMPARE(resolved->resourceOwner("example.authorities.case-specific"),
+             std::optional<PackRevision>(*root));
 
     const auto runtime = appellate::packs::loadRuntimePack(*resolved);
     QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
@@ -1321,10 +1440,18 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
     QVERIFY(workflow_authority.provenance.has_value());
     QCOMPARE(workflow_authority.provenance->source_url,
              std::string("https://example.invalid/rules/2"));
-    QCOMPARE(runtime_case.issues.front().authorities.size(), std::size_t{1});
+    QCOMPARE(runtime_case.issues.front().authorities.size(), std::size_t{2});
     QVERIFY(runtime_case.issues.front().authorities.front().provenance.has_value());
     QCOMPARE(runtime_case.issues.front().authorities.front().citation,
              std::string("Fictional Rule 1"));
+    const auto case_authority =
+        std::ranges::find(runtime_case.issues.front().authorities,
+                          appellate::model::AuthorityId{"example.authority.case-specific"},
+                          &appellate::model::AuthorityRef::id);
+    QVERIFY(case_authority != runtime_case.issues.front().authorities.end());
+    QVERIFY(case_authority->provenance.has_value());
+    QCOMPARE(case_authority->provenance->source_url,
+             std::string("https://example.invalid/rules/7"));
     QCOMPARE(runtime_case.filing_authorities.size(), std::size_t{1});
     QCOMPARE(runtime_case.filing_authorities.front().filing_type_id.value,
              std::string("example.filing.notice"));
@@ -1785,6 +1912,85 @@ void PackDependencyResolutionTest::rejectsSiblingAssistedDependencyReference() {
                  .entryList(QStringList{QStringLiteral("*.awpack")}, QDir::Files)
                  .size(),
              2);
+}
+
+void PackDependencyResolutionTest::rejectsSiblingOnlyProcedureAuthoritySet() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto support = buildPartitionArchive(
+        temporary.path(), QStringLiteral("authority-visibility-support"),
+        QStringLiteral("test.authority-visibility.support"),
+        {QStringLiteral("resources/authority-set.json"), QStringLiteral("resources/court.json"),
+         QStringLiteral("resources/filing-catalog.json"), QStringLiteral("resources/form.json"),
+         QStringLiteral("resources/workflow.json")},
+        {}, false, {}, 2);
+    QVERIFY2(support.has_value(), support ? "" : qPrintable(support.error()));
+    const auto sibling = buildPartitionArchive(
+        temporary.path(), QStringLiteral("authority-visibility-sibling"),
+        QStringLiteral("test.authority-visibility.sibling"),
+        {QStringLiteral("resources/authority-set.json")}, {}, false, QByteArray("sibling."), 2);
+    QVERIFY2(sibling.has_value(), sibling ? "" : qPrintable(sibling.error()));
+    const auto dependent_base = buildPartitionArchive(
+        temporary.path(), QStringLiteral("authority-visibility-dependent"),
+        QStringLiteral("test.authority-visibility.dependent"),
+        {QStringLiteral("resources/procedure-profile.json")}, {*support}, false, {}, 2);
+    QVERIFY2(dependent_base.has_value(), dependent_base ? "" : qPrintable(dependent_base.error()));
+    const auto dependent = addProcedureAuthoritySetReference(
+        temporary.path(), QStringLiteral("authority-visibility-dependent"),
+        QStringLiteral("sibling.authorities.fictional"));
+    QVERIFY2(dependent.has_value(), dependent ? "" : qPrintable(dependent.error()));
+
+    auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
+    QVERIFY(catalog.has_value());
+    QVERIFY(
+        install(**catalog, temporary.path(), QStringLiteral("authority-visibility-support"), 1));
+    QVERIFY(
+        install(**catalog, temporary.path(), QStringLiteral("authority-visibility-sibling"), 2));
+    const auto rejected = (*catalog)->installArchive(
+        archivePath(temporary.path(), QStringLiteral("authority-visibility-dependent")),
+        QStringLiteral("2026-08-11T00:00:03Z"));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, CatalogErrorCode::InvalidResolvedGraph);
+    const auto listed = (*catalog)->list();
+    QVERIFY(listed.has_value());
+    QCOMPARE(listed->size(), std::size_t{2});
+}
+
+void PackDependencyResolutionTest::rejectsAuthorityOutsideRootProcedureSets() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto support = buildPartitionArchive(
+        temporary.path(), QStringLiteral("authority-scope-support"),
+        QStringLiteral("test.authority-scope.support"),
+        {QStringLiteral("resources/authority-set.json"), QStringLiteral("resources/court.json"),
+         QStringLiteral("resources/filing-catalog.json"), QStringLiteral("resources/form.json"),
+         QStringLiteral("resources/workflow.json")},
+        {}, false, {}, 2);
+    QVERIFY2(support.has_value(), support ? "" : qPrintable(support.error()));
+    const auto root_base = buildPartitionArchive(
+        temporary.path(), QStringLiteral("authority-scope-root"),
+        QStringLiteral("test.authority-scope.root"),
+        {QStringLiteral("resources/bench-configuration.json"),
+         QStringLiteral("resources/case.json"), QStringLiteral("resources/judge-profile.json"),
+         QStringLiteral("resources/procedure-profile.json"),
+         QStringLiteral("resources/record.json")},
+        {*support}, true, {}, 2);
+    QVERIFY2(root_base.has_value(), root_base ? "" : qPrintable(root_base.error()));
+    const auto root = addCaseAuthoritySetToPartition(temporary.path(),
+                                                     QStringLiteral("authority-scope-root"), false);
+    QVERIFY2(root.has_value(), root ? "" : qPrintable(root.error()));
+
+    auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
+    QVERIFY(catalog.has_value());
+    QVERIFY(install(**catalog, temporary.path(), QStringLiteral("authority-scope-support"), 1));
+    const auto rejected = (*catalog)->installArchive(
+        archivePath(temporary.path(), QStringLiteral("authority-scope-root")),
+        QStringLiteral("2026-08-11T00:00:02Z"));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, CatalogErrorCode::InvalidResolvedGraph);
+    const auto listed = (*catalog)->list();
+    QVERIFY(listed.has_value());
+    QCOMPARE(listed->size(), std::size_t{1});
 }
 
 void PackDependencyResolutionTest::rejectsSiblingInvisibleDisclosureAuthority() {

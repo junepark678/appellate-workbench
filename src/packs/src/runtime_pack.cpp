@@ -3260,15 +3260,6 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         return std::unexpected(catalog.error());
     }
     if (resource.descriptor.schema_version == 2) {
-        if (std::ranges::any_of(procedure->authority_set_ids, [&](const auto& procedure_set) {
-                return std::ranges::none_of(court->authority_set_ids, [&](const auto& court_set) {
-                    return procedure_set.value == court_set.value;
-                });
-            })) {
-            return fail(RuntimePackErrorCode::CrossReferenceFailure,
-                        "procedure " + procedure->id.value +
-                            " uses an authority set not declared by its court");
-        }
         for (const auto& operation : workflow->operations) {
             if (!index.authorityInSets(operation.authority.primary.id.value,
                                        procedure->authority_set_ids) ||

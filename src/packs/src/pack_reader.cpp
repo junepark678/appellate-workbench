@@ -1896,20 +1896,6 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
             return std::unexpected(workflow.error());
         }
         QSet<QString> procedure_authority_ids;
-        const auto procedure_authority_set_ids =
-            stringSet(document.value(QStringLiteral("authority_set_ids")).toArray());
-        if (resource.descriptor.schema_version == 2) {
-            const auto court_authority_set_ids =
-                stringSet((*court)->document.value(QStringLiteral("authority_set_ids")).toArray());
-            if (!std::ranges::all_of(procedure_authority_set_ids,
-                                     [&court_authority_set_ids](const QString& set_id) {
-                                         return court_authority_set_ids.contains(set_id);
-                                     })) {
-                return crossReferenceFailure(
-                    resource, QStringLiteral("authority_set_ids"),
-                    QStringLiteral("procedure authority sets must be declared by its court"));
-            }
-        }
         for (const auto& value : document.value(QStringLiteral("authority_set_ids")).toArray()) {
             const auto authority_set =
                 requireKind(resource, QStringLiteral("authority_set_ids"), value.toString(),

@@ -41,6 +41,7 @@ class SchemaDispatchTest final : public QObject {
     void preservesPinnedPre28V2Revision();
     void preservesPinnedPre25V2Revision();
     void loadsV2AndProjectsRuntime();
+    void allowsProcedureAuthoritySetsBeyondCourtDefaults();
     void validatesSealedRecordTwins();
     void validatesGroundedQuestionBanks();
     void normalizesGroundedQuestionBankOrdering();
@@ -377,6 +378,62 @@ void refreshDispositionDigests(QJsonObject& case_document) {
         }
         manifest.insert(QStringLiteral("contents"), contents);
     });
+}
+
+[[nodiscard]] bool addCaseAuthoritySet(const QString& root) {
+    const auto authority_set_path = QStringLiteral("resources/authority-set-case.json");
+    const auto source =
+        readObject(QDir(root).filePath(QStringLiteral("resources/authority-set.json")));
+    auto authorities = source.value(QStringLiteral("authorities")).toArray();
+    if (source.isEmpty() || authorities.isEmpty()) {
+        return false;
+    }
+    auto authority = authorities.first().toObject();
+    authority.insert(QStringLiteral("authority_id"),
+                     QStringLiteral("example.authority.case-specific"));
+    authority.insert(QStringLiteral("citation"), QStringLiteral("Fictional Case Rule 7"));
+    authority.insert(QStringLiteral("locator"), QStringLiteral("Rule 7"));
+    authority.insert(QStringLiteral("source_url"),
+                     QStringLiteral("https://example.invalid/rules/7"));
+    authority.insert(QStringLiteral("proposition"),
+                     QStringLiteral("The case-specific issue is reviewable."));
+    auto case_authority_set = source;
+    case_authority_set.insert(QStringLiteral("resource_id"),
+                              QStringLiteral("example.authorities.case-specific"));
+    case_authority_set.insert(QStringLiteral("authorities"), QJsonArray{authority});
+    const auto bytes = QJsonDocument(case_authority_set).toJson(QJsonDocument::Compact);
+    if (!writeBytes(QDir(root).filePath(authority_set_path), bytes) ||
+        !mutateManifest(root, [&](QJsonObject& manifest) {
+            auto contents = manifest.value(QStringLiteral("contents")).toArray();
+            contents.push_back(QJsonObject{
+                {QStringLiteral("id"), QStringLiteral("example.authorities.case-specific")},
+                {QStringLiteral("kind"), QStringLiteral("authority_set")},
+                {QStringLiteral("schema_version"), 2},
+                {QStringLiteral("path"), authority_set_path},
+                {QStringLiteral("sha256"),
+                 QString::fromLatin1(
+                     QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex())},
+            });
+            manifest.insert(QStringLiteral("contents"), contents);
+        })) {
+        return false;
+    }
+    return mutateResource(root, QStringLiteral("resources/procedure-profile.json"),
+                          [](QJsonObject& procedure) {
+                              auto sets =
+                                  procedure.value(QStringLiteral("authority_set_ids")).toArray();
+                              sets.push_back(QStringLiteral("example.authorities.case-specific"));
+                              procedure.insert(QStringLiteral("authority_set_ids"), sets);
+                          }) &&
+           mutateResource(root, QStringLiteral("resources/case.json"), [](QJsonObject& case_) {
+               auto issues = case_.value(QStringLiteral("issues")).toArray();
+               auto issue = issues.first().toObject();
+               auto issue_authority_ids = issue.value(QStringLiteral("authority_ids")).toArray();
+               issue_authority_ids.push_back(QStringLiteral("example.authority.case-specific"));
+               issue.insert(QStringLiteral("authority_ids"), issue_authority_ids);
+               issues.replace(0, issue);
+               case_.insert(QStringLiteral("issues"), issues);
+           });
 }
 
 [[nodiscard]] bool refreshQuestionBankDigest(const QString& root, const QString& argument_path) {
@@ -1370,6 +1427,84 @@ void SchemaDispatchTest::loadsV2AndProjectsRuntime() {
              std::string("398c9797ae359c4a317ababe2db7e27c1dad8b11d4059f36a71d01262edf11d5"));
     QCOMPARE(counterfactual_bank.issue_topics.size(), std::size_t{2});
     QCOMPARE(counterfactual_bank.questions.size(), std::size_t{2});
+}
+
+void SchemaDispatchTest::allowsProcedureAuthoritySetsBeyondCourtDefaults() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), pack.path()));
+    QVERIFY(addCaseAuthoritySet(pack.path()));
+
+    const auto loaded = PackReader::readDirectory(pack.path());
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+    const auto find_resource = [](auto& candidate, appellate::model::ResourceKind kind) {
+        return std::ranges::find_if(candidate.resources, [kind](const auto& resource) {
+            return resource.descriptor.kind == kind;
+        });
+    };
+    const auto court = find_resource(*loaded, appellate::model::ResourceKind::Court);
+    const auto procedure = find_resource(*loaded, appellate::model::ResourceKind::ProcedureProfile);
+    QVERIFY(court != loaded->resources.end());
+    QVERIFY(procedure != loaded->resources.end());
+    QCOMPARE(court->document.value(QStringLiteral("authority_set_ids")).toArray(),
+             QJsonArray{QStringLiteral("example.authorities.fictional")});
+    QCOMPARE(procedure->document.value(QStringLiteral("authority_set_ids")).toArray(),
+             (QJsonArray{QStringLiteral("example.authorities.fictional"),
+                         QStringLiteral("example.authorities.case-specific")}));
+
+    const auto runtime = appellate::packs::loadRuntimePack(*loaded);
+    QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+    const auto& issue_authorities = runtime->cases.front().issues.front().authorities;
+    const auto case_authority = std::ranges::find(
+        issue_authorities, appellate::model::AuthorityId{"example.authority.case-specific"},
+        &appellate::model::AuthorityRef::id);
+    QVERIFY(case_authority != issue_authorities.end());
+    QVERIFY(case_authority->provenance.has_value());
+    QCOMPARE(case_authority->provenance->source_url,
+             std::string("https://example.invalid/rules/7"));
+
+    const auto rejects_graph_and_runtime = [](const appellate::packs::LoadedPack& candidate,
+                                              appellate::packs::RuntimePackErrorCode runtime_code) {
+        const auto graph = PackReader::validateResolvedGraph(candidate, {});
+        const auto projected = appellate::packs::loadRuntimePack(candidate);
+        return !graph.has_value() && graph.error().code == ErrorCode::CrossReferenceFailure &&
+               !projected.has_value() && projected.error().code == runtime_code;
+    };
+
+    auto outside_procedure = *loaded;
+    auto outside_procedure_profile =
+        find_resource(outside_procedure, appellate::model::ResourceKind::ProcedureProfile);
+    QVERIFY(outside_procedure_profile != outside_procedure.resources.end());
+    outside_procedure_profile->document.insert(
+        QStringLiteral("authority_set_ids"),
+        QJsonArray{QStringLiteral("example.authorities.fictional")});
+    QVERIFY(rejects_graph_and_runtime(
+        outside_procedure, appellate::packs::RuntimePackErrorCode::CrossReferenceFailure));
+
+    auto unknown_set = *loaded;
+    auto unknown_set_procedure =
+        find_resource(unknown_set, appellate::model::ResourceKind::ProcedureProfile);
+    QVERIFY(unknown_set_procedure != unknown_set.resources.end());
+    auto set_ids =
+        unknown_set_procedure->document.value(QStringLiteral("authority_set_ids")).toArray();
+    set_ids.push_back(QStringLiteral("example.authorities.unknown"));
+    unknown_set_procedure->document.insert(QStringLiteral("authority_set_ids"), set_ids);
+    QVERIFY(rejects_graph_and_runtime(unknown_set,
+                                      appellate::packs::RuntimePackErrorCode::MissingResource));
+
+    auto unknown_authority = *loaded;
+    auto unknown_authority_case =
+        find_resource(unknown_authority, appellate::model::ResourceKind::Case);
+    QVERIFY(unknown_authority_case != unknown_authority.resources.end());
+    auto issues = unknown_authority_case->document.value(QStringLiteral("issues")).toArray();
+    auto issue = issues.first().toObject();
+    auto authority_ids = issue.value(QStringLiteral("authority_ids")).toArray();
+    authority_ids.push_back(QStringLiteral("example.authority.unknown"));
+    issue.insert(QStringLiteral("authority_ids"), authority_ids);
+    issues.replace(0, issue);
+    unknown_authority_case->document.insert(QStringLiteral("issues"), issues);
+    QVERIFY(rejects_graph_and_runtime(unknown_authority,
+                                      appellate::packs::RuntimePackErrorCode::MissingResource));
 }
 
 void SchemaDispatchTest::validatesSealedRecordTwins() {
