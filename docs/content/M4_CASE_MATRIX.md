@@ -202,7 +202,7 @@ Common sources:
 - [Fourth Circuit FRAP, local rules, and IOPs (2026-03-23)](https://www.ca4.uscourts.gov/docs/pdfs/rules.pdf)
 - [Federal Rules of Appellate Procedure (2025-12-01)](https://www.uscourts.gov/sites/default/files/document/federal-rules-of-appellate-procedure.pdf)
 - [Federal Rules of Civil Procedure (2025-12-01)](https://www.uscourts.gov/sites/default/files/document/federal-rules-of-civil-procedure.pdf)
-- [Federal Rules of Criminal Procedure (last amended 2023-12-01)](https://www.uscourts.gov/sites/default/files/document/federal-rules-of-criminal-procedure.pdf)
+- [Federal Rules of Criminal Procedure (2025-12-01 official compilation; last substantively amended in 2023)](https://www.uscourts.gov/sites/default/files/document/federal-rules-of-criminal-procedure.pdf)
 - [Fourth Circuit sealed/confidential materials guide](https://www.ca4.uscourts.gov/appellateprocedureguide/General_Provisions/SealedConfidMem.html)
 
 Case-specific primary sources:

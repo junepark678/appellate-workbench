@@ -1,0 +1,13 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.writ-petition",
+  "filing_id": "us.ca4.filing.writ-petition", "title": "Petition for Extraordinary Writ",
+  "fields": [
+    {"field_id": "us.ca4.field.writ-petition.caption", "label": "In re caption", "value_type": "short_text", "required": true},
+    {"field_id": "us.ca4.field.writ-petition.relief", "label": "Relief requested", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.writ-petition.issues", "label": "Issues presented", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.writ-petition.necessary-facts", "label": "Facts necessary to understand the issues", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.writ-petition.reasons", "label": "Reasons the writ should issue", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.writ-petition.essential-materials", "label": "Essential record materials", "value_type": "record_citation", "required": true},
+    {"field_id": "us.ca4.field.writ-petition.trial-judge-copy-provided", "label": "Copy provided to the trial-court judge", "value_type": "boolean", "required": true}
+  ]
+}

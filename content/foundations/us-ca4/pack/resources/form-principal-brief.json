@@ -1,0 +1,10 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.principal-brief",
+  "filing_id": "us.ca4.filing.principal-brief", "title": "Principal Brief",
+  "fields": [
+    {"field_id": "us.ca4.field.brief.issues", "label": "Issues presented", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.brief.argument", "label": "Argument", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.brief.record-citations", "label": "Record citations", "value_type": "record_citation", "required": true},
+    {"field_id": "us.ca4.field.brief.authority-citations", "label": "Authority citations", "value_type": "authority_citation", "required": true}
+  ]
+}

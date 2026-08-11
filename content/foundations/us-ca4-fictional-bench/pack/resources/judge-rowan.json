@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "resource_kind": "judge_profile",
+  "resource_id": "us.ca4.bench-profile.rowan",
+  "display_name": "Composite Jurist Rowan",
+  "profile_class": "fictional_composite",
+  "compatibility": {
+    "court_roles": ["appellate"],
+    "jurisdiction_ids": ["us.ca4"]
+  },
+  "interaction": {
+    "directness": 0.72,
+    "formality": 0.78,
+    "question_length": 0.55,
+    "interruption_frequency": 0.38,
+    "follow_up_depth": 0.92,
+    "hypothetical_frequency": 0.60,
+    "concession_recall": 0.88,
+    "record_pin_demand": 0.90,
+    "time_strictness": 0.65,
+    "issue_focus": [
+      {"topic_id": "workbench.topic.standard-of-review", "weight": 0.85},
+      {"topic_id": "workbench.topic.governing-authority", "weight": 0.90},
+      {"topic_id": "workbench.topic.record-support", "weight": 0.80}
+    ]
+  },
+  "voice": {
+    "register": "technical",
+    "cadence": "measured",
+    "question_framing": "socratic",
+    "address_convention": "counsel",
+    "verbosity": 0.58,
+    "sentence_complexity": 0.72,
+    "question_phrases": ["follow that premise one step further", "which rule supplies that result"],
+    "interruption_phrases": ["hold that thought", "before you leave the premise"],
+    "clarification_phrases": ["define the limiting principle", "connect that answer to the standard"]
+  }
+}

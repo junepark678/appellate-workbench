@@ -1,0 +1,92 @@
+{
+  "schema_version": 2,
+  "resource_kind": "authority_set",
+  "resource_id": "us.federal.authorities.civil-rules",
+  "source_cutoff": "2026-08-11",
+  "authorities": [
+    {
+      "authority_id": "us.federal.authority.frcp-6-time",
+      "authority_type": "rule",
+      "jurisdiction_id": "us.federal",
+      "issuing_body_id": "us.courts.supreme-court",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fed. R. Civ. P. 6",
+      "source_version": "2025-12-01",
+      "checked_on": "2026-08-11",
+      "locator": "Rule 6",
+      "source_url": "https://www.uscourts.gov/sites/default/files/document/federal-rules-of-civil-procedure.pdf",
+      "proposition": "Rule 6 supplies the generally applicable method for computing and extending time in a federal civil action."
+    },
+    {
+      "authority_id": "us.federal.authority.frcp-50-jmol",
+      "authority_type": "rule",
+      "jurisdiction_id": "us.federal",
+      "issuing_body_id": "us.courts.supreme-court",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fed. R. Civ. P. 50",
+      "source_version": "2025-12-01",
+      "checked_on": "2026-08-11",
+      "locator": "Rule 50",
+      "source_url": "https://www.uscourts.gov/sites/default/files/document/federal-rules-of-civil-procedure.pdf",
+      "proposition": "Rule 50 governs judgment as a matter of law before submission and renewal after verdict."
+    },
+    {
+      "authority_id": "us.federal.authority.frcp-54b-partial-judgment",
+      "authority_type": "rule",
+      "jurisdiction_id": "us.federal",
+      "issuing_body_id": "us.courts.supreme-court",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fed. R. Civ. P. 54(b)",
+      "source_version": "2025-12-01",
+      "checked_on": "2026-08-11",
+      "locator": "Rule 54(b)",
+      "source_url": "https://www.uscourts.gov/sites/default/files/document/federal-rules-of-civil-procedure.pdf",
+      "proposition": "Rule 54(b) permits entry of judgment on fewer than all claims or parties only with the required express determination and direction."
+    },
+    {
+      "authority_id": "us.federal.authority.frcp-59-new-trial",
+      "authority_type": "rule",
+      "jurisdiction_id": "us.federal",
+      "issuing_body_id": "us.courts.supreme-court",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fed. R. Civ. P. 59",
+      "source_version": "2025-12-01",
+      "checked_on": "2026-08-11",
+      "locator": "Rule 59",
+      "source_url": "https://www.uscourts.gov/sites/default/files/document/federal-rules-of-civil-procedure.pdf",
+      "proposition": "Rule 59 governs motions for a new trial and to alter or amend a judgment."
+    },
+    {
+      "authority_id": "us.federal.authority.frcp-62-stay",
+      "authority_type": "rule",
+      "jurisdiction_id": "us.federal",
+      "issuing_body_id": "us.courts.supreme-court",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fed. R. Civ. P. 62",
+      "source_version": "2025-12-01",
+      "checked_on": "2026-08-11",
+      "locator": "Rule 62",
+      "source_url": "https://www.uscourts.gov/sites/default/files/document/federal-rules-of-civil-procedure.pdf",
+      "proposition": "Rule 62 governs stays of proceedings to enforce a federal civil judgment."
+    },
+    {
+      "authority_id": "us.federal.authority.frcp-65-injunctions",
+      "authority_type": "rule",
+      "jurisdiction_id": "us.federal",
+      "issuing_body_id": "us.courts.supreme-court",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fed. R. Civ. P. 65",
+      "source_version": "2025-12-01",
+      "checked_on": "2026-08-11",
+      "locator": "Rule 65",
+      "source_url": "https://www.uscourts.gov/sites/default/files/document/federal-rules-of-civil-procedure.pdf",
+      "proposition": "Rule 65 governs preliminary injunctions, temporary restraining orders, security, and the contents and scope of injunctions."
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "pack_id": "foundation.us-ca4",
+  "version": "2026.03.23",
+  "required_capabilities": [
+    {"id": "workbench.pack.declarative-resources", "version": 2},
+    {"id": "workbench.pack.canonical-authority", "version": 1},
+    {"id": "workbench.pack.workflow-preconditions", "version": 1}
+  ],
+  "dependencies": [
+    {
+      "pack_id": "foundation.us-federal",
+      "version": "2025.12.01",
+      "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9"
+    }
+  ],
+  "contents": [
+    {"id": "us.ca4.authorities.local-procedure", "kind": "authority_set", "schema_version": 2, "path": "resources/authority-local-procedure.json", "sha256": "f79923eaeba9be53407a836f8675a277c042219bdba96eb81cf8a8ff095d350e"},
+    {"id": "us.ca4.court.appeals", "kind": "court", "schema_version": 2, "path": "resources/court.json", "sha256": "39a91da331a07ef85053eb45ec84817015567c5ee25525c47ec28b8836729558"},
+    {"id": "us.ca4.filing-catalog.shared", "kind": "filing_catalog", "schema_version": 2, "path": "resources/filing-catalog.json", "sha256": "1e1d03c6b2543a2b3e13756e9ba285ea880321b148f426a43953399b8762e7d0"},
+    {"id": "us.ca4.form.agency-petition-for-review", "kind": "form", "schema_version": 2, "path": "resources/form-agency-petition.json", "sha256": "6a910cb0d26c874234a41d176151b970f395a69d25edd608306ca99fed465a1c"},
+    {"id": "us.ca4.form.agency-record", "kind": "form", "schema_version": 2, "path": "resources/form-agency-record.json", "sha256": "029822dc7edbd3e6bbe991408c845c89af6d3acc4f2d628841ee9fb2a58f6b90"},
+    {"id": "us.ca4.form.appearance", "kind": "form", "schema_version": 2, "path": "resources/form-appearance.json", "sha256": "f00a735af5fec85fe0d8529c93af1d6955d81295b72579c3a86de3486b7aa3c6"},
+    {"id": "us.ca4.form.appendix", "kind": "form", "schema_version": 2, "path": "resources/form-appendix.json", "sha256": "503c9df046d533e465225c4dd6f6ec109e6d28670ae0e6cf64ff8b09df7866cd"},
+    {"id": "us.ca4.form.civil-notice-of-appeal", "kind": "form", "schema_version": 2, "path": "resources/form-civil-notice.json", "sha256": "e95767768c0f5dde329f25c413ad437546ab6390f904a13ed09888b6b5b13af1"},
+    {"id": "us.ca4.form.criminal-notice-of-appeal", "kind": "form", "schema_version": 2, "path": "resources/form-criminal-notice.json", "sha256": "1388920c98d3584e2ac4fdee4ec483af1a6775150168f4d30f5ea8eb171d0f50"},
+    {"id": "us.ca4.form.docketing-statement", "kind": "form", "schema_version": 2, "path": "resources/form-docketing-statement.json", "sha256": "a66fcc60e9ca6fc82a08fa1de4a99820eff8e273bd7c58be8f7364d132590c77"},
+    {"id": "us.ca4.form.motion", "kind": "form", "schema_version": 2, "path": "resources/form-motion.json", "sha256": "49061883b38a6e689cd7cbee6b3eebf0f12f508a596c9205df8a6b235e26c7a7"},
+    {"id": "us.ca4.form.principal-brief", "kind": "form", "schema_version": 2, "path": "resources/form-principal-brief.json", "sha256": "ca17470627af6174d3cbaff0740716ea95c7f8d0af2d8c7f93b4bd73a2858757"},
+    {"id": "us.ca4.form.rehearing-petition", "kind": "form", "schema_version": 2, "path": "resources/form-rehearing-petition.json", "sha256": "4a145fdf0cd9254cd32170d66f8281970bf934967573071ec73723d37f766d73"},
+    {"id": "us.ca4.form.transcript-order", "kind": "form", "schema_version": 2, "path": "resources/form-transcript-order.json", "sha256": "429e05b25f6c11b4dc4ff46a313e4e52bf04500aa7cbd799ee71d91c2ae088d5"},
+    {"id": "us.ca4.form.writ-petition", "kind": "form", "schema_version": 2, "path": "resources/form-writ-petition.json", "sha256": "de2fe7d31c4da683bd01e771636ca4152dae789f8396e4b022293c612ba520d8"},
+    {"id": "us.ca4.form.writ-response", "kind": "form", "schema_version": 2, "path": "resources/form-writ-response.json", "sha256": "b7a0d8c14f7bdf32e66665950f13a2d9d9dec03cb91951d5d98aca392c2a9190"},
+    {"id": "us.ca4.procedure.agency-review", "kind": "procedure_profile", "schema_version": 2, "path": "resources/procedure-agency-review.json", "sha256": "25022e4f9e34b75cd23f0a483d32e71452dcab2e57d623fdcaf599bb6737315e"},
+    {"id": "us.ca4.procedure.civil-appeal", "kind": "procedure_profile", "schema_version": 2, "path": "resources/procedure-civil-appeal.json", "sha256": "3fa569d41cdbfdd41e897d1a25b1820b75a1753bebb0df4e94e8c61843551207"},
+    {"id": "us.ca4.procedure.criminal-appeal", "kind": "procedure_profile", "schema_version": 2, "path": "resources/procedure-criminal-appeal.json", "sha256": "018c0407f0f1183f6c6b6b8230364aa45691b8b0fb3f4b4902e1cbebff2e3761"},
+    {"id": "us.ca4.procedure.original-writ", "kind": "procedure_profile", "schema_version": 2, "path": "resources/procedure-original-writ.json", "sha256": "c2705d2f7082c73ee629b0926ed9161d9d41cc4d2bca91903247086d672a0839"},
+    {"id": "us.ca4.workflow.agency-review", "kind": "workflow", "schema_version": 2, "path": "resources/workflow-agency-review.json", "sha256": "ac74c5f2b9a9c4bdf8a50dea485a53930611bf47622f561da909f4d19202b588"},
+    {"id": "us.ca4.workflow.civil-appeal", "kind": "workflow", "schema_version": 2, "path": "resources/workflow-civil-appeal.json", "sha256": "eefd8f99e02cec5062ae6f22ece5cb36f6d77115da6d8a160026fa9bc1fd6bf9"},
+    {"id": "us.ca4.workflow.criminal-appeal", "kind": "workflow", "schema_version": 2, "path": "resources/workflow-criminal-appeal.json", "sha256": "6f0cbfc633e0fbfb849f1cebdc036a8764a522745f916e8e782f79a26269cdd0"},
+    {"id": "us.ca4.workflow.original-writ", "kind": "workflow", "schema_version": 2, "path": "resources/workflow-original-writ.json", "sha256": "215e8bbb30c50ecd87f9071faaedcaae83a569ade0161ad832a9f9d09c99a821"}
+  ],
+  "blobs": []
+}

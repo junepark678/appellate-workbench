@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "resource_kind": "judge_profile",
+  "resource_id": "us.ca4.bench-profile.fen",
+  "display_name": "Composite Jurist Fen",
+  "profile_class": "fictional_composite",
+  "compatibility": {
+    "court_roles": ["appellate"],
+    "jurisdiction_ids": ["us.ca4"]
+  },
+  "interaction": {
+    "directness": 0.55,
+    "formality": 0.62,
+    "question_length": 0.86,
+    "interruption_frequency": 0.28,
+    "follow_up_depth": 0.82,
+    "hypothetical_frequency": 0.94,
+    "concession_recall": 0.70,
+    "record_pin_demand": 0.55,
+    "time_strictness": 0.42,
+    "issue_focus": [
+      {"topic_id": "workbench.topic.merits", "weight": 0.76},
+      {"topic_id": "workbench.topic.practical-consequences", "weight": 0.92},
+      {"topic_id": "workbench.topic.governing-authority", "weight": 0.64}
+    ]
+  },
+  "voice": {
+    "register": "formal",
+    "cadence": "expansive",
+    "question_framing": "narrative",
+    "address_convention": "advocate",
+    "verbosity": 0.86,
+    "sentence_complexity": 0.70,
+    "question_phrases": ["consider a variation on that premise", "how would your rule operate in the next case"],
+    "interruption_phrases": ["before completing that account", "let me vary the premise"],
+    "clarification_phrases": ["describe the boundary of the rule", "explain the practical consequence"]
+  }
+}

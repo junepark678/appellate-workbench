@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "resource_kind": "judge_profile",
+  "resource_id": "us.ca4.bench-profile.vale",
+  "display_name": "Composite Jurist Vale",
+  "profile_class": "fictional_composite",
+  "compatibility": {
+    "court_roles": ["appellate"],
+    "jurisdiction_ids": ["us.ca4"]
+  },
+  "interaction": {
+    "directness": 0.70,
+    "formality": 0.55,
+    "question_length": 0.45,
+    "interruption_frequency": 0.25,
+    "follow_up_depth": 0.66,
+    "hypothetical_frequency": 0.36,
+    "concession_recall": 0.72,
+    "record_pin_demand": 0.72,
+    "time_strictness": 0.60,
+    "issue_focus": [
+      {"topic_id": "workbench.topic.jurisdiction", "weight": 0.72},
+      {"topic_id": "workbench.topic.practical-consequences", "weight": 0.78},
+      {"topic_id": "workbench.topic.remedy", "weight": 0.68}
+    ]
+  },
+  "voice": {
+    "register": "plain",
+    "cadence": "measured",
+    "question_framing": "direct",
+    "address_convention": "counsel",
+    "verbosity": 0.44,
+    "sentence_complexity": 0.38,
+    "question_phrases": ["say that in practical terms", "what follows from your rule"],
+    "interruption_phrases": ["let us pause there", "take the first point"],
+    "clarification_phrases": ["put that more simply", "which part of the rule matters"]
+  }
+}

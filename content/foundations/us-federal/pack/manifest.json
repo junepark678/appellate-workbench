@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "pack_id": "foundation.us-federal",
+  "version": "2025.12.01",
+  "required_capabilities": [
+    {
+      "id": "workbench.pack.declarative-resources",
+      "version": 2
+    },
+    {
+      "id": "workbench.pack.canonical-authority",
+      "version": 1
+    }
+  ],
+  "dependencies": [],
+  "contents": [
+    {
+      "id": "us.federal.authorities.appellate-rules",
+      "kind": "authority_set",
+      "schema_version": 2,
+      "path": "resources/authority-appellate-rules.json",
+      "sha256": "50394dbd4f1812cfe8f4dd42564d0d95338d0e2a9b7957b43b0df45c3cfce103"
+    },
+    {
+      "id": "us.federal.authorities.civil-rules",
+      "kind": "authority_set",
+      "schema_version": 2,
+      "path": "resources/authority-civil-rules.json",
+      "sha256": "c5ad4b58aa464fdf1f5bee591e4da88b14146b18c45b803802e0b34f9b313362"
+    },
+    {
+      "id": "us.federal.authorities.criminal-rules",
+      "kind": "authority_set",
+      "schema_version": 2,
+      "path": "resources/authority-criminal-rules.json",
+      "sha256": "34e5f026f883d0f892f2309b8ccf191fcd92401c16772472fbf58e47e45ba1f8"
+    },
+    {
+      "id": "us.federal.court.appellate-calendar",
+      "kind": "court",
+      "schema_version": 2,
+      "path": "resources/court-calendar.json",
+      "sha256": "8b6f4d4c6bf34760d02b062f16ffbb2ec97042098a4ddaaf63ee216ab8cc88d7"
+    }
+  ],
+  "blobs": []
+}

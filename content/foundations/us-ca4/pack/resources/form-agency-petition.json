@@ -1,0 +1,12 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.agency-petition-for-review",
+  "filing_id": "us.ca4.filing.agency-petition-for-review", "title": "Petition for Review of Agency Order",
+  "fields": [
+    {"field_id": "us.ca4.field.agency-petition.caption", "label": "Proceeding caption", "value_type": "short_text", "required": true},
+    {"field_id": "us.ca4.field.agency-petition.parties-seeking-review", "label": "Each party seeking review (not et al. or petitioners)", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.agency-petition.agency", "label": "Agency or board", "value_type": "short_text", "required": true},
+    {"field_id": "us.ca4.field.agency-petition.order-reference", "label": "Order date and reference", "value_type": "short_text", "required": true},
+    {"field_id": "us.ca4.field.agency-petition.order-copy-attached", "label": "Copy of the agency order is attached", "value_type": "boolean", "required": true},
+    {"field_id": "us.ca4.field.agency-petition.respondent-names-addresses", "label": "Respondent names and service addresses", "value_type": "long_text", "required": true}
+  ]
+}

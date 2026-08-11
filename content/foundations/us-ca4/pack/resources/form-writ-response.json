@@ -1,0 +1,8 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.writ-response",
+  "filing_id": "us.ca4.filing.writ-response", "title": "Response to Writ Petition",
+  "fields": [
+    {"field_id": "us.ca4.field.writ-response.position", "label": "Position on requested relief", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.writ-response.grounds", "label": "Grounds", "value_type": "long_text", "required": true}
+  ]
+}

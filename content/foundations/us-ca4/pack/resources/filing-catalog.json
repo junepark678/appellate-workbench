@@ -1,0 +1,98 @@
+{
+  "schema_version": 2,
+  "resource_kind": "filing_catalog",
+  "resource_id": "us.ca4.filing-catalog.shared",
+  "filings": [
+    {
+      "filing_id": "us.ca4.filing.civil-notice-of-appeal",
+      "title": "Civil Notice of Appeal",
+      "actor_role_ids": ["us.ca4.role.initiating-party"],
+      "required_field_ids": ["us.ca4.field.civil-notice.caption", "us.ca4.field.civil-notice.appealing-parties", "us.ca4.field.civil-notice.originating-docket", "us.ca4.field.civil-notice.judgment-or-order", "us.ca4.field.civil-notice.order-date", "us.ca4.field.civil-notice.destination-court"],
+      "authority_id": "us.federal.authority.frap-3-appeal-as-of-right"
+    },
+    {
+      "filing_id": "us.ca4.filing.criminal-notice-of-appeal",
+      "title": "Criminal Notice of Appeal",
+      "actor_role_ids": ["us.ca4.role.initiating-party"],
+      "required_field_ids": ["us.ca4.field.criminal-notice.caption", "us.ca4.field.criminal-notice.appealing-parties", "us.ca4.field.criminal-notice.originating-docket", "us.ca4.field.criminal-notice.judgment-or-order", "us.ca4.field.criminal-notice.judgment-date", "us.ca4.field.criminal-notice.destination-court"],
+      "authority_id": "us.federal.authority.frap-3-appeal-as-of-right"
+    },
+    {
+      "filing_id": "us.ca4.filing.agency-petition-for-review",
+      "title": "Petition for Review of Agency Order",
+      "actor_role_ids": ["us.ca4.role.initiating-party"],
+      "required_field_ids": ["us.ca4.field.agency-petition.caption", "us.ca4.field.agency-petition.parties-seeking-review", "us.ca4.field.agency-petition.agency", "us.ca4.field.agency-petition.order-reference", "us.ca4.field.agency-petition.order-copy-attached", "us.ca4.field.agency-petition.respondent-names-addresses"],
+      "authority_id": "us.federal.authority.frap-15-agency-review"
+    },
+    {
+      "filing_id": "us.ca4.filing.writ-petition",
+      "title": "Petition for Extraordinary Writ",
+      "actor_role_ids": ["us.ca4.role.initiating-party"],
+      "required_field_ids": ["us.ca4.field.writ-petition.caption", "us.ca4.field.writ-petition.relief", "us.ca4.field.writ-petition.issues", "us.ca4.field.writ-petition.necessary-facts", "us.ca4.field.writ-petition.reasons", "us.ca4.field.writ-petition.essential-materials", "us.ca4.field.writ-petition.trial-judge-copy-provided"],
+      "authority_id": "us.federal.authority.frap-21-extraordinary-writ"
+    },
+    {
+      "filing_id": "us.ca4.filing.appearance",
+      "title": "Appearance of Counsel",
+      "actor_role_ids": ["us.ca4.role.initiating-party", "us.ca4.role.responding-party"],
+      "required_field_ids": ["us.ca4.field.appearance.counsel-name", "us.ca4.field.appearance.party-name", "us.ca4.field.appearance.contact"],
+      "authority_id": "us.ca4.authority.local-rule-46c-appearance"
+    },
+    {
+      "filing_id": "us.ca4.filing.docketing-statement",
+      "title": "Docketing Statement",
+      "actor_role_ids": ["us.ca4.role.initiating-party"],
+      "required_field_ids": ["us.ca4.field.docketing.jurisdiction", "us.ca4.field.docketing.issues", "us.ca4.field.docketing.related-cases"],
+      "authority_id": "us.ca4.authority.local-rule-3b-docketing"
+    },
+    {
+      "filing_id": "us.ca4.filing.transcript-order",
+      "title": "Transcript Order or Certificate",
+      "actor_role_ids": ["us.ca4.role.initiating-party"],
+      "required_field_ids": ["us.ca4.field.transcript.status", "us.ca4.field.transcript.proceedings"],
+      "authority_id": "us.ca4.authority.local-rule-10c-transcripts"
+    },
+    {
+      "filing_id": "us.ca4.filing.principal-brief",
+      "title": "Principal Brief",
+      "actor_role_ids": ["us.ca4.role.initiating-party", "us.ca4.role.responding-party"],
+      "required_field_ids": ["us.ca4.field.brief.issues", "us.ca4.field.brief.argument", "us.ca4.field.brief.record-citations", "us.ca4.field.brief.authority-citations"],
+      "authority_id": "us.federal.authority.frap-28-briefs"
+    },
+    {
+      "filing_id": "us.ca4.filing.agency-record",
+      "title": "Certified Agency Record",
+      "actor_role_ids": ["us.ca4.role.responding-party"],
+      "required_field_ids": ["us.ca4.field.agency-record.index", "us.ca4.field.agency-record.certification"],
+      "authority_id": "us.federal.authority.frap-17-agency-record"
+    },
+    {
+      "filing_id": "us.ca4.filing.writ-response",
+      "title": "Response to Writ Petition",
+      "actor_role_ids": ["us.ca4.role.responding-party"],
+      "required_field_ids": ["us.ca4.field.writ-response.position", "us.ca4.field.writ-response.grounds"],
+      "authority_id": "us.ca4.authority.local-rule-21b-writs"
+    },
+    {
+      "filing_id": "us.ca4.filing.motion",
+      "title": "Motion",
+      "actor_role_ids": ["us.ca4.role.initiating-party", "us.ca4.role.responding-party"],
+      "required_field_ids": ["us.ca4.field.motion.relief", "us.ca4.field.motion.grounds", "us.ca4.field.motion.party-position"],
+      "authority_id": "us.ca4.authority.local-rule-27-motions"
+    },
+    {
+      "filing_id": "us.ca4.filing.rehearing-petition",
+      "title": "Petition for Panel Rehearing or Rehearing En Banc",
+      "actor_role_ids": ["us.ca4.role.initiating-party", "us.ca4.role.responding-party"],
+      "required_field_ids": ["us.ca4.field.rehearing.kind", "us.ca4.field.rehearing.purpose-statement", "us.ca4.field.rehearing.grounds"],
+      "authority_id": "us.federal.authority.frap-40-rehearing"
+    },
+    {
+      "filing_id": "us.ca4.filing.appendix",
+      "title": "Joint or Supplemental Appendix",
+      "actor_role_ids": ["us.ca4.role.initiating-party", "us.ca4.role.responding-party"],
+      "required_field_ids": ["us.ca4.field.appendix.contents", "us.ca4.field.appendix.pagination"],
+      "authority_id": "us.federal.authority.frap-30-appendix"
+    }
+  ]
+}

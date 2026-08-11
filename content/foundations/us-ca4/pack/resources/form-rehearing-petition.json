@@ -1,0 +1,9 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.rehearing-petition",
+  "filing_id": "us.ca4.filing.rehearing-petition", "title": "Petition for Rehearing",
+  "fields": [
+    {"field_id": "us.ca4.field.rehearing.kind", "label": "Petition type", "value_type": "choice", "required": true, "choices": ["Panel rehearing", "Rehearing en banc", "Panel rehearing and rehearing en banc"]},
+    {"field_id": "us.ca4.field.rehearing.purpose-statement", "label": "Rule 40 purpose statement", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.rehearing.grounds", "label": "Grounds", "value_type": "long_text", "required": true}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.transcript-order",
+  "filing_id": "us.ca4.filing.transcript-order", "title": "Transcript Order or Certificate",
+  "fields": [
+    {"field_id": "us.ca4.field.transcript.status", "label": "Transcript status", "value_type": "choice", "required": true, "choices": ["Transcript ordered", "No transcript required", "Transcript already available"]},
+    {"field_id": "us.ca4.field.transcript.proceedings", "label": "Proceedings designated", "value_type": "long_text", "required": true}
+  ]
+}

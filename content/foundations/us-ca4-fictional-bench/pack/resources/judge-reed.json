@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "resource_kind": "judge_profile",
+  "resource_id": "us.ca4.bench-profile.reed",
+  "display_name": "Composite Jurist Reed",
+  "profile_class": "fictional_composite",
+  "compatibility": {
+    "court_roles": ["appellate"],
+    "jurisdiction_ids": ["us.ca4"]
+  },
+  "interaction": {
+    "directness": 0.88,
+    "formality": 0.76,
+    "question_length": 0.26,
+    "interruption_frequency": 0.62,
+    "follow_up_depth": 0.74,
+    "hypothetical_frequency": 0.34,
+    "concession_recall": 0.84,
+    "record_pin_demand": 0.92,
+    "time_strictness": 0.85,
+    "issue_focus": [
+      {"topic_id": "workbench.topic.record-support", "weight": 0.94},
+      {"topic_id": "workbench.topic.preservation", "weight": 0.84},
+      {"topic_id": "workbench.topic.governing-authority", "weight": 0.78}
+    ]
+  },
+  "voice": {
+    "register": "technical",
+    "cadence": "clipped",
+    "question_framing": "direct",
+    "address_convention": "counsel",
+    "verbosity": 0.28,
+    "sentence_complexity": 0.56,
+    "question_phrases": ["give the record cite", "identify the operative text"],
+    "interruption_phrases": ["cite it before continuing", "focus on the record"],
+    "clarification_phrases": ["which page supports that", "which clause controls"]
+  }
+}

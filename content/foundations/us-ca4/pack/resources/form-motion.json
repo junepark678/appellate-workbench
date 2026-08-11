@@ -1,0 +1,9 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.motion",
+  "filing_id": "us.ca4.filing.motion", "title": "Motion",
+  "fields": [
+    {"field_id": "us.ca4.field.motion.relief", "label": "Relief requested", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.motion.grounds", "label": "Grounds and supporting authority", "value_type": "authority_citation", "required": true},
+    {"field_id": "us.ca4.field.motion.party-position", "label": "Other parties' positions", "value_type": "long_text", "required": true}
+  ]
+}

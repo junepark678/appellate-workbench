@@ -337,6 +337,30 @@ target_compile_features(tst_gold_case_trace PRIVATE cxx_std_26)
 add_test(NAME gold_case_trace COMMAND tst_gold_case_trace)
 
 qt_add_executable(
+    tst_m4_foundation_packs
+    integration/tst_m4_foundation_packs.cpp
+)
+target_link_libraries(
+    tst_m4_foundation_packs
+    PRIVATE
+        appellate::packs
+        appellate::project_warnings
+        appellate::project_sanitizers
+        LibArchive::LibArchive
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_m4_foundation_packs
+    PRIVATE APPELLATE_M4_FOUNDATIONS="${PROJECT_SOURCE_DIR}/content/foundations"
+)
+target_compile_features(tst_m4_foundation_packs PRIVATE cxx_std_26)
+add_test(NAME m4_foundation_packs COMMAND tst_m4_foundation_packs)
+set_tests_properties(
+    m4_foundation_packs
+    PROPERTIES LABELS "content;integration;local"
+)
+
+qt_add_executable(
     tst_gold_record_workspace
     integration/tst_gold_record_workspace.cpp
 )
