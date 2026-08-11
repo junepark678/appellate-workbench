@@ -37,6 +37,10 @@ namespace appellate::packs {
 class PackCatalog;
 }
 
+namespace appellate::storage {
+class SessionStore;
+}
+
 namespace appellate::ui {
 
 class BenchProfileEditor;
@@ -149,6 +153,8 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] const app::WorkflowSessionController* workflowSessionController() const noexcept;
 
   private:
+    friend class MainWindowTestAccess;
+
     struct RecordAccessActionBinding final {
         std::string disclosure_id;
         QAction* grant_action{};
@@ -198,6 +204,7 @@ class MainWindow final : public QMainWindow {
     void showStatus(const QString& message);
 
     std::unique_ptr<packs::PackCatalog> catalog_;
+    std::unique_ptr<storage::SessionStore> record_access_owner_store_;
     std::unique_ptr<app::RecordAccessSessionController> record_access_controller_;
     std::unique_ptr<app::WorkflowSessionController> workflow_controller_;
     std::optional<packs::RuntimePack> runtime_pack_;

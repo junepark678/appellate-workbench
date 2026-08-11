@@ -262,6 +262,7 @@ MainWindow::MainWindow(
 MainWindow::~MainWindow() {
     workflow_controller_.reset();
     record_access_controller_.reset();
+    record_access_owner_store_.reset();
     clearRecordAccessActions();
     if (workspace_tabs_ != nullptr && record_workspace_ != nullptr) {
         workspace_tabs_->removeTab(workspace_tabs_->indexOf(record_workspace_));
@@ -714,10 +715,19 @@ auto MainWindow::openRecordAccessSession(const packs::ResolvedPack& resolved_pac
             QStringLiteral("Local record-access session directory cannot be created"));
     }
 
-    auto store = storage::SessionStore::open(record_access_database_path_);
+    if (record_access_owner_store_ == nullptr) {
+        auto owner_store = storage::SessionStore::open(record_access_database_path_);
+        if (!owner_store) {
+            return std::unexpected(
+                QStringLiteral("Local record-access session database cannot be opened: %1")
+                    .arg(owner_store.error().message));
+        }
+        record_access_owner_store_ = std::move(*owner_store);
+    }
+    auto store = record_access_owner_store_->forkConnection();
     if (!store) {
         return std::unexpected(
-            QStringLiteral("Local record-access session database cannot be opened: %1")
+            QStringLiteral("Local record-access session connection cannot be opened: %1")
                 .arg(store.error().message));
     }
     const auto session_id = recordAccessSessionId(resolved_pack.root().revision, selected_case_id);

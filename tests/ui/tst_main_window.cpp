@@ -42,6 +42,24 @@
 #include <utility>
 #include <vector>
 
+namespace appellate::ui {
+
+class MainWindowTestAccess final {
+  public:
+    [[nodiscard]] static auto forkRecordAccessConnection(const MainWindow& window)
+        -> std::expected<std::unique_ptr<storage::SessionStore>, storage::StoreError> {
+        if (window.record_access_owner_store_ == nullptr) {
+            return std::unexpected(storage::StoreError{
+                storage::StoreErrorCode::InvalidArgument,
+                QStringLiteral("MainWindow has no live record-access session owner"),
+            });
+        }
+        return window.record_access_owner_store_->forkConnection();
+    }
+};
+
+} // namespace appellate::ui
+
 namespace {
 
 class MainWindowTest final : public QObject {
@@ -787,7 +805,10 @@ void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
         workspace->setDocumentSearch(QStringLiteral("ultrasecret-main-window-text"));
         QTRY_COMPARE_WITH_TIMEOUT(workspace->documentSearchResultCount(), 1, 10'000);
 
-        auto second_store = appellate::storage::SessionStore::open(database_path);
+        const auto independent_store = appellate::storage::SessionStore::open(database_path);
+        QVERIFY(!independent_store.has_value());
+        QCOMPARE(independent_store.error().code, appellate::storage::StoreErrorCode::StateInUse);
+        auto second_store = appellate::ui::MainWindowTestAccess::forkRecordAccessConnection(window);
         QVERIFY(second_store.has_value());
         auto second_controller = appellate::app::RecordAccessSessionController::reopen(
             session_id, window.currentRuntime()->cases.front().definition.id,
