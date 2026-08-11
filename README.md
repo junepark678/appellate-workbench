@@ -53,7 +53,10 @@ Run the dedicated local desktop end-to-end test after building the development p
 
 ```sh
 cmake --build --preset dev --target \
-  tst_oral_argument_desktop_e2e tst_desktop_command_line tst_local_folder_provider
+  tst_oral_argument_desktop_e2e tst_main_window_local_sessions \
+  tst_desktop_command_line tst_m4_arm_agency_ui_e2e \
+  tst_m4_benton_retaliation_ui_e2e tst_local_folder_provider \
+  tst_object_transport
 ctest --preset e2e
 ```
 
@@ -61,6 +64,15 @@ The E2E preset runs the real Qt desktop shell offscreen against an exported and 
 fixture pack, local SQLite session storage, and content-addressed assets. It also exercises the
 encrypted local-folder provider from atomic publication through authenticated quarantine restore.
 It requires no server, cloud service, browser driver, account, or GitHub Actions runner.
+
+The release packaging gate separately runs the installed and relocated executable in a user and
+network namespace with networking disabled. The shipped Asterglen archive proves one persisted
+workflow transition; its content does not include a grounded oral-question bank. The grounded
+workflow/oral installed-flow check therefore invokes each artifact's shipped `appellate-pack
+template` command, exports that embedded starter to an exact-hash archive outside the install
+prefix, and imports it through the desktop. No generated starter `.awpack` is installed in the
+artifact. This proves artifact-alone functional workflow/oral persistence plumbing, not a complete
+legal simulation or the complete MVP acceptance flow. See `docs/RELEASE.md` for the exact boundary.
 
 Run the shell with the included fixture pack:
 

@@ -100,6 +100,7 @@ void appendFrame(QByteArray& output, const QString& value) {
     appendFrame(encoded, snapshot.engine_revision);
     appendUint64(encoded, static_cast<std::uint64_t>(snapshot.authority_contract));
     appendUint64(encoded, static_cast<std::uint64_t>(snapshot.sequence));
+    appendFrame(encoded, snapshot.created_at_utc);
     appendUint64(encoded, static_cast<std::uint64_t>(snapshot.pins.size()));
     for (const auto& pin : snapshot.pins) {
         appendFrame(encoded, pin.pack_id);
@@ -238,11 +239,10 @@ void appendFrame(QByteArray& output, const QString& value) {
 
 class PersistedLaunchProvider final : public ui::OralArgumentLaunchProvider {
   public:
-    PersistedLaunchProvider(QString database_path, std::string legal_state_digest,
-                            model::PackRevision expected_revision)
-        : database_path_(std::move(database_path)),
-          legal_state_digest_(std::move(legal_state_digest)),
-          expected_revision_(std::move(expected_revision)) {}
+    PersistedLaunchProvider(std::string legal_state_digest, model::PackRevision expected_revision,
+                            std::unique_ptr<storage::SessionStore> owner_store)
+        : legal_state_digest_(std::move(legal_state_digest)),
+          expected_revision_(std::move(expected_revision)), owner_store_(std::move(owner_store)) {}
 
     [[nodiscard]] auto open(const packs::ResolvedPack& resolved_pack, const model::CaseId& case_id,
                             const packs::RuntimeArgumentConfigId& argument_configuration_id)
@@ -263,7 +263,7 @@ class PersistedLaunchProvider final : public ui::OralArgumentLaunchProvider {
             return fail(QStringLiteral("Unknown exact Benton argument configuration"));
         }
 
-        auto store = storage::SessionStore::open(database_path_);
+        auto store = owner_store_->forkConnection();
         if (!store) {
             return fail(store.error().message,
                         app::OralArgumentSessionErrorCode::SessionStoreFailure);
@@ -288,6 +288,10 @@ class PersistedLaunchProvider final : public ui::OralArgumentLaunchProvider {
 
     [[nodiscard]] int createAttempts() const noexcept { return create_attempts_; }
     [[nodiscard]] int reopenAttempts() const noexcept { return reopen_attempts_; }
+    [[nodiscard]] auto forkConnection()
+        -> std::expected<std::unique_ptr<storage::SessionStore>, storage::StoreError> {
+        return owner_store_->forkConnection();
+    }
 
   private:
     [[nodiscard]] static auto fail(QString message,
@@ -297,9 +301,9 @@ class PersistedLaunchProvider final : public ui::OralArgumentLaunchProvider {
         return std::unexpected(app::OralArgumentSessionError{code, std::move(message)});
     }
 
-    QString database_path_;
     std::string legal_state_digest_;
     model::PackRevision expected_revision_;
+    std::unique_ptr<storage::SessionStore> owner_store_;
     int create_attempts_{};
     int reopen_attempts_{};
 };
@@ -469,8 +473,14 @@ void M4BentonRetaliationUiE2eTest::installsClosureAndExposesRecordArgumentsAndWo
         QCOMPARE(workflow_legal_state_digest.size(), std::size_t{64});
     }
 
+    auto owner_store = storage::SessionStore::open(database_path);
+    QVERIFY2(owner_store.has_value(), owner_store ? "" : qPrintable(owner_store.error().message));
+    storage::AssetStore paired_assets(asset_root);
+    const auto recovered_assets = (*owner_store)->recoverAssetStore(paired_assets);
+    QVERIFY2(recovered_assets.has_value(),
+             recovered_assets ? "" : qPrintable(recovered_assets.error().message));
     auto provider = std::make_shared<PersistedLaunchProvider>(
-        database_path, workflow_legal_state_digest, expected_root);
+        workflow_legal_state_digest, expected_root, std::move(*owner_store));
     std::optional<model::OralArgumentState> actual_state;
     std::optional<model::OralArgumentState> counterfactual_state;
     QString actual_transcript;
@@ -687,7 +697,7 @@ void M4BentonRetaliationUiE2eTest::installsClosureAndExposesRecordArgumentsAndWo
     }
 
     {
-        auto store = storage::SessionStore::open(database_path);
+        auto store = provider->forkConnection();
         QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
         const auto actual_snapshot = (*store)->loadSession(QString::fromLatin1(actual_session_id));
         const auto counterfactual_snapshot =
@@ -733,6 +743,7 @@ void M4BentonRetaliationUiE2eTest::installsClosureAndExposesRecordArgumentsAndWo
         QCOMPARE(workflow_snapshot_after->authority_contract,
                  workflow_snapshot_before.authority_contract);
         QCOMPARE(workflow_snapshot_after->sequence, workflow_snapshot_before.sequence);
+        QCOMPARE(workflow_snapshot_after->created_at_utc, workflow_snapshot_before.created_at_utc);
         QVERIFY(workflow_snapshot_after->pins == workflow_snapshot_before.pins);
         QVERIFY(workflow_snapshot_after->commands == workflow_snapshot_before.commands);
         QVERIFY(workflow_snapshot_after->events == workflow_snapshot_before.events);
@@ -753,7 +764,7 @@ void M4BentonRetaliationUiE2eTest::installsClosureAndExposesRecordArgumentsAndWo
     QVERIFY2(resolved.has_value(), resolved ? "" : qPrintable(resolved.error().message));
     const auto runtime = packs::loadRuntimePack(*resolved);
     QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
-    auto workflow_store = storage::SessionStore::open(database_path);
+    auto workflow_store = provider->forkConnection();
     QVERIFY2(workflow_store.has_value(),
              workflow_store ? "" : qPrintable(workflow_store.error().message));
     const auto workflow_after = app::WorkflowSessionController::reopen(

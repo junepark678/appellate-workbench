@@ -1,6 +1,10 @@
+#include "appellate/packs/pack_archive.hpp"
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QTemporaryDir>
@@ -74,6 +78,7 @@ class DesktopCommandLineTest final : public QObject {
     void exposesVersionAndHelp();
     void smokeLoadsPackWithoutPersistentUserState();
     void smokeRejectsInvalidPack();
+    void offlineSelfTestImportsGroundedPackAndReopensLocalSessions();
 };
 
 void DesktopCommandLineTest::exposesVersionAndHelp() {
@@ -122,6 +127,73 @@ void DesktopCommandLineTest::smokeRejectsInvalidPack() {
     QCOMPARE(result.standard_error.trimmed(),
              QByteArrayLiteral(
                  "Pack source must be an authoring-pack directory or a regular .awpack archive"));
+}
+
+void DesktopCommandLineTest::offlineSelfTestImportsGroundedPackAndReopensLocalSessions() {
+    QTemporaryDir isolated;
+    QVERIFY(isolated.isValid());
+    const auto offline_pack =
+        QDir(isolated.path()).filePath(QStringLiteral("full-resource-pack-v2.awpack"));
+    const auto exported = appellate::packs::PackArchive::exportDirectory(
+        fixturePath(QStringLiteral("full-resource-pack-v2")), offline_pack);
+    QVERIFY2(exported.has_value(), exported ? "" : qPrintable(exported.error().message));
+
+    const auto result = runDesktop(
+        {QStringLiteral("--offline-self-test"), QStringLiteral("--offline-e2e-pack"), offline_pack,
+         QStringLiteral("--catalog"), QDir(isolated.path()).filePath(QStringLiteral("catalog")),
+         QStringLiteral(APPELLATE_GOLD_ARCHIVE)},
+        isolated.path());
+    QCOMPARE(result.exit_status, QProcess::NormalExit);
+    QVERIFY2(result.exit_code == 0, result.standard_error.constData());
+    QVERIFY2(result.standard_error.isEmpty(), result.standard_error.constData());
+    const auto output = QJsonDocument::fromJson(result.standard_output).object();
+    QCOMPARE(output.size(), 27);
+    QCOMPARE(output.value(QStringLiteral("schema_version")).toInt(), 2);
+    QCOMPARE(output.value(QStringLiteral("status")).toString(), QStringLiteral("ok"));
+    QCOMPARE(output.value(QStringLiteral("network_isolation")).toString(),
+             QStringLiteral("required-from-caller"));
+    QCOMPARE(output.value(QStringLiteral("bundled_workflow_commands")).toInt(), 1);
+    QCOMPARE(output.value(QStringLiteral("bundled_workflow_events")).toInt(), 1);
+    QCOMPARE(output.value(QStringLiteral("bundled_workflow_pins")).toInt(), 1);
+    QCOMPARE(output.value(QStringLiteral("bundled_workflow_created_at_utc")).toString(),
+             QStringLiteral("2026-08-11T10:00:00Z"));
+    QCOMPARE(output.value(QStringLiteral("bundled_workflow_digest")).toString(),
+             QStringLiteral("20272ca1834c9738a9d40d97b882d18c6115245856a3d9737096e732fc115fbb"));
+    QCOMPARE(output.value(QStringLiteral("bundled_workflow_session_id")).toString(),
+             QStringLiteral("workflow.session."
+                            "5f62a8255168bf9cabfe35af7e09ad86d368dcbd37683cc5206010f170e8db70"));
+    QCOMPARE(output.value(QStringLiteral("imported_workflow_commands")).toInt(), 1);
+    QCOMPARE(output.value(QStringLiteral("imported_workflow_events")).toInt(), 2);
+    QCOMPARE(output.value(QStringLiteral("imported_workflow_docket_entries")).toInt(), 2);
+    QCOMPARE(output.value(QStringLiteral("imported_workflow_pins")).toInt(), 1);
+    QCOMPARE(output.value(QStringLiteral("imported_workflow_asset_references")).toInt(), 1);
+    QCOMPARE(output.value(QStringLiteral("imported_workflow_created_at_utc")).toString(),
+             QStringLiteral("2026-08-11T10:00:00Z"));
+    QCOMPARE(output.value(QStringLiteral("imported_workflow_session_id")).toString(),
+             QStringLiteral("workflow.session."
+                            "16a9ac9c6f55f8a2390d031e64de8f2deb23f46e34e37a5a5aa87d5e9e3a0df2"));
+    QCOMPARE(output.value(QStringLiteral("imported_workflow_digest")).toString(),
+             QStringLiteral("8f4f7ed230d52c9ca6dee8e8781ca5a587a5a1b59882c02c81f2a16ff3e0189b"));
+    QCOMPARE(output.value(QStringLiteral("imported_workflow_rows_sha256")).toString(),
+             QStringLiteral("3fa96066cd77a349a9dce45041c94d3af2d5ee282dfec9aeb57e52473b1b61ed"));
+    QCOMPARE(output.value(QStringLiteral("imported_asset_sha256")).toString(),
+             QStringLiteral("b45710d93705fc230515730d26e638636005779238f785bfb51dd80006673d4d"));
+    QCOMPARE(output.value(QStringLiteral("imported_grounded_pack"))
+                 .toObject()
+                 .value(QStringLiteral("sha256"))
+                 .toString(),
+             QString::fromStdString(exported->digest));
+    QCOMPARE(output.value(QStringLiteral("oral_session_id")).toString(),
+             QStringLiteral("oral.argument.session."
+                            "00ab90968780fc8513550f093a3fb02e9c681b714aeb220ee23f781167ce8991"));
+    QCOMPARE(output.value(QStringLiteral("oral_journal_entries")).toInt(), 2);
+    QCOMPARE(output.value(QStringLiteral("oral_created_at_utc")).toString(),
+             QStringLiteral("2026-08-11T10:00:00Z"));
+    QCOMPARE(output.value(QStringLiteral("oral_pins")).toInt(), 1);
+    QCOMPARE(output.value(QStringLiteral("oral_rows_sha256")).toString(),
+             QStringLiteral("fc30b2025e94ecf1df82116776b1fe16381e82884a742ac4841b283007d29d5a"));
+    QCOMPARE(output.value(QStringLiteral("oral_transcript_sha256")).toString(),
+             QStringLiteral("de2bfe06f60197c7584077d05142915b9dfbff815771b1265f220c51661ddb31"));
 }
 
 QTEST_MAIN(DesktopCommandLineTest)

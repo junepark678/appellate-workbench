@@ -1,4 +1,6 @@
+#include "local_session_provider.hpp"
 #include "main_window.hpp"
+#include "offline_self_test.hpp"
 
 #include <QApplication>
 #include <QCommandLineOption>
@@ -6,6 +8,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QString>
+#include <QTextStream>
 
 namespace {
 
@@ -27,6 +30,15 @@ void configureParser(QCommandLineParser& parser) {
     parser.addOption(QCommandLineOption(
         QStringLiteral("smoke-test"),
         QStringLiteral("Load and validate the supplied pack, process one UI cycle, and exit.")));
+    parser.addOption(QCommandLineOption(
+        QStringLiteral("offline-self-test"),
+        QStringLiteral("Run the artifact-derived starter workflow, CAS, reopen, and grounded "
+                       "oral release self-test. The caller must block networking.")));
+    parser.addOption(QCommandLineOption(
+        QStringLiteral("offline-e2e-pack"),
+        QStringLiteral("Explicit schema-2 grounded starter archive exported by appellate-pack "
+                       "and imported by --offline-self-test."),
+        QStringLiteral("archive")));
     parser.addPositionalArgument(
         QStringLiteral("pack"),
         QStringLiteral("Optional authoring directory or .awpack archive to load."),
@@ -69,7 +81,35 @@ int main(int argc, char* argv[]) {
         parser.showHelp(2);
     }
     const auto pack_source = positional.isEmpty() ? QString{} : positional.constFirst();
-    appellate::ui::MainWindow window({}, parser.value(QStringLiteral("catalog")));
+    if (parser.isSet(QStringLiteral("offline-self-test"))) {
+        if (pack_source.isEmpty() || !parser.isSet(QStringLiteral("offline-e2e-pack"))) {
+            qCritical().noquote() << QStringLiteral(
+                "--offline-self-test requires one bundled workflow pack and an artifact-derived "
+                "--offline-e2e-pack <archive>");
+            return 4;
+        }
+        const auto result = appellate::ui::runOfflineSelfTest(
+            application, parser.value(QStringLiteral("catalog")), pack_source,
+            parser.value(QStringLiteral("offline-e2e-pack")));
+        if (!result) {
+            qCritical().noquote() << result.error();
+            return 4;
+        }
+        QTextStream output(stdout);
+        output << *result << Qt::endl;
+        return 0;
+    }
+    const auto local_sessions = appellate::ui::LocalSessionProvider::fromStandardPaths();
+    if (!local_sessions) {
+        qCritical().noquote() << QStringLiteral(
+                                     "Local workflow and oral-argument sessions unavailable: %1")
+                                     .arg(local_sessions.error());
+    }
+    const auto provider =
+        local_sessions ? std::shared_ptr<appellate::ui::LocalSessionProvider>{*local_sessions}
+                       : std::shared_ptr<appellate::ui::LocalSessionProvider>{};
+    appellate::ui::MainWindow window({}, parser.value(QStringLiteral("catalog")), nullptr, provider,
+                                     {}, {}, provider);
     if (!pack_source.isEmpty()) {
         const auto loaded = window.loadSource(pack_source);
         if (!loaded) {

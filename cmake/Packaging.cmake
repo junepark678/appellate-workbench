@@ -228,7 +228,6 @@ if(BUILD_TESTING)
         COMMAND
             "${CMAKE_COMMAND}"
             "-DAPPELLATE_BUILD_DIR=${PROJECT_BINARY_DIR}"
-            "-DAPPELLATE_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
             "-DAPPELLATE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
             -P "${PROJECT_SOURCE_DIR}/tests/release/verify_install.cmake"
     )

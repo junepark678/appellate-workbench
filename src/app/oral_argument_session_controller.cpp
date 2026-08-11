@@ -105,10 +105,12 @@ constexpr std::size_t maximum_canonical_events = 64;
     return fail(code, asQString(error.message));
 }
 
-[[nodiscard]] auto validateLegacyDefinitions(
-    const QString& session_id, const QString& engine_revision,
-    const model::OralArgumentConfiguration& configuration, const model::BenchConfiguration& bench,
-    const model::ArgumentGrounding& grounding, OralArgumentSessionErrorCode error_code)
+[[nodiscard]] auto validateLegacyDefinitions(const QString& session_id,
+                                             const QString& engine_revision,
+                                             const model::OralArgumentConfiguration& configuration,
+                                             const model::BenchConfiguration& bench,
+                                             const model::ArgumentGrounding& grounding,
+                                             OralArgumentSessionErrorCode error_code)
     -> std::expected<model::OralArgumentState, OralArgumentSessionError> {
     if (!validCanonicalId(session_id) || !validCanonicalId(engine_revision)) {
         return fail(error_code,
@@ -136,8 +138,7 @@ constexpr std::size_t maximum_canonical_events = 64;
 }
 
 [[nodiscard]] auto deriveCanonicalDefinitionFromRuntime(
-    const model::CaseId& case_id,
-    const packs::RuntimeArgumentConfigId& argument_configuration_id,
+    const model::CaseId& case_id, const packs::RuntimeArgumentConfigId& argument_configuration_id,
     const std::string& legal_state_digest, const packs::RuntimePack& runtime)
     -> std::expected<model::CanonicalOralArgumentDefinition, OralArgumentSessionError> {
     if (!validCanonicalId(QString::fromStdString(case_id.value)) ||
@@ -147,9 +148,8 @@ constexpr std::size_t maximum_canonical_events = 64;
                     QStringLiteral("Canonical case, argument configuration, and legal-state pins "
                                    "are required"));
     }
-    const auto case_iterator = std::ranges::find_if(runtime.cases, [&](const auto& candidate) {
-        return candidate.definition.id == case_id;
-    });
+    const auto case_iterator = std::ranges::find_if(
+        runtime.cases, [&](const auto& candidate) { return candidate.definition.id == case_id; });
     if (case_iterator == runtime.cases.end()) {
         return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
                     QStringLiteral("Resolved pack does not contain the requested case"));
@@ -181,12 +181,11 @@ constexpr std::size_t maximum_canonical_events = 64;
     const auto grounding_digest = engine::groundingDigest(bank);
     if (!behavior_digest || !grounding_digest || *grounding_digest != bank.grounding_digest) {
         return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
-                    !behavior_digest
-                        ? asQString(behavior_digest.error().message)
-                        : !grounding_digest
-                              ? asQString(grounding_digest.error().message)
-                              : QStringLiteral("Resolved question-bank digest differs from its "
-                                               "canonical content"));
+                    !behavior_digest ? asQString(behavior_digest.error().message)
+                    : !grounding_digest
+                        ? asQString(grounding_digest.error().message)
+                        : QStringLiteral("Resolved question-bank digest differs from its "
+                                         "canonical content"));
     }
     return model::CanonicalOralArgumentDefinition{
         model::OralArgumentConfiguration{
@@ -208,8 +207,7 @@ constexpr std::size_t maximum_canonical_events = 64;
 }
 
 [[nodiscard]] auto deriveCanonicalDefinition(
-    const model::CaseId& case_id,
-    const packs::RuntimeArgumentConfigId& argument_configuration_id,
+    const model::CaseId& case_id, const packs::RuntimeArgumentConfigId& argument_configuration_id,
     const std::string& legal_state_digest, const packs::ResolvedPack& resolved_pack)
     -> std::expected<model::CanonicalOralArgumentDefinition, OralArgumentSessionError> {
     const auto runtime = packs::loadRuntimePack(resolved_pack);
@@ -223,35 +221,36 @@ constexpr std::size_t maximum_canonical_events = 64;
 
 [[nodiscard]] bool isLegacyResolvedPack(const packs::ResolvedPack& resolved_pack) {
     return resolved_pack.root().manifest_schema_version == 1 &&
-           std::ranges::all_of(resolved_pack.dependenciesDependencyFirst(), [](const auto& pack) {
-               return pack.manifest_schema_version == 1;
-           });
+           std::ranges::all_of(resolved_pack.dependenciesDependencyFirst(),
+                               [](const auto& pack) { return pack.manifest_schema_version == 1; });
 }
 
-[[nodiscard]] auto validateCanonicalDefinitions(
-    const QString& session_id, const QString& engine_revision,
-    const model::CanonicalOralArgumentDefinition& definition,
-    OralArgumentSessionErrorCode error_code)
+[[nodiscard]] auto
+validateCanonicalDefinitions(const QString& session_id, const QString& engine_revision,
+                             const model::CanonicalOralArgumentDefinition& definition,
+                             OralArgumentSessionErrorCode error_code)
     -> std::expected<model::OralArgumentState, OralArgumentSessionError> {
     if (!validCanonicalId(session_id) || !validCanonicalId(engine_revision)) {
         return fail(error_code,
                     QStringLiteral("Canonical session and engine revision IDs are required"));
     }
     const auto initial = engine::initializeOralArgument(definition);
-    if (!initial) return engineFailure(initial.error(), error_code);
+    if (!initial)
+        return engineFailure(initial.error(), error_code);
     return *initial;
 }
 
-[[nodiscard]] auto validateCanonicalSnapshot(
-    const QString& session_id, const QString& expected_engine_revision,
-    const std::vector<storage::RevisionPin>& expected_pins,
-    const model::CanonicalOralArgumentDefinition& definition,
-    const model::OralArgumentState& initial_state, const storage::SessionSnapshot& snapshot)
+[[nodiscard]] auto
+validateCanonicalSnapshot(const QString& session_id, const QString& expected_engine_revision,
+                          const std::vector<storage::RevisionPin>& expected_pins,
+                          const model::CanonicalOralArgumentDefinition& definition,
+                          const model::OralArgumentState& initial_state,
+                          const storage::SessionSnapshot& snapshot)
     -> std::expected<model::OralArgumentState, OralArgumentSessionError> {
     if (snapshot.session_id != session_id || snapshot.engine_revision != expected_engine_revision ||
         snapshot.pins != expected_pins ||
         snapshot.authority_contract != storage::SessionAuthorityContract::CanonicalV2 ||
-        snapshot.sequence <= 0 ||
+        !validCanonicalUtc(snapshot.created_at_utc) || snapshot.sequence <= 0 ||
         snapshot.sequence > static_cast<qint64>(maximum_canonical_events) ||
         snapshot.commands.size() != snapshot.events.size() ||
         snapshot.events.size() != static_cast<std::size_t>(snapshot.sequence) ||
@@ -316,22 +315,19 @@ constexpr std::size_t maximum_canonical_events = 64;
             answer = persisted->answer;
         }
 
-        const auto event =
-            storage::decodeCanonicalOralArgumentEvent(stored_event.payload_json);
+        const auto event = storage::decodeCanonicalOralArgumentEvent(stored_event.payload_json);
         if (!event || event->sequence != static_cast<std::uint64_t>(stored_event.sequence) ||
             event->counsel != answer) {
             return fail(OralArgumentSessionErrorCode::CorruptSession,
                         event ? QStringLiteral("Canonical answer/event pair differs")
                               : event.error().message);
         }
-        const auto decision = index == 0
-                                  ? engine::planOpeningQuestion(definition, state)
-                                  : engine::decideCounselAnswer(definition, state, *answer);
+        const auto decision = index == 0 ? engine::planOpeningQuestion(definition, state)
+                                         : engine::decideCounselAnswer(definition, state, *answer);
         if (!decision || *decision != *event) {
             return fail(OralArgumentSessionErrorCode::CorruptSession,
-                        decision
-                            ? QStringLiteral("Canonical event differs from exact re-decision")
-                            : asQString(decision.error().message));
+                        decision ? QStringLiteral("Canonical event differs from exact re-decision")
+                                 : asQString(decision.error().message));
         }
         const auto applied = engine::applyOralArgumentEvent(definition, state, *event);
         if (!applied) {
@@ -352,19 +348,19 @@ constexpr std::size_t maximum_canonical_events = 64;
     return state;
 }
 
-[[nodiscard]] auto
-validateLegacySnapshot(const QString& session_id, const QString& expected_engine_revision,
-                       const std::vector<storage::RevisionPin>& expected_pins,
-                       const model::OralArgumentConfiguration& configuration,
-                       const model::BenchConfiguration& bench,
-                       const model::ArgumentGrounding& grounding,
-                       const model::OralArgumentState& initial_state,
-                       const storage::SessionSnapshot& snapshot)
+[[nodiscard]] auto validateLegacySnapshot(const QString& session_id,
+                                          const QString& expected_engine_revision,
+                                          const std::vector<storage::RevisionPin>& expected_pins,
+                                          const model::OralArgumentConfiguration& configuration,
+                                          const model::BenchConfiguration& bench,
+                                          const model::ArgumentGrounding& grounding,
+                                          const model::OralArgumentState& initial_state,
+                                          const storage::SessionSnapshot& snapshot)
     -> std::expected<model::OralArgumentState, OralArgumentSessionError> {
     if (snapshot.session_id != session_id || snapshot.engine_revision != expected_engine_revision ||
         snapshot.pins != expected_pins ||
         snapshot.authority_contract != storage::SessionAuthorityContract::LegacyV1 ||
-        snapshot.sequence <= 0 ||
+        !validCanonicalUtc(snapshot.created_at_utc) || snapshot.sequence <= 0 ||
         snapshot.sequence > static_cast<qint64>(maximum_legacy_events) ||
         snapshot.commands.size() != snapshot.events.size() ||
         snapshot.events.size() != static_cast<std::size_t>(snapshot.sequence) ||
@@ -477,8 +473,7 @@ OralArgumentSessionController::OralArgumentSessionController(
 
 std::expected<model::CanonicalOralArgumentDefinition, OralArgumentSessionError>
 OralArgumentSessionController::deriveCanonicalDefinitionForTesting(
-    const model::CaseId& case_id,
-    const packs::RuntimeArgumentConfigId& argument_configuration_id,
+    const model::CaseId& case_id, const packs::RuntimeArgumentConfigId& argument_configuration_id,
     std::string legal_state_digest, const packs::RuntimePack& runtime_pack) {
     return deriveCanonicalDefinitionFromRuntime(case_id, argument_configuration_id,
                                                 legal_state_digest, runtime_pack);
@@ -539,12 +534,6 @@ OralArgumentSessionController::create(QString session_id,
         return engineFailure(projected.error(), OralArgumentSessionErrorCode::EngineFailure);
     }
 
-    if (const auto created = session_store->createSession(
-            session_id, engine_revision, created_at_utc, *normalized_pins,
-            storage::SessionAuthorityContract::LegacyV1);
-        !created) {
-        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, created.error().message);
-    }
     const storage::CommitBatch opening_batch{
         openingCommandId(session_id),
         *encoded_opening,
@@ -554,7 +543,9 @@ OralArgumentSessionController::create(QString session_id,
         {},
         {},
     };
-    const auto appended = session_store->append(session_id, 0, opening_batch);
+    const auto appended = session_store->createSessionWithInitialBatch(
+        session_id, engine_revision, created_at_utc, *normalized_pins,
+        storage::SessionAuthorityContract::LegacyV1, opening_batch);
     if (!appended) {
         return fail(OralArgumentSessionErrorCode::SessionStoreFailure, appended.error().message);
     }
@@ -562,9 +553,9 @@ OralArgumentSessionController::create(QString session_id,
     if (!snapshot) {
         return fail(OralArgumentSessionErrorCode::SessionStoreFailure, snapshot.error().message);
     }
-    const auto verified = validateLegacySnapshot(session_id, engine_revision, *normalized_pins,
-                                                 configuration, bench, grounding, *initial,
-                                                 *snapshot);
+    const auto verified =
+        validateLegacySnapshot(session_id, engine_revision, *normalized_pins, configuration, bench,
+                               grounding, *initial, *snapshot);
     if (!verified || *verified != *projected || *appended != 1) {
         return fail(OralArgumentSessionErrorCode::CorruptSession,
                     verified ? QStringLiteral("New oral-argument session failed verification")
@@ -577,11 +568,13 @@ OralArgumentSessionController::create(QString session_id,
 }
 
 std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
-OralArgumentSessionController::create(
-    QString session_id, model::OralArgumentConfiguration configuration,
-    model::BenchConfiguration bench, model::ArgumentGrounding grounding,
-    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
-    QString created_at_utc, const packs::ResolvedPack& resolved_pack) {
+OralArgumentSessionController::create(QString session_id,
+                                      model::OralArgumentConfiguration configuration,
+                                      model::BenchConfiguration bench,
+                                      model::ArgumentGrounding grounding,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString engine_revision, QString created_at_utc,
+                                      const packs::ResolvedPack& resolved_pack) {
     if (!isLegacyResolvedPack(resolved_pack)) {
         return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
                     QStringLiteral("Legacy oral-argument definitions require an exact schema-1 "
@@ -615,16 +608,18 @@ OralArgumentSessionController::createCanonicalBound(
     const auto normalized_pins =
         normalizePins(std::move(pins), OralArgumentSessionErrorCode::InvalidConfiguration,
                       manifest_schema_version);
-    if (!normalized_pins) return std::unexpected(normalized_pins.error());
-    const auto initial = validateCanonicalDefinitions(
-        session_id, engine_revision, definition,
-        OralArgumentSessionErrorCode::InvalidConfiguration);
-    if (!initial) return std::unexpected(initial.error());
+    if (!normalized_pins)
+        return std::unexpected(normalized_pins.error());
+    const auto initial =
+        validateCanonicalDefinitions(session_id, engine_revision, definition,
+                                     OralArgumentSessionErrorCode::InvalidConfiguration);
+    if (!initial)
+        return std::unexpected(initial.error());
     const auto encoded_opening = storage::encodeCanonicalOralArgumentOpeningCommand(
         storage::CanonicalOralArgumentOpeningCommand{
             session_id, openingCommandId(session_id), engine_revision, created_at_utc,
-            definition.question_bank.case_id,
-            definition.question_bank.argument_configuration_id, definition.configuration});
+            definition.question_bank.case_id, definition.question_bank.argument_configuration_id,
+            definition.configuration});
     if (!encoded_opening) {
         return fail(OralArgumentSessionErrorCode::CommandCodecFailure,
                     encoded_opening.error().message);
@@ -635,18 +630,11 @@ OralArgumentSessionController::createCanonicalBound(
     }
     const auto encoded_event = storage::encodeCanonicalOralArgumentEvent(*opening);
     if (!encoded_event) {
-        return fail(OralArgumentSessionErrorCode::EventCodecFailure,
-                    encoded_event.error().message);
+        return fail(OralArgumentSessionErrorCode::EventCodecFailure, encoded_event.error().message);
     }
     const auto projected = engine::applyOralArgumentEvent(definition, *initial, *opening);
     if (!projected) {
         return engineFailure(projected.error(), OralArgumentSessionErrorCode::EngineFailure);
-    }
-    if (const auto created = session_store->createSession(
-            session_id, engine_revision, created_at_utc, *normalized_pins,
-            storage::SessionAuthorityContract::CanonicalV2);
-        !created) {
-        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, created.error().message);
     }
     const storage::CommitBatch opening_batch{
         openingCommandId(session_id),
@@ -657,7 +645,9 @@ OralArgumentSessionController::createCanonicalBound(
         {},
         {},
     };
-    const auto appended = session_store->append(session_id, 0, opening_batch);
+    const auto appended = session_store->createSessionWithInitialBatch(
+        session_id, engine_revision, created_at_utc, *normalized_pins,
+        storage::SessionAuthorityContract::CanonicalV2, opening_batch);
     if (!appended) {
         return fail(OralArgumentSessionErrorCode::SessionStoreFailure, appended.error().message);
     }
@@ -670,24 +660,24 @@ OralArgumentSessionController::createCanonicalBound(
     if (!verified || *verified != *projected || *appended != 1) {
         return fail(OralArgumentSessionErrorCode::CorruptSession,
                     verified ? QStringLiteral("New canonical oral-argument session failed "
-                                                      "verification")
+                                              "verification")
                              : verified.error().message);
     }
     return std::unique_ptr<OralArgumentSessionController>(new OralArgumentSessionController(
-        std::move(session_id), std::move(definition), *initial, *verified,
-        std::move(session_store), std::move(engine_revision), *normalized_pins, *snapshot));
+        std::move(session_id), std::move(definition), *initial, *verified, std::move(session_store),
+        std::move(engine_revision), *normalized_pins, *snapshot));
 }
 
 std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
 OralArgumentSessionController::create(
     QString session_id, const model::CaseId& case_id,
-    const packs::RuntimeArgumentConfigId& argument_configuration_id,
-    std::string legal_state_digest, std::unique_ptr<storage::SessionStore> session_store,
-    QString engine_revision, QString created_at_utc,
-    const packs::ResolvedPack& resolved_pack) {
+    const packs::RuntimeArgumentConfigId& argument_configuration_id, std::string legal_state_digest,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    QString created_at_utc, const packs::ResolvedPack& resolved_pack) {
     const auto definition = deriveCanonicalDefinition(case_id, argument_configuration_id,
                                                       legal_state_digest, resolved_pack);
-    if (!definition) return std::unexpected(definition.error());
+    if (!definition)
+        return std::unexpected(definition.error());
     return createCanonicalBound(std::move(session_id), *definition, std::move(session_store),
                                 std::move(engine_revision), std::move(created_at_utc),
                                 revisionPinsForSession(resolved_pack),
@@ -721,9 +711,9 @@ OralArgumentSessionController::reopen(QString session_id,
     if (!snapshot) {
         return fail(OralArgumentSessionErrorCode::SessionStoreFailure, snapshot.error().message);
     }
-    const auto state = validateLegacySnapshot(session_id, expected_engine_revision,
-                                              *normalized_pins, configuration, bench, grounding,
-                                              *initial, *snapshot);
+    const auto state =
+        validateLegacySnapshot(session_id, expected_engine_revision, *normalized_pins,
+                               configuration, bench, grounding, *initial, *snapshot);
     if (!state) {
         return std::unexpected(state.error());
     }
@@ -734,11 +724,13 @@ OralArgumentSessionController::reopen(QString session_id,
 }
 
 std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
-OralArgumentSessionController::reopen(
-    QString session_id, model::OralArgumentConfiguration configuration,
-    model::BenchConfiguration bench, model::ArgumentGrounding grounding,
-    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
-    const packs::ResolvedPack& resolved_pack) {
+OralArgumentSessionController::reopen(QString session_id,
+                                      model::OralArgumentConfiguration configuration,
+                                      model::BenchConfiguration bench,
+                                      model::ArgumentGrounding grounding,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString expected_engine_revision,
+                                      const packs::ResolvedPack& resolved_pack) {
     if (!isLegacyResolvedPack(resolved_pack)) {
         return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
                     QStringLiteral("Legacy oral-argument definitions require an exact schema-1 "
@@ -771,33 +763,36 @@ OralArgumentSessionController::reopenCanonicalBound(
     const auto normalized_pins =
         normalizePins(std::move(expected_pins), OralArgumentSessionErrorCode::InvalidConfiguration,
                       manifest_schema_version);
-    if (!normalized_pins) return std::unexpected(normalized_pins.error());
-    const auto initial = validateCanonicalDefinitions(
-        session_id, expected_engine_revision, definition,
-        OralArgumentSessionErrorCode::InvalidConfiguration);
-    if (!initial) return std::unexpected(initial.error());
+    if (!normalized_pins)
+        return std::unexpected(normalized_pins.error());
+    const auto initial =
+        validateCanonicalDefinitions(session_id, expected_engine_revision, definition,
+                                     OralArgumentSessionErrorCode::InvalidConfiguration);
+    if (!initial)
+        return std::unexpected(initial.error());
     const auto snapshot = session_store->loadSession(session_id);
     if (!snapshot) {
         return fail(OralArgumentSessionErrorCode::SessionStoreFailure, snapshot.error().message);
     }
     const auto state = validateCanonicalSnapshot(session_id, expected_engine_revision,
                                                  *normalized_pins, definition, *initial, *snapshot);
-    if (!state) return std::unexpected(state.error());
+    if (!state)
+        return std::unexpected(state.error());
     return std::unique_ptr<OralArgumentSessionController>(new OralArgumentSessionController(
-        std::move(session_id), std::move(definition), *initial, *state,
-        std::move(session_store), std::move(expected_engine_revision), *normalized_pins,
-        *snapshot));
+        std::move(session_id), std::move(definition), *initial, *state, std::move(session_store),
+        std::move(expected_engine_revision), *normalized_pins, *snapshot));
 }
 
 std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
 OralArgumentSessionController::reopen(
     QString session_id, const model::CaseId& case_id,
-    const packs::RuntimeArgumentConfigId& argument_configuration_id,
-    std::string legal_state_digest, std::unique_ptr<storage::SessionStore> session_store,
-    QString expected_engine_revision, const packs::ResolvedPack& resolved_pack) {
+    const packs::RuntimeArgumentConfigId& argument_configuration_id, std::string legal_state_digest,
+    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+    const packs::ResolvedPack& resolved_pack) {
     const auto definition = deriveCanonicalDefinition(case_id, argument_configuration_id,
                                                       legal_state_digest, resolved_pack);
-    if (!definition) return std::unexpected(definition.error());
+    if (!definition)
+        return std::unexpected(definition.error());
     return reopenCanonicalBound(std::move(session_id), *definition, std::move(session_store),
                                 std::move(expected_engine_revision),
                                 revisionPinsForSession(resolved_pack),
@@ -824,8 +819,7 @@ OralArgumentSessionController::submit(QString command_id, const model::CounselAn
             return fail(OralArgumentSessionErrorCode::CommandCodecFailure,
                         encoded_command.error().message);
         }
-        const auto event =
-            engine::decideCounselAnswer(*canonical_definition_, state_, answer);
+        const auto event = engine::decideCounselAnswer(*canonical_definition_, state_, answer);
         if (!event) {
             return engineFailure(event.error(), OralArgumentSessionErrorCode::EngineFailure);
         }
@@ -858,13 +852,13 @@ OralArgumentSessionController::submit(QString command_id, const model::CounselAn
             return fail(OralArgumentSessionErrorCode::SessionStoreFailure,
                         snapshot.error().message);
         }
-        const auto verified = validateCanonicalSnapshot(
-            session_id_, engine_revision_, pins_, *canonical_definition_, initial_state_,
-            *snapshot);
+        const auto verified =
+            validateCanonicalSnapshot(session_id_, engine_revision_, pins_, *canonical_definition_,
+                                      initial_state_, *snapshot);
         if (!verified || *verified != *projected || *appended != snapshot->sequence) {
             return fail(OralArgumentSessionErrorCode::CorruptSession,
                         verified ? QStringLiteral("Appended canonical oral-argument event failed "
-                                                          "verification")
+                                                  "verification")
                                  : verified.error().message);
         }
         state_ = *verified;
@@ -908,9 +902,9 @@ OralArgumentSessionController::submit(QString command_id, const model::CounselAn
     if (!snapshot) {
         return fail(OralArgumentSessionErrorCode::SessionStoreFailure, snapshot.error().message);
     }
-    const auto verified = validateLegacySnapshot(session_id_, engine_revision_, pins_,
-                                                 configuration_, bench_, grounding_,
-                                                 initial_state_, *snapshot);
+    const auto verified =
+        validateLegacySnapshot(session_id_, engine_revision_, pins_, configuration_, bench_,
+                               grounding_, initial_state_, *snapshot);
     if (!verified || *verified != *projected || *appended != snapshot->sequence) {
         return fail(OralArgumentSessionErrorCode::CorruptSession,
                     verified ? QStringLiteral("Appended oral-argument event failed verification")

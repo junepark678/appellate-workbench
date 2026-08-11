@@ -61,11 +61,14 @@ target_compile_features(appellate_record_ui PUBLIC cxx_std_26)
 
 qt_add_library(
     appellate_desktop_ui STATIC
+    local_session_provider.cpp
+    local_session_provider.hpp
     main_window.cpp
     main_window.hpp
     oral_argument_launch_provider.hpp
     oral_argument_workspace.cpp
     oral_argument_workspace.hpp
+    workflow_launch_provider.hpp
 )
 add_library(appellate::desktop_ui ALIAS appellate_desktop_ui)
 target_include_directories(
@@ -86,7 +89,12 @@ target_link_libraries(
 )
 target_compile_features(appellate_desktop_ui PUBLIC cxx_std_26)
 
-qt_add_executable(appellate-workbench main.cpp)
+qt_add_executable(
+    appellate-workbench
+    main.cpp
+    offline_self_test.cpp
+    offline_self_test.hpp
+)
 target_compile_definitions(
     appellate-workbench
     PRIVATE APPELLATE_APPLICATION_VERSION="${PROJECT_VERSION}"

@@ -1,5 +1,6 @@
 #include "main_window.hpp"
 
+#include "appellate/engine/workflow_engine.hpp"
 #include "appellate/packs/pack_catalog.hpp"
 #include "appellate/packs/pack_reader.hpp"
 #include "appellate/storage/session_store.hpp"
@@ -10,6 +11,8 @@
 #include "oral_argument_workspace.hpp"
 #include "record_workspace.hpp"
 #include "session_controller.hpp"
+#include "workflow_launch_provider.hpp"
+#include "workflow_session_controller.hpp"
 
 #include <QAction>
 #include <QComboBox>
@@ -28,6 +31,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QSignalBlocker>
 #include <QSplitter>
 #include <QStandardPaths>
@@ -40,10 +44,12 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
 #include <limits>
+#include <string>
 #include <string_view>
 #include <utility>
 
@@ -69,6 +75,33 @@ void addFrame(QCryptographicHash& hash, std::string_view value) {
 
 [[nodiscard]] QString canonicalUtcNow() {
     return QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyy-MM-dd'T'HH:mm:ss'Z'"));
+}
+
+[[nodiscard]] model::LegalTime workflowLegalTime(const WorkflowLegalClockReading& reading) {
+    return model::LegalTime{
+        std::chrono::sys_seconds{
+            std::chrono::seconds{reading.instant_utc.toUTC().toSecsSinceEpoch()}},
+        model::LegalDate{std::chrono::year{reading.court_date.year()} /
+                         std::chrono::month{static_cast<unsigned>(reading.court_date.month())} /
+                         std::chrono::day{static_cast<unsigned>(reading.court_date.day())}},
+    };
+}
+
+[[nodiscard]] model::AdvanceWorkflowStage
+workflowAdvanceCommand(const model::WorkflowState& state, const model::WorkflowOperation& operation,
+                       const model::CaseActor& actor,
+                       const WorkflowLegalClockReading& occurred_at) {
+    return model::AdvanceWorkflowStage{
+        model::WorkflowCommandHeader{
+            state.session_id,
+            model::WorkflowCommandId{state.session_id + ".command." +
+                                     std::to_string(state.next_event_sequence) + "." +
+                                     operation.id.value},
+            actor.id,
+            workflowLegalTime(occurred_at),
+        },
+        operation.id,
+    };
 }
 
 [[nodiscard]] QString recordAccessSessionId(const model::PackRevision& revision,
@@ -183,18 +216,34 @@ void configureSummaryLabel(QLabel& label, const QString& object_name,
 } // namespace
 
 MainWindow::MainWindow(const QString& source_path, const QString& catalog_root, QWidget* parent)
-    : MainWindow(source_path, catalog_root, parent, {}, {}, {}) {}
+    : MainWindow(source_path, catalog_root, parent, {}, {}, {}, {}, {}, {}, {}) {}
 
 MainWindow::MainWindow(
     const QString& source_path, const QString& catalog_root, QWidget* parent,
     std::shared_ptr<OralArgumentLaunchProvider> oral_argument_launch_provider,
     std::shared_ptr<RecordAccessTransitionProvider> record_access_transition_provider,
-    QString record_access_database_path)
+    QString record_access_database_path,
+    std::shared_ptr<WorkflowLaunchProvider> workflow_launch_provider,
+    WorkflowLegalClock workflow_legal_clock, OralElapsedClock oral_elapsed_clock,
+    OralRecordedAtClock oral_recorded_at_clock)
     : QMainWindow(parent), oral_argument_launch_provider_(std::move(oral_argument_launch_provider)),
+      workflow_launch_provider_(std::move(workflow_launch_provider)),
+      workflow_legal_clock_(std::move(workflow_legal_clock)),
+      oral_elapsed_clock_(std::move(oral_elapsed_clock)),
+      oral_recorded_at_clock_(std::move(oral_recorded_at_clock)),
       record_access_transition_provider_(std::move(record_access_transition_provider)) {
     if (!record_access_transition_provider_) {
         record_access_transition_provider_ =
             std::make_shared<SystemRecordAccessTransitionProvider>();
+    }
+    if (!workflow_legal_clock_) {
+        workflow_legal_clock_ = [](const QDate& selected_court_date)
+            -> std::expected<WorkflowLegalClockReading, QString> {
+            if (!selected_court_date.isValid()) {
+                return std::unexpected(QStringLiteral("Select a valid legal court date"));
+            }
+            return WorkflowLegalClockReading{QDateTime::currentDateTimeUtc(), selected_court_date};
+        };
     }
     setWindowTitle(QStringLiteral("Appellate Workbench"));
     resize(1180, 780);
@@ -211,6 +260,7 @@ MainWindow::MainWindow(
 }
 
 MainWindow::~MainWindow() {
+    workflow_controller_.reset();
     record_access_controller_.reset();
     clearRecordAccessActions();
     if (workspace_tabs_ != nullptr && record_workspace_ != nullptr) {
@@ -312,6 +362,51 @@ void MainWindow::buildUi() {
     summary_layout->addWidget(bench_summary_label_);
     details_layout->addWidget(summary_group);
 
+    auto* workflow_group = new QGroupBox(QStringLiteral("Local workflow session"), details);
+    workflow_group->setObjectName(QStringLiteral("localWorkflowSessionGroup"));
+    workflow_group->setAccessibleName(QStringLiteral("Local persisted workflow session"));
+    auto* workflow_layout = new QVBoxLayout(workflow_group);
+    workflow_status_label_ = new QLabel(workflow_group);
+    configureSummaryLabel(*workflow_status_label_, QStringLiteral("workflowSessionStatus"),
+                          QStringLiteral("Local workflow session status"));
+    workflow_status_label_->setText(
+        workflow_launch_provider_
+            ? QStringLiteral("Workflow: Select an installed case, then open or resume its exact "
+                             "local session.")
+            : QStringLiteral("Workflow unavailable: no production local session provider is "
+                             "configured."));
+    workflow_layout->addWidget(workflow_status_label_);
+    auto* court_date_label =
+        new QLabel(QStringLiteral("Legal &court date (YYYY-MM-DD)"), workflow_group);
+    court_date_label->setObjectName(QStringLiteral("workflowCourtDateLabel"));
+    court_date_label->setAccessibleName(QStringLiteral("Workflow legal court date label"));
+    workflow_court_date_editor_ = new QLineEdit(workflow_group);
+    workflow_court_date_editor_->setObjectName(QStringLiteral("workflowCourtDateEditor"));
+    workflow_court_date_editor_->setAccessibleName(QStringLiteral("Workflow legal court date"));
+    workflow_court_date_editor_->setAccessibleDescription(QStringLiteral(
+        "Required explicit court-local legal date in four-digit year, month, and day format"));
+    workflow_court_date_editor_->setPlaceholderText(QStringLiteral("YYYY-MM-DD"));
+    workflow_court_date_editor_->setMaxLength(10);
+    court_date_label->setBuddy(workflow_court_date_editor_);
+    workflow_layout->addWidget(court_date_label);
+    workflow_layout->addWidget(workflow_court_date_editor_);
+    open_workflow_button_ =
+        new QPushButton(QStringLiteral("&Open or resume workflow"), workflow_group);
+    open_workflow_button_->setObjectName(QStringLiteral("openSelectedWorkflowButton"));
+    open_workflow_button_->setAccessibleName(QStringLiteral("Open or resume selected workflow"));
+    open_workflow_button_->setAccessibleDescription(
+        QStringLiteral("Open the exact installed workflow using crash-safe local session storage"));
+    workflow_layout->addWidget(open_workflow_button_);
+    advance_workflow_button_ =
+        new QPushButton(QStringLiteral("Persist next authored stage &transition"), workflow_group);
+    advance_workflow_button_->setObjectName(QStringLiteral("advanceSelectedWorkflowButton"));
+    advance_workflow_button_->setAccessibleName(
+        QStringLiteral("Persist next authored workflow stage transition"));
+    advance_workflow_button_->setAccessibleDescription(QStringLiteral(
+        "Submit the exact displayed operation and actor as one persisted workflow command"));
+    workflow_layout->addWidget(advance_workflow_button_);
+    details_layout->addWidget(workflow_group);
+
     auto* profile_label =
         new QLabel(QStringLiteral("Selected &fictional/composite profile"), details);
     profile_label->setObjectName(QStringLiteral("profileSelectorLabel"));
@@ -392,6 +487,17 @@ void MainWindow::buildUi() {
             [this](int row) { updateProfileSelection(row); });
     connect(argument_configuration_selector_, &QComboBox::currentIndexChanged, this,
             [this](int row) { updateArgumentSelection(row); });
+    connect(open_workflow_button_, &QPushButton::clicked, this,
+            [this] { static_cast<void>(openSelectedWorkflow()); });
+    connect(advance_workflow_button_, &QPushButton::clicked, this,
+            [this] { static_cast<void>(advanceSelectedWorkflow()); });
+    connect(workflow_court_date_editor_, &QLineEdit::textChanged, this, [this] {
+        if (selectedCaseHasLoadedWorkflow()) {
+            renderWorkflowStatus();
+        } else {
+            updateActionStates();
+        }
+    });
 }
 
 void MainWindow::buildFileMenu() {
@@ -418,6 +524,21 @@ void MainWindow::buildFileMenu() {
         QStringLiteral("Open selected installed case record"),
         QStringLiteral("Verify public record PDFs and apply persisted local disclosure access"));
     open_record_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+R")));
+
+    open_workflow_action_ =
+        file_menu->addAction(QStringLiteral("Open or Resume Selected &Workflow"));
+    configureAction(
+        *open_workflow_action_, QStringLiteral("openSelectedWorkflowAction"),
+        QStringLiteral("Open or resume selected workflow"),
+        QStringLiteral("Open the exact persisted local workflow for the selected case"));
+    open_workflow_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+W")));
+
+    advance_workflow_action_ =
+        file_menu->addAction(QStringLiteral("Persist Next Workflow Stage &Transition"));
+    configureAction(*advance_workflow_action_, QStringLiteral("advanceSelectedWorkflowAction"),
+                    QStringLiteral("Persist next authored workflow stage transition"),
+                    QStringLiteral("Submit the exact displayed operation and actor"));
+    advance_workflow_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Alt+Right")));
 
     open_oral_argument_action_ =
         file_menu->addAction(QStringLiteral("Open Selected Oral &Argument"));
@@ -475,6 +596,10 @@ void MainWindow::buildFileMenu() {
     });
     connect(open_record_action_, &QAction::triggered, this,
             [this] { static_cast<void>(openSelectedRecord()); });
+    connect(open_workflow_action_, &QAction::triggered, this,
+            [this] { static_cast<void>(openSelectedWorkflow()); });
+    connect(advance_workflow_action_, &QAction::triggered, this,
+            [this] { static_cast<void>(advanceSelectedWorkflow()); });
     connect(open_oral_argument_action_, &QAction::triggered, this,
             [this] { static_cast<void>(openSelectedOralArgument()); });
     connect(import_profile_action_, &QAction::triggered, this, [this] {
@@ -809,6 +934,77 @@ auto MainWindow::openSelectedRecord() -> std::expected<void, QString> {
     return {};
 }
 
+auto MainWindow::openSelectedWorkflow() -> std::expected<void, QString> {
+    const auto reject = [this](QString message) -> std::expected<void, QString> {
+        showError(message);
+        return std::unexpected(std::move(message));
+    };
+    if (!workflow_launch_provider_) {
+        return reject(QStringLiteral("No production local workflow session provider is available"));
+    }
+    if (!installed_pack_ || !runtime_pack_) {
+        return reject(QStringLiteral(
+            "A workflow can open only from an exact pack closure installed on this device"));
+    }
+    const auto selected_row = case_list_->currentRow();
+    if (selected_row < 0 || static_cast<std::size_t>(selected_row) >= runtime_pack_->cases.size()) {
+        return reject(QStringLiteral("Select an installed-pack case before opening its workflow"));
+    }
+    const auto& runtime_case = runtime_pack_->cases.at(static_cast<std::size_t>(selected_row));
+    auto opened =
+        workflow_launch_provider_->openWorkflow(*installed_pack_, runtime_case.definition.id);
+    if (!opened) {
+        return reject(
+            QStringLiteral("Local workflow could not be opened: %1").arg(opened.error().message));
+    }
+
+    workflow_controller_ = std::move(*opened);
+    workflow_revision_ = runtime_pack_->revision;
+    workflow_case_id_ = runtime_case.definition.id;
+    renderWorkflowStatus();
+    showStatus(QStringLiteral("Opened exact local workflow session %1.")
+                   .arg(QString::fromStdString(workflow_controller_->state().session_id)));
+    return {};
+}
+
+auto MainWindow::advanceSelectedWorkflow() -> std::expected<void, QString> {
+    const auto reject = [this](QString message) -> std::expected<void, QString> {
+        showError(message);
+        return std::unexpected(std::move(message));
+    };
+    if (!workflow_controller_ || !selectedCaseHasLoadedWorkflow()) {
+        return reject(QStringLiteral(
+            "Open the selected installed case's local workflow before submitting a transition"));
+    }
+    const auto occurred_at = sampleWorkflowLegalClock();
+    if (!occurred_at) {
+        renderWorkflowStatus(occurred_at);
+        return reject(
+            QStringLiteral("Workflow legal time is unavailable: %1").arg(occurred_at.error()));
+    }
+    const auto choice = currentWorkflowAdvanceChoice(*occurred_at);
+    if (choice.operation == nullptr || choice.actor == nullptr || !choice.command.has_value()) {
+        renderWorkflowStatus(occurred_at);
+        return reject(QStringLiteral(
+            "No currently eligible authored stage transition and authorized actor are available "
+            "for the selected legal court date"));
+    }
+    const auto& command = *choice.command;
+    const auto submitted = workflow_controller_->submit(
+        model::WorkflowCommand{command}, std::nullopt,
+        occurred_at->instant_utc.toUTC().toString(QStringLiteral("yyyy-MM-dd'T'HH:mm:ss'Z'")));
+    if (!submitted) {
+        renderWorkflowStatus(occurred_at);
+        return reject(QStringLiteral("Workflow transition was not persisted: %1")
+                          .arg(submitted.error().message));
+    }
+    renderWorkflowStatus(occurred_at);
+    showStatus(QStringLiteral("Persisted workflow command %1 through event sequence %2.")
+                   .arg(QString::fromStdString(command.header.command_id.value))
+                   .arg(submitted->persisted_sequence));
+    return {};
+}
+
 auto MainWindow::openSelectedOralArgument() -> std::expected<void, QString> {
     const auto reject = [this](QString message) -> std::expected<void, QString> {
         showError(message);
@@ -846,7 +1042,8 @@ auto MainWindow::openSelectedOralArgument() -> std::expected<void, QString> {
         return reject(
             QStringLiteral("Oral argument could not be opened: %1").arg(opened.error().message));
     }
-    auto candidate = std::make_unique<OralArgumentWorkspace>(std::move(*opened));
+    auto candidate = std::make_unique<OralArgumentWorkspace>(
+        std::move(*opened), oral_elapsed_clock_, oral_recorded_at_clock_);
     if (!candidate->isReady()) {
         return reject(
             QStringLiteral("Oral argument could not be opened: %1").arg(candidate->lastError()));
@@ -883,6 +1080,7 @@ void MainWindow::commitRuntime(packs::RuntimePack runtime, const QString& source
                                const QString& success_message,
                                std::optional<packs::ResolvedPack> installed_pack) {
     invalidateRecordSelection();
+    invalidateWorkflowSelection();
     invalidateArgumentSelection();
     runtime_pack_ = std::move(runtime);
     installed_pack_ = std::move(installed_pack);
@@ -1086,6 +1284,20 @@ void MainWindow::invalidateRecordSelection() {
     }
 }
 
+void MainWindow::invalidateWorkflowSelection() {
+    workflow_controller_.reset();
+    workflow_revision_.reset();
+    workflow_case_id_.reset();
+    if (workflow_status_label_ != nullptr) {
+        workflow_status_label_->setText(
+            workflow_launch_provider_
+                ? QStringLiteral("Workflow: Select an installed case, then open or resume its "
+                                 "exact local session.")
+                : QStringLiteral("Workflow unavailable: no production local session provider is "
+                                 "configured."));
+    }
+}
+
 void MainWindow::invalidateArgumentSelection() {
     argument_revision_.reset();
     argument_case_id_.reset();
@@ -1109,6 +1321,121 @@ bool MainWindow::selectedCaseHasLoadedRecord() const {
            runtime_pack_->cases.at(selected_index).definition.id == *record_case_id_;
 }
 
+bool MainWindow::selectedCaseHasLoadedWorkflow() const {
+    if (workflow_controller_ == nullptr || !workflow_revision_ || !workflow_case_id_ ||
+        !runtime_pack_ || *workflow_revision_ != runtime_pack_->revision ||
+        case_list_->currentRow() < 0) {
+        return false;
+    }
+    const auto selected_index = static_cast<std::size_t>(case_list_->currentRow());
+    return selected_index < runtime_pack_->cases.size() &&
+           runtime_pack_->cases.at(selected_index).definition.id == *workflow_case_id_;
+}
+
+MainWindow::WorkflowAdvanceChoice
+MainWindow::currentWorkflowAdvanceChoice(const WorkflowLegalClockReading& reading) const {
+    if (!selectedCaseHasLoadedWorkflow()) {
+        return {};
+    }
+    const auto case_index = static_cast<std::size_t>(case_list_->currentRow());
+    const auto& runtime_case = runtime_pack_->cases.at(case_index);
+    const auto& state = workflow_controller_->state();
+    std::vector<const model::WorkflowOperation*> operations;
+    for (const auto& operation : runtime_case.workflow.operations) {
+        if (operation.stage_id == state.current_stage_id &&
+            operation.opcode == model::WorkflowOpcode::AdvanceStage &&
+            operation.next_stage_id.has_value()) {
+            operations.push_back(&operation);
+        }
+    }
+    std::ranges::sort(operations, {},
+                      [](const auto* operation) { return std::string_view(operation->id.value); });
+
+    for (const auto* operation : operations) {
+        std::vector<const model::CaseActor*> actors;
+        for (const auto& actor : runtime_case.definition.actors) {
+            if (std::ranges::contains(operation->authorized_roles, actor.role)) {
+                actors.push_back(&actor);
+            }
+        }
+        std::ranges::sort(actors, {},
+                          [](const auto* actor) { return std::string_view(actor->id.value); });
+        for (const auto* actor : actors) {
+            auto command = workflowAdvanceCommand(state, *operation, *actor, reading);
+            const auto decision =
+                engine::decideWorkflow(runtime_case.workflow, runtime_case.definition, state,
+                                       model::WorkflowCommand{command});
+            if (decision) {
+                return WorkflowAdvanceChoice{operation, actor, std::move(command)};
+            }
+        }
+    }
+    return {};
+}
+
+auto MainWindow::sampleWorkflowLegalClock() const
+    -> std::expected<WorkflowLegalClockReading, QString> {
+    if (workflow_court_date_editor_ == nullptr || !workflow_legal_clock_) {
+        return std::unexpected(QStringLiteral("Workflow legal clock is not configured"));
+    }
+    const auto text = workflow_court_date_editor_->text().trimmed();
+    const auto selected_date = QDate::fromString(text, QStringLiteral("yyyy-MM-dd"));
+    if (!selected_date.isValid() || selected_date.toString(QStringLiteral("yyyy-MM-dd")) != text) {
+        return std::unexpected(QStringLiteral("Enter the legal court date exactly as YYYY-MM-DD"));
+    }
+    const auto reading = workflow_legal_clock_(selected_date);
+    if (!reading) {
+        return std::unexpected(reading.error());
+    }
+    if (!reading->instant_utc.isValid() || reading->court_date != selected_date) {
+        return std::unexpected(
+            QStringLiteral("Workflow legal clock did not preserve the selected court date"));
+    }
+    return WorkflowLegalClockReading{reading->instant_utc.toUTC(), reading->court_date};
+}
+
+void MainWindow::renderWorkflowStatus() {
+    const auto preview_reading = sampleWorkflowLegalClock();
+    renderWorkflowStatus(preview_reading);
+}
+
+void MainWindow::renderWorkflowStatus(
+    const std::expected<WorkflowLegalClockReading, QString>& preview_reading) {
+    if (!selectedCaseHasLoadedWorkflow()) {
+        invalidateWorkflowSelection();
+        updateActionStates();
+        return;
+    }
+    const auto& state = workflow_controller_->state();
+    const auto& snapshot = workflow_controller_->snapshot();
+    const auto choice =
+        preview_reading ? currentWorkflowAdvanceChoice(*preview_reading) : WorkflowAdvanceChoice{};
+    auto text = QStringLiteral("Workflow session %1 — stage %2; next event %3; %4 persisted "
+                               "commands; %5 persisted events.")
+                    .arg(QString::fromStdString(state.session_id),
+                         QString::fromStdString(state.current_stage_id.value))
+                    .arg(state.next_event_sequence)
+                    .arg(static_cast<qulonglong>(snapshot.commands.size()))
+                    .arg(static_cast<qulonglong>(snapshot.events.size()));
+    if (!preview_reading) {
+        text += QStringLiteral(" Exact transition preview is unavailable (%1); transition "
+                               "submission is disabled.")
+                    .arg(preview_reading.error());
+    } else if (choice.operation != nullptr && choice.actor != nullptr &&
+               choice.command.has_value()) {
+        text += QStringLiteral(" Next exact transition: operation %1 as actor %2 to stage %3.")
+                    .arg(QString::fromStdString(choice.operation->id.value),
+                         QString::fromStdString(choice.actor->id.value),
+                         QString::fromStdString(choice.operation->next_stage_id->value));
+    } else {
+        text += QStringLiteral(
+            " No currently eligible authored AdvanceStage operation and authorized actor exist "
+            "for the selected legal court date.");
+    }
+    workflow_status_label_->setText(text);
+    updateActionStates(preview_reading);
+}
+
 bool MainWindow::selectedCaseHasLoadedArgument() const {
     if (!argument_revision_ || !argument_case_id_ || !argument_configuration_id_ ||
         !runtime_pack_ || *argument_revision_ != runtime_pack_->revision ||
@@ -1130,6 +1457,9 @@ void MainWindow::updateCaseSelection(int row) {
         if (record_case_id_.has_value() || record_access_controller_ != nullptr) {
             invalidateRecordSelection();
         }
+        if (workflow_case_id_.has_value() || workflow_controller_ != nullptr) {
+            invalidateWorkflowSelection();
+        }
         profile_selector_->setEnabled(false);
         argument_configuration_selector_->setEnabled(false);
         workspace_tabs_->setTabEnabled(argument_tab_index_, false);
@@ -1142,6 +1472,10 @@ void MainWindow::updateCaseSelection(int row) {
     if ((record_case_id_.has_value() && *record_case_id_ != runtime_case.definition.id) ||
         (record_access_controller_ != nullptr && !record_case_id_.has_value())) {
         invalidateRecordSelection();
+    }
+    if ((workflow_case_id_.has_value() && *workflow_case_id_ != runtime_case.definition.id) ||
+        (workflow_controller_ != nullptr && !workflow_case_id_.has_value())) {
+        invalidateWorkflowSelection();
     }
     const auto record_matches_selection = selectedCaseHasLoadedRecord();
     workspace_tabs_->setTabEnabled(record_tab_index_, record_matches_selection);
@@ -1302,6 +1636,12 @@ void MainWindow::updateProfileSelection(int row) {
 }
 
 void MainWindow::updateActionStates() {
+    const auto preview_reading = sampleWorkflowLegalClock();
+    updateActionStates(preview_reading);
+}
+
+void MainWindow::updateActionStates(
+    const std::expected<WorkflowLegalClockReading, QString>& preview_reading) {
     open_directory_action_->setEnabled(true);
     install_archive_action_->setEnabled(catalog_ != nullptr);
     import_profile_action_->setEnabled(true);
@@ -1312,6 +1652,19 @@ void MainWindow::updateActionStates() {
     open_record_action_->setEnabled(
         catalog_ != nullptr && installed_pack_.has_value() && runtime_pack_.has_value() &&
         selected_row >= 0 && static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size());
+    const auto can_open_workflow =
+        workflow_launch_provider_ != nullptr && installed_pack_.has_value() &&
+        runtime_pack_.has_value() && selected_row >= 0 &&
+        static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size();
+    open_workflow_action_->setEnabled(can_open_workflow);
+    open_workflow_button_->setEnabled(can_open_workflow);
+    const auto workflow_choice =
+        preview_reading ? currentWorkflowAdvanceChoice(*preview_reading) : WorkflowAdvanceChoice{};
+    const auto can_advance_workflow = workflow_choice.operation != nullptr &&
+                                      workflow_choice.actor != nullptr &&
+                                      workflow_choice.command.has_value();
+    advance_workflow_action_->setEnabled(can_advance_workflow);
+    advance_workflow_button_->setEnabled(can_advance_workflow);
     bool can_open_argument = false;
     if (oral_argument_launch_provider_ && installed_pack_ && runtime_pack_ && selected_row >= 0 &&
         argument_configuration_selector_->currentIndex() >= 0 &&
@@ -1381,6 +1734,8 @@ QLabel* MainWindow::recordSummaryLabel() const noexcept { return record_summary_
 
 QLabel* MainWindow::benchSummaryLabel() const noexcept { return bench_summary_label_; }
 
+QLabel* MainWindow::workflowStatusLabel() const noexcept { return workflow_status_label_; }
+
 QListWidget* MainWindow::caseList() const noexcept { return case_list_; }
 
 QComboBox* MainWindow::profileSelector() const noexcept { return profile_selector_; }
@@ -1411,10 +1766,25 @@ QAction* MainWindow::exportProfileAction() const noexcept { return export_profil
 
 QAction* MainWindow::openRecordAction() const noexcept { return open_record_action_; }
 
+QAction* MainWindow::openWorkflowAction() const noexcept { return open_workflow_action_; }
+
+QAction* MainWindow::advanceWorkflowAction() const noexcept { return advance_workflow_action_; }
+
 QAction* MainWindow::openOralArgumentAction() const noexcept { return open_oral_argument_action_; }
+
+QPushButton* MainWindow::openWorkflowButton() const noexcept { return open_workflow_button_; }
+
+QPushButton* MainWindow::advanceWorkflowButton() const noexcept { return advance_workflow_button_; }
+QLineEdit* MainWindow::workflowCourtDateEditor() const noexcept {
+    return workflow_court_date_editor_;
+}
 
 QMenu* MainWindow::recordAccessMenu() const noexcept { return record_access_menu_; }
 
 QString MainWindow::recordAccessDatabasePath() const { return record_access_database_path_; }
+
+const app::WorkflowSessionController* MainWindow::workflowSessionController() const noexcept {
+    return workflow_controller_.get();
+}
 
 } // namespace appellate::ui

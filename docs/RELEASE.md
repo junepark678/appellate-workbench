@@ -50,11 +50,44 @@ the offscreen load path. A release image must additionally launch the real deskt
 `qxcb` under Xvfb or a clean X11/XWayland session; that check cannot be claimed on a build host
 without either service.
 
+## Local session and backup boundary
+
+The production desktop places its workflow/oral SQLite database and paired content-addressed
+asset store under Qt's application-local data path. It does not accept a network endpoint,
+credential, or secret for this path. One provider retains the validated database lease and gives
+its in-process workflow/oral controllers explicit child connections. A second application process
+fails promptly as state-in-use, leaving record browsing available instead of blocking startup.
+
+This is cooperative single-owner protection, not a filesystem sandbox. Anchored descriptors and
+no-follow identity checks reject ordinary path replacement, but a malicious process running as the
+same user can still race SQLite's pathname-based reopen behavior outside the cooperative lock. Do
+not place the state directory where another same-UID process is untrusted.
+
+`SessionStore::backupTo` is a database-only, session-metadata backup operation. It rejects a
+snapshot containing asset references; the MVP does not yet provide a paired database-plus-CAS
+backup format. A current-schema, asset-free restore receives a fresh authoritative store identity
+and can bind only to a fresh empty asset store. A backup must therefore never be described as a
+document-bearing case export.
+
 The automated `linux_bundle_smoke` test installs into a fresh prefix, validates the bundled pack,
-launches the real desktop offscreen through `--smoke-test`, relocates the whole prefix, launches
-again, and removes the temporary prefix. The normal local desktop E2E separately exercises pack
-installation, SQLite save/resume, record CAS materialization, workflow judgment, actual and
-counterfactual oral argument, restart/replay, and tamper refusal.
+launches the real desktop offscreen, relocates the whole prefix, launches again, and removes the
+temporary prefix. Both installed and relocated launches also run in a user/network namespace with
+distinct, isolated XDG state roots. They use the shipped Asterglen pack for one real visible
+workflow transition and exact SQLite reopen.
+
+Asterglen does not contain a grounded oral-argument question bank. The installed-flow gate
+therefore invokes the installed artifact's own `appellate-pack template` command and exports that
+embedded schema-2 grounded starter to an exact-hash archive outside the install prefix. The same
+sequence is repeated with the relocated CLI; both template extraction and export run inside a
+user/network namespace. Through the real shipped executable and user import path, the gate persists
+and reopens one workflow filing, its CAS bytes, and one grounded oral answer while proving the
+workflow rows are unchanged by oral practice. Only Asterglen is installed as an `.awpack`; generated
+starter archives remain temporary verification output. This proves artifact-alone functional
+workflow/oral persistence plumbing, not the complete legal simulation required for MVP acceptance.
+
+The normal local desktop E2Es separately exercise pack installation, SQLite save/resume, record
+CAS materialization, workflow judgment, actual and counterfactual oral argument, restart/replay,
+and tamper refusal.
 
 ## Offline and clean-system gate
 

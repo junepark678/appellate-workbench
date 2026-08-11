@@ -275,12 +275,41 @@ set_tests_properties(
 )
 
 qt_add_executable(
+    tst_main_window_local_sessions
+    integration/tst_main_window_local_sessions.cpp
+)
+target_link_libraries(
+    tst_main_window_local_sessions
+    PRIVATE
+        appellate::desktop_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Sql
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_main_window_local_sessions
+    PRIVATE
+        APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+        APPELLATE_GOLD_ARCHIVE="${PROJECT_SOURCE_DIR}/content/ca4-rule54b/us-ca4-rule54b-asterglen-0.1.0.awpack"
+)
+target_compile_features(tst_main_window_local_sessions PRIVATE cxx_std_26)
+add_test(NAME main_window_local_sessions COMMAND tst_main_window_local_sessions)
+set_tests_properties(
+    main_window_local_sessions
+    PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        LABELS "e2e;ui;local"
+)
+
+qt_add_executable(
     tst_desktop_command_line
     integration/tst_desktop_command_line.cpp
 )
 target_link_libraries(
     tst_desktop_command_line
     PRIVATE
+        appellate::packs
         appellate::project_warnings
         appellate::project_sanitizers
         Qt6::Test
@@ -289,6 +318,7 @@ target_compile_definitions(
     tst_desktop_command_line
     PRIVATE
         APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+        APPELLATE_GOLD_ARCHIVE="${PROJECT_SOURCE_DIR}/content/ca4-rule54b/us-ca4-rule54b-asterglen-0.1.0.awpack"
         APPELLATE_WORKBENCH_EXECUTABLE="$<TARGET_FILE:appellate-workbench>"
 )
 target_compile_features(tst_desktop_command_line PRIVATE cxx_std_26)

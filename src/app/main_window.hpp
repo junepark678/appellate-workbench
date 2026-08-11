@@ -1,13 +1,18 @@
 #pragma once
 
 #include "appellate/model/record_access.hpp"
+#include "appellate/model/workflow_command.hpp"
 #include "appellate/packs/runtime_pack.hpp"
 
+#include <QDate>
+#include <QDateTime>
 #include <QMainWindow>
 #include <QStringView>
 
+#include <chrono>
 #include <cstdint>
 #include <expected>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -18,12 +23,15 @@ class QAction;
 class QComboBox;
 class QLabel;
 class QListWidget;
+class QLineEdit;
 class QMenu;
+class QPushButton;
 class QTabWidget;
 
 namespace appellate::app {
 class RecordAccessSessionController;
-}
+class WorkflowSessionController;
+} // namespace appellate::app
 
 namespace appellate::packs {
 class PackCatalog;
@@ -35,6 +43,7 @@ class BenchProfileEditor;
 class OralArgumentLaunchProvider;
 class OralArgumentWorkspace;
 class RecordWorkspace;
+class WorkflowLaunchProvider;
 
 struct RecordAccessTransitionStamp final {
     QString event_id;
@@ -43,6 +52,19 @@ struct RecordAccessTransitionStamp final {
     friend bool operator==(const RecordAccessTransitionStamp&,
                            const RecordAccessTransitionStamp&) = default;
 };
+
+struct WorkflowLegalClockReading final {
+    QDateTime instant_utc;
+    QDate court_date;
+
+    friend bool operator==(const WorkflowLegalClockReading&,
+                           const WorkflowLegalClockReading&) = default;
+};
+
+using WorkflowLegalClock = std::function<std::expected<WorkflowLegalClockReading, QString>(
+    const QDate& selected_court_date)>;
+using OralElapsedClock = std::function<std::chrono::seconds()>;
+using OralRecordedAtClock = std::function<QString()>;
 
 // Supplies the caller-owned session timestamp and the two fields of each local access
 // transition. Tests can inject a deterministic clock/ID source; the production default uses the
@@ -69,7 +91,10 @@ class MainWindow final : public QMainWindow {
         const QString& source_path, const QString& catalog_root, QWidget* parent,
         std::shared_ptr<OralArgumentLaunchProvider> oral_argument_launch_provider,
         std::shared_ptr<RecordAccessTransitionProvider> record_access_transition_provider = {},
-        QString record_access_database_path = {});
+        QString record_access_database_path = {},
+        std::shared_ptr<WorkflowLaunchProvider> workflow_launch_provider = {},
+        WorkflowLegalClock workflow_legal_clock = {}, OralElapsedClock oral_elapsed_clock = {},
+        OralRecordedAtClock oral_recorded_at_clock = {});
     ~MainWindow() override;
 
     MainWindow(const MainWindow&) = delete;
@@ -83,6 +108,8 @@ class MainWindow final : public QMainWindow {
         -> std::expected<void, QString>;
     [[nodiscard]] auto exportProfile(const QString& path) -> std::expected<void, QString>;
     [[nodiscard]] auto openSelectedRecord() -> std::expected<void, QString>;
+    [[nodiscard]] auto openSelectedWorkflow() -> std::expected<void, QString>;
+    [[nodiscard]] auto advanceSelectedWorkflow() -> std::expected<void, QString>;
     [[nodiscard]] auto openSelectedOralArgument() -> std::expected<void, QString>;
 
     [[nodiscard]] const packs::RuntimePack* currentRuntime() const noexcept;
@@ -96,6 +123,7 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] QLabel* procedureSummaryLabel() const noexcept;
     [[nodiscard]] QLabel* recordSummaryLabel() const noexcept;
     [[nodiscard]] QLabel* benchSummaryLabel() const noexcept;
+    [[nodiscard]] QLabel* workflowStatusLabel() const noexcept;
     [[nodiscard]] QListWidget* caseList() const noexcept;
     [[nodiscard]] QComboBox* profileSelector() const noexcept;
     [[nodiscard]] QComboBox* argumentConfigurationSelector() const noexcept;
@@ -110,15 +138,27 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] QAction* cloneProfileAction() const noexcept;
     [[nodiscard]] QAction* exportProfileAction() const noexcept;
     [[nodiscard]] QAction* openRecordAction() const noexcept;
+    [[nodiscard]] QAction* openWorkflowAction() const noexcept;
+    [[nodiscard]] QAction* advanceWorkflowAction() const noexcept;
     [[nodiscard]] QAction* openOralArgumentAction() const noexcept;
+    [[nodiscard]] QPushButton* openWorkflowButton() const noexcept;
+    [[nodiscard]] QPushButton* advanceWorkflowButton() const noexcept;
+    [[nodiscard]] QLineEdit* workflowCourtDateEditor() const noexcept;
     [[nodiscard]] QMenu* recordAccessMenu() const noexcept;
     [[nodiscard]] QString recordAccessDatabasePath() const;
+    [[nodiscard]] const app::WorkflowSessionController* workflowSessionController() const noexcept;
 
   private:
     struct RecordAccessActionBinding final {
         std::string disclosure_id;
         QAction* grant_action{};
         QAction* revoke_action{};
+    };
+
+    struct WorkflowAdvanceChoice final {
+        const model::WorkflowOperation* operation{};
+        const model::CaseActor* actor{};
+        std::optional<model::AdvanceWorkflowStage> command;
     };
 
     void buildUi();
@@ -129,6 +169,7 @@ class MainWindow final : public QMainWindow {
                        const QString& success_message,
                        std::optional<packs::ResolvedPack> installed_pack = std::nullopt);
     void invalidateRecordSelection();
+    void invalidateWorkflowSelection();
     void invalidateArgumentSelection();
     void resetRecordWorkspace();
     void clearRecordAccessActions();
@@ -138,24 +179,41 @@ class MainWindow final : public QMainWindow {
                                                const model::CaseId& selected_case_id)
         -> std::expected<std::unique_ptr<app::RecordAccessSessionController>, QString>;
     [[nodiscard]] bool selectedCaseHasLoadedRecord() const;
+    [[nodiscard]] bool selectedCaseHasLoadedWorkflow() const;
     [[nodiscard]] bool selectedCaseHasLoadedArgument() const;
+    [[nodiscard]] WorkflowAdvanceChoice
+    currentWorkflowAdvanceChoice(const WorkflowLegalClockReading& reading) const;
+    [[nodiscard]] auto sampleWorkflowLegalClock() const
+        -> std::expected<WorkflowLegalClockReading, QString>;
+    void renderWorkflowStatus();
+    void
+    renderWorkflowStatus(const std::expected<WorkflowLegalClockReading, QString>& preview_reading);
     void updateCaseSelection(int row);
     void updateArgumentSelection(int row);
     void updateProfileSelection(int row);
     void updateActionStates();
+    void
+    updateActionStates(const std::expected<WorkflowLegalClockReading, QString>& preview_reading);
     void showError(const QString& message);
     void showStatus(const QString& message);
 
     std::unique_ptr<packs::PackCatalog> catalog_;
     std::unique_ptr<app::RecordAccessSessionController> record_access_controller_;
+    std::unique_ptr<app::WorkflowSessionController> workflow_controller_;
     std::optional<packs::RuntimePack> runtime_pack_;
     std::optional<packs::ResolvedPack> installed_pack_;
     std::optional<model::PackRevision> record_revision_;
     std::optional<model::CaseId> record_case_id_;
+    std::optional<model::PackRevision> workflow_revision_;
+    std::optional<model::CaseId> workflow_case_id_;
     std::optional<model::PackRevision> argument_revision_;
     std::optional<model::CaseId> argument_case_id_;
     std::optional<packs::RuntimeArgumentConfigId> argument_configuration_id_;
     std::shared_ptr<OralArgumentLaunchProvider> oral_argument_launch_provider_;
+    std::shared_ptr<WorkflowLaunchProvider> workflow_launch_provider_;
+    WorkflowLegalClock workflow_legal_clock_;
+    OralElapsedClock oral_elapsed_clock_;
+    OralRecordedAtClock oral_recorded_at_clock_;
     std::shared_ptr<RecordAccessTransitionProvider> record_access_transition_provider_;
     std::vector<RecordAccessActionBinding> record_access_action_bindings_;
     QString current_source_path_;
@@ -169,6 +227,10 @@ class MainWindow final : public QMainWindow {
     QLabel* procedure_summary_label_{};
     QLabel* record_summary_label_{};
     QLabel* bench_summary_label_{};
+    QLabel* workflow_status_label_{};
+    QLineEdit* workflow_court_date_editor_{};
+    QPushButton* open_workflow_button_{};
+    QPushButton* advance_workflow_button_{};
     QListWidget* case_list_{};
     QComboBox* argument_configuration_selector_{};
     QLabel* argument_launch_boundary_label_{};
@@ -187,6 +249,8 @@ class MainWindow final : public QMainWindow {
     QAction* clone_profile_action_{};
     QAction* export_profile_action_{};
     QAction* open_record_action_{};
+    QAction* open_workflow_action_{};
+    QAction* advance_workflow_action_{};
     QAction* open_oral_argument_action_{};
     QMenu* record_access_menu_{};
 };

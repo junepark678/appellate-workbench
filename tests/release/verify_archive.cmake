@@ -44,6 +44,25 @@ if(NOT _top_level STREQUAL APPELLATE_PACKAGE_FILE_NAME OR
     message(FATAL_ERROR "The emitted archive must contain one exact top-level directory")
 endif()
 
+file(
+    GLOB_RECURSE _archive_pack_entries
+    LIST_DIRECTORIES FALSE
+    RELATIVE "${_extracted}/${APPELLATE_PACKAGE_FILE_NAME}"
+    "${_extracted}/${APPELLATE_PACKAGE_FILE_NAME}/*.awpack"
+)
+list(SORT _archive_pack_entries)
+set(
+    _expected_archive_pack_entries
+    "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
+)
+if(NOT _archive_pack_entries STREQUAL _expected_archive_pack_entries)
+    message(
+        FATAL_ERROR
+        "Archive .awpack allowlist differs; generated starter archives must never ship: "
+        "${_archive_pack_entries}"
+    )
+endif()
+
 execute_process(
     COMMAND
         "${CMAKE_COMMAND}"

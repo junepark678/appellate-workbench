@@ -91,6 +91,7 @@ void appendFrame(QByteArray& output, const QString& value) {
     appendFrame(encoded, snapshot.engine_revision);
     appendUint64(encoded, static_cast<std::uint64_t>(snapshot.authority_contract));
     appendUint64(encoded, static_cast<std::uint64_t>(snapshot.sequence));
+    appendFrame(encoded, snapshot.created_at_utc);
 
     appendUint64(encoded, static_cast<std::uint64_t>(snapshot.pins.size()));
     for (const auto& pin : snapshot.pins) {
@@ -307,11 +308,11 @@ void appendFrame(QByteArray& output, const QString& value) {
 
 class PersistedOralArgumentLaunchProvider final : public ui::OralArgumentLaunchProvider {
   public:
-    PersistedOralArgumentLaunchProvider(QString database_path, std::string legal_state_digest,
-                                        model::PackRevision expected_revision)
-        : database_path_(std::move(database_path)),
-          legal_state_digest_(std::move(legal_state_digest)),
-          expected_revision_(std::move(expected_revision)) {}
+    PersistedOralArgumentLaunchProvider(std::string legal_state_digest,
+                                        model::PackRevision expected_revision,
+                                        std::unique_ptr<storage::SessionStore> owner_store)
+        : legal_state_digest_(std::move(legal_state_digest)),
+          expected_revision_(std::move(expected_revision)), owner_store_(std::move(owner_store)) {}
 
     [[nodiscard]] auto open(const packs::ResolvedPack& resolved_pack, const model::CaseId& case_id,
                             const packs::RuntimeArgumentConfigId& argument_configuration_id)
@@ -329,7 +330,7 @@ class PersistedOralArgumentLaunchProvider final : public ui::OralArgumentLaunchP
             return fail(QStringLiteral("Unknown exact oral-argument configuration"));
         }
 
-        auto store = storage::SessionStore::open(database_path_);
+        auto store = owner_store_->forkConnection();
         if (!store) {
             return fail(store.error().message,
                         app::OralArgumentSessionErrorCode::SessionStoreFailure);
@@ -365,6 +366,10 @@ class PersistedOralArgumentLaunchProvider final : public ui::OralArgumentLaunchP
     [[nodiscard]] const std::optional<app::OralArgumentSessionError>& lastError() const noexcept {
         return last_error_;
     }
+    [[nodiscard]] auto forkConnection()
+        -> std::expected<std::unique_ptr<storage::SessionStore>, storage::StoreError> {
+        return owner_store_->forkConnection();
+    }
 
   private:
     [[nodiscard]] static auto fail(QString message,
@@ -374,9 +379,9 @@ class PersistedOralArgumentLaunchProvider final : public ui::OralArgumentLaunchP
         return std::unexpected(app::OralArgumentSessionError{code, std::move(message)});
     }
 
-    QString database_path_;
     std::string legal_state_digest_;
     model::PackRevision expected_revision_;
+    std::unique_ptr<storage::SessionStore> owner_store_;
     int create_attempts_{};
     int reopen_attempts_{};
     std::optional<app::OralArgumentSessionError> last_error_;
@@ -656,8 +661,16 @@ void OralArgumentDesktopE2eTest::
         qPrintable(workflow_rows_before.has_value() ? QString{} : workflow_rows_before.error()));
 
     (*catalog).reset();
+    auto owner_store = storage::SessionStore::open(database_path);
+    QVERIFY2(owner_store.has_value(),
+             qPrintable(owner_store.has_value() ? QString{} : owner_store.error().message));
+    storage::AssetStore paired_assets(asset_root);
+    const auto recovered_assets = (*owner_store)->recoverAssetStore(paired_assets);
+    QVERIFY2(
+        recovered_assets.has_value(),
+        qPrintable(recovered_assets.has_value() ? QString{} : recovered_assets.error().message));
     auto provider = std::make_shared<PersistedOralArgumentLaunchProvider>(
-        database_path, legal_state_digest, *exported);
+        legal_state_digest, *exported, std::move(*owner_store));
 
     std::optional<model::CanonicalOralArgumentDefinition> actual_definition;
     std::optional<model::OralArgumentState> actual_state;
@@ -715,7 +728,7 @@ void OralArgumentDesktopE2eTest::
                  qPrintable(workflow_rows_immediately_before_counterfactual.has_value()
                                 ? QString{}
                                 : workflow_rows_immediately_before_counterfactual.error()));
-        auto workflow_store_before_counterfactual = storage::SessionStore::open(database_path);
+        auto workflow_store_before_counterfactual = provider->forkConnection();
         QVERIFY2(workflow_store_before_counterfactual.has_value(),
                  qPrintable(workflow_store_before_counterfactual.has_value()
                                 ? QString{}
@@ -769,7 +782,7 @@ void OralArgumentDesktopE2eTest::
                                 : workflow_rows_immediately_after_counterfactual.error()));
         QCOMPARE(*workflow_rows_immediately_after_counterfactual,
                  *workflow_rows_immediately_before_counterfactual);
-        auto workflow_store_after_counterfactual = storage::SessionStore::open(database_path);
+        auto workflow_store_after_counterfactual = provider->forkConnection();
         QVERIFY2(workflow_store_after_counterfactual.has_value(),
                  qPrintable(workflow_store_after_counterfactual.has_value()
                                 ? QString{}
@@ -799,7 +812,7 @@ void OralArgumentDesktopE2eTest::
                             ? QString{}
                             : workflow_rows_after_counterfactual.error()));
     QCOMPARE(*workflow_rows_after_counterfactual, *workflow_rows_before);
-    auto workflow_store = storage::SessionStore::open(database_path);
+    auto workflow_store = provider->forkConnection();
     QVERIFY2(workflow_store.has_value(),
              qPrintable(workflow_store.has_value() ? QString{} : workflow_store.error().message));
     auto reopened_workflow = app::WorkflowSessionController::reopen(
