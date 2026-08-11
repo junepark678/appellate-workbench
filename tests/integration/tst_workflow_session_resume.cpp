@@ -4,13 +4,18 @@
 #include "appellate/storage/session_store.hpp"
 
 #include <QCryptographicHash>
+#include <QDataStream>
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMap>
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QSqlRecord>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QUuid>
@@ -311,6 +316,73 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
 
 [[nodiscard]] std::string digest(const QByteArray& bytes) {
     return QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex().toStdString();
+}
+
+[[nodiscard]] QMap<QString, QByteArray> casTree(const QString& root) {
+    QMap<QString, QByteArray> tree;
+    QDirIterator iterator(root, QDir::AllEntries | QDir::NoDotAndDotDot,
+                          QDirIterator::Subdirectories);
+    while (iterator.hasNext()) {
+        const auto path = iterator.next();
+        const QFileInfo info(path);
+        const auto relative = QDir(root).relativeFilePath(path);
+        if (info.isDir()) {
+            tree.insert(relative + u'/', QByteArrayLiteral("directory"));
+        } else if (info.isSymLink()) {
+            tree.insert(relative,
+                        QByteArrayLiteral("symlink:") + QFile::encodeName(info.symLinkTarget()));
+        } else {
+            QFile file(path);
+            if (file.open(QIODevice::ReadOnly)) {
+                tree.insert(relative, file.readAll());
+            } else {
+                tree.insert(relative, QByteArrayLiteral("unreadable"));
+            }
+        }
+    }
+    return tree;
+}
+
+[[nodiscard]] QByteArray databaseRows(const QString& path) {
+    const auto connection =
+        QStringLiteral("workflow-row-snapshot-%1")
+            .arg(QUuid::createUuid().toString(QUuid::Id128));
+    QByteArray framed;
+    QDataStream stream(&framed, QIODevice::WriteOnly);
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        database.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+        database.setDatabaseName(path);
+        if (database.open()) {
+            QSqlQuery tables(database);
+            if (tables.exec(QStringLiteral(
+                    "SELECT name FROM sqlite_schema WHERE type='table' "
+                    "AND name NOT LIKE 'sqlite_%' ORDER BY name"))) {
+                while (tables.next()) {
+                    const auto table = tables.value(0).toString();
+                    stream << table;
+                    QSqlQuery rows(database);
+                    if (!rows.exec(QStringLiteral("SELECT * FROM \"%1\" ORDER BY rowid")
+                                       .arg(table))) {
+                        stream << QStringLiteral("query-error");
+                        continue;
+                    }
+                    const auto columns = rows.record().count();
+                    stream << columns;
+                    while (rows.next()) {
+                        stream << QStringLiteral("row");
+                        for (int column = 0; column < columns; ++column) {
+                            stream << rows.value(column);
+                        }
+                    }
+                }
+            }
+            database.close();
+        }
+        database = QSqlDatabase{};
+    }
+    QSqlDatabase::removeDatabase(connection);
+    return framed;
 }
 
 [[nodiscard]] model::WorkflowCommandHeader header(std::string command_id, int day,
@@ -663,7 +735,8 @@ void WorkflowSessionResumeTest::reopenRejectsMissingOrCorruptAsset() {
     }
     const auto reopened = reopenController(database_path, asset_root);
     QVERIFY(!reopened.has_value());
-    QCOMPARE(reopened.error().code, app::WorkflowSessionErrorCode::CorruptSession);
+    QVERIFY2(reopened.error().code == app::WorkflowSessionErrorCode::CorruptSession,
+             qPrintable(reopened.error().message));
 }
 
 void WorkflowSessionResumeTest::reopenRejectsEnginePinAndSessionMismatch() {
@@ -693,10 +766,16 @@ void WorkflowSessionResumeTest::reopenRejectsEnginePinAndSessionMismatch() {
             std::move(expected_pins));
     };
 
-    QVERIFY(!openFor(QStringLiteral("engine.workflow.test.2"), pins(), initialState()).has_value());
+    const auto wrong_engine =
+        openFor(QStringLiteral("engine.workflow.test.2"), pins(), initialState());
+    QVERIFY(!wrong_engine.has_value());
+    QCOMPARE(wrong_engine.error().code, app::WorkflowSessionErrorCode::CorruptSession);
     auto wrong_pins = pins();
     wrong_pins.front().digest = QString(64, u'b');
-    QVERIFY(!openFor(QString::fromLatin1(engine_revision), wrong_pins, initialState()).has_value());
+    const auto rejected_pins =
+        openFor(QString::fromLatin1(engine_revision), wrong_pins, initialState());
+    QVERIFY(!rejected_pins.has_value());
+    QCOMPARE(rejected_pins.error().code, app::WorkflowSessionErrorCode::CorruptSession);
     auto invalid_pack_id = pins();
     invalid_pack_id.front().pack_id = QStringLiteral("invalid_pack");
     const auto bad_id =
@@ -710,9 +789,33 @@ void WorkflowSessionResumeTest::reopenRejectsEnginePinAndSessionMismatch() {
     QVERIFY(!bad_version.has_value());
     QCOMPARE(bad_version.error().code, app::WorkflowSessionErrorCode::InvalidConfiguration);
     // The alternate initial identity cannot locate or silently adopt the original session.
-    QVERIFY(
-        !openFor(QString::fromLatin1(engine_revision), pins(), initialState("test.session.other"))
-             .has_value());
+    const auto wrong_session = openFor(QString::fromLatin1(engine_revision), pins(),
+                                       initialState("test.session.other"));
+    QVERIFY(!wrong_session.has_value());
+    QCOMPARE(wrong_session.error().code, app::WorkflowSessionErrorCode::CorruptSession);
+
+    const auto connection =
+        QStringLiteral("workflow-created-at-tamper-%1")
+            .arg(QUuid::createUuid().toString(QUuid::Id128));
+    {
+        auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection);
+        database.setDatabaseName(database_path);
+        QVERIFY(database.open());
+        QSqlQuery tamper(database);
+        tamper.prepare(QStringLiteral(
+            "UPDATE sessions SET created_at_utc='not-canonical' WHERE session_id=?"));
+        tamper.addBindValue(QString::fromLatin1(session_id));
+        QVERIFY(tamper.exec());
+        QCOMPARE(tamper.numRowsAffected(), 1);
+        database.close();
+        database = QSqlDatabase{};
+    }
+    QSqlDatabase::removeDatabase(connection);
+    const auto invalid_created_at =
+        openFor(QString::fromLatin1(engine_revision), pins(), initialState());
+    QVERIFY(!invalid_created_at.has_value());
+    QCOMPARE(invalid_created_at.error().code,
+             app::WorkflowSessionErrorCode::CorruptSession);
 }
 
 void WorkflowSessionResumeTest::rawVectorPinsRejectCalendarVersionBeforeMutation() {
@@ -794,7 +897,8 @@ void WorkflowSessionResumeTest::rawReopenRejectsCanonicalAuthoritySession() {
 
     const auto reopened = reopenController(database_path, asset_root);
     QVERIFY(!reopened.has_value());
-    QCOMPARE(reopened.error().code, app::WorkflowSessionErrorCode::CorruptSession);
+    QVERIFY2(reopened.error().code == app::WorkflowSessionErrorCode::CorruptSession,
+             qPrintable(reopened.error().message));
 }
 
 void WorkflowSessionResumeTest::namedDependentDeadlinesSurviveReopenAndRejectBindingTamper() {
@@ -912,12 +1016,30 @@ void WorkflowSessionResumeTest::staleAppendLeavesControllerUnchanged() {
     QVERIFY(directory.isValid());
     const auto database_path = QDir(directory.path()).filePath(QStringLiteral("sessions.sqlite"));
     const auto asset_root = QDir(directory.path()).filePath(QStringLiteral("assets"));
-    auto first_result = createController(database_path, asset_root);
+    auto owner = storage::SessionStore::open(database_path);
+    if (!owner) {
+        QFAIL(qPrintable(owner.error().message));
+    }
+    auto first_store = (*owner)->forkConnection();
+    if (!first_store) {
+        QFAIL(qPrintable(first_store.error().message));
+    }
+    auto first_result = app::WorkflowSessionControllerTestAccess::create(
+        workflow(), caseDefinition(), initialState(),
+        storage::AssetStore(asset_root, 1024 * 1024), std::move(*first_store),
+        QString::fromLatin1(engine_revision), QStringLiteral("2026-08-11T09:00:00Z"), pins());
     if (!first_result) {
         QFAIL(qPrintable(first_result.error().message));
     }
     auto first = std::move(*first_result);
-    auto stale_result = reopenController(database_path, asset_root);
+    auto stale_store = (*owner)->forkConnection();
+    if (!stale_store) {
+        QFAIL(qPrintable(stale_store.error().message));
+    }
+    auto stale_result = app::WorkflowSessionController::reopen(
+        workflow(), caseDefinition(), initialState(),
+        storage::AssetStore(asset_root, 1024 * 1024), std::move(*stale_store),
+        QString::fromLatin1(engine_revision), pins());
     if (!stale_result) {
         QFAIL(qPrintable(stale_result.error().message));
     }
@@ -931,8 +1053,13 @@ void WorkflowSessionResumeTest::staleAppendLeavesControllerUnchanged() {
                 ->submit(deficientFiling(first_document), QByteArrayView(first_document),
                          QStringLiteral("2026-08-11T12:01:00Z"))
                 .has_value());
+    const auto persisted_before_stale = first->snapshot();
+    const auto first_digest = digest(first_document);
+    const auto database_rows_before_stale = databaseRows(database_path);
+    const auto cas_before_stale = casTree(asset_root);
 
     const QByteArray stale_document("stale concurrent document");
+    const auto stale_digest = digest(stale_document);
     auto stale_command = deficientFiling(stale_document);
     stale_command.header.command_id = model::WorkflowCommandId{"test.command.stale"};
     stale_command.filing_id = model::WorkflowFilingId{"test.filing.stale"};
@@ -942,10 +1069,34 @@ void WorkflowSessionResumeTest::staleAppendLeavesControllerUnchanged() {
     QCOMPARE(submitted.error().code, app::WorkflowSessionErrorCode::SessionStoreFailure);
     QVERIFY(stale->state() == stale_state);
     QVERIFY(stale->journal() == stale_journal);
+    QCOMPARE(stale->snapshot().created_at_utc, stale_snapshot.created_at_utc);
     QVERIFY(stale->snapshot().pins == stale_snapshot.pins);
     QVERIFY(stale->snapshot().commands == stale_snapshot.commands);
     QVERIFY(stale->snapshot().events == stale_snapshot.events);
+    QVERIFY(stale->snapshot().docket == stale_snapshot.docket);
+    QVERIFY(stale->snapshot().asset_references == stale_snapshot.asset_references);
     QCOMPARE(stale->snapshot().sequence, stale_snapshot.sequence);
+    QCOMPARE(databaseRows(database_path), database_rows_before_stale);
+    QCOMPARE(casTree(asset_root), cas_before_stale);
+
+    const auto objects = QDir(asset_root).filePath(QStringLiteral("objects"));
+    QVERIFY(QFileInfo::exists(QDir(objects).filePath(QString::fromStdString(first_digest))));
+    QVERIFY(!QFileInfo::exists(QDir(objects).filePath(QString::fromStdString(stale_digest))));
+    QCOMPARE(QDir(objects).entryList(QStringList{QStringLiteral("[0-9a-f]*")}, QDir::Files),
+             QStringList{QString::fromStdString(first_digest)});
+
+    const auto persisted_after_stale =
+        (*owner)->loadSession(QString::fromLatin1(session_id));
+    QVERIFY(persisted_after_stale.has_value());
+    QCOMPARE(persisted_after_stale->created_at_utc,
+             persisted_before_stale.created_at_utc);
+    QCOMPARE(persisted_after_stale->sequence, persisted_before_stale.sequence);
+    QCOMPARE(persisted_after_stale->pins, persisted_before_stale.pins);
+    QCOMPARE(persisted_after_stale->commands, persisted_before_stale.commands);
+    QCOMPARE(persisted_after_stale->events, persisted_before_stale.events);
+    QCOMPARE(persisted_after_stale->docket, persisted_before_stale.docket);
+    QCOMPARE(persisted_after_stale->asset_references,
+             persisted_before_stale.asset_references);
 }
 
 } // namespace

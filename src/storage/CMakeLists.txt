@@ -12,6 +12,7 @@ qt_add_library(
     include/appellate/storage/workflow_codec.hpp
     migrations/001_initial.sql
     migrations/002_session_authority_contract.sql
+    migrations/003_application_identity.sql
 )
 add_library(appellate::storage ALIAS appellate_storage)
 
@@ -33,4 +34,5 @@ qt_add_resources(
     FILES
         migrations/001_initial.sql
         migrations/002_session_authority_contract.sql
+        migrations/003_application_identity.sql
 )

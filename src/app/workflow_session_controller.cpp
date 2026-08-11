@@ -306,12 +306,16 @@ restoreSnapshot(const model::WorkflowDefinition& workflow,
                 const std::vector<storage::RevisionPin>& expected_pins,
                 storage::SessionAuthorityContract expected_authority_contract)
     -> std::expected<RestoredWorkflow, WorkflowSessionError> {
+    if (snapshot.authority_contract != expected_authority_contract) {
+        return fail(WorkflowSessionErrorCode::CorruptSession,
+                    QStringLiteral("Stored session authority contract differs"));
+    }
     if (snapshot.session_id != asQString(initial_state.session_id) ||
         snapshot.engine_revision != expected_engine_revision || snapshot.pins != expected_pins ||
-        snapshot.authority_contract != expected_authority_contract) {
+        !validCanonicalUtc(snapshot.created_at_utc)) {
         return fail(WorkflowSessionErrorCode::CorruptSession,
-                    QStringLiteral("Stored session identity, engine, revision pins, or authority "
-                                   "contract differ"));
+                    QStringLiteral("Stored session identity, engine revision, revision pins, or "
+                                   "canonical creation time differ"));
     }
     if (snapshot.sequence < 0 || snapshot.sequence > static_cast<qint64>(maximum_workflow_events) ||
         snapshot.commands.size() > maximum_journal_entries ||
@@ -514,6 +518,11 @@ WorkflowSessionController::createBound(
         !valid) {
         return std::unexpected(valid.error());
     }
+    if (const auto recovered = session_store->recoverAssetStore(asset_store); !recovered) {
+        return fail(WorkflowSessionErrorCode::SessionStoreFailure,
+                    QStringLiteral("Cannot bind or recover the workflow asset store: %1")
+                        .arg(recovered.error().message));
+    }
 
     const auto session_id = asQString(initial_state.session_id);
     const auto created = session_store->createSession(session_id, engine_revision, created_at_utc,
@@ -627,10 +636,18 @@ WorkflowSessionController::reopenBound(
         !valid) {
         return std::unexpected(valid.error());
     }
+    if (const auto recovered = session_store->recoverAssetStore(asset_store); !recovered) {
+        return fail(WorkflowSessionErrorCode::CorruptSession,
+                    QStringLiteral("Cannot bind or recover the workflow asset store: %1")
+                        .arg(recovered.error().message));
+    }
 
     const auto loaded = session_store->loadSession(asQString(initial_state.session_id));
     if (!loaded) {
-        return fail(WorkflowSessionErrorCode::SessionStoreFailure, loaded.error().message);
+        return fail(loaded.error().code == storage::StoreErrorCode::NotFound
+                        ? WorkflowSessionErrorCode::CorruptSession
+                        : WorkflowSessionErrorCode::SessionStoreFailure,
+                    loaded.error().message);
     }
     const auto restored =
         restoreSnapshot(workflow, case_definition, initial_state, *loaded, asset_store,
@@ -753,6 +770,8 @@ WorkflowSessionController::submit(const model::WorkflowCommand& command,
     }
 
     std::optional<storage::StoredAsset> stored_asset;
+    std::optional<storage::StagedAsset> staged_asset;
+    bool adds_asset_reference = false;
     if (document.has_value()) {
         const auto supplied_digest = QString::fromLatin1(
             QCryptographicHash::hash(*document_bytes, QCryptographicHash::Sha256).toHex());
@@ -760,26 +779,43 @@ WorkflowSessionController::submit(const model::WorkflowCommand& command,
             return fail(WorkflowSessionErrorCode::DocumentDigestMismatch,
                         QStringLiteral("Command document digest does not match its bytes"));
         }
-        const auto put = asset_store_.put(*document_bytes);
-        if (!put) {
-            return fail(WorkflowSessionErrorCode::AssetStoreFailure, put.error().message);
+        auto staged = asset_store_.stage(*document_bytes);
+        if (!staged) {
+            return fail(WorkflowSessionErrorCode::AssetStoreFailure, staged.error().message);
         }
-        if (put->sha256 != supplied_digest) {
+        if (staged->sha256() != supplied_digest) {
             return fail(WorkflowSessionErrorCode::DocumentDigestMismatch,
-                        QStringLiteral("Stored document digest differs from its verified bytes"));
+                        QStringLiteral("Staged document digest differs from its verified bytes"));
         }
-        stored_asset = *put;
-        const storage::AssetReference reference{put->sha256, document->purpose};
+        const storage::AssetReference reference{staged->sha256(), document->purpose};
         if (std::ranges::find(snapshot_.asset_references, reference) ==
             snapshot_.asset_references.end()) {
             batch.asset_references.push_back(reference);
+            adds_asset_reference = true;
+        } else {
+            const auto existing = asset_store_.read(staged->sha256());
+            if (!existing) {
+                return fail(WorkflowSessionErrorCode::AssetStoreFailure,
+                            existing.error().message);
+            }
+            stored_asset = storage::StoredAsset{staged->sha256(), staged->size(), true};
         }
+        staged_asset = std::move(*staged);
     }
 
     const auto appended =
-        session_store_->append(asQString(initial_state_.session_id), snapshot_.sequence, batch);
+        adds_asset_reference
+            ? session_store_->appendWithStagedAsset(asQString(initial_state_.session_id),
+                                                    snapshot_.sequence, batch, asset_store_,
+                                                    *staged_asset)
+            : session_store_->append(asQString(initial_state_.session_id), snapshot_.sequence,
+                                     batch);
     if (!appended) {
         return fail(WorkflowSessionErrorCode::SessionStoreFailure, appended.error().message);
+    }
+    if (adds_asset_reference) {
+        stored_asset = storage::StoredAsset{staged_asset->sha256(), staged_asset->size(),
+                                            staged_asset->wasDeduplicated()};
     }
     const auto loaded = session_store_->loadSession(asQString(initial_state_.session_id));
     if (!loaded) {

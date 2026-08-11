@@ -2090,7 +2090,9 @@ void PackDependencyResolutionTest::derivesSealedRecordAccessFromExactResolvedRoo
     QVERIFY((*controller)->disclosures().front().authorized);
     controller->reset();
 
-    auto store_a = appellate::storage::SessionStore::open(database_path);
+    auto owner_store = appellate::storage::SessionStore::open(database_path);
+    QVERIFY(owner_store.has_value());
+    auto store_a = (*owner_store)->forkConnection();
     QVERIFY(store_a.has_value());
     auto controller_a = appellate::app::RecordAccessSessionController::reopen(
         QStringLiteral("test.session.sealed-root"), runtime->cases.front().definition.id,
@@ -2099,7 +2101,7 @@ void PackDependencyResolutionTest::derivesSealedRecordAccessFromExactResolvedRoo
              controller_a ? "" : qPrintable(controller_a.error().message));
     QVERIFY((*controller_a)->disclosures().front().authorized);
 
-    auto store_b = appellate::storage::SessionStore::open(database_path);
+    auto store_b = (*owner_store)->forkConnection();
     QVERIFY(store_b.has_value());
     auto controller_b = appellate::app::RecordAccessSessionController::reopen(
         QStringLiteral("test.session.sealed-root"), runtime->cases.front().definition.id,
@@ -2126,6 +2128,7 @@ void PackDependencyResolutionTest::derivesSealedRecordAccessFromExactResolvedRoo
     QCOMPARE(fresh_workspace.currentDocumentId(), QStringLiteral("example.record.entry-one"));
     controller_a->reset();
     controller_b->reset();
+    owner_store->reset();
 
     QTemporaryDir revised;
     QVERIFY(revised.isValid());

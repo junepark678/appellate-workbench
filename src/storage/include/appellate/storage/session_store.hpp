@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QSqlDatabase>
 #include <QString>
+#include <QStringList>
 
 #include <expected>
 #include <memory>
@@ -10,9 +11,14 @@
 
 namespace appellate::storage {
 
+class AssetStore;
+class AssetStoreLock;
+class StagedAsset;
+
 enum class StoreErrorCode {
     InvalidArgument,
     OpenFailed,
+    StateInUse,
     MigrationFailed,
     NotFound,
     AlreadyExists,
@@ -107,6 +113,7 @@ struct SessionSnapshot final {
     std::vector<StoredEvent> events;
     std::vector<DocketEntry> docket;
     std::vector<AssetReference> asset_references{};
+    QString created_at_utc{};
 };
 
 class SessionStore final {
@@ -120,13 +127,35 @@ class SessionStore final {
     [[nodiscard]] static std::expected<std::unique_ptr<SessionStore>, StoreError>
     open(const QString& database_path);
 
+    // Creates an intentional in-process child connection under this owner's retained validated
+    // lifetime lease. Public open() remains exclusive; child connections cannot fork again.
+    [[nodiscard]] std::expected<std::unique_ptr<SessionStore>, StoreError>
+    forkConnection() const;
+
     [[nodiscard]] std::expected<void, StoreError>
     createSession(const QString& session_id, const QString& engine_revision,
                   const QString& created_at_utc, const std::vector<RevisionPin>& pins,
                   SessionAuthorityContract authority_contract = SessionAuthorityContract::LegacyV1);
 
+    // Creates the session and its required first command/event batch in one SQLite transaction.
+    // No zero-event session is observable if validation, insertion, or commit fails.
+    [[nodiscard]] std::expected<qint64, StoreError> createSessionWithInitialBatch(
+        const QString& session_id, const QString& engine_revision,
+        const QString& created_at_utc, const std::vector<RevisionPin>& pins,
+        SessionAuthorityContract authority_contract, const CommitBatch& initial_batch);
+
     [[nodiscard]] std::expected<qint64, StoreError>
     append(const QString& session_id, qint64 expected_sequence, const CommitBatch& batch);
+
+    [[nodiscard]] std::expected<qint64, StoreError>
+    appendWithStagedAsset(const QString& session_id, qint64 expected_sequence,
+                          const CommitBatch& batch, AssetStore& asset_store,
+                          StagedAsset& staged_asset);
+
+    // With both the SQLite write reservation and the CAS lock held, removes abandoned staging
+    // names and immutable objects that have no reference from any persisted session. Missing or
+    // corrupt referenced objects fail closed.
+    [[nodiscard]] std::expected<void, StoreError> recoverAssetStore(AssetStore& asset_store);
 
     [[nodiscard]] std::expected<SessionSnapshot, StoreError>
     loadSession(const QString& session_id) const;
@@ -144,12 +173,20 @@ class SessionStore final {
     [[nodiscard]] std::expected<void, StoreError> configure();
     [[nodiscard]] std::expected<void, StoreError> migrate();
     [[nodiscard]] std::expected<void, StoreError> beginImmediate();
+    [[nodiscard]] std::expected<QString, StoreError> assetStoreIdentity() const;
+    [[nodiscard]] std::expected<void, StoreError>
+    ensureAssetStoreIdentity(AssetStore& asset_store, const AssetStoreLock& lock,
+                             const QStringList& referenced_digests,
+                             bool require_exact_object_set);
     [[nodiscard]] std::expected<void, StoreError> commit();
     void rollback();
     void closeConnection();
 
     QString connection_name_;
+    QString database_path_;
     QSqlDatabase database_;
+    std::shared_ptr<void> lifetime_lease_;
+    bool may_fork_{};
 };
 
 } // namespace appellate::storage

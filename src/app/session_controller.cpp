@@ -347,6 +347,11 @@ std::expected<std::unique_ptr<SessionController>, SessionControllerError> Sessio
         return fail(SessionControllerErrorCode::InvalidConfiguration,
                     QStringLiteral("Cannot create a session from the supplied configuration"));
     }
+    if (const auto recovered = session_store->recoverAssetStore(asset_store); !recovered) {
+        return fail(SessionControllerErrorCode::SessionStoreFailure,
+                    QStringLiteral("Cannot bind or recover the session asset store: %1")
+                        .arg(recovered.error().message));
+    }
 
     const auto session_id = asQString(initial_state.id.value);
     const auto created =
@@ -396,6 +401,11 @@ std::expected<std::unique_ptr<SessionController>, SessionControllerError> Sessio
         return fail(SessionControllerErrorCode::InvalidConfiguration,
                     QStringLiteral("Cannot reopen a session from the supplied configuration"));
     }
+    if (const auto recovered = session_store->recoverAssetStore(asset_store); !recovered) {
+        return fail(SessionControllerErrorCode::CorruptSession,
+                    QStringLiteral("Cannot bind or recover the session asset store: %1")
+                        .arg(recovered.error().message));
+    }
 
     std::ranges::sort(expected_pins, {}, &storage::RevisionPin::pack_id);
 
@@ -444,13 +454,13 @@ SessionController::submit(const model::SubmitFiling& command, QByteArrayView doc
                     QStringLiteral("The recorded time and submitted document are required"));
     }
 
-    const auto stored_asset = asset_store_.put(document_bytes);
-    if (!stored_asset) {
-        return fail(SessionControllerErrorCode::AssetStoreFailure, stored_asset.error().message);
+    auto staged_asset = asset_store_.stage(document_bytes);
+    if (!staged_asset) {
+        return fail(SessionControllerErrorCode::AssetStoreFailure, staged_asset.error().message);
     }
-    if (stored_asset->sha256 != asQString(command.document_sha256)) {
+    if (staged_asset->sha256() != asQString(command.document_sha256)) {
         return fail(SessionControllerErrorCode::DocumentDigestMismatch,
-                    QStringLiteral("Command document digest does not match the stored asset"));
+                    QStringLiteral("Command document digest does not match the staged asset"));
     }
 
     const auto decided = engine::decide(procedure_, case_definition_, state_, command);
@@ -463,10 +473,14 @@ SessionController::submit(const model::SubmitFiling& command, QByteArrayView doc
     batch.command_id = asQString(command.submission_id.value);
     batch.command_json = encodeCommand(command);
     batch.recorded_at_utc = recorded_at_utc;
-    const auto asset_reference = filingDocumentReference(stored_asset->sha256);
-    if (std::ranges::find(snapshot_.asset_references, asset_reference) ==
-        snapshot_.asset_references.end()) {
+    const auto asset_reference = filingDocumentReference(staged_asset->sha256());
+    const auto adds_asset_reference =
+        std::ranges::find(snapshot_.asset_references, asset_reference) ==
+        snapshot_.asset_references.end();
+    if (adds_asset_reference) {
         batch.asset_references.push_back(asset_reference);
+    } else if (const auto existing = asset_store_.read(staged_asset->sha256()); !existing) {
+        return fail(SessionControllerErrorCode::AssetStoreFailure, existing.error().message);
     }
     batch.events.reserve(decided->size());
     for (std::size_t index = 0; index < decided->size(); ++index) {
@@ -502,7 +516,11 @@ SessionController::submit(const model::SubmitFiling& command, QByteArrayView doc
     }
 
     const auto appended =
-        session_store_->append(asQString(state_.id.value), snapshot_.sequence, batch);
+        adds_asset_reference
+            ? session_store_->appendWithStagedAsset(asQString(state_.id.value),
+                                                    snapshot_.sequence, batch, asset_store_,
+                                                    *staged_asset)
+            : session_store_->append(asQString(state_.id.value), snapshot_.sequence, batch);
     if (!appended) {
         return fail(SessionControllerErrorCode::SessionStoreFailure, appended.error().message);
     }
@@ -519,7 +537,10 @@ SessionController::submit(const model::SubmitFiling& command, QByteArrayView doc
 
     state_ = std::move(next_state);
     snapshot_ = *loaded;
-    return SubmissionResult{*stored_asset, *decided, *appended};
+    return SubmissionResult{storage::StoredAsset{staged_asset->sha256(), staged_asset->size(),
+                                                  !adds_asset_reference ||
+                                                      staged_asset->wasDeduplicated()},
+                            *decided, *appended};
 }
 
 const model::SessionState& SessionController::state() const noexcept { return state_; }
