@@ -2,9 +2,11 @@
 
 #include <QByteArray>
 #include <QDir>
+#include <QFile>
 #include <QFileDevice>
 #include <QFileInfo>
 #include <QIODevice>
+#include <QTemporaryFile>
 
 #include <sodium.h>
 
@@ -561,9 +563,44 @@ ProtocolCodec::decrypt(QIODevice& ciphertext, QStringView expected_remote_object
         return fail(ProtocolErrorCode::CryptoInitializationFailed,
                     QStringLiteral("Cannot initialize libsodium"));
     }
+    if (!parseLowerHexId(expected_remote_object_id) || !validKeySet(keys, false) ||
+        !ciphertext.isReadable() || limits.maximum_payload_bytes == 0) {
+        return fail(ProtocolErrorCode::InvalidArgument,
+                    QStringLiteral("The decryption request is invalid"));
+    }
+
+    const auto quarantine_root = quarantine_directory.isEmpty()
+                                     ? QDir::tempPath()
+                                     : QFileInfo(quarantine_directory).absoluteFilePath();
+    const QFileInfo quarantine_info(quarantine_root);
+    if (!quarantine_info.isDir() || quarantine_info.isSymLink()) {
+        return fail(ProtocolErrorCode::CannotCreateQuarantine,
+                    QStringLiteral("The sync quarantine directory is unavailable or unsafe"));
+    }
+    auto temporary = std::make_unique<QTemporaryFile>(
+        QDir(quarantine_root).filePath(QStringLiteral(".appellate-sync-XXXXXX.quarantine")));
+    temporary->setAutoRemove(true);
+    if (!temporary->open() ||
+        !temporary->setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
+        return fail(ProtocolErrorCode::CannotCreateQuarantine,
+                    QStringLiteral("Cannot create a private sync quarantine file"));
+    }
+    return decryptIntoQuarantine(ciphertext, expected_remote_object_id, keys, std::move(temporary),
+                                 limits);
+}
+
+std::expected<VerifiedSyncObject, ProtocolError> ProtocolCodec::decryptIntoQuarantine(
+    QIODevice& ciphertext, QStringView expected_remote_object_id, const ProtocolKeySet& keys,
+    std::unique_ptr<QTemporaryFile> quarantine, ProtocolLimits limits) {
+    if (!initializeSodium()) {
+        return fail(ProtocolErrorCode::CryptoInitializationFailed,
+                    QStringLiteral("Cannot initialize libsodium"));
+    }
     const auto expected_remote = parseLowerHexId(expected_remote_object_id);
     if (!expected_remote || !validKeySet(keys, false) || !ciphertext.isReadable() ||
-        limits.maximum_payload_bytes == 0) {
+        limits.maximum_payload_bytes == 0 || quarantine == nullptr || !quarantine->isOpen() ||
+        !quarantine->isReadable() || !quarantine->isWritable() || quarantine->isSequential() ||
+        quarantine->pos() != 0 || quarantine->size() != 0) {
         return fail(ProtocolErrorCode::InvalidArgument,
                     QStringLiteral("The decryption request is invalid"));
     }
@@ -593,23 +630,6 @@ ProtocolCodec::decrypt(QIODevice& ciphertext, QStringView expected_remote_object
             &state.value, outer_bytes + stream_header_offset, slot->encryption_key.data()) != 0) {
         return fail(ProtocolErrorCode::AuthenticationFailed,
                     QStringLiteral("The encrypted object header cannot be authenticated"));
-    }
-
-    const auto quarantine_root = quarantine_directory.isEmpty()
-                                     ? QDir::tempPath()
-                                     : QFileInfo(quarantine_directory).absoluteFilePath();
-    const QFileInfo quarantine_info(quarantine_root);
-    if (!quarantine_info.isDir() || quarantine_info.isSymLink()) {
-        return fail(ProtocolErrorCode::CannotCreateQuarantine,
-                    QStringLiteral("The sync quarantine directory is unavailable or unsafe"));
-    }
-    auto quarantine = std::make_unique<QTemporaryFile>(
-        QDir(quarantine_root).filePath(QStringLiteral(".appellate-sync-XXXXXX.quarantine")));
-    quarantine->setAutoRemove(true);
-    if (!quarantine->open() ||
-        !quarantine->setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
-        return fail(ProtocolErrorCode::CannotCreateQuarantine,
-                    QStringLiteral("Cannot create a private sync quarantine file"));
     }
 
     bool parsed_header = false;

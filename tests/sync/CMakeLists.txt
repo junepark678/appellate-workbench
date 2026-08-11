@@ -52,6 +52,19 @@ target_compile_features(tst_local_folder_provider PRIVATE cxx_std_26)
 add_test(NAME local_folder_provider COMMAND tst_local_folder_provider)
 set_tests_properties(local_folder_provider PROPERTIES LABELS "e2e;sync;local")
 
+qt_add_executable(tst_object_transport tst_object_transport.cpp provider_conformance.hpp)
+target_link_libraries(
+    tst_object_transport
+    PRIVATE
+        appellate::sync
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_object_transport PRIVATE cxx_std_26)
+add_test(NAME object_transport COMMAND tst_object_transport)
+set_tests_properties(object_transport PROPERTIES LABELS "e2e;sync;local")
+
 qt_add_executable(tst_vault_keyring tst_vault_keyring.cpp)
 target_link_libraries(
     tst_vault_keyring

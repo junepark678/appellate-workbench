@@ -6,8 +6,10 @@
 #include <QStringView>
 
 #include <expected>
+#include <memory>
 
 class QIODevice;
+class QTemporaryFile;
 
 namespace appellate::sync {
 
@@ -37,6 +39,18 @@ class ProtocolCodec final {
                                       const ProtocolKeySet& keys,
                                       const QString& quarantine_directory = {},
                                       ProtocolLimits limits = {})
+        -> std::expected<VerifiedSyncObject, ProtocolError>;
+
+  private:
+    friend class ObjectTransport;
+
+    // ObjectTransport supplies an already-open, owner-only, descriptor-relative file that has
+    // been unlinked from its directory. Keeping this seam private prevents callers from weakening
+    // the public decrypt-to-quarantine contract with an arbitrary destination.
+    [[nodiscard]] static auto
+    decryptIntoQuarantine(QIODevice& ciphertext, QStringView expected_remote_object_id,
+                          const ProtocolKeySet& keys, std::unique_ptr<QTemporaryFile> quarantine,
+                          ProtocolLimits limits = {})
         -> std::expected<VerifiedSyncObject, ProtocolError>;
 };
 

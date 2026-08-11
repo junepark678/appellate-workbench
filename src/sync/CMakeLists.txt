@@ -3,6 +3,7 @@ qt_add_library(
     src/checkpoint_graph.cpp
     src/local_folder_provider.cpp
     src/logical_object_codec.cpp
+    src/object_transport.cpp
     src/protocol_codec.cpp
     src/recovery_capsule.cpp
     src/secret_bytes.cpp
@@ -12,6 +13,7 @@ qt_add_library(
     include/appellate/sync/local_folder_provider.hpp
     include/appellate/sync/logical_object_codec.hpp
     include/appellate/sync/object_provider.hpp
+    include/appellate/sync/object_transport.hpp
     include/appellate/sync/protocol_codec.hpp
     include/appellate/sync/recovery_capsule.hpp
     include/appellate/sync/secret_bytes.hpp

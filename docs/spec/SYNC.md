@@ -2,10 +2,11 @@
 
 Status: protocol version 1. The envelope/identity codec, canonical session-event-segment and
 checkpoint payload codecs, pure checkpoint-graph/restore planner, create-only local-folder
-provider, guarded vault keyring and routine rotation, recovery-capsule codec, and injectable
-secret-store boundary are implemented. Pack-revision and authored-revision payload codecs, a
-production OS-key-store adapter, S3-compatible transport, application import transaction, and
-branch-selection UI remain separate slices.
+provider, provider-neutral ciphertext transport coordinator, guarded vault keyring and routine
+rotation, recovery-capsule codec, and injectable secret-store boundary are implemented.
+Pack-revision and authored-revision payload codecs, a production OS-key-store adapter,
+S3-compatible provider and credentials, coordinator-to-SQLite integration, application import
+transaction, and branch-selection UI remain separate slices.
 
 Sync is an optional replica layer. It is never a database, a requirement for simulation, or a
 channel for executable code. The application remains fully usable when this target is disabled,
@@ -204,8 +205,9 @@ public_header || remote_id:32 raw bytes || frame_index:u64
 This binds ciphertext to its protocol, key slot, stream header, provider key, and position. A
 receiver rejects an unknown slot, malformed length, invalid tag, missing final tag, early final
 tag, trailing byte, payload over its configured limit, canonical-ID mismatch, or remote-ID
-mismatch. It decrypts only into an owner-only auto-removing quarantine file. Nothing is installed,
-imported, or exposed as a successful payload until the complete stream and both identities verify.
+mismatch. It decrypts only into an owner-only quarantine file whose lifetime is owned by the
+returned verified object. Nothing is installed, imported, or exposed as a successful payload
+until the complete stream and both identities verify.
 
 ## Size leakage and bounds
 
@@ -336,10 +338,59 @@ contain ciphertext only. The interface intentionally has no overwrite, delete, r
 metadata, or recursive filesystem operation. The provider root is canonicalized once when opened;
 callers must choose a dedicated directory protected by their local account.
 
-The local-folder E2E test encrypts a session segment, publishes it through the provider, downloads
-it into a new buffer, authenticates/decrypts it into quarantine, and compares the exact plaintext
-and identity. Separate tests freeze no-overwrite behavior, pagination, owner-only permissions,
-limits, malformed namespace rejection, and absence of partial final objects.
+The reusable provider-conformance harness runs the local-folder implementation through stable
+pagination, stat/list consistency, create-only deduplication, exact-byte transfer, invalid and
+missing IDs, size limits, and nonregular-object rejection. Separate concurrency and namespace
+tests freeze owner-only permissions, malformed namespace rejection, and absence of partial final
+objects.
+
+## Provider-neutral object transport
+
+The implemented `ObjectTransport` is a synchronous local-library coordinator over the four
+`ObjectProvider` operations. It retains a provider reference, a capability handle opened by
+walking every component of the canonical absolute staging/quarantine directory without following
+symlinks, and a retry bound of three attempts by default and eight at most. The retained handle,
+not the path string, is the authority for later temporary-file operations, so renaming an ancestor
+and replacing it with a symlink cannot redirect either ciphertext or plaintext. It does not retain
+vault keys: the caller supplies the exact protocol key set for each operation so routine rotation
+does not create another long-lived raw-key copy.
+
+Publication encrypts the caller's seekable payload exactly once into an owner-only file created
+relative to the retained directory handle and immediately unlinked, restores the caller's original
+position only when encryption changed it, and reuses those identical staged bytes for every
+create-if-absent attempt. Both `Created` and `AlreadyPresent` are provisional: the transport
+downloads the named object into a separate bounded, descriptor-relative, immediately unlinked
+ciphertext file, authenticates it, and decrypts it into a third owner-only unlinked quarantine
+file. It requires the exact kind, schema, canonical identity, remote identity, payload length, and
+padding length produced for the caller's payload. Thus an upload that atomically publishes and
+then reports a transient failure converges on retry without overwriting data, while an occupied
+name containing invalid bytes fails closed.
+
+Fetch applies the same bounded download and authenticated quarantine path. Provider metadata must
+name the requested object and exactly match the number of staged bytes. Partial success, changed
+size, oversized output, corrupt or trailing ciphertext, a wrong key, and ciphertext copied under
+a different remote ID are rejected before plaintext is returned. Failed operations leave neither
+plaintext nor ciphertext staging files behind. Successful plaintext remains only in an
+owner-only, unnamed quarantine file whose descriptor is owned by the returned verified object
+and is released when that object is closed or destroyed.
+
+Provider errors are permanent unless a provider explicitly marks them transient. The coordinator
+retries only transient `PublicationFailed` create calls and transient `CannotReadNamespace`
+downloads; it never retries invalid arguments, missing or malformed objects, size violations,
+source/destination failures, authentication failures, or any other protocol error. Result types
+report publication and verification attempt counts separately. Errors report their stage and
+attempt count while preserving the exact provider, protocol, or transport-local failure category;
+transport-generated messages contain no key or plaintext material.
+
+This is the complete transport boundary currently implemented: local staging plus the
+provider-neutral coordinator, exercised against `LocalFolderProvider` and adversarial in-memory
+fault providers. Secure descriptor-relative temporary files are currently implemented only on
+Unix platforms with `openat`/`unlinkat`, `O_NOFOLLOW`, and a retained directory descriptor;
+`ObjectTransport::open` fails closed as unsupported elsewhere until an equivalent platform handle
+implementation exists. The envelope codec and providers remain independently available there.
+There is no S3 implementation, credential loading, remote account setup, background
+synchronization service, coordinator-to-SQLite path, local-store mutation, or application/UI
+integration in this slice.
 
 ## Remote provider and branch handling
 
@@ -347,8 +398,9 @@ The provider interface exposes only paged list, stat, create-if-absent upload, a
 no overwrite, delete, rename, SQL, or plaintext metadata operation. The implemented local-folder
 adapter atomically publishes owner-only ciphertext files. The pending S3-compatible adapter must
 use Signature Version 4, HTTPS outside explicit loopback tests, and `If-None-Match: *`; a provider
-that cannot enforce create-only writes is incompatible. Retries operate on the same remote ID and
-must authenticate a preexisting object before treating it as deduplicated.
+that cannot enforce create-only writes is incompatible. The current provider-neutral coordinator
+retries the same remote ID with the same staged ciphertext and authenticates a preexisting object
+before treating it as deduplicated; no S3 behavior is claimed or tested yet.
 
 The implemented graph builder accepts at most 4,096 identified segments and 4,096 identified
 checkpoints with ancestry depth at most 4,096. Before admitting an object, it re-encodes the

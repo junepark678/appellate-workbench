@@ -43,9 +43,18 @@ enum class ProviderErrorCode {
     PublicationFailed,
 };
 
+// Providers must opt in to retries for failures that are known to be transient. Errors remain
+// permanent by default so a new provider cannot accidentally turn malformed input, missing
+// objects, or local I/O failures into retry loops.
+enum class ProviderErrorRetryability {
+    Permanent,
+    Transient,
+};
+
 struct ProviderError final {
     ProviderErrorCode code{};
     QString message;
+    ProviderErrorRetryability retryability{ProviderErrorRetryability::Permanent};
 
     friend bool operator==(const ProviderError&, const ProviderError&) = default;
 };
