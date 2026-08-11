@@ -1,8 +1,9 @@
 # Encrypted immutable-object sync protocol
 
-Status: protocol version 1. The envelope/identity codec and create-only local-folder provider are
-implemented; OS-key-store integration, logical object payload codecs, S3-compatible transport,
-and branch import remain separate slices.
+Status: protocol version 1. The envelope/identity codec, create-only local-folder provider,
+guarded vault keyring and routine rotation, recovery-capsule codec, and injectable secret-store
+boundary are implemented. A production OS-key-store adapter, logical object payload codecs,
+S3-compatible transport, and branch import remain separate slices.
 
 Sync is an optional replica layer. It is never a database, a requirement for simulation, or a
 channel for executable code. The application remains fully usable when this target is disabled,
@@ -187,17 +188,45 @@ provider-neutral MVP. Product documentation must disclose these limits.
 
 ## Keys, rotation, and recovery
 
-A vault keyring contains a stable random 32-byte object-ID key, one or more independently random
-32-byte data-encryption keys indexed by random 16-byte slot IDs, and the current write slot. The
-production implementation must keep this keyring in locked memory only while needed, wipe working
-copies, and persist it only through the OS secret store. Provider access key, secret, and session
-token are separate OS-secret-store entries. SQLite, settings, logs, command lines, environment
-variables, and provider objects hold only nonsecret configuration and opaque key-store references.
+A vault keyring contains a stable random 16-byte vault ID, a stable random 32-byte object-ID key,
+one or more independently random 32-byte data-encryption keys indexed by random 16-byte slot IDs,
+and the current write slot. The implemented owner uses libsodium guarded, best-effort locked
+memory and wipes it on release. The value-shaped compatibility copy required by the envelope
+codec is scoped and wiped immediately after synchronous use. Serialized plaintext keyrings and
+password-derived keys also use guarded memory rather than implicitly shared Qt buffers.
 
-On Linux the planned adapter is QtKeychain with insecure fallback disabled. If Secret Service,
-KWallet, or another supported OS store is unavailable, sync setup and invocation fail closed;
-simulation, pack use, local save/resume, and local backup continue unchanged. Tests inject keys and
-never require a desktop keyring.
+The strict plaintext keyring format is big-endian and has no optional or trailing fields:
+
+```text
+41 57 4b 52 00 01 00 00 ||
+vault_id:16 || object_id_key:32 || current_slot_id:16 ||
+slot_count:u16 || reserved_zero:u16 ||
+slot_count * (slot_id:16 || data_encryption_key:32)
+```
+
+The exact encoded size is `76 + 48 * slot_count` bytes and version 1 accepts 1 through 32 unique,
+nonzero slot IDs. It rejects zero key material, an all-zero vault ID, duplicate slots, a current
+slot not present in the list, unsupported flags or versions, truncation, and trailing bytes.
+
+Keyring persistence is available only through the injected `SecretStore` boundary. With no
+adapter, every load, save, and recovery restore fails closed and no alternate file, environment,
+settings, or command-line path is attempted. Opaque store references are 1 through 128 ASCII
+characters, begin with an alphanumeric character, continue only with alphanumerics or `._:-`, and
+cannot contain adjacent separator characters. Provider access key, secret, and session token are
+separate OS-secret-store entries. SQLite, settings, logs, command lines, environment variables,
+and provider objects hold only nonsecret configuration and opaque key-store references.
+
+The secret-store `write` operation is synchronous and all-or-nothing. Success replaces the whole
+value; any error must leave the prior value byte-for-byte readable. An OS adapter that cannot
+guarantee this postcondition is unsupported and must fail closed before mutation. Recovery still
+performs authentication and strict keyring validation before making that single atomic store
+call.
+
+The production OS-store adapter remains pending. On Linux the planned adapter is QtKeychain with
+insecure fallback disabled. If Secret Service, KWallet, or another supported OS store is
+unavailable, sync setup and invocation fail closed; simulation, pack use, local save/resume, and
+local backup continue unchanged. Tests inject an in-memory fake and never require a desktop
+keyring.
 
 Routine rotation creates a fresh random encryption key and slot for new objects. Old read slots
 remain until every reachable object has been verified under a replacement. Objects are immutable,
@@ -206,14 +235,32 @@ new vault object-ID key, new encryption keys, and a new remote prefix. Verified 
 are re-encrypted into that namespace; the old namespace is retained until the new graph passes a
 complete restore drill and is never deleted automatically.
 
-Recovery export will create a versioned capsule containing the vault ID, object-ID key, encryption
-slots, and current slot. The capsule is authenticated-encrypted under a key derived from a user
-recovery passphrase with Argon2id and a random salt. It stores the exact algorithm/version,
-operations limit, memory limit, salt, and AEAD format used for that export. Restore decrypts and
-validates the complete capsule in memory before writing a new OS-key-store item. Wrong passwords,
-modified capsules, unsupported parameters, duplicate slots, or invalid vault identifiers produce
-no key-store mutation. Export and restore require an explicit user action and a rehearsal from a
-clean local profile.
+Recovery export creates a versioned capsule containing that exact keyring encoding. Its fixed
+72-byte, big-endian public header and ciphertext are:
+
+```text
+41 57 52 43 00 01 00 00 ||
+kdf:u16=1 || aead:u16=1 || opslimit:u64 || memlimit:u64 ||
+salt:16 || nonce:24 || ciphertext_length:u32 || ciphertext
+```
+
+KDF code 1 is Argon2id v1.3 and AEAD code 1 is XChaCha20-Poly1305-IETF. The ciphertext includes
+the 16-byte authentication tag. Associated data is
+`"appellate-workbench-sync-recovery-v1\0" || fixed_header`, authenticating the algorithms,
+parameters, salt, nonce, and length. Export defaults to Argon2id operations limit 2 and 64 MiB;
+the minimum accepted values are operations limit 1 and 8 KiB. The default import safety ceiling
+is operations limit 4 and 64 MiB, before any password hashing or allocation; a caller must
+explicitly raise it to open a deliberately higher-cost legacy capsule, and values must still fit
+libsodium's `unsigned long long`/`size_t` inputs. Passwords are exact nonempty byte strings of at
+most 1,024 bytes, and capsules are at most 4,096 bytes by default.
+
+Restore authenticates and validates the complete capsule in guarded memory before the first
+OS-key-store write. Wrong passwords, modified or truncated capsules, unsupported or excessive
+parameters, duplicate slots, or invalid vault identifiers produce no key-store mutation. A
+recovery capsule is user-managed sensitive ciphertext: it contains every vault key and its safety
+depends on the recovery password. It is not a sync object, provider credential, loggable value,
+or automatic cloud backup. Export and restore require an explicit user action and a rehearsal from
+a clean local profile.
 
 ## Local-folder provider
 
