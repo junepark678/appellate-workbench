@@ -26,10 +26,6 @@
     {
       "id": "workbench.pack.workflow-preconditions",
       "version": 1
-    },
-    {
-      "id": "workbench.pack.grounded-questions",
-      "version": 1
     }
   ],
   "dependencies": [],
@@ -47,14 +43,7 @@
       "kind": "argument_config",
       "schema_version": 2,
       "path": "resources/argument-config.json",
-      "sha256": "e45711e3f165aaddd98aab8bd60e8eaff07115f6414ff8d135725a47d18d1cc6"
-    },
-    {
-      "id": "example.argument.counterfactual",
-      "kind": "argument_config",
-      "schema_version": 2,
-      "path": "resources/argument-config-counterfactual.json",
-      "sha256": "cb18cc097da1f5e5318abdf2404ada4ef9cc150d5d2a535473d78964f485c644"
+      "sha256": "8262b9770b4265f7643863d9f5c7dc7d341a505f0c60fd13f8bb3088bf7f366c"
     },
     {
       "id": "example.authorities.fictional",
@@ -75,7 +64,7 @@
       "kind": "case",
       "schema_version": 2,
       "path": "resources/case.json",
-      "sha256": "a6ede76868356502cae7407b13a825b6f31675ab591696d1729b1f52f912ab0f"
+      "sha256": "cb3142b2f386fec0d71602a2a416a0ec4e0625ab83cf1659a01230d10b44eb5b"
     },
     {
       "id": "example.court.fictional",
@@ -103,7 +92,7 @@
       "kind": "judge_profile",
       "schema_version": 2,
       "path": "resources/judge-profile.json",
-      "sha256": "2c0ea8b23962580b037361b9e42780a92355f53ee5dda0339189703c27bde752"
+      "sha256": "31af3ab9b4250814e8f04af9fdc211e2f46a22f0d7f7290a6e53a8b1a6fcc3b7"
     },
     {
       "id": "example.procedure.fictional",
@@ -124,7 +113,7 @@
       "kind": "record",
       "schema_version": 2,
       "path": "resources/record.json",
-      "sha256": "246aa49bc3663a945cf51b83ed972a6dd439fefed7ddbc0bf48c969fdd64250a"
+      "sha256": "72f766bdb25ecb63d779110adebf6c23f96fee56b5f50d1ce66d4bd2ebbe1607"
     },
     {
       "id": "example.workflow.fictional",

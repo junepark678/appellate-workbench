@@ -38,24 +38,6 @@
       "asset_sha256": "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366",
       "page_count": 3,
       "sealed": false
-    },
-    {
-      "entry_id": "example.record.brief-opening",
-      "entry_number": 2,
-      "docket_id": "example.docket.appellate",
-      "entry_label": "ECF No. 7",
-      "filed_on": "2026-01-03",
-      "title": "Fictional Appellant Opening Brief",
-      "actor": "Example Appellant",
-      "description": "Opening brief for grounded oral-argument fixture coverage",
-      "tags": [
-        "brief",
-        "opening-brief"
-      ],
-      "asset_path": "objects/final-order.pdf",
-      "asset_sha256": "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366",
-      "page_count": 3,
-      "sealed": false
     }
   ],
   "page_anchors": [

@@ -2,6 +2,7 @@
 
 #include "appellate/model/case_definition.hpp"
 #include "appellate/model/judge_profile.hpp"
+#include "appellate/model/oral_argument.hpp"
 #include "appellate/model/pack_id.hpp"
 #include "appellate/model/workflow.hpp"
 #include "appellate/packs/pack_reader.hpp"
@@ -227,6 +228,7 @@ struct RuntimeArgumentConfiguration final {
     std::uint32_t total_seconds{};
     std::uint32_t rebuttal_seconds{};
     std::vector<RuntimeIssueId> permitted_issue_ids;
+    std::optional<model::AuthoredQuestionBank> grounded_question_bank;
 
     friend bool operator==(const RuntimeArgumentConfiguration&,
                            const RuntimeArgumentConfiguration&) = default;

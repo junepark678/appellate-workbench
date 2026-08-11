@@ -1283,9 +1283,14 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
                         return issue.toObject().contains(QStringLiteral("target_ids"));
                     });
             });
+        const auto uses_grounded_questions =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::ArgumentConfig &&
+                       resource.document.contains(QStringLiteral("grounded_question_bank"));
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds,
-            uses_workflow_preconditions, uses_structured_disposition);
+            uses_workflow_preconditions, uses_structured_disposition, uses_grounded_questions);
         if (!capabilities) {
             return fail(CatalogErrorCode::UnsupportedCapability,
                         QStringLiteral("Pack %1 requires an unsupported capability: %2")
@@ -1346,6 +1351,36 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
     }
     if (const auto indexed = index_resources(*root); !indexed) {
         return std::unexpected(indexed.error());
+    }
+
+    const auto validate_grounded_argument_ownership =
+        [&resource_owners](const LoadedPack& pack) -> std::expected<void, CatalogError> {
+        for (const auto& resource : pack.resources) {
+            if (resource.descriptor.kind != model::ResourceKind::ArgumentConfig ||
+                !resource.document.contains(QStringLiteral("grounded_question_bank"))) {
+                continue;
+            }
+            const auto case_id =
+                resource.document.value(QStringLiteral("case_id")).toString().toStdString();
+            const auto owner = resource_owners.find(case_id);
+            if (owner == resource_owners.end() || owner->second != pack.revision) {
+                return fail(
+                    CatalogErrorCode::InvalidResolvedGraph,
+                    QStringLiteral("Grounded argument configuration %1 must target a case owned "
+                                   "by exact pack %2")
+                        .arg(asQString(resource.descriptor.id), asQString(pack.revision.id.value)));
+            }
+        }
+        return {};
+    };
+    for (const auto& dependency : dependencies_dependency_first) {
+        const auto validated = validate_grounded_argument_ownership(dependency);
+        if (!validated) {
+            return std::unexpected(validated.error());
+        }
+    }
+    if (const auto validated = validate_grounded_argument_ownership(*root); !validated) {
+        return std::unexpected(validated.error());
     }
 
     std::unordered_map<std::string, const model::BlobDescriptor*> root_blobs;

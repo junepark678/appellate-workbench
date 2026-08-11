@@ -1,5 +1,6 @@
 #include "appellate/packs/pack_reader.hpp"
 #include "appellate/model/authority_ref.hpp"
+#include "appellate/model/oral_argument.hpp"
 #include "appellate/packs/capability_registry.hpp"
 #include "appellate/packs/schema_validator.hpp"
 
@@ -49,6 +50,11 @@ constexpr qsizetype maximum_disposition_plans = 64;
 constexpr qsizetype maximum_disposition_components = 32;
 constexpr qsizetype maximum_component_authorities = 32;
 constexpr qsizetype maximum_component_record_anchors = 32;
+constexpr qsizetype maximum_argument_issue_bindings = 64;
+constexpr qsizetype maximum_argument_topics_per_issue = 8;
+constexpr qsizetype maximum_authored_questions = 128;
+constexpr qsizetype maximum_authored_questions_per_issue = 16;
+constexpr qsizetype maximum_question_grounding = 16;
 constexpr qsizetype blob_stream_buffer_bytes = 64 * 1024;
 constexpr qsizetype pdf_tail_bytes = 1024;
 
@@ -818,6 +824,124 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     return QString::fromLatin1(hash.result().toHex());
 }
 
+[[nodiscard]] QString
+canonicalQuestionBankDigest(const QString& case_id, const QString& argument_configuration_id,
+                            const QJsonObject& bank,
+                            const QHash<QString, QJsonObject>& authorities_by_id,
+                            const QHash<QString, QJsonObject>& record_entries_by_id,
+                            const QHash<QString, QJsonObject>& record_anchors_by_id) {
+    std::vector<QJsonObject> bindings;
+    for (const auto& value : bank.value(QStringLiteral("issue_topic_bindings")).toArray()) {
+        bindings.push_back(value.toObject());
+    }
+    std::ranges::sort(bindings, [](const QJsonObject& left, const QJsonObject& right) {
+        return left.value(QStringLiteral("issue_id")).toString() <
+               right.value(QStringLiteral("issue_id")).toString();
+    });
+
+    std::vector<QJsonObject> questions;
+    for (const auto& value : bank.value(QStringLiteral("questions")).toArray()) {
+        questions.push_back(value.toObject());
+    }
+    std::ranges::sort(questions, [](const QJsonObject& left, const QJsonObject& right) {
+        return left.value(QStringLiteral("question_id")).toString() <
+               right.value(QStringLiteral("question_id")).toString();
+    });
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QByteArrayView("appellate-workbench-grounded-question-bank-v1"));
+    addFrame(hash, case_id);
+    addFrame(hash, argument_configuration_id);
+    addFrame(hash, bank.value(QStringLiteral("mode")).toString());
+    addUint64(hash, static_cast<quint64>(bindings.size()));
+    for (const auto& binding : bindings) {
+        addFrame(hash, binding.value(QStringLiteral("issue_id")).toString());
+        std::vector<QString> topics;
+        for (const auto& topic : binding.value(QStringLiteral("topic_ids")).toArray()) {
+            topics.push_back(topic.toString());
+        }
+        std::ranges::sort(topics);
+        addUint64(hash, static_cast<quint64>(topics.size()));
+        for (const auto& topic : topics) {
+            addFrame(hash, topic);
+        }
+    }
+
+    addUint64(hash, static_cast<quint64>(questions.size()));
+    for (const auto& question : questions) {
+        addFrame(hash, question.value(QStringLiteral("question_id")).toString());
+        addFrame(hash, question.value(QStringLiteral("issue_id")).toString());
+        addFrame(hash, question.value(QStringLiteral("topic_id")).toString());
+        addFrame(hash, question.value(QStringLiteral("prompt")).toString());
+        std::vector<QJsonObject> grounding;
+        for (const auto& value : question.value(QStringLiteral("grounding")).toArray()) {
+            grounding.push_back(value.toObject());
+        }
+        std::ranges::sort(grounding, [](const QJsonObject& left, const QJsonObject& right) {
+            return left.value(QStringLiteral("grounding_id")).toString() <
+                   right.value(QStringLiteral("grounding_id")).toString();
+        });
+        addUint64(hash, static_cast<quint64>(grounding.size()));
+        for (const auto& reference : grounding) {
+            const auto kind = reference.value(QStringLiteral("kind")).toString();
+            addFrame(hash, reference.value(QStringLiteral("grounding_id")).toString());
+            addFrame(hash, kind);
+            if (kind == QStringLiteral("authority")) {
+                const auto authority = authorities_by_id.value(
+                    reference.value(QStringLiteral("authority_id")).toString());
+                for (const auto& field :
+                     {QStringLiteral("authority_id"), QStringLiteral("citation"),
+                      QStringLiteral("source_version"), QStringLiteral("proposition")}) {
+                    addFrame(hash, authority.value(field).toString());
+                }
+                addUint64(hash, 1U);
+                for (const auto& field :
+                     {QStringLiteral("authority_type"), QStringLiteral("jurisdiction_id"),
+                      QStringLiteral("issuing_body_id"), QStringLiteral("precedential_status")}) {
+                    addFrame(hash, authority.value(field).toString());
+                }
+                addUint64(hash,
+                          authority.value(QStringLiteral("official_source")).toBool() ? 1U : 0U);
+                for (const auto& field : {QStringLiteral("checked_on"), QStringLiteral("locator"),
+                                          QStringLiteral("source_url")}) {
+                    addFrame(hash, authority.value(field).toString());
+                }
+            } else if (kind == QStringLiteral("brief_page")) {
+                const auto entry_id = reference.value(QStringLiteral("entry_id")).toString();
+                const auto entry = record_entries_by_id.value(entry_id);
+                addFrame(hash, entry_id);
+                addUint64(hash, static_cast<quint64>(
+                                    reference.value(QStringLiteral("page_number")).toInt()));
+                addFrame(hash, entry.value(QStringLiteral("asset_sha256")).toString());
+            } else {
+                const auto anchor_id = reference.value(QStringLiteral("anchor_id")).toString();
+                const auto anchor = record_anchors_by_id.value(anchor_id);
+                const auto entry_id = anchor.value(QStringLiteral("entry_id")).toString();
+                const auto entry = record_entries_by_id.value(entry_id);
+                addFrame(hash, anchor_id);
+                addFrame(hash, entry_id);
+                addUint64(hash, static_cast<quint64>(
+                                    anchor.value(QStringLiteral("page_number")).toInt()));
+                addFrame(hash, entry.value(QStringLiteral("asset_sha256")).toString());
+                const auto has_citation = anchor.contains(QStringLiteral("citation_label"));
+                addUint64(hash, has_citation ? 1U : 0U);
+                if (has_citation) {
+                    addFrame(hash, anchor.value(QStringLiteral("citation_label")).toString());
+                }
+            }
+        }
+    }
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] bool isCanonicalQuestionPrompt(const QString& prompt) {
+    const auto utf8 = prompt.toUtf8().toStdString();
+    if (!model::isCanonicalAuthorityText(utf8, 512) || utf8.front() == ' ' || utf8.back() == ' ') {
+        return false;
+    }
+    return std::ranges::any_of(prompt, [](QChar scalar) { return !scalar.isSpace(); });
+}
+
 [[nodiscard]] auto crossReferenceFailure(const ValidatedResource& resource, QString field,
                                          QString detail) -> std::unexpected<Error> {
     return fail(ErrorCode::CrossReferenceFailure,
@@ -863,6 +987,13 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                                        return issue.toObject().contains(
                                            QStringLiteral("target_ids"));
                                    });
+    });
+}
+
+[[nodiscard]] bool usesGroundedQuestions(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::ArgumentConfig &&
+               resource.document.contains(QStringLiteral("grounded_question_bank"));
     });
 }
 
@@ -916,7 +1047,12 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     QHash<QString, QSet<QString>> workflow_operations;
     QHash<QString, QSet<QString>> workflow_authority_ids;
     QHash<QString, QSet<QString>> record_entries;
+    QHash<QString, QHash<QString, QJsonObject>> record_docket_entries;
+    QHash<QString, QHash<QString, QJsonObject>> record_page_anchors;
     QHash<QString, QSet<QString>> case_issues;
+    QHash<QString, QString> case_record_ids;
+    QHash<QString, QHash<QString, QSet<QString>>> case_issue_authorities;
+    QHash<QString, QHash<QString, QSet<QString>>> case_issue_record_anchors;
     QHash<QString, QSet<QString>> catalog_roles;
 
     for (const auto& resource : resources) {
@@ -1424,6 +1560,7 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
             }
             QSet<QString> page_anchor_ids;
             QSet<QString> citation_labels;
+            QHash<QString, QJsonObject> anchors_by_id;
             for (const auto& value : document.value(QStringLiteral("page_anchors")).toArray()) {
                 const auto anchor = value.toObject();
                 const auto anchor_id = anchor.value(QStringLiteral("anchor_id")).toString();
@@ -1439,6 +1576,7 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                             "anchors must be unique, unambiguous, attached, and in page range"));
                 }
                 page_anchor_ids.insert(anchor_id);
+                anchors_by_id.insert(anchor_id, anchor);
                 if (anchor.contains(QStringLiteral("citation_label"))) {
                     const auto citation = anchor.value(QStringLiteral("citation_label")).toString();
                     if (citation_labels.contains(citation)) {
@@ -1449,6 +1587,8 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                     citation_labels.insert(citation);
                 }
             }
+            record_docket_entries.insert(id, entries_by_id);
+            record_page_anchors.insert(id, anchors_by_id);
             entries.unite(page_anchor_ids);
             record_entries.insert(id, entries);
             break;
@@ -1465,16 +1605,27 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                 actor_ids.insert(actor_id);
             }
             QSet<QString> issues;
+            QHash<QString, QSet<QString>> authorities_by_issue;
+            QHash<QString, QSet<QString>> anchors_by_issue;
             for (const auto& value : document.value(QStringLiteral("issues")).toArray()) {
-                const auto issue_id = value.toObject().value(QStringLiteral("issue_id")).toString();
+                const auto issue = value.toObject();
+                const auto issue_id = issue.value(QStringLiteral("issue_id")).toString();
                 if (issues.contains(issue_id)) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("issues"),
                         QStringLiteral("duplicate issue id %1").arg(issue_id));
                 }
                 issues.insert(issue_id);
+                authorities_by_issue.insert(
+                    issue_id, stringSet(issue.value(QStringLiteral("authority_ids")).toArray()));
+                anchors_by_issue.insert(
+                    issue_id,
+                    stringSet(issue.value(QStringLiteral("record_anchor_ids")).toArray()));
             }
             case_issues.insert(id, issues);
+            case_record_ids.insert(id, document.value(QStringLiteral("record_id")).toString());
+            case_issue_authorities.insert(id, std::move(authorities_by_issue));
+            case_issue_record_anchors.insert(id, std::move(anchors_by_issue));
             break;
         }
         case model::ResourceKind::BenchConfiguration: {
@@ -2027,6 +2178,7 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
             if (!bench) {
                 return std::unexpected(bench.error());
             }
+            QSet<QString> permitted_issues;
             for (const auto& issue :
                  document.value(QStringLiteral("permitted_issue_ids")).toArray()) {
                 if (!case_issues.value(case_id).contains(issue.toString())) {
@@ -2035,11 +2187,213 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
                         QStringLiteral("issue %1 is not in the configured case")
                             .arg(issue.toString()));
                 }
+                permitted_issues.insert(issue.toString());
             }
             if (document.value(QStringLiteral("rebuttal_seconds")).toInt() >
                 document.value(QStringLiteral("total_seconds")).toInt()) {
                 return crossReferenceFailure(resource, QStringLiteral("rebuttal_seconds"),
                                              QStringLiteral("cannot exceed total_seconds"));
+            }
+            if (!document.contains(QStringLiteral("grounded_question_bank"))) {
+                break;
+            }
+
+            const auto bank_value = document.value(QStringLiteral("grounded_question_bank"));
+            const auto bank = bank_value.toObject();
+            const auto mode = bank.value(QStringLiteral("mode")).toString();
+            const auto bindings_value = bank.value(QStringLiteral("issue_topic_bindings"));
+            const auto questions_value = bank.value(QStringLiteral("questions"));
+            if (!bank_value.isObject() ||
+                !hasExactKeys(bank,
+                              {"mode", "grounding_digest", "issue_topic_bindings", "questions"}) ||
+                (mode != QStringLiteral("actual_record") &&
+                 mode != QStringLiteral("counterfactual_training")) ||
+                !isSha256(bank.value(QStringLiteral("grounding_digest")).toString()) ||
+                !bindings_value.isArray() || bindings_value.toArray().isEmpty() ||
+                bindings_value.toArray().size() > maximum_argument_issue_bindings ||
+                !questions_value.isArray() || questions_value.toArray().isEmpty() ||
+                questions_value.toArray().size() > maximum_authored_questions) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("grounded_question_bank"),
+                    QStringLiteral("bank shape, mode, digest, or bounds are invalid"));
+            }
+
+            const auto is_focus_topic = [](const QString& topic_id) {
+                return model::argumentFocusTopicFromId(topic_id.toStdString()).has_value();
+            };
+            QHash<QString, QSet<QString>> topics_by_issue;
+            for (const auto& binding_value : bindings_value.toArray()) {
+                const auto binding = binding_value.toObject();
+                const auto issue_id = binding.value(QStringLiteral("issue_id")).toString();
+                const auto topic_values = binding.value(QStringLiteral("topic_ids"));
+                const auto topics = stringSet(topic_values.toArray());
+                if (!binding_value.isObject() ||
+                    !hasExactKeys(binding, {"issue_id", "topic_ids"}) ||
+                    !permitted_issues.contains(issue_id) || topics_by_issue.contains(issue_id) ||
+                    !topic_values.isArray() || topics.isEmpty() ||
+                    topic_values.toArray().size() > maximum_argument_topics_per_issue ||
+                    topics.size() != topic_values.toArray().size() ||
+                    std::ranges::any_of(topics, [&is_focus_topic](const QString& topic_id) {
+                        return !is_focus_topic(topic_id);
+                    })) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("grounded_question_bank/issue_topic_bindings"),
+                        QStringLiteral("bindings must uniquely cover permitted issues with "
+                                       "closed reusable topics"));
+                }
+                topics_by_issue.insert(issue_id, topics);
+            }
+            if (topics_by_issue.size() != permitted_issues.size() ||
+                std::ranges::any_of(permitted_issues, [&topics_by_issue](const QString& issue_id) {
+                    return !topics_by_issue.contains(issue_id);
+                })) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("grounded_question_bank/issue_topic_bindings"),
+                    QStringLiteral("bindings must exactly cover permitted_issue_ids"));
+            }
+
+            for (const auto& seat_value :
+                 (*bench)->document.value(QStringLiteral("seats")).toArray()) {
+                const auto profile = requireKind(
+                    resource, QStringLiteral("bench_configuration_id/seats/profile_id"),
+                    seat_value.toObject().value(QStringLiteral("profile_id")).toString(),
+                    model::ResourceKind::JudgeProfile);
+                if (!profile) {
+                    return std::unexpected(profile.error());
+                }
+                for (const auto& focus_value : (*profile)
+                                                   ->document.value(QStringLiteral("interaction"))
+                                                   .toObject()
+                                                   .value(QStringLiteral("issue_focus"))
+                                                   .toArray()) {
+                    if (!is_focus_topic(
+                            focus_value.toObject().value(QStringLiteral("topic_id")).toString())) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("bench_configuration_id/issue_focus"),
+                            QStringLiteral("grounded-question benches require closed reusable "
+                                           "focus topics"));
+                    }
+                }
+            }
+
+            const auto record_id = case_record_ids.value(case_id);
+            const auto record_entry_map = record_docket_entries.value(record_id);
+            const auto record_anchor_map = record_page_anchors.value(record_id);
+            const auto issue_authority_map = case_issue_authorities.value(case_id);
+            const auto issue_anchor_map = case_issue_record_anchors.value(case_id);
+            QSet<QString> question_ids;
+            QSet<QString> grounding_ids;
+            QSet<QString> covered_issue_topics;
+            QHash<QString, qsizetype> questions_per_issue;
+            for (const auto& question_value : questions_value.toArray()) {
+                const auto question = question_value.toObject();
+                const auto question_id = question.value(QStringLiteral("question_id")).toString();
+                const auto issue_id = question.value(QStringLiteral("issue_id")).toString();
+                const auto topic_id = question.value(QStringLiteral("topic_id")).toString();
+                const auto prompt = question.value(QStringLiteral("prompt")).toString();
+                const auto grounding_value = question.value(QStringLiteral("grounding"));
+                if (!question_value.isObject() ||
+                    !hasExactKeys(question,
+                                  {"question_id", "issue_id", "topic_id", "prompt", "grounding"}) ||
+                    !isNamespacedId(question_id) || question_ids.contains(question_id) ||
+                    !permitted_issues.contains(issue_id) ||
+                    !topics_by_issue.value(issue_id).contains(topic_id) ||
+                    !isCanonicalQuestionPrompt(prompt) || !grounding_value.isArray() ||
+                    grounding_value.toArray().isEmpty() ||
+                    grounding_value.toArray().size() > maximum_question_grounding ||
+                    ++questions_per_issue[issue_id] > maximum_authored_questions_per_issue) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("grounded_question_bank/questions"),
+                        QStringLiteral("question identity, topic, prompt, grounding, or bounds "
+                                       "are invalid"));
+                }
+                question_ids.insert(question_id);
+                covered_issue_topics.insert(issue_id + u'\n' + topic_id);
+                for (const auto& grounding_value_item : grounding_value.toArray()) {
+                    const auto grounding = grounding_value_item.toObject();
+                    const auto grounding_id =
+                        grounding.value(QStringLiteral("grounding_id")).toString();
+                    const auto kind = grounding.value(QStringLiteral("kind")).toString();
+                    if (!grounding_value_item.isObject() || !isNamespacedId(grounding_id) ||
+                        grounding_ids.contains(grounding_id)) {
+                        return crossReferenceFailure(
+                            resource,
+                            QStringLiteral("grounded_question_bank/questions/grounding_id"),
+                            QStringLiteral("grounding ids must be canonical and bank-unique"));
+                    }
+                    grounding_ids.insert(grounding_id);
+                    if (kind == QStringLiteral("authority")) {
+                        const auto authority_id =
+                            grounding.value(QStringLiteral("authority_id")).toString();
+                        if (!hasExactKeys(grounding, {"grounding_id", "kind", "authority_id"}) ||
+                            !authorities_by_id.contains(authority_id) ||
+                            !issue_authority_map.value(issue_id).contains(authority_id)) {
+                            return crossReferenceFailure(
+                                resource,
+                                QStringLiteral("grounded_question_bank/questions/authority_id"),
+                                QStringLiteral("authority grounding must resolve within its "
+                                               "case issue"));
+                        }
+                    } else if (kind == QStringLiteral("brief_page")) {
+                        const auto entry_id =
+                            grounding.value(QStringLiteral("entry_id")).toString();
+                        const auto entry = record_entry_map.value(entry_id);
+                        const auto page_number = grounding.value(QStringLiteral("page_number"));
+                        if (!hasExactKeys(grounding,
+                                          {"grounding_id", "kind", "entry_id", "page_number"}) ||
+                            !issue_anchor_map.value(issue_id).contains(entry_id) ||
+                            entry.isEmpty() || entry.value(QStringLiteral("sealed")).toBool() ||
+                            !stringSet(entry.value(QStringLiteral("tags")).toArray())
+                                 .contains(QStringLiteral("brief")) ||
+                            !isExactInteger(page_number, 1,
+                                            entry.value(QStringLiteral("page_count")).toInt())) {
+                            return crossReferenceFailure(
+                                resource,
+                                QStringLiteral("grounded_question_bank/questions/brief_page"),
+                                QStringLiteral("brief pages must be issue-scoped, tagged, "
+                                               "unsealed, and in range"));
+                        }
+                    } else if (kind == QStringLiteral("record_page")) {
+                        const auto anchor_id =
+                            grounding.value(QStringLiteral("anchor_id")).toString();
+                        const auto anchor = record_anchor_map.value(anchor_id);
+                        const auto entry = record_entry_map.value(
+                            anchor.value(QStringLiteral("entry_id")).toString());
+                        if (!hasExactKeys(grounding, {"grounding_id", "kind", "anchor_id"}) ||
+                            !issue_anchor_map.value(issue_id).contains(anchor_id) ||
+                            anchor.isEmpty() || entry.isEmpty() ||
+                            entry.value(QStringLiteral("sealed")).toBool()) {
+                            return crossReferenceFailure(
+                                resource,
+                                QStringLiteral("grounded_question_bank/questions/record_page"),
+                                QStringLiteral("record pages must resolve to an issue-scoped "
+                                               "unsealed page anchor"));
+                        }
+                    } else {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("grounded_question_bank/questions/kind"),
+                            QStringLiteral("grounding kind is unsupported"));
+                    }
+                }
+            }
+            for (auto topics = topics_by_issue.constBegin(); topics != topics_by_issue.constEnd();
+                 ++topics) {
+                for (const auto& topic_id : topics.value()) {
+                    if (!covered_issue_topics.contains(topics.key() + u'\n' + topic_id)) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("grounded_question_bank/questions"),
+                            QStringLiteral("every permitted issue-topic binding requires an "
+                                           "authored grounded question"));
+                    }
+                }
+            }
+            const auto expected_digest = canonicalQuestionBankDigest(
+                case_id, QString::fromStdString(resource.descriptor.id), bank, authorities_by_id,
+                record_entry_map, record_anchor_map);
+            if (bank.value(QStringLiteral("grounding_digest")).toString() != expected_digest) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("grounded_question_bank/grounding_digest"),
+                    QStringLiteral("digest does not match the resolved canonical question bank"));
             }
             break;
         }
@@ -2279,7 +2633,7 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
 
     const auto capability_coverage =
         CapabilityRegistry::validateCoverage(static_cast<std::uint32_t>(manifest_schema_version),
-                                             capabilities, resource_kinds, false, false);
+                                             capabilities, resource_kinds, false, false, false);
     if (!capability_coverage) {
         return std::unexpected(capability_coverage.error());
     }
@@ -2423,7 +2777,8 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     }
     const auto content_capability_coverage = CapabilityRegistry::validateCoverage(
         static_cast<std::uint32_t>(manifest_schema_version), capabilities, resource_kinds,
-        usesWorkflowPreconditions(resources), usesStructuredDisposition(resources));
+        usesWorkflowPreconditions(resources), usesStructuredDisposition(resources),
+        usesGroundedQuestions(resources));
     if (!content_capability_coverage) {
         return std::unexpected(content_capability_coverage.error());
     }
@@ -2459,12 +2814,28 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
     const auto validate_capabilities = [](const LoadedPack& pack) -> std::expected<void, Error> {
         std::vector<model::ResourceKind> resource_kinds;
         resource_kinds.reserve(pack.resources.size());
+        QSet<QString> owned_case_ids;
         for (const auto& resource : pack.resources) {
             resource_kinds.push_back(resource.descriptor.kind);
+            if (resource.descriptor.kind == model::ResourceKind::Case) {
+                owned_case_ids.insert(QString::fromStdString(resource.descriptor.id));
+            }
+        }
+        for (const auto& resource : pack.resources) {
+            if (resource.descriptor.kind == model::ResourceKind::ArgumentConfig &&
+                resource.document.contains(QStringLiteral("grounded_question_bank")) &&
+                !owned_case_ids.contains(
+                    resource.document.value(QStringLiteral("case_id")).toString())) {
+                return crossReferenceFailure(
+                    resource, QStringLiteral("case_id"),
+                    QStringLiteral("a grounded question bank must target a case owned by the "
+                                   "same exact pack"));
+            }
         }
         return CapabilityRegistry::validateCoverage(
             pack.manifest_schema_version, pack.required_capabilities, resource_kinds,
-            usesWorkflowPreconditions(pack.resources), usesStructuredDisposition(pack.resources));
+            usesWorkflowPreconditions(pack.resources), usesStructuredDisposition(pack.resources),
+            usesGroundedQuestions(pack.resources));
     };
     const auto root_capabilities = validate_capabilities(root);
     if (!root_capabilities) {

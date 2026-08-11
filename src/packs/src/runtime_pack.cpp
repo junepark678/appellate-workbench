@@ -47,6 +47,11 @@ constexpr qsizetype maximum_disposition_components = 32;
 constexpr qsizetype maximum_workflow_preconditions = 32;
 constexpr qsizetype maximum_component_authorities = 32;
 constexpr qsizetype maximum_component_record_anchors = 32;
+constexpr qsizetype maximum_argument_issue_bindings = 64;
+constexpr qsizetype maximum_argument_topics_per_issue = 8;
+constexpr qsizetype maximum_authored_questions = 128;
+constexpr qsizetype maximum_authored_questions_per_issue = 16;
+constexpr qsizetype maximum_question_grounding = 16;
 
 template <typename Value> using Result = std::expected<Value, RuntimePackError>;
 
@@ -208,6 +213,159 @@ void addDispositionFrame(QCryptographicHash& hash, const std::string& value) {
         }
     }
     return hash.result().toHex().toStdString();
+}
+
+[[nodiscard]] std::string_view oralArgumentModeName(model::OralArgumentMode value) {
+    switch (value) {
+    case model::OralArgumentMode::ActualRecord:
+        return "actual_record";
+    case model::OralArgumentMode::CounterfactualTraining:
+        return "counterfactual_training";
+    }
+    return {};
+}
+
+[[nodiscard]] std::string_view authorityTypeName(model::AuthorityType value) {
+    switch (value) {
+    case model::AuthorityType::Constitution:
+        return "constitution";
+    case model::AuthorityType::Statute:
+        return "statute";
+    case model::AuthorityType::Rule:
+        return "rule";
+    case model::AuthorityType::Regulation:
+        return "regulation";
+    case model::AuthorityType::Case:
+        return "case";
+    case model::AuthorityType::Order:
+        return "order";
+    case model::AuthorityType::AdministrativeDecision:
+        return "administrative_decision";
+    case model::AuthorityType::Other:
+        return "other";
+    }
+    return {};
+}
+
+[[nodiscard]] std::string_view precedentialStatusName(model::PrecedentialStatus value) {
+    switch (value) {
+    case model::PrecedentialStatus::NotApplicable:
+        return "not_applicable";
+    case model::PrecedentialStatus::Precedential:
+        return "precedential";
+    case model::PrecedentialStatus::Nonprecedential:
+        return "nonprecedential";
+    }
+    return {};
+}
+
+[[nodiscard]] const std::string& groundingId(const model::AuthoredArgumentGrounding& grounding) {
+    return std::visit([](const auto& value) -> const std::string& { return value.grounding_id; },
+                      grounding);
+}
+
+[[nodiscard]] std::string canonicalQuestionBankDigest(const model::AuthoredQuestionBank& bank) {
+    std::vector<const model::ArgumentIssueTopics*> bindings;
+    bindings.reserve(bank.issue_topics.size());
+    for (const auto& binding : bank.issue_topics) {
+        bindings.push_back(&binding);
+    }
+    std::ranges::sort(bindings, [](const auto* left, const auto* right) {
+        return left->issue_id < right->issue_id;
+    });
+    std::vector<const model::AuthoredArgumentQuestion*> questions;
+    questions.reserve(bank.questions.size());
+    for (const auto& question : bank.questions) {
+        questions.push_back(&question);
+    }
+    std::ranges::sort(questions,
+                      [](const auto* left, const auto* right) { return left->id < right->id; });
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addDispositionFrame(hash, "appellate-workbench-grounded-question-bank-v1");
+    addDispositionFrame(hash, bank.case_id.value);
+    addDispositionFrame(hash, bank.argument_configuration_id);
+    addDispositionFrame(hash, std::string(oralArgumentModeName(bank.mode)));
+    addDispositionUint64(hash, bindings.size());
+    for (const auto* binding : bindings) {
+        addDispositionFrame(hash, binding->issue_id);
+        std::vector<std::string_view> topic_ids;
+        topic_ids.reserve(binding->topics.size());
+        for (const auto topic : binding->topics) {
+            topic_ids.push_back(model::argumentFocusTopicId(topic));
+        }
+        std::ranges::sort(topic_ids);
+        addDispositionUint64(hash, topic_ids.size());
+        for (const auto topic_id : topic_ids) {
+            addDispositionFrame(hash, std::string(topic_id));
+        }
+    }
+    addDispositionUint64(hash, questions.size());
+    for (const auto* question : questions) {
+        addDispositionFrame(hash, question->id);
+        addDispositionFrame(hash, question->issue_id);
+        addDispositionFrame(hash, std::string(model::argumentFocusTopicId(question->topic)));
+        addDispositionFrame(hash, question->prompt);
+        std::vector<const model::AuthoredArgumentGrounding*> grounding;
+        grounding.reserve(question->grounding.size());
+        for (const auto& reference : question->grounding) {
+            grounding.push_back(&reference);
+        }
+        std::ranges::sort(grounding, [](const auto* left, const auto* right) {
+            return groundingId(*left) < groundingId(*right);
+        });
+        addDispositionUint64(hash, grounding.size());
+        for (const auto* reference : grounding) {
+            addDispositionFrame(hash, groundingId(*reference));
+            if (const auto* authority = std::get_if<model::AuthorityArgumentGrounding>(reference)) {
+                addDispositionFrame(hash, "authority");
+                addDispositionFrame(hash, authority->authority.id.value);
+                addDispositionFrame(hash, authority->authority.citation);
+                addDispositionFrame(hash, authority->authority.source_version);
+                addDispositionFrame(hash, authority->authority.proposition);
+                addDispositionUint64(hash, authority->authority.provenance.has_value() ? 1U : 0U);
+                if (authority->authority.provenance.has_value()) {
+                    const auto& provenance = *authority->authority.provenance;
+                    addDispositionFrame(hash, std::string(authorityTypeName(provenance.type)));
+                    addDispositionFrame(hash, provenance.jurisdiction_id);
+                    addDispositionFrame(hash, provenance.issuing_body_id);
+                    addDispositionFrame(
+                        hash, std::string(precedentialStatusName(provenance.precedential_status)));
+                    addDispositionUint64(hash, provenance.official_source ? 1U : 0U);
+                    addDispositionFrame(hash, provenance.checked_on);
+                    addDispositionFrame(hash, provenance.locator);
+                    addDispositionFrame(hash, provenance.source_url);
+                }
+            } else if (const auto* brief =
+                           std::get_if<model::BriefPageArgumentGrounding>(reference)) {
+                addDispositionFrame(hash, "brief_page");
+                addDispositionFrame(hash, brief->record_entry_id);
+                addDispositionUint64(hash, brief->page_number);
+                addDispositionFrame(hash, brief->asset_sha256);
+            } else {
+                const auto& record = std::get<model::RecordPageArgumentGrounding>(*reference);
+                addDispositionFrame(hash, "record_page");
+                addDispositionFrame(hash, record.record_anchor_id);
+                addDispositionFrame(hash, record.record_entry_id);
+                addDispositionUint64(hash, record.page_number);
+                addDispositionFrame(hash, record.asset_sha256);
+                addDispositionUint64(hash, record.citation_label.has_value() ? 1U : 0U);
+                if (record.citation_label.has_value()) {
+                    addDispositionFrame(hash, *record.citation_label);
+                }
+            }
+        }
+    }
+    return hash.result().toHex().toStdString();
+}
+
+[[nodiscard]] bool isCanonicalQuestionPrompt(const std::string& prompt) {
+    if (!model::isCanonicalAuthorityText(prompt, 512) || prompt.front() == ' ' ||
+        prompt.back() == ' ') {
+        return false;
+    }
+    const auto unicode = QString::fromUtf8(prompt.data(), static_cast<qsizetype>(prompt.size()));
+    return std::ranges::any_of(unicode, [](QChar scalar) { return !scalar.isSpace(); });
 }
 
 [[nodiscard]] Result<std::string> requiredString(const QJsonObject& object, const char* key,
@@ -576,9 +734,14 @@ struct ResourceIndex final {
                         return issue.toObject().contains(QStringLiteral("target_ids"));
                     });
             });
+        const auto uses_grounded_questions =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::ArgumentConfig &&
+                       resource.document.contains(QStringLiteral("grounded_question_bank"));
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             pack->manifest_schema_version, pack->required_capabilities, resource_kinds,
-            uses_workflow_preconditions, uses_structured_disposition);
+            uses_workflow_preconditions, uses_structured_disposition, uses_grounded_questions);
         if (!capabilities) {
             return fail(RuntimePackErrorCode::InvalidPack,
                         capabilities.error().message.toStdString());
@@ -2326,10 +2489,325 @@ using RuntimeCatalog = std::unordered_map<std::string, RuntimeCatalogFiling>;
                                [&id](const RuntimeIssue& issue) { return issue.id.value == id; });
 }
 
-[[nodiscard]] Result<RuntimeArgumentConfiguration> parseArgument(const ValidatedResource& resource,
-                                                                 const ResourceIndex& index,
-                                                                 const ParsedCase& case_document,
-                                                                 const RuntimeCourt& court) {
+[[nodiscard]] const RuntimeIssue* issueById(const std::vector<RuntimeIssue>& issues,
+                                            const std::string& id) {
+    const auto found =
+        std::ranges::find(issues, id, [](const RuntimeIssue& issue) { return issue.id.value; });
+    return found == issues.end() ? nullptr : &*found;
+}
+
+[[nodiscard]] Result<std::optional<model::AuthoredQuestionBank>>
+parseQuestionBank(const ValidatedResource& resource, const ResourceIndex& index,
+                  const ParsedCase& case_document, const RuntimeRecord& record,
+                  const RuntimeBenchConfiguration& bench,
+                  std::span<const std::string> permitted_issue_ids) {
+    if (!resource.document.contains(QStringLiteral("grounded_question_bank"))) {
+        return std::optional<model::AuthoredQuestionBank>{};
+    }
+    const auto path =
+        "argument configuration " + resource.descriptor.id + ".grounded_question_bank";
+    if (resource.descriptor.schema_version != 2) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + " is unavailable outside resource schema 2");
+    }
+    const auto bank_result = requiredObject(resource.document, "grounded_question_bank", path);
+    if (!bank_result) {
+        return std::unexpected(bank_result.error());
+    }
+    const auto& bank = *bank_result;
+    if (!hasExactKeys(bank, {"mode", "grounding_digest", "issue_topic_bindings", "questions"})) {
+        return fail(RuntimePackErrorCode::InvalidResource, path + " has unknown or missing fields");
+    }
+    const auto mode_text = requiredString(bank, "mode", path);
+    const auto asserted_digest = requiredSha256(bank, "grounding_digest", path);
+    const auto binding_values =
+        requiredArray(bank, "issue_topic_bindings", path, 1, maximum_argument_issue_bindings);
+    const auto question_values =
+        requiredArray(bank, "questions", path, 1, maximum_authored_questions);
+    if (!mode_text || !asserted_digest || !binding_values || !question_values) {
+        if (!mode_text) {
+            return std::unexpected(mode_text.error());
+        }
+        if (!asserted_digest) {
+            return std::unexpected(asserted_digest.error());
+        }
+        if (!binding_values) {
+            return std::unexpected(binding_values.error());
+        }
+        return std::unexpected(question_values.error());
+    }
+    model::OralArgumentMode mode{};
+    if (*mode_text == "actual_record") {
+        mode = model::OralArgumentMode::ActualRecord;
+    } else if (*mode_text == "counterfactual_training") {
+        mode = model::OralArgumentMode::CounterfactualTraining;
+    } else {
+        return fail(RuntimePackErrorCode::InvalidResource, path + ".mode is unsupported");
+    }
+
+    std::unordered_set<std::string> permitted(permitted_issue_ids.begin(),
+                                              permitted_issue_ids.end());
+    std::unordered_map<std::string, std::unordered_set<std::string>> topics_by_issue;
+    std::vector<model::ArgumentIssueTopics> issue_topics;
+    issue_topics.reserve(static_cast<std::size_t>(binding_values->size()));
+    for (qsizetype index_value = 0; index_value < binding_values->size(); ++index_value) {
+        const auto binding_path =
+            path + ".issue_topic_bindings[" + std::to_string(index_value) + "]";
+        if (!binding_values->at(index_value).isObject()) {
+            return fail(RuntimePackErrorCode::InvalidResource, binding_path + " must be an object");
+        }
+        const auto binding = binding_values->at(index_value).toObject();
+        if (!hasExactKeys(binding, {"issue_id", "topic_ids"})) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        binding_path + " has unknown or missing fields");
+        }
+        const auto issue_id = requiredId(binding, "issue_id", binding_path);
+        const auto topic_values =
+            requiredArray(binding, "topic_ids", binding_path, 1, maximum_argument_topics_per_issue);
+        if (!issue_id || !topic_values) {
+            return std::unexpected(!issue_id ? issue_id.error() : topic_values.error());
+        }
+        if (!permitted.contains(*issue_id) || topics_by_issue.contains(*issue_id)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        binding_path + " must uniquely identify a permitted issue");
+        }
+        std::unordered_set<std::string> topic_ids;
+        std::vector<model::ArgumentFocusTopic> topics;
+        topics.reserve(static_cast<std::size_t>(topic_values->size()));
+        for (const auto& topic_value : *topic_values) {
+            if (!topic_value.isString()) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            binding_path + ".topic_ids must contain strings");
+            }
+            auto topic_id = utf8(topic_value.toString());
+            const auto topic = model::argumentFocusTopicFromId(topic_id);
+            if (!topic.has_value() || !topic_ids.emplace(topic_id).second) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            binding_path + ".topic_ids contains an unsupported or duplicate "
+                                           "focus topic");
+            }
+            topics.push_back(*topic);
+        }
+        std::ranges::sort(
+            topics, [](model::ArgumentFocusTopic left, model::ArgumentFocusTopic right) {
+                return model::argumentFocusTopicId(left) < model::argumentFocusTopicId(right);
+            });
+        topics_by_issue.emplace(*issue_id, std::move(topic_ids));
+        issue_topics.push_back(model::ArgumentIssueTopics{*issue_id, std::move(topics)});
+    }
+    if (topics_by_issue.size() != permitted.size() ||
+        std::ranges::any_of(permitted, [&topics_by_issue](const std::string& issue_id) {
+            return !topics_by_issue.contains(issue_id);
+        })) {
+        return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                    path + ".issue_topic_bindings must exactly cover permitted_issue_ids");
+    }
+    std::ranges::sort(issue_topics, {}, &model::ArgumentIssueTopics::issue_id);
+
+    for (const auto& seat : bench.seats) {
+        if (std::ranges::any_of(
+                seat.profile.interaction.issue_focus, [](const model::IssueFocus& focus) {
+                    return !model::argumentFocusTopicFromId(focus.topic_id).has_value();
+                })) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " uses a bench profile with a noncanonical focus topic");
+        }
+    }
+
+    std::unordered_set<std::string> question_ids;
+    std::unordered_set<std::string> grounding_ids;
+    std::unordered_set<std::string> covered_issue_topics;
+    std::unordered_map<std::string, std::size_t> questions_per_issue;
+    std::vector<model::AuthoredArgumentQuestion> questions;
+    questions.reserve(static_cast<std::size_t>(question_values->size()));
+    for (qsizetype index_value = 0; index_value < question_values->size(); ++index_value) {
+        const auto question_path = path + ".questions[" + std::to_string(index_value) + "]";
+        if (!question_values->at(index_value).isObject()) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        question_path + " must be an object");
+        }
+        const auto question = question_values->at(index_value).toObject();
+        if (!hasExactKeys(question,
+                          {"question_id", "issue_id", "topic_id", "prompt", "grounding"})) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        question_path + " has unknown or missing fields");
+        }
+        const auto question_id = requiredId(question, "question_id", question_path);
+        const auto issue_id = requiredId(question, "issue_id", question_path);
+        const auto topic_id = requiredString(question, "topic_id", question_path);
+        const auto prompt = requiredString(question, "prompt", question_path);
+        const auto grounding_values =
+            requiredArray(question, "grounding", question_path, 1, maximum_question_grounding);
+        if (!question_id || !issue_id || !topic_id || !prompt || !grounding_values) {
+            if (!question_id) {
+                return std::unexpected(question_id.error());
+            }
+            if (!issue_id) {
+                return std::unexpected(issue_id.error());
+            }
+            if (!topic_id) {
+                return std::unexpected(topic_id.error());
+            }
+            if (!prompt) {
+                return std::unexpected(prompt.error());
+            }
+            return std::unexpected(grounding_values.error());
+        }
+        const auto topic = model::argumentFocusTopicFromId(*topic_id);
+        const auto topics = topics_by_issue.find(*issue_id);
+        if (!question_ids.emplace(*question_id).second || topics == topics_by_issue.end() ||
+            !topic.has_value() || !topics->second.contains(*topic_id) ||
+            !isCanonicalQuestionPrompt(*prompt) ||
+            ++questions_per_issue[*issue_id] >
+                static_cast<std::size_t>(maximum_authored_questions_per_issue)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        question_path + " has invalid identity, issue, topic, prompt, or bounds");
+        }
+        const auto* issue = issueById(case_document.issues, *issue_id);
+        if (issue == nullptr) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        question_path + " references an unavailable case issue");
+        }
+        covered_issue_topics.emplace(*issue_id + "\n" + *topic_id);
+        std::vector<model::AuthoredArgumentGrounding> grounding;
+        grounding.reserve(static_cast<std::size_t>(grounding_values->size()));
+        for (qsizetype grounding_index = 0; grounding_index < grounding_values->size();
+             ++grounding_index) {
+            const auto grounding_path =
+                question_path + ".grounding[" + std::to_string(grounding_index) + "]";
+            if (!grounding_values->at(grounding_index).isObject()) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            grounding_path + " must be an object");
+            }
+            const auto grounding_value = grounding_values->at(grounding_index).toObject();
+            const auto grounding_id = requiredId(grounding_value, "grounding_id", grounding_path);
+            const auto kind = requiredString(grounding_value, "kind", grounding_path);
+            if (!grounding_id || !kind) {
+                return std::unexpected(!grounding_id ? grounding_id.error() : kind.error());
+            }
+            if (!grounding_ids.emplace(*grounding_id).second) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            grounding_path + ".grounding_id must be bank-unique");
+            }
+            if (*kind == "authority") {
+                if (!hasExactKeys(grounding_value, {"grounding_id", "kind", "authority_id"})) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                grounding_path + " has invalid authority fields");
+                }
+                const auto authority_id =
+                    requiredId(grounding_value, "authority_id", grounding_path);
+                if (!authority_id) {
+                    return std::unexpected(authority_id.error());
+                }
+                if (std::ranges::none_of(issue->authority_ids, [&authority_id](const auto& id) {
+                        return id.value == *authority_id;
+                    })) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                grounding_path + ".authority_id is outside its case issue");
+                }
+                auto authority = index.requireAuthority(*authority_id, grounding_path);
+                if (!authority) {
+                    return std::unexpected(authority.error());
+                }
+                if (!authority->provenance.has_value()) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                grounding_path + ".authority_id lacks canonical provenance");
+                }
+                grounding.push_back(
+                    model::AuthorityArgumentGrounding{*grounding_id, std::move(*authority)});
+            } else if (*kind == "brief_page") {
+                if (!hasExactKeys(grounding_value,
+                                  {"grounding_id", "kind", "entry_id", "page_number"})) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                grounding_path + " has invalid brief-page fields");
+                }
+                const auto entry_id = requiredId(grounding_value, "entry_id", grounding_path);
+                const auto page_number =
+                    requiredUnsigned(grounding_value, "page_number", grounding_path, 1, 10'000);
+                if (!entry_id || !page_number) {
+                    return std::unexpected(!entry_id ? entry_id.error() : page_number.error());
+                }
+                const auto entry =
+                    std::ranges::find(record.docket_entries, *entry_id,
+                                      [](const RuntimeDocketEntry& item) { return item.id.value; });
+                const auto issue_scoped =
+                    std::ranges::any_of(issue->record_anchor_ids, [&entry_id](const auto& id) {
+                        return id.value == *entry_id;
+                    });
+                if (entry == record.docket_entries.end() || !issue_scoped || entry->sealed ||
+                    *page_number > entry->page_count ||
+                    !std::ranges::any_of(entry->tags,
+                                         [](const std::string& tag) { return tag == "brief"; })) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                grounding_path + " must resolve to an issue-scoped tagged "
+                                                 "unsealed brief page");
+                }
+                grounding.push_back(model::BriefPageArgumentGrounding{
+                    *grounding_id, *entry_id, *page_number, entry->asset_sha256});
+            } else if (*kind == "record_page") {
+                if (!hasExactKeys(grounding_value, {"grounding_id", "kind", "anchor_id"})) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                grounding_path + " has invalid record-page fields");
+                }
+                const auto anchor_id = requiredId(grounding_value, "anchor_id", grounding_path);
+                if (!anchor_id) {
+                    return std::unexpected(anchor_id.error());
+                }
+                const auto anchor = std::ranges::find(
+                    record.page_anchors, *anchor_id,
+                    [](const RuntimeRecordPageAnchor& item) { return item.id.value; });
+                const auto issue_scoped =
+                    std::ranges::any_of(issue->record_anchor_ids, [&anchor_id](const auto& id) {
+                        return id.value == *anchor_id;
+                    });
+                if (anchor == record.page_anchors.end() || !issue_scoped) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                grounding_path + " must resolve to an issue-scoped page anchor");
+                }
+                const auto entry =
+                    std::ranges::find(record.docket_entries, anchor->entry_id.value,
+                                      [](const RuntimeDocketEntry& item) { return item.id.value; });
+                if (entry == record.docket_entries.end() || entry->sealed) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                grounding_path + " resolves to a missing or sealed entry");
+                }
+                grounding.push_back(model::RecordPageArgumentGrounding{
+                    *grounding_id, *anchor_id, anchor->entry_id.value, anchor->page_number,
+                    entry->asset_sha256, anchor->citation_label});
+            } else {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            grounding_path + ".kind is unsupported");
+            }
+        }
+        std::ranges::sort(grounding, [](const auto& left, const auto& right) {
+            return groundingId(left) < groundingId(right);
+        });
+        questions.push_back(model::AuthoredArgumentQuestion{*question_id, *issue_id, *topic,
+                                                            *prompt, std::move(grounding)});
+    }
+    for (const auto& [issue_id, topics] : topics_by_issue) {
+        for (const auto& topic_id : topics) {
+            if (!covered_issue_topics.contains(issue_id + "\n" + topic_id)) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            path + ".questions does not cover every issue-topic binding");
+            }
+        }
+    }
+    std::ranges::sort(questions, {}, &model::AuthoredArgumentQuestion::id);
+    model::AuthoredQuestionBank parsed{
+        case_document.definition.id, resource.descriptor.id, mode, *asserted_digest,
+        std::move(issue_topics),     std::move(questions)};
+    if (canonicalQuestionBankDigest(parsed) != parsed.grounding_digest) {
+        return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                    path + ".grounding_digest does not match its resolved canonical bytes");
+    }
+    return std::optional<model::AuthoredQuestionBank>{std::move(parsed)};
+}
+
+[[nodiscard]] Result<RuntimeArgumentConfiguration>
+parseArgument(const ValidatedResource& resource, const ResourceIndex& index,
+              const ParsedCase& case_document, const RuntimeCourt& court,
+              const RuntimeRecord& record, const model::PackRevision& root_revision) {
     const auto path = "argument configuration " + resource.descriptor.id;
     const auto case_id = requiredId(resource.document, "case_id", path);
     const auto bench_id = requiredId(resource.document, "bench_configuration_id", path);
@@ -2356,6 +2834,12 @@ using RuntimeCatalog = std::unordered_map<std::string, RuntimeCatalogFiling>;
         return fail(RuntimePackErrorCode::CrossReferenceFailure,
                     path + " has inconsistent case or time limits");
     }
+    if (resource.document.contains(QStringLiteral("grounded_question_bank")) &&
+        (!index.ownedBy(resource.descriptor.id, root_revision) ||
+         !index.ownedBy(*case_id, root_revision))) {
+        return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                    path + " and its grounded-question case must share the exact root owner");
+    }
     const auto bench_resource =
         index.require(*bench_id, model::ResourceKind::BenchConfiguration, path);
     if (!bench_resource) {
@@ -2367,19 +2851,25 @@ using RuntimeCatalog = std::unordered_map<std::string, RuntimeCatalogFiling>;
     }
     std::vector<RuntimeIssueId> permitted;
     permitted.reserve(issue_ids->size());
-    for (auto& issue : *issue_ids) {
+    for (const auto& issue : *issue_ids) {
         if (!issueExists(case_document.issues, issue)) {
             return fail(RuntimePackErrorCode::CrossReferenceFailure,
                         path + " references issue outside its case: " + issue);
         }
-        permitted.push_back(RuntimeIssueId{std::move(issue)});
+        permitted.push_back(RuntimeIssueId{issue});
+    }
+    auto question_bank =
+        parseQuestionBank(resource, index, case_document, record, *bench, *issue_ids);
+    if (!question_bank) {
+        return std::unexpected(question_bank.error());
     }
     return RuntimeArgumentConfiguration{RuntimeArgumentConfigId{resource.descriptor.id},
                                         model::CaseId{*case_id},
                                         std::move(*bench),
                                         *total,
                                         *rebuttal,
-                                        std::move(permitted)};
+                                        std::move(permitted),
+                                        std::move(*question_bank)};
 }
 
 [[nodiscard]] bool sameCalendar(const model::CourtCalendar& left,
@@ -2618,7 +3108,8 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
     std::vector<RuntimeArgumentConfiguration> runtime_arguments;
     runtime_arguments.reserve(arguments.size());
     for (const auto* argument : arguments) {
-        auto parsed_argument = parseArgument(*argument, index, *parsed_case, *court);
+        auto parsed_argument =
+            parseArgument(*argument, index, *parsed_case, *court, *record, root_revision);
         if (!parsed_argument) {
             return std::unexpected(parsed_argument.error());
         }
@@ -2660,6 +3151,11 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
             const auto case_resource = index.require(*case_id, model::ResourceKind::Case, path);
             if (!case_resource) {
                 return std::unexpected(case_resource.error());
+            }
+            if (resource.document.contains(QStringLiteral("grounded_question_bank")) &&
+                !index.ownedBy(*case_id, pack.revision)) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            path + " targets a dependency-owned case and would be orphaned");
             }
             arguments_by_case[*case_id].push_back(&resource);
         }

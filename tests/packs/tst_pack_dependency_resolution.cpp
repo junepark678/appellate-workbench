@@ -54,6 +54,7 @@ class PackDependencyResolutionTest final : public QObject {
     void scopesBlobMaterializationToResolvedClosure();
     void hydratesThinRootKeepsDependencyEntryPointsHiddenAndPinsSessions();
     void resolvesV2CanonicalAuthoritiesAcrossExactDependencies();
+    void rejectsGroundedQuestionBankTargetingDependencyCase();
     void rejectsSiblingAssistedDependencyReference();
     void rejectsWrongExactDigestForBlobStreaming();
     void serializesPublicationAcrossCatalogInstances();
@@ -293,12 +294,11 @@ void addFrame(QCryptographicHash& hash, const std::string& value) {
     return *exported;
 }
 
-[[nodiscard]] auto
-buildPartitionArchive(const QString& root, const QString& stem, const QString& pack_id,
-                      const std::vector<QString>& resource_paths,
-                      const std::vector<PackRevision>& dependencies = {}, bool include_blob = false,
-                      const QByteArray& replacement_prefix = {}, int schema_version = 1)
-    -> std::expected<PackRevision, QString> {
+[[nodiscard]] auto buildPartitionArchive(
+    const QString& root, const QString& stem, const QString& pack_id,
+    const std::vector<QString>& resource_paths, const std::vector<PackRevision>& dependencies = {},
+    bool include_blob = false, const QByteArray& replacement_prefix = {}, int schema_version = 1,
+    bool omit_grounded_questions_capability = false) -> std::expected<PackRevision, QString> {
     const auto source = QDir(root).filePath(QStringLiteral("sources/") + stem);
     const auto archive =
         QDir(root).filePath(QStringLiteral("archives/") + stem + QStringLiteral(".awpack"));
@@ -344,13 +344,24 @@ buildPartitionArchive(const QString& root, const QString& stem, const QString& p
     for (const auto& required : dependencies) {
         dependency_values.push_back(dependency(required));
     }
+    auto required_capabilities =
+        fixture_manifest.value(QStringLiteral("required_capabilities")).toArray();
+    if (omit_grounded_questions_capability) {
+        QJsonArray filtered;
+        for (const auto& value : required_capabilities) {
+            if (value.toObject().value(QStringLiteral("id")).toString() !=
+                QStringLiteral("workbench.pack.grounded-questions")) {
+                filtered.push_back(value);
+            }
+        }
+        required_capabilities = filtered;
+    }
     const auto manifest =
         QJsonDocument(QJsonObject{
                           {QStringLiteral("schema_version"), schema_version},
                           {QStringLiteral("pack_id"), pack_id},
                           {QStringLiteral("version"), QStringLiteral("1.0.0")},
-                          {QStringLiteral("required_capabilities"),
-                           fixture_manifest.value(QStringLiteral("required_capabilities"))},
+                          {QStringLiteral("required_capabilities"), required_capabilities},
                           {QStringLiteral("dependencies"), dependency_values},
                           {QStringLiteral("blobs"), blobs},
                           {QStringLiteral("contents"), contents},
@@ -1074,6 +1085,22 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
     QVERIFY(runtime_case.filing_authorities.front().authority.provenance.has_value());
     QCOMPARE(runtime_case.filing_authorities.front().authority.provenance->locator,
              std::string("Rule 1"));
+    QCOMPARE(runtime_case.argument_configurations.size(), std::size_t{1});
+    QVERIFY(runtime_case.argument_configurations.front().grounded_question_bank.has_value());
+    const auto& question_bank =
+        *runtime_case.argument_configurations.front().grounded_question_bank;
+    QCOMPARE(question_bank.mode, appellate::model::OralArgumentMode::ActualRecord);
+    QCOMPARE(question_bank.grounding_digest,
+             std::string("766b0a05b8d4c6ed2b05496f520bc34d11ade1d1d670f7dd6fb036c11a238c55"));
+    const auto grounded_authority =
+        std::ranges::find_if(question_bank.questions.front().grounding, [](const auto& grounding) {
+            return std::holds_alternative<appellate::model::AuthorityArgumentGrounding>(grounding);
+        });
+    QVERIFY(grounded_authority != question_bank.questions.front().grounding.end());
+    const auto& authority_snapshot =
+        std::get<appellate::model::AuthorityArgumentGrounding>(*grounded_authority).authority;
+    QVERIFY(authority_snapshot.provenance.has_value());
+    QCOMPARE(authority_snapshot.provenance->locator, std::string("Rule 1"));
 
     const auto session_id = std::string("test.session.v2-authority");
     const auto court_date = appellate::model::LegalDate{std::chrono::year{2026} /
@@ -1369,6 +1396,57 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
 
     reopened = reopen_canonical();
     QVERIFY2(reopened.has_value(), reopened ? "" : qPrintable(reopened.error().message));
+}
+
+void PackDependencyResolutionTest::rejectsGroundedQuestionBankTargetingDependencyCase() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto authorities =
+        buildPartitionArchive(temporary.path(), QStringLiteral("grounded-authorities"),
+                              QStringLiteral("test.grounded.authorities"),
+                              {QStringLiteral("resources/authority-set.json")}, {}, false, {}, 2);
+    QVERIFY2(authorities.has_value(), authorities ? "" : qPrintable(authorities.error()));
+    const auto procedure = buildPartitionArchive(
+        temporary.path(), QStringLiteral("grounded-procedure"),
+        QStringLiteral("test.grounded.procedure"),
+        {QStringLiteral("resources/court.json"), QStringLiteral("resources/filing-catalog.json"),
+         QStringLiteral("resources/form.json"), QStringLiteral("resources/procedure-profile.json"),
+         QStringLiteral("resources/workflow.json")},
+        {*authorities}, false, {}, 2);
+    QVERIFY2(procedure.has_value(), procedure ? "" : qPrintable(procedure.error()));
+    const auto case_provider = buildPartitionArchive(
+        temporary.path(), QStringLiteral("grounded-case-provider"),
+        QStringLiteral("test.grounded.case-provider"),
+        {QStringLiteral("resources/bench-configuration.json"),
+         QStringLiteral("resources/case.json"), QStringLiteral("resources/judge-profile.json"),
+         QStringLiteral("resources/record.json")},
+        {*procedure}, true, {}, 2);
+    QVERIFY2(case_provider.has_value(), case_provider ? "" : qPrintable(case_provider.error()));
+    const auto root = buildPartitionArchive(
+        temporary.path(), QStringLiteral("grounded-root"), QStringLiteral("test.grounded.root"),
+        {QStringLiteral("resources/argument-config.json")}, {*case_provider}, false, {}, 2);
+    QVERIFY2(root.has_value(), root ? "" : qPrintable(root.error()));
+
+    const auto underdeclared = buildPartitionArchive(
+        temporary.path(), QStringLiteral("grounded-underdeclared"),
+        QStringLiteral("test.grounded.underdeclared"),
+        {QStringLiteral("resources/argument-config.json")}, {*case_provider}, false, {}, 2, true);
+    QVERIFY(!underdeclared.has_value());
+    QVERIFY(underdeclared.error().contains(QStringLiteral("grounded-questions")));
+
+    auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
+    QVERIFY(catalog.has_value());
+    QVERIFY(install(**catalog, temporary.path(), QStringLiteral("grounded-authorities"), 1));
+    QVERIFY(install(**catalog, temporary.path(), QStringLiteral("grounded-procedure"), 2));
+    QVERIFY(install(**catalog, temporary.path(), QStringLiteral("grounded-case-provider"), 3));
+    const auto rejected =
+        (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("grounded-root")),
+                                   QStringLiteral("2026-08-11T00:00:04Z"));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, CatalogErrorCode::InvalidResolvedGraph);
+    const auto installed = (*catalog)->list();
+    QVERIFY(installed.has_value());
+    QCOMPARE(installed->size(), std::size_t{3});
 }
 
 void PackDependencyResolutionTest::rejectsSiblingAssistedDependencyReference() {

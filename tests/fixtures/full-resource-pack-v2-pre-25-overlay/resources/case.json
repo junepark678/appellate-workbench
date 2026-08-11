@@ -37,7 +37,6 @@
       ],
       "record_anchor_ids": [
         "example.record.entry-one",
-        "example.record.brief-opening",
         "example.record.anchor.ja2"
       ]
     },
@@ -52,7 +51,6 @@
       ],
       "record_anchor_ids": [
         "example.record.entry-one",
-        "example.record.brief-opening",
         "example.record.anchor.ja2"
       ]
     }
