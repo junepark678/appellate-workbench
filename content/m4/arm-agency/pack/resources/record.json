@@ -68,10 +68,11 @@
       "description": "Synthetic CAT-only application identifying the burden, aggregate-risk theory, acquiescence theory, chronology, and contemporaneous exhibit index.",
       "tags": [
         "application_declaration_family",
+        "admitted",
         "certified_administrative_record"
       ],
       "asset_path": "assets/03-cat-application.pdf",
-      "asset_sha256": "fae84fdf5552af2c483bed35a8fe8844855d670a97d6922623085a63184ed8ce",
+      "asset_sha256": "57ff9e41c97ccccbcfa6c6201777a986460efe3ca7edc7035dc1854a1f3ab8eb",
       "page_count": 12,
       "sealed": false
     },
@@ -83,13 +84,13 @@
       "filed_on": "2024-04-12",
       "title": "A.R.M. Sworn Declaration",
       "actor": "A.R.M. (fictional, initials only)",
-      "description": "Pre-hearing eighteen-page declaration lodged April 12. Its claimed later admission, omission from an initial certification, and restoration at planned corrected AR33-AR50 remain disputed until deferred agency materials are added.",
+      "description": "Pre-hearing eighteen-page declaration lodged April 12, admitted September 17 without an authenticity or timeliness objection, omitted from the February 18 transmission, and restored unchanged by the March 3 correction.",
       "tags": [
         "application_declaration_family",
-        "claimed_admission",
-        "claimed_initial_omission",
-        "planned_certified_administrative_record",
-        "planned_corrected_record"
+        "admitted",
+        "initially_omitted",
+        "certified_administrative_record",
+        "corrected_record"
       ],
       "asset_path": "assets/04-arm-sworn-declaration.pdf",
       "asset_sha256": "08e8294532c23fe9feb5962ca5b7780ae958178e6c8e2b4840d1ee28f3c5d212",
@@ -107,10 +108,11 @@
       "description": "Corroborating sibling declaration distinguishing firsthand observations, reported statements, contemporaneous notes, clinic chronology, threats, and authentication limits.",
       "tags": [
         "application_declaration_family",
+        "admitted",
         "certified_administrative_record"
       ],
       "asset_path": "assets/05-sibling-declaration.pdf",
-      "asset_sha256": "9e9a0b5eddccf2b01a9dd09afcff37bd1ff3acf09287c621b44a6ab22716fa2d",
+      "asset_sha256": "fb87e2227dfa5ff42d55dbc83d3b7fd568c860634c16897b55c2753ccd98cc34",
       "page_count": 10,
       "sealed": false
     },
@@ -125,6 +127,7 @@
       "description": "Synthetic employment, procurement, complaint-routing, clinic-source, photograph, message, chain-of-custody, and Nadia Pel authentication components.",
       "tags": [
         "application_declaration_family",
+        "admitted",
         "certified_administrative_record"
       ],
       "asset_path": "assets/06-family-corroboration.pdf",
@@ -133,8 +136,234 @@
       "sealed": false
     },
     {
-      "entry_id": "ca4m4.arm.record.pa01",
+      "entry_id": "ca4m4.arm.record.ar07",
       "entry_number": 7,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Exhibit P-8",
+      "filed_on": "2024-06-07",
+      "title": "Country-Conditions and Institutional-Routing Report",
+      "actor": "Dr. Ilyan Varo (fictional expert)",
+      "description": "Country-conditions report addressing Unit Four, Harbor League, registry access, complaint routing, formal safeguards, enforcement evidence, and combined pathways through the exact June 7, 2024 source cutoff.",
+      "tags": [
+        "country_medical_translation",
+        "admitted",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/07-country-conditions-report.pdf",
+      "asset_sha256": "b6d9b5d8dd2e8b773751a61805e3965db1885589c75c93ca40a170ec41d2811f",
+      "page_count": 20,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar08",
+      "entry_number": 8,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Exhibit P-9",
+      "filed_on": "2024-06-07",
+      "title": "Trauma and Medical Evaluation",
+      "actor": "Dr. Elian Sore (fictional clinician)",
+      "description": "Limited-purpose trauma and medical evaluation recording history, sources through May 29, physical findings, symptoms, consistency analysis, alternatives, and interpretation safeguards.",
+      "tags": [
+        "country_medical_translation",
+        "admitted",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/08-trauma-medical-evaluation.pdf",
+      "asset_sha256": "7c3e0189816e870df2cbf064c4cd04e36ee72856dc35b50d8f8c3dfc68d2add2",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar09",
+      "entry_number": 9,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Combined Agency Exhibits P-4/P-5/P-6",
+      "filed_on": "2024-04-12",
+      "title": "Combined P-4/P-5/P-6 Controlled Searchable-Text and Translation Packet",
+      "actor": "Mara Deyn (fictional translator)",
+      "description": "Single physical packet containing distinct logical Exhibits P-4, P-5, and P-6; complete controlled searchable source and translation bytes; exact object hashes; and an exhaustive logical exhibit-to-page/object map.",
+      "tags": [
+        "country_medical_translation",
+        "admitted",
+        "combined_physical_packet",
+        "logical_exhibit_p4",
+        "logical_exhibit_p5",
+        "logical_exhibit_p6",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/09-certified-translation-packet.pdf",
+      "asset_sha256": "5fd9872262e77cd77830e50391c0b8c1c4ba5f771534896bad58354be56009fc",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar10",
+      "entry_number": 10,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Merits Hearing Transcript, Volume 1",
+      "filed_on": "2024-09-17",
+      "title": "Merits Hearing Transcript, Volume 1",
+      "actor": "Fictional exercise immigration court",
+      "description": "First hearing volume recording interpretation, P-7 admission, A.R.M.'s testimony, corroboration, cross-examination, connected-risk testimony, and P-1-through-P-9 exhibit status.",
+      "tags": [
+        "ij_transcript",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/10-merits-hearing-transcript-vol-1.pdf",
+      "asset_sha256": "91da74fa37a72d3f2b0380649d01374e53b9c32a5025f120cdbd0884ca794332",
+      "page_count": 24,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar11",
+      "entry_number": 11,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Agency Merits Hearing Transcript, Volume 2",
+      "filed_on": "2024-09-18",
+      "title": "Merits Hearing Transcript, Volume 2",
+      "actor": "Fictional exercise immigration court",
+      "description": "Second hearing volume recording sibling and authentication testimony, expert methodology, complaint routing, country evidence, institutional testimony, and final evidentiary rulings.",
+      "tags": [
+        "ij_transcript",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/11-merits-hearing-transcript-vol-2.pdf",
+      "asset_sha256": "436250ccd68de969f6d4cd5259a3c476b0d6c2effedad0c7e0a63b9ee2dedc6f",
+      "page_count": 24,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar12",
+      "entry_number": 12,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Immigration Judge Decision",
+      "filed_on": "2024-10-22",
+      "title": "Immigration Judge Decision Denying CAT Protection",
+      "actor": "Fictional exercise immigration court",
+      "description": "Decision crediting core past events but denying CAT protection through separate-source risk analysis, formal-safeguard reasoning, and a narrow acquiescence assessment.",
+      "tags": [
+        "ij_decision",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/12-ij-decision.pdf",
+      "asset_sha256": "62affff1ee17df944d9b98424e66e6cb08f5f34450c7c12374aee01d911591aa",
+      "page_count": 16,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar13",
+      "entry_number": 13,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "BIA Notice of Appeal",
+      "filed_on": "2024-11-18",
+      "title": "Notice of Appeal to the Board of Immigration Appeals",
+      "actor": "A.R.M. through fictional exercise counsel",
+      "description": "Timely notice preserving aggregate-risk, acquiescence, evidentiary-consideration, and review-standard challenges without attaching new evidence.",
+      "tags": [
+        "bia_notice_brief_response",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/13-bia-notice-appeal.pdf",
+      "asset_sha256": "83e8227280d83cbfbd502c20a399f49ffdc63463c78631fbe1fd443388710072",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar14",
+      "entry_number": 14,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "A.R.M. BIA Opening Brief",
+      "filed_on": "2024-12-09",
+      "title": "A.R.M. Opening Brief Before the Board",
+      "actor": "A.R.M. through fictional exercise counsel",
+      "description": "Opening brief challenging separate-source analysis, treatment of complaint routing and willful blindness, formal-law reliance, country evidence, and relocation analysis.",
+      "tags": [
+        "bia_notice_brief_response",
+        "brief",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/14-bia-opening-brief.pdf",
+      "asset_sha256": "3d489c64cdf7837e5310623f46b7ea9a0e38d5df4516dfb24256ea22f0053ee1",
+      "page_count": 16,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar15",
+      "entry_number": 15,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "DHS BIA Response",
+      "filed_on": "2024-12-30",
+      "title": "DHS Response Before the Board",
+      "actor": "Fictional DHS institutional actor",
+      "description": "Response defending the immigration judge's risk, acquiescence, evidentiary-weight, relocation, and review-standard analysis on the closed agency evidence.",
+      "tags": [
+        "bia_notice_brief_response",
+        "brief",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/15-dhs-bia-response.pdf",
+      "asset_sha256": "8ccc7adfd7b733b2f256e942e11398a1a0e414f28363b0dcf06ccc68b71b4114",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar16",
+      "entry_number": 16,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "BIA Final Order",
+      "filed_on": "2025-01-13",
+      "title": "Board Final Order",
+      "actor": "Fictional Board of Immigration Appeals actor",
+      "description": "Final order dismissing the appeal, adopting the credited past-event findings, and affirming the aggregate-risk, acquiescence, relocation, and evidence-consideration conclusions.",
+      "tags": [
+        "bia_final_order",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/16-bia-final-order.pdf",
+      "asset_sha256": "30690da1b1f9e504ea8b845bf419f099559c709f11c1bc590b2c9498c2e490fe",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar17",
+      "entry_number": 17,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Initial Certified Index and Transmittal",
+      "filed_on": "2025-02-18",
+      "title": "Initial Certified Index and Transmittal",
+      "actor": "Fictional agency records office",
+      "description": "Initial judicial-review transmission that contemporaneously records an unexplained eighteen-label discontinuity, no selected-file deletion or digest failure, and a complete-production certification without diagnosing the cause.",
+      "tags": [
+        "certified_index_omission",
+        "certified_administrative_record"
+      ],
+      "asset_path": "assets/17-initial-certified-index.pdf",
+      "asset_sha256": "571c61f6550b0a15115cdfd259900d94d511ca6e87778c28a1cafa6776b1c444",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.ar18",
+      "entry_number": 18,
+      "docket_id": "ca4m4.arm.docket.agency",
+      "entry_label": "Exhibit Receipt, Audit, and Corrected Certification",
+      "filed_on": "2025-03-03",
+      "title": "Exhibit Receipt, File Audit, and Corrected Certification",
+      "actor": "Fictional agency records officer",
+      "description": "Rule 16(b) stipulation, complete April and September receipt tables, stale-status audit, exact P-7 identity, itemized eighteen-document corrected index, and PA-proffer exclusion.",
+      "tags": [
+        "certified_index_omission",
+        "certified_administrative_record",
+        "corrected_record"
+      ],
+      "asset_path": "assets/18-exhibit-receipt-audit-corrected-certification.pdf",
+      "asset_sha256": "942a41e6f42687acaf4289ec8bfa306340b52c100a6334fe77e19c48def4bb9d",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.pa01",
+      "entry_number": 19,
       "docket_id": "ca4m4.arm.docket.ca4",
       "entry_label": "Appellate ECF No. 4",
       "filed_on": "2025-02-24",
@@ -584,6 +813,1002 @@
       "entry_id": "ca4m4.arm.record.ar06",
       "page_number": 12,
       "citation_label": "AR72"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar73",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 1,
+      "citation_label": "AR73"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar74",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 2,
+      "citation_label": "AR74"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar75",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 3,
+      "citation_label": "AR75"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar76",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 4,
+      "citation_label": "AR76"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar77",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 5,
+      "citation_label": "AR77"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar78",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 6,
+      "citation_label": "AR78"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar79",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 7,
+      "citation_label": "AR79"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar80",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 8,
+      "citation_label": "AR80"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar81",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 9,
+      "citation_label": "AR81"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar82",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 10,
+      "citation_label": "AR82"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar83",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 11,
+      "citation_label": "AR83"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar84",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 12,
+      "citation_label": "AR84"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar85",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 13,
+      "citation_label": "AR85"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar86",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 14,
+      "citation_label": "AR86"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar87",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 15,
+      "citation_label": "AR87"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar88",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 16,
+      "citation_label": "AR88"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar89",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 17,
+      "citation_label": "AR89"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar90",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 18,
+      "citation_label": "AR90"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar91",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 19,
+      "citation_label": "AR91"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar92",
+      "entry_id": "ca4m4.arm.record.ar07",
+      "page_number": 20,
+      "citation_label": "AR92"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar93",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 1,
+      "citation_label": "AR93"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar94",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 2,
+      "citation_label": "AR94"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar95",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 3,
+      "citation_label": "AR95"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar96",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 4,
+      "citation_label": "AR96"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar97",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 5,
+      "citation_label": "AR97"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar98",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 6,
+      "citation_label": "AR98"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar99",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 7,
+      "citation_label": "AR99"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar100",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 8,
+      "citation_label": "AR100"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar101",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 9,
+      "citation_label": "AR101"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar102",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 10,
+      "citation_label": "AR102"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar103",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 11,
+      "citation_label": "AR103"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar104",
+      "entry_id": "ca4m4.arm.record.ar08",
+      "page_number": 12,
+      "citation_label": "AR104"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar105",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 1,
+      "citation_label": "AR105"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar106",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 2,
+      "citation_label": "AR106"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar107",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 3,
+      "citation_label": "AR107"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar108",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 4,
+      "citation_label": "AR108"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar109",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 5,
+      "citation_label": "AR109"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar110",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 6,
+      "citation_label": "AR110"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar111",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 7,
+      "citation_label": "AR111"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar112",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 8,
+      "citation_label": "AR112"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar113",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 9,
+      "citation_label": "AR113"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar114",
+      "entry_id": "ca4m4.arm.record.ar09",
+      "page_number": 10,
+      "citation_label": "AR114"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar115",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 1,
+      "citation_label": "AR115"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar116",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 2,
+      "citation_label": "AR116"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar117",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 3,
+      "citation_label": "AR117"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar118",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 4,
+      "citation_label": "AR118"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar119",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 5,
+      "citation_label": "AR119"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar120",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 6,
+      "citation_label": "AR120"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar121",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 7,
+      "citation_label": "AR121"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar122",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 8,
+      "citation_label": "AR122"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar123",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 9,
+      "citation_label": "AR123"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar124",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 10,
+      "citation_label": "AR124"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar125",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 11,
+      "citation_label": "AR125"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar126",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 12,
+      "citation_label": "AR126"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar127",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 13,
+      "citation_label": "AR127"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar128",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 14,
+      "citation_label": "AR128"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar129",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 15,
+      "citation_label": "AR129"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar130",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 16,
+      "citation_label": "AR130"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar131",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 17,
+      "citation_label": "AR131"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar132",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 18,
+      "citation_label": "AR132"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar133",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 19,
+      "citation_label": "AR133"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar134",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 20,
+      "citation_label": "AR134"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar135",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 21,
+      "citation_label": "AR135"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar136",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 22,
+      "citation_label": "AR136"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar137",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 23,
+      "citation_label": "AR137"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar138",
+      "entry_id": "ca4m4.arm.record.ar10",
+      "page_number": 24,
+      "citation_label": "AR138"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar139",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 1,
+      "citation_label": "AR139"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar140",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 2,
+      "citation_label": "AR140"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar141",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 3,
+      "citation_label": "AR141"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar142",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 4,
+      "citation_label": "AR142"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar143",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 5,
+      "citation_label": "AR143"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar144",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 6,
+      "citation_label": "AR144"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar145",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 7,
+      "citation_label": "AR145"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar146",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 8,
+      "citation_label": "AR146"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar147",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 9,
+      "citation_label": "AR147"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar148",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 10,
+      "citation_label": "AR148"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar149",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 11,
+      "citation_label": "AR149"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar150",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 12,
+      "citation_label": "AR150"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar151",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 13,
+      "citation_label": "AR151"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar152",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 14,
+      "citation_label": "AR152"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar153",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 15,
+      "citation_label": "AR153"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar154",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 16,
+      "citation_label": "AR154"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar155",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 17,
+      "citation_label": "AR155"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar156",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 18,
+      "citation_label": "AR156"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar157",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 19,
+      "citation_label": "AR157"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar158",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 20,
+      "citation_label": "AR158"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar159",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 21,
+      "citation_label": "AR159"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar160",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 22,
+      "citation_label": "AR160"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar161",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 23,
+      "citation_label": "AR161"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar162",
+      "entry_id": "ca4m4.arm.record.ar11",
+      "page_number": 24,
+      "citation_label": "AR162"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar163",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 1,
+      "citation_label": "AR163"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar164",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 2,
+      "citation_label": "AR164"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar165",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 3,
+      "citation_label": "AR165"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar166",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 4,
+      "citation_label": "AR166"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar167",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 5,
+      "citation_label": "AR167"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar168",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 6,
+      "citation_label": "AR168"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar169",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 7,
+      "citation_label": "AR169"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar170",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 8,
+      "citation_label": "AR170"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar171",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 9,
+      "citation_label": "AR171"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar172",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 10,
+      "citation_label": "AR172"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar173",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 11,
+      "citation_label": "AR173"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar174",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 12,
+      "citation_label": "AR174"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar175",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 13,
+      "citation_label": "AR175"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar176",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 14,
+      "citation_label": "AR176"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar177",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 15,
+      "citation_label": "AR177"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar178",
+      "entry_id": "ca4m4.arm.record.ar12",
+      "page_number": 16,
+      "citation_label": "AR178"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar179",
+      "entry_id": "ca4m4.arm.record.ar13",
+      "page_number": 1,
+      "citation_label": "AR179"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar180",
+      "entry_id": "ca4m4.arm.record.ar13",
+      "page_number": 2,
+      "citation_label": "AR180"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar181",
+      "entry_id": "ca4m4.arm.record.ar13",
+      "page_number": 3,
+      "citation_label": "AR181"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar182",
+      "entry_id": "ca4m4.arm.record.ar13",
+      "page_number": 4,
+      "citation_label": "AR182"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar183",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 1,
+      "citation_label": "AR183"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar184",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 2,
+      "citation_label": "AR184"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar185",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 3,
+      "citation_label": "AR185"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar186",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 4,
+      "citation_label": "AR186"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar187",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 5,
+      "citation_label": "AR187"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar188",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 6,
+      "citation_label": "AR188"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar189",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 7,
+      "citation_label": "AR189"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar190",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 8,
+      "citation_label": "AR190"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar191",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 9,
+      "citation_label": "AR191"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar192",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 10,
+      "citation_label": "AR192"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar193",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 11,
+      "citation_label": "AR193"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar194",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 12,
+      "citation_label": "AR194"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar195",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 13,
+      "citation_label": "AR195"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar196",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 14,
+      "citation_label": "AR196"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar197",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 15,
+      "citation_label": "AR197"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar198",
+      "entry_id": "ca4m4.arm.record.ar14",
+      "page_number": 16,
+      "citation_label": "AR198"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar199",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 1,
+      "citation_label": "AR199"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar200",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 2,
+      "citation_label": "AR200"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar201",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 3,
+      "citation_label": "AR201"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar202",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 4,
+      "citation_label": "AR202"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar203",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 5,
+      "citation_label": "AR203"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar204",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 6,
+      "citation_label": "AR204"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar205",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 7,
+      "citation_label": "AR205"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar206",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 8,
+      "citation_label": "AR206"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar207",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 9,
+      "citation_label": "AR207"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar208",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 10,
+      "citation_label": "AR208"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar209",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 11,
+      "citation_label": "AR209"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar210",
+      "entry_id": "ca4m4.arm.record.ar15",
+      "page_number": 12,
+      "citation_label": "AR210"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar211",
+      "entry_id": "ca4m4.arm.record.ar16",
+      "page_number": 1,
+      "citation_label": "AR211"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar212",
+      "entry_id": "ca4m4.arm.record.ar16",
+      "page_number": 2,
+      "citation_label": "AR212"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar213",
+      "entry_id": "ca4m4.arm.record.ar16",
+      "page_number": 3,
+      "citation_label": "AR213"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar214",
+      "entry_id": "ca4m4.arm.record.ar16",
+      "page_number": 4,
+      "citation_label": "AR214"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar215",
+      "entry_id": "ca4m4.arm.record.ar16",
+      "page_number": 5,
+      "citation_label": "AR215"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar216",
+      "entry_id": "ca4m4.arm.record.ar16",
+      "page_number": 6,
+      "citation_label": "AR216"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar217",
+      "entry_id": "ca4m4.arm.record.ar16",
+      "page_number": 7,
+      "citation_label": "AR217"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar218",
+      "entry_id": "ca4m4.arm.record.ar16",
+      "page_number": 8,
+      "citation_label": "AR218"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar219",
+      "entry_id": "ca4m4.arm.record.ar17",
+      "page_number": 1,
+      "citation_label": "AR219"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar220",
+      "entry_id": "ca4m4.arm.record.ar17",
+      "page_number": 2,
+      "citation_label": "AR220"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar221",
+      "entry_id": "ca4m4.arm.record.ar17",
+      "page_number": 3,
+      "citation_label": "AR221"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar222",
+      "entry_id": "ca4m4.arm.record.ar17",
+      "page_number": 4,
+      "citation_label": "AR222"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar223",
+      "entry_id": "ca4m4.arm.record.ar17",
+      "page_number": 5,
+      "citation_label": "AR223"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar224",
+      "entry_id": "ca4m4.arm.record.ar17",
+      "page_number": 6,
+      "citation_label": "AR224"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar225",
+      "entry_id": "ca4m4.arm.record.ar17",
+      "page_number": 7,
+      "citation_label": "AR225"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar226",
+      "entry_id": "ca4m4.arm.record.ar17",
+      "page_number": 8,
+      "citation_label": "AR226"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar227",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 1,
+      "citation_label": "AR227"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar228",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 2,
+      "citation_label": "AR228"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar229",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 3,
+      "citation_label": "AR229"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar230",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 4,
+      "citation_label": "AR230"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar231",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 5,
+      "citation_label": "AR231"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar232",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 6,
+      "citation_label": "AR232"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar233",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 7,
+      "citation_label": "AR233"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar234",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 8,
+      "citation_label": "AR234"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar235",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 9,
+      "citation_label": "AR235"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar236",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 10,
+      "citation_label": "AR236"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar237",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 11,
+      "citation_label": "AR237"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.ar238",
+      "entry_id": "ca4m4.arm.record.ar18",
+      "page_number": 12,
+      "citation_label": "AR238"
     },
     {
       "anchor_id": "ca4m4.arm.anchor.pa1",

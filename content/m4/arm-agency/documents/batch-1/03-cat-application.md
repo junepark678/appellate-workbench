@@ -45,7 +45,10 @@ assessment rather than arithmetic that double-counts overlapping events.
 - April 18, 2023: A.R.M. copies ledger entries showing split Harbor League invoices.
 - May 2: A.R.M. reports the pattern to municipal compliance officer Nadia Pel.
 - May 19–21: Unit Four officers detain and question A.R.M. about the copies and Pel.
-- June 7: the Office of Civic Integrity routes A.R.M.'s complaint to Unit Four's regional command.
+- June 7: the Office of Civic Integrity accepts complaint `OCI-23-441` under initial route `IC-2`.
+- June 9: the intake is linked to referral `CIV-23-184` through employment code `ARM-RX-14`.
+- June 10: the destination changes to `RC-4`, Unit Four's regional command; on June 30 the status
+  remains “regional response pending.”
 - July 11: Harbor League messengers threaten A.R.M. and S.M. outside the family residence.
 - August 4: A.R.M. departs Kalyra.
 - August 8: A.R.M. is admitted to the United States as a temporary visitor.
@@ -65,8 +68,9 @@ repeatedly demanded the copied invoice sheets, and sought the identity of the pe
 them.
 
 The application alleges intentional blows, stress positioning, sleep interruption, and threats
-against S.M. to punish disclosure and compel information. A.R.M. describes continuing shoulder
-pain and nightmares after release. The separate declaration supplies the first-person sequence;
+against S.M. to punish disclosure and compel information. A.R.M. describes a swollen right ankle,
+limited movement in the left shoulder, rib pain, and nightmares after release. The May 21 clinic
+visit at 14:20 is recorded separately. The separate declaration supplies the first-person sequence;
 the sibling declaration describes observations after release; clinical evidence states
 its methodology and limits.
 
@@ -130,9 +134,11 @@ assessment grounded in the common identifying event.
 # Public-official acquiescence theory
 
 A.R.M. alleges direct official conduct during the May detention and acquiescence in foreseeable
-Harbor League harm. After release, A.R.M. submitted a complaint to the Office of Civic Integrity.
-The receipt shows intake on June 7; the routing code sends it to Unit Four's own regional command.
-No independent interviewer contacted A.R.M., S.M., or Pel.
+Harbor League harm. After release, A.R.M. submitted complaint `OCI-23-441` to the Office of Civic
+Integrity on June 7. The receipt initially shows `IC-2`, independent conduct review. A June 9 audit
+links it to `CIV-23-184` through `ARM-RX-14`; on June 10 the destination changes to `RC-4`, Unit
+Four regional command. The June 30 status remains “regional response pending,” and no independent
+interviewer contacted A.R.M., S.M., or Pel.
 
 Pel states that supervisors were warned this routing returned allegations to implicated officers.
 The office retained the protocol. When S.M. later reported the Harbor League threat, a desk officer
@@ -167,9 +173,11 @@ The April 12 delivery identifies:
 - P-1: this CAT application and chronology;
 - P-2: S.M.'s sibling declaration and communication log;
 - P-3: family corroboration and employment-authentication packet;
-- P-4: selected Kalyrian-language messages with source images;
-- P-5: complaint receipt and municipal routing extract;
-- P-6: translation and clinic-source components; and
+- P-4: four selected Kalyrian-language message exports with authenticated searchable
+  transcriptions;
+- P-5: complaint receipt `OCI-23-441` and the June 9, June 10, and June 30 routing extract;
+- P-6: certified translations, clinic notation, and procurement-register source text, physically
+  combined with P-4 and P-5 in one ten-page controlled packet; and
 - P-7: A.R.M.'s sworn declaration.
 
 The clerk receipt lists P-7 as eighteen pages and “lodged, merits ruling required.” Lodging records

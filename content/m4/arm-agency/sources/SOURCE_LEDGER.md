@@ -27,7 +27,8 @@ weekend, and holiday counting. The root does not copy or shadow those authoritie
 
 ## Synthetic source classes
 
-Every source under `documents/batch-1/` was written for this exercise. Each page advances a
-specific procedural or evidentiary fact. No page was scraped from a real person's immigration
-file, declaration, medical record, agency charge, or docket. The page labels encode two distinct
-universes: corrected administrative-record pages use `AR`; the new appellate proffer uses `PA`.
+Every source under `documents/batch-1/` and `documents/batch-2/` was written for this exercise.
+Each page advances a specific procedural or evidentiary fact. No page was scraped from a real
+person's immigration file, declaration, medical record, agency charge, or docket. The page labels
+encode two distinct universes: corrected administrative-record pages use `AR`; the new appellate
+proffer uses `PA`.

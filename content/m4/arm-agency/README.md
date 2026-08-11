@@ -1,15 +1,16 @@
 # A.R.M. agency-review authoring pack
 
 This tree authors the incomplete, pre-release schema-v2 root
-`us.ca4.m4.arm-agency@1.0.0` for the fictional exercise *A.R.M. v. Attorney General
+`us.ca4.m4.arm-agency@1.1.0` for the fictional exercise *A.R.M. v. Attorney General
 of the United States* (`SYN-BIA-25-0113`; `SYN-CA4-25-AG-4301`). It is an authoring
 checkpoint, not a releasable pack and not legal advice.
 
-The current boundary contains source/schema infrastructure and record batch 1 only:
-six AR-labeled agency PDFs totaling 72 substantive searchable pages (AR1–AR72), plus one
-separately classified generated appellate proffer totaling eight
-substantive searchable pages (PA1–PA8). The proffer is not part of the administrative
-record and is not counted toward the 18-PDF/238-page certified-record contract.
+The current boundary contains the complete certified-record inventory: eighteen AR-labeled
+agency PDFs totaling 238 substantive searchable pages (AR1–AR238), plus one separately
+classified generated appellate proffer totaling eight substantive searchable pages
+(PA1–PA8). The proffer is not part of the administrative record and is not counted toward the
+18-PDF/238-page certified-record contract. The record inventory is complete, but the case remains
+incomplete because disposition, executable traces, and realism review are still absent.
 
 All people, addresses, facts, events, documents, dockets, and the Republic of Kalyra are
 fictional. A.R.M. remains anonymized by initials; the exercise does not invent a full name,
@@ -37,12 +38,18 @@ bind the proper motion to each operation before claiming the eventual result.
 
 ## Record-composition boundary
 
-Agency Exhibit P-7 is A.R.M.'s pre-hearing sworn declaration, and the present pages show that it
-was lodged before the merits hearing. Whether it was later admitted, omitted from an initial
-certification, and restored by correction remains the pack's disputed full-record theory rather
-than a fact proved by batch 1. The deferred hearing receipt, transcript, initial index, file audit,
-and corrected certification must establish or defeat that theory. AR33–AR50 are the planned
-corrected labels if those later materials support correction.
+Agency Exhibit P-7 is A.R.M.'s pre-hearing sworn declaration at AR33–AR50. AR117, AR138, AR139,
+AR161, and AR164 record and confirm its admission without an authenticity or timeliness objection.
+AR219–AR226 preserve the contemporaneous initial transmission, including an unexplained
+eighteen-label discontinuity but no retrospective diagnosis. The exact Rule 16(b) stipulation,
+April and September receipt tables, file audit, P-7 digest, itemized eighteen-document index, and
+corrected certification at AR227–AR238 establish that the same admitted file was omitted by a stale
+status field and restored without adding evidence.
+
+P-4, P-5, and P-6 remain separate admitted logical exhibits within the one physical ten-page file
+at AR105–AR114. That file contains complete controlled searchable source and translation bytes,
+their exact hashes, and an exhaustive page/object map. It contains no raster image object and makes
+no contrary representation.
 
 The PA1–PA8 cousin declaration instead describes events after the BIA order. It was never
 presented to the immigration judge or Board, never admitted, and never receives an AR label.
@@ -53,7 +60,7 @@ not establish its truth and does not make it reviewable record evidence.
 
 Two minimal argument configurations make this incomplete case root runtime-loadable. The
 actual-record bank and counterfactual-training bank each cover all five current issue topics and
-ground every question only in canonical authorities and existing AR1–AR72 or PA1–PA8 anchors.
+ground every question only in canonical authorities and existing AR1–AR238 or PA1–PA8 anchors.
 The day-31 petition prompt is a counterfactual oral-argument question only; it is not an
 executable workflow trace because the current engine cannot faithfully represent government
 invocation of the nonjurisdictional filing rule.
@@ -71,7 +78,11 @@ those branches.
 
 ## Render boundary
 
-The seven Markdown sources are rendered in one clean invocation with the freshly
-built `appellate-render` utility into a fresh directory. The exact emitted PDF bytes are pinned
-in the manifest. A later render is not claimed to reproduce those bytes. The render inventory
-records that canonical invocation's semantic page inventory.
+The accepted batch-1 invocation remains provenance for unchanged documents 01, 02, 04, 06, and the
+separate appellate proffer. Corrected batch-1 documents 03 and 05 and all twelve batch-2 documents
+were emitted by exactly one clean invocation of `render-plan-canonical-repair.json` into a fresh
+directory. The resulting fourteen PDFs and
+`metadata/render-inventory-canonical-repair.json` (SHA-256
+`aa6d2cd94ad41e0f3ad6f4a220083792036d1c5f972ba86eeef902267d0236cf`) are pinned as the canonical
+bytes. Earlier batch-2 and affected batch-1 candidates were rejected and are not provenance for the
+current sources; a later render is not claimed to reproduce these exact PDF bytes.

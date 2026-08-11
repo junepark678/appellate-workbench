@@ -15,7 +15,7 @@
   ],
   "grounded_question_bank": {
     "mode": "actual_record",
-    "grounding_digest": "42723995341868f238d07f4b3ca69c7a562bcc679f2ba6f5aa2bb317f550088f",
+    "grounding_digest": "9da889348681230a0f65b8cec31713970001b567597a8b0066baa21f66421b8c",
     "issue_topic_bindings": [
       {
         "issue_id": "ca4m4.arm.issue.record-composition",
@@ -43,12 +43,17 @@
         "question_id": "ca4m4.arm.question.actual-record-composition",
         "issue_id": "ca4m4.arm.issue.record-composition",
         "topic_id": "workbench.topic.record-support",
-        "prompt": "Which current pages show that P-7 identifies itself as a pre-hearing filing while PA1–PA8 was created only after the agency proceedings, and which admission or correction facts remain deferred?",
+        "prompt": "Which pages prove that P-7 was admitted, omitted from the initial transmission, and restored unchanged by correction while PA1–PA8 remains outside the administrative record?",
         "grounding": [
           {
             "grounding_id": "ca4m4.arm.grounding.actual-record-rule",
             "kind": "authority",
             "authority_id": "ca4m4.arm.authority.frap-16-record"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-statute",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-record-limit"
           },
           {
             "grounding_id": "ca4m4.arm.grounding.actual-record-index",
@@ -59,6 +64,46 @@
             "grounding_id": "ca4m4.arm.grounding.actual-record-p7",
             "kind": "record_page",
             "anchor_id": "ca4m4.arm.anchor.ar33"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-admission",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar117"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-initial-gap",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar219"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-stipulation",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar227"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-receipt",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar229"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-cause",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar232"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-identity",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar233"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-exclusion",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar235"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-correction",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar237"
           },
           {
             "grounding_id": "ca4m4.arm.grounding.actual-record-pa",
@@ -82,6 +127,26 @@
             "grounding_id": "ca4m4.arm.grounding.actual-aggregate-page",
             "kind": "record_page",
             "anchor_id": "ca4m4.arm.anchor.ar29"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-report",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar86"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-testimony",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar137"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-ij",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar171"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-board",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar212"
           }
         ]
       },
@@ -105,6 +170,21 @@
             "grounding_id": "ca4m4.arm.grounding.actual-acquiescence-routing",
             "kind": "record_page",
             "anchor_id": "ca4m4.arm.anchor.ar66"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-acquiescence-testimony",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar148"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-acquiescence-ij",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar172"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-acquiescence-board",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar215"
           }
         ]
       },
@@ -112,7 +192,7 @@
         "question_id": "ca4m4.arm.question.actual-review-standard",
         "issue_id": "ca4m4.arm.issue.review-standard",
         "topic_id": "workbench.topic.standard-of-review",
-        "prompt": "How should the court apply the compelled-conclusion standard without supplying agency findings that the current record does not contain?",
+        "prompt": "How should the court apply the compelled-conclusion and meaningful-consideration standards to the immigration judge and Board explanations without finding facts in the first instance?",
         "grounding": [
           {
             "grounding_id": "ca4m4.arm.grounding.actual-review-rule",
@@ -120,14 +200,29 @@
             "authority_id": "ca4m4.arm.authority.usc-1252-review-standard"
           },
           {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-consideration",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
             "grounding_id": "ca4m4.arm.grounding.actual-review-application",
             "kind": "record_page",
             "anchor_id": "ca4m4.arm.anchor.ar31"
           },
           {
-            "grounding_id": "ca4m4.arm.grounding.actual-review-limits",
+            "grounding_id": "ca4m4.arm.grounding.actual-review-ij",
             "kind": "record_page",
-            "anchor_id": "ca4m4.arm.anchor.ar72"
+            "anchor_id": "ca4m4.arm.anchor.ar171"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-brief",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar197"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-board",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar216"
           }
         ]
       },
@@ -135,7 +230,7 @@
         "question_id": "ca4m4.arm.question.actual-timeliness",
         "issue_id": "ca4m4.arm.issue.petition-timeliness",
         "topic_id": "workbench.topic.jurisdiction",
-        "prompt": "What current appellate page fixes the January 13 order and February 11 petition dates, and what follows under the 30-day rule?",
+        "prompt": "Which certified and appellate pages fix the January 13 final order and February 11 petition dates, and what follows under the 30-day rule?",
         "grounding": [
           {
             "grounding_id": "ca4m4.arm.grounding.actual-timeliness-statute",
@@ -146,6 +241,21 @@
             "grounding_id": "ca4m4.arm.grounding.actual-timeliness-riley",
             "kind": "authority",
             "authority_id": "ca4m4.arm.authority.riley-claims-processing"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-timeliness-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar211"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-timeliness-notice",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar218"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-timeliness-index",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar219"
           },
           {
             "grounding_id": "ca4m4.arm.grounding.actual-timeliness-page",

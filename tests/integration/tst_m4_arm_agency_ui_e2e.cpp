@@ -18,6 +18,7 @@
 #include <QFileInfo>
 #include <QLabel>
 #include <QListWidget>
+#include <QPdfSearchModel>
 #include <QPlainTextEdit>
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -58,7 +59,7 @@ namespace packs = appellate::packs;
 namespace storage = appellate::storage;
 namespace ui = appellate::ui;
 
-constexpr auto root_digest = "37788a776fc41ec5028ab28b703e647220da8360cf53ed7aabc41e351bbbf963";
+constexpr auto root_digest = "bd1bd37e1e99ecb8239fa41b040aa72a0a856dd012442bcc1061b7d137e6651d";
 constexpr auto federal_digest = "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9";
 constexpr auto ca4_digest = "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262";
 constexpr auto bench_digest = "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d";
@@ -374,7 +375,7 @@ class M4ArmAgencyUiE2eTest final : public QObject {
 };
 
 void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
-    const model::PackRevision expected_root{model::PackId{"us.ca4.m4.arm-agency"}, "1.0.0",
+    const model::PackRevision expected_root{model::PackId{"us.ca4.m4.arm-agency"}, "1.1.0",
                                             root_digest};
     const model::PackRevision expected_federal{model::PackId{"foundation.us-federal"}, "2025.12.01",
                                                federal_digest};
@@ -555,7 +556,135 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
         actual_state = *window.oralArgumentWorkspace()->sessionState();
         actual_transcript = window.oralArgumentWorkspace()->transcriptView()->toPlainText();
 
-        select_profiles(counterfactual_index);
+        const auto opened_record = window.openSelectedRecord();
+        QVERIFY2(opened_record.has_value(), opened_record ? "" : qPrintable(opened_record.error()));
+        auto* record_workspace = window.recordWorkspace();
+        QVERIFY(record_workspace != nullptr);
+        auto* pdf_search = record_workspace->findChild<QPdfSearchModel*>();
+        QVERIFY(pdf_search != nullptr);
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{19});
+        record_workspace->setDocketFilter(QStringLiteral("ca4m4.arm.docket.agency"));
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{18});
+        record_workspace->setDocketFilter(QStringLiteral("ca4m4.arm.docket.ca4"));
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{1});
+        record_workspace->setDocketFilter(QStringLiteral("generated_appellate_filing"));
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{1});
+        record_workspace->setDocketFilter({});
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{19});
+
+        const auto ar_anchor = record_workspace->navigateToCitation(QStringLiteral("AR33"));
+        QVERIFY2(ar_anchor.has_value(), ar_anchor ? "" : qPrintable(ar_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.ar04"));
+        QCOMPARE(record_workspace->loadedPageCount(), 18);
+        QCOMPARE(record_workspace->currentPageIndex(), 0);
+        record_workspace->setDocumentSearch(QStringLiteral("Agency Exhibit P-7"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto admission_anchor = record_workspace->navigateToCitation(QStringLiteral("AR117"));
+        QVERIFY2(admission_anchor.has_value(),
+                 admission_anchor ? "" : qPrintable(admission_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.ar10"));
+        QCOMPARE(record_workspace->loadedPageCount(), 24);
+        QCOMPARE(record_workspace->currentPageIndex(), 2);
+        record_workspace->setDocumentSearch(QStringLiteral("admits P-7"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto p4_object_anchor = record_workspace->navigateToCitation(QStringLiteral("AR106"));
+        QVERIFY2(p4_object_anchor.has_value(),
+                 p4_object_anchor ? "" : qPrintable(p4_object_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.ar09"));
+        QCOMPARE(record_workspace->loadedPageCount(), 10);
+        QCOMPARE(record_workspace->currentPageIndex(), 1);
+        record_workspace->setDocumentSearch(QStringLiteral("KAL-MSG-1"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto p5_object_anchor = record_workspace->navigateToCitation(QStringLiteral("AR109"));
+        QVERIFY2(p5_object_anchor.has_value(),
+                 p5_object_anchor ? "" : qPrintable(p5_object_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.ar09"));
+        QCOMPARE(record_workspace->currentPageIndex(), 4);
+        record_workspace->setDocumentSearch(QStringLiteral("KAL-ROUTE-1"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto stipulation_anchor =
+            record_workspace->navigateToCitation(QStringLiteral("AR227"));
+        QVERIFY2(stipulation_anchor.has_value(),
+                 stipulation_anchor ? "" : qPrintable(stipulation_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.ar18"));
+        QCOMPARE(record_workspace->loadedPageCount(), 12);
+        QCOMPARE(record_workspace->currentPageIndex(), 0);
+        record_workspace->setDocumentSearch(QStringLiteral("STIPULATION-16B"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto receipt_anchor = record_workspace->navigateToCitation(QStringLiteral("AR229"));
+        QVERIFY2(receipt_anchor.has_value(),
+                 receipt_anchor ? "" : qPrintable(receipt_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.ar18"));
+        QCOMPARE(record_workspace->currentPageIndex(), 2);
+        record_workspace->setDocumentSearch(
+            QStringLiteral("every exhibit P-1 through P-9 admitted"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto correction_anchor =
+            record_workspace->navigateToCitation(QStringLiteral("AR232"));
+        QVERIFY2(correction_anchor.has_value(),
+                 correction_anchor ? "" : qPrintable(correction_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.ar18"));
+        QCOMPARE(record_workspace->loadedPageCount(), 12);
+        QCOMPARE(record_workspace->currentPageIndex(), 5);
+        record_workspace->setDocumentSearch(QStringLiteral("without joining the hearing receipt"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto exclusion_anchor = record_workspace->navigateToCitation(QStringLiteral("AR235"));
+        QVERIFY2(exclusion_anchor.has_value(),
+                 exclusion_anchor ? "" : qPrintable(exclusion_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.ar18"));
+        QCOMPARE(record_workspace->currentPageIndex(), 8);
+        record_workspace->setDocumentSearch(QStringLiteral("appellate proffer pages 1–8"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto pa_anchor = record_workspace->navigateToCitation(QStringLiteral("PA1"));
+        QVERIFY2(pa_anchor.has_value(), pa_anchor ? "" : qPrintable(pa_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.pa01"));
+        QCOMPARE(record_workspace->loadedPageCount(), 8);
+        QCOMPARE(record_workspace->currentPageIndex(), 0);
+        record_workspace->setDocumentSearch(QStringLiteral("extra-record proffer"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+    }
+
+    {
+        ui::MainWindow window({}, catalog_root, nullptr, provider);
+        const auto loaded = window.loadSource(root_archive);
+        QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error()));
+        const auto counterfactual_index =
+            configurationIndex(window, "ca4m4.arm.argument.counterfactual");
+        QVERIFY(counterfactual_index >= 0);
+        window.argumentConfigurationSelector()->setCurrentIndex(counterfactual_index);
+        QCOMPARE(window.profileSelector()->count(), 3);
+        for (int index = 0; index < window.profileSelector()->count(); ++index) {
+            window.profileSelector()->setCurrentIndex(index);
+            const auto profile = window.profileEditor()->profile();
+            QVERIFY(profile.has_value());
+            QCOMPARE(profile->id, expected_profiles.at(static_cast<std::size_t>(index)));
+        }
         const auto counterfactual_launch = window.openSelectedOralArgument();
         QVERIFY2(counterfactual_launch.has_value(),
                  counterfactual_launch ? "" : qPrintable(counterfactual_launch.error()));
@@ -573,36 +702,6 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
             QStringLiteral("The counterfactual changes the premise without changing exact pins."));
         counterfactual_state = *window.oralArgumentWorkspace()->sessionState();
         counterfactual_transcript = window.oralArgumentWorkspace()->transcriptView()->toPlainText();
-
-        const auto opened_record = window.openSelectedRecord();
-        QVERIFY2(opened_record.has_value(), opened_record ? "" : qPrintable(opened_record.error()));
-        auto* record_workspace = window.recordWorkspace();
-        QVERIFY(record_workspace != nullptr);
-        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{7});
-        record_workspace->setDocketFilter(QStringLiteral("ca4m4.arm.docket.agency"));
-        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{6});
-        record_workspace->setDocketFilter(QStringLiteral("ca4m4.arm.docket.ca4"));
-        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{1});
-        record_workspace->setDocketFilter(QStringLiteral("generated_appellate_filing"));
-        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{1});
-        record_workspace->setDocketFilter({});
-        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{7});
-
-        const auto ar_anchor = record_workspace->navigateToCitation(QStringLiteral("AR33"));
-        QVERIFY2(ar_anchor.has_value(), ar_anchor ? "" : qPrintable(ar_anchor.error().message));
-        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.ar04"));
-        QCOMPARE(record_workspace->loadedPageCount(), 18);
-        QCOMPARE(record_workspace->currentPageIndex(), 0);
-        record_workspace->setDocumentSearch(QStringLiteral("Agency Exhibit P-7"));
-        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
-
-        const auto pa_anchor = record_workspace->navigateToCitation(QStringLiteral("PA1"));
-        QVERIFY2(pa_anchor.has_value(), pa_anchor ? "" : qPrintable(pa_anchor.error().message));
-        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.pa01"));
-        QCOMPARE(record_workspace->loadedPageCount(), 8);
-        QCOMPARE(record_workspace->currentPageIndex(), 0);
-        record_workspace->setDocumentSearch(QStringLiteral("extra-record proffer"));
-        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
     }
 
     const auto actual_snapshot =
@@ -647,16 +746,22 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
         const auto loaded = window.loadSource(root_archive);
         QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error()));
         const auto actual_index = configurationIndex(window, "ca4m4.arm.argument.actual-record");
-        const auto counterfactual_index =
-            configurationIndex(window, "ca4m4.arm.argument.counterfactual");
         QVERIFY(actual_index >= 0);
-        QVERIFY(counterfactual_index >= 0);
         window.argumentConfigurationSelector()->setCurrentIndex(actual_index);
         const auto actual_reopen = window.openSelectedOralArgument();
         QVERIFY2(actual_reopen.has_value(), actual_reopen ? "" : qPrintable(actual_reopen.error()));
         QCOMPARE(*window.oralArgumentWorkspace()->sessionState(), *actual_state);
         QCOMPARE(window.oralArgumentWorkspace()->transcriptView()->toPlainText(),
                  actual_transcript);
+    }
+
+    {
+        ui::MainWindow window({}, catalog_root, nullptr, provider);
+        const auto loaded = window.loadSource(root_archive);
+        QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error()));
+        const auto counterfactual_index =
+            configurationIndex(window, "ca4m4.arm.argument.counterfactual");
+        QVERIFY(counterfactual_index >= 0);
         window.argumentConfigurationSelector()->setCurrentIndex(counterfactual_index);
         const auto counterfactual_reopen = window.openSelectedOralArgument();
         QVERIFY2(counterfactual_reopen.has_value(),

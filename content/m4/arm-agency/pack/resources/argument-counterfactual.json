@@ -15,7 +15,7 @@
   ],
   "grounded_question_bank": {
     "mode": "counterfactual_training",
-    "grounding_digest": "35c097a6c824451c1315b994a39cc3a957e5c4c0f73a0c0a2b8927dea784e721",
+    "grounding_digest": "a2eceeedf028ed50080e511f7a0cdbc81cc542c3a76a14c47ec77363da16d582",
     "issue_topic_bindings": [
       {
         "issue_id": "ca4m4.arm.issue.record-composition",
@@ -43,12 +43,17 @@
         "question_id": "ca4m4.arm.question.counterfactual-record-composition",
         "issue_id": "ca4m4.arm.issue.record-composition",
         "topic_id": "workbench.topic.record-support",
-        "prompt": "Assume the deferred hearing receipt ultimately does not show P-7 admitted; would the current pages plus that absence support correction, supplementation, or neither?",
+        "prompt": "Assume the September exhibit receipt did not show P-7 admitted; how would that changed premise affect correction, supplementation, and the treatment of the separate PA proffer?",
         "grounding": [
           {
             "grounding_id": "ca4m4.arm.grounding.counterfactual-record-rule",
             "kind": "authority",
             "authority_id": "ca4m4.arm.authority.frap-16-record"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-statute",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-record-limit"
           },
           {
             "grounding_id": "ca4m4.arm.grounding.counterfactual-record-index",
@@ -59,6 +64,36 @@
             "grounding_id": "ca4m4.arm.grounding.counterfactual-record-p7",
             "kind": "record_page",
             "anchor_id": "ca4m4.arm.anchor.ar33"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-admission",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar117"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-initial-gap",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar219"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-stipulation",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar227"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-receipt",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar229"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-exclusion",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar235"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-correction",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar237"
           },
           {
             "grounding_id": "ca4m4.arm.grounding.counterfactual-record-pa",
@@ -82,6 +117,21 @@
             "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-page",
             "kind": "record_page",
             "anchor_id": "ca4m4.arm.anchor.ar29"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-report",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar86"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-ij",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar171"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-board",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar212"
           }
         ]
       },
@@ -105,6 +155,21 @@
             "grounding_id": "ca4m4.arm.grounding.counterfactual-acquiescence-authentication",
             "kind": "record_page",
             "anchor_id": "ca4m4.arm.anchor.ar71"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-acquiescence-testimony",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar148"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-acquiescence-ij",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar172"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-acquiescence-board",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar215"
           }
         ]
       },
@@ -120,14 +185,24 @@
             "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
           },
           {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-review-standard"
+          },
+          {
             "grounding_id": "ca4m4.arm.grounding.counterfactual-review-application",
             "kind": "record_page",
             "anchor_id": "ca4m4.arm.anchor.ar31"
           },
           {
-            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-limits",
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-ij",
             "kind": "record_page",
-            "anchor_id": "ca4m4.arm.anchor.ar72"
+            "anchor_id": "ca4m4.arm.anchor.ar171"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-board",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar216"
           }
         ]
       },
@@ -146,6 +221,21 @@
             "grounding_id": "ca4m4.arm.grounding.counterfactual-day-31-riley",
             "kind": "authority",
             "authority_id": "ca4m4.arm.authority.riley-claims-processing"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-day-31-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar211"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-day-31-notice",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar218"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-day-31-index",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar219"
           },
           {
             "grounding_id": "ca4m4.arm.grounding.counterfactual-day-31-page",

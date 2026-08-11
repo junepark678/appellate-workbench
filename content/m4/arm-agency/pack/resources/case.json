@@ -34,7 +34,7 @@
   "issues": [
     {
       "issue_id": "ca4m4.arm.issue.record-composition",
-      "title": "Whether deferred agency materials establish that P-7 was admitted and omitted such that correction is proper, while the genuinely new PA proffer remains outside the administrative record",
+      "title": "Whether the admitted P-7 was omitted from the initial transmission and properly restored unchanged, while the genuinely new PA proffer remains outside the administrative record",
       "authority_ids": [
         "ca4m4.arm.authority.frap-16-record",
         "ca4m4.arm.authority.usc-1252-record-limit"
@@ -43,6 +43,18 @@
         "ca4m4.arm.anchor.ar30",
         "ca4m4.arm.anchor.ar33",
         "ca4m4.arm.anchor.ar50",
+        "ca4m4.arm.anchor.ar117",
+        "ca4m4.arm.anchor.ar138",
+        "ca4m4.arm.anchor.ar164",
+        "ca4m4.arm.anchor.ar219",
+        "ca4m4.arm.anchor.ar220",
+        "ca4m4.arm.anchor.ar227",
+        "ca4m4.arm.anchor.ar229",
+        "ca4m4.arm.anchor.ar232",
+        "ca4m4.arm.anchor.ar233",
+        "ca4m4.arm.anchor.ar235",
+        "ca4m4.arm.anchor.ar237",
+        "ca4m4.arm.anchor.ar238",
         "ca4m4.arm.anchor.pa1",
         "ca4m4.arm.anchor.pa7",
         "ca4m4.arm.anchor.pa8"
@@ -62,7 +74,14 @@
         "ca4m4.arm.anchor.ar26",
         "ca4m4.arm.anchor.ar27",
         "ca4m4.arm.anchor.ar29",
-        "ca4m4.arm.anchor.ar50"
+        "ca4m4.arm.anchor.ar50",
+        "ca4m4.arm.anchor.ar86",
+        "ca4m4.arm.anchor.ar137",
+        "ca4m4.arm.anchor.ar154",
+        "ca4m4.arm.anchor.ar159",
+        "ca4m4.arm.anchor.ar171",
+        "ca4m4.arm.anchor.ar186",
+        "ca4m4.arm.anchor.ar212"
       ]
     },
     {
@@ -79,7 +98,18 @@
         "ca4m4.arm.anchor.ar45",
         "ca4m4.arm.anchor.ar47",
         "ca4m4.arm.anchor.ar66",
-        "ca4m4.arm.anchor.ar71"
+        "ca4m4.arm.anchor.ar71",
+        "ca4m4.arm.anchor.ar80",
+        "ca4m4.arm.anchor.ar87",
+        "ca4m4.arm.anchor.ar147",
+        "ca4m4.arm.anchor.ar148",
+        "ca4m4.arm.anchor.ar155",
+        "ca4m4.arm.anchor.ar172",
+        "ca4m4.arm.anchor.ar191",
+        "ca4m4.arm.anchor.ar192",
+        "ca4m4.arm.anchor.ar204",
+        "ca4m4.arm.anchor.ar205",
+        "ca4m4.arm.anchor.ar215"
       ]
     },
     {
@@ -92,7 +122,15 @@
       "record_anchor_ids": [
         "ca4m4.arm.anchor.ar31",
         "ca4m4.arm.anchor.ar60",
-        "ca4m4.arm.anchor.ar72"
+        "ca4m4.arm.anchor.ar72",
+        "ca4m4.arm.anchor.ar171",
+        "ca4m4.arm.anchor.ar172",
+        "ca4m4.arm.anchor.ar197",
+        "ca4m4.arm.anchor.ar200",
+        "ca4m4.arm.anchor.ar209",
+        "ca4m4.arm.anchor.ar212",
+        "ca4m4.arm.anchor.ar215",
+        "ca4m4.arm.anchor.ar216"
       ]
     },
     {
@@ -103,6 +141,9 @@
         "ca4m4.arm.authority.riley-claims-processing"
       ],
       "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar211",
+        "ca4m4.arm.anchor.ar218",
+        "ca4m4.arm.anchor.ar219",
         "ca4m4.arm.anchor.pa1"
       ]
     }

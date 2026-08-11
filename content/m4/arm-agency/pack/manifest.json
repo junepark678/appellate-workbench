@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "pack_id": "us.ca4.m4.arm-agency",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "required_capabilities": [
     {"id": "workbench.pack.declarative-resources", "version": 2},
     {"id": "workbench.pack.canonical-authority", "version": 1},
@@ -30,22 +30,34 @@
     }
   ],
   "contents": [
-    {"id": "ca4m4.arm.argument.actual-record", "kind": "argument_config", "schema_version": 2, "path": "resources/argument-actual.json", "sha256": "4a63649639293daacdc0f5b5935f5e39d4a1b861fb41525b8f5eb0b8d5245ae1"},
-    {"id": "ca4m4.arm.argument.counterfactual", "kind": "argument_config", "schema_version": 2, "path": "resources/argument-counterfactual.json", "sha256": "aa0396dbd016acce2d318011eb5a31586846a423e7e92d291efa5b9eed9ca27b"},
+    {"id": "ca4m4.arm.argument.actual-record", "kind": "argument_config", "schema_version": 2, "path": "resources/argument-actual.json", "sha256": "309928aff417bb59c0e01becdeb64696d9c94288c62b5056fd2432c9adee570a"},
+    {"id": "ca4m4.arm.argument.counterfactual", "kind": "argument_config", "schema_version": 2, "path": "resources/argument-counterfactual.json", "sha256": "5e0ded1cad6331a8413118d4ca05c44f0a6134cac5ac2ac0d0dc3729c372110e"},
     {"id": "ca4m4.arm.authorities.case-specific", "kind": "authority_set", "schema_version": 2, "path": "resources/authority-set.json", "sha256": "4b7cdcefbebbbaecacd01f6725ecd983d8d9821dbf773518dd5a29794ed7a28f"},
     {"id": "ca4m4.arm.bench.three-judge", "kind": "bench_configuration", "schema_version": 2, "path": "resources/bench-configuration.json", "sha256": "280e7e6b0a8a0da79c871d75a64d69a9fc8076508e2b59269b986d2aa176b5a5"},
-    {"id": "ca4m4.case.arm-agency", "kind": "case", "schema_version": 2, "path": "resources/case.json", "sha256": "edb5dcebed595547450e4be6b8a142cb42c5b000635fe6b3921665b06a571186"},
+    {"id": "ca4m4.case.arm-agency", "kind": "case", "schema_version": 2, "path": "resources/case.json", "sha256": "9b66340460aeb39ed444b5df2075bcbe042946ab73c5d8ae38f2066f9c3ae4bb"},
     {"id": "ca4m4.arm.procedure.agency-review", "kind": "procedure_profile", "schema_version": 2, "path": "resources/procedure-profile.json", "sha256": "a7b9ce6b197d8d943d51977a8193af877bc5f49207a67930ada063e32be09641"},
-    {"id": "ca4m4.arm.record", "kind": "record", "schema_version": 2, "path": "resources/record.json", "sha256": "d8bcac58f9cd9741cd19d5cfb25b134186a7de09634aba65b55d799f3d28521c"},
+    {"id": "ca4m4.arm.record", "kind": "record", "schema_version": 2, "path": "resources/record.json", "sha256": "59b10b35a9b2db0e80d66f19913927a0df460a56ccb2508c3cb6f6889770fe5e"},
     {"id": "ca4m4.arm.workflow.agency-review", "kind": "workflow", "schema_version": 2, "path": "resources/workflow.json", "sha256": "c5d217bbc313290e612ea4e718b0adbc4a37ef9d4adbbff8e3ecac5005ede12c"}
   ],
   "blobs": [
     {"path": "assets/01-notice-to-appear.pdf", "media_type": "application/pdf", "byte_size": 43032, "sha256": "0944e748c511288708d4f4bc493260aefb73fdb4bf0cdd1cdbc0f266d3440695"},
     {"path": "assets/02-master-calendar-pleadings.pdf", "media_type": "application/pdf", "byte_size": 52446, "sha256": "0f37235401b819d1d220514f22de4bd1c96d634e6de5a7fce89e921919434e49"},
-    {"path": "assets/03-cat-application.pdf", "media_type": "application/pdf", "byte_size": 51283, "sha256": "fae84fdf5552af2c483bed35a8fe8844855d670a97d6922623085a63184ed8ce"},
+    {"path": "assets/03-cat-application.pdf", "media_type": "application/pdf", "byte_size": 52990, "sha256": "57ff9e41c97ccccbcfa6c6201777a986460efe3ca7edc7035dc1854a1f3ab8eb"},
     {"path": "assets/04-arm-sworn-declaration.pdf", "media_type": "application/pdf", "byte_size": 64296, "sha256": "08e8294532c23fe9feb5962ca5b7780ae958178e6c8e2b4840d1ee28f3c5d212"},
-    {"path": "assets/05-sibling-declaration.pdf", "media_type": "application/pdf", "byte_size": 45059, "sha256": "9e9a0b5eddccf2b01a9dd09afcff37bd1ff3acf09287c621b44a6ab22716fa2d"},
+    {"path": "assets/05-sibling-declaration.pdf", "media_type": "application/pdf", "byte_size": 45880, "sha256": "fb87e2227dfa5ff42d55dbc83d3b7fd568c860634c16897b55c2753ccd98cc34"},
     {"path": "assets/06-family-corroboration.pdf", "media_type": "application/pdf", "byte_size": 54453, "sha256": "2883204da0f65e7500d3350e503fd0e45bba7e7d2d12cedfbeb00ef9e7b41ee4"},
+    {"path": "assets/07-country-conditions-report.pdf", "media_type": "application/pdf", "byte_size": 68760, "sha256": "b6d9b5d8dd2e8b773751a61805e3965db1885589c75c93ca40a170ec41d2811f"},
+    {"path": "assets/08-trauma-medical-evaluation.pdf", "media_type": "application/pdf", "byte_size": 42603, "sha256": "7c3e0189816e870df2cbf064c4cd04e36ee72856dc35b50d8f8c3dfc68d2add2"},
+    {"path": "assets/09-certified-translation-packet.pdf", "media_type": "application/pdf", "byte_size": 51800, "sha256": "5fd9872262e77cd77830e50391c0b8c1c4ba5f771534896bad58354be56009fc"},
+    {"path": "assets/10-merits-hearing-transcript-vol-1.pdf", "media_type": "application/pdf", "byte_size": 73197, "sha256": "91da74fa37a72d3f2b0380649d01374e53b9c32a5025f120cdbd0884ca794332"},
+    {"path": "assets/11-merits-hearing-transcript-vol-2.pdf", "media_type": "application/pdf", "byte_size": 72790, "sha256": "436250ccd68de969f6d4cd5259a3c476b0d6c2effedad0c7e0a63b9ee2dedc6f"},
+    {"path": "assets/12-ij-decision.pdf", "media_type": "application/pdf", "byte_size": 55512, "sha256": "62affff1ee17df944d9b98424e66e6cb08f5f34450c7c12374aee01d911591aa"},
+    {"path": "assets/13-bia-notice-appeal.pdf", "media_type": "application/pdf", "byte_size": 29109, "sha256": "83e8227280d83cbfbd502c20a399f49ffdc63463c78631fbe1fd443388710072"},
+    {"path": "assets/14-bia-opening-brief.pdf", "media_type": "application/pdf", "byte_size": 50435, "sha256": "3d489c64cdf7837e5310623f46b7ea9a0e38d5df4516dfb24256ea22f0053ee1"},
+    {"path": "assets/15-dhs-bia-response.pdf", "media_type": "application/pdf", "byte_size": 40844, "sha256": "8ccc7adfd7b733b2f256e942e11398a1a0e414f28363b0dcf06ccc68b71b4114"},
+    {"path": "assets/16-bia-final-order.pdf", "media_type": "application/pdf", "byte_size": 33032, "sha256": "30690da1b1f9e504ea8b845bf419f099559c709f11c1bc590b2c9498c2e490fe"},
+    {"path": "assets/17-initial-certified-index.pdf", "media_type": "application/pdf", "byte_size": 45415, "sha256": "571c61f6550b0a15115cdfd259900d94d511ca6e87778c28a1cafa6776b1c444"},
+    {"path": "assets/18-exhibit-receipt-audit-corrected-certification.pdf", "media_type": "application/pdf", "byte_size": 58818, "sha256": "942a41e6f42687acaf4289ec8bfa306340b52c100a6334fe77e19c48def4bb9d"},
     {"path": "assets/pa01-new-cousin-declaration.pdf", "media_type": "application/pdf", "byte_size": 40107, "sha256": "9eaf41da5d095f579e299260bc85ccc249580c50ae0e27e6a6102c43026fd6be"}
   ]
 }

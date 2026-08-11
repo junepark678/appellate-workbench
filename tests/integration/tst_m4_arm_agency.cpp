@@ -5,10 +5,12 @@
 #include "appellate/packs/pack_reader.hpp"
 #include "appellate/packs/runtime_pack.hpp"
 
+#include <QByteArrayView>
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QHash>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -52,11 +54,11 @@ using appellate::packs::PackReader;
 using appellate::packs::PackValidationScope;
 using appellate::packs::ValidatedResource;
 
-constexpr auto root_digest = "37788a776fc41ec5028ab28b703e647220da8360cf53ed7aabc41e351bbbf963";
+constexpr auto root_digest = "bd1bd37e1e99ecb8239fa41b040aa72a0a856dd012442bcc1061b7d137e6651d";
 constexpr auto federal_digest = "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9";
 constexpr auto ca4_digest = "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262";
 constexpr auto bench_digest = "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d";
-constexpr auto archive_digest = "43a70affac25abd23702c16908e876fe6de3eae987ac44f810db11d12fb68f85";
+constexpr auto archive_digest = "57f84192541e5a273ff4f69b27902a06b1fdea0a58acc7752b4c22d9c69f338e";
 
 [[nodiscard]] QByteArray readAll(const QString& file_name) {
     QFile file(file_name);
@@ -64,6 +66,39 @@ constexpr auto archive_digest = "43a70affac25abd23702c16908e876fe6de3eae987ac44f
         return {};
     }
     return file.readAll();
+}
+
+void addDigestFrame(QCryptographicHash& hash, QByteArrayView name, QByteArrayView value) {
+    hash.addData(name);
+    hash.addData(QByteArrayView("\0", 1));
+    const auto size = QByteArray::number(value.size());
+    hash.addData(size);
+    hash.addData(QByteArrayView("\0", 1));
+    hash.addData(value);
+    hash.addData(QByteArrayView("\0", 1));
+}
+
+[[nodiscard]] QString semanticRenderDigest(QByteArrayView source, QStringView title,
+                                           QStringView provenance) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    const auto title_bytes = title.toUtf8();
+    const auto provenance_bytes = provenance.toUtf8();
+    addDigestFrame(hash, QByteArrayView("canonical-markdown-utf8"), source);
+    addDigestFrame(hash, QByteArrayView("pdf-title-utf8"), QByteArrayView(title_bytes));
+    addDigestFrame(hash, QByteArrayView("renderer-provenance-utf8"),
+                   QByteArrayView(provenance_bytes));
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] QString semanticPlanDigest(QStringView assembly_digest,
+                                         QStringView semantic_render_digest) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    const auto assembly_bytes = assembly_digest.toLatin1();
+    const auto semantic_render_bytes = semantic_render_digest.toLatin1();
+    addDigestFrame(hash, QByteArrayView("assembly-plan-sha256"), QByteArrayView(assembly_bytes));
+    addDigestFrame(hash, QByteArrayView("semantic-render-sha256"),
+                   QByteArrayView(semantic_render_bytes));
+    return QString::fromLatin1(hash.result().toHex());
 }
 
 [[nodiscard]] const ValidatedResource* findResource(const std::vector<ValidatedResource>& resources,
@@ -80,6 +115,26 @@ constexpr auto archive_digest = "43a70affac25abd23702c16908e876fe6de3eae987ac44f
         result.insert(value.toString());
     }
     return result;
+}
+
+[[nodiscard]] QString normalizedSemanticText(QString text) {
+    QStringList tokens;
+    const QRegularExpression token(QStringLiteral("[\\p{L}\\p{N}]+"));
+    auto matches = token.globalMatch(text.normalized(QString::NormalizationForm_C));
+    while (matches.hasNext()) {
+        tokens.push_back(matches.next().captured().toLower());
+    }
+    return tokens.join(QLatin1Char(' '));
+}
+
+[[nodiscard]] QStringList normalizedMarkdownPages(const QString& markdown) {
+    QStringList pages;
+    const auto raw_pages = markdown.split(QStringLiteral("<!-- PAGE BREAK -->"));
+    pages.reserve(raw_pages.size());
+    for (const auto& raw_page : raw_pages) {
+        pages.push_back(normalizedSemanticText(raw_page));
+    }
+    return pages;
 }
 
 [[nodiscard]] int fail(const QString& message) {
@@ -117,7 +172,7 @@ int main(int argc, char* argv[]) {
     const auto pack_root = authoring_root.filePath(QStringLiteral("pack"));
     const auto foundations_root = QDir(QStringLiteral(APPELLATE_M4_FOUNDATIONS));
 
-    const PackRevision expected_root{PackId{"us.ca4.m4.arm-agency"}, "1.0.0", root_digest};
+    const PackRevision expected_root{PackId{"us.ca4.m4.arm-agency"}, "1.1.0", root_digest};
     const PackRevision expected_federal{PackId{"foundation.us-federal"}, "2025.12.01",
                                         federal_digest};
     const PackRevision expected_ca4{PackId{"foundation.us-ca4"}, "2026.03.23", ca4_digest};
@@ -132,7 +187,7 @@ int main(int argc, char* argv[]) {
         source->graph_state != PackGraphState::DeferredReferences ||
         source->dependencies.size() != std::size_t{3} ||
         source->required_capabilities.size() != std::size_t{8} ||
-        source->resources.size() != std::size_t{8} || source->blobs.size() != std::size_t{7}) {
+        source->resources.size() != std::size_t{8} || source->blobs.size() != std::size_t{19}) {
         return fail(QStringLiteral("source pack revision/count contract mismatch"));
     }
 
@@ -141,8 +196,8 @@ int main(int argc, char* argv[]) {
             .simplified();
     if (!readme.contains(QStringLiteral("incomplete, pre-release")) ||
         !readme.contains(QStringLiteral("not a releasable pack")) ||
-        !readme.contains(QStringLiteral("six AR-labeled agency PDFs")) ||
-        !readme.contains(QStringLiteral("AR1–AR72")) ||
+        !readme.contains(QStringLiteral("eighteen AR-labeled agency PDFs")) ||
+        !readme.contains(QStringLiteral("AR1–AR238")) ||
         !readme.contains(QStringLiteral("PA1–PA8")) ||
         !readme.contains(QStringLiteral("not counted toward the 18-PDF/238-page")) ||
         !readme.contains(QStringLiteral("Two minimal argument configurations")) ||
@@ -151,11 +206,23 @@ int main(int argc, char* argv[]) {
         return fail(QStringLiteral("README does not preserve the incomplete boundary"));
     }
 
-    const auto documents = QDir(authoring_root.filePath(QStringLiteral("documents/batch-1")));
-    const auto markdown_names =
-        documents.entryList({QStringLiteral("*.md")}, QDir::Files, QDir::Name);
-    if (markdown_names.size() != 7) {
-        return fail(QStringLiteral("batch 1 must have exactly seven rendered sources"));
+    QStringList markdown_paths;
+    const std::array source_directories{
+        std::pair{QStringLiteral("documents/batch-1"), 7},
+        std::pair{QStringLiteral("documents/batch-2"), 12},
+    };
+    for (const auto& [relative_path, expected_count] : source_directories) {
+        const auto documents = QDir(authoring_root.filePath(relative_path));
+        const auto names = documents.entryList({QStringLiteral("*.md")}, QDir::Files, QDir::Name);
+        if (names.size() != expected_count) {
+            return fail(QStringLiteral("source count mismatch for %1").arg(relative_path));
+        }
+        for (const auto& name : names) {
+            markdown_paths.push_back(documents.filePath(name));
+        }
+    }
+    if (markdown_paths.size() != 19) {
+        return fail(QStringLiteral("ARM must have exactly nineteen rendered sources"));
     }
     const QString record_banner = QStringLiteral(
         "SYNTHETIC TRAINING RECORD — NOT FILED — ALL FACTS AND IDENTIFIERS ARE FICTIONAL");
@@ -177,10 +244,132 @@ int main(int argc, char* argv[]) {
         QStringLiteral("appellate filing clocks"),
         QStringLiteral("record on petition for review"),
         QStringLiteral("later admitted"),
+        QStringLiteral("todo"),
+        QStringLiteral("tbd"),
+        QStringLiteral("lorem ipsum"),
+        QStringLiteral("dummy text"),
+        QStringLiteral("sample text"),
+    };
+    const QStringList forbidden_batch_two_record_voice{
+        QStringLiteral("fictional"),       QStringLiteral("synthetic"),
+        QStringLiteral("exercise"),        QStringLiteral("invented"),
+        QStringLiteral("does not exist"),  QStringLiteral("doesn't exist"),
+        QStringLiteral("no real address"),
     };
     const QRegularExpression compiled_ar_label(QStringLiteral("\\bAR\\d+\\b"));
-    for (const auto& markdown_name : markdown_names) {
-        const auto raw = QString::fromUtf8(readAll(documents.filePath(markdown_name)));
+    const QHash<QString, QStringList> required_source_canon{
+        {QStringLiteral("03-cat-application.md"),
+         {QStringLiteral("may 21 clinic visit at 14:20"),
+          QStringLiteral("four selected kalyrian-language message exports with authenticated "
+                         "searchable transcriptions"),
+          QStringLiteral("physically combined with p-4 and p-5")}},
+        {QStringLiteral("05-sibling-declaration.md"),
+         {QStringLiteral("between august 9 and september 2, four messages"),
+          QStringLiteral("june 30 its status remained")}},
+        {QStringLiteral("06-family-corroboration.md"),
+         {QStringLiteral("six harbor league invoices"), QStringLiteral("total 137,400 units"),
+          QStringLiteral("first register version groups"),
+          QStringLiteral("corrected version removes"), QStringLiteral("14:20 on may 21"),
+          QStringLiteral("limited left-shoulder elevation"),
+          QStringLiteral("right-ankle swelling")}},
+        {QStringLiteral("07-country-conditions-report.md"),
+         {QStringLiteral("through june 7, 2024"), QStringLiteral("six harbor league invoices"),
+          QStringLiteral("totaling 137,400 units"),
+          QStringLiteral("corrected version removes that grouping")}},
+        {QStringLiteral("08-trauma-medical-evaluation.md"),
+         {QStringLiteral("may 21, 2023 clinic notation"), QStringLiteral("registration at 14:20"),
+          QStringLiteral("right-ankle swelling"), QStringLiteral("limited left-shoulder"),
+          QStringLiteral("source cutoff is may 29, 2024")}},
+        {QStringLiteral("09-certified-translation-packet.md"),
+         {QStringLiteral("single ten-page physical file"),
+          QStringLiteral("april filing receipt lists p-4, p-5, and p-6 separately as lodged"),
+          QStringLiteral("p-4 maps to agency pages 106–107"),
+          QStringLiteral("p-5 maps to agency pages 108–109"),
+          QStringLiteral("p-6 maps to shared control page 105 and agency pages 110–114"),
+          QStringLiteral("contains no raster image object")}},
+        {QStringLiteral("10-merits-hearing-transcript-vol-1.md"),
+         {QStringLiteral("six harbor league invoices"), QStringLiteral("totaled 137,400 units"),
+          QStringLiteral("clinic registered a.r.m. that afternoon at 14:20"),
+          QStringLiteral("june 30 with “regional response pending”")}},
+        {QStringLiteral("11-merits-hearing-transcript-vol-2.md"),
+         {QStringLiteral("swollen right ankle"), QStringLiteral("may 21 at 14:20"),
+          QStringLiteral("totaling 137,400 units"),
+          QStringLiteral("corrected version removes that grouping"),
+          QStringLiteral("remain in evidence under the prior exhibit receipt")}},
+        {QStringLiteral("12-ij-decision.md"),
+         {QStringLiteral("may 21 at 14:20"), QStringLiteral("right-ankle swelling"),
+          QStringLiteral("six invoices totaling 137,400 units"),
+          QStringLiteral("first grouped and later corrected to remove grouping")}},
+        {QStringLiteral("17-initial-certified-index.md"),
+         {QStringLiteral("label_discontinuity_18"), QStringLiteral("cause `unresolved`"),
+          QStringLiteral("no deletion event, replacement event, or digest failure")}},
+        {QStringLiteral("18-exhibit-receipt-audit-corrected-certification.md"),
+         {QStringLiteral("b26f4d1618332a6e006839a09c4ab77319bde4f58c6d3e219da4fbcfbe1ce855"),
+          QStringLiteral("september hearing receipt — complete table"),
+          QStringLiteral("admitted september 17; testimony received september 18"),
+          QStringLiteral("admitted september 17; weight addressed september 18"),
+          QStringLiteral("08e8294532c23fe9feb5962ca5b7780ae958178e6c8e2b4840d1ee28f3c5d212"),
+          QStringLiteral("itemized corrected index — documents 10 through 18")}},
+    };
+    const QHash<QString, QStringList> forbidden_future_knowledge_by_source{
+        {QStringLiteral("03-cat-application.md"),
+         {QStringLiteral("admitted september 17"), QStringLiteral("september hearing receipt"),
+          QStringLiteral("october 22 decision"), QStringLiteral("january 13 board"),
+          QStringLiteral("february 18, 2025"), QStringLiteral("march 3, 2025")}},
+        {QStringLiteral("05-sibling-declaration.md"),
+         {QStringLiteral("admitted september 17"), QStringLiteral("september hearing receipt"),
+          QStringLiteral("october 22 decision"), QStringLiteral("january 13 board"),
+          QStringLiteral("february 18, 2025"), QStringLiteral("march 3, 2025")}},
+        {QStringLiteral("07-country-conditions-report.md"),
+         {QStringLiteral("admitted september 17"), QStringLiteral("september hearing receipt"),
+          QStringLiteral("october 22 decision"), QStringLiteral("january 13 board"),
+          QStringLiteral("february 18, 2025"), QStringLiteral("march 3, 2025")}},
+        {QStringLiteral("08-trauma-medical-evaluation.md"),
+         {QStringLiteral("admitted september 17"), QStringLiteral("september hearing receipt"),
+          QStringLiteral("october 22 decision"), QStringLiteral("january 13 board"),
+          QStringLiteral("february 18, 2025"), QStringLiteral("march 3, 2025")}},
+        {QStringLiteral("09-certified-translation-packet.md"),
+         {QStringLiteral("september hearing"), QStringLiteral("september receipt"),
+          QStringLiteral("admitted september"), QStringLiteral("october 22"),
+          QStringLiteral("january 13"), QStringLiteral("february 18"), QStringLiteral("march 3"),
+          QStringLiteral("rule 16(b)")}},
+        {QStringLiteral("10-merits-hearing-transcript-vol-1.md"),
+         {QStringLiteral("september 18, 2024"), QStringLiteral("october 22"),
+          QStringLiteral("january 13"), QStringLiteral("february 18"), QStringLiteral("march 3"),
+          QStringLiteral("rule 16(b)"), QStringLiteral("appellate proffer")}},
+        {QStringLiteral("11-merits-hearing-transcript-vol-2.md"),
+         {QStringLiteral("october 22"), QStringLiteral("january 13"), QStringLiteral("february 18"),
+          QStringLiteral("march 3"), QStringLiteral("rule 16(b)"),
+          QStringLiteral("appellate proffer")}},
+        {QStringLiteral("12-ij-decision.md"),
+         {QStringLiteral("november 18"), QStringLiteral("january 13"),
+          QStringLiteral("february 18"), QStringLiteral("march 3"), QStringLiteral("rule 16(b)"),
+          QStringLiteral("appellate proffer")}},
+        {QStringLiteral("13-bia-notice-appeal.md"),
+         {QStringLiteral("january 13"), QStringLiteral("february 18"), QStringLiteral("march 3"),
+          QStringLiteral("rule 16(b)"), QStringLiteral("appellate proffer")}},
+        {QStringLiteral("14-bia-opening-brief.md"),
+         {QStringLiteral("january 13"), QStringLiteral("february 18"), QStringLiteral("march 3"),
+          QStringLiteral("rule 16(b)"), QStringLiteral("appellate proffer")}},
+        {QStringLiteral("15-dhs-bia-response.md"),
+         {QStringLiteral("january 13"), QStringLiteral("february 18"), QStringLiteral("march 3"),
+          QStringLiteral("rule 16(b)"), QStringLiteral("appellate proffer")}},
+        {QStringLiteral("16-bia-final-order.md"),
+         {QStringLiteral("february 11"), QStringLiteral("february 18"),
+          QStringLiteral("february 20"), QStringLiteral("february 24"), QStringLiteral("march 3"),
+          QStringLiteral("rule 16(b)"), QStringLiteral("appellate proffer")}},
+        {QStringLiteral("17-initial-certified-index.md"),
+         {QStringLiteral("february 20"), QStringLiteral("february 24"), QStringLiteral("march 3"),
+          QStringLiteral("rule 16(b)"), QStringLiteral("appellate proffer"),
+          QStringLiteral("stale status"), QStringLiteral("without joining the hearing receipt")}},
+    };
+    QHash<QString, QStringList> normalized_markdown_pages_by_asset;
+    QSet<QString> distinct_markdown_pages;
+    QString batch_two_corpus;
+    int authored_page_count = 0;
+    for (const auto& markdown_path : markdown_paths) {
+        const auto markdown_name = QFileInfo(markdown_path).fileName();
+        const auto raw = QString::fromUtf8(readAll(markdown_path));
         const auto expected_banner =
             markdown_name.startsWith(QStringLiteral("pa")) ? proffer_banner : record_banner;
         const auto newline = raw.indexOf(QLatin1Char('\n'));
@@ -192,12 +381,200 @@ int main(int argc, char* argv[]) {
                 QStringLiteral("source safety/temporal boundary mismatch: %1").arg(markdown_name));
         }
         const auto lower_body = body.toLower();
+        const auto searchable_body = lower_body.simplified();
+        if (lower_body.contains(QStringLiteral("placeholder"))) {
+            return fail(QStringLiteral("placeholder token escaped into %1").arg(markdown_name));
+        }
+        const bool may_identify_post_order_material =
+            markdown_name.startsWith(QStringLiteral("pa")) ||
+            markdown_name.startsWith(QStringLiteral("18-"));
+        if (!may_identify_post_order_material &&
+            (lower_body.contains(QStringLiteral("cousin's")) ||
+             lower_body.contains(QStringLiteral("cousin declaration")) ||
+             lower_body.contains(QStringLiteral("appellate proffer")) ||
+             lower_body.contains(QStringLiteral("post-order account")) ||
+             lower_body.contains(QStringLiteral("later declaration")))) {
+            return fail(
+                QStringLiteral("future-record knowledge leaked into %1").arg(markdown_name));
+        }
         for (const auto& phrase : forbidden_authoring_voice) {
             if (lower_body.contains(phrase)) {
                 return fail(QStringLiteral("inline authoring voice leaked into %1: %2")
                                 .arg(markdown_name, phrase));
             }
         }
+        if (const auto required = required_source_canon.constFind(markdown_name);
+            required != required_source_canon.cend()) {
+            for (const auto& phrase : *required) {
+                if (!searchable_body.contains(phrase)) {
+                    return fail(QStringLiteral("source canon missing in %1: %2")
+                                    .arg(markdown_name, phrase));
+                }
+            }
+        }
+        if (const auto forbidden = forbidden_future_knowledge_by_source.constFind(markdown_name);
+            forbidden != forbidden_future_knowledge_by_source.cend()) {
+            for (const auto& phrase : *forbidden) {
+                if (searchable_body.contains(phrase)) {
+                    return fail(QStringLiteral("date-bounded future knowledge leaked into %1: %2")
+                                    .arg(markdown_name, phrase));
+                }
+            }
+        }
+        const auto normalized_pages = normalizedMarkdownPages(raw);
+        const auto asset_path =
+            QStringLiteral("assets/%1.pdf").arg(QFileInfo(markdown_path).completeBaseName());
+        if (normalized_markdown_pages_by_asset.contains(asset_path)) {
+            return fail(QStringLiteral("duplicate source-to-asset mapping: %1").arg(asset_path));
+        }
+        for (const auto& normalized_page : normalized_pages) {
+            if (normalized_page.split(QLatin1Char(' '), Qt::SkipEmptyParts).size() < 76 ||
+                distinct_markdown_pages.contains(normalized_page)) {
+                return fail(QStringLiteral("thin or duplicate normalized Markdown page: %1")
+                                .arg(markdown_name));
+            }
+            distinct_markdown_pages.insert(normalized_page);
+            ++authored_page_count;
+        }
+        normalized_markdown_pages_by_asset.insert(asset_path, normalized_pages);
+        if (markdown_path.contains(QStringLiteral("/batch-2/"))) {
+            batch_two_corpus += searchable_body;
+            for (const auto& phrase : forbidden_batch_two_record_voice) {
+                if (lower_body.contains(phrase)) {
+                    return fail(QStringLiteral("batch-2 record voice leaked into %1: %2")
+                                    .arg(markdown_name, phrase));
+                }
+            }
+        }
+    }
+    const QStringList forbidden_canon_drift{
+        QStringLiteral("left ankle"),
+        QStringLiteral("400,000"),
+        QStringLiteral("oci-mr-0617"),
+        QStringLiteral("ov-2"),
+        QStringLiteral("mr-s4"),
+        QStringLiteral("three messages"),
+        QStringLiteral("later version groups"),
+        QStringLiteral("second adds a consolidated"),
+        QStringLiteral("second version consolidated"),
+    };
+    if (QRegularExpression(QStringLiteral("\\bjune\\s*(?:2|3)(?!\\d)"))
+            .match(batch_two_corpus)
+            .hasMatch()) {
+        return fail(QStringLiteral("cross-batch canon drift remains: June 2/3"));
+    }
+    for (const auto& phrase : forbidden_canon_drift) {
+        if (batch_two_corpus.contains(phrase)) {
+            return fail(QStringLiteral("cross-batch canon drift remains: %1").arg(phrase));
+        }
+    }
+    const auto initial_index =
+        QString::fromUtf8(readAll(authoring_root.filePath(
+                              QStringLiteral("documents/batch-2/17-initial-certified-index.md"))))
+            .toLower();
+    for (const auto& phrase :
+         {QStringLiteral("p-7"), QStringLiteral("sworn declaration"), QStringLiteral("omission"),
+          QStringLiteral("missing"), QStringLiteral("stale"), QStringLiteral("metadata"),
+          QStringLiteral("cousin"), QStringLiteral("proffer")}) {
+        if (initial_index.contains(phrase)) {
+            return fail(
+                QStringLiteral("initial index contains retrospective diagnosis: %1").arg(phrase));
+        }
+    }
+    if (authored_page_count != 246 || distinct_markdown_pages.size() != 246 ||
+        normalized_markdown_pages_by_asset.size() != 19) {
+        return fail(QStringLiteral("normalized Markdown page closure mismatch"));
+    }
+
+    const std::array controlled_objects{
+        std::pair{
+            QByteArrayLiteral("KAL-MSG-1|2023-07-13T08:22:00+09:00|sender="
+                              "harbor_lantern_01|recipient=family_account|source_text=Nor "
+                              "kai luma doset eva.|attachment=none"),
+            QByteArrayLiteral("c634626d66ffe2705fb504903cb6a90a50ceb455d11215071ae419c013bdefc3")},
+        std::pair{
+            QByteArrayLiteral("KAL-MSG-2|2023-08-09T19:04:00+09:00|sender="
+                              "harbor_lantern_02|recipient=family_account|source_text=Kada "
+                              "anex dal reva?|attachment=none"),
+            QByteArrayLiteral("13d243c3dd7d367a2a091e1bfaa596883bb4625ba264d36214a36c26951b6475")},
+        std::pair{
+            QByteArrayLiteral("KAL-MSG-3|2023-08-17T06:41:00+09:00|sender="
+                              "harbor_lantern_03|recipient=family_account|source_text=Korik "
+                              "16:42 nosh.|attachment=none"),
+            QByteArrayLiteral("29cc5d4f974ca33b81214343a2af227ac5fda767858816c9a1d80f4ddb04eb63")},
+        std::pair{
+            QByteArrayLiteral("KAL-MSG-4|2023-08-28T22:10:00+09:00|sender="
+                              "harbor_lantern_04|recipient=family_account|source_text="
+                              "Regional vek ARM-RX-14.|attachment=none"),
+            QByteArrayLiteral("48572608f2d08537c42df701f8f01ed7315190e13e004d51cc1c0be73bf76b31")},
+        std::pair{
+            QByteArrayLiteral("KAL-OCI-1|accepted=2023-06-07T11:32:00+09:00|complaint="
+                              "OCI-23-441|subject=detention after procurement disclosure|"
+                              "witness=SM|initial_route=IC-2|requested_action=independent "
+                              "conduct review"),
+            QByteArrayLiteral("2e9b8904310bf6c0060c36d4c945092bcdee24eea9b00a04b0b68a947f12d051")},
+        std::pair{
+            QByteArrayLiteral("KAL-ROUTE-1|2023-06-09:link=CIV-23-184 via ARM-RX-14|"
+                              "2023-06-10:destination=RC-4 Unit Four regional command reason="
+                              "operational-security nexus|2023-06-30:status=regional response "
+                              "pending|interview=none"),
+            QByteArrayLiteral("c54179ed8d35de13bb4767c3efc8ddbdd4b2f30d7305e23498b6c0c6b03ea679")},
+        std::pair{
+            QByteArrayLiteral("KAL-CLINIC-1|registered=2023-05-21T14:20:00+09:00|history="
+                              "reported assault during two-day absence|observed=limited left-"
+                              "shoulder elevation;right-ankle swelling;rib tenderness;hoarse "
+                              "voice|care=shoulder sling;anti-inflammatory medication;"
+                              "hydration instruction;return precautions"),
+            QByteArrayLiteral("ce82b649862ff37d47ccb97820c887b7aa1793b020b94116c2fa540e3749143d")},
+        std::pair{
+            QByteArrayLiteral("KAL-LEDGER-1|version=first|threshold=25000|cycle=NQ-APR-A|"
+                              "NQL-3101=22900|NQL-3102=22700|NQL-3103=23400|NQL-3104=22600|"
+                              "NQL-3105=22800|NQL-3106=23000|total=137400|grouping=all six "
+                              "grouped"),
+            QByteArrayLiteral("de363cf933ea6218b608fce156b0a79df3e7340f362be5e8eca81874045f3642")},
+        std::pair{
+            QByteArrayLiteral("KAL-LEDGER-2|version=corrected|threshold=25000|cycle=none|"
+                              "NQL-3101=22900|NQL-3102=22700|NQL-3103=23400|NQL-3104=22600|"
+                              "NQL-3105=22800|NQL-3106=23000|total=137400|grouping=removed;"
+                              "each urgent standalone repair"),
+            QByteArrayLiteral("72e118dec40c82bc0a8b2c6c444bbd5bdf6f5058079bed43976e208808f3e50a")},
+        std::pair{
+            QByteArrayLiteral("KAL-TRANS-1|MSG1=The North Quay Lamps file is still open.|MSG2="
+                              "When will the annex clerk return?|MSG3=The correction-log time "
+                              "is 16:42.|MSG4=The regional inquiry follows employment code "
+                              "ARM-RX-14.|OCI=detention after procurement disclosure;"
+                              "independent conduct review|ROUTE=linked June 9;destination "
+                              "changed June 10;regional response pending June 30|CLINIC=May "
+                              "21 at 14:20;limited left shoulder;right ankle swelling;rib "
+                              "tenderness;hoarse voice|LEDGER=six invoices below 25,000;total "
+                              "137,400;first grouped;corrected grouping removed"),
+            QByteArrayLiteral("b8928fc635fc914b9abc49c20ed5a307067c5692a7eb9109158c81723eb1ee71")},
+    };
+    const auto combined_source = readAll(authoring_root.filePath(
+        QStringLiteral("documents/batch-2/09-certified-translation-packet.md")));
+    for (const auto& [object_bytes, expected_hash] : controlled_objects) {
+        const auto actual_hash =
+            QCryptographicHash::hash(object_bytes, QCryptographicHash::Sha256).toHex();
+        if (actual_hash != expected_hash || !combined_source.contains(object_bytes) ||
+            !combined_source.contains(expected_hash)) {
+            return fail(QStringLiteral("controlled P-4/P-5/P-6 object bytes or hash drifted"));
+        }
+    }
+    const QByteArray stipulation_bytes = QByteArrayLiteral(
+        "STIPULATION-16B|date=2025-03-03|docket=SYN-CA4-25-AG-4301|parties=ARM,DHS|agree="
+        "correct omission by restoring unchanged Agency Exhibit P-7 at agency record pages 33-50;"
+        "file itemized corrected index;preserve initial transmission;exclude appellate proffer "
+        "pages 1-8 from administrative record|authority=Fed. R. App. P. 16(b)|signatures=ARM-C-9,"
+        "DHS-APP-4");
+    const QByteArray stipulation_hash =
+        QByteArrayLiteral("b26f4d1618332a6e006839a09c4ab77319bde4f58c6d3e219da4fbcfbe1ce855");
+    const auto correction_source = readAll(authoring_root.filePath(
+        QStringLiteral("documents/batch-2/18-exhibit-receipt-audit-corrected-certification.md")));
+    if (QCryptographicHash::hash(stipulation_bytes, QCryptographicHash::Sha256).toHex() !=
+            stipulation_hash ||
+        !correction_source.contains(stipulation_bytes) ||
+        !correction_source.contains(stipulation_hash)) {
+        return fail(QStringLiteral("Rule 16(b) stipulation bytes or hash drifted"));
     }
 
     const std::array expected_dependencies{expected_federal, expected_ca4, expected_bench};
@@ -291,12 +668,12 @@ int main(int argc, char* argv[]) {
 
     if (case_resource->document.contains(QStringLiteral("disposition_plans")) ||
         case_resource->document.contains(QStringLiteral("authored_disposition_plan_id"))) {
-        return fail(QStringLiteral("batch 1 must not contain a structured disposition"));
+        return fail(QStringLiteral("ARM content lane must not contain a structured disposition"));
     }
     for (const auto& issue_value :
          case_resource->document.value(QStringLiteral("issues")).toArray()) {
         if (issue_value.toObject().contains(QStringLiteral("target_ids"))) {
-            return fail(QStringLiteral("deferred disposition target leaked into batch 1"));
+            return fail(QStringLiteral("deferred disposition target leaked into ARM content"));
         }
     }
     for (const auto& actor_value :
@@ -310,9 +687,163 @@ int main(int argc, char* argv[]) {
         return fail(QStringLiteral("ARM issue matrix must contain five current issues"));
     }
 
-    const auto check_argument_bank = [&](const ValidatedResource& resource,
-                                         const QString& expected_mode,
-                                         const QString& expected_digest) -> std::optional<QString> {
+    const QHash<QString, QSet<QString>> actual_question_groundings{
+        {QStringLiteral("ca4m4.arm.question.actual-record-composition"),
+         {QStringLiteral("ca4m4.arm.grounding.actual-record-rule|authority|ca4m4.arm.authority."
+                         "frap-16-record"),
+          QStringLiteral("ca4m4.arm.grounding.actual-record-statute|authority|ca4m4.arm.authority."
+                         "usc-1252-record-limit"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-record-index|record_page|ca4m4.arm.anchor.ar30"),
+          QStringLiteral("ca4m4.arm.grounding.actual-record-p7|record_page|ca4m4.arm.anchor.ar33"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-record-admission|record_page|ca4m4.arm.anchor.ar117"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-record-initial-gap|record_page|ca4m4.arm.anchor.ar219"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-record-stipulation|record_page|ca4m4.arm.anchor.ar227"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-record-receipt|record_page|ca4m4.arm.anchor.ar229"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-record-cause|record_page|ca4m4.arm.anchor.ar232"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-record-identity|record_page|ca4m4.arm.anchor.ar233"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-record-exclusion|record_page|ca4m4.arm.anchor.ar235"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-record-correction|record_page|ca4m4.arm.anchor.ar237"),
+          QStringLiteral("ca4m4.arm.grounding.actual-record-pa|record_page|ca4m4.arm.anchor.pa1")}},
+        {QStringLiteral("ca4m4.arm.question.actual-aggregate-risk"),
+         {QStringLiteral("ca4m4.arm.grounding.actual-aggregate-rule|authority|ca4m4.arm.authority."
+                         "rodriguez-arias-aggregation"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-aggregate-page|record_page|ca4m4.arm.anchor.ar29"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-aggregate-report|record_page|ca4m4.arm.anchor.ar86"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-aggregate-testimony|record_page|ca4m4.arm.anchor.ar137"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-aggregate-ij|record_page|ca4m4.arm.anchor.ar171"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-aggregate-board|record_page|ca4m4.arm.anchor.ar212")}},
+        {QStringLiteral("ca4m4.arm.question.actual-acquiescence"),
+         {QStringLiteral("ca4m4.arm.grounding.actual-acquiescence-rule|authority|ca4m4.arm."
+                         "authority.cfr-1208-torture-acquiescence"),
+          QStringLiteral("ca4m4.arm.grounding.actual-acquiescence-declaration|record_page|ca4m4."
+                         "arm.anchor.ar45"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-acquiescence-routing|record_page|ca4m4.arm.anchor.ar66"),
+          QStringLiteral("ca4m4.arm.grounding.actual-acquiescence-testimony|record_page|ca4m4.arm."
+                         "anchor.ar148"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-acquiescence-ij|record_page|ca4m4.arm.anchor.ar172"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-acquiescence-board|record_page|ca4m4.arm.anchor.ar215")}},
+        {QStringLiteral("ca4m4.arm.question.actual-review-standard"),
+         {QStringLiteral("ca4m4.arm.grounding.actual-review-rule|authority|ca4m4.arm.authority.usc-"
+                         "1252-review-standard"),
+          QStringLiteral("ca4m4.arm.grounding.actual-review-consideration|authority|ca4m4.arm."
+                         "authority.rodriguez-arias-consideration"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-review-application|record_page|ca4m4.arm.anchor.ar31"),
+          QStringLiteral("ca4m4.arm.grounding.actual-review-ij|record_page|ca4m4.arm.anchor.ar171"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-review-brief|record_page|ca4m4.arm.anchor.ar197"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-review-board|record_page|ca4m4.arm.anchor.ar216")}},
+        {QStringLiteral("ca4m4.arm.question.actual-timeliness"),
+         {QStringLiteral("ca4m4.arm.grounding.actual-timeliness-statute|authority|ca4m4.arm."
+                         "authority.usc-1252-deadline"),
+          QStringLiteral("ca4m4.arm.grounding.actual-timeliness-riley|authority|ca4m4.arm."
+                         "authority.riley-claims-processing"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-timeliness-order|record_page|ca4m4.arm.anchor.ar211"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-timeliness-notice|record_page|ca4m4.arm.anchor.ar218"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-timeliness-index|record_page|ca4m4.arm.anchor.ar219"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.actual-timeliness-page|record_page|ca4m4.arm.anchor.pa1")}},
+    };
+    const QHash<QString, QSet<QString>> counterfactual_question_groundings{
+        {QStringLiteral("ca4m4.arm.question.counterfactual-record-composition"),
+         {QStringLiteral("ca4m4.arm.grounding.counterfactual-record-rule|authority|ca4m4.arm."
+                         "authority.frap-16-record"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-statute|authority|ca4m4.arm."
+                         "authority.usc-1252-record-limit"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.counterfactual-record-index|record_page|ca4m4.arm.anchor.ar30"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.counterfactual-record-p7|record_page|ca4m4.arm.anchor.ar33"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-admission|record_page|ca4m4."
+                         "arm.anchor.ar117"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-initial-gap|record_page|ca4m4."
+                         "arm.anchor.ar219"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-stipulation|record_page|ca4m4."
+                         "arm.anchor.ar227"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-receipt|record_page|ca4m4.arm."
+                         "anchor.ar229"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-exclusion|record_page|ca4m4."
+                         "arm.anchor.ar235"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-correction|record_page|ca4m4."
+                         "arm.anchor.ar237"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.counterfactual-record-pa|record_page|ca4m4.arm.anchor.pa1")}},
+        {QStringLiteral("ca4m4.arm.question.counterfactual-aggregate-risk"),
+         {QStringLiteral("ca4m4.arm.grounding.counterfactual-aggregate-rule|authority|ca4m4.arm."
+                         "authority.rodriguez-arias-aggregation"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-aggregate-page|record_page|ca4m4.arm."
+                         "anchor.ar29"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-aggregate-report|record_page|ca4m4."
+                         "arm.anchor.ar86"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.counterfactual-aggregate-ij|record_page|ca4m4.arm.anchor.ar171"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-aggregate-board|record_page|ca4m4.arm."
+                         "anchor.ar212")}},
+        {QStringLiteral("ca4m4.arm.question.counterfactual-acquiescence"),
+         {QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-rule|authority|ca4m4.arm."
+                         "authority.cfr-1208-torture-acquiescence"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-routing|record_page|"
+                         "ca4m4.arm.anchor.ar66"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-authentication|record_"
+                         "page|ca4m4.arm.anchor.ar71"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-testimony|record_page|"
+                         "ca4m4.arm.anchor.ar148"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-ij|record_page|ca4m4.arm."
+                         "anchor.ar172"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-board|record_page|ca4m4."
+                         "arm.anchor.ar215")}},
+        {QStringLiteral("ca4m4.arm.question.counterfactual-review-standard"),
+         {QStringLiteral("ca4m4.arm.grounding.counterfactual-review-rule|authority|ca4m4.arm."
+                         "authority.rodriguez-arias-consideration"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-review-standard|authority|ca4m4.arm."
+                         "authority.usc-1252-review-standard"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-review-application|record_page|ca4m4."
+                         "arm.anchor.ar31"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.counterfactual-review-ij|record_page|ca4m4.arm.anchor.ar171"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-review-board|record_page|ca4m4.arm."
+                         "anchor.ar216")}},
+        {QStringLiteral("ca4m4.arm.question.counterfactual-day-31"),
+         {QStringLiteral("ca4m4.arm.grounding.counterfactual-day-31-statute|authority|ca4m4.arm."
+                         "authority.usc-1252-deadline"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-day-31-riley|authority|ca4m4.arm."
+                         "authority.riley-claims-processing"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.counterfactual-day-31-order|record_page|ca4m4.arm.anchor.ar211"),
+          QStringLiteral("ca4m4.arm.grounding.counterfactual-day-31-notice|record_page|ca4m4.arm."
+                         "anchor.ar218"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.counterfactual-day-31-index|record_page|ca4m4.arm.anchor.ar219"),
+          QStringLiteral(
+              "ca4m4.arm.grounding.counterfactual-day-31-page|record_page|ca4m4.arm.anchor.pa1")}},
+    };
+
+    const auto check_argument_bank =
+        [&](const ValidatedResource& resource, const QString& expected_mode,
+            const QString& expected_digest,
+            const QHash<QString, QSet<QString>>& expected_question_groundings)
+        -> std::optional<QString> {
         const auto document = resource.document;
         const auto permitted =
             strings(document.value(QStringLiteral("permitted_issue_ids")).toArray());
@@ -331,6 +862,8 @@ int main(int argc, char* argv[]) {
         }
         QSet<QString> bound_issues;
         QSet<QString> question_issues;
+        QSet<QString> question_ids;
+        QSet<QString> grounding_ids;
         QSet<QString> topics;
         bool saw_pa = false;
         bool saw_ar = false;
@@ -347,22 +880,40 @@ int main(int argc, char* argv[]) {
         for (const auto& question_value : questions) {
             const auto question = question_value.toObject();
             const auto issue = question.value(QStringLiteral("issue_id")).toString();
-            if (!permitted.contains(issue) ||
+            const auto question_id = question.value(QStringLiteral("question_id")).toString();
+            if (!permitted.contains(issue) || question_ids.contains(question_id) ||
+                !expected_question_groundings.contains(question_id) ||
                 question.value(QStringLiteral("prompt")).toString().isEmpty()) {
                 return QStringLiteral("argument-bank question coverage mismatch");
             }
+            question_ids.insert(question_id);
             question_issues.insert(issue);
+            QSet<QString> actual_groundings;
             for (const auto& grounding_value :
                  question.value(QStringLiteral("grounding")).toArray()) {
                 const auto grounding = grounding_value.toObject();
+                const auto grounding_id =
+                    grounding.value(QStringLiteral("grounding_id")).toString();
                 const auto kind = grounding.value(QStringLiteral("kind")).toString();
+                if (grounding_id.isEmpty() || grounding_ids.contains(grounding_id)) {
+                    return QStringLiteral("argument bank grounding IDs are not exact and unique");
+                }
+                grounding_ids.insert(grounding_id);
+                QString target;
                 if (kind == QStringLiteral("record_page")) {
-                    const auto anchor = grounding.value(QStringLiteral("anchor_id")).toString();
-                    saw_pa = saw_pa || anchor.startsWith(QStringLiteral("ca4m4.arm.anchor.pa"));
-                    saw_ar = saw_ar || anchor.startsWith(QStringLiteral("ca4m4.arm.anchor.ar"));
-                } else if (kind != QStringLiteral("authority")) {
+                    target = grounding.value(QStringLiteral("anchor_id")).toString();
+                    saw_pa = saw_pa || target.startsWith(QStringLiteral("ca4m4.arm.anchor.pa"));
+                    saw_ar = saw_ar || target.startsWith(QStringLiteral("ca4m4.arm.anchor.ar"));
+                } else if (kind == QStringLiteral("authority")) {
+                    target = grounding.value(QStringLiteral("authority_id")).toString();
+                } else {
                     return QStringLiteral("argument bank uses noncanonical grounding kind");
                 }
+                actual_groundings.insert(
+                    QStringLiteral("%1|%2|%3").arg(grounding_id, kind, target));
+            }
+            if (actual_groundings != expected_question_groundings.value(question_id)) {
+                return QStringLiteral("per-question grounding set mismatch: %1").arg(question_id);
             }
         }
         const QSet<QString> expected_topics{
@@ -373,6 +924,8 @@ int main(int argc, char* argv[]) {
             QStringLiteral("workbench.topic.jurisdiction"),
         };
         if (bound_issues != permitted || question_issues != permitted ||
+            question_ids != QSet<QString>(expected_question_groundings.keyBegin(),
+                                          expected_question_groundings.keyEnd()) ||
             topics != expected_topics || !saw_ar || !saw_pa) {
             return QStringLiteral("argument bank is not grounded across the five-issue matrix");
         }
@@ -380,13 +933,15 @@ int main(int argc, char* argv[]) {
     };
     if (const auto error = check_argument_bank(
             *actual_argument, QStringLiteral("actual_record"),
-            QStringLiteral("42723995341868f238d07f4b3ca69c7a562bcc679f2ba6f5aa2bb317f550088f"));
+            QStringLiteral("9da889348681230a0f65b8cec31713970001b567597a8b0066baa21f66421b8c"),
+            actual_question_groundings);
         error.has_value()) {
         return fail(*error);
     }
     if (const auto error = check_argument_bank(
             *counterfactual_argument, QStringLiteral("counterfactual_training"),
-            QStringLiteral("35c097a6c824451c1315b994a39cc3a957e5c4c0f73a0c0a2b8927dea784e721"));
+            QStringLiteral("a2eceeedf028ed50080e511f7a0cdbc81cc542c3a76a14c47ec77363da16d582"),
+            counterfactual_question_groundings);
         error.has_value()) {
         return fail(*error);
     }
@@ -430,7 +985,7 @@ int main(int argc, char* argv[]) {
     const auto entries =
         record_resource->document.value(QStringLiteral("docket_entries")).toArray();
     const auto anchors = record_resource->document.value(QStringLiteral("page_anchors")).toArray();
-    if (dockets.size() != 2 || entries.size() != 7 || anchors.size() != 80) {
+    if (dockets.size() != 2 || entries.size() != 19 || anchors.size() != 246) {
         return fail(QStringLiteral("record count contract mismatch"));
     }
 
@@ -445,6 +1000,144 @@ int main(int argc, char* argv[]) {
     }
 
     const QRegularExpression any_page_label(QStringLiteral("\\b(?:AR|PA)\\d+\\b"));
+    const QRegularExpression footer_page_label(QStringLiteral("\\b(?:AR|PA)\\d+\\s*$"));
+    const QRegularExpression pa_page_label(QStringLiteral("\\bPA\\d+\\b"));
+    const QHash<QString, QStringList> required_page_propositions{
+        {QStringLiteral("AR105"),
+         {QStringLiteral("single ten-page physical file"),
+          QStringLiteral("controlled text exports rather than raster reproductions"),
+          QStringLiteral("p-4, p-5, and p-6 separately as lodged with a merits ruling required")}},
+        {QStringLiteral("AR106"),
+         {QStringLiteral("kal-msg-1"),
+          QStringLiteral("c634626d66ffe2705fb504903cb6a90a50ceb455d11215071ae419c013bdefc3"),
+          QStringLiteral("kal-msg-2"),
+          QStringLiteral("13d243c3dd7d367a2a091e1bfaa596883bb4625ba264d36214a36c26951b6475")}},
+        {QStringLiteral("AR107"),
+         {QStringLiteral("kal-msg-3"), QStringLiteral("kal-msg-4"),
+          QStringLiteral("four selected p-4 messages"),
+          QStringLiteral("four post-departure messages")}},
+        {QStringLiteral("AR108"),
+         {QStringLiteral("kal-oci-1"), QStringLiteral("oci-23-441"),
+          QStringLiteral("initial route ic-2"),
+          QStringLiteral("2e9b8904310bf6c0060c36d4c945092bcdee24eea9b00a04b0b68a947f12d051")}},
+        {QStringLiteral("AR109"),
+         {QStringLiteral("kal-route-1"), QStringLiteral("2023-06-09:link=civ-23-184"),
+          QStringLiteral("2023-06-10:destination=rc-4"),
+          QStringLiteral("2023-06-30:status=regional response pending")}},
+        {QStringLiteral("AR110"),
+         {QStringLiteral("kal-clinic-1"), QStringLiteral("2023-05-21t14:20:00+09:00"),
+          QStringLiteral("limited left-shoulder elevation"),
+          QStringLiteral("right-ankle swelling")}},
+        {QStringLiteral("AR111"),
+         {QStringLiteral("kal-ledger-1"), QStringLiteral("threshold=25000"),
+          QStringLiteral("total=137400"), QStringLiteral("grouping=all six grouped")}},
+        {QStringLiteral("AR112"),
+         {QStringLiteral("kal-ledger-2"), QStringLiteral("grouping=removed"),
+          QStringLiteral("first grouped, then corrected to remove grouping")}},
+        {QStringLiteral("AR113"),
+         {QStringLiteral("kal-trans-1"),
+          QStringLiteral("b8928fc635fc914b9abc49c20ed5a307067c5692a7eb9109158c81723eb1ee71"),
+          QStringLiteral("ten listed controls")}},
+        {QStringLiteral("AR114"),
+         {QStringLiteral("p-4 maps to agency pages 106–107"),
+          QStringLiteral("p-5 maps to agency pages 108–109"),
+          QStringLiteral("p-6 maps to shared control page 105 and agency pages 110–114"),
+          QStringLiteral("contains no raster image object")}},
+        {QStringLiteral("AR117"),
+         {QStringLiteral("no authenticity objection"), QStringLiteral("judge admits p-7")}},
+        {QStringLiteral("AR138"),
+         {QStringLiteral("admission of p-1 through p-9"),
+          QStringLiteral("no objection remains to p-7")}},
+        {QStringLiteral("AR139"),
+         {QStringLiteral("records p-7 as admitted"), QStringLiteral("same parties")}},
+        {QStringLiteral("AR161"),
+         {QStringLiteral("confirms admission of p-1 through p-9"),
+          QStringLiteral("excludes no part of p-7")}},
+        {QStringLiteral("AR164"),
+         {QStringLiteral("admitted exhibits are p-1 through p-9"),
+          QStringLiteral("no material outside")}},
+        {QStringLiteral("AR219"),
+         {QStringLiteral("sequence-control order"),
+          QStringLiteral("sixteen pdf files and 208 physical pages"),
+          QStringLiteral("certifies this production")}},
+        {QStringLiteral("AR220"),
+         {QStringLiteral("03-cat-application.pdf"), QStringLiteral("05-sibling-declaration.pdf"),
+          QStringLiteral("moves from page 32 to page 51"),
+          QStringLiteral("makes no inference from the numerical interval")}},
+        {QStringLiteral("AR221"),
+         {QStringLiteral("combined physical p-4/p-5/p-6 packet"),
+          QStringLiteral("internal p-4, p-5, and p-6 logical mapping unchanged")}},
+        {QStringLiteral("AR222"),
+         {QStringLiteral("16-bia-final-order.pdf"),
+          QStringLiteral("closes the selected production at page 226")}},
+        {QStringLiteral("AR223"),
+         {QStringLiteral("opened each of the sixteen listed pdfs"),
+          QStringLiteral("counted 208 pages"),
+          QStringLiteral("limited to the selection returned by the export query")}},
+        {QStringLiteral("AR224"),
+         {QStringLiteral("label_discontinuity_18"), QStringLiteral("cause unresolved"),
+          QStringLiteral("no deletion event"),
+          QStringLiteral("does not attribute the discontinuity to a cause")}},
+        {QStringLiteral("AR225"),
+         {QStringLiteral("pages 1 through 32 and 51 through 226"),
+          QStringLiteral("complete agency materials for this transmission"),
+          QStringLiteral("does not claim a field-by-field comparison")}},
+        {QStringLiteral("AR226"),
+         {QStringLiteral("discrepancy notice must identify"),
+          QStringLiteral("preserve the original selection"),
+          QStringLiteral("initial transmittal available as a distinct historical filing")}},
+        {QStringLiteral("AR227"),
+         {QStringLiteral("stipulation-16b"),
+          QStringLiteral("b26f4d1618332a6e006839a09c4ab77319bde4f58c6d3e219da4fbcfbe1ce855"),
+          QStringLiteral("federal rule of appellate procedure 16(b)"),
+          QStringLiteral("not evidence presented to the immigration judge on the merits")}},
+        {QStringLiteral("AR228"),
+         {QStringLiteral("april 12 lodging receipt"), QStringLiteral("kal-msg-1 through kal-msg-4"),
+          QStringLiteral("kal-oci-1 and kal-route-1"),
+          QStringLiteral("04-arm-sworn-declaration.pdf")}},
+        {QStringLiteral("AR229"),
+         {QStringLiteral("september hearing receipt"),
+          QStringLiteral("every exhibit p-1 through p-9 admitted"),
+          QStringLiteral("no authenticity or timeliness objection"),
+          QStringLiteral("agency page 105 and pages 110–114")}},
+        {QStringLiteral("AR230"),
+         {QStringLiteral("agency page 117"), QStringLiteral("agency page 138"),
+          QStringLiteral("agency page 139"), QStringLiteral("agency page 161"),
+          QStringLiteral("verify the historic rulings")}},
+        {QStringLiteral("AR231"),
+         {QStringLiteral("agency page 164"), QStringLiteral("label_discontinuity_18"),
+          QStringLiteral("do not yet assign a technical cause")}},
+        {QStringLiteral("AR232"),
+         {QStringLiteral("lodged_merits_ruling_required"), QStringLiteral("admitted_2024-09-17"),
+          QStringLiteral("without joining the hearing receipt"),
+          QStringLiteral("appears first in this march audit")}},
+        {QStringLiteral("AR233"),
+         {QStringLiteral("08e8294532c23fe9feb5962ca5b7780ae958178e6c8e2b4840d1ee28f3c5d212"),
+          QStringLiteral("no annotation"), QStringLiteral("unchanged admitted object")}},
+        {QStringLiteral("AR234"),
+         {QStringLiteral("agency pages 33–50"), QStringLiteral("every agency number 1 through 238"),
+          QStringLiteral("p-4 is pages 106–107"), QStringLiteral("p-5 is pages 108–109"),
+          QStringLiteral("p-6 is page 105 and pages 110–114")}},
+        {QStringLiteral("AR235"),
+         {QStringLiteral("t.r. declaration signed february 20, 2025"),
+          QStringLiteral("appellate proffer pages 1–8"),
+          QStringLiteral("receive no agency-record label"),
+          QStringLiteral("contains no page, text object, or digest from that proffer")}},
+        {QStringLiteral("AR236"),
+         {QStringLiteral("documents 1 through 9"),
+          QStringLiteral("rows 1 through 9 total 114 pages"),
+          QStringLiteral("combined p-4/p-5/p-6"), QStringLiteral("04-arm-sworn-declaration.pdf")}},
+        {QStringLiteral("AR237"),
+         {QStringLiteral("documents 10 through 18"),
+          QStringLiteral("rows 10 through 18 total 124 pages"),
+          QStringLiteral("exactly eighteen unique pdfs and 238 pages"),
+          QStringLiteral("appellate proffer pages 1–8 are excluded")}},
+        {QStringLiteral("AR238"),
+         {QStringLiteral("rule 16(b) stipulation"), QStringLiteral("restored agency pages 33–50"),
+          QStringLiteral("contains no bytes from appellate proffer pages 1–8"),
+          QStringLiteral("initial february selection")}},
+    };
+    QSet<QString> verified_page_propositions;
     QSet<QString> distinct_page_bodies;
     int administrative_documents = 0;
     int administrative_pages = 0;
@@ -452,19 +1145,80 @@ int main(int argc, char* argv[]) {
     int generated_pages = 0;
     int expected_ar = 1;
     int expected_pa = 1;
-    bool saw_disputed_p7 = false;
+    int rendered_placeholder_occurrences = 0;
+    bool saw_proven_p7 = false;
     bool saw_new_proffer = false;
+    bool saw_admission_page = false;
+    bool saw_adjournment_admission_page = false;
+    bool saw_reconvening_admission_page = false;
+    bool saw_closed_record_page = false;
+    bool saw_ij_admission_page = false;
+    bool saw_initial_gap_page = false;
+    bool saw_initial_certification_page = false;
+    bool saw_audit_receipt_page = false;
+    bool saw_transcript_crosscheck_page = false;
+    bool saw_decision_crosscheck_page = false;
+    bool saw_exact_identity_page = false;
+    bool saw_correction_page = false;
+    bool saw_pa_exclusion_page = false;
+    bool saw_correction_certification_exclusion_page = false;
+    bool saw_final_transmission_exclusion_page = false;
+    QSet<int> entry_numbers;
+    QSet<QString> record_asset_paths;
+    QHash<QString, int> record_page_counts;
+    QHash<QString, int> record_label_starts;
+    QHash<QString, QString> record_label_prefixes;
+    int expected_entry_number = 1;
+    QHash<QString, int> category_counts;
+    const QSet<QString> administrative_categories{
+        QStringLiteral("nta_pleading"),
+        QStringLiteral("application_declaration_family"),
+        QStringLiteral("country_medical_translation"),
+        QStringLiteral("ij_transcript"),
+        QStringLiteral("ij_decision"),
+        QStringLiteral("bia_notice_brief_response"),
+        QStringLiteral("bia_final_order"),
+        QStringLiteral("certified_index_omission"),
+    };
+    const QSet<QString> admitted_exhibit_entries{
+        QStringLiteral("ca4m4.arm.record.ar03"), QStringLiteral("ca4m4.arm.record.ar04"),
+        QStringLiteral("ca4m4.arm.record.ar05"), QStringLiteral("ca4m4.arm.record.ar06"),
+        QStringLiteral("ca4m4.arm.record.ar07"), QStringLiteral("ca4m4.arm.record.ar08"),
+        QStringLiteral("ca4m4.arm.record.ar09"),
+    };
+    bool saw_exact_combined_packet_entry = false;
 
     for (const auto& entry_value : entries) {
         const auto entry = entry_value.toObject();
         const auto tags = strings(entry.value(QStringLiteral("tags")).toArray());
+        const auto entry_number = entry.value(QStringLiteral("entry_number")).toInt();
+        if (entry_number != expected_entry_number++ || entry_numbers.contains(entry_number)) {
+            return fail(QStringLiteral("record entry numbers are not exact, ordered, and unique"));
+        }
+        entry_numbers.insert(entry_number);
         const bool generated = tags.contains(QStringLiteral("generated_appellate_filing"));
         const bool administrative =
-            !generated &&
-            (tags.contains(QStringLiteral("certified_administrative_record")) ||
-             tags.contains(QStringLiteral("planned_certified_administrative_record")));
+            !generated && tags.contains(QStringLiteral("certified_administrative_record"));
         if (administrative == generated || tags.contains(QStringLiteral("batch_1"))) {
             return fail(QStringLiteral("entry is ambiguously classified as AR/generated"));
+        }
+        const auto entry_id = entry.value(QStringLiteral("entry_id")).toString();
+        if (admitted_exhibit_entries.contains(entry_id) !=
+            tags.contains(QStringLiteral("admitted"))) {
+            return fail(
+                QStringLiteral("P-1-through-P-9 admitted tag contract drifted: %1").arg(entry_id));
+        }
+        if (entry_id == QStringLiteral("ca4m4.arm.record.ar09")) {
+            saw_exact_combined_packet_entry =
+                entry.value(QStringLiteral("entry_label")).toString() ==
+                    QStringLiteral("Combined Agency Exhibits P-4/P-5/P-6") &&
+                tags.contains(QStringLiteral("combined_physical_packet")) &&
+                tags.contains(QStringLiteral("logical_exhibit_p4")) &&
+                tags.contains(QStringLiteral("logical_exhibit_p5")) &&
+                tags.contains(QStringLiteral("logical_exhibit_p6")) &&
+                entry.value(QStringLiteral("description"))
+                    .toString()
+                    .contains(QStringLiteral("exact object hashes"));
         }
 
         if (administrative) {
@@ -474,6 +1228,19 @@ int main(int argc, char* argv[]) {
                 QStringLiteral("ca4m4.arm.docket.agency")) {
                 return fail(QStringLiteral("administrative record entry is on wrong docket"));
             }
+            QString category;
+            for (const auto& candidate : administrative_categories) {
+                if (tags.contains(candidate)) {
+                    if (!category.isEmpty()) {
+                        return fail(QStringLiteral("administrative entry has multiple categories"));
+                    }
+                    category = candidate;
+                }
+            }
+            if (category.isEmpty()) {
+                return fail(QStringLiteral("administrative entry has no frozen category"));
+            }
+            ++category_counts[category];
         } else {
             ++generated_documents;
             generated_pages += entry.value(QStringLiteral("page_count")).toInt();
@@ -486,43 +1253,197 @@ int main(int argc, char* argv[]) {
             saw_new_proffer = true;
         }
 
-        if (entry.value(QStringLiteral("entry_id")).toString() ==
-            QStringLiteral("ca4m4.arm.record.ar04")) {
-            saw_disputed_p7 =
-                tags.contains(QStringLiteral("claimed_admission")) &&
-                tags.contains(QStringLiteral("claimed_initial_omission")) &&
-                tags.contains(QStringLiteral("planned_corrected_record")) &&
-                tags.contains(QStringLiteral("planned_certified_administrative_record")) &&
-                !tags.contains(QStringLiteral("admitted")) &&
-                !tags.contains(QStringLiteral("initially_omitted")) &&
-                !tags.contains(QStringLiteral("corrected_record")) &&
-                entry.value(QStringLiteral("description"))
-                    .toString()
-                    .contains(QStringLiteral("remain disputed"));
+        if (entry_id == QStringLiteral("ca4m4.arm.record.ar04")) {
+            saw_proven_p7 = tags.contains(QStringLiteral("admitted")) &&
+                            tags.contains(QStringLiteral("initially_omitted")) &&
+                            tags.contains(QStringLiteral("corrected_record")) &&
+                            tags.contains(QStringLiteral("certified_administrative_record")) &&
+                            !tags.contains(QStringLiteral("claimed_admission")) &&
+                            !tags.contains(QStringLiteral("claimed_initial_omission")) &&
+                            !tags.contains(QStringLiteral("planned_corrected_record")) &&
+                            entry.value(QStringLiteral("description"))
+                                .toString()
+                                .contains(QStringLiteral("restored unchanged"));
         }
 
         const auto relative_asset = entry.value(QStringLiteral("asset_path")).toString();
+        if (relative_asset.isEmpty() || record_asset_paths.contains(relative_asset)) {
+            return fail(QStringLiteral("record asset paths are not exact and unique"));
+        }
+        record_asset_paths.insert(relative_asset);
+        record_page_counts.insert(relative_asset,
+                                  entry.value(QStringLiteral("page_count")).toInt());
+        record_label_starts.insert(relative_asset, administrative ? expected_ar : expected_pa);
+        record_label_prefixes.insert(relative_asset,
+                                     administrative ? QStringLiteral("AR") : QStringLiteral("PA"));
         QPdfDocument pdf;
         if (pdf.load(QDir(pack_root).filePath(relative_asset)) != QPdfDocument::Error::None ||
             pdf.status() != QPdfDocument::Status::Ready ||
             pdf.pageCount() != entry.value(QStringLiteral("page_count")).toInt()) {
             return fail(QStringLiteral("PDF load/page-count failure: %1").arg(relative_asset));
         }
+        const auto normalized_markdown_pages =
+            normalized_markdown_pages_by_asset.value(relative_asset);
+        if (normalized_markdown_pages.size() != pdf.pageCount()) {
+            return fail(QStringLiteral("Markdown/PDF page-count mismatch: %1").arg(relative_asset));
+        }
+        if (relative_asset == QStringLiteral("assets/09-certified-translation-packet.pdf")) {
+            const auto combined_pdf_bytes = readAll(QDir(pack_root).filePath(relative_asset));
+            if (combined_pdf_bytes.contains("/Subtype /Image") ||
+                combined_pdf_bytes.contains("/Subtype/Image")) {
+                return fail(QStringLiteral("combined searchable-text packet contains raster image "
+                                           "objects contrary to its certification"));
+            }
+        }
+        int extracted_banner_occurrences = 0;
 
         for (int page_index = 0; page_index < pdf.pageCount(); ++page_index) {
             const auto expected_label = administrative ? QStringLiteral("AR%1").arg(expected_ar++)
                                                        : QStringLiteral("PA%1").arg(expected_pa++);
             auto page_text = pdf.getAllText(page_index).text().simplified();
-            if (page_text.size() < 500 || !page_text.contains(expected_label)) {
+            QStringList extracted_labels;
+            auto label_matches = any_page_label.globalMatch(page_text);
+            while (label_matches.hasNext()) {
+                extracted_labels.push_back(label_matches.next().captured());
+            }
+            const auto footer_match = footer_page_label.match(page_text);
+            const bool batch_two_administrative =
+                administrative && entry_number >= 7 && entry_number <= 18;
+            if (page_text.size() < 500 || !footer_match.hasMatch() ||
+                footer_match.captured() != expected_label ||
+                (administrative && extracted_labels != QStringList{expected_label})) {
                 return fail(QStringLiteral("thin or unlabeled searchable page %1 in %2")
                                 .arg(expected_label, relative_asset));
             }
+            auto extracted_body = page_text;
+            extracted_body.remove(QRegularExpression(
+                QStringLiteral("\\s*%1\\s*$").arg(QRegularExpression::escape(expected_label))));
+            if (normalizedSemanticText(extracted_body) !=
+                normalized_markdown_pages.at(page_index)) {
+                return fail(QStringLiteral("full normalized Markdown/PDF text mismatch at %1 in %2")
+                                .arg(expected_label, relative_asset));
+            }
             const auto lower_page_text = page_text.toLower();
+            extracted_banner_occurrences += static_cast<int>(page_text.count(record_banner));
+            if (batch_two_administrative) {
+                auto lower_record_body = lower_page_text;
+                lower_record_body.remove(record_banner.toLower());
+                for (const auto& phrase : forbidden_batch_two_record_voice) {
+                    if (lower_record_body.contains(phrase)) {
+                        return fail(QStringLiteral("rendered batch-2 record voice leaked at %1: %2")
+                                        .arg(expected_label, phrase));
+                    }
+                }
+            }
+            if ((administrative && pa_page_label.match(page_text).hasMatch()) ||
+                (generated && compiled_ar_label.match(page_text).hasMatch())) {
+                return fail(
+                    QStringLiteral("AR/PA label universe contaminated at %1").arg(expected_label));
+            }
+            if (lower_page_text.contains(QStringLiteral("placeholder"))) {
+                ++rendered_placeholder_occurrences;
+                return fail(
+                    QStringLiteral("rendered placeholder escaped into %1").arg(expected_label));
+            }
+            saw_admission_page =
+                saw_admission_page || (expected_label == QStringLiteral("AR117") &&
+                                       lower_page_text.contains(QStringLiteral("admits p-7")) &&
+                                       lower_page_text.contains(QStringLiteral("no authenticity")));
+            saw_adjournment_admission_page =
+                saw_adjournment_admission_page ||
+                (expected_label == QStringLiteral("AR138") &&
+                 lower_page_text.contains(QStringLiteral("admission of p-1 through p-9")) &&
+                 lower_page_text.contains(QStringLiteral("no objection remains to p-7")));
+            saw_reconvening_admission_page =
+                saw_reconvening_admission_page ||
+                (expected_label == QStringLiteral("AR139") &&
+                 lower_page_text.contains(QStringLiteral("records p-7 as admitted")));
+            saw_closed_record_page =
+                saw_closed_record_page ||
+                (expected_label == QStringLiteral("AR161") &&
+                 lower_page_text.contains(
+                     QStringLiteral("confirms admission of p-1 through p-9")) &&
+                 lower_page_text.contains(QStringLiteral("excludes no part of p-7")));
+            saw_ij_admission_page =
+                saw_ij_admission_page ||
+                (expected_label == QStringLiteral("AR164") &&
+                 lower_page_text.contains(
+                     QStringLiteral("admitted exhibits are p-1 through p-9")) &&
+                 lower_page_text.contains(QStringLiteral("no material outside")));
+            saw_initial_gap_page =
+                saw_initial_gap_page ||
+                (expected_label == QStringLiteral("AR224") &&
+                 lower_page_text.contains(QStringLiteral("label_discontinuity_18")) &&
+                 lower_page_text.contains(QStringLiteral("cause unresolved")));
+            saw_initial_certification_page =
+                saw_initial_certification_page ||
+                (expected_label == QStringLiteral("AR225") &&
+                 lower_page_text.contains(QStringLiteral("complete agency materials")) &&
+                 lower_page_text.contains(QStringLiteral("field-by-field comparison")));
+            saw_audit_receipt_page =
+                saw_audit_receipt_page ||
+                (expected_label == QStringLiteral("AR229") &&
+                 lower_page_text.contains(
+                     QStringLiteral("every exhibit p-1 through p-9 admitted")) &&
+                 lower_page_text.contains(
+                     QStringLiteral("no authenticity or timeliness objection")));
+            saw_transcript_crosscheck_page =
+                saw_transcript_crosscheck_page ||
+                (expected_label == QStringLiteral("AR230") &&
+                 lower_page_text.contains(QStringLiteral("agency page 117")) &&
+                 lower_page_text.contains(QStringLiteral("agency page 161")));
+            saw_decision_crosscheck_page =
+                saw_decision_crosscheck_page ||
+                (expected_label == QStringLiteral("AR231") &&
+                 lower_page_text.contains(QStringLiteral("agency page 164")) &&
+                 lower_page_text.contains(QStringLiteral("do not yet assign a technical cause")));
+            saw_exact_identity_page =
+                saw_exact_identity_page ||
+                (expected_label == QStringLiteral("AR233") &&
+                 lower_page_text.contains(QStringLiteral(
+                     "08e8294532c23fe9feb5962ca5b7780ae958178e6c8e2b4840d1ee28f3c5d212")) &&
+                 lower_page_text.contains(QStringLiteral("no annotation")));
+            saw_correction_page =
+                saw_correction_page ||
+                (expected_label == QStringLiteral("AR237") &&
+                 lower_page_text.contains(QStringLiteral("exactly eighteen unique pdfs")) &&
+                 lower_page_text.contains(QStringLiteral("238 pages")));
+            saw_pa_exclusion_page =
+                saw_pa_exclusion_page ||
+                (expected_label == QStringLiteral("AR235") &&
+                 lower_page_text.contains(QStringLiteral("appellate proffer pages 1–8")) &&
+                 lower_page_text.contains(QStringLiteral("receive no agency-record label")));
+            saw_correction_certification_exclusion_page =
+                saw_correction_certification_exclusion_page ||
+                (expected_label == QStringLiteral("AR237") &&
+                 lower_page_text.contains(
+                     QStringLiteral("appellate proffer pages 1–8 are excluded")));
+            saw_final_transmission_exclusion_page =
+                saw_final_transmission_exclusion_page ||
+                (expected_label == QStringLiteral("AR238") &&
+                 lower_page_text.contains(
+                     QStringLiteral("contains no bytes from appellate proffer pages 1–8")));
             for (const auto& phrase : forbidden_authoring_voice) {
                 if (lower_page_text.contains(phrase)) {
                     return fail(QStringLiteral("rendered authoring voice leaked at %1: %2")
                                     .arg(expected_label, phrase));
                 }
+            }
+            if (const auto required = required_page_propositions.constFind(expected_label);
+                required != required_page_propositions.cend()) {
+                for (const auto& phrase : *required) {
+                    if (!lower_page_text.contains(phrase)) {
+                        return fail(QStringLiteral("record proposition missing at %1: %2")
+                                        .arg(expected_label, phrase));
+                    }
+                }
+                if (expected_label == QStringLiteral("AR224") &&
+                    (lower_page_text.contains(QStringLiteral("metadata")) ||
+                     lower_page_text.contains(QStringLiteral("status field")) ||
+                     lower_page_text.contains(QStringLiteral("queried")))) {
+                    return fail(QStringLiteral("AR224 prematurely explains the later-found cause"));
+                }
+                verified_page_propositions.insert(expected_label);
             }
             page_text.remove(any_page_label);
             page_text = page_text.simplified();
@@ -542,58 +1463,244 @@ int main(int argc, char* argv[]) {
                 return fail(QStringLiteral("page-anchor mismatch at %1").arg(expected_label));
             }
         }
+        if (administrative && entry_number >= 7 && entry_number <= 18 &&
+            extracted_banner_occurrences != 1) {
+            return fail(QStringLiteral("batch-2 PDF must contain exactly one safety banner: %1")
+                            .arg(relative_asset));
+        }
     }
 
-    if (administrative_documents != 6 || administrative_pages != 72 || expected_ar != 73 ||
+    const QHash<QString, int> expected_categories{
+        {QStringLiteral("nta_pleading"), 2},
+        {QStringLiteral("application_declaration_family"), 4},
+        {QStringLiteral("country_medical_translation"), 3},
+        {QStringLiteral("ij_transcript"), 2},
+        {QStringLiteral("ij_decision"), 1},
+        {QStringLiteral("bia_notice_brief_response"), 3},
+        {QStringLiteral("bia_final_order"), 1},
+        {QStringLiteral("certified_index_omission"), 2},
+    };
+    if (administrative_documents != 18 || administrative_pages != 238 || expected_ar != 239 ||
         generated_documents != 1 || generated_pages != 8 || expected_pa != 9 ||
-        distinct_page_bodies.size() != 80 || !saw_disputed_p7 || !saw_new_proffer) {
+        distinct_page_bodies.size() != 246 || !saw_proven_p7 || !saw_new_proffer ||
+        !saw_exact_combined_packet_entry || category_counts != expected_categories ||
+        rendered_placeholder_occurrences != 0 || !saw_admission_page ||
+        !saw_adjournment_admission_page || !saw_reconvening_admission_page ||
+        !saw_closed_record_page || !saw_ij_admission_page || !saw_initial_gap_page ||
+        !saw_initial_certification_page || !saw_audit_receipt_page ||
+        !saw_transcript_crosscheck_page || !saw_decision_crosscheck_page ||
+        !saw_exact_identity_page || !saw_correction_page || !saw_pa_exclusion_page ||
+        !saw_correction_certification_exclusion_page || !saw_final_transmission_exclusion_page) {
         return fail(QStringLiteral("AR/PA count, continuity, or semantic distinction mismatch"));
     }
-
-    const auto render_inventory =
-        QJsonDocument::fromJson(readAll(authoring_root.filePath(
-                                    QStringLiteral("metadata/render-inventory-batch-1.json"))))
-            .object();
-    const auto render_entries = render_inventory.value(QStringLiteral("entries")).toArray();
-    if (render_inventory.value(QStringLiteral("pdf_byte_deterministic")).toBool(true) ||
-        render_inventory.value(QStringLiteral("renderer_contract")).toString() !=
-            QStringLiteral("appellate.markdown-pdf.semantic-layout.v2") ||
-        render_entries.size() != 7) {
-        return fail(QStringLiteral("single-render inventory contract mismatch"));
+    if (verified_page_propositions.size() != required_page_propositions.size()) {
+        return fail(QStringLiteral("P-7 admission/omission/correction chain is incomplete"));
     }
-    for (const auto& rendered_value : render_entries) {
-        const auto rendered = rendered_value.toObject();
-        const auto output_path = rendered.value(QStringLiteral("output_path")).toString();
-        const auto assembly = rendered.value(QStringLiteral("assembly_provenance")).toObject();
-        const auto source_path = assembly.value(QStringLiteral("source_path")).toString();
-        const auto source_bytes = readAll(authoring_root.filePath(source_path));
-        const auto source_digest =
-            QCryptographicHash::hash(source_bytes, QCryptographicHash::Sha256).toHex();
-        const auto pdf_bytes = readAll(QDir(pack_root).filePath(output_path));
-        const auto pdf_digest =
-            QCryptographicHash::hash(pdf_bytes, QCryptographicHash::Sha256).toHex();
-        const auto blob = std::ranges::find(source->blobs, output_path.toStdString(),
-                                            &appellate::model::BlobDescriptor::path);
-        const auto record_entry = std::ranges::find_if(entries, [&](const auto& value) {
-            return value.toObject().value(QStringLiteral("asset_path")).toString() == output_path;
-        });
-        if (source_bytes.isEmpty() || pdf_bytes.isEmpty() || blob == source->blobs.end() ||
-            record_entry == entries.end() ||
-            rendered.value(QStringLiteral("pdf_byte_deterministic")).toBool(true) ||
-            rendered.value(QStringLiteral("source_sha256")).toString().toLatin1() !=
-                source_digest ||
-            assembly.value(QStringLiteral("source_path")).toString() != source_path ||
-            assembly.value(QStringLiteral("source_sha256")).toString().toLatin1() !=
-                source_digest ||
-            rendered.value(QStringLiteral("pdf_sha256")).toString().toLatin1() != pdf_digest ||
-            rendered.value(QStringLiteral("byte_size")).toInteger() != pdf_bytes.size() ||
-            rendered.value(QStringLiteral("page_count")).toInt() !=
-                record_entry->toObject().value(QStringLiteral("page_count")).toInt() ||
-            blob->sha256 != pdf_digest.toStdString() ||
-            blob->byte_size != static_cast<std::uint64_t>(pdf_bytes.size())) {
-            return fail(QStringLiteral("render inventory does not pin current source/PDF bytes: %1")
-                            .arg(output_path));
+
+    struct RenderInventorySpec final {
+        QString plan_path;
+        QString inventory_path;
+        int entry_count{};
+        bool historical_base{};
+    };
+    const std::array render_inventory_specs{
+        RenderInventorySpec{QStringLiteral("render-plan-batch-1.json"),
+                            QStringLiteral("metadata/render-inventory-batch-1.json"), 7, true},
+        RenderInventorySpec{QStringLiteral("render-plan-canonical-repair.json"),
+                            QStringLiteral("metadata/render-inventory-canonical-repair.json"), 14,
+                            false},
+    };
+    if (QFileInfo::exists(authoring_root.filePath(QStringLiteral("render-plan-batch-2.json"))) ||
+        QFileInfo::exists(
+            authoring_root.filePath(QStringLiteral("metadata/render-inventory-batch-2.json")))) {
+        return fail(QStringLiteral("rejected batch-2 plan or inventory remains canonical-looking"));
+    }
+    QSet<QString> authored_source_paths;
+    for (const auto& markdown_path : markdown_paths) {
+        authored_source_paths.insert(authoring_root.relativeFilePath(markdown_path));
+    }
+    QSet<QString> manifest_blob_paths;
+    for (const auto& blob : source->blobs) {
+        const auto path = QString::fromStdString(blob.path);
+        if (blob.media_type != "application/pdf" || manifest_blob_paths.contains(path)) {
+            return fail(QStringLiteral("manifest blob paths are not exact, unique PDFs"));
         }
+        manifest_blob_paths.insert(path);
+    }
+    QSet<QString> planned_source_paths;
+    QSet<QString> planned_output_paths;
+    QSet<QString> inventoried_source_paths;
+    QSet<QString> inventoried_output_paths;
+    QSet<QString> source_hashes;
+    QSet<QString> assembly_hashes;
+    QSet<QString> semantic_plan_hashes;
+    QSet<QString> semantic_render_hashes;
+    const QRegularExpression exact_sha256(QStringLiteral("^[0-9a-f]{64}$"));
+    qsizetype pinned_render_entries = 0;
+    qsizetype superseded_historical_entries = 0;
+    for (const auto& specification : render_inventory_specs) {
+        const auto plan_bytes = readAll(authoring_root.filePath(specification.plan_path));
+        const auto plan = QJsonDocument::fromJson(plan_bytes).object();
+        const auto plan_entries = plan.value(QStringLiteral("entries")).toArray();
+        const auto plan_digest = QString::fromLatin1(
+            QCryptographicHash::hash(plan_bytes, QCryptographicHash::Sha256).toHex());
+        const auto render_inventory =
+            QJsonDocument::fromJson(readAll(authoring_root.filePath(specification.inventory_path)))
+                .object();
+        const auto render_entries = render_inventory.value(QStringLiteral("entries")).toArray();
+        if (plan.value(QStringLiteral("schema_version")).toInt() != 1 || plan_bytes.isEmpty() ||
+            plan_entries.size() != specification.entry_count ||
+            render_inventory.value(QStringLiteral("schema_version")).toInt() != 1 ||
+            render_inventory.value(QStringLiteral("plan_sha256")).toString() != plan_digest ||
+            render_inventory.value(QStringLiteral("ordering")).toString() !=
+                QStringLiteral("output_path_casefolded_then_codepoint") ||
+            render_inventory.value(QStringLiteral("pdf_byte_deterministic")).toBool(true) ||
+            render_inventory.value(QStringLiteral("renderer_contract")).toString() !=
+                QStringLiteral("appellate.markdown-pdf.semantic-layout.v2") ||
+            render_entries.size() != specification.entry_count) {
+            return fail(QStringLiteral("canonical render inventory contract mismatch: %1")
+                            .arg(specification.inventory_path));
+        }
+        QString previous_output_path;
+        for (qsizetype index = 0; index < render_entries.size(); ++index) {
+            const auto planned = plan_entries.at(index).toObject();
+            const auto rendered_value = render_entries.at(index);
+            const auto rendered = rendered_value.toObject();
+            const auto output_path = rendered.value(QStringLiteral("output_path")).toString();
+            const auto source_path = planned.value(QStringLiteral("source_path")).toString();
+            const auto title = planned.value(QStringLiteral("title")).toString();
+            const bool superseded_historical_entry =
+                specification.historical_base &&
+                (output_path == QStringLiteral("assets/03-cat-application.pdf") ||
+                 output_path == QStringLiteral("assets/05-sibling-declaration.pdf"));
+            if (output_path.isEmpty() || source_path.isEmpty() || title.isEmpty() ||
+                (!previous_output_path.isEmpty() &&
+                 previous_output_path.toCaseFolded() >= output_path.toCaseFolded()) ||
+                planned.value(QStringLiteral("output_path")).toString() != output_path) {
+                return fail(
+                    QStringLiteral("render plan/inventory ordering drifted: %1").arg(output_path));
+            }
+            previous_output_path = output_path;
+            if (superseded_historical_entry) {
+                ++superseded_historical_entries;
+                continue;
+            }
+            ++pinned_render_entries;
+            const auto assembly = rendered.value(QStringLiteral("assembly_provenance")).toObject();
+            const auto source_bytes = readAll(authoring_root.filePath(source_path));
+            const auto source_digest =
+                QCryptographicHash::hash(source_bytes, QCryptographicHash::Sha256).toHex();
+            const auto pdf_bytes = readAll(QDir(pack_root).filePath(output_path));
+            const auto pdf_digest =
+                QCryptographicHash::hash(pdf_bytes, QCryptographicHash::Sha256).toHex();
+            const auto blob = std::ranges::find(source->blobs, output_path.toStdString(),
+                                                &appellate::model::BlobDescriptor::path);
+            const auto record_entry = std::ranges::find_if(entries, [&](const auto& value) {
+                return value.toObject().value(QStringLiteral("asset_path")).toString() ==
+                       output_path;
+            });
+            const auto page_labels = rendered.value(QStringLiteral("page_labels")).toObject();
+            const auto assembly_digest = QString::fromLatin1(
+                QCryptographicHash::hash(QJsonDocument(assembly).toJson(QJsonDocument::Compact),
+                                         QCryptographicHash::Sha256)
+                    .toHex());
+            const auto renderer_provenance =
+                rendered.value(QStringLiteral("renderer_provenance")).toString();
+            const auto semantic_render_digest =
+                semanticRenderDigest(QByteArrayView(source_bytes), title, renderer_provenance);
+            const auto semantic_plan_digest =
+                semanticPlanDigest(assembly_digest, semantic_render_digest);
+            const auto recorded_source_hash =
+                rendered.value(QStringLiteral("source_sha256")).toString();
+            const auto recorded_assembly_hash =
+                rendered.value(QStringLiteral("assembly_plan_sha256")).toString();
+            const auto recorded_semantic_plan_hash =
+                rendered.value(QStringLiteral("semantic_plan_sha256")).toString();
+            const auto recorded_semantic_render_hash =
+                rendered.value(QStringLiteral("semantic_render_sha256")).toString();
+            if (source_bytes.isEmpty() || pdf_bytes.isEmpty() || blob == source->blobs.end() ||
+                record_entry == entries.end() || output_path.isEmpty() || source_path.isEmpty() ||
+                planned_source_paths.contains(source_path) ||
+                planned_output_paths.contains(output_path) ||
+                inventoried_source_paths.contains(
+                    assembly.value(QStringLiteral("source_path")).toString()) ||
+                inventoried_output_paths.contains(output_path) ||
+                planned.value(QStringLiteral("output_path")).toString() != output_path ||
+                rendered.value(QStringLiteral("title")).toString() != title ||
+                planned.value(QStringLiteral("page_label_prefix")).toString() !=
+                    record_label_prefixes.value(output_path) ||
+                planned.value(QStringLiteral("page_label_start")).toInt() !=
+                    record_label_starts.value(output_path) ||
+                rendered.value(QStringLiteral("pdf_byte_deterministic")).toBool(true) ||
+                rendered.value(QStringLiteral("renderer_contract")).toString() !=
+                    QStringLiteral("appellate.markdown-pdf.semantic-layout.v2") ||
+                recorded_source_hash.toLatin1() != source_digest ||
+                assembly.value(QStringLiteral("assembly_contract")).toString() !=
+                    QStringLiteral("appellate.markdown-assembly.v1") ||
+                assembly.value(QStringLiteral("kind")).toString() !=
+                    QStringLiteral("single_source") ||
+                assembly.value(QStringLiteral("source_path")).toString() != source_path ||
+                assembly.value(QStringLiteral("source_sha256")).toString().toLatin1() !=
+                    source_digest ||
+                assembly.value(QStringLiteral("logical_page_count")).toInt() !=
+                    record_page_counts.value(output_path) ||
+                recorded_assembly_hash != assembly_digest ||
+                recorded_semantic_render_hash != semantic_render_digest ||
+                recorded_semantic_plan_hash != semantic_plan_digest ||
+                !exact_sha256.match(recorded_source_hash).hasMatch() ||
+                !exact_sha256.match(recorded_assembly_hash).hasMatch() ||
+                !exact_sha256.match(recorded_semantic_render_hash).hasMatch() ||
+                !exact_sha256.match(recorded_semantic_plan_hash).hasMatch() ||
+                rendered.value(QStringLiteral("pdf_sha256")).toString().toLatin1() != pdf_digest ||
+                rendered.value(QStringLiteral("byte_size")).toInteger() != pdf_bytes.size() ||
+                rendered.value(QStringLiteral("page_count")).toInt() !=
+                    record_page_counts.value(output_path) ||
+                page_labels.value(QStringLiteral("prefix")).toString() !=
+                    record_label_prefixes.value(output_path) ||
+                page_labels.value(QStringLiteral("first_number")).toInt() !=
+                    record_label_starts.value(output_path) ||
+                page_labels.value(QStringLiteral("last_number")).toInt() !=
+                    record_label_starts.value(output_path) + record_page_counts.value(output_path) -
+                        1 ||
+                record_entry->toObject().value(QStringLiteral("page_count")).toInt() !=
+                    record_page_counts.value(output_path) ||
+                record_entry->toObject()
+                        .value(QStringLiteral("asset_sha256"))
+                        .toString()
+                        .toLatin1() != pdf_digest ||
+                blob->sha256 != pdf_digest.toStdString() ||
+                blob->byte_size != static_cast<std::uint64_t>(pdf_bytes.size())) {
+                return fail(QStringLiteral("source/plan/inventory/record/blob closure mismatch: %1")
+                                .arg(output_path));
+            }
+            if (source_hashes.contains(recorded_source_hash) ||
+                assembly_hashes.contains(recorded_assembly_hash) ||
+                semantic_plan_hashes.contains(recorded_semantic_plan_hash) ||
+                semantic_render_hashes.contains(recorded_semantic_render_hash)) {
+                return fail(QStringLiteral("render semantic or assembly identity is not unique: %1")
+                                .arg(output_path));
+            }
+            planned_source_paths.insert(source_path);
+            planned_output_paths.insert(output_path);
+            inventoried_source_paths.insert(
+                assembly.value(QStringLiteral("source_path")).toString());
+            inventoried_output_paths.insert(output_path);
+            source_hashes.insert(recorded_source_hash);
+            assembly_hashes.insert(recorded_assembly_hash);
+            semantic_plan_hashes.insert(recorded_semantic_plan_hash);
+            semantic_render_hashes.insert(recorded_semantic_render_hash);
+        }
+    }
+    if (pinned_render_entries != 19 || superseded_historical_entries != 2 ||
+        authored_source_paths.size() != 19 || planned_source_paths != authored_source_paths ||
+        inventoried_source_paths != authored_source_paths ||
+        planned_output_paths != record_asset_paths ||
+        inventoried_output_paths != record_asset_paths ||
+        manifest_blob_paths != record_asset_paths || source_hashes.size() != 19 ||
+        assembly_hashes.size() != 19 || semantic_plan_hashes.size() != 19 ||
+        semantic_render_hashes.size() != 19) {
+        return fail(QStringLiteral(
+            "render plans and inventories do not close exactly over sources, record, and blobs"));
     }
 
     const QJsonArray expected_seats{
@@ -1209,8 +2316,8 @@ int main(int argc, char* argv[]) {
         return fail(QStringLiteral("positive ARM workflow did not terminate at mandate"));
     }
 
-    std::cout << "ARM batch-1 integration contract passed: 6 AR PDFs / 72 AR pages, "
-                 "1 PA proffer / 8 PA pages, 80 unique searchable pages, two grounded banks, "
+    std::cout << "ARM batch-2 integration contract passed: 18 AR PDFs / 238 AR pages, "
+                 "1 PA proffer / 8 PA pages, 246 unique searchable pages, two grounded banks, "
                  "runtime negative gates and D+52 positive mandate path, four exact revisions.\n";
     return 0;
 }

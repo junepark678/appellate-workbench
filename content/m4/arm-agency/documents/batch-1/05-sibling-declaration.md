@@ -74,9 +74,10 @@ allegations were screened centrally. I wrote that response in the family noteboo
 answer mattered to whether we felt safe returning home.
 
 No investigator contacted me, even though the complaint listed me as the person who saw A.R.M.
-after release. On June 12, A.R.M. showed me a personnel-screen printout displaying “forwarded
-RC-4.” I did not access the system myself. Nadia Pel later explained in my presence that RC-4 was
-the Unit Four regional command routing code.
+after release. A.R.M. later showed me the routing audit: on June 9 the complaint was linked to
+`CIV-23-184` through `ARM-RX-14`; on June 10 its destination changed to `RC-4`; and on June 30 its
+status remained “regional response pending.” I did not access the system myself. Nadia Pel later
+explained in my presence that RC-4 was the Unit Four regional command routing code.
 
 <!-- PAGE BREAK -->
 # July 11 Harbor League threat
@@ -113,9 +114,9 @@ to the same regional command.
 # Communications after A.R.M. departed
 
 A.R.M. left Kalyra on August 4. After departure, I remained at the family residence. Between
-August 9 and September 2, three messages arrived through the old family account asking when “the
-annex clerk” would return. One included the correction-log time `16:42`, which A.R.M. said appeared
-on the internal export.
+August 9 and September 2, four messages arrived through the old family account. They asked when
+“the annex clerk” would return, displayed the correction-log time `16:42`, said the regional inquiry
+followed the employment code, and asked whether family would collect A.R.M.'s work box.
 
 On August 23, a gray vehicle with a Unit Four-style side stripe stopped across from the residence
 for about twenty minutes. I could not read a permit and did not see an occupant leave. On September
