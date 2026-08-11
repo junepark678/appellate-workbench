@@ -11,8 +11,10 @@
 #include <QJsonObject>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QtGlobal>
 
 #include <cstdint>
+#include <ctime>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -54,6 +56,37 @@ struct TestEntry final {
 enum class TestCompression {
     Store,
     Deflate,
+};
+
+void refreshProcessTimeZone() {
+#if defined(Q_OS_WIN)
+    _tzset();
+#else
+    tzset();
+#endif
+}
+
+class ScopedTimeZone final {
+  public:
+    ScopedTimeZone() : was_set_(qEnvironmentVariableIsSet("TZ")), original_(qgetenv("TZ")) {}
+
+    ~ScopedTimeZone() {
+        if (was_set_) {
+            qputenv("TZ", original_);
+        } else {
+            qunsetenv("TZ");
+        }
+        refreshProcessTimeZone();
+    }
+
+    void set(const QByteArray& value) {
+        qputenv("TZ", value);
+        refreshProcessTimeZone();
+    }
+
+  private:
+    bool was_set_{};
+    QByteArray original_;
 };
 
 class PackArchiveTest final : public QObject {
@@ -182,7 +215,10 @@ void PackArchiveTest::exportIsByteDeterministic() {
     const auto source = fixture(QStringLiteral("minimal-pack"));
     const auto first_path = QDir(output.path()).filePath(QStringLiteral("first.awpack"));
     const auto second_path = QDir(output.path()).filePath(QStringLiteral("second.awpack"));
+    ScopedTimeZone time_zone;
+    time_zone.set(QByteArrayLiteral("UTC0"));
     QVERIFY(appellate::packs::PackArchive::exportDirectory(source, first_path).has_value());
+    time_zone.set(QByteArrayLiteral("KST-9"));
     QVERIFY(appellate::packs::PackArchive::exportDirectory(source, second_path).has_value());
     QCOMPARE(readAll(first_path), readAll(second_path));
 }

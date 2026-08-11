@@ -45,7 +45,6 @@ constexpr std::uint64_t maximum_standard_zip_value =
     static_cast<std::uint64_t>(std::numeric_limits<std::uint32_t>::max());
 constexpr std::size_t maximum_standard_zip_members =
     static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max());
-constexpr auto fixed_zip_timestamp = static_cast<time_t>(315'532'800);
 constexpr std::uint64_t maximum_manifest_bytes = 1024ULL * 1024ULL;
 constexpr qsizetype maximum_declared_payloads = 10'000;
 constexpr qsizetype pdf_tail_bytes = 1024;
@@ -849,7 +848,10 @@ int closeArchiveOutput(archive* value, void* client_data) {
         archive_entry_set_uid(entry.get(), 0);
         archive_entry_set_gid(entry.get(), 0);
         archive_entry_set_size(entry.get(), static_cast<la_int64_t>(member.size));
-        archive_entry_set_mtime(entry.get(), fixed_zip_timestamp, 0);
+        // ZIP's legacy timestamp is encoded through the process-local timezone. Leaving mtime
+        // unset makes libarchive clamp the zero value to the ZIP epoch without also emitting a
+        // timezone-sensitive DOS value or a host-dependent extended timestamp.
+        archive_entry_unset_mtime(entry.get());
         archive_entry_unset_atime(entry.get());
         archive_entry_unset_ctime(entry.get());
         archive_entry_unset_birthtime(entry.get());
