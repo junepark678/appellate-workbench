@@ -1,9 +1,11 @@
 # Encrypted immutable-object sync protocol
 
-Status: protocol version 1. The envelope/identity codec, create-only local-folder provider,
-guarded vault keyring and routine rotation, recovery-capsule codec, and injectable secret-store
-boundary are implemented. A production OS-key-store adapter, logical object payload codecs,
-S3-compatible transport, and branch import remain separate slices.
+Status: protocol version 1. The envelope/identity codec, canonical session-event-segment and
+checkpoint payload codecs, pure checkpoint-graph/restore planner, create-only local-folder
+provider, guarded vault keyring and routine rotation, recovery-capsule codec, and injectable
+secret-store boundary are implemented. Pack-revision and authored-revision payload codecs, a
+production OS-key-store adapter, S3-compatible transport, application import transaction, and
+branch-selection UI remain separate slices.
 
 Sync is an optional replica layer. It is never a database, a requirement for simulation, or a
 channel for executable code. The application remains fully usable when this target is disabled,
@@ -20,11 +22,12 @@ Version 1 has exactly four logical object kinds:
 | 3 | `session_event_segment` | A bounded canonical sequence of complete committed command/event batches |
 | 4 | `checkpoint` | A canonical session/branch head, projection digest, pins, and parent heads |
 
-The kind-specific payload codecs will be versioned independently inside the encrypted envelope.
-An authored revision is a user-produced document revision, not a pack-supplied record asset. Its
-local model must assign a stable revision ID, an optional parent revision ID, a media type, and the
-content digest before it is eligible for sync. The current raw asset store is not itself such a
-revision catalog and must not be swept into sync.
+Kind-specific payload codecs are versioned independently inside the encrypted envelope. The
+implemented schema version for `session_event_segment` and `checkpoint` is 1. An authored revision
+is a user-produced document revision, not a pack-supplied record asset. Its local model must assign
+a stable revision ID, an optional parent revision ID, a media type, and the content digest before
+it is eligible for sync. The current raw asset store is not itself such a revision catalog and
+must not be swept into sync.
 
 The following are never logical sync objects:
 
@@ -36,6 +39,60 @@ The following are never logical sync objects:
 Pack archives and authored documents may contain sensitive text, but only the complete encrypted
 logical object described here can leave the local device. Local SQLite and the local
 content-addressed stores remain authoritative.
+
+## Canonical session payloads
+
+Both implemented logical payloads are strict, unsigned-big-endian records. A text field is a
+`u16` byte length followed by 1 through 512 bytes in the printable ASCII range `21` through `7e`;
+the decoder does not trim, case-fold, or otherwise normalize it. A UTC field is exactly
+`YYYY-MM-DDTHH:MM:SSZ`. An object identity or digest is exactly 32 nonzero bytes. A binary payload
+is a `u32` byte length followed by 1 through 1,048,576 uninterpreted bytes. Unsupported versions,
+reserved flags, noncanonical order, unknown or trailing fields, truncation, and zero references
+are rejected.
+
+The canonical schema-1 `session_event_segment` payload is:
+
+```text
+41 57 53 47 00 01 00 00 ||
+session_id:text || engine_revision:text || authority_contract:u8 ||
+base_sequence:u64 || parent_present:u8 || [parent_segment_id:32] ||
+batch_count:u16 ||
+batch_count * (
+    expected_sequence:u64 || command_id:text || recorded_at_utc:text ||
+    command_payload:binary || event_count:u16 ||
+    event_count * (event_type:text || authority_id:text || event_payload:binary)
+)
+```
+
+Authority-contract values are exactly 1 (`legacy_v1`) and 2 (`canonical_v2`). A segment contains
+1 through 1,024 complete committed command batches, each with 1 through 4,096 events, and at most
+65,536 events in total. Command identifiers are unique inside one segment. The first batch's
+expected sequence equals the segment base; every later batch starts after every preceding event.
+A root has base sequence zero and no parent. A child has a nonzero parent and nonzero base, and the
+graph validator requires that base to equal its parent's final sequence. Sequence values may not
+exceed signed 64-bit maximum. The complete encoded segment is at most 64 MiB. Encoding preserves
+the committed command bytes, event bytes, authority, identifier, timestamp, order, and batch
+boundary exactly; it never reconstructs a batch from a projection.
+
+The canonical schema-1 `checkpoint` payload is:
+
+```text
+41 57 43 50 00 01 00 00 ||
+session_id:text || engine_revision:text || authority_contract:u8 ||
+session_created_at_utc:text || head_segment_id:32 || head_sequence:u64 ||
+projection_digest:32 || pin_count:u16 ||
+pin_count * (pack_id:text || version:text || revision_digest:32) ||
+parent_count:u16 || parent_checkpoint_id:32 * parent_count ||
+selected_base_present:u8 || [selected_base_checkpoint_id:32] ||
+authored_revision_count:u16 || authored_revision_id:32 * authored_revision_count
+```
+
+There are 1 through 128 revision pins, at most 128 checkpoint parents, and at most 4,096 authored
+revision identities. Pins are strictly sorted and unique by pack ID. Parent and authored identity
+lists are each strictly sorted and unique. A checkpoint with fewer than two parents has no
+selected base; one with two or more parents names exactly one of those parents as its selected
+base. The complete encoded checkpoint is at most 4 MiB. All count and byte ceilings are checked
+before reserve or payload allocation.
 
 ## Dependencies and primitive choices
 
@@ -284,24 +341,50 @@ it into a new buffer, authenticates/decrypts it into quarantine, and compares th
 and identity. Separate tests freeze no-overwrite behavior, pagination, owner-only permissions,
 limits, malformed namespace rejection, and absence of partial final objects.
 
-## Remote provider and branch invariants for later slices
+## Remote provider and branch handling
 
-The provider interface will expose only paged list, stat, create-if-absent upload, and download.
-It will have no overwrite, delete, rename, SQL, or plaintext metadata operation. A local-folder
-adapter will atomically publish owner-only ciphertext files. The S3-compatible adapter will use
-Signature Version 4, HTTPS outside explicit loopback tests, and `If-None-Match: *`; a provider that
-cannot enforce create-only writes is incompatible. Retries operate on the same remote ID and must
-authenticate a preexisting object before treating it as deduplicated.
+The provider interface exposes only paged list, stat, create-if-absent upload, and download. It has
+no overwrite, delete, rename, SQL, or plaintext metadata operation. The implemented local-folder
+adapter atomically publishes owner-only ciphertext files. The pending S3-compatible adapter must
+use Signature Version 4, HTTPS outside explicit loopback tests, and `If-None-Match: *`; a provider
+that cannot enforce create-only writes is incompatible. Retries operate on the same remote ID and
+must authenticate a preexisting object before treating it as deduplicated.
 
-Event segments form an immutable parent chain. Checkpoints name their segment tip and zero, one, or
-multiple parent checkpoints. Listing and decrypting checkpoints reconstructs the directed acyclic
-graph: concurrent children of one parent are visible branches, and no timestamp or device ID wins.
-Resolution creates a new checkpoint naming every resolved head plus the explicitly selected base;
-it does not splice, rewrite, or delete either history. Remote downloads remain quarantined until
-the full ancestor chain, event sequence, pack pins, engine revision, content identities, and
-referenced authored revisions validate. Only then may an explicit user selection be imported in a
-single local transaction. Wrong keys, missing ancestors, cycles, digest mismatch, corruption, and
-interrupted transfers leave the valid local store byte-for-byte unchanged.
+The implemented graph builder accepts at most 4,096 identified segments and 4,096 identified
+checkpoints with ancestry depth at most 4,096. Before admitting an object, it re-encodes the
+logical value and recomputes its canonical `ProtocolCodec` identity for the exact kind and schema.
+It requires nonzero, unique identities; exactly one segment root and checkpoint root; complete
+references; acyclic, connected checkpoint ancestry; and no segment that is unreferenced by a
+checkpoint. Every segment and checkpoint has the same session ID, engine revision, and authority
+contract. Checkpoints also share the exact session-creation timestamp and pin set. Every segment
+base and checkpoint head sequence must match the validated event chain.
+
+One-parent checkpoints extend their parent's segment history. For a checkpoint with multiple
+parents, the parents must be pairwise concurrent, and the result's segment head must extend its
+explicitly selected parent. The current heads are the checkpoints that no checkpoint names as a
+parent, sorted by canonical identity. No timestamp, insertion order, or device identity chooses a
+winner.
+
+The pure resolution builder requires a real conflict and an explicitly selected current head. It
+returns a new checkpoint value whose parents are every current head, whose selected-base field is
+that chosen head, and whose session metadata, segment head, head sequence, projection digest,
+pins, and authored-revision list are copied exactly from it. It performs no I/O and does not
+splice, rewrite, or delete either history. The caller must encode and authenticate the value as a
+new immutable checkpoint before rebuilding the graph.
+
+The pure restore planner likewise performs no filesystem, database, provider, or UI work. It
+accepts only a current head and exact expected session metadata, pin set, and projection digest.
+The caller supplies a sorted unique list of available authored-revision identities. Every authored
+identity referenced anywhere in the selected checkpoint ancestry must be present; additional
+available identities are tolerated. On success the plan contains the current heads, checkpoint
+ancestry and segment union in deterministic parent-before-child order, the exact root-to-selected
+segment path, and the sorted referenced authored identities. Duplicate command IDs on that
+selected path reject the plan.
+
+Remote downloads must remain quarantined until this validation and all content-identity checks
+complete. The pending application layer may then show the branches and apply one explicit plan in
+a single local transaction. Wrong keys, missing ancestors, cycles, digest mismatch, corruption,
+and interrupted transfers must leave the valid local store byte-for-byte unchanged.
 
 There is no polling requirement, live cursor, remote lock, central branch authority, user account,
 server coordination, or real-time collaboration protocol.

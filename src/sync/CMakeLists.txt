@@ -1,12 +1,16 @@
 qt_add_library(
     appellate_sync STATIC
+    src/checkpoint_graph.cpp
     src/local_folder_provider.cpp
+    src/logical_object_codec.cpp
     src/protocol_codec.cpp
     src/recovery_capsule.cpp
     src/secret_bytes.cpp
     src/secret_store.cpp
     src/vault_keyring.cpp
+    include/appellate/sync/checkpoint_graph.hpp
     include/appellate/sync/local_folder_provider.hpp
+    include/appellate/sync/logical_object_codec.hpp
     include/appellate/sync/object_provider.hpp
     include/appellate/sync/protocol_codec.hpp
     include/appellate/sync/recovery_capsule.hpp
