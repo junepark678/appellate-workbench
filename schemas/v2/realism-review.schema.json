@@ -13,6 +13,38 @@
     "review_state": { "enum": ["self_reviewed", "independent_review_pending", "independently_reviewed"] },
     "reviewed_on": { "type": "string", "format": "date" },
     "reviewer_reference": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "reviewer": { "$ref": "#/$defs/reviewer" },
+    "dimensions": { "$ref": "#/$defs/dimensions" },
+    "known_uncertainty": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "oneOf": [
+          { "type": "string", "minLength": 1, "maxLength": 2048 },
+          { "$ref": "#/$defs/uncertainty" }
+        ]
+      }
+    },
+    "evidence": { "$ref": "#/$defs/evidence" }
+  },
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128,
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer_id", "display_name", "qualification"],
+      "properties": {
+        "reviewer_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "display_name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "qualification": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "affiliation": { "type": "string", "minLength": 1, "maxLength": 240 }
+      }
+    },
     "dimensions": {
       "type": "object",
       "additionalProperties": false,
@@ -27,9 +59,186 @@
         "provenance": { "type": "integer", "minimum": 0, "maximum": 3 }
       }
     },
-    "known_uncertainty": {
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uncertainty_id", "summary", "blocking"],
+      "properties": {
+        "uncertainty_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "blocking": { "type": "boolean" },
+        "remediation_issue": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048,
+          "pattern": "^https://[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?:[/?][^#]*)?$"
+        }
+      }
+    },
+    "resource_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "owner_pack_id", "owner_pack_version", "resource_id", "resource_kind", "schema_version", "path", "sha256"],
+      "properties": {
+        "evidence_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "owner_pack_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "owner_pack_version": { "$ref": "#/$defs/semver" },
+        "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "resource_kind": {
+          "enum": ["argument_config", "authority_set", "bench_configuration", "case", "court", "filing_catalog", "form", "judge_profile", "procedure_profile", "record", "workflow"]
+        },
+        "schema_version": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "path": { "$ref": "common.schema.json#/$defs/portable_path" },
+        "sha256": { "$ref": "common.schema.json#/$defs/sha256" }
+      }
+    },
+    "blob_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "owner_pack_id", "owner_pack_version", "path", "media_type", "byte_size", "sha256"],
+      "properties": {
+        "evidence_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "owner_pack_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "owner_pack_version": { "$ref": "#/$defs/semver" },
+        "path": { "$ref": "common.schema.json#/$defs/portable_path" },
+        "media_type": { "const": "application/pdf" },
+        "byte_size": { "type": "integer", "minimum": 1, "maximum": 536870912 },
+        "sha256": { "$ref": "common.schema.json#/$defs/sha256" }
+      }
+    },
+    "capability_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "version": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    },
+    "dependency_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pack_id", "version"],
+      "properties": {
+        "pack_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "version": { "$ref": "#/$defs/semver" }
+      }
+    },
+    "pack_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pack_id", "version", "manifest_schema_version", "required_capabilities", "dependencies"],
+      "properties": {
+        "pack_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "version": { "$ref": "#/$defs/semver" },
+        "manifest_schema_version": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "required_capabilities": { "type": "array", "maxItems": 128, "items": { "$ref": "#/$defs/capability_binding" } },
+        "dependencies": { "type": "array", "maxItems": 128, "items": { "$ref": "#/$defs/dependency_binding" } }
+      }
+    },
+    "canonical_bytes": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 2097152,
+      "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+    },
+    "journal_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_base64", "events_base64"],
+      "properties": {
+        "command_base64": { "$ref": "#/$defs/canonical_bytes" },
+        "events_base64": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": { "$ref": "#/$defs/canonical_bytes" }
+        }
+      }
+    },
+    "trace_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "trace_id", "workflow_id", "engine_revision", "command_count", "event_count", "journal_sha256", "journal", "operation_ids", "terminal_stage_id", "digest"],
+      "properties": {
+        "evidence_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "trace_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "workflow_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "engine_revision": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "command_count": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "event_count": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "journal_sha256": { "$ref": "common.schema.json#/$defs/sha256" },
+        "journal": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": { "$ref": "#/$defs/journal_entry" }
+        },
+        "operation_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+        },
+        "terminal_stage_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "digest": { "$ref": "common.schema.json#/$defs/sha256" }
+      }
+    },
+    "record_check_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "check_id", "record_id", "check_kind", "digest"],
+      "properties": {
+        "evidence_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "check_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "record_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "check_kind": { "enum": ["asset_resolution", "page_anchor_resolution"] },
+        "digest": { "$ref": "common.schema.json#/$defs/sha256" }
+      }
+    },
+    "authority_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "authority_id"],
+      "properties": {
+        "evidence_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "authority_id": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+      }
+    },
+    "evidence_refs": {
       "type": "array",
-      "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+    },
+    "dimension_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["procedural_law", "deadlines_authority", "record_consistency", "consequences", "oral_argument", "bench_differentiation", "provenance"],
+      "properties": {
+        "procedural_law": { "$ref": "#/$defs/evidence_refs" },
+        "deadlines_authority": { "$ref": "#/$defs/evidence_refs" },
+        "record_consistency": { "$ref": "#/$defs/evidence_refs" },
+        "consequences": { "$ref": "#/$defs/evidence_refs" },
+        "oral_argument": { "$ref": "#/$defs/evidence_refs" },
+        "bench_differentiation": { "$ref": "#/$defs/evidence_refs" },
+        "provenance": { "$ref": "#/$defs/evidence_refs" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["closure_digest", "packs", "resources", "blobs", "traces", "record_checks", "authorities", "dimension_evidence"],
+      "properties": {
+        "closure_digest": { "$ref": "common.schema.json#/$defs/sha256" },
+        "packs": { "type": "array", "minItems": 1, "maxItems": 128, "items": { "$ref": "#/$defs/pack_binding" } },
+        "resources": { "type": "array", "minItems": 1, "maxItems": 10000, "items": { "$ref": "#/$defs/resource_binding" } },
+        "blobs": { "type": "array", "maxItems": 10000, "items": { "$ref": "#/$defs/blob_binding" } },
+        "traces": { "type": "array", "minItems": 1, "maxItems": 256, "items": { "$ref": "#/$defs/trace_binding" } },
+        "record_checks": { "type": "array", "minItems": 1, "maxItems": 256, "items": { "$ref": "#/$defs/record_check_binding" } },
+        "authorities": { "type": "array", "minItems": 1, "maxItems": 4096, "items": { "$ref": "#/$defs/authority_binding" } },
+        "dimension_evidence": { "$ref": "#/$defs/dimension_evidence" }
+      }
     }
   }
 }

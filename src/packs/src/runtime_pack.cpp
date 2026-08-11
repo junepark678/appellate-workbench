@@ -1,4 +1,6 @@
 #include "appellate/packs/runtime_pack.hpp"
+#include "realism_evidence.hpp"
+#include "runtime_pack_internal.hpp"
 #include "appellate/packs/capability_registry.hpp"
 
 #include <QByteArrayView>
@@ -739,9 +741,19 @@ struct ResourceIndex final {
                 return resource.descriptor.kind == model::ResourceKind::ArgumentConfig &&
                        resource.document.contains(QStringLiteral("grounded_question_bank"));
             });
+        const auto uses_realism_evidence =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::RealismReview &&
+                       (resource.document.contains(QStringLiteral("evidence")) ||
+                        resource.document.contains(QStringLiteral("reviewer")) ||
+                        std::ranges::any_of(
+                            resource.document.value(QStringLiteral("known_uncertainty")).toArray(),
+                            [](const QJsonValue& uncertainty) { return uncertainty.isObject(); }));
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             pack->manifest_schema_version, pack->required_capabilities, resource_kinds,
-            uses_workflow_preconditions, uses_structured_disposition, uses_grounded_questions);
+            uses_workflow_preconditions, uses_structured_disposition, uses_grounded_questions,
+            uses_realism_evidence);
         if (!capabilities) {
             return fail(RuntimePackErrorCode::InvalidPack,
                         capabilities.error().message.toStdString());
@@ -3204,10 +3216,30 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
 
 } // namespace
 
+std::expected<RuntimePack, RuntimePackError>
+loadRuntimePackForEvidence(const LoadedPack& case_owner,
+                           std::span<const LoadedPack* const> subject_dependency_first) {
+    if (subject_dependency_first.empty() || subject_dependency_first.back() != &case_owner) {
+        return fail(RuntimePackErrorCode::InvalidPack,
+                    "realism evidence subject closure does not end with its case owner");
+    }
+    const auto index = makeIndex(subject_dependency_first, case_owner.manifest_schema_version);
+    if (!index) {
+        return std::unexpected(index.error());
+    }
+    return projectRuntimePack(case_owner, *index);
+}
+
 std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& pack) {
     if (pack.graph_state != PackGraphState::StandaloneValidated || !pack.dependencies.empty()) {
         return fail(RuntimePackErrorCode::InvalidPack,
                     "dependency-bearing or deferred pack requires a catalog-resolved closure");
+    }
+    const auto evidence =
+        validateRealismEvidence(pack, std::span<const LoadedPack* const>{});
+    if (!evidence) {
+        return fail(RuntimePackErrorCode::InvalidPack,
+                    evidence.error().message.toStdString());
     }
     const std::array packs{&pack};
     const auto index = makeIndex(packs, pack.manifest_schema_version);

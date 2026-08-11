@@ -1,5 +1,7 @@
+#include "appellate/engine/workflow_engine.hpp"
 #include "appellate/packs/pack_reader.hpp"
 #include "appellate/packs/runtime_pack.hpp"
+#include "appellate/storage/workflow_codec.hpp"
 
 #include <QByteArrayView>
 #include <QCryptographicHash>
@@ -15,9 +17,14 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <functional>
+#include <optional>
+#include <ranges>
+#include <span>
 #include <string>
 #include <tuple>
+#include <variant>
 #include <vector>
 
 namespace {
@@ -30,6 +37,7 @@ class SchemaDispatchTest final : public QObject {
 
   private slots:
     void preservesPinnedV1Digests();
+    void preservesPinnedPre27V2Revision();
     void preservesPinnedPre28V2Revision();
     void preservesPinnedPre25V2Revision();
     void loadsV2AndProjectsRuntime();
@@ -47,6 +55,9 @@ class SchemaDispatchTest final : public QObject {
     void rejectsInvalidCanonicalAuthorityMetadata();
     void rejectsUnresolvedAndDuplicateAuthoritySelections();
     void resolvesCanonicalAuthorityAcrossDependencyGraph();
+    void validatesExactRealismEvidenceAndReviewExclusion();
+    void rejectsTamperedAndIncompleteRealismEvidence();
+    void enforcesDetachedIndependentReviewOwnership();
     void rejectsUnsupportedKindVersions();
     void rejectsV1V2CrossInterpretation();
 };
@@ -82,12 +93,18 @@ class SchemaDispatchTest final : public QObject {
 
 [[nodiscard]] bool copyPre25V2Fixture(const QString& destination) {
     if (!copyTree(fixture(QStringLiteral("full-resource-pack-v2")), destination) ||
+        !copyTree(fixture(QStringLiteral("full-resource-pack-v2-pre-27-overlay")), destination) ||
         !copyTree(fixture(QStringLiteral("full-resource-pack-v2-pre-25-overlay")), destination)) {
         return false;
     }
     return QFile::remove(
         QDir(destination)
             .filePath(QStringLiteral("resources/argument-config-counterfactual.json")));
+}
+
+[[nodiscard]] bool copyPre27V2Fixture(const QString& destination) {
+    return copyTree(fixture(QStringLiteral("full-resource-pack-v2")), destination) &&
+           copyTree(fixture(QStringLiteral("full-resource-pack-v2-pre-27-overlay")), destination);
 }
 
 [[nodiscard]] QJsonObject readObject(const QString& path) {
@@ -115,6 +132,11 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     const auto bytes = value.toUtf8();
     addUint64(hash, static_cast<std::uint64_t>(bytes.size()));
     hash.addData(QByteArrayView(bytes));
+}
+
+void addFrame(QCryptographicHash& hash, QByteArrayView value) {
+    addUint64(hash, static_cast<std::uint64_t>(value.size()));
+    hash.addData(value);
 }
 
 [[nodiscard]] QString dispositionDigest(const QJsonObject& case_document, const QJsonObject& plan) {
@@ -395,6 +417,672 @@ void refreshDispositionDigests(QJsonObject& case_document) {
     });
 }
 
+[[nodiscard]] std::vector<QJsonObject>
+objects(const QJsonArray& values,
+        const std::function<bool(const QJsonObject&, const QJsonObject&)>& less) {
+    std::vector<QJsonObject> result;
+    result.reserve(static_cast<std::size_t>(values.size()));
+    for (const auto& value : values) {
+        result.push_back(value.toObject());
+    }
+    std::ranges::sort(result, less);
+    return result;
+}
+
+[[nodiscard]] bool realismCapabilityLess(const QJsonObject& left, const QJsonObject& right) {
+    return std::tuple{left.value(QStringLiteral("id")).toString(),
+                      left.value(QStringLiteral("version")).toInt()} <
+           std::tuple{right.value(QStringLiteral("id")).toString(),
+                      right.value(QStringLiteral("version")).toInt()};
+}
+
+[[nodiscard]] bool realismDependencyLess(const QJsonObject& left, const QJsonObject& right) {
+    return std::tuple{left.value(QStringLiteral("pack_id")).toString(),
+                      left.value(QStringLiteral("version")).toString()} <
+           std::tuple{right.value(QStringLiteral("pack_id")).toString(),
+                      right.value(QStringLiteral("version")).toString()};
+}
+
+[[nodiscard]] bool realismPackLess(const QJsonObject& left, const QJsonObject& right) {
+    return std::tuple{left.value(QStringLiteral("pack_id")).toString(),
+                      left.value(QStringLiteral("version")).toString()} <
+           std::tuple{right.value(QStringLiteral("pack_id")).toString(),
+                      right.value(QStringLiteral("version")).toString()};
+}
+
+[[nodiscard]] bool realismResourceLess(const QJsonObject& left, const QJsonObject& right) {
+    return std::tuple{left.value(QStringLiteral("owner_pack_id")).toString(),
+                      left.value(QStringLiteral("owner_pack_version")).toString(),
+                      left.value(QStringLiteral("resource_id")).toString(),
+                      left.value(QStringLiteral("resource_kind")).toString(),
+                      left.value(QStringLiteral("schema_version")).toInt(),
+                      left.value(QStringLiteral("path")).toString(),
+                      left.value(QStringLiteral("sha256")).toString(),
+                      left.value(QStringLiteral("evidence_id")).toString()} <
+           std::tuple{right.value(QStringLiteral("owner_pack_id")).toString(),
+                      right.value(QStringLiteral("owner_pack_version")).toString(),
+                      right.value(QStringLiteral("resource_id")).toString(),
+                      right.value(QStringLiteral("resource_kind")).toString(),
+                      right.value(QStringLiteral("schema_version")).toInt(),
+                      right.value(QStringLiteral("path")).toString(),
+                      right.value(QStringLiteral("sha256")).toString(),
+                      right.value(QStringLiteral("evidence_id")).toString()};
+}
+
+[[nodiscard]] bool realismBlobLess(const QJsonObject& left, const QJsonObject& right) {
+    return std::tuple{left.value(QStringLiteral("owner_pack_id")).toString(),
+                      left.value(QStringLiteral("owner_pack_version")).toString(),
+                      left.value(QStringLiteral("path")).toString(),
+                      left.value(QStringLiteral("media_type")).toString(),
+                      left.value(QStringLiteral("byte_size")).toInteger(),
+                      left.value(QStringLiteral("sha256")).toString(),
+                      left.value(QStringLiteral("evidence_id")).toString()} <
+           std::tuple{right.value(QStringLiteral("owner_pack_id")).toString(),
+                      right.value(QStringLiteral("owner_pack_version")).toString(),
+                      right.value(QStringLiteral("path")).toString(),
+                      right.value(QStringLiteral("media_type")).toString(),
+                      right.value(QStringLiteral("byte_size")).toInteger(),
+                      right.value(QStringLiteral("sha256")).toString(),
+                      right.value(QStringLiteral("evidence_id")).toString()};
+}
+
+void addRealismPackBinding(QCryptographicHash& hash, const QJsonObject& binding) {
+    addFrame(hash, binding.value(QStringLiteral("pack_id")).toString());
+    addFrame(hash, binding.value(QStringLiteral("version")).toString());
+    addUint64(hash, static_cast<std::uint64_t>(
+                        binding.value(QStringLiteral("manifest_schema_version")).toInt()));
+    const auto capabilities = objects(
+        binding.value(QStringLiteral("required_capabilities")).toArray(), realismCapabilityLess);
+    addUint64(hash, capabilities.size());
+    for (const auto& capability : capabilities) {
+        addFrame(hash, capability.value(QStringLiteral("id")).toString());
+        addUint64(hash,
+                  static_cast<std::uint64_t>(capability.value(QStringLiteral("version")).toInt()));
+    }
+    const auto dependencies =
+        objects(binding.value(QStringLiteral("dependencies")).toArray(), realismDependencyLess);
+    addUint64(hash, dependencies.size());
+    for (const auto& dependency : dependencies) {
+        addFrame(hash, dependency.value(QStringLiteral("pack_id")).toString());
+        addFrame(hash, dependency.value(QStringLiteral("version")).toString());
+    }
+}
+
+void addRealismResourceDescriptor(QCryptographicHash& hash, const QJsonObject& binding) {
+    addFrame(hash, binding.value(QStringLiteral("owner_pack_id")).toString());
+    addFrame(hash, binding.value(QStringLiteral("owner_pack_version")).toString());
+    addFrame(hash, binding.value(QStringLiteral("resource_id")).toString());
+    addFrame(hash, binding.value(QStringLiteral("resource_kind")).toString());
+    addUint64(hash,
+              static_cast<std::uint64_t>(binding.value(QStringLiteral("schema_version")).toInt()));
+    addFrame(hash, binding.value(QStringLiteral("path")).toString());
+    addFrame(hash, binding.value(QStringLiteral("sha256")).toString());
+}
+
+void addRealismResourceBinding(QCryptographicHash& hash, const QJsonObject& binding) {
+    addFrame(hash, binding.value(QStringLiteral("evidence_id")).toString());
+    addRealismResourceDescriptor(hash, binding);
+}
+
+void addRealismBlobDescriptor(QCryptographicHash& hash, const QJsonObject& binding) {
+    addFrame(hash, binding.value(QStringLiteral("owner_pack_id")).toString());
+    addFrame(hash, binding.value(QStringLiteral("owner_pack_version")).toString());
+    addFrame(hash, binding.value(QStringLiteral("path")).toString());
+    addFrame(hash, binding.value(QStringLiteral("media_type")).toString());
+    addUint64(hash,
+              static_cast<std::uint64_t>(binding.value(QStringLiteral("byte_size")).toInteger()));
+    addFrame(hash, binding.value(QStringLiteral("sha256")).toString());
+}
+
+void addRealismBlobBinding(QCryptographicHash& hash, const QJsonObject& binding) {
+    addFrame(hash, binding.value(QStringLiteral("evidence_id")).toString());
+    addRealismBlobDescriptor(hash, binding);
+}
+
+[[nodiscard]] QString realismClosureDigest(const QString& case_id, const QJsonArray& pack_values,
+                                           const QJsonArray& resource_values,
+                                           const QJsonArray& blob_values) {
+    const auto packs = objects(pack_values, realismPackLess);
+    const auto resources = objects(resource_values, realismResourceLess);
+    const auto blobs = objects(blob_values, realismBlobLess);
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QStringLiteral("appellate-workbench-case-evidence-closure-v1"));
+    addFrame(hash, case_id);
+    addUint64(hash, packs.size());
+    for (const auto& pack : packs) {
+        addRealismPackBinding(hash, pack);
+    }
+    addUint64(hash, resources.size());
+    for (const auto& resource : resources) {
+        addRealismResourceBinding(hash, resource);
+    }
+    addUint64(hash, blobs.size());
+    for (const auto& blob : blobs) {
+        addRealismBlobBinding(hash, blob);
+    }
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] QString realismTraceDigest(const QString& case_id, const QJsonObject& trace) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QStringLiteral("appellate-workbench-executed-trace-evidence-v1"));
+    addFrame(hash, case_id);
+    addFrame(hash, trace.value(QStringLiteral("evidence_id")).toString());
+    addFrame(hash, trace.value(QStringLiteral("trace_id")).toString());
+    addFrame(hash, trace.value(QStringLiteral("workflow_id")).toString());
+    addFrame(hash, trace.value(QStringLiteral("engine_revision")).toString());
+    addUint64(hash,
+              static_cast<std::uint64_t>(trace.value(QStringLiteral("command_count")).toInt()));
+    addUint64(hash, static_cast<std::uint64_t>(trace.value(QStringLiteral("event_count")).toInt()));
+    addFrame(hash, trace.value(QStringLiteral("journal_sha256")).toString());
+    const auto operation_ids = trace.value(QStringLiteral("operation_ids")).toArray();
+    addUint64(hash, static_cast<std::uint64_t>(operation_ids.size()));
+    for (const auto& operation_id : operation_ids) {
+        addFrame(hash, operation_id.toString());
+    }
+    addFrame(hash, trace.value(QStringLiteral("terminal_stage_id")).toString());
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] const appellate::model::WorkflowEventHeader&
+realismEventHeader(const appellate::model::WorkflowEvent& event) {
+    return std::visit(
+        [](const auto& concrete) -> const appellate::model::WorkflowEventHeader& {
+            return concrete.header;
+        },
+        event);
+}
+
+[[nodiscard]] std::optional<QJsonObject>
+executedFixtureTrace(const appellate::packs::LoadedPack& case_owner) {
+    const auto runtime = appellate::packs::loadRuntimePack(case_owner);
+    if (!runtime || runtime->cases.empty()) {
+        return std::nullopt;
+    }
+    const auto& runtime_case = runtime->cases.front();
+    const auto court_date = appellate::model::LegalDate{
+        std::chrono::year{2026} / std::chrono::month{1} / std::chrono::day{4}};
+    const appellate::model::WorkflowState initial_state{
+        "example.session.realism-evidence",
+        runtime_case.workflow.id,
+        runtime_case.workflow.initial_stage_id,
+        std::uint64_t{1},
+        std::nullopt,
+        {},
+        {},
+        {},
+        {},
+        {},
+        false,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+    };
+    const appellate::model::WorkflowCommand command = appellate::model::SubmitWorkflowFiling{
+        appellate::model::WorkflowCommandHeader{
+            initial_state.session_id,
+            appellate::model::WorkflowCommandId{"example.command.realism-notice"},
+            appellate::model::ActorId{"example.actor.appellant"},
+            appellate::model::LegalTime{
+                std::chrono::sys_seconds{std::chrono::sys_days{court_date.value}}, court_date},
+        },
+        appellate::model::WorkflowFilingId{"example.filing.realism-notice"},
+        appellate::model::FilingTypeId{"example.filing.notice"},
+        std::string(64, 'a'),
+        {{appellate::model::FilingFieldId{"example.field.caption"}, "Example caption"}},
+        {appellate::model::ActorId{"example.actor.appellee"}},
+        std::nullopt,
+    };
+    const auto events = appellate::engine::decideWorkflow(runtime_case.workflow,
+                                                           runtime_case.definition, initial_state,
+                                                           command);
+    if (!events || events->empty()) {
+        return std::nullopt;
+    }
+    const std::vector journal{
+        appellate::model::WorkflowJournalEntry{command, *events},
+    };
+    const auto replayed = appellate::engine::replayWorkflow(
+        runtime_case.workflow, runtime_case.definition, initial_state, journal);
+    const auto command_bytes = appellate::storage::encodeWorkflowCommand(command);
+    if (!replayed || !command_bytes) {
+        return std::nullopt;
+    }
+
+    QCryptographicHash journal_hash(QCryptographicHash::Sha256);
+    addFrame(journal_hash, QStringLiteral("appellate-workbench-executed-workflow-journal-v1"));
+    addUint64(journal_hash, journal.size());
+    addFrame(journal_hash, QByteArrayView(*command_bytes));
+    addUint64(journal_hash, events->size());
+
+    QJsonArray encoded_events;
+    QJsonArray operation_ids;
+    for (const auto& event : *events) {
+        const auto event_bytes = appellate::storage::encodeWorkflowEvent(event);
+        if (!event_bytes) {
+            return std::nullopt;
+        }
+        addFrame(journal_hash, QByteArrayView(*event_bytes));
+        encoded_events.push_back(QString::fromLatin1(event_bytes->toBase64()));
+        operation_ids.push_back(
+            QString::fromStdString(realismEventHeader(event).operation_id.value));
+    }
+    const QJsonArray encoded_journal{QJsonObject{
+        {QStringLiteral("command_base64"), QString::fromLatin1(command_bytes->toBase64())},
+        {QStringLiteral("events_base64"), encoded_events},
+    }};
+    QJsonObject trace{
+        {QStringLiteral("evidence_id"), QStringLiteral("example.evidence.trace-1")},
+        {QStringLiteral("trace_id"), QStringLiteral("example.trace.canonical")},
+        {QStringLiteral("workflow_id"), QString::fromStdString(runtime_case.workflow.id.value)},
+        {QStringLiteral("engine_revision"), QStringLiteral("engine.example.realism.v1")},
+        {QStringLiteral("command_count"), static_cast<qint64>(journal.size())},
+        {QStringLiteral("event_count"), static_cast<qint64>(events->size())},
+        {QStringLiteral("journal_sha256"),
+         QString::fromLatin1(journal_hash.result().toHex())},
+        {QStringLiteral("journal"), encoded_journal},
+        {QStringLiteral("operation_ids"), operation_ids},
+        {QStringLiteral("terminal_stage_id"),
+         QString::fromStdString(replayed->current_stage_id.value)},
+    };
+    trace.insert(QStringLiteral("digest"),
+                 realismTraceDigest(QString::fromStdString(runtime_case.definition.id.value),
+                                    trace));
+    return trace;
+}
+
+[[nodiscard]] std::optional<QString> realismJournalDigest(const QJsonArray& journal) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QStringLiteral("appellate-workbench-executed-workflow-journal-v1"));
+    addUint64(hash, static_cast<std::uint64_t>(journal.size()));
+    for (const auto& value : journal) {
+        const auto entry = value.toObject();
+        const auto command_encoded =
+            entry.value(QStringLiteral("command_base64")).toString().toLatin1();
+        const auto command = QByteArray::fromBase64(command_encoded);
+        if (command.isEmpty() || command.toBase64() != command_encoded) {
+            return std::nullopt;
+        }
+        addFrame(hash, QByteArrayView(command));
+        const auto events = entry.value(QStringLiteral("events_base64")).toArray();
+        addUint64(hash, static_cast<std::uint64_t>(events.size()));
+        for (const auto& event_value : events) {
+            const auto event_encoded = event_value.toString().toLatin1();
+            const auto event = QByteArray::fromBase64(event_encoded);
+            if (event.isEmpty() || event.toBase64() != event_encoded) {
+                return std::nullopt;
+            }
+            addFrame(hash, QByteArrayView(event));
+        }
+    }
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] QString realismRecordCheckDigest(const QString& case_id, const QJsonObject& check,
+                                               const QJsonObject& record, QJsonArray blob_values) {
+    const auto blobs = objects(blob_values, realismBlobLess);
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QStringLiteral("appellate-workbench-record-check-evidence-v1"));
+    addFrame(hash, case_id);
+    addFrame(hash, check.value(QStringLiteral("evidence_id")).toString());
+    addFrame(hash, check.value(QStringLiteral("check_id")).toString());
+    addFrame(hash, check.value(QStringLiteral("record_id")).toString());
+    addFrame(hash, check.value(QStringLiteral("check_kind")).toString());
+    addRealismResourceDescriptor(hash, record);
+    addUint64(hash, blobs.size());
+    for (const auto& blob : blobs) {
+        addRealismBlobDescriptor(hash, blob);
+    }
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] QString resourceKindName(appellate::model::ResourceKind kind) {
+    switch (kind) {
+    case appellate::model::ResourceKind::ArgumentConfig:
+        return QStringLiteral("argument_config");
+    case appellate::model::ResourceKind::AuthoritySet:
+        return QStringLiteral("authority_set");
+    case appellate::model::ResourceKind::BenchConfiguration:
+        return QStringLiteral("bench_configuration");
+    case appellate::model::ResourceKind::Case:
+        return QStringLiteral("case");
+    case appellate::model::ResourceKind::Court:
+        return QStringLiteral("court");
+    case appellate::model::ResourceKind::FilingCatalog:
+        return QStringLiteral("filing_catalog");
+    case appellate::model::ResourceKind::Form:
+        return QStringLiteral("form");
+    case appellate::model::ResourceKind::JudgeProfile:
+        return QStringLiteral("judge_profile");
+    case appellate::model::ResourceKind::ProcedureProfile:
+        return QStringLiteral("procedure_profile");
+    case appellate::model::ResourceKind::RealismReview:
+        return QStringLiteral("realism_review");
+    case appellate::model::ResourceKind::Record:
+        return QStringLiteral("record");
+    case appellate::model::ResourceKind::Workflow:
+        return QStringLiteral("workflow");
+    }
+    return {};
+}
+
+[[nodiscard]] QJsonObject realismPackBinding(const appellate::packs::LoadedPack& pack) {
+    QJsonArray capabilities;
+    for (const auto& capability : pack.required_capabilities) {
+        capabilities.push_back(QJsonObject{
+            {QStringLiteral("id"), QString::fromStdString(capability.id)},
+            {QStringLiteral("version"), static_cast<qint64>(capability.version)},
+        });
+    }
+    QJsonArray dependencies;
+    for (const auto& dependency_value : pack.dependencies) {
+        dependencies.push_back(QJsonObject{
+            {QStringLiteral("pack_id"), QString::fromStdString(dependency_value.revision.id.value)},
+            {QStringLiteral("version"), QString::fromStdString(dependency_value.revision.version)},
+        });
+    }
+    return QJsonObject{
+        {QStringLiteral("pack_id"), QString::fromStdString(pack.revision.id.value)},
+        {QStringLiteral("version"), QString::fromStdString(pack.revision.version)},
+        {QStringLiteral("manifest_schema_version"),
+         static_cast<qint64>(pack.manifest_schema_version)},
+        {QStringLiteral("required_capabilities"), capabilities},
+        {QStringLiteral("dependencies"), dependencies},
+    };
+}
+
+[[nodiscard]] std::optional<QJsonObject>
+buildRealismReview(const appellate::packs::ValidatedResource& source_review,
+                   const appellate::packs::LoadedPack& case_owner,
+                   std::span<const appellate::packs::LoadedPack* const> subject_packs,
+                   bool independently_reviewed) {
+    QHash<QString, const appellate::packs::ValidatedResource*> resources_by_id;
+    QHash<QString, const appellate::packs::LoadedPack*> owners_by_resource_id;
+    QHash<QString, QJsonObject> resource_bindings_by_id;
+    QHash<QString, QJsonObject> blob_bindings_by_owner_path;
+    QJsonArray pack_bindings;
+    QJsonArray resource_bindings;
+    QJsonArray blob_bindings;
+    int resource_index = 0;
+    int blob_index = 0;
+    for (const auto* pack : subject_packs) {
+        if (pack == nullptr) {
+            return std::nullopt;
+        }
+        pack_bindings.push_back(realismPackBinding(*pack));
+        for (const auto& resource : pack->resources) {
+            resources_by_id.insert(QString::fromStdString(resource.descriptor.id), &resource);
+            owners_by_resource_id.insert(QString::fromStdString(resource.descriptor.id), pack);
+            if (resource.descriptor.kind == appellate::model::ResourceKind::RealismReview) {
+                continue;
+            }
+            ++resource_index;
+            const auto binding = QJsonObject{
+                {QStringLiteral("evidence_id"),
+                 QStringLiteral("example.evidence.resource-%1").arg(resource_index)},
+                {QStringLiteral("owner_pack_id"), QString::fromStdString(pack->revision.id.value)},
+                {QStringLiteral("owner_pack_version"),
+                 QString::fromStdString(pack->revision.version)},
+                {QStringLiteral("resource_id"), QString::fromStdString(resource.descriptor.id)},
+                {QStringLiteral("resource_kind"), resourceKindName(resource.descriptor.kind)},
+                {QStringLiteral("schema_version"),
+                 static_cast<qint64>(resource.descriptor.schema_version)},
+                {QStringLiteral("path"), QString::fromStdString(resource.descriptor.path)},
+                {QStringLiteral("sha256"), QString::fromStdString(resource.descriptor.sha256)},
+            };
+            resource_bindings.push_back(binding);
+            resource_bindings_by_id.insert(QString::fromStdString(resource.descriptor.id), binding);
+        }
+        for (const auto& blob : pack->blobs) {
+            ++blob_index;
+            const auto binding = QJsonObject{
+                {QStringLiteral("evidence_id"),
+                 QStringLiteral("example.evidence.blob-%1").arg(blob_index)},
+                {QStringLiteral("owner_pack_id"), QString::fromStdString(pack->revision.id.value)},
+                {QStringLiteral("owner_pack_version"),
+                 QString::fromStdString(pack->revision.version)},
+                {QStringLiteral("path"), QString::fromStdString(blob.path)},
+                {QStringLiteral("media_type"), QString::fromStdString(blob.media_type)},
+                {QStringLiteral("byte_size"), static_cast<qint64>(blob.byte_size)},
+                {QStringLiteral("sha256"), QString::fromStdString(blob.sha256)},
+            };
+            blob_bindings.push_back(binding);
+            blob_bindings_by_owner_path.insert(
+                QString::fromStdString(pack->revision.id.value + '\n' + blob.path), binding);
+        }
+    }
+
+    const auto case_id = source_review.document.value(QStringLiteral("case_id")).toString();
+    const auto case_resource = resources_by_id.value(case_id);
+    if (case_resource == nullptr || owners_by_resource_id.value(case_id) != &case_owner) {
+        return std::nullopt;
+    }
+    const auto procedure_id =
+        case_resource->document.value(QStringLiteral("procedure_profile_id")).toString();
+    const auto procedure = resources_by_id.value(procedure_id);
+    if (procedure == nullptr) {
+        return std::nullopt;
+    }
+    const auto workflow_id = procedure->document.value(QStringLiteral("workflow_id")).toString();
+    const auto workflow = resources_by_id.value(workflow_id);
+    const auto record_id = case_resource->document.value(QStringLiteral("record_id")).toString();
+    const auto record = resources_by_id.value(record_id);
+    const auto record_owner = owners_by_resource_id.value(record_id);
+    if (workflow == nullptr || record == nullptr || record_owner == nullptr) {
+        return std::nullopt;
+    }
+
+    const auto prior_traces = source_review.document.value(QStringLiteral("evidence"))
+                                  .toObject()
+                                  .value(QStringLiteral("traces"))
+                                  .toArray();
+    auto trace = prior_traces.isEmpty() ? QJsonObject{} : prior_traces.first().toObject();
+    if (!trace.contains(QStringLiteral("journal"))) {
+        const auto executed = executedFixtureTrace(case_owner);
+        if (!executed) {
+            return std::nullopt;
+        }
+        trace = *executed;
+    }
+
+    QJsonArray record_blobs;
+    for (const auto& value : record->document.value(QStringLiteral("docket_entries")).toArray()) {
+        const auto path = value.toObject().value(QStringLiteral("asset_path")).toString();
+        const auto binding = blob_bindings_by_owner_path.value(
+            QString::fromStdString(record_owner->revision.id.value) + u'\n' + path);
+        if (binding.isEmpty()) {
+            return std::nullopt;
+        }
+        record_blobs.push_back(binding);
+    }
+    const auto record_binding = resource_bindings_by_id.value(record_id);
+    if (record_binding.isEmpty()) {
+        return std::nullopt;
+    }
+    QJsonObject asset_check{
+        {QStringLiteral("evidence_id"), QStringLiteral("example.evidence.record-assets")},
+        {QStringLiteral("check_id"), QStringLiteral("example.check.record-assets")},
+        {QStringLiteral("record_id"), record_id},
+        {QStringLiteral("check_kind"), QStringLiteral("asset_resolution")},
+    };
+    asset_check.insert(
+        QStringLiteral("digest"),
+        realismRecordCheckDigest(case_id, asset_check, record_binding, record_blobs));
+    QJsonObject anchor_check{
+        {QStringLiteral("evidence_id"), QStringLiteral("example.evidence.record-anchors")},
+        {QStringLiteral("check_id"), QStringLiteral("example.check.record-anchors")},
+        {QStringLiteral("record_id"), record_id},
+        {QStringLiteral("check_kind"), QStringLiteral("page_anchor_resolution")},
+    };
+    anchor_check.insert(QStringLiteral("digest"),
+                        realismRecordCheckDigest(case_id, anchor_check, record_binding, {}));
+
+    QJsonArray authority_bindings;
+    for (const auto* pack : subject_packs) {
+        for (const auto& resource : pack->resources) {
+            if (resource.descriptor.kind != appellate::model::ResourceKind::AuthoritySet) {
+                continue;
+            }
+            const auto authorities =
+                resource.document.value(QStringLiteral("authorities")).toArray();
+            if (!authorities.isEmpty()) {
+                authority_bindings.push_back(QJsonObject{
+                    {QStringLiteral("evidence_id"), QStringLiteral("example.evidence.authority-1")},
+                    {QStringLiteral("authority_id"),
+                     authorities.first().toObject().value(QStringLiteral("authority_id"))},
+                });
+            }
+        }
+    }
+    if (authority_bindings.isEmpty() || resource_bindings.isEmpty() || blob_bindings.isEmpty()) {
+        return std::nullopt;
+    }
+
+    const auto resource_evidence_id =
+        resource_bindings.first().toObject().value(QStringLiteral("evidence_id"));
+    const auto authority_evidence_id =
+        authority_bindings.first().toObject().value(QStringLiteral("evidence_id"));
+    const QJsonObject dimension_evidence{
+        {QStringLiteral("procedural_law"), QJsonArray{QStringLiteral("example.evidence.trace-1")}},
+        {QStringLiteral("deadlines_authority"), QJsonArray{authority_evidence_id}},
+        {QStringLiteral("record_consistency"),
+         QJsonArray{QStringLiteral("example.evidence.record-assets"),
+                    QStringLiteral("example.evidence.record-anchors")}},
+        {QStringLiteral("consequences"), QJsonArray{QStringLiteral("example.evidence.trace-1")}},
+        {QStringLiteral("oral_argument"), QJsonArray{resource_evidence_id}},
+        {QStringLiteral("bench_differentiation"), QJsonArray{resource_evidence_id}},
+        {QStringLiteral("provenance"), QJsonArray{authority_evidence_id}},
+    };
+    QJsonObject evidence{
+        {QStringLiteral("packs"), pack_bindings},
+        {QStringLiteral("resources"), resource_bindings},
+        {QStringLiteral("blobs"), blob_bindings},
+        {QStringLiteral("traces"), QJsonArray{trace}},
+        {QStringLiteral("record_checks"), QJsonArray{asset_check, anchor_check}},
+        {QStringLiteral("authorities"), authority_bindings},
+        {QStringLiteral("dimension_evidence"), dimension_evidence},
+    };
+    evidence.insert(QStringLiteral("closure_digest"),
+                    realismClosureDigest(case_id, pack_bindings, resource_bindings, blob_bindings));
+
+    auto review = source_review.document;
+    review.insert(QStringLiteral("review_state"), independently_reviewed
+                                                      ? QStringLiteral("independently_reviewed")
+                                                      : QStringLiteral("self_reviewed"));
+    review.insert(QStringLiteral("dimensions"),
+                  QJsonObject{
+                      {QStringLiteral("procedural_law"), independently_reviewed ? 3 : 2},
+                      {QStringLiteral("deadlines_authority"), independently_reviewed ? 3 : 2},
+                      {QStringLiteral("record_consistency"), independently_reviewed ? 3 : 2},
+                      {QStringLiteral("consequences"), independently_reviewed ? 3 : 2},
+                      {QStringLiteral("oral_argument"), independently_reviewed ? 3 : 2},
+                      {QStringLiteral("bench_differentiation"), independently_reviewed ? 3 : 2},
+                      {QStringLiteral("provenance"), independently_reviewed ? 3 : 2},
+                  });
+    review.insert(QStringLiteral("known_uncertainty"),
+                  QJsonArray{QJsonObject{
+                      {QStringLiteral("uncertainty_id"),
+                       QStringLiteral("example.uncertainty.fictional-authorities")},
+                      {QStringLiteral("summary"),
+                       QStringLiteral("The authorities are deliberately fictional test fixtures.")},
+                      {QStringLiteral("blocking"), false},
+                  }});
+    review.insert(QStringLiteral("evidence"), evidence);
+    if (independently_reviewed) {
+        review.insert(QStringLiteral("reviewed_on"), QStringLiteral("2026-08-11"));
+        review.insert(QStringLiteral("reviewer_reference"),
+                      QStringLiteral("Independent fixture review memorandum"));
+        review.insert(
+            QStringLiteral("reviewer"),
+            QJsonObject{
+                {QStringLiteral("reviewer_id"), QStringLiteral("example.reviewer.independent")},
+                {QStringLiteral("display_name"), QStringLiteral("Independent Reviewer")},
+                {QStringLiteral("qualification"),
+                 QStringLiteral("Qualified appellate practitioner")},
+                {QStringLiteral("affiliation"), QStringLiteral("Independent fixture review")},
+            });
+    } else {
+        review.remove(QStringLiteral("reviewed_on"));
+        review.remove(QStringLiteral("reviewer_reference"));
+        review.remove(QStringLiteral("reviewer"));
+    }
+    return review;
+}
+
+[[nodiscard]] bool prepareRealismEvidencePack(const QString& root) {
+    if (!mutateManifest(root, [](QJsonObject& manifest) {
+            auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+            capabilities.push_back(QJsonObject{
+                {QStringLiteral("id"), QStringLiteral("workbench.pack.realism-evidence")},
+                {QStringLiteral("version"), 1},
+            });
+            manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+        })) {
+        return false;
+    }
+    const auto staged = PackReader::readDirectory(root);
+    if (!staged) {
+        return false;
+    }
+    const auto case_resource = std::ranges::find_if(staged->resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::Case;
+    });
+    if (case_resource == staged->resources.end()) {
+        return false;
+    }
+    const auto review_path = QStringLiteral("resources/realism-review.json");
+    const appellate::packs::ValidatedResource review{
+        appellate::model::DeclarativeResource{
+            appellate::model::ResourceKind::RealismReview,
+            "example.review.fictional",
+            2,
+            review_path.toStdString(),
+            {},
+        },
+        QJsonObject{
+            {QStringLiteral("schema_version"), 2},
+            {QStringLiteral("resource_kind"), QStringLiteral("realism_review")},
+            {QStringLiteral("resource_id"), QStringLiteral("example.review.fictional")},
+            {QStringLiteral("case_id"), QString::fromStdString(case_resource->descriptor.id)},
+            {QStringLiteral("review_state"), QStringLiteral("self_reviewed")},
+            {QStringLiteral("dimensions"),
+             QJsonObject{
+                 {QStringLiteral("procedural_law"), 2},
+                 {QStringLiteral("deadlines_authority"), 2},
+                 {QStringLiteral("record_consistency"), 2},
+                 {QStringLiteral("consequences"), 2},
+                 {QStringLiteral("oral_argument"), 2},
+                 {QStringLiteral("bench_differentiation"), 2},
+                 {QStringLiteral("provenance"), 2},
+             }},
+            {QStringLiteral("known_uncertainty"), QJsonArray{}},
+        },
+    };
+    const std::array<const appellate::packs::LoadedPack*, 1> subject_packs{&*staged};
+    const auto document = buildRealismReview(review, *staged, subject_packs, false);
+    if (!document) {
+        return false;
+    }
+    const auto bytes = QJsonDocument(*document).toJson(QJsonDocument::Compact);
+    if (!writeBytes(QDir(root).filePath(review_path), bytes)) {
+        return false;
+    }
+    const auto digest =
+        QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex());
+    return mutateManifest(root, [&](QJsonObject& manifest) {
+        auto contents = manifest.value(QStringLiteral("contents")).toArray();
+        contents.push_back(QJsonObject{
+            {QStringLiteral("id"), QStringLiteral("example.review.fictional")},
+            {QStringLiteral("kind"), QStringLiteral("realism_review")},
+            {QStringLiteral("schema_version"), 2},
+            {QStringLiteral("path"), review_path},
+            {QStringLiteral("sha256"), digest},
+        });
+        manifest.insert(QStringLiteral("contents"), contents);
+    });
+}
+
 void SchemaDispatchTest::preservesPinnedV1Digests() {
     const auto fixture_pack =
         PackReader::readDirectory(fixture(QStringLiteral("full-resource-pack")));
@@ -411,10 +1099,22 @@ void SchemaDispatchTest::preservesPinnedV1Digests() {
              std::string("ff7a2e1195f9bd006e7df46c19675a3e07a4bd8975b1643a01adbc9cc4fd3424"));
 }
 
+void SchemaDispatchTest::preservesPinnedPre27V2Revision() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyPre27V2Fixture(pack.path()));
+
+    const auto loaded = PackReader::readDirectory(pack.path());
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+    QCOMPARE(loaded->revision.digest,
+             std::string("a9c912ad7e23620f9a5c9f5fb81c9edabe1d00010551c4636e8a621b00655bd4"));
+}
+
 void SchemaDispatchTest::preservesPinnedPre28V2Revision() {
     QTemporaryDir pack;
     QVERIFY(pack.isValid());
     QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), pack.path()));
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2-pre-27-overlay")), pack.path()));
     QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2-pre-25-overlay")), pack.path()));
     QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2-pre-28-overlay")), pack.path()));
     QVERIFY(QFile::remove(
@@ -468,7 +1168,7 @@ void SchemaDispatchTest::loadsV2AndProjectsRuntime() {
     QVERIFY2(v2.has_value(), v2 ? "" : qPrintable(v2.error().message));
     QCOMPARE(v2->manifest_schema_version, std::uint32_t{2});
     QCOMPARE(v2->revision.digest,
-             std::string("a9c912ad7e23620f9a5c9f5fb81c9edabe1d00010551c4636e8a621b00655bd4"));
+             std::string("023008f685d42634a271a626d5df1eb770ee5a6141a1b199eaa6d9945c4f15ce"));
     QVERIFY(v2->revision.digest != v1->revision.digest);
     for (const auto& resource : v2->resources) {
         QCOMPARE(resource.descriptor.schema_version, std::uint32_t{2});
@@ -705,8 +1405,8 @@ void SchemaDispatchTest::validatesGroundedQuestionBanks() {
     for (int variant = 0; variant < 2; ++variant) {
         QTemporaryDir unlaunchable_focus;
         QVERIFY(unlaunchable_focus.isValid());
-        QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")),
-                         unlaunchable_focus.path()));
+        QVERIFY(
+            copyTree(fixture(QStringLiteral("full-resource-pack-v2")), unlaunchable_focus.path()));
         QVERIFY(mutateResource(
             unlaunchable_focus.path(), QStringLiteral("resources/judge-profile.json"),
             [variant](QJsonObject& document) {
@@ -763,16 +1463,16 @@ void SchemaDispatchTest::validatesGroundedQuestionBanks() {
         QTemporaryDir label_pack;
         QVERIFY(label_pack.isValid());
         QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), label_pack.path()));
-        QVERIFY(mutateResource(
-            label_pack.path(), QStringLiteral("resources/record.json"),
-            [scalar_count](QJsonObject& document) {
-                auto anchors = document.value(QStringLiteral("page_anchors")).toArray();
-                auto anchor = anchors.at(0).toObject();
-                anchor.insert(QStringLiteral("citation_label"),
-                              QString(scalar_count, QChar{0xD55C}));
-                anchors.replace(0, anchor);
-                document.insert(QStringLiteral("page_anchors"), anchors);
-            }));
+        QVERIFY(mutateResource(label_pack.path(), QStringLiteral("resources/record.json"),
+                               [scalar_count](QJsonObject& document) {
+                                   auto anchors =
+                                       document.value(QStringLiteral("page_anchors")).toArray();
+                                   auto anchor = anchors.at(0).toObject();
+                                   anchor.insert(QStringLiteral("citation_label"),
+                                                 QString(scalar_count, QChar{0xD55C}));
+                                   anchors.replace(0, anchor);
+                                   document.insert(QStringLiteral("page_anchors"), anchors);
+                               }));
         QVERIFY(refreshQuestionBankDigest(label_pack.path(), argument_path));
         QVERIFY(refreshQuestionBankDigest(
             label_pack.path(), QStringLiteral("resources/argument-config-counterfactual.json")));
@@ -843,13 +1543,11 @@ void SchemaDispatchTest::validatesGroundedQuestionBanks() {
             return resource.descriptor.kind == appellate::model::ResourceKind::JudgeProfile;
         });
     QVERIFY(forged_profile != forged_focus.resources.end());
-    auto interaction =
-        forged_profile->document.value(QStringLiteral("interaction")).toObject();
+    auto interaction = forged_profile->document.value(QStringLiteral("interaction")).toObject();
     auto focus = interaction.value(QStringLiteral("issue_focus")).toArray();
     for (qsizetype index = 0; index < focus.size(); ++index) {
         auto item = focus.at(index).toObject();
-        item.insert(QStringLiteral("topic_id"),
-                    QStringLiteral("workbench.topic.jurisdiction"));
+        item.insert(QStringLiteral("topic_id"), QStringLiteral("workbench.topic.jurisdiction"));
         focus.replace(index, item);
     }
     interaction.insert(QStringLiteral("issue_focus"), focus);
@@ -1984,8 +2682,8 @@ void SchemaDispatchTest::rejectsInvalidCanonicalAuthorityMetadata() {
     const QString unicode_text(2000, QChar{0xD55C});
     const QString unicode_locator(1024, QChar{0xD55C});
     QVERIFY(appellate::model::isCanonicalAuthorityText(unicode_text.toUtf8().toStdString(), 4096));
-    QVERIFY(appellate::model::isCanonicalAuthorityText(unicode_locator.toUtf8().toStdString(),
-                                                       1024));
+    QVERIFY(
+        appellate::model::isCanonicalAuthorityText(unicode_locator.toUtf8().toStdString(), 1024));
     QTemporaryDir unicode_pack;
     QVERIFY(unicode_pack.isValid());
     QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), unicode_pack.path()));
@@ -2016,19 +2714,16 @@ void SchemaDispatchTest::rejectsInvalidCanonicalAuthorityMetadata() {
 
     QTemporaryDir overlong_locator_pack;
     QVERIFY(overlong_locator_pack.isValid());
-    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")),
-                     overlong_locator_pack.path()));
+    QVERIFY(
+        copyTree(fixture(QStringLiteral("full-resource-pack-v2")), overlong_locator_pack.path()));
     QVERIFY(stripGroundedQuestions(overlong_locator_pack.path()));
-    QVERIFY(mutateResource(overlong_locator_pack.path(), authority_path,
-                           [](QJsonObject& document) {
-                               auto values =
-                                   document.value(QStringLiteral("authorities")).toArray();
-                               auto first = values.at(0).toObject();
-                               first.insert(QStringLiteral("locator"),
-                                            QString(1025, QChar{0xD55C}));
-                               values.replace(0, first);
-                               document.insert(QStringLiteral("authorities"), values);
-                           }));
+    QVERIFY(mutateResource(overlong_locator_pack.path(), authority_path, [](QJsonObject& document) {
+        auto values = document.value(QStringLiteral("authorities")).toArray();
+        auto first = values.at(0).toObject();
+        first.insert(QStringLiteral("locator"), QString(1025, QChar{0xD55C}));
+        values.replace(0, first);
+        document.insert(QStringLiteral("authorities"), values);
+    }));
     const auto overlong_locator = PackReader::readDirectory(overlong_locator_pack.path());
     QVERIFY(!overlong_locator.has_value());
     QCOMPARE(overlong_locator.error().code, ErrorCode::SchemaViolation);
@@ -2181,6 +2876,491 @@ void SchemaDispatchTest::resolvesCanonicalAuthorityAcrossDependencyGraph() {
     const auto duplicate = PackReader::validateResolvedGraph(root, duplicate_closure);
     QVERIFY(!duplicate.has_value());
     QCOMPARE(duplicate.error().code, ErrorCode::CrossReferenceFailure);
+}
+
+void SchemaDispatchTest::validatesExactRealismEvidenceAndReviewExclusion() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), pack.path()));
+    QVERIFY(prepareRealismEvidencePack(pack.path()));
+
+    const auto loaded = PackReader::readDirectory(pack.path());
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+    const auto review = std::ranges::find_if(loaded->resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+    });
+    QVERIFY(review != loaded->resources.end());
+    const auto evidence = review->document.value(QStringLiteral("evidence")).toObject();
+    const auto closure_digest = evidence.value(QStringLiteral("closure_digest")).toString();
+    QCOMPARE(closure_digest.size(), 64);
+    QCOMPARE(evidence.value(QStringLiteral("packs")).toArray().size(), 1);
+    QCOMPARE(evidence.value(QStringLiteral("resources")).toArray().size(), 12);
+    QCOMPARE(evidence.value(QStringLiteral("blobs")).toArray().size(), 1);
+    QCOMPARE(evidence.value(QStringLiteral("traces"))
+                 .toArray()
+                 .first()
+                 .toObject()
+                 .value(QStringLiteral("event_count"))
+                 .toInt(),
+             2);
+
+    const auto first_revision = loaded->revision;
+    QVERIFY(mutateResource(
+        pack.path(), QStringLiteral("resources/realism-review.json"), [](QJsonObject& document) {
+            auto uncertainties = document.value(QStringLiteral("known_uncertainty")).toArray();
+            auto uncertainty = uncertainties.first().toObject();
+            uncertainty.insert(
+                QStringLiteral("summary"),
+                QStringLiteral("The fictional authorities require tracked remediation."));
+            uncertainty.insert(QStringLiteral("blocking"), true);
+            uncertainty.insert(
+                QStringLiteral("remediation_issue"),
+                QStringLiteral("https://github.com/junepark678/appellate-workbench/issues/27"));
+            uncertainties.replace(0, uncertainty);
+            document.insert(QStringLiteral("known_uncertainty"), uncertainties);
+        }));
+    const auto review_only_change = PackReader::readDirectory(pack.path());
+    QVERIFY2(review_only_change.has_value(),
+             review_only_change ? "" : qPrintable(review_only_change.error().message));
+    QVERIFY(review_only_change->revision != first_revision);
+    const auto changed_review =
+        std::ranges::find_if(review_only_change->resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+        });
+    QVERIFY(changed_review != review_only_change->resources.end());
+    QCOMPARE(changed_review->document.value(QStringLiteral("evidence"))
+                 .toObject()
+                 .value(QStringLiteral("closure_digest"))
+                 .toString(),
+             closure_digest);
+}
+
+void SchemaDispatchTest::rejectsTamperedAndIncompleteRealismEvidence() {
+    QTemporaryDir valid;
+    QVERIFY(valid.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), valid.path()));
+    QVERIFY(prepareRealismEvidencePack(valid.path()));
+
+    struct Mutation final {
+        const char* name;
+        std::function<void(QJsonObject&)> apply;
+        ErrorCode expected;
+    };
+    const std::vector<Mutation> mutations{
+        {"closure digest",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             evidence.insert(QStringLiteral("closure_digest"), QString(64, u'0'));
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"resource descriptor",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto resources = evidence.value(QStringLiteral("resources")).toArray();
+             auto resource = resources.first().toObject();
+             resource.insert(QStringLiteral("sha256"), QString(64, u'1'));
+             resources.replace(0, resource);
+             evidence.insert(QStringLiteral("resources"), resources);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"missing resource binding",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto resources = evidence.value(QStringLiteral("resources")).toArray();
+             resources.removeFirst();
+             evidence.insert(QStringLiteral("resources"), resources);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"wrong blob owner",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto blobs = evidence.value(QStringLiteral("blobs")).toArray();
+             auto blob = blobs.first().toObject();
+             blob.insert(QStringLiteral("owner_pack_id"), QStringLiteral("example.wrong.owner"));
+             blobs.replace(0, blob);
+             evidence.insert(QStringLiteral("blobs"), blobs);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"pack topology",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto packs = evidence.value(QStringLiteral("packs")).toArray();
+             auto pack = packs.first().toObject();
+             pack.insert(
+                 QStringLiteral("dependencies"),
+                 QJsonArray{QJsonObject{
+                     {QStringLiteral("pack_id"), QStringLiteral("example.forged.dependency")},
+                     {QStringLiteral("version"), QStringLiteral("1.0.0")},
+                 }});
+             packs.replace(0, pack);
+             evidence.insert(QStringLiteral("packs"), packs);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"journal digest",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto traces = evidence.value(QStringLiteral("traces")).toArray();
+             auto trace = traces.first().toObject();
+             trace.insert(QStringLiteral("journal_sha256"), QString(64, u'2'));
+             traces.replace(0, trace);
+             evidence.insert(QStringLiteral("traces"), traces);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"self-consistent but unreplayable journal",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto traces = evidence.value(QStringLiteral("traces")).toArray();
+             auto trace = traces.first().toObject();
+             auto journal = trace.value(QStringLiteral("journal")).toArray();
+             auto entry = journal.first().toObject();
+             const auto encoded =
+                 entry.value(QStringLiteral("command_base64")).toString().toLatin1();
+             auto command = QJsonDocument::fromJson(QByteArray::fromBase64(encoded)).object();
+             auto payload = command.value(QStringLiteral("payload")).toObject();
+             payload.insert(QStringLiteral("command_id"),
+                            QStringLiteral("example.command.forged-replay"));
+             command.insert(QStringLiteral("payload"), payload);
+             entry.insert(QStringLiteral("command_base64"),
+                          QString::fromLatin1(
+                              QJsonDocument(command).toJson(QJsonDocument::Compact).toBase64()));
+             journal.replace(0, entry);
+             trace.insert(QStringLiteral("journal"), journal);
+             const auto journal_digest = realismJournalDigest(journal);
+             if (journal_digest) {
+                 trace.insert(QStringLiteral("journal_sha256"), *journal_digest);
+             }
+             trace.insert(
+                 QStringLiteral("digest"),
+                 realismTraceDigest(document.value(QStringLiteral("case_id")).toString(), trace));
+             traces.replace(0, trace);
+             evidence.insert(QStringLiteral("traces"), traces);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"unknown executed operation",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto traces = evidence.value(QStringLiteral("traces")).toArray();
+             auto trace = traces.first().toObject();
+             auto operations = trace.value(QStringLiteral("operation_ids")).toArray();
+             operations.replace(0, QStringLiteral("example.operation.not-in-workflow"));
+             trace.insert(QStringLiteral("operation_ids"), operations);
+             trace.insert(
+                 QStringLiteral("digest"),
+                 realismTraceDigest(document.value(QStringLiteral("case_id")).toString(), trace));
+             traces.replace(0, trace);
+             evidence.insert(QStringLiteral("traces"), traces);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"event operation count",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto traces = evidence.value(QStringLiteral("traces")).toArray();
+             auto trace = traces.first().toObject();
+             trace.insert(QStringLiteral("event_count"), 3);
+             trace.insert(QStringLiteral("digest"),
+                          realismTraceDigest(document.value(QStringLiteral("case_id")).toString(),
+                                             trace));
+             traces.replace(0, trace);
+             evidence.insert(QStringLiteral("traces"), traces);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"record check digest",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto checks = evidence.value(QStringLiteral("record_checks")).toArray();
+             auto check = checks.first().toObject();
+             check.insert(QStringLiteral("digest"), QString(64, u'3'));
+             checks.replace(0, check);
+             evidence.insert(QStringLiteral("record_checks"), checks);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"unknown authority",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto authorities = evidence.value(QStringLiteral("authorities")).toArray();
+             auto authority = authorities.first().toObject();
+             authority.insert(QStringLiteral("authority_id"),
+                              QStringLiteral("example.authority.not-in-closure"));
+             authorities.replace(0, authority);
+             evidence.insert(QStringLiteral("authorities"), authorities);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"missing dimension evidence",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto dimensions = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+             dimensions.insert(QStringLiteral("procedural_law"), QJsonArray{});
+             evidence.insert(QStringLiteral("dimension_evidence"), dimensions);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"self review level three",
+         [](QJsonObject& document) {
+             auto dimensions = document.value(QStringLiteral("dimensions")).toObject();
+             dimensions.insert(QStringLiteral("procedural_law"), 3);
+             document.insert(QStringLiteral("dimensions"), dimensions);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"blocking uncertainty without issue",
+         [](QJsonObject& document) {
+             auto uncertainties = document.value(QStringLiteral("known_uncertainty")).toArray();
+             auto uncertainty = uncertainties.first().toObject();
+             uncertainty.insert(QStringLiteral("blocking"), true);
+             uncertainty.remove(QStringLiteral("remediation_issue"));
+             uncertainties.replace(0, uncertainty);
+             document.insert(QStringLiteral("known_uncertainty"), uncertainties);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"typed shape without evidence",
+         [](QJsonObject& document) { document.remove(QStringLiteral("evidence")); },
+         ErrorCode::CrossReferenceFailure},
+        {"all typed evidence stripped",
+         [](QJsonObject& document) {
+             document.remove(QStringLiteral("evidence"));
+             document.remove(QStringLiteral("reviewer"));
+             document.insert(QStringLiteral("known_uncertainty"),
+                             QJsonArray{QStringLiteral("stripped legacy-shaped claim")});
+             auto dimensions = document.value(QStringLiteral("dimensions")).toObject();
+             dimensions.insert(QStringLiteral("procedural_law"), 3);
+             document.insert(QStringLiteral("dimensions"), dimensions);
+         },
+         ErrorCode::CrossReferenceFailure},
+        {"empty trace evidence",
+         [](QJsonObject& document) {
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             evidence.insert(QStringLiteral("traces"), QJsonArray{});
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::SchemaViolation},
+    };
+
+    for (const auto& mutation : mutations) {
+        QTemporaryDir candidate;
+        QVERIFY2(candidate.isValid(), mutation.name);
+        QVERIFY2(copyTree(valid.path(), candidate.path()), mutation.name);
+        QVERIFY2(mutateResource(candidate.path(), QStringLiteral("resources/realism-review.json"),
+                                mutation.apply),
+                 mutation.name);
+        const auto result = PackReader::readDirectory(candidate.path());
+        QVERIFY2(!result.has_value(), mutation.name);
+        QCOMPARE(result.error().code, mutation.expected);
+    }
+
+    QTemporaryDir changed_subject;
+    QVERIFY(changed_subject.isValid());
+    QVERIFY(copyTree(valid.path(), changed_subject.path()));
+    QVERIFY(mutateResource(
+        changed_subject.path(), QStringLiteral("resources/court.json"), [](QJsonObject& court) {
+            court.insert(QStringLiteral("name"),
+                         QStringLiteral("Changed Fictional Court of Appeals"));
+        }));
+    const auto stale_after_subject_change = PackReader::readDirectory(changed_subject.path());
+    QVERIFY(!stale_after_subject_change.has_value());
+    QCOMPARE(stale_after_subject_change.error().code, ErrorCode::CrossReferenceFailure);
+
+    QTemporaryDir underdeclared;
+    QVERIFY(underdeclared.isValid());
+    QVERIFY(copyTree(valid.path(), underdeclared.path()));
+    QVERIFY(mutateManifest(underdeclared.path(), [](QJsonObject& manifest) {
+        QJsonArray retained;
+        for (const auto& value :
+             manifest.value(QStringLiteral("required_capabilities")).toArray()) {
+            if (value.toObject().value(QStringLiteral("id")).toString() !=
+                QStringLiteral("workbench.pack.realism-evidence")) {
+                retained.push_back(value);
+            }
+        }
+        manifest.insert(QStringLiteral("required_capabilities"), retained);
+    }));
+    const auto missing_capability = PackReader::readDirectory(underdeclared.path());
+    QVERIFY(!missing_capability.has_value());
+    QCOMPARE(missing_capability.error().code, ErrorCode::UnsupportedCapability);
+
+    const auto loaded = PackReader::readDirectory(valid.path());
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+    auto forged = *loaded;
+    const auto forged_review = std::ranges::find_if(forged.resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+    });
+    QVERIFY(forged_review != forged.resources.end());
+    forged_review->document.remove(QStringLiteral("evidence"));
+    forged_review->document.remove(QStringLiteral("reviewer"));
+    forged_review->document.insert(
+        QStringLiteral("known_uncertainty"),
+        QJsonArray{QStringLiteral("in-memory evidence stripping must fail closed")});
+    const auto forged_graph = PackReader::validateResolvedGraph(forged, {});
+    QVERIFY(!forged_graph.has_value());
+    QCOMPARE(forged_graph.error().code, ErrorCode::CrossReferenceFailure);
+    const auto forged_runtime = appellate::packs::loadRuntimePack(forged);
+    QVERIFY(!forged_runtime.has_value());
+    QCOMPARE(forged_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::InvalidPack);
+
+    auto forged_pinned_revision = *loaded;
+    const auto forged_pinned_review =
+        std::ranges::find_if(forged_pinned_revision.resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+        });
+    QVERIFY(forged_pinned_review != forged_pinned_revision.resources.end());
+    const auto exact_legacy_review = readObject(
+        fixture(QStringLiteral("full-resource-pack-v2-pre-27-overlay/resources/realism-review.json")));
+    QVERIFY(!exact_legacy_review.isEmpty());
+    forged_pinned_review->document = exact_legacy_review;
+    forged_pinned_revision.revision.digest =
+        "a9c912ad7e23620f9a5c9f5fb81c9edabe1d00010551c4636e8a621b00655bd4";
+    const auto forged_pinned_graph =
+        PackReader::validateResolvedGraph(forged_pinned_revision, {});
+    QVERIFY(!forged_pinned_graph.has_value());
+    QCOMPARE(forged_pinned_graph.error().code, ErrorCode::CrossReferenceFailure);
+    const auto forged_pinned_runtime =
+        appellate::packs::loadRuntimePack(forged_pinned_revision);
+    QVERIFY(!forged_pinned_runtime.has_value());
+    QCOMPARE(forged_pinned_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::InvalidPack);
+}
+
+void SchemaDispatchTest::enforcesDetachedIndependentReviewOwnership() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), pack.path()));
+    QVERIFY(prepareRealismEvidencePack(pack.path()));
+    const auto loaded = PackReader::readDirectory(pack.path());
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error().message));
+
+    auto subject = *loaded;
+    const auto source_review = std::ranges::find_if(subject.resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+    });
+    QVERIFY(source_review != subject.resources.end());
+    const auto detached_resource = *source_review;
+    std::erase_if(subject.resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+    });
+    subject.revision.id.value = "example.subject.detached";
+    subject.revision.version = "2.1.0";
+    subject.revision.digest = std::string(64, 'a');
+
+    appellate::packs::LoadedPack leaf{
+        2,
+        appellate::model::PackRevision{appellate::model::PackId{"example.subject.support"}, "1.0.0",
+                                       std::string(64, 'b')},
+        {appellate::model::RequiredCapability{"workbench.pack.declarative-resources", 2}},
+        {},
+        {},
+        {},
+        {},
+        appellate::packs::PackGraphState::StandaloneValidated,
+    };
+    subject.dependencies = {appellate::model::PackDependency{leaf.revision}};
+    subject.graph_state = appellate::packs::PackGraphState::DeferredReferences;
+
+    const std::array<const appellate::packs::LoadedPack*, 2> subject_closure{&leaf, &subject};
+    const auto independent_document =
+        buildRealismReview(detached_resource, subject, subject_closure, true);
+    QVERIFY(independent_document.has_value());
+    auto independent_resource = detached_resource;
+    independent_resource.document = *independent_document;
+
+    appellate::packs::LoadedPack review_pack{
+        2,
+        appellate::model::PackRevision{appellate::model::PackId{"example.review.detached"}, "1.0.0",
+                                       std::string(64, 'c')},
+        {
+            appellate::model::RequiredCapability{"workbench.pack.declarative-resources", 2},
+            appellate::model::RequiredCapability{"workbench.pack.realism-evidence", 1},
+        },
+        {appellate::model::PackDependency{subject.revision}},
+        {independent_resource},
+        {},
+        {},
+        appellate::packs::PackGraphState::DeferredReferences,
+    };
+    const auto valid = PackReader::validateResolvedGraph(review_pack, subject_closure);
+    QVERIFY2(valid.has_value(), valid ? "" : qPrintable(valid.error().message));
+
+    auto wrong_pin = review_pack;
+    wrong_pin.dependencies.front().revision.digest = std::string(64, 'd');
+    const auto wrong_exact_revision = PackReader::validateResolvedGraph(wrong_pin, subject_closure);
+    QVERIFY(!wrong_exact_revision.has_value());
+    QCOMPARE(wrong_exact_revision.error().code, ErrorCode::CrossReferenceFailure);
+
+    auto missing_pin = review_pack;
+    missing_pin.dependencies.clear();
+    const auto missing_direct_dependency =
+        PackReader::validateResolvedGraph(missing_pin, subject_closure);
+    QVERIFY(!missing_direct_dependency.has_value());
+    QCOMPARE(missing_direct_dependency.error().code, ErrorCode::CrossReferenceFailure);
+
+    auto missing_reviewer = review_pack;
+    auto missing_reviewer_document = missing_reviewer.resources.front().document;
+    missing_reviewer_document.remove(QStringLiteral("reviewer"));
+    missing_reviewer.resources.front().document = missing_reviewer_document;
+    const auto reviewer_metadata_required =
+        PackReader::validateResolvedGraph(missing_reviewer, subject_closure);
+    QVERIFY(!reviewer_metadata_required.has_value());
+    QCOMPARE(reviewer_metadata_required.error().code, ErrorCode::CrossReferenceFailure);
+
+    auto wrong_owner = review_pack;
+    auto wrong_owner_document = wrong_owner.resources.front().document;
+    wrong_owner_document.insert(QStringLiteral("review_state"), QStringLiteral("self_reviewed"));
+    auto dimensions = wrong_owner_document.value(QStringLiteral("dimensions")).toObject();
+    for (const auto* name :
+         {"procedural_law", "deadlines_authority", "record_consistency", "consequences",
+          "oral_argument", "bench_differentiation", "provenance"}) {
+        dimensions.insert(QLatin1StringView(name), 2);
+    }
+    wrong_owner_document.insert(QStringLiteral("dimensions"), dimensions);
+    wrong_owner.resources.front().document = wrong_owner_document;
+    const auto colocated_self_required =
+        PackReader::validateResolvedGraph(wrong_owner, subject_closure);
+    QVERIFY(!colocated_self_required.has_value());
+    QCOMPARE(colocated_self_required.error().code, ErrorCode::CrossReferenceFailure);
+
+    auto non_detached = review_pack;
+    const auto form = std::ranges::find_if(subject.resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::Form;
+    });
+    QVERIFY(form != subject.resources.end());
+    auto extra = *form;
+    extra.descriptor.id = "example.form.detached-extra";
+    extra.document.insert(QStringLiteral("resource_id"),
+                          QStringLiteral("example.form.detached-extra"));
+    non_detached.resources.push_back(std::move(extra));
+    const auto review_resources_only =
+        PackReader::validateResolvedGraph(non_detached, subject_closure);
+    QVERIFY(!review_resources_only.has_value());
+    QCOMPARE(review_resources_only.error().code, ErrorCode::CrossReferenceFailure);
+
+    auto stale_topology = review_pack;
+    auto stale_document = stale_topology.resources.front().document;
+    auto evidence = stale_document.value(QStringLiteral("evidence")).toObject();
+    auto packs = evidence.value(QStringLiteral("packs")).toArray();
+    for (qsizetype index = 0; index < packs.size(); ++index) {
+        auto binding = packs.at(index).toObject();
+        if (binding.value(QStringLiteral("pack_id")).toString() ==
+            QStringLiteral("example.subject.detached")) {
+            binding.insert(QStringLiteral("dependencies"), QJsonArray{});
+            packs.replace(index, binding);
+        }
+    }
+    evidence.insert(QStringLiteral("packs"), packs);
+    stale_document.insert(QStringLiteral("evidence"), evidence);
+    stale_topology.resources.front().document = stale_document;
+    const auto topology_mismatch =
+        PackReader::validateResolvedGraph(stale_topology, subject_closure);
+    QVERIFY(!topology_mismatch.has_value());
+    QCOMPARE(topology_mismatch.error().code, ErrorCode::CrossReferenceFailure);
 }
 
 void SchemaDispatchTest::rejectsUnsupportedKindVersions() {

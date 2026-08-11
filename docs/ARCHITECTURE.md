@@ -13,11 +13,16 @@ The dependency direction is intentionally narrow:
 
 ```text
 desktop-ui / cli -> packs / engine / storage
-packs            -> model + Qt Core / Sql + libarchive
+packs            -> model + engine + storage + Qt Core / Sql + libarchive
 engine           -> model
 storage          -> model + Qt Core / Sql
 model            -> standard C++ only
 ```
+
+The packs target uses engine and storage only at its validation boundary: schema-v2 realism
+evidence contains canonical command/event bytes that must decode and replay against the exact
+resolved workflow before a pack is accepted. Runtime simulation still flows from the application
+through the engine and storage layers; neither engine nor storage depends on packs.
 
 Targets are added only with a real vertical slice. Optional encrypted object replication will
 eventually live in a separate `sync` target; it is not part of persistence or simulation

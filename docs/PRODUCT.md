@@ -46,6 +46,11 @@ Every shipped case must score at least 2 in every category. One gold case in eac
 profile must score 3. A material legal error, impossible state, invented off-record fact, or
 unresolved citation blocks release regardless of averages.
 
+For schema-version-2 content, every nonzero score is machine-bound to the exact case dependency
+closure, resource/blob descriptors, replay journal evidence, record checks, and authority IDs.
+Self review cannot establish level 3; that requires a detached review pack pinned to the exact
+reviewed revision with attributable qualified reviewer metadata.
+
 ## Bench profiles
 
 The simulation separates legal state from presentation:

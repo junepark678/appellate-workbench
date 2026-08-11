@@ -4,7 +4,10 @@ qt_add_library(
     src/pack_catalog.cpp
     src/capability_registry.cpp
     src/pack_reader.cpp
+    src/realism_evidence.cpp
+    src/realism_evidence.hpp
     src/runtime_pack.cpp
+    src/runtime_pack_internal.hpp
     src/schema_validator.cpp
     schemas.qrc
     include/appellate/packs/error.hpp
@@ -30,6 +33,8 @@ target_link_libraries(
     PRIVATE
         appellate::project_warnings
         appellate::project_sanitizers
+        appellate::engine
+        appellate::storage
         LibArchive::LibArchive
 )
 target_compile_features(appellate_packs PUBLIC cxx_std_26)

@@ -28,4 +28,13 @@ designation and does not satisfy the level-3 gate.
 For each nonzero score, the case review file must link the exact authority version, automated
 trace, record-consistency report, reviewer identity or status, review date, uncertainty notes,
 and remedial issue for any exception. Self-authored content cannot claim level 3 until an
-independent qualified reviewer signs it.
+independent qualified reviewer records attributable review metadata. That metadata is a declared
+social-trust assertion, not a cryptographic signature or proof of identity. New schema-version-2
+candidates use the capability-gated exact evidence contract in `docs/spec/PACKS.md`; changed
+descriptors, replay journal data, record-check data, authority IDs, pack metadata, or dependency
+topology invalidate that evidence.
+
+The checked-in Asterglen `0.1.0` pack predates the schema-version-2 contract. Its bytes
+and revision digest remain frozen and its author review remains honestly level 2. A future level-3
+claim must be a detached review pack that pins that exact reviewed revision and supplies qualified
+independent reviewer metadata; the original pack is not rewritten to manufacture level 3.

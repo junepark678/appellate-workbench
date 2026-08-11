@@ -61,7 +61,7 @@ void PackCliTest::completePackLifecycle() {
     const auto templated = runPackCli({QStringLiteral("template"), pack_directory});
     requireSuccess(templated, QStringLiteral("template"));
     const auto template_response = responseObject(templated.standard_output);
-    QCOMPARE(template_response.value(QStringLiteral("resource_count")).toInt(), 13);
+    QCOMPARE(template_response.value(QStringLiteral("resource_count")).toInt(), 12);
     QCOMPARE(template_response.value(QStringLiteral("blob_count")).toInt(), 1);
     QVERIFY(QFileInfo::exists(QDir(pack_directory).filePath(QStringLiteral("manifest.json"))));
     QVERIFY(QFileInfo::exists(

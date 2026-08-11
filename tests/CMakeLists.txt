@@ -23,6 +23,8 @@ target_link_libraries(
     tst_schema_dispatch
     PRIVATE
         appellate::packs
+        appellate::engine
+        appellate::storage
         appellate::project_warnings
         appellate::project_sanitizers
         Qt6::Test
@@ -320,13 +322,16 @@ target_link_libraries(
     PRIVATE
         appellate::packs
         appellate::engine
+        appellate::storage
         appellate::project_warnings
         appellate::project_sanitizers
         Qt6::Test
 )
 target_compile_definitions(
     tst_gold_case_trace
-    PRIVATE APPELLATE_GOLD_PACK="${PROJECT_SOURCE_DIR}/content/ca4-rule54b/pack"
+    PRIVATE
+        APPELLATE_GOLD_PACK="${PROJECT_SOURCE_DIR}/content/ca4-rule54b/pack"
+        APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
 )
 target_compile_features(tst_gold_case_trace PRIVATE cxx_std_26)
 add_test(NAME gold_case_trace COMMAND tst_gold_case_trace)

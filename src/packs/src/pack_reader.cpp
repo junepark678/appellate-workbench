@@ -3,6 +3,7 @@
 #include "appellate/model/oral_argument.hpp"
 #include "appellate/packs/capability_registry.hpp"
 #include "appellate/packs/schema_validator.hpp"
+#include "realism_evidence.hpp"
 
 #include <QByteArrayView>
 #include <QCryptographicHash>
@@ -994,6 +995,17 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
     return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
         return resource.descriptor.kind == model::ResourceKind::ArgumentConfig &&
                resource.document.contains(QStringLiteral("grounded_question_bank"));
+    });
+}
+
+[[nodiscard]] bool usesRealismEvidence(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::RealismReview &&
+               (resource.document.contains(QStringLiteral("evidence")) ||
+                resource.document.contains(QStringLiteral("reviewer")) ||
+                std::ranges::any_of(
+                    resource.document.value(QStringLiteral("known_uncertainty")).toArray(),
+                    [](const QJsonValue& uncertainty) { return uncertainty.isObject(); }));
     });
 }
 
@@ -2650,7 +2662,8 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
 
     const auto capability_coverage =
         CapabilityRegistry::validateCoverage(static_cast<std::uint32_t>(manifest_schema_version),
-                                             capabilities, resource_kinds, false, false, false);
+                                             capabilities, resource_kinds, false, false, false,
+                                             false);
     if (!capability_coverage) {
         return std::unexpected(capability_coverage.error());
     }
@@ -2795,7 +2808,7 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     const auto content_capability_coverage = CapabilityRegistry::validateCoverage(
         static_cast<std::uint32_t>(manifest_schema_version), capabilities, resource_kinds,
         usesWorkflowPreconditions(resources), usesStructuredDisposition(resources),
-        usesGroundedQuestions(resources));
+        usesGroundedQuestions(resources), usesRealismEvidence(resources));
     if (!content_capability_coverage) {
         return std::unexpected(content_capability_coverage.error());
     }
@@ -2812,7 +2825,7 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         graph_state = PackGraphState::StandaloneValidated;
     }
 
-    return LoadedPack{
+    LoadedPack loaded{
         static_cast<std::uint32_t>(manifest_schema_version),
         model::PackRevision{model::PackId{pack_id.toStdString()}, version.toStdString(),
                             canonicalDigest(manifest_schema_version, pack_id, version, capabilities,
@@ -2824,6 +2837,14 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         std::move(judges),
         graph_state,
     };
+    if (graph_state == PackGraphState::StandaloneValidated) {
+        const auto evidence_result =
+            validateRealismEvidence(loaded, std::span<const LoadedPack* const>{});
+        if (!evidence_result) {
+            return std::unexpected(evidence_result.error());
+        }
+    }
+    return loaded;
 }
 
 std::expected<void, Error> PackReader::validateResolvedGraph(
@@ -2852,7 +2873,7 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
         return CapabilityRegistry::validateCoverage(
             pack.manifest_schema_version, pack.required_capabilities, resource_kinds,
             usesWorkflowPreconditions(pack.resources), usesStructuredDisposition(pack.resources),
-            usesGroundedQuestions(pack.resources));
+            usesGroundedQuestions(pack.resources), usesRealismEvidence(pack.resources));
     };
     const auto root_capabilities = validate_capabilities(root);
     if (!root_capabilities) {
@@ -2919,7 +2940,11 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
         append_pack(*dependency, pack_index++);
     }
     append_pack(root, pack_index);
-    return validateResourceGraph(resources, blobs);
+    const auto graph_result = validateResourceGraph(resources, blobs);
+    if (!graph_result) {
+        return std::unexpected(graph_result.error());
+    }
+    return validateRealismEvidence(root, dependencies_dependency_first);
 }
 
 } // namespace appellate::packs

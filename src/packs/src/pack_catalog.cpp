@@ -1288,9 +1288,19 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
                 return resource.descriptor.kind == model::ResourceKind::ArgumentConfig &&
                        resource.document.contains(QStringLiteral("grounded_question_bank"));
             });
+        const auto uses_realism_evidence =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::RealismReview &&
+                       (resource.document.contains(QStringLiteral("evidence")) ||
+                        resource.document.contains(QStringLiteral("reviewer")) ||
+                        std::ranges::any_of(
+                            resource.document.value(QStringLiteral("known_uncertainty")).toArray(),
+                            [](const QJsonValue& uncertainty) { return uncertainty.isObject(); }));
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds,
-            uses_workflow_preconditions, uses_structured_disposition, uses_grounded_questions);
+            uses_workflow_preconditions, uses_structured_disposition, uses_grounded_questions,
+            uses_realism_evidence);
         if (!capabilities) {
             return fail(CatalogErrorCode::UnsupportedCapability,
                         QStringLiteral("Pack %1 requires an unsupported capability: %2")

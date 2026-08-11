@@ -58,6 +58,81 @@ kind, normalized path, size, media type, and digest fields.
 | `record` | Docket entries, immutable document digests, and stable page anchors | Case and asset paths |
 | `workflow` | Typed stages, roles, routes, deadlines, calendar, and authority bases | Filing catalog and authority IDs |
 
+### Exact realism evidence
+
+Every new schema-version-2 realism review uses the fail-closed shape owned by
+`workbench.pack.realism-evidence` version 1, declares that capability, and includes the complete
+evidence object. Removing the evidence, reviewer shape, or typed uncertainties cannot downgrade a
+review into legacy semantics. Version-1 bytes and digest behavior are unchanged. The reader has a
+narrow exact-revision allowlist for already pinned schema-version-2 compatibility fixtures; the
+exception does not extend to a repacked or newly authored revision.
+
+An evidence-bearing review binds one case and contains:
+
+- every pack record in the case-owning pack's exact transitive dependency closure;
+- every non-review resource descriptor and every blob descriptor in that closure;
+- one or more executed workflow traces, record checks, and exact authority IDs; and
+- a unique evidence ID for each resource, blob, trace, record check, and authority binding, plus
+  evidence-ID references for every realism dimension.
+
+A nonzero dimension has at least one resolving evidence reference; a zero dimension has none.
+Evidence IDs are unique across all five binding categories. Trace IDs, record-check IDs, and
+bound authority IDs are also unique. Typed uncertainties have stable IDs and explicit blocking
+state. A blocking item must carry an HTTPS `remediation_issue`; prose alone does not clear the
+gate.
+
+The case-evidence closure deliberately excludes every `realism_review` resource at every depth,
+so changing only review prose or reviewer metadata cannot create a hash self-reference. It still
+binds each included pack's ID, version, manifest schema version, sorted required capability
+ID/version pairs, and sorted direct dependency ID/version pairs. It does not bind a pack's
+ordinary revision digest because that digest includes the excluded review bytes. After the pack
+records, it binds exact resource tuples
+`(evidence ID, owner pack ID/version, resource ID/kind/schema, path, SHA-256)` and blob tuples
+`(evidence ID, owner pack ID/version, path, media type, byte size, SHA-256)`. Resource bindings
+sort by the owner/descriptor fields shown and then evidence ID; blob bindings sort by their
+owner/descriptor fields and then evidence ID. Each framed binding writes its evidence ID first,
+followed by those descriptor fields.
+
+All realism digests use SHA-256. Strings and byte strings are framed by an unsigned 64-bit
+big-endian byte length followed by the exact UTF-8/byte payload; list counts use the same unsigned
+64-bit representation. The closure domain is
+`appellate-workbench-case-evidence-closure-v1`, followed by the case ID, sorted pack records,
+sorted resource tuples, and sorted blob tuples. Resource/blob evidence IDs are part of this
+digest, while the enclosing review resource descriptor is not.
+
+An executed trace declares `engine_revision`, `command_count`, `event_count`, the SHA-256 of its
+canonical journal, the immutable replay journal itself, ordered event `operation_ids`, and
+`terminal_stage_id`. Each journal entry stores the canonical workflow-command bytes and its
+canonical workflow-event bytes as base64. The loader decodes those bytes, rejects noncanonical
+encodings, replays the command/event batches against the exact reviewed case and workflow, and
+derives the counts, operation list, journal digest, and terminal stage from that replay. Its
+evidence digest uses domain `appellate-workbench-executed-trace-evidence-v1` and binds, in order,
+the case ID, evidence ID, trace ID, workflow ID, engine revision, both counts, journal SHA-256,
+ordered operation IDs, and terminal stage.
+
+The journal SHA-256 itself uses domain
+`appellate-workbench-executed-workflow-journal-v1`, then the command count, then for each journal
+entry the canonical `encodeWorkflowCommand` bytes, that entry's event count, and each canonical
+`encodeWorkflowEvent` byte sequence in order. The gold replay fixture demonstrates the same
+artifact boundary in `tests/fixtures/realism-evidence/gold-canonical-trace.json` and
+`tests/integration/tst_gold_case_trace.cpp`.
+
+Record-check digests use domain `appellate-workbench-record-check-evidence-v1` and bind the case
+ID, evidence ID, check ID, record ID, check kind, and exact record descriptor. An
+`asset_resolution` check additionally binds the ordered record-entry asset set as sorted exact
+blob descriptors; a `page_anchor_resolution` check binds the record descriptor containing the
+anchors. Authority evidence IDs must resolve to exact authority-set entries in the subject
+closure.
+
+Self and pending review evidence must live in the same exact pack as the case and cannot assign
+score 3. An `independently_reviewed` score may live only in a detached, metadata-complete review
+pack containing review resources and no blobs. That pack must have a direct dependency pin on
+the case owner's exact ID, version, and revision digest. Its closure digest still covers the
+reviewed case pack and that pack's transitive dependencies, not unrelated review-pack content.
+Reviewer identity, qualification, affiliation, reference, and date are declared attributable
+metadata; this version of the contract does not provide a cryptographic reviewer signature or
+identity proof.
+
 ### Canonical authority provenance
 
 Schema version 1 remains frozen: authority references keep their original citation, source date,
@@ -245,7 +320,9 @@ compatibility with frozen revisions. Every schema-version-2 pack must declare
 `workbench.pack.declarative-resources` version 2. A version-2 pack containing a `judge_profile`
 must additionally declare `workbench.pack.judge-profile` version 2 and
 `workbench.pack.voice-style` version 2. Structured dispositions and workflow preconditions require
-their version-1 feature capabilities described above. An empty list, an unrelated-only
+their version-1 feature capabilities described above. Authored grounded questions and exact
+realism evidence likewise require `workbench.pack.grounded-questions` version 1 and
+`workbench.pack.realism-evidence` version 1, respectively. An empty list, an unrelated-only
 declaration, or a declaration missing any required capability fails at pack read,
 resolved-catalog load, and independent runtime projection. Unknown IDs, unsupported versions,
 and capabilities declared for the wrong manifest generation fail before runtime projection.

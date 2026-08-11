@@ -38,7 +38,7 @@ class CapabilityRegistry final {
                      std::span<const model::RequiredCapability> required_capabilities,
                      std::span<const model::ResourceKind> resource_kinds,
                      bool uses_workflow_preconditions, bool uses_structured_disposition,
-                     bool uses_grounded_questions);
+                     bool uses_grounded_questions, bool uses_realism_evidence);
 };
 
 } // namespace appellate::packs

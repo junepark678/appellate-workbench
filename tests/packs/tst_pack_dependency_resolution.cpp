@@ -883,7 +883,6 @@ void PackDependencyResolutionTest::
         QStringLiteral("resources/form.json"),
         QStringLiteral("resources/judge-profile.json"),
         QStringLiteral("resources/procedure-profile.json"),
-        QStringLiteral("resources/realism-review.json"),
         QStringLiteral("resources/record.json"),
         QStringLiteral("resources/workflow.json"),
     };
@@ -895,7 +894,7 @@ void PackDependencyResolutionTest::
     const auto root = buildPartitionArchive(
         temporary.path(), QStringLiteral("root"), QStringLiteral("test.thin.root"),
         {QStringLiteral("resources/argument-config.json"), QStringLiteral("resources/case.json"),
-         QStringLiteral("resources/realism-review.json"), QStringLiteral("resources/record.json")},
+         QStringLiteral("resources/record.json")},
         {*left, *right, *hidden_library}, true);
     if (!root) {
         QFAIL(qPrintable(root.error()));
@@ -1116,7 +1115,7 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
          QStringLiteral("resources/argument-config.json"),
          QStringLiteral("resources/bench-configuration.json"),
          QStringLiteral("resources/case.json"), QStringLiteral("resources/judge-profile.json"),
-         QStringLiteral("resources/realism-review.json"), QStringLiteral("resources/record.json")},
+         QStringLiteral("resources/record.json")},
         {*procedure}, true, {}, 2);
     QVERIFY2(root.has_value(), root ? "" : qPrintable(root.error()));
 

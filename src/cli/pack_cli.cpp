@@ -333,7 +333,7 @@ constexpr auto output_schema_version = 1;
     });
 }
 
-constexpr std::array<const char*, 15> template_members{
+constexpr std::array<const char*, 14> template_members{
     "manifest.json",
     "objects/final-order.pdf",
     "resources/argument-config.json",
@@ -346,7 +346,6 @@ constexpr std::array<const char*, 15> template_members{
     "resources/form.json",
     "resources/judge-profile.json",
     "resources/procedure-profile.json",
-    "resources/realism-review.json",
     "resources/record.json",
     "resources/workflow.json",
 };

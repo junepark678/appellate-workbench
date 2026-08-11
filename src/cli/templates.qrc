@@ -12,7 +12,6 @@
         <file alias="resources/form.json">../../tests/fixtures/full-resource-pack-v2/resources/form.json</file>
         <file alias="resources/judge-profile.json">../../tests/fixtures/full-resource-pack-v2/resources/judge-profile.json</file>
         <file alias="resources/procedure-profile.json">../../tests/fixtures/full-resource-pack-v2/resources/procedure-profile.json</file>
-        <file alias="resources/realism-review.json">../../tests/fixtures/full-resource-pack-v2/resources/realism-review.json</file>
         <file alias="resources/record.json">../../tests/fixtures/full-resource-pack-v2/resources/record.json</file>
         <file alias="resources/workflow.json">../../tests/fixtures/full-resource-pack-v2/resources/workflow.json</file>
     </qresource>

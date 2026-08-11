@@ -113,13 +113,6 @@
       "sha256": "c4b127feffcc4ab508330ec3f778e4419d38361964380998cd998077df2de832"
     },
     {
-      "id": "example.review.fictional",
-      "kind": "realism_review",
-      "schema_version": 2,
-      "path": "resources/realism-review.json",
-      "sha256": "5e1afa61a9a6f1a6cd01e76615cbe6d0ec5794bc7b79859deae4aa80b38532dc"
-    },
-    {
       "id": "example.record.fictional",
       "kind": "record",
       "schema_version": 2,
