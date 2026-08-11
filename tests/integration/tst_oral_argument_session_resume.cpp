@@ -66,6 +66,7 @@ class OralArgumentSessionResumeTest final : public QObject {
     void rejectsPersistedTampering_data();
     void rejectsPersistedTampering();
     void rejectsChangedOperativeProfileGroundingConfigurationAndRevisionPins();
+    void rawAndCanonicalTestPinsRejectCalendarVersionBeforeMutation();
     void profileIdentityCannotAlterPinnedOutcome();
     void canonicalRowsAndDefinitionSurviveExactReopen();
     void canonicalReopenRejectsDowngradeAndSwappedGrounding_data();
@@ -686,6 +687,72 @@ void OralArgumentSessionResumeTest::
     const auto pin_result = reopenController(database_path, definitions(), std::move(changed_pins));
     QVERIFY(!pin_result.has_value());
     QCOMPARE(pin_result.error().code, app::OralArgumentSessionErrorCode::CorruptSession);
+}
+
+void OralArgumentSessionResumeTest::rawAndCanonicalTestPinsRejectCalendarVersionBeforeMutation() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto database_path = temporary.filePath(QStringLiteral("sessions.sqlite"));
+    auto calendar_pins = pins();
+    calendar_pins.front().version = QStringLiteral("2000.02.29");
+
+    auto supplied = definitions();
+    auto store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto rejected_legacy_create = app::OralArgumentSessionController::create(
+        QString::fromLatin1(session_id), std::move(supplied.configuration),
+        std::move(supplied.bench), std::move(supplied.grounding), std::move(*store),
+        QString::fromLatin1(engine_revision), QStringLiteral("2026-08-11T09:00:00Z"),
+        calendar_pins);
+    QVERIFY(!rejected_legacy_create.has_value());
+    QCOMPARE(rejected_legacy_create.error().code,
+             app::OralArgumentSessionErrorCode::InvalidConfiguration);
+
+    store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto missing_legacy = (*store)->loadSession(QString::fromLatin1(session_id));
+    QVERIFY(!missing_legacy.has_value());
+    QCOMPARE(missing_legacy.error().code, storage::StoreErrorCode::NotFound);
+    store->reset();
+
+    store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto rejected_canonical_create =
+        app::OralArgumentSessionControllerTestAccess::createCanonical(
+            QString::fromLatin1(canonical_session_id), canonicalDefinition(), std::move(*store),
+            QString::fromLatin1(canonical_engine_revision), QStringLiteral("2026-08-11T10:00:00Z"),
+            calendar_pins);
+    QVERIFY(!rejected_canonical_create.has_value());
+    QCOMPARE(rejected_canonical_create.error().code,
+             app::OralArgumentSessionErrorCode::InvalidConfiguration);
+
+    store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto missing_canonical = (*store)->loadSession(QString::fromLatin1(canonical_session_id));
+    QVERIFY(!missing_canonical.has_value());
+    QCOMPARE(missing_canonical.error().code, storage::StoreErrorCode::NotFound);
+    store->reset();
+
+    supplied = definitions();
+    store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto rejected_legacy_reopen = app::OralArgumentSessionController::reopen(
+        QString::fromLatin1(session_id), std::move(supplied.configuration),
+        std::move(supplied.bench), std::move(supplied.grounding), std::move(*store),
+        QString::fromLatin1(engine_revision), calendar_pins);
+    QVERIFY(!rejected_legacy_reopen.has_value());
+    QCOMPARE(rejected_legacy_reopen.error().code,
+             app::OralArgumentSessionErrorCode::InvalidConfiguration);
+
+    store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto rejected_canonical_reopen =
+        app::OralArgumentSessionControllerTestAccess::reopenCanonical(
+            QString::fromLatin1(canonical_session_id), canonicalDefinition(), std::move(*store),
+            QString::fromLatin1(canonical_engine_revision), calendar_pins);
+    QVERIFY(!rejected_canonical_reopen.has_value());
+    QCOMPARE(rejected_canonical_reopen.error().code,
+             app::OralArgumentSessionErrorCode::InvalidConfiguration);
 }
 
 void OralArgumentSessionResumeTest::profileIdentityCannotAlterPinnedOutcome() {

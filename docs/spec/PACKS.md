@@ -36,10 +36,17 @@ The pack reader deliberately does not implement a partial PDF parser. Checking a
 declared `page_count` against the parsed document belongs at the QtPdf runtime record-workspace
 boundary; fixture integration tests compare those values so authored packs remain consistent.
 
-IDs are globally namespaced lowercase tokens. Versions follow SemVer. Digests are lowercase
-SHA-256 hex. Manifest content order does not confer behavior; canonical digest computation
-sorts entries by content ID and blobs by descriptor fields, then hashes length-framed identity,
-kind, normalized path, size, media type, and digest fields.
+IDs are globally namespaced lowercase tokens. Schema-version-1 pack and dependency versions
+follow strict SemVer exactly as originally shipped. Schema version 2 accepts either that same
+strict SemVer or an exact Gregorian `YYYY.MM.DD` date with a four-digit year from 2000 through
+9999 and two-digit month and day; calendar versions have no prerelease or build suffix. Because
+the alternatives are a union, a string in their lexical overlap is valid if it is valid under
+either contract. Gregorian validation applies only to the exact zero-padded calendar shape:
+`2026.12.11` and `1999.12.31` remain valid SemVer, and even the impossible date `2026.2.31`
+remains valid SemVer. Version text is never normalized. Digests are lowercase SHA-256 hex.
+Manifest content order does not confer behavior; canonical digest computation sorts entries by
+content ID and blobs by descriptor fields, then hashes length-framed identity, kind, normalized
+path, size, media type, and digest fields.
 
 ## Version-1 resource kinds
 

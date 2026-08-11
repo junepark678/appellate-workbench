@@ -3,6 +3,7 @@
 #include "resolved_session_pins.hpp"
 
 #include "appellate/engine/oral_argument_engine.hpp"
+#include "appellate/packs/pack_version.hpp"
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/storage/oral_argument_codec.hpp"
 
@@ -66,12 +67,6 @@ constexpr std::size_t maximum_canonical_events = 64;
     return value.size() >= 3 && value.size() <= 128 && pattern.match(value).hasMatch();
 }
 
-[[nodiscard]] bool validSemanticVersion(const QString& value) {
-    static const QRegularExpression pattern(QStringLiteral(
-        R"(^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$)"));
-    return value.size() >= 5 && value.size() <= 128 && pattern.match(value).hasMatch();
-}
-
 [[nodiscard]] bool validCanonicalUtc(const QString& value) {
     if (value.size() != 20 || !value.endsWith(u'Z')) {
         return false;
@@ -82,14 +77,16 @@ constexpr std::size_t maximum_canonical_events = 64;
 }
 
 [[nodiscard]] auto normalizePins(std::vector<storage::RevisionPin> pins,
-                                 OralArgumentSessionErrorCode error_code)
+                                 OralArgumentSessionErrorCode error_code,
+                                 std::uint32_t manifest_schema_version)
     -> std::expected<std::vector<storage::RevisionPin>, OralArgumentSessionError> {
     if (pins.empty() || pins.size() > 128) {
         return fail(error_code,
                     QStringLiteral("A bounded nonempty pack-revision pin set is required"));
     }
     for (const auto& pin : pins) {
-        if (!validPackId(pin.pack_id) || !validSemanticVersion(pin.version) ||
+        if (!validPackId(pin.pack_id) ||
+            !packs::isValidPackVersion(pin.version, manifest_schema_version) ||
             !validDigest(pin.digest)) {
             return fail(error_code, QStringLiteral("An oral-argument revision pin is invalid"));
         }
@@ -511,7 +508,7 @@ OralArgumentSessionController::create(QString session_id,
                     QStringLiteral("Session store and canonical creation time are required"));
     }
     const auto normalized_pins =
-        normalizePins(std::move(pins), OralArgumentSessionErrorCode::InvalidConfiguration);
+        normalizePins(std::move(pins), OralArgumentSessionErrorCode::InvalidConfiguration, 1);
     if (!normalized_pins) {
         return std::unexpected(normalized_pins.error());
     }
@@ -600,12 +597,24 @@ OralArgumentSessionController::createCanonicalForTesting(
     QString session_id, model::CanonicalOralArgumentDefinition definition,
     std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
     QString created_at_utc, std::vector<storage::RevisionPin> pins) {
+    return createCanonicalBound(std::move(session_id), std::move(definition),
+                                std::move(session_store), std::move(engine_revision),
+                                std::move(created_at_utc), std::move(pins), 1);
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::createCanonicalBound(
+    QString session_id, model::CanonicalOralArgumentDefinition definition,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    QString created_at_utc, std::vector<storage::RevisionPin> pins,
+    std::uint32_t manifest_schema_version) {
     if (!session_store || !validCanonicalUtc(created_at_utc)) {
         return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
                     QStringLiteral("Session store and canonical creation time are required"));
     }
     const auto normalized_pins =
-        normalizePins(std::move(pins), OralArgumentSessionErrorCode::InvalidConfiguration);
+        normalizePins(std::move(pins), OralArgumentSessionErrorCode::InvalidConfiguration,
+                      manifest_schema_version);
     if (!normalized_pins) return std::unexpected(normalized_pins.error());
     const auto initial = validateCanonicalDefinitions(
         session_id, engine_revision, definition,
@@ -679,9 +688,10 @@ OralArgumentSessionController::create(
     const auto definition = deriveCanonicalDefinition(case_id, argument_configuration_id,
                                                       legal_state_digest, resolved_pack);
     if (!definition) return std::unexpected(definition.error());
-    return createCanonicalForTesting(
-        std::move(session_id), *definition, std::move(session_store), std::move(engine_revision),
-        std::move(created_at_utc), revisionPinsForSession(resolved_pack));
+    return createCanonicalBound(std::move(session_id), *definition, std::move(session_store),
+                                std::move(engine_revision), std::move(created_at_utc),
+                                revisionPinsForSession(resolved_pack),
+                                resolved_pack.root().manifest_schema_version);
 }
 
 std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
@@ -696,8 +706,8 @@ OralArgumentSessionController::reopen(QString session_id,
         return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
                     QStringLiteral("Session store is required"));
     }
-    const auto normalized_pins =
-        normalizePins(std::move(expected_pins), OralArgumentSessionErrorCode::InvalidConfiguration);
+    const auto normalized_pins = normalizePins(
+        std::move(expected_pins), OralArgumentSessionErrorCode::InvalidConfiguration, 1);
     if (!normalized_pins) {
         return std::unexpected(normalized_pins.error());
     }
@@ -744,12 +754,23 @@ OralArgumentSessionController::reopenCanonicalForTesting(
     QString session_id, model::CanonicalOralArgumentDefinition definition,
     std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
     std::vector<storage::RevisionPin> expected_pins) {
+    return reopenCanonicalBound(std::move(session_id), std::move(definition),
+                                std::move(session_store), std::move(expected_engine_revision),
+                                std::move(expected_pins), 1);
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::reopenCanonicalBound(
+    QString session_id, model::CanonicalOralArgumentDefinition definition,
+    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+    std::vector<storage::RevisionPin> expected_pins, std::uint32_t manifest_schema_version) {
     if (!session_store) {
         return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
                     QStringLiteral("Session store is required"));
     }
-    const auto normalized_pins = normalizePins(std::move(expected_pins),
-                                               OralArgumentSessionErrorCode::InvalidConfiguration);
+    const auto normalized_pins =
+        normalizePins(std::move(expected_pins), OralArgumentSessionErrorCode::InvalidConfiguration,
+                      manifest_schema_version);
     if (!normalized_pins) return std::unexpected(normalized_pins.error());
     const auto initial = validateCanonicalDefinitions(
         session_id, expected_engine_revision, definition,
@@ -777,9 +798,10 @@ OralArgumentSessionController::reopen(
     const auto definition = deriveCanonicalDefinition(case_id, argument_configuration_id,
                                                       legal_state_digest, resolved_pack);
     if (!definition) return std::unexpected(definition.error());
-    return reopenCanonicalForTesting(std::move(session_id), *definition, std::move(session_store),
-                                     std::move(expected_engine_revision),
-                                     revisionPinsForSession(resolved_pack));
+    return reopenCanonicalBound(std::move(session_id), *definition, std::move(session_store),
+                                std::move(expected_engine_revision),
+                                revisionPinsForSession(resolved_pack),
+                                resolved_pack.root().manifest_schema_version);
 }
 
 std::expected<OralArgumentSubmissionResult, OralArgumentSessionError>

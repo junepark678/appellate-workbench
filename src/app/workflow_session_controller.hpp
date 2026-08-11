@@ -11,6 +11,7 @@
 #include <QByteArrayView>
 #include <QString>
 
+#include <cstdint>
 #include <expected>
 #include <memory>
 #include <optional>
@@ -118,7 +119,8 @@ class WorkflowSessionController final {
                 model::WorkflowState initial_state, storage::AssetStore asset_store,
                 std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
                 QString created_at_utc, std::vector<storage::RevisionPin> pins,
-                storage::SessionAuthorityContract authority_contract)
+                storage::SessionAuthorityContract authority_contract,
+                std::uint32_t manifest_schema_version)
         -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
 
     [[nodiscard]] static auto
@@ -126,7 +128,8 @@ class WorkflowSessionController final {
                 model::WorkflowState initial_state, storage::AssetStore asset_store,
                 std::unique_ptr<storage::SessionStore> session_store,
                 QString expected_engine_revision, std::vector<storage::RevisionPin> expected_pins,
-                storage::SessionAuthorityContract authority_contract)
+                storage::SessionAuthorityContract authority_contract,
+                std::uint32_t manifest_schema_version)
         -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
 
     WorkflowSessionController(model::WorkflowDefinition workflow,

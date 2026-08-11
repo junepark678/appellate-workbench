@@ -365,7 +365,8 @@ void addFrame(QCryptographicHash& hash, const std::string& value) {
     const QString& root, const QString& stem, const QString& pack_id,
     const std::vector<QString>& resource_paths, const std::vector<PackRevision>& dependencies = {},
     bool include_blob = false, const QByteArray& replacement_prefix = {}, int schema_version = 1,
-    bool omit_grounded_questions_capability = false) -> std::expected<PackRevision, QString> {
+    bool omit_grounded_questions_capability = false,
+    const QString& version = QStringLiteral("1.0.0")) -> std::expected<PackRevision, QString> {
     const auto source = QDir(root).filePath(QStringLiteral("sources/") + stem);
     const auto archive =
         QDir(root).filePath(QStringLiteral("archives/") + stem + QStringLiteral(".awpack"));
@@ -427,7 +428,7 @@ void addFrame(QCryptographicHash& hash, const std::string& value) {
         QJsonDocument(QJsonObject{
                           {QStringLiteral("schema_version"), schema_version},
                           {QStringLiteral("pack_id"), pack_id},
-                          {QStringLiteral("version"), QStringLiteral("1.0.0")},
+                          {QStringLiteral("version"), version},
                           {QStringLiteral("required_capabilities"), required_capabilities},
                           {QStringLiteral("dependencies"), dependency_values},
                           {QStringLiteral("blobs"), blobs},
@@ -1249,14 +1250,15 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
     QVERIFY(temporary.isValid());
     const auto authorities = buildPartitionArchive(
         temporary.path(), QStringLiteral("v2-authorities"), QStringLiteral("test.v2.authorities"),
-        {QStringLiteral("resources/authority-set.json")}, {}, false, {}, 2);
+        {QStringLiteral("resources/authority-set.json")}, {}, false, {}, 2, false,
+        QStringLiteral("2024.02.29"));
     QVERIFY2(authorities.has_value(), authorities ? "" : qPrintable(authorities.error()));
     const auto procedure = buildPartitionArchive(
         temporary.path(), QStringLiteral("v2-procedure"), QStringLiteral("test.v2.procedure"),
         {QStringLiteral("resources/court.json"), QStringLiteral("resources/filing-catalog.json"),
          QStringLiteral("resources/form.json"), QStringLiteral("resources/procedure-profile.json"),
          QStringLiteral("resources/workflow.json")},
-        {*authorities}, false, {}, 2);
+        {*authorities}, false, {}, 2, false, QStringLiteral("2026.03.22"));
     QVERIFY2(procedure.has_value(), procedure ? "" : qPrintable(procedure.error()));
     const auto root = buildPartitionArchive(
         temporary.path(), QStringLiteral("v2-root"), QStringLiteral("test.v2.root"),
@@ -1265,8 +1267,11 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
          QStringLiteral("resources/bench-configuration.json"),
          QStringLiteral("resources/case.json"), QStringLiteral("resources/judge-profile.json"),
          QStringLiteral("resources/record.json")},
-        {*procedure}, true, {}, 2);
+        {*procedure}, true, {}, 2, false, QStringLiteral("2026.03.23"));
     QVERIFY2(root.has_value(), root ? "" : qPrintable(root.error()));
+    QCOMPARE(authorities->version, std::string("2024.02.29"));
+    QCOMPARE(procedure->version, std::string("2026.03.22"));
+    QCOMPARE(root->version, std::string("2026.03.23"));
 
     auto catalog = PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
     QVERIFY(catalog.has_value());
@@ -1275,6 +1280,21 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
     QVERIFY(install(**catalog, temporary.path(), QStringLiteral("v2-root"), 3));
     const auto resolved = (*catalog)->loadResolved(*root);
     QVERIFY2(resolved.has_value(), resolved ? "" : qPrintable(resolved.error().message));
+    const auto resolved_pins = appellate::app::revisionPinsForSession(*resolved);
+    QCOMPARE(resolved_pins.size(), std::size_t{3});
+    const auto authority_pin =
+        std::ranges::find(resolved_pins, QStringLiteral("test.v2.authorities"),
+                          &appellate::storage::RevisionPin::pack_id);
+    const auto procedure_pin = std::ranges::find(resolved_pins, QStringLiteral("test.v2.procedure"),
+                                                 &appellate::storage::RevisionPin::pack_id);
+    const auto root_pin = std::ranges::find(resolved_pins, QStringLiteral("test.v2.root"),
+                                            &appellate::storage::RevisionPin::pack_id);
+    QVERIFY(authority_pin != resolved_pins.end());
+    QVERIFY(procedure_pin != resolved_pins.end());
+    QVERIFY(root_pin != resolved_pins.end());
+    QCOMPARE(authority_pin->version, QStringLiteral("2024.02.29"));
+    QCOMPARE(procedure_pin->version, QStringLiteral("2026.03.22"));
+    QCOMPARE(root_pin->version, QStringLiteral("2026.03.23"));
     QCOMPARE(resolved->resourceOwner("example.authorities.fictional"),
              std::optional<PackRevision>(*authorities));
 
@@ -1341,20 +1361,32 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
                   appellate::model::OralArgumentMode::CounterfactualTraining},
     };
     for (std::size_t index = 0; index < canonical_arguments.size(); ++index) {
+        const auto oral_session_id = QStringLiteral("test.session.resolved-oral-%1").arg(index);
         auto store = appellate::storage::SessionStore::open(oral_database);
         QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
-        const auto created = appellate::app::OralArgumentSessionController::create(
-            QStringLiteral("test.session.resolved-oral-%1").arg(index), runtime_case.definition.id,
-            canonical_arguments[index].first, std::string(64, 'c'), std::move(*store),
-            QStringLiteral("engine.resolved-oral.2"), QStringLiteral("2026-08-11T10:00:00Z"),
-            *resolved);
+        auto created = appellate::app::OralArgumentSessionController::create(
+            oral_session_id, runtime_case.definition.id, canonical_arguments[index].first,
+            std::string(64, 'c'), std::move(*store), QStringLiteral("engine.resolved-oral.2"),
+            QStringLiteral("2026-08-11T10:00:00Z"), *resolved);
         QVERIFY2(created.has_value(), created ? "" : qPrintable(created.error().message));
         QVERIFY((*created)->canonicalDefinition() != nullptr);
         QCOMPARE((*created)->canonicalDefinition()->question_bank.mode,
                  canonical_arguments[index].second);
         QCOMPARE((*created)->snapshot().authority_contract,
                  appellate::storage::SessionAuthorityContract::CanonicalV2);
-        QVERIFY((*created)->snapshot().pins == appellate::app::revisionPinsForSession(*resolved));
+        QVERIFY((*created)->snapshot().pins == resolved_pins);
+        created->reset();
+
+        store = appellate::storage::SessionStore::open(oral_database);
+        QVERIFY2(store.has_value(), store ? "" : qPrintable(store.error().message));
+        const auto reopened = appellate::app::OralArgumentSessionController::reopen(
+            oral_session_id, runtime_case.definition.id, canonical_arguments[index].first,
+            std::string(64, 'c'), std::move(*store), QStringLiteral("engine.resolved-oral.2"),
+            *resolved);
+        QVERIFY2(reopened.has_value(), reopened ? "" : qPrintable(reopened.error().message));
+        QCOMPARE((*reopened)->snapshot().authority_contract,
+                 appellate::storage::SessionAuthorityContract::CanonicalV2);
+        QVERIFY((*reopened)->snapshot().pins == resolved_pins);
     }
     {
         auto definitions = legacyOralDefinitions();
@@ -1453,6 +1485,7 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
         QVERIFY2(created.has_value(), created ? "" : qPrintable(created.error().message));
         QCOMPARE((*created)->snapshot().authority_contract,
                  appellate::storage::SessionAuthorityContract::CanonicalV2);
+        QVERIFY((*created)->snapshot().pins == resolved_pins);
         const auto submitted = (*created)->submit(command, QByteArrayView(document),
                                                   QStringLiteral("2026-01-02T12:00:00Z"));
         QVERIFY2(submitted.has_value(), submitted ? "" : qPrintable(submitted.error().message));
@@ -1567,7 +1600,8 @@ void PackDependencyResolutionTest::resolvesV2CanonicalAuthoritiesAcrossExactDepe
             appellate::storage::AssetStore(session_assets), std::move(*store),
             QString::fromLatin1(session_engine), pins);
         QVERIFY(!downgraded.has_value());
-        QCOMPARE(downgraded.error().code, appellate::app::WorkflowSessionErrorCode::CorruptSession);
+        QCOMPARE(downgraded.error().code,
+                 appellate::app::WorkflowSessionErrorCode::InvalidConfiguration);
     }
 
     const auto reopen_canonical = [&]() {

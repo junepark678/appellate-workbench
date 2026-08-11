@@ -1,4 +1,5 @@
 #include "appellate/packs/schema_validator.hpp"
+#include "appellate/packs/pack_version.hpp"
 
 #include <QDate>
 #include <QFile>
@@ -809,6 +810,10 @@ struct ResolvedSchema final {
                 const auto parsed = QDate::fromString(string, QStringLiteral("yyyy-MM-dd"));
                 if (!parsed.isValid() || parsed.toString(QStringLiteral("yyyy-MM-dd")) != string) {
                     return violation(schema_file, path, QStringLiteral("invalid date"));
+                }
+            } else if (format == QStringLiteral("appellate-pack-version-v2")) {
+                if (!isValidPackVersion(string, 2)) {
+                    return violation(schema_file, path, QStringLiteral("invalid pack version"));
                 }
             } else if (format == QStringLiteral("uri")) {
                 const QUrl parsed(string, QUrl::StrictMode);

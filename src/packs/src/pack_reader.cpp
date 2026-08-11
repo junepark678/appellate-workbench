@@ -2,6 +2,7 @@
 #include "appellate/model/authority_ref.hpp"
 #include "appellate/model/oral_argument.hpp"
 #include "appellate/packs/capability_registry.hpp"
+#include "appellate/packs/pack_version.hpp"
 #include "appellate/packs/schema_validator.hpp"
 #include "realism_evidence.hpp"
 
@@ -191,12 +192,6 @@ constexpr std::array v2_kind_registry{
     static const QRegularExpression pattern(
         QStringLiteral(R"(^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$)"));
     return value.size() >= 3 && value.size() <= 160 && pattern.match(value).hasMatch();
-}
-
-[[nodiscard]] bool isSemanticVersion(const QString& value) {
-    static const QRegularExpression pattern(QStringLiteral(
-        R"(^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$)"));
-    return value.size() >= 5 && value.size() <= 128 && pattern.match(value).hasMatch();
 }
 
 [[nodiscard]] bool isSha256(const QString& value) {
@@ -2757,7 +2752,8 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
     const auto dependency_values = manifest.value(QStringLiteral("dependencies")).toArray();
     const auto content_values = manifest.value(QStringLiteral("contents")).toArray();
     const auto blob_values = manifest.value(QStringLiteral("blobs")).toArray();
-    if (!isNamespacedId(pack_id) || !isSemanticVersion(version) ||
+    if (!isNamespacedId(pack_id) ||
+        !isValidPackVersion(version, static_cast<std::uint32_t>(manifest_schema_version)) ||
         capability_values.size() > maximum_capabilities ||
         dependency_values.size() > maximum_dependencies || content_values.isEmpty() ||
         content_values.size() > maximum_contents ||
@@ -2803,8 +2799,9 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         const auto dependency_version = object.value(QStringLiteral("version")).toString();
         const auto digest = object.value(QStringLiteral("sha256")).toString();
         if (!hasExactKeys(object, {"pack_id", "version", "sha256"}) || !isNamespacedId(id) ||
-            !isSemanticVersion(dependency_version) || !isSha256(digest) || id == pack_id ||
-            dependency_ids.contains(id)) {
+            !isValidPackVersion(dependency_version,
+                                static_cast<std::uint32_t>(manifest_schema_version)) ||
+            !isSha256(digest) || id == pack_id || dependency_ids.contains(id)) {
             return fail(ErrorCode::InvalidManifest,
                         QStringLiteral("Invalid, duplicate, or self-referential dependency"));
         }

@@ -3,6 +3,7 @@
 #include "resolved_session_pins.hpp"
 
 #include "appellate/engine/workflow_engine.hpp"
+#include "appellate/packs/pack_version.hpp"
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/storage/workflow_codec.hpp"
 
@@ -77,12 +78,6 @@ constexpr std::size_t maximum_workflow_events =
     return value.size() >= 3 && value.size() <= 128 && pattern.match(value).hasMatch();
 }
 
-[[nodiscard]] bool validSemanticVersion(const QString& value) {
-    static const QRegularExpression pattern(QStringLiteral(
-        R"(^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$)"));
-    return value.size() >= 5 && value.size() <= 128 && pattern.match(value).hasMatch();
-}
-
 [[nodiscard]] bool validCanonicalUtc(const QString& value) {
     if (value.size() != 20 || !value.endsWith(u'Z')) {
         return false;
@@ -93,13 +88,15 @@ constexpr std::size_t maximum_workflow_events =
 }
 
 [[nodiscard]] auto normalizePins(std::vector<storage::RevisionPin> pins,
-                                 WorkflowSessionErrorCode error_code)
+                                 WorkflowSessionErrorCode error_code,
+                                 std::uint32_t manifest_schema_version)
     -> std::expected<std::vector<storage::RevisionPin>, WorkflowSessionError> {
     if (pins.empty() || pins.size() > 128) {
         return fail(error_code, QStringLiteral("A bounded nonempty revision-pin set is required"));
     }
     for (const auto& pin : pins) {
-        if (!validPackId(pin.pack_id) || !validSemanticVersion(pin.version) ||
+        if (!validPackId(pin.pack_id) ||
+            !packs::isValidPackVersion(pin.version, manifest_schema_version) ||
             !validDigest(pin.digest)) {
             return fail(error_code, QStringLiteral("A workflow revision pin is invalid"));
         }
@@ -485,18 +482,16 @@ WorkflowSessionController::create(model::WorkflowDefinition workflow,
     return createBound(std::move(workflow), std::move(case_definition), std::move(initial_state),
                        std::move(asset_store), std::move(session_store), std::move(engine_revision),
                        std::move(created_at_utc), std::move(pins),
-                       storage::SessionAuthorityContract::LegacyV1);
+                       storage::SessionAuthorityContract::LegacyV1, 1);
 }
 
 std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>
-WorkflowSessionController::createBound(model::WorkflowDefinition workflow,
-                                       model::CaseDefinition case_definition,
-                                       model::WorkflowState initial_state,
-                                       storage::AssetStore asset_store,
-                                       std::unique_ptr<storage::SessionStore> session_store,
-                                       QString engine_revision, QString created_at_utc,
-                                       std::vector<storage::RevisionPin> pins,
-                                       storage::SessionAuthorityContract authority_contract) {
+WorkflowSessionController::createBound(
+    model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+    model::WorkflowState initial_state, storage::AssetStore asset_store,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    QString created_at_utc, std::vector<storage::RevisionPin> pins,
+    storage::SessionAuthorityContract authority_contract, std::uint32_t manifest_schema_version) {
     if (!session_store || !validText(engine_revision) || !validCanonicalUtc(created_at_utc)) {
         return fail(
             WorkflowSessionErrorCode::InvalidConfiguration,
@@ -510,8 +505,8 @@ WorkflowSessionController::createBound(model::WorkflowDefinition workflow,
                     QStringLiteral("The workflow authority contract does not match its session "
                                    "entry point"));
     }
-    const auto normalized_pins =
-        normalizePins(std::move(pins), WorkflowSessionErrorCode::InvalidConfiguration);
+    const auto normalized_pins = normalizePins(
+        std::move(pins), WorkflowSessionErrorCode::InvalidConfiguration, manifest_schema_version);
     if (!normalized_pins) {
         return std::unexpected(normalized_pins.error());
     }
@@ -587,7 +582,7 @@ WorkflowSessionController::create(model::CaseId case_id, model::WorkflowState in
     return createBound(selected->workflow, selected->definition, std::move(initial_state),
                        std::move(asset_store), std::move(session_store), std::move(engine_revision),
                        std::move(created_at_utc), revisionPinsForSession(resolved_pack),
-                       *authority_contract);
+                       *authority_contract, resolved_pack.root().manifest_schema_version);
 }
 
 std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>
@@ -601,18 +596,16 @@ WorkflowSessionController::reopen(model::WorkflowDefinition workflow,
     return reopenBound(std::move(workflow), std::move(case_definition), std::move(initial_state),
                        std::move(asset_store), std::move(session_store),
                        std::move(expected_engine_revision), std::move(expected_pins),
-                       storage::SessionAuthorityContract::LegacyV1);
+                       storage::SessionAuthorityContract::LegacyV1, 1);
 }
 
 std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>
-WorkflowSessionController::reopenBound(model::WorkflowDefinition workflow,
-                                       model::CaseDefinition case_definition,
-                                       model::WorkflowState initial_state,
-                                       storage::AssetStore asset_store,
-                                       std::unique_ptr<storage::SessionStore> session_store,
-                                       QString expected_engine_revision,
-                                       std::vector<storage::RevisionPin> expected_pins,
-                                       storage::SessionAuthorityContract authority_contract) {
+WorkflowSessionController::reopenBound(
+    model::WorkflowDefinition workflow, model::CaseDefinition case_definition,
+    model::WorkflowState initial_state, storage::AssetStore asset_store,
+    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+    std::vector<storage::RevisionPin> expected_pins,
+    storage::SessionAuthorityContract authority_contract, std::uint32_t manifest_schema_version) {
     if (!session_store || !validText(expected_engine_revision)) {
         return fail(WorkflowSessionErrorCode::InvalidConfiguration,
                     QStringLiteral("Session store and expected engine revision are required"));
@@ -625,7 +618,8 @@ WorkflowSessionController::reopenBound(model::WorkflowDefinition workflow,
                                    "entry point"));
     }
     const auto normalized_pins =
-        normalizePins(std::move(expected_pins), WorkflowSessionErrorCode::InvalidConfiguration);
+        normalizePins(std::move(expected_pins), WorkflowSessionErrorCode::InvalidConfiguration,
+                      manifest_schema_version);
     if (!normalized_pins) {
         return std::unexpected(normalized_pins.error());
     }
@@ -695,7 +689,7 @@ WorkflowSessionController::reopen(model::CaseId case_id, model::WorkflowState in
     return reopenBound(selected->workflow, selected->definition, std::move(initial_state),
                        std::move(asset_store), std::move(session_store),
                        std::move(expected_engine_revision), revisionPinsForSession(resolved_pack),
-                       *authority_contract);
+                       *authority_contract, resolved_pack.root().manifest_schema_version);
 }
 
 std::expected<WorkflowSubmissionResult, WorkflowSessionError>

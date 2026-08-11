@@ -5,6 +5,7 @@
 
 #include <QString>
 
+#include <cstdint>
 #include <expected>
 #include <memory>
 #include <optional>
@@ -128,10 +129,24 @@ class OralArgumentSessionController final {
         QString created_at_utc, std::vector<storage::RevisionPin> pins)
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
 
+    [[nodiscard]] static auto
+    createCanonicalBound(QString session_id, model::CanonicalOralArgumentDefinition definition,
+                         std::unique_ptr<storage::SessionStore> session_store,
+                         QString engine_revision, QString created_at_utc,
+                         std::vector<storage::RevisionPin> pins,
+                         std::uint32_t manifest_schema_version)
+        -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
+
     [[nodiscard]] static auto reopenCanonicalForTesting(
         QString session_id, model::CanonicalOralArgumentDefinition definition,
         std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
         std::vector<storage::RevisionPin> expected_pins)
+        -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
+
+    [[nodiscard]] static auto reopenCanonicalBound(
+        QString session_id, model::CanonicalOralArgumentDefinition definition,
+        std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+        std::vector<storage::RevisionPin> expected_pins, std::uint32_t manifest_schema_version)
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
 
     [[nodiscard]] static auto deriveCanonicalDefinitionForTesting(

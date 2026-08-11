@@ -1,5 +1,6 @@
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/packs/capability_registry.hpp"
+#include "appellate/packs/pack_version.hpp"
 #include "realism_evidence.hpp"
 #include "runtime_pack_internal.hpp"
 
@@ -698,7 +699,8 @@ struct ResourceIndex final {
         if (pack == nullptr || pack->manifest_schema_version != manifest_schema_version ||
             pack->revision.id.value.size() > 128 ||
             !isNamespacedId(QString::fromStdString(pack->revision.id.value)) ||
-            pack->revision.version.empty() ||
+            !isValidPackVersion(QString::fromStdString(pack->revision.version),
+                                pack->manifest_schema_version) ||
             !isSha256(QString::fromStdString(pack->revision.digest)) ||
             pack->resources.size() > maximum_resources - total_resources ||
             pack->judge_profiles.size() > maximum_resources - total_judges) {

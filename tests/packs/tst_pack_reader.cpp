@@ -1,4 +1,5 @@
 #include "appellate/packs/pack_reader.hpp"
+#include "appellate/packs/pack_version.hpp"
 #include "appellate/packs/runtime_pack.hpp"
 
 #include <QCryptographicHash>
@@ -20,6 +21,11 @@ class PackReaderTest final : public QObject {
     Q_OBJECT
 
   private slots:
+    void validatesSchemaSpecificPackVersions_data();
+    void validatesSchemaSpecificPackVersions();
+    void rejectsCalendarVersionInV1Manifest();
+    void rejectsInvalidCalendarVersionInV2Manifest();
+    void runtimeEnforcesSchemaSpecificPackVersions();
     void loadsValidPack();
     void loadsFullDeclarativeResourceGraph();
     void rejectsMissingBlobArray();
@@ -319,6 +325,107 @@ class PackReaderTest final : public QObject {
     return false;
 }
 
+void PackReaderTest::validatesSchemaSpecificPackVersions_data() {
+    QTest::addColumn<QString>("version");
+    QTest::addColumn<int>("manifest_schema_version");
+    QTest::addColumn<bool>("valid");
+
+    QTest::newRow("v1-semver") << QStringLiteral("1.2.3") << 1 << true;
+    QTest::newRow("v1-semver-prerelease-build")
+        << QStringLiteral("1.2.3-rc.1+build.5") << 1 << true;
+    QTest::newRow("v1-calendar-leap-rejected") << QStringLiteral("2000.02.29") << 1 << false;
+    QTest::newRow("v1-lexical-overlap-is-semver") << QStringLiteral("2026.12.11") << 1 << true;
+    QTest::newRow("v1-unpadded-invalid-date-is-semver") << QStringLiteral("2026.2.31") << 1 << true;
+
+    QTest::newRow("v2-semver") << QStringLiteral("1.2.3") << 2 << true;
+    QTest::newRow("v2-calendar-first-year-leap") << QStringLiteral("2000.02.29") << 2 << true;
+    QTest::newRow("v2-calendar-zero-padded") << QStringLiteral("2026.03.23") << 2 << true;
+    QTest::newRow("v2-lexical-overlap-is-semver") << QStringLiteral("2026.12.11") << 2 << true;
+    QTest::newRow("v2-pre-range-overlap-is-semver") << QStringLiteral("1999.12.31") << 2 << true;
+    QTest::newRow("v2-unpadded-invalid-date-is-semver") << QStringLiteral("2026.2.31") << 2 << true;
+    QTest::newRow("v2-non-leap-century") << QStringLiteral("2100.02.29") << 2 << false;
+    QTest::newRow("v2-impossible-february-day") << QStringLiteral("2026.02.31") << 2 << false;
+    QTest::newRow("v2-impossible-april-day") << QStringLiteral("2026.04.31") << 2 << false;
+    QTest::newRow("v2-unambiguous-pre-range") << QStringLiteral("1999.02.03") << 2 << false;
+    QTest::newRow("v2-five-digit-year") << QStringLiteral("10000.01.01") << 2 << false;
+    QTest::newRow("v2-calendar-suffix") << QStringLiteral("2026.02.03-alpha") << 2 << false;
+    QTest::newRow("v2-calendar-width") << QStringLiteral("2026.02.3") << 2 << false;
+    QTest::newRow("unsupported-schema") << QStringLiteral("1.2.3") << 3 << false;
+}
+
+void PackReaderTest::validatesSchemaSpecificPackVersions() {
+    QFETCH(QString, version);
+    QFETCH(int, manifest_schema_version);
+    QFETCH(bool, valid);
+
+    QCOMPARE(appellate::packs::isValidPackVersion(
+                 version, static_cast<std::uint32_t>(manifest_schema_version)),
+             valid);
+}
+
+void PackReaderTest::rejectsCalendarVersionInV1Manifest() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("minimal-pack")), pack.path()));
+
+    const auto manifest_path = QDir(pack.path()).filePath(QStringLiteral("manifest.json"));
+    QFile manifest_file(manifest_path);
+    QVERIFY(manifest_file.open(QIODevice::ReadOnly));
+    auto manifest = QJsonDocument::fromJson(manifest_file.readAll()).object();
+    manifest_file.close();
+    manifest.insert(QStringLiteral("version"), QStringLiteral("2000.02.29"));
+    QVERIFY(writeJson(pack.path(), QStringLiteral("manifest.json"), manifest));
+
+    const auto loaded = appellate::packs::PackReader::readDirectory(pack.path());
+    QVERIFY(!loaded.has_value());
+    QCOMPARE(loaded.error().code, appellate::packs::ErrorCode::InvalidManifest);
+}
+
+void PackReaderTest::rejectsInvalidCalendarVersionInV2Manifest() {
+    QTemporaryDir pack;
+    QVERIFY(pack.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), pack.path()));
+
+    const auto manifest_path = QDir(pack.path()).filePath(QStringLiteral("manifest.json"));
+    QFile manifest_file(manifest_path);
+    QVERIFY(manifest_file.open(QIODevice::ReadOnly));
+    auto manifest = QJsonDocument::fromJson(manifest_file.readAll()).object();
+    manifest_file.close();
+    manifest.insert(QStringLiteral("version"), QStringLiteral("2100.02.29"));
+    QVERIFY(writeJson(pack.path(), QStringLiteral("manifest.json"), manifest));
+
+    const auto loaded = appellate::packs::PackReader::readDirectory(
+        pack.path(), appellate::packs::PackValidationScope::ResolvedClosure);
+    QVERIFY(!loaded.has_value());
+    QCOMPARE(loaded.error().code, appellate::packs::ErrorCode::InvalidManifest);
+}
+
+void PackReaderTest::runtimeEnforcesSchemaSpecificPackVersions() {
+    const auto v1 =
+        appellate::packs::PackReader::readDirectory(fixture(QStringLiteral("full-resource-pack")));
+    QVERIFY2(v1.has_value(), v1 ? "" : qPrintable(v1.error().message));
+    auto forged_v1 = *v1;
+    forged_v1.revision.version = "2000.02.29";
+    const auto rejected_v1 = appellate::packs::loadRuntimePack(forged_v1);
+    QVERIFY(!rejected_v1.has_value());
+    QCOMPARE(rejected_v1.error().code, appellate::packs::RuntimePackErrorCode::InvalidPack);
+
+    const auto v2 = appellate::packs::PackReader::readDirectory(
+        fixture(QStringLiteral("full-resource-pack-v2")));
+    QVERIFY2(v2.has_value(), v2 ? "" : qPrintable(v2.error().message));
+    auto forged_v2 = *v2;
+    forged_v2.revision.version = "2100.02.29";
+    const auto rejected_v2 = appellate::packs::loadRuntimePack(forged_v2);
+    QVERIFY(!rejected_v2.has_value());
+    QCOMPARE(rejected_v2.error().code, appellate::packs::RuntimePackErrorCode::InvalidPack);
+
+    auto valid_calendar_v2 = *v2;
+    valid_calendar_v2.revision.version = "2000.02.29";
+    const auto accepted_v2 = appellate::packs::loadRuntimePack(valid_calendar_v2);
+    QVERIFY2(accepted_v2.has_value(), accepted_v2 ? "" : accepted_v2.error().message.c_str());
+    QCOMPARE(accepted_v2->revision.version, std::string("2000.02.29"));
+}
+
 void PackReaderTest::loadsValidPack() {
     const auto result =
         appellate::packs::PackReader::readDirectory(fixture(QStringLiteral("minimal-pack")));
@@ -586,9 +693,9 @@ void PackReaderTest::acceptsLegacyRecordWithoutOptionalMetadata() {
     record.remove(QStringLiteral("page_anchors"));
     auto entries = record.value(QStringLiteral("docket_entries")).toArray();
     auto entry = entries.at(0).toObject();
-    for (const auto& field : {QStringLiteral("docket_id"), QStringLiteral("entry_label"),
-                              QStringLiteral("actor"), QStringLiteral("description"),
-                              QStringLiteral("tags")}) {
+    for (const auto& field :
+         {QStringLiteral("docket_id"), QStringLiteral("entry_label"), QStringLiteral("actor"),
+          QStringLiteral("description"), QStringLiteral("tags")}) {
         entry.remove(field);
     }
     entries.replace(0, entry);
@@ -626,8 +733,7 @@ void PackReaderTest::rejectsInvalidRecordMetadataGraph() {
         auto first = entries.at(0).toObject();
         auto anchors = record.value(QStringLiteral("page_anchors")).toArray();
         if (variant == 0) {
-            first.insert(QStringLiteral("docket_id"),
-                         QStringLiteral("example.docket.missing"));
+            first.insert(QStringLiteral("docket_id"), QStringLiteral("example.docket.missing"));
             entries.replace(0, first);
             record.insert(QStringLiteral("docket_entries"), entries);
         } else if (variant == 1) {
@@ -643,8 +749,7 @@ void PackReaderTest::rejectsInvalidRecordMetadataGraph() {
             record.insert(QStringLiteral("docket_entries"), entries);
         } else if (variant == 3) {
             auto second = first;
-            second.insert(QStringLiteral("entry_id"),
-                          QStringLiteral("example.record.entry-two"));
+            second.insert(QStringLiteral("entry_id"), QStringLiteral("example.record.entry-two"));
             second.insert(QStringLiteral("entry_number"), 2);
             second.insert(QStringLiteral("entry_label"), QStringLiteral("ECF No. 42-1"));
             second.insert(QStringLiteral("parent_entry_id"),
@@ -663,15 +768,13 @@ void PackReaderTest::rejectsInvalidRecordMetadataGraph() {
             record.insert(QStringLiteral("page_anchors"), anchors);
         } else if (variant == 5) {
             auto anchor = anchors.at(0).toObject();
-            anchor.insert(QStringLiteral("anchor_id"),
-                          QStringLiteral("example.record.entry-one"));
+            anchor.insert(QStringLiteral("anchor_id"), QStringLiteral("example.record.entry-one"));
             anchors.replace(0, anchor);
             record.insert(QStringLiteral("page_anchors"), anchors);
         } else if (variant == 6) {
             auto dockets = record.value(QStringLiteral("dockets")).toArray();
             auto appellate = dockets.at(1).toObject();
-            appellate.insert(QStringLiteral("court_id"),
-                             QStringLiteral("example.court.missing"));
+            appellate.insert(QStringLiteral("court_id"), QStringLiteral("example.court.missing"));
             dockets.replace(1, appellate);
             record.insert(QStringLiteral("dockets"), dockets);
         } else {
@@ -701,8 +804,7 @@ void PackReaderTest::rejectsInvalidRecordMetadataGraph() {
     entries.replace(0, entry);
     record.insert(QStringLiteral("docket_entries"), entries);
     QVERIFY(replaceResourceDocument(unknown_field.path(), record_path, record));
-    const auto result =
-        appellate::packs::PackReader::readDirectory(unknown_field.path());
+    const auto result = appellate::packs::PackReader::readDirectory(unknown_field.path());
     QVERIFY(!result.has_value());
     QCOMPARE(result.error().code, appellate::packs::ErrorCode::SchemaViolation);
 }
@@ -722,8 +824,7 @@ void PackReaderTest::validatesUnicodeScalarLength() {
     boundary_entries.replace(0, boundary_entry);
     boundary_record.insert(QStringLiteral("docket_entries"), boundary_entries);
     QVERIFY(replaceResourceDocument(boundary.path(), record_path, boundary_record));
-    const auto boundary_result =
-        appellate::packs::PackReader::readDirectory(boundary.path());
+    const auto boundary_result = appellate::packs::PackReader::readDirectory(boundary.path());
     QVERIFY2(boundary_result.has_value(),
              boundary_result ? "" : qPrintable(boundary_result.error().message));
     const auto boundary_runtime = appellate::packs::loadRuntimePack(*boundary_result);
@@ -745,8 +846,7 @@ void PackReaderTest::validatesUnicodeScalarLength() {
     overflow_entries.replace(0, overflow_entry);
     overflow_record.insert(QStringLiteral("docket_entries"), overflow_entries);
     QVERIFY(replaceResourceDocument(overflow.path(), record_path, overflow_record));
-    const auto overflow_result =
-        appellate::packs::PackReader::readDirectory(overflow.path());
+    const auto overflow_result = appellate::packs::PackReader::readDirectory(overflow.path());
     QVERIFY(!overflow_result.has_value());
     QCOMPARE(overflow_result.error().code, appellate::packs::ErrorCode::SchemaViolation);
 }

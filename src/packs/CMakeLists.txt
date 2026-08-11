@@ -4,6 +4,7 @@ qt_add_library(
     src/pack_catalog.cpp
     src/capability_registry.cpp
     src/pack_reader.cpp
+    src/pack_version.cpp
     src/realism_evidence.cpp
     src/realism_evidence.hpp
     src/runtime_pack.cpp
@@ -15,6 +16,7 @@ qt_add_library(
     include/appellate/packs/pack_archive.hpp
     include/appellate/packs/pack_catalog.hpp
     include/appellate/packs/pack_reader.hpp
+    include/appellate/packs/pack_version.hpp
     include/appellate/packs/resolved_pack.hpp
     include/appellate/packs/runtime_pack.hpp
     include/appellate/packs/schema_validator.hpp

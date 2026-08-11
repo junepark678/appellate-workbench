@@ -57,6 +57,7 @@ class WorkflowSessionResumeTest final : public QObject {
     void reopenRejectsMissingOrCorruptAsset_data();
     void reopenRejectsMissingOrCorruptAsset();
     void reopenRejectsEnginePinAndSessionMismatch();
+    void rawVectorPinsRejectCalendarVersionBeforeMutation();
     void createAndReopenRejectMixedAuthorityContracts();
     void rawReopenRejectsCanonicalAuthoritySession();
     void staleAppendLeavesControllerUnchanged();
@@ -639,6 +640,39 @@ void WorkflowSessionResumeTest::reopenRejectsEnginePinAndSessionMismatch() {
     QVERIFY(
         !openFor(QString::fromLatin1(engine_revision), pins(), initialState("test.session.other"))
              .has_value());
+}
+
+void WorkflowSessionResumeTest::rawVectorPinsRejectCalendarVersionBeforeMutation() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto database_path = QDir(directory.path()).filePath(QStringLiteral("sessions.sqlite"));
+    const auto asset_root = QDir(directory.path()).filePath(QStringLiteral("assets"));
+    auto calendar_pins = pins();
+    calendar_pins.front().version = QStringLiteral("2000.02.29");
+
+    auto store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto rejected_create = app::WorkflowSessionControllerTestAccess::create(
+        workflow(), caseDefinition(), initialState(), storage::AssetStore(asset_root, 1024 * 1024),
+        std::move(*store), QString::fromLatin1(engine_revision),
+        QStringLiteral("2026-08-11T09:00:00Z"), calendar_pins);
+    QVERIFY(!rejected_create.has_value());
+    QCOMPARE(rejected_create.error().code, app::WorkflowSessionErrorCode::InvalidConfiguration);
+
+    store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto missing = (*store)->loadSession(QString::fromLatin1(session_id));
+    QVERIFY(!missing.has_value());
+    QCOMPARE(missing.error().code, storage::StoreErrorCode::NotFound);
+    store->reset();
+
+    store = storage::SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    const auto rejected_reopen = app::WorkflowSessionController::reopen(
+        workflow(), caseDefinition(), initialState(), storage::AssetStore(asset_root, 1024 * 1024),
+        std::move(*store), QString::fromLatin1(engine_revision), calendar_pins);
+    QVERIFY(!rejected_reopen.has_value());
+    QCOMPARE(rejected_reopen.error().code, app::WorkflowSessionErrorCode::InvalidConfiguration);
 }
 
 void WorkflowSessionResumeTest::createAndReopenRejectMixedAuthorityContracts() {
