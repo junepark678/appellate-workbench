@@ -28,6 +28,10 @@ class OralArgumentEngineTest final : public QObject {
     void recordPinDemandControlChangesPlanning();
     void recordClaimsWithoutRecordPagesDoNotDemandPins();
     void boundsSingleSeatFollowUpChains();
+    void reusableTopicsSelectWholeAuthoredQuestionsAcrossCases();
+    void canonicalDigestBindsTopicsPromptsModesAndResolvedGrounding();
+    void rejectsMixedOrInvalidCanonicalDefinitionsAndSwappedSelections();
+    void canonicalRecordPinsAndCounterfactualStateRemainBounded();
 };
 
 using namespace appellate;
@@ -201,6 +205,102 @@ configuration(const model::BenchConfiguration& bench, const model::ArgumentGroun
     };
 }
 
+[[nodiscard]] model::AuthorityRef canonicalAuthority() {
+    return model::AuthorityRef{
+        model::AuthorityId{"authority.canonical-standard"},
+        "Synthetic Authority, 100 F.4th 1",
+        "2026-01-15",
+        "The court reviews preserved legal questions under the authored standard.",
+        model::AuthorityProvenance{
+            model::AuthorityType::Case,
+            "us.ca4",
+            "court.synthetic-appellate",
+            model::PrecedentialStatus::Precedential,
+            true,
+            "2026-01-16",
+            "100 F.4th 1",
+            "https://court.example.test/opinions/100-f4th-1",
+        },
+    };
+}
+
+[[nodiscard]] model::BenchConfiguration reusableTopicBench() {
+    auto reusable = clippedProfile("fictional.reusable-composite");
+    reusable.display_name = "Reusable Composite";
+    reusable.interaction.issue_focus = {
+        model::IssueFocus{"workbench.topic.record-support", 1.0},
+        model::IssueFocus{"workbench.topic.remedy", 0.25},
+    };
+    return singleSeatBench(std::move(reusable));
+}
+
+[[nodiscard]] model::AuthoredQuestionBank authoredBank(
+    std::string case_id, std::string issue_id,
+    model::OralArgumentMode mode = model::OralArgumentMode::ActualRecord) {
+    const auto prefix = case_id;
+    return model::AuthoredQuestionBank{
+        model::CaseId{std::move(case_id)},
+        prefix + ".argument",
+        mode,
+        {},
+        {model::ArgumentIssueTopics{
+            issue_id,
+            {model::ArgumentFocusTopic::RecordSupport, model::ArgumentFocusTopic::Remedy},
+        }},
+        {
+            model::AuthoredArgumentQuestion{
+                prefix + ".question-record",
+                issue_id,
+                model::ArgumentFocusTopic::RecordSupport,
+                "Where does the exact record support the asserted proposition?",
+                {
+                    model::AuthorityArgumentGrounding{
+                        prefix + ".grounding-authority", canonicalAuthority()},
+                    model::RecordPageArgumentGrounding{
+                        prefix + ".grounding-record", prefix + ".anchor-hearing",
+                        prefix + ".entry-hearing", 47, std::string(64, 'a'),
+                        std::string{"Hearing Tr. 47"}},
+                },
+            },
+            model::AuthoredArgumentQuestion{
+                prefix + ".question-remedy",
+                issue_id,
+                model::ArgumentFocusTopic::Remedy,
+                "What relief follows if the court accepts that record proposition?",
+                {model::BriefPageArgumentGrounding{
+                    prefix + ".grounding-brief", prefix + ".entry-opening-brief", 12,
+                    std::string(64, 'b')}},
+            },
+        },
+    };
+}
+
+[[nodiscard]] model::CanonicalOralArgumentDefinition canonicalDefinition(
+    std::string case_id = "case.alpha", std::string issue_id = "issue.alpha",
+    model::OralArgumentMode mode = model::OralArgumentMode::ActualRecord) {
+    auto bank = authoredBank(std::move(case_id), std::move(issue_id), mode);
+    auto bench = reusableTopicBench();
+    const auto behavior = engine::behaviorDefinitionDigest(bench);
+    const auto digest = engine::groundingDigest(bank);
+    Q_ASSERT(behavior.has_value());
+    Q_ASSERT(digest.has_value());
+    bank.grounding_digest = *digest;
+    return model::CanonicalOralArgumentDefinition{
+        model::OralArgumentConfiguration{
+            90s,
+            20s,
+            0.7,
+            3,
+            *behavior,
+            *digest,
+            std::string(64, 'c'),
+            "operation.authored-judgment",
+        },
+        std::move(bench),
+        std::move(bank),
+    };
+}
+
 void OralArgumentEngineTest::validatesOneToManyCompatibleBenches() {
     const auto available = grounding();
 
@@ -276,7 +376,8 @@ void OralArgumentEngineTest::lowConfidenceAnswerProducesGroundedClarificationAnd
     QVERIFY(decision.has_value());
     QCOMPARE(decision->bench.kind, model::BenchActKind::ClarificationRequest);
     QVERIFY(decision->bench.question.has_value());
-    QVERIFY(!decision->bench.question->grounding.empty());
+    QVERIFY(!std::get<model::LegacyQuestionSelection>(decision->bench.question->selection)
+                 .grounding.empty());
     QCOMPARE(decision->bench.question->issue_id, std::string("issue.redressability"));
     QVERIFY(!decision->bench.rendered_utterance.empty());
 
@@ -320,9 +421,11 @@ void OralArgumentEngineTest::modelsInterruptionsHypotheticalsRecordPinsAndConces
                                     answer(model::CounselActKind::RecordClaim));
     QVERIFY(record_demand.has_value());
     QCOMPARE(record_demand->bench.kind, model::BenchActKind::RecordPinDemand);
-    QVERIFY(std::ranges::any_of(record_demand->bench.question->grounding, [](const auto& item) {
+    QVERIFY(std::ranges::any_of(
+        std::get<model::LegacyQuestionSelection>(record_demand->bench.question->selection).grounding,
+        [](const auto& item) {
         return item.kind == model::GroundingKind::RecordPage;
-    }));
+        }));
 
     const auto concession =
         engine::decideCounselAnswer(clipped_config, clipped, available, *clipped_started,
@@ -339,7 +442,8 @@ void OralArgumentEngineTest::modelsInterruptionsHypotheticalsRecordPinsAndConces
     for (const auto* event : {&*interruption, &*hypothetical, &*record_demand, &*concession}) {
         QVERIFY(engine::isQuestionAct(event->bench.kind));
         QVERIFY(event->bench.question.has_value());
-        QVERIFY(!event->bench.question->grounding.empty());
+        QVERIFY(!std::get<model::LegacyQuestionSelection>(event->bench.question->selection)
+                     .grounding.empty());
         QVERIFY(!event->bench.question->issue_id.empty());
     }
 }
@@ -782,9 +886,11 @@ void OralArgumentEngineTest::recordClaimsWithoutRecordPagesDoNotDemandPins() {
     QVERIFY(decision.has_value());
     QVERIFY(decision->bench.kind != model::BenchActKind::RecordPinDemand);
     QVERIFY(decision->bench.question.has_value());
-    QVERIFY(std::ranges::none_of(decision->bench.question->grounding, [](const auto& reference) {
+    QVERIFY(std::ranges::none_of(
+        std::get<model::LegacyQuestionSelection>(decision->bench.question->selection).grounding,
+        [](const auto& reference) {
         return reference.kind == model::GroundingKind::RecordPage;
-    }));
+        }));
 }
 
 void OralArgumentEngineTest::boundsSingleSeatFollowUpChains() {
@@ -832,6 +938,199 @@ void OralArgumentEngineTest::boundsSingleSeatFollowUpChains() {
         config, bench, available, *reset_state, answer(model::CounselActKind::Answer, 1.0, 1s));
     QVERIFY(restarted_chain.has_value());
     QCOMPARE(restarted_chain->bench.kind, model::BenchActKind::FollowUp);
+}
+
+void OralArgumentEngineTest::reusableTopicsSelectWholeAuthoredQuestionsAcrossCases() {
+    const auto first = canonicalDefinition("case.alpha", "issue.unrelated-alpha");
+    const auto second = canonicalDefinition("case.beta", "issue.unrelated-beta");
+    QCOMPARE(first.bench, second.bench);
+    QCOMPARE(first.configuration.behavior_definition_digest,
+             second.configuration.behavior_definition_digest);
+
+    const auto exercise = [](const model::CanonicalOralArgumentDefinition& definition,
+                             std::string_view expected_issue) {
+        const auto initial = engine::initializeOralArgument(definition);
+        if (!initial) {
+            return false;
+        }
+        const auto opening = engine::planOpeningQuestion(definition, *initial);
+        if (!opening || !opening->bench.question.has_value() ||
+            opening->bench.question->issue_id != expected_issue) {
+            return false;
+        }
+        const auto* selection = std::get_if<model::AuthoredQuestionSelection>(
+            &opening->bench.question->selection);
+        if (selection == nullptr || selection->mode != model::OralArgumentMode::ActualRecord ||
+            selection->topic != model::ArgumentFocusTopic::RecordSupport ||
+            selection->grounding.size() != std::size_t{2}) {
+            return false;
+        }
+        const auto authored = std::ranges::find(definition.question_bank.questions,
+                                                selection->question_id,
+                                                &model::AuthoredArgumentQuestion::id);
+        if (authored == definition.question_bank.questions.end() ||
+            authored->prompt != selection->prompt || authored->grounding.size() != 2) {
+            return false;
+        }
+        const auto applied = engine::applyOralArgumentEvent(definition, *initial, *opening);
+        if (!applied) {
+            return false;
+        }
+        const std::array events{*opening};
+        const auto replayed = engine::replayOralArgument(definition, *initial, events);
+        return replayed.has_value() && *replayed == *applied;
+    };
+
+    QVERIFY(exercise(first, "issue.unrelated-alpha"));
+    QVERIFY(exercise(second, "issue.unrelated-beta"));
+}
+
+void OralArgumentEngineTest::canonicalDigestBindsTopicsPromptsModesAndResolvedGrounding() {
+    const auto definition = canonicalDefinition();
+    const auto baseline = engine::groundingDigest(definition.question_bank);
+    QVERIFY(baseline.has_value());
+    QCOMPARE(*baseline,
+             std::string("47493e7f9156bcd90e018ad8d3c4fd4ffc328df5850ee6f8ca1e59639a6c034e"));
+
+    auto reordered = definition.question_bank;
+    std::ranges::reverse(reordered.issue_topics.front().topics);
+    std::ranges::reverse(reordered.questions);
+    for (auto& question : reordered.questions) {
+        std::ranges::reverse(question.grounding);
+    }
+    QCOMPARE(engine::groundingDigest(reordered), baseline);
+
+    auto mode = definition.question_bank;
+    mode.mode = model::OralArgumentMode::CounterfactualTraining;
+    QVERIFY(engine::groundingDigest(mode) != baseline);
+
+    auto topic = definition.question_bank;
+    topic.issue_topics.front().topics.front() = model::ArgumentFocusTopic::Jurisdiction;
+    topic.questions.front().topic = model::ArgumentFocusTopic::Jurisdiction;
+    QVERIFY(engine::groundingDigest(topic) != baseline);
+
+    auto prompt = definition.question_bank;
+    prompt.questions.front().prompt += " Explain the limiting principle.";
+    QVERIFY(engine::groundingDigest(prompt) != baseline);
+
+    auto authority = definition.question_bank;
+    auto& authority_ref = std::get<model::AuthorityArgumentGrounding>(
+        authority.questions.front().grounding.front());
+    authority_ref.authority.provenance->source_url += "?revision=2";
+    QVERIFY(engine::groundingDigest(authority) != baseline);
+
+    auto record = definition.question_bank;
+    auto& record_ref = std::get<model::RecordPageArgumentGrounding>(
+        record.questions.front().grounding.back());
+    record_ref.citation_label = "Hearing Tr. 48";
+    QVERIFY(engine::groundingDigest(record) != baseline);
+}
+
+void OralArgumentEngineTest::rejectsMixedOrInvalidCanonicalDefinitionsAndSwappedSelections() {
+    auto definition = canonicalDefinition();
+    const auto canonical = engine::initializeOralArgument(definition);
+    QVERIFY(canonical.has_value());
+    const auto opening = engine::planOpeningQuestion(definition, *canonical);
+    QVERIFY(opening.has_value());
+
+    auto swapped = *opening;
+    auto& selection = std::get<model::AuthoredQuestionSelection>(
+        swapped.bench.question->selection);
+    selection.grounding = definition.question_bank.questions.back().grounding;
+    QVERIFY(!engine::applyOralArgumentEvent(definition, *canonical, swapped).has_value());
+
+    auto wrong_mode = *opening;
+    std::get<model::AuthoredQuestionSelection>(wrong_mode.bench.question->selection).mode =
+        model::OralArgumentMode::CounterfactualTraining;
+    QVERIFY(!engine::applyOralArgumentEvent(definition, *canonical, wrong_mode).has_value());
+
+    auto case_specific_focus = definition;
+    case_specific_focus.bench.seats.front().profile.interaction.issue_focus.front().topic_id =
+        "issue.alpha";
+    const auto behavior = engine::behaviorDefinitionDigest(case_specific_focus.bench);
+    QVERIFY(behavior.has_value());
+    case_specific_focus.configuration.behavior_definition_digest = *behavior;
+    QVERIFY(!engine::initializeOralArgument(case_specific_focus).has_value());
+
+    auto duplicated_grounding = definition.question_bank;
+    std::get<model::BriefPageArgumentGrounding>(
+        duplicated_grounding.questions.back().grounding.front())
+        .grounding_id = std::string(std::get<model::AuthorityArgumentGrounding>(
+                                       duplicated_grounding.questions.front().grounding.front())
+                                        .grounding_id);
+    QVERIFY(!engine::groundingDigest(duplicated_grounding).has_value());
+
+    auto uncovered_issue = definition.question_bank;
+    uncovered_issue.issue_topics.push_back(model::ArgumentIssueTopics{
+        "issue.without-question", {model::ArgumentFocusTopic::Merits}});
+    QVERIFY(!engine::groundingDigest(uncovered_issue).has_value());
+
+    auto unquestioned_focus = definition.question_bank;
+    unquestioned_focus.issue_topics.front().topics.push_back(
+        model::ArgumentFocusTopic::Jurisdiction);
+    QVERIFY(!engine::groundingDigest(unquestioned_focus).has_value());
+
+    const auto legacy_bench = singleSeatBench(clippedProfile());
+    const auto legacy_grounding = grounding();
+    const auto legacy_config = configuration(legacy_bench, legacy_grounding);
+    const auto legacy = engine::initializeOralArgument(legacy_config, legacy_bench,
+                                                       legacy_grounding);
+    QVERIFY(legacy.has_value());
+    QVERIFY(!engine::planOpeningQuestion(definition, *legacy).has_value());
+    QVERIFY(!engine::planOpeningQuestion(legacy_config, legacy_bench, legacy_grounding,
+                                         *canonical)
+                 .has_value());
+}
+
+void OralArgumentEngineTest::canonicalRecordPinsAndCounterfactualStateRemainBounded() {
+    const auto definition = canonicalDefinition("case.training", "issue.training",
+                                                model::OralArgumentMode::CounterfactualTraining);
+    const auto initial = engine::initializeOralArgument(definition);
+    QVERIFY(initial.has_value());
+    QVERIFY(initial->canonical_contract.has_value());
+    QCOMPARE(initial->canonical_contract->mode,
+             model::OralArgumentMode::CounterfactualTraining);
+    const auto opening = engine::planOpeningQuestion(definition, *initial);
+    QVERIFY(opening.has_value());
+    const auto started = engine::applyOralArgumentEvent(definition, *initial, *opening);
+    QVERIFY(started.has_value());
+
+    const model::CounselAnswer record_claim{
+        model::CounselActKind::RecordClaim,
+        "The training answer relies on the authored authority but omits the record page.",
+        "issue.training",
+        {"case.training.grounding-authority"},
+        1.0,
+        5s,
+    };
+    const auto demand = engine::decideCounselAnswer(definition, *started, record_claim);
+    QVERIFY(demand.has_value());
+    QCOMPARE(demand->bench.kind, model::BenchActKind::RecordPinDemand);
+    const auto* selection = std::get_if<model::AuthoredQuestionSelection>(
+        &demand->bench.question->selection);
+    QVERIFY(selection != nullptr);
+    QVERIFY(std::ranges::any_of(selection->grounding, [](const auto& grounding) {
+        return std::holds_alternative<model::RecordPageArgumentGrounding>(grounding);
+    }));
+    const auto after_demand =
+        engine::applyOralArgumentEvent(definition, *started, *demand);
+    QVERIFY(after_demand.has_value());
+    QCOMPARE(after_demand->legal_state_digest, definition.configuration.legal_state_digest);
+    QCOMPARE(after_demand->authored_disposition_id,
+             definition.configuration.authored_disposition_id);
+    QCOMPARE(after_demand->canonical_contract, initial->canonical_contract);
+
+    auto forged_legal = *started;
+    forged_legal.legal_state_digest.assign(64, 'd');
+    QVERIFY(!engine::decideCounselAnswer(definition, forged_legal, record_claim).has_value());
+    auto forged_disposition = *started;
+    forged_disposition.authored_disposition_id = "operation.forged-judgment";
+    QVERIFY(!engine::decideCounselAnswer(definition, forged_disposition, record_claim).has_value());
+
+    const std::array events{*opening, *demand};
+    const auto replayed = engine::replayOralArgument(definition, *initial, events);
+    QVERIFY(replayed.has_value());
+    QCOMPARE(*replayed, *after_demand);
 }
 
 } // namespace

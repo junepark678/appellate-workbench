@@ -1,14 +1,149 @@
 #pragma once
 
+#include "appellate/model/authority_ref.hpp"
+#include "appellate/model/case_definition.hpp"
 #include "appellate/model/judge_profile.hpp"
 
 #include <chrono>
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
+#include <variant>
 #include <vector>
 
 namespace appellate::model {
+
+enum class OralArgumentMode {
+    ActualRecord,
+    CounterfactualTraining,
+};
+
+enum class ArgumentFocusTopic {
+    Jurisdiction,
+    Preservation,
+    StandardOfReview,
+    RecordSupport,
+    GoverningAuthority,
+    Merits,
+    Remedy,
+    PracticalConsequences,
+};
+
+[[nodiscard]] constexpr std::string_view argumentFocusTopicId(ArgumentFocusTopic topic) noexcept {
+    switch (topic) {
+    case ArgumentFocusTopic::Jurisdiction:
+        return "workbench.topic.jurisdiction";
+    case ArgumentFocusTopic::Preservation:
+        return "workbench.topic.preservation";
+    case ArgumentFocusTopic::StandardOfReview:
+        return "workbench.topic.standard-of-review";
+    case ArgumentFocusTopic::RecordSupport:
+        return "workbench.topic.record-support";
+    case ArgumentFocusTopic::GoverningAuthority:
+        return "workbench.topic.governing-authority";
+    case ArgumentFocusTopic::Merits:
+        return "workbench.topic.merits";
+    case ArgumentFocusTopic::Remedy:
+        return "workbench.topic.remedy";
+    case ArgumentFocusTopic::PracticalConsequences:
+        return "workbench.topic.practical-consequences";
+    }
+    return {};
+}
+
+[[nodiscard]] constexpr std::optional<ArgumentFocusTopic>
+argumentFocusTopicFromId(std::string_view id) noexcept {
+    if (id == "workbench.topic.jurisdiction") {
+        return ArgumentFocusTopic::Jurisdiction;
+    }
+    if (id == "workbench.topic.preservation") {
+        return ArgumentFocusTopic::Preservation;
+    }
+    if (id == "workbench.topic.standard-of-review") {
+        return ArgumentFocusTopic::StandardOfReview;
+    }
+    if (id == "workbench.topic.record-support") {
+        return ArgumentFocusTopic::RecordSupport;
+    }
+    if (id == "workbench.topic.governing-authority") {
+        return ArgumentFocusTopic::GoverningAuthority;
+    }
+    if (id == "workbench.topic.merits") {
+        return ArgumentFocusTopic::Merits;
+    }
+    if (id == "workbench.topic.remedy") {
+        return ArgumentFocusTopic::Remedy;
+    }
+    if (id == "workbench.topic.practical-consequences") {
+        return ArgumentFocusTopic::PracticalConsequences;
+    }
+    return std::nullopt;
+}
+
+struct AuthorityArgumentGrounding final {
+    std::string grounding_id;
+    AuthorityRef authority;
+
+    friend bool operator==(const AuthorityArgumentGrounding&,
+                           const AuthorityArgumentGrounding&) = default;
+};
+
+struct BriefPageArgumentGrounding final {
+    std::string grounding_id;
+    std::string record_entry_id;
+    std::uint32_t page_number{};
+    std::string asset_sha256;
+
+    friend bool operator==(const BriefPageArgumentGrounding&,
+                           const BriefPageArgumentGrounding&) = default;
+};
+
+struct RecordPageArgumentGrounding final {
+    std::string grounding_id;
+    std::string record_anchor_id;
+    std::string record_entry_id;
+    std::uint32_t page_number{};
+    std::string asset_sha256;
+    std::optional<std::string> citation_label;
+
+    friend bool operator==(const RecordPageArgumentGrounding&,
+                           const RecordPageArgumentGrounding&) = default;
+};
+
+using AuthoredArgumentGrounding =
+    std::variant<AuthorityArgumentGrounding, BriefPageArgumentGrounding,
+                 RecordPageArgumentGrounding>;
+
+struct ArgumentIssueTopics final {
+    std::string issue_id;
+    std::vector<ArgumentFocusTopic> topics;
+
+    friend bool operator==(const ArgumentIssueTopics&, const ArgumentIssueTopics&) = default;
+};
+
+struct AuthoredArgumentQuestion final {
+    std::string id;
+    std::string issue_id;
+    ArgumentFocusTopic topic{ArgumentFocusTopic::Merits};
+    std::string prompt;
+    std::vector<AuthoredArgumentGrounding> grounding;
+
+    friend bool operator==(const AuthoredArgumentQuestion&,
+                           const AuthoredArgumentQuestion&) = default;
+};
+
+struct AuthoredQuestionBank final {
+    CaseId case_id;
+    std::string argument_configuration_id;
+    OralArgumentMode mode{OralArgumentMode::ActualRecord};
+    std::string grounding_digest;
+    std::vector<ArgumentIssueTopics> issue_topics;
+    std::vector<AuthoredArgumentQuestion> questions;
+
+    friend bool operator==(const AuthoredQuestionBank&, const AuthoredQuestionBank&) = default;
+};
 
 enum class GroundingKind {
     Authority,
@@ -70,6 +205,25 @@ struct OralArgumentConfiguration final {
                            const OralArgumentConfiguration&) = default;
 };
 
+struct CanonicalOralArgumentContract final {
+    CaseId case_id;
+    std::string argument_configuration_id;
+    OralArgumentMode mode{OralArgumentMode::ActualRecord};
+    std::string grounding_digest;
+
+    friend bool operator==(const CanonicalOralArgumentContract&,
+                           const CanonicalOralArgumentContract&) = default;
+};
+
+struct CanonicalOralArgumentDefinition final {
+    OralArgumentConfiguration configuration;
+    BenchConfiguration bench;
+    AuthoredQuestionBank question_bank;
+
+    friend bool operator==(const CanonicalOralArgumentDefinition&,
+                           const CanonicalOralArgumentDefinition&) = default;
+};
+
 enum class OralArgumentPhase {
     NotStarted,
     Principal,
@@ -104,12 +258,46 @@ enum class BenchActKind {
     TimeExpired,
 };
 
-struct GroundedQuestion final {
-    std::string issue_id;
+struct LegacyQuestionSelection final {
     std::string prompt;
     std::vector<ArgumentGroundingRef> grounding;
+
+    friend bool operator==(const LegacyQuestionSelection&, const LegacyQuestionSelection&) = default;
+};
+
+struct AuthoredQuestionSelection final {
+    std::string question_id;
+    ArgumentFocusTopic topic{ArgumentFocusTopic::Merits};
+    OralArgumentMode mode{OralArgumentMode::ActualRecord};
+    std::string prompt;
+    std::vector<AuthoredArgumentGrounding> grounding;
+
+    friend bool operator==(const AuthoredQuestionSelection&,
+                           const AuthoredQuestionSelection&) = default;
+};
+
+using GroundedQuestionSelection =
+    std::variant<LegacyQuestionSelection, AuthoredQuestionSelection>;
+
+struct GroundedQuestion final {
+    std::string issue_id;
+    GroundedQuestionSelection selection;
     std::optional<std::uint64_t> parent_act_sequence;
     bool recalls_concession{};
+
+    GroundedQuestion() = default;
+
+    GroundedQuestion(std::string issue, std::string prompt,
+                     std::vector<ArgumentGroundingRef> grounding,
+                     std::optional<std::uint64_t> parent, bool recalls)
+        : issue_id(std::move(issue)),
+          selection(LegacyQuestionSelection{std::move(prompt), std::move(grounding)}),
+          parent_act_sequence(parent), recalls_concession(recalls) {}
+
+    GroundedQuestion(std::string issue, AuthoredQuestionSelection authored,
+                     std::optional<std::uint64_t> parent, bool recalls)
+        : issue_id(std::move(issue)), selection(std::move(authored)),
+          parent_act_sequence(parent), recalls_concession(recalls) {}
 
     friend bool operator==(const GroundedQuestion&, const GroundedQuestion&) = default;
 };
@@ -169,6 +357,7 @@ struct OralArgumentState final {
     std::string grounding_digest;
     std::string legal_state_digest;
     std::string authored_disposition_id;
+    std::optional<CanonicalOralArgumentContract> canonical_contract;
 
     friend bool operator==(const OralArgumentState&, const OralArgumentState&) = default;
 };

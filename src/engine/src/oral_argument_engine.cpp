@@ -14,6 +14,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -29,12 +30,17 @@ constexpr std::size_t maximum_phrases = 8;
 constexpr std::size_t maximum_issues = 256;
 constexpr std::size_t maximum_grounding_per_issue = 64;
 constexpr std::size_t maximum_prompts_per_issue = 32;
+constexpr std::size_t maximum_authored_questions = maximum_issues * maximum_prompts_per_issue;
+constexpr std::size_t maximum_authored_grounding = 8'192;
+constexpr std::size_t maximum_topics_per_issue = 8;
 constexpr std::size_t maximum_citations = 32;
 constexpr std::size_t maximum_events = 4'096;
 constexpr std::size_t maximum_transcript_entries = maximum_events * 2;
 constexpr std::size_t maximum_prompt_length = 512;
 constexpr std::size_t maximum_answer_length = 16 * 1'024;
 constexpr std::size_t maximum_rendered_utterance_length = 32 * 1'024;
+constexpr std::size_t maximum_namespaced_id_length = 160;
+constexpr std::uint32_t maximum_document_pages = 10'000;
 constexpr std::chrono::seconds maximum_argument_time{24 * 60 * 60};
 
 [[nodiscard]] auto fail(ErrorCode code, std::string message) -> std::unexpected<Error> {
@@ -47,6 +53,58 @@ constexpr std::chrono::seconds maximum_argument_time{24 * 60 * 60};
 
 [[nodiscard]] bool unitInterval(double value) {
     return std::isfinite(value) && value >= 0.0 && value <= 1.0;
+}
+
+[[nodiscard]] bool namespacedId(std::string_view value) {
+    if (value.size() < 3 || value.size() > maximum_namespaced_id_length ||
+        value.front() == '.' || value.front() == '-' || value.back() == '.' ||
+        value.back() == '-') {
+        return false;
+    }
+    bool has_separator = false;
+    bool previous_separator = false;
+    for (const char raw_character : value) {
+        const auto character = static_cast<unsigned char>(raw_character);
+        const bool alphanumeric = (character >= 'a' && character <= 'z') ||
+                                  (character >= '0' && character <= '9');
+        const bool separator = character == '.' || character == '-';
+        if ((!alphanumeric && !separator) || (separator && previous_separator)) {
+            return false;
+        }
+        has_separator = has_separator || separator;
+        previous_separator = separator;
+    }
+    return has_separator;
+}
+
+[[nodiscard]] bool lowercaseSha256(std::string_view value) {
+    return value.size() == 64 && std::ranges::all_of(value, [](char character) {
+               return (character >= '0' && character <= '9') ||
+                      (character >= 'a' && character <= 'f');
+           });
+}
+
+[[nodiscard]] bool canonicalDate(std::string_view value) {
+    if (value.size() != 10 || value[4] != '-' || value[7] != '-') {
+        return false;
+    }
+    const auto digit = [](char character) { return character >= '0' && character <= '9'; };
+    if (!std::ranges::all_of(value.substr(0, 4), digit) ||
+        !std::ranges::all_of(value.substr(5, 2), digit) ||
+        !std::ranges::all_of(value.substr(8, 2), digit)) {
+        return false;
+    }
+    const auto number = [&](std::size_t offset, std::size_t count) {
+        unsigned result = 0;
+        for (std::size_t index = offset; index < offset + count; ++index) {
+            result = result * 10U + static_cast<unsigned>(value[index] - '0');
+        }
+        return result;
+    };
+    const auto date = std::chrono::year_month_day{
+        std::chrono::year{static_cast<int>(number(0, 4))},
+        std::chrono::month{number(5, 2)}, std::chrono::day{number(8, 2)}};
+    return date.ok();
 }
 
 [[nodiscard]] bool validUtf8(std::string_view value) {
@@ -136,6 +194,44 @@ constexpr std::chrono::seconds maximum_argument_time{24 * 60 * 60};
     case model::GroundingKind::Authority:
     case model::GroundingKind::BriefPassage:
     case model::GroundingKind::RecordPage:
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] bool validEnum(model::OralArgumentMode value) {
+    switch (value) {
+    case model::OralArgumentMode::ActualRecord:
+    case model::OralArgumentMode::CounterfactualTraining:
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] bool validEnum(model::ArgumentFocusTopic value) {
+    return !model::argumentFocusTopicId(value).empty();
+}
+
+[[nodiscard]] bool validEnum(model::AuthorityType value) {
+    switch (value) {
+    case model::AuthorityType::Constitution:
+    case model::AuthorityType::Statute:
+    case model::AuthorityType::Rule:
+    case model::AuthorityType::Regulation:
+    case model::AuthorityType::Case:
+    case model::AuthorityType::Order:
+    case model::AuthorityType::AdministrativeDecision:
+    case model::AuthorityType::Other:
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] bool validEnum(model::PrecedentialStatus value) {
+    switch (value) {
+    case model::PrecedentialStatus::NotApplicable:
+    case model::PrecedentialStatus::Precedential:
+    case model::PrecedentialStatus::Nonprecedential:
         return true;
     }
     return false;
@@ -344,11 +440,165 @@ template <typename Range, typename Projection>
     return {};
 }
 
-[[nodiscard]] bool lowercaseSha256(std::string_view value) {
-    return value.size() == 64 && std::ranges::all_of(value, [](char character) {
-               return (character >= '0' && character <= '9') ||
-                      (character >= 'a' && character <= 'f');
-           });
+[[nodiscard]] std::string_view
+authoredGroundingId(const model::AuthoredArgumentGrounding& grounding) {
+    return std::visit([](const auto& reference) -> std::string_view {
+        return reference.grounding_id;
+    }, grounding);
+}
+
+[[nodiscard]] bool validAuthority(const model::AuthorityRef& authority) {
+    if (!namespacedId(authority.id.value) ||
+        !model::isCanonicalAuthorityText(authority.citation, 4'096) ||
+        !canonicalDate(authority.source_version) ||
+        !model::isCanonicalAuthorityText(authority.proposition, 4'096) ||
+        !authority.provenance.has_value()) {
+        return false;
+    }
+    const auto& provenance = *authority.provenance;
+    return validEnum(provenance.type) && namespacedId(provenance.jurisdiction_id) &&
+           namespacedId(provenance.issuing_body_id) &&
+           validEnum(provenance.precedential_status) && canonicalDate(provenance.checked_on) &&
+           model::authorityVerificationNotBeforeSource(authority.source_version,
+                                                       provenance.checked_on) &&
+           model::isCanonicalAuthorityText(provenance.locator, 1'024) &&
+           model::isCanonicalAuthoritySourceUrl(provenance.source_url);
+}
+
+[[nodiscard]] bool
+validAuthoredGrounding(const model::AuthoredArgumentGrounding& grounding) {
+    return std::visit(
+        [](const auto& reference) {
+            using Reference = std::remove_cvref_t<decltype(reference)>;
+            if (!namespacedId(reference.grounding_id)) {
+                return false;
+            }
+            if constexpr (std::is_same_v<Reference, model::AuthorityArgumentGrounding>) {
+                return validAuthority(reference.authority);
+            } else if constexpr (std::is_same_v<Reference,
+                                                model::BriefPageArgumentGrounding>) {
+                return namespacedId(reference.record_entry_id) && reference.page_number > 0 &&
+                       reference.page_number <= maximum_document_pages &&
+                       lowercaseSha256(reference.asset_sha256);
+            } else {
+                return namespacedId(reference.record_anchor_id) &&
+                       namespacedId(reference.record_entry_id) && reference.page_number > 0 &&
+                       reference.page_number <= maximum_document_pages &&
+                       lowercaseSha256(reference.asset_sha256) &&
+                       (!reference.citation_label.has_value() ||
+                        (boundedText(*reference.citation_label, 120) &&
+                         validUtf8(*reference.citation_label)));
+            }
+        },
+        grounding);
+}
+
+[[nodiscard]] auto validateQuestionBank(const model::AuthoredQuestionBank& bank)
+    -> std::expected<void, Error> {
+    if (!namespacedId(bank.case_id.value) || !namespacedId(bank.argument_configuration_id) ||
+        !validEnum(bank.mode) ||
+        (!bank.grounding_digest.empty() && !lowercaseSha256(bank.grounding_digest)) ||
+        bank.issue_topics.empty() || bank.issue_topics.size() > maximum_issues ||
+        bank.questions.empty() || bank.questions.size() > maximum_authored_questions ||
+        !hasUniqueValues(bank.issue_topics, &model::ArgumentIssueTopics::issue_id) ||
+        !hasUniqueValues(bank.questions, &model::AuthoredArgumentQuestion::id)) {
+        return fail(ErrorCode::InvalidDefinition, "invalid authored question-bank shape");
+    }
+
+    std::unordered_map<std::string, const model::ArgumentIssueTopics*> bindings;
+    bindings.reserve(bank.issue_topics.size());
+    for (const auto& binding : bank.issue_topics) {
+        if (!namespacedId(binding.issue_id) || binding.topics.empty() ||
+            binding.topics.size() > maximum_topics_per_issue ||
+            !hasUniqueValues(binding.topics,
+                             [](model::ArgumentFocusTopic topic) { return topic; }) ||
+            !std::ranges::all_of(binding.topics,
+                                 [](model::ArgumentFocusTopic topic) {
+                                     return validEnum(topic);
+                                 })) {
+            return fail(ErrorCode::InvalidDefinition, "invalid authored issue-topic binding");
+        }
+        bindings.emplace(binding.issue_id, &binding);
+    }
+
+    std::unordered_map<std::string, std::size_t> questions_per_issue;
+    questions_per_issue.reserve(bindings.size());
+    std::unordered_set<std::string> grounding_ids;
+    grounding_ids.reserve(maximum_authored_grounding);
+    std::size_t grounding_count = 0;
+    for (const auto& question : bank.questions) {
+        const auto binding = bindings.find(question.issue_id);
+        if (!namespacedId(question.id) || binding == bindings.end() ||
+            !validEnum(question.topic) ||
+            std::ranges::find(binding->second->topics, question.topic) ==
+                binding->second->topics.end() ||
+            !boundedText(question.prompt, maximum_prompt_length) || !validUtf8(question.prompt) ||
+            question.grounding.empty() ||
+            question.grounding.size() > maximum_grounding_per_issue ||
+            grounding_count > maximum_authored_grounding - question.grounding.size()) {
+            return fail(ErrorCode::InvalidDefinition, "invalid authored grounded question");
+        }
+        auto& issue_count = questions_per_issue[question.issue_id];
+        ++issue_count;
+        if (issue_count > maximum_prompts_per_issue) {
+            return fail(ErrorCode::InvalidDefinition,
+                        "authored issue exceeds its question limit");
+        }
+        grounding_count += question.grounding.size();
+        for (const auto& grounding : question.grounding) {
+            if (!validAuthoredGrounding(grounding) ||
+                !grounding_ids.emplace(authoredGroundingId(grounding)).second) {
+                return fail(ErrorCode::InvalidDefinition,
+                            "authored grounding is invalid or ambiguously identified");
+            }
+        }
+    }
+    if (std::ranges::any_of(bank.issue_topics, [&](const auto& binding) {
+            return !questions_per_issue.contains(binding.issue_id);
+        })) {
+        return fail(ErrorCode::InvalidDefinition,
+                    "every permitted issue requires an authored grounded question");
+    }
+    if (std::ranges::any_of(bank.issue_topics, [&](const auto& binding) {
+            return std::ranges::any_of(binding.topics, [&](model::ArgumentFocusTopic topic) {
+                return std::ranges::none_of(bank.questions, [&](const auto& question) {
+                    return question.issue_id == binding.issue_id && question.topic == topic;
+                });
+            });
+        })) {
+        return fail(ErrorCode::InvalidDefinition,
+                    "every declared issue-topic pair requires an authored question");
+    }
+    return {};
+}
+
+[[nodiscard]] auto validateCanonicalBench(const model::BenchConfiguration& bench,
+                                          const model::AuthoredQuestionBank& bank)
+    -> std::expected<void, Error> {
+    if (const auto valid = validateBench(bench); !valid) {
+        return valid;
+    }
+    std::unordered_set<model::ArgumentFocusTopic> available_topics;
+    for (const auto& binding : bank.issue_topics) {
+        available_topics.insert(binding.topics.begin(), binding.topics.end());
+    }
+    for (const auto& seat : bench.seats) {
+        bool intersects = false;
+        for (const auto& focus : seat.profile.interaction.issue_focus) {
+            const auto topic = model::argumentFocusTopicFromId(focus.topic_id);
+            if (!topic.has_value()) {
+                return fail(ErrorCode::InvalidDefinition,
+                            "canonical argument bench uses a case-specific or unknown focus topic");
+            }
+            intersects = intersects ||
+                         (focus.weight > 0.0 && available_topics.contains(*topic));
+        }
+        if (!intersects) {
+            return fail(ErrorCode::InvalidDefinition,
+                        "canonical argument bench has no positive focus in the question bank");
+        }
+    }
+    return {};
 }
 
 [[nodiscard]] auto validateConfiguration(const model::OralArgumentConfiguration& configuration)
@@ -573,6 +823,189 @@ void addGroundingRef(Sha256& digest, const model::ArgumentGroundingRef& referenc
     return digest.finish();
 }
 
+[[nodiscard]] std::string_view modeName(model::OralArgumentMode mode) {
+    switch (mode) {
+    case model::OralArgumentMode::ActualRecord:
+        return "actual_record";
+    case model::OralArgumentMode::CounterfactualTraining:
+        return "counterfactual_training";
+    }
+    return {};
+}
+
+[[nodiscard]] std::string_view authorityTypeName(model::AuthorityType type) {
+    switch (type) {
+    case model::AuthorityType::Constitution:
+        return "constitution";
+    case model::AuthorityType::Statute:
+        return "statute";
+    case model::AuthorityType::Rule:
+        return "rule";
+    case model::AuthorityType::Regulation:
+        return "regulation";
+    case model::AuthorityType::Case:
+        return "case";
+    case model::AuthorityType::Order:
+        return "order";
+    case model::AuthorityType::AdministrativeDecision:
+        return "administrative_decision";
+    case model::AuthorityType::Other:
+        return "other";
+    }
+    return {};
+}
+
+[[nodiscard]] std::string_view precedentialStatusName(model::PrecedentialStatus status) {
+    switch (status) {
+    case model::PrecedentialStatus::NotApplicable:
+        return "not_applicable";
+    case model::PrecedentialStatus::Precedential:
+        return "precedential";
+    case model::PrecedentialStatus::Nonprecedential:
+        return "nonprecedential";
+    }
+    return {};
+}
+
+void addAuthority(Sha256& digest, const model::AuthorityRef& authority) {
+    digest.addText(authority.id.value);
+    digest.addText(authority.citation);
+    digest.addText(authority.source_version);
+    digest.addText(authority.proposition);
+    digest.addUint64(authority.provenance.has_value() ? 1U : 0U);
+    if (!authority.provenance.has_value()) {
+        return;
+    }
+    const auto& provenance = *authority.provenance;
+    digest.addText(authorityTypeName(provenance.type));
+    digest.addText(provenance.jurisdiction_id);
+    digest.addText(provenance.issuing_body_id);
+    digest.addText(precedentialStatusName(provenance.precedential_status));
+    digest.addUint64(provenance.official_source ? 1U : 0U);
+    digest.addText(provenance.checked_on);
+    digest.addText(provenance.locator);
+    digest.addText(provenance.source_url);
+}
+
+void addAuthoredGrounding(Sha256& digest,
+                          const model::AuthoredArgumentGrounding& grounding) {
+    std::visit(
+        [&](const auto& reference) {
+            using Reference = std::remove_cvref_t<decltype(reference)>;
+            digest.addText(reference.grounding_id);
+            if constexpr (std::is_same_v<Reference, model::AuthorityArgumentGrounding>) {
+                digest.addText("authority");
+                addAuthority(digest, reference.authority);
+            } else if constexpr (std::is_same_v<Reference,
+                                                model::BriefPageArgumentGrounding>) {
+                digest.addText("brief_page");
+                digest.addText(reference.record_entry_id);
+                digest.addUint64(reference.page_number);
+                digest.addText(reference.asset_sha256);
+            } else {
+                digest.addText("record_page");
+                digest.addText(reference.record_anchor_id);
+                digest.addText(reference.record_entry_id);
+                digest.addUint64(reference.page_number);
+                digest.addText(reference.asset_sha256);
+                digest.addUint64(reference.citation_label.has_value() ? 1U : 0U);
+                if (reference.citation_label.has_value()) {
+                    digest.addText(*reference.citation_label);
+                }
+            }
+        },
+        grounding);
+}
+
+[[nodiscard]] std::string
+digestQuestionBankUnchecked(const model::AuthoredQuestionBank& bank) {
+    Sha256 digest;
+    digest.addText("appellate-workbench-grounded-question-bank-v1");
+    digest.addText(bank.case_id.value);
+    digest.addText(bank.argument_configuration_id);
+    digest.addText(modeName(bank.mode));
+
+    std::vector<const model::ArgumentIssueTopics*> bindings;
+    bindings.reserve(bank.issue_topics.size());
+    for (const auto& binding : bank.issue_topics) {
+        bindings.push_back(&binding);
+    }
+    std::ranges::sort(bindings, {}, [](const auto* binding) -> const std::string& {
+        return binding->issue_id;
+    });
+    digest.addUint64(static_cast<std::uint64_t>(bindings.size()));
+    for (const auto* binding : bindings) {
+        digest.addText(binding->issue_id);
+        auto topics = binding->topics;
+        std::ranges::sort(topics, [](model::ArgumentFocusTopic left,
+                                    model::ArgumentFocusTopic right) {
+            return model::argumentFocusTopicId(left) < model::argumentFocusTopicId(right);
+        });
+        digest.addUint64(static_cast<std::uint64_t>(topics.size()));
+        for (const auto topic : topics) {
+            digest.addText(model::argumentFocusTopicId(topic));
+        }
+    }
+
+    std::vector<const model::AuthoredArgumentQuestion*> questions;
+    questions.reserve(bank.questions.size());
+    for (const auto& question : bank.questions) {
+        questions.push_back(&question);
+    }
+    std::ranges::sort(questions, {}, [](const auto* question) -> const std::string& {
+        return question->id;
+    });
+    digest.addUint64(static_cast<std::uint64_t>(questions.size()));
+    for (const auto* question : questions) {
+        digest.addText(question->id);
+        digest.addText(question->issue_id);
+        digest.addText(model::argumentFocusTopicId(question->topic));
+        digest.addText(question->prompt);
+        std::vector<const model::AuthoredArgumentGrounding*> grounding;
+        grounding.reserve(question->grounding.size());
+        for (const auto& reference : question->grounding) {
+            grounding.push_back(&reference);
+        }
+        std::ranges::sort(grounding, [](const auto* left, const auto* right) {
+            return authoredGroundingId(*left) < authoredGroundingId(*right);
+        });
+        digest.addUint64(static_cast<std::uint64_t>(grounding.size()));
+        for (const auto* reference : grounding) {
+            addAuthoredGrounding(digest, *reference);
+        }
+    }
+    return digest.finish();
+}
+
+[[nodiscard]] model::CanonicalOralArgumentContract
+canonicalContract(const model::AuthoredQuestionBank& bank) {
+    return model::CanonicalOralArgumentContract{bank.case_id, bank.argument_configuration_id,
+                                                bank.mode, bank.grounding_digest};
+}
+
+[[nodiscard]] auto validateCanonicalBoundary(
+    const model::CanonicalOralArgumentDefinition& definition) -> std::expected<void, Error> {
+    if (const auto valid = validateConfiguration(definition.configuration); !valid) {
+        return valid;
+    }
+    if (const auto valid = validateQuestionBank(definition.question_bank); !valid) {
+        return valid;
+    }
+    if (const auto valid = validateCanonicalBench(definition.bench, definition.question_bank);
+        !valid) {
+        return valid;
+    }
+    const auto computed = digestQuestionBankUnchecked(definition.question_bank);
+    if (definition.configuration.behavior_definition_digest !=
+            digestBehaviorUnchecked(definition.bench) ||
+        definition.question_bank.grounding_digest != computed ||
+        definition.configuration.grounding_digest != computed) {
+        return fail(ErrorCode::InvalidDefinition,
+                    "canonical oral-argument definitions do not match their digest pins");
+    }
+    return {};
+}
+
 [[nodiscard]] auto validateBoundary(const model::OralArgumentConfiguration& configuration,
                                     const model::BenchConfiguration& bench,
                                     const model::ArgumentGrounding& grounding)
@@ -684,11 +1117,14 @@ void addGroundingRef(Sha256& digest, const model::ArgumentGroundingRef& referenc
         return fail(ErrorCode::InvalidEvent, "bench question is missing grounding");
     }
     const auto& question = *event.bench.question;
+    const auto* selection = std::get_if<model::LegacyQuestionSelection>(&question.selection);
     const auto* issue = issueById(grounding, question.issue_id);
-    if (issue == nullptr || !boundedText(question.prompt, maximum_prompt_length + 128) ||
-        question.grounding.empty() || question.grounding.size() > maximum_grounding_per_issue ||
-        !hasUniqueValues(question.grounding, &model::ArgumentGroundingRef::id) ||
-        !std::ranges::all_of(question.grounding,
+    if (selection == nullptr || issue == nullptr ||
+        !boundedText(selection->prompt, maximum_prompt_length + 128) ||
+        selection->grounding.empty() ||
+        selection->grounding.size() > maximum_grounding_per_issue ||
+        !hasUniqueValues(selection->grounding, &model::ArgumentGroundingRef::id) ||
+        !std::ranges::all_of(selection->grounding,
                              [&](const auto& reference) {
                                  return validGroundingRef(reference) &&
                                         groundingAvailableExact(*issue, reference);
@@ -699,7 +1135,7 @@ void addGroundingRef(Sha256& digest, const model::ArgumentGroundingRef& referenc
         return fail(ErrorCode::InvalidEvent, "bench question grounding is invalid");
     }
     if (event.bench.kind == model::BenchActKind::RecordPinDemand &&
-        !std::ranges::any_of(question.grounding, [](const auto& reference) {
+        !std::ranges::any_of(selection->grounding, [](const auto& reference) {
             return reference.kind == model::GroundingKind::RecordPage;
         })) {
         return fail(ErrorCode::InvalidEvent, "record-pin demand lacks a record page");
@@ -723,6 +1159,7 @@ initialStateUnchecked(const model::OralArgumentConfiguration& configuration) {
         configuration.grounding_digest,
         configuration.legal_state_digest,
         configuration.authored_disposition_id,
+        std::nullopt,
     };
 }
 
@@ -864,6 +1301,7 @@ applyAcceptedEvent(const model::OralArgumentConfiguration& configuration,
         state.grounding_digest != configuration.grounding_digest ||
         state.legal_state_digest != configuration.legal_state_digest ||
         state.authored_disposition_id != configuration.authored_disposition_id ||
+        state.canonical_contract.has_value() ||
         state.journal.size() > maximum_events ||
         state.transcript.size() > maximum_transcript_entries ||
         state.concessions.size() > maximum_events || state.next_event_sequence == 0 ||
@@ -1045,6 +1483,24 @@ groundingSummary(const std::vector<model::ArgumentGroundingRef>& grounding, bool
     return result;
 }
 
+[[nodiscard]] std::string groundingId(const model::AuthoredArgumentGrounding& grounding) {
+    return std::visit([](const auto& reference) { return reference.grounding_id; }, grounding);
+}
+
+[[nodiscard]] std::string
+groundingSummary(const std::vector<model::AuthoredArgumentGrounding>& grounding, bool verbose) {
+    if (grounding.empty()) {
+        return {};
+    }
+    std::string result = groundingId(grounding.front());
+    if (verbose) {
+        for (auto iterator = std::next(grounding.begin()); iterator != grounding.end(); ++iterator) {
+            result += ", " + groundingId(*iterator);
+        }
+    }
+    return result;
+}
+
 [[nodiscard]] auto choosePrompt(const model::ArgumentIssue& issue, const model::BenchSeat& seat,
                                 model::BenchActKind kind, std::uint64_t sequence)
     -> std::expected<std::string, Error> {
@@ -1074,24 +1530,34 @@ groundingSummary(const std::vector<model::ArgumentGroundingRef>& grounding, bool
         return fail(ErrorCode::InvalidDefinition, "question renderer style is invalid");
     }
     const auto phrase_index = structuredChoice(seat, kind, sequence, phrases->size());
-    if (!phrase_index.has_value() || question.grounding.empty()) {
+    const auto prompt = std::visit([](const auto& selection) -> std::string_view {
+        return selection.prompt;
+    }, question.selection);
+    const auto grounding_empty = std::visit([](const auto& selection) {
+        return selection.grounding.empty();
+    }, question.selection);
+    if (!phrase_index.has_value() || grounding_empty) {
         return fail(ErrorCode::InvalidDefinition, "question renderer inventory is empty");
     }
     std::string rendered = std::string(*address) + ", " + (*phrases)[*phrase_index];
     switch (seat.profile.voice.question_framing) {
     case model::QuestionFraming::Direct:
-        rendered += ": " + question.prompt;
+        rendered += ": " + std::string(prompt);
         break;
     case model::QuestionFraming::Socratic:
-        rendered += "; help the court understand: " + question.prompt;
+        rendered += "; help the court understand: " + std::string(prompt);
         break;
     case model::QuestionFraming::Narrative:
-        rendered += "; walk us through: " + question.prompt;
+        rendered += "; walk us through: " + std::string(prompt);
         break;
     }
 
     const auto& profile_voice = seat.profile.voice;
-    const auto sources = groundingSummary(question.grounding, profile_voice.verbosity >= 0.5);
+    const auto sources = std::visit(
+        [&](const auto& selection) {
+            return groundingSummary(selection.grounding, profile_voice.verbosity >= 0.5);
+        },
+        question.selection);
     switch (profile_voice.register_style) {
     case model::VoiceRegister::Plain:
         rendered += " [" + sources + "]";
@@ -1124,14 +1590,13 @@ groundingSummary(const std::vector<model::ArgumentGroundingRef>& grounding, bool
                                    model::BenchActKind kind, std::uint64_t sequence,
                                    std::optional<std::uint64_t> parent, bool recalls_concession)
     -> std::expected<model::BenchAct, Error> {
-    auto question = model::GroundedQuestion{
-        issue.id, {}, selectGrounding(issue, seat, kind), parent, recalls_concession,
-    };
     const auto prompt = choosePrompt(issue, seat, kind, sequence);
-    if (!prompt || question.grounding.empty()) {
+    auto selected_grounding = selectGrounding(issue, seat, kind);
+    if (!prompt || selected_grounding.empty()) {
         return fail(ErrorCode::InvalidDefinition, "cannot construct a grounded bench question");
     }
-    question.prompt = *prompt;
+    auto question = model::GroundedQuestion{issue.id, *prompt, std::move(selected_grounding), parent,
+                                             recalls_concession};
     const auto rendered = renderQuestion(seat, kind, question, sequence);
     if (!rendered) {
         return std::unexpected(rendered.error());
@@ -1264,6 +1729,402 @@ groundingSummary(const std::vector<model::ArgumentGroundingRef>& grounding, bool
     return model::OralArgumentEvent{state.next_event_sequence, answer, *act};
 }
 
+[[nodiscard]] const model::ArgumentIssueTopics*
+authoredIssueById(const model::AuthoredQuestionBank& bank, std::string_view issue_id) {
+    const auto found = std::ranges::find(bank.issue_topics, issue_id,
+                                         &model::ArgumentIssueTopics::issue_id);
+    return found == bank.issue_topics.end() ? nullptr : &*found;
+}
+
+[[nodiscard]] const model::AuthoredArgumentQuestion*
+authoredQuestionById(const model::AuthoredQuestionBank& bank, std::string_view question_id) {
+    const auto found = std::ranges::find(bank.questions, question_id,
+                                         &model::AuthoredArgumentQuestion::id);
+    return found == bank.questions.end() ? nullptr : &*found;
+}
+
+[[nodiscard]] bool isRecordGrounding(const model::AuthoredArgumentGrounding& grounding) {
+    return std::holds_alternative<model::RecordPageArgumentGrounding>(grounding);
+}
+
+[[nodiscard]] bool hasAuthoredRecordPage(const model::AuthoredArgumentQuestion& question) {
+    return std::ranges::any_of(question.grounding, isRecordGrounding);
+}
+
+[[nodiscard]] bool issueHasAuthoredRecordPage(const model::AuthoredQuestionBank& bank,
+                                              std::string_view issue_id) {
+    return std::ranges::any_of(bank.questions, [&](const auto& question) {
+        return question.issue_id == issue_id && hasAuthoredRecordPage(question);
+    });
+}
+
+[[nodiscard]] bool authoredGroundingAvailable(const model::AuthoredQuestionBank& bank,
+                                               std::string_view issue_id,
+                                               std::string_view grounding_id) {
+    return std::ranges::any_of(bank.questions, [&](const auto& question) {
+        return question.issue_id == issue_id &&
+               std::ranges::any_of(question.grounding, [&](const auto& grounding) {
+                   return authoredGroundingId(grounding) == grounding_id;
+               });
+    });
+}
+
+[[nodiscard]] bool authoredRecordGroundingAvailable(const model::AuthoredQuestionBank& bank,
+                                                     std::string_view issue_id,
+                                                     std::string_view grounding_id) {
+    return std::ranges::any_of(bank.questions, [&](const auto& question) {
+        return question.issue_id == issue_id &&
+               std::ranges::any_of(question.grounding, [&](const auto& grounding) {
+                   return authoredGroundingId(grounding) == grounding_id &&
+                          isRecordGrounding(grounding);
+               });
+    });
+}
+
+[[nodiscard]] auto validateCanonicalCounselAnswer(const model::AuthoredQuestionBank& bank,
+                                                  const model::CounselAnswer& answer)
+    -> std::expected<void, Error> {
+    if (!validEnum(answer.kind) || !boundedText(answer.text, maximum_answer_length) ||
+        !namespacedId(answer.issue_id) || !unitInterval(answer.classification_confidence) ||
+        answer.elapsed <= std::chrono::seconds::zero() || answer.elapsed > maximum_argument_time ||
+        answer.cited_grounding_ids.size() > maximum_citations ||
+        !hasUniqueValues(answer.cited_grounding_ids,
+                         [](const std::string& value) -> const std::string& { return value; }) ||
+        !std::ranges::all_of(answer.cited_grounding_ids,
+                             [](const std::string& value) { return namespacedId(value); }) ||
+        authoredIssueById(bank, answer.issue_id) == nullptr ||
+        !std::ranges::all_of(answer.cited_grounding_ids, [&](const std::string& id) {
+            return authoredGroundingAvailable(bank, answer.issue_id, id);
+        })) {
+        return fail(ErrorCode::InvalidCommand,
+                    "answer refers to invalid or unavailable authored grounding");
+    }
+    return {};
+}
+
+[[nodiscard]] double focusWeight(const model::BenchSeat& seat,
+                                 model::ArgumentFocusTopic topic) {
+    const auto id = model::argumentFocusTopicId(topic);
+    const auto focus = std::ranges::find(seat.profile.interaction.issue_focus, id,
+                                         &model::IssueFocus::topic_id);
+    return focus == seat.profile.interaction.issue_focus.end() ? -1.0 : focus->weight;
+}
+
+[[nodiscard]] const model::AuthoredArgumentQuestion* chooseAuthoredQuestion(
+    const model::AuthoredQuestionBank& bank, const model::BenchSeat& seat,
+    std::string_view requested_issue, model::BenchActKind kind, std::uint64_t sequence,
+    bool require_record_page = false) {
+    std::vector<const model::AuthoredArgumentQuestion*> candidates;
+    candidates.reserve(bank.questions.size());
+    for (const auto& question : bank.questions) {
+        if ((!requested_issue.empty() && question.issue_id != requested_issue) ||
+            (require_record_page && !hasAuthoredRecordPage(question))) {
+            continue;
+        }
+        candidates.push_back(&question);
+    }
+    if (candidates.empty()) {
+        return nullptr;
+    }
+    std::ranges::sort(candidates, {}, [](const auto* question) -> const std::string& {
+        return question->id;
+    });
+    double maximum_weight = -1.0;
+    for (const auto* question : candidates) {
+        maximum_weight = std::max(maximum_weight, focusWeight(seat, question->topic));
+    }
+    if (maximum_weight >= 0.0) {
+        std::erase_if(candidates, [&](const auto* question) {
+            return focusWeight(seat, question->topic) != maximum_weight;
+        });
+    }
+    const auto selected = structuredChoice(seat, kind, sequence, candidates.size());
+    return selected.has_value() ? candidates[*selected] : nullptr;
+}
+
+[[nodiscard]] model::AuthoredQuestionSelection authoredSelection(
+    const model::AuthoredArgumentQuestion& question, model::OralArgumentMode mode) {
+    auto grounding = question.grounding;
+    std::ranges::sort(grounding, [](const auto& left, const auto& right) {
+        return authoredGroundingId(left) < authoredGroundingId(right);
+    });
+    return model::AuthoredQuestionSelection{question.id, question.topic, mode, question.prompt,
+                                            std::move(grounding)};
+}
+
+[[nodiscard]] auto makeAuthoredQuestionAct(
+    const model::BenchSeat& seat, const model::AuthoredArgumentQuestion& authored,
+    model::OralArgumentMode mode, model::BenchActKind kind, std::uint64_t sequence,
+    std::optional<std::uint64_t> parent, bool recalls_concession)
+    -> std::expected<model::BenchAct, Error> {
+    auto question = model::GroundedQuestion{authored.issue_id, authoredSelection(authored, mode),
+                                             parent, recalls_concession};
+    const auto rendered = renderQuestion(seat, kind, question, sequence);
+    if (!rendered) {
+        return std::unexpected(rendered.error());
+    }
+    return model::BenchAct{kind, seat.id, std::move(question), *rendered};
+}
+
+[[nodiscard]] auto validateAuthoredEventShape(
+    const model::CanonicalOralArgumentDefinition& definition,
+    const model::OralArgumentEvent& event) -> std::expected<void, Error> {
+    if (event.sequence == 0 || event.sequence > maximum_events || !validEnum(event.bench.kind) ||
+        seatById(definition.bench, event.bench.seat_id) == nullptr ||
+        !boundedText(event.bench.rendered_utterance, maximum_rendered_utterance_length)) {
+        return fail(ErrorCode::InvalidEvent, "canonical oral-argument event shape is invalid");
+    }
+    if (event.counsel.has_value()) {
+        if (const auto valid =
+                validateCanonicalCounselAnswer(definition.question_bank, *event.counsel);
+            !valid) {
+            return fail(ErrorCode::InvalidEvent, valid.error().message);
+        }
+    }
+    if (!questionActKind(event.bench.kind)) {
+        if (event.bench.question.has_value()) {
+            return fail(ErrorCode::InvalidEvent,
+                        "non-question canonical act carries an authored selection");
+        }
+        return {};
+    }
+    if (!event.bench.question.has_value()) {
+        return fail(ErrorCode::InvalidEvent, "canonical bench question is missing");
+    }
+    const auto& question = *event.bench.question;
+    const auto* selection = std::get_if<model::AuthoredQuestionSelection>(&question.selection);
+    const auto* authored = selection == nullptr
+                               ? nullptr
+                               : authoredQuestionById(definition.question_bank,
+                                                      selection->question_id);
+    if (selection == nullptr || authored == nullptr || authored->issue_id != question.issue_id ||
+        *selection != authoredSelection(*authored, definition.question_bank.mode) ||
+        (question.parent_act_sequence.has_value() &&
+         (*question.parent_act_sequence == 0 ||
+          *question.parent_act_sequence >= event.sequence)) ||
+        (question.recalls_concession && event.bench.kind != model::BenchActKind::FollowUp)) {
+        return fail(ErrorCode::InvalidEvent,
+                    "canonical bench question is not one exact authored selection");
+    }
+    if (event.bench.kind == model::BenchActKind::RecordPinDemand &&
+        !std::ranges::any_of(selection->grounding, isRecordGrounding)) {
+        return fail(ErrorCode::InvalidEvent,
+                    "canonical record-pin demand lacks record-page grounding");
+    }
+    return {};
+}
+
+[[nodiscard]] model::OralArgumentState initialCanonicalStateUnchecked(
+    const model::CanonicalOralArgumentDefinition& definition) {
+    auto state = initialStateUnchecked(definition.configuration);
+    state.canonical_contract = canonicalContract(definition.question_bank);
+    return state;
+}
+
+[[nodiscard]] auto planAuthoredOpeningUnchecked(
+    const model::CanonicalOralArgumentDefinition& definition,
+    const model::OralArgumentState& state) -> std::expected<model::OralArgumentEvent, Error> {
+    if (const auto capacity = ensureEventCapacity(state); !capacity) {
+        return std::unexpected(capacity.error());
+    }
+    if (state.phase != model::OralArgumentPhase::NotStarted) {
+        return fail(ErrorCode::InvalidTransition, "opening question is not available");
+    }
+    const auto* seat = presidingSeat(definition.bench);
+    const auto* question = seat == nullptr
+                               ? nullptr
+                               : chooseAuthoredQuestion(definition.question_bank, *seat, {},
+                                                        model::BenchActKind::Question,
+                                                        state.next_event_sequence);
+    if (seat == nullptr || question == nullptr) {
+        return fail(ErrorCode::InvalidDefinition,
+                    "opening question has no authored seat or question");
+    }
+    const auto act = makeAuthoredQuestionAct(
+        *seat, *question, definition.question_bank.mode, model::BenchActKind::Question,
+        state.next_event_sequence, std::nullopt, false);
+    if (!act) {
+        return std::unexpected(act.error());
+    }
+    return model::OralArgumentEvent{state.next_event_sequence, std::nullopt, *act};
+}
+
+[[nodiscard]] auto decideAuthoredCounselAnswerUnchecked(
+    const model::CanonicalOralArgumentDefinition& definition,
+    const model::OralArgumentState& state, const model::CounselAnswer& answer)
+    -> std::expected<model::OralArgumentEvent, Error> {
+    if (const auto capacity = ensureEventCapacity(state); !capacity) {
+        return std::unexpected(capacity.error());
+    }
+    if (state.phase != model::OralArgumentPhase::Principal &&
+        state.phase != model::OralArgumentPhase::Rebuttal) {
+        return fail(ErrorCode::InvalidTransition, "counsel may not answer in this phase");
+    }
+    const auto turn = selectSeat(definition.configuration, definition.bench, state);
+    if (!turn || turn->seat == nullptr ||
+        authoredIssueById(definition.question_bank, answer.issue_id) == nullptr) {
+        return fail(ErrorCode::InvalidCommand, "answer issue or bench turn is unavailable");
+    }
+    const auto remaining = state.phase == model::OralArgumentPhase::Principal
+                               ? state.principal_remaining
+                               : state.rebuttal_remaining;
+    if (answer.elapsed >= remaining) {
+        const auto* seat = presidingSeat(definition.bench);
+        if (seat == nullptr) {
+            return fail(ErrorCode::InvalidDefinition, "presiding seat is unavailable");
+        }
+        const auto rebuttal_remains = state.phase == model::OralArgumentPhase::Principal &&
+                                      state.rebuttal_remaining > std::chrono::seconds::zero();
+        const auto rendered = renderExpiration(*seat, state.phase, rebuttal_remains);
+        if (!rendered) {
+            return std::unexpected(rendered.error());
+        }
+        return model::OralArgumentEvent{
+            state.next_event_sequence,
+            answer,
+            model::BenchAct{model::BenchActKind::TimeExpired, seat->id, std::nullopt, *rendered},
+        };
+    }
+
+    model::BenchActKind kind{};
+    bool recalls_concession = false;
+    bool require_record_page = false;
+    if (answer.classification_confidence <
+        definition.configuration.classification_confidence_threshold) {
+        kind = model::BenchActKind::ClarificationRequest;
+    } else if (answer.kind == model::CounselActKind::RecordClaim &&
+               issueHasAuthoredRecordPage(definition.question_bank, answer.issue_id) &&
+               turn->seat->profile.interaction.record_pin_demand >= 0.5 &&
+               std::ranges::none_of(answer.cited_grounding_ids, [&](const std::string& id) {
+                   return authoredRecordGroundingAvailable(definition.question_bank,
+                                                           answer.issue_id, id);
+               })) {
+        kind = model::BenchActKind::RecordPinDemand;
+        require_record_page = true;
+    } else if (answer.kind == model::CounselActKind::Concession && turn->continues_follow_up &&
+               turn->seat->profile.interaction.concession_recall >= 0.5) {
+        kind = model::BenchActKind::FollowUp;
+        recalls_concession = true;
+    } else if (turn->seat->profile.interaction.hypothetical_frequency >= 0.6) {
+        kind = model::BenchActKind::Hypothetical;
+    } else if (turn->seat->profile.interaction.interruption_frequency >= 0.6) {
+        kind = model::BenchActKind::Interruption;
+    } else if (turn->continues_follow_up) {
+        kind = model::BenchActKind::FollowUp;
+    } else {
+        kind = model::BenchActKind::Question;
+    }
+    const auto* question = chooseAuthoredQuestion(
+        definition.question_bank, *turn->seat, answer.issue_id, kind,
+        state.next_event_sequence, require_record_page);
+    if (question == nullptr) {
+        return fail(ErrorCode::InvalidDefinition,
+                    "cannot select an exact authored question for the bench act");
+    }
+    const auto parent = state.next_event_sequence > 1
+                            ? std::optional<std::uint64_t>{state.next_event_sequence - 1}
+                            : std::nullopt;
+    const auto act = makeAuthoredQuestionAct(*turn->seat, *question,
+                                             definition.question_bank.mode, kind,
+                                             state.next_event_sequence, parent,
+                                             recalls_concession);
+    if (!act) {
+        return std::unexpected(act.error());
+    }
+    return model::OralArgumentEvent{state.next_event_sequence, answer, *act};
+}
+
+[[nodiscard]] auto projectAuthoredJournal(
+    const model::CanonicalOralArgumentDefinition& definition,
+    std::span<const model::OralArgumentEvent> journal)
+    -> std::expected<model::OralArgumentState, Error> {
+    if (journal.size() > maximum_events) {
+        return fail(ErrorCode::InvalidSession,
+                    "canonical oral-argument journal exceeds its hard limit");
+    }
+    auto projected = initialCanonicalStateUnchecked(definition);
+    for (std::size_t index = 0; index < journal.size(); ++index) {
+        const auto& event = journal[index];
+        if (const auto valid = validateAuthoredEventShape(definition, event); !valid) {
+            return fail(ErrorCode::InvalidSession, valid.error().message);
+        }
+        if (event.sequence != static_cast<std::uint64_t>(index) + 1 ||
+            (index == 0 && event.counsel.has_value()) ||
+            (index != 0 && !event.counsel.has_value()) ||
+            (index == 0 && event.bench.kind != model::BenchActKind::Question) ||
+            (index == 0 && event.bench.question->parent_act_sequence.has_value()) ||
+            (index != 0 && projected.phase != model::OralArgumentPhase::Principal &&
+             projected.phase != model::OralArgumentPhase::Rebuttal)) {
+            return fail(ErrorCode::InvalidSession,
+                        "canonical oral-argument journal ordering is invalid");
+        }
+        if (event.counsel.has_value()) {
+            const auto remaining = projected.phase == model::OralArgumentPhase::Principal
+                                       ? projected.principal_remaining
+                                       : projected.rebuttal_remaining;
+            if ((event.bench.kind == model::BenchActKind::TimeExpired) !=
+                (event.counsel->elapsed >= remaining)) {
+                return fail(ErrorCode::InvalidSession,
+                            "canonical oral-argument journal contradicts its clock");
+            }
+        }
+        if (event.bench.kind == model::BenchActKind::FollowUp) {
+            const auto* current = projected.last_seat_id.has_value()
+                                      ? seatById(definition.bench, *projected.last_seat_id)
+                                      : nullptr;
+            if (current == nullptr || current->id != event.bench.seat_id ||
+                projected.follow_up_depth >=
+                    allowedFollowUps(definition.configuration, *current)) {
+                return fail(ErrorCode::InvalidSession,
+                            "canonical oral-argument journal exceeds its follow-up chain");
+            }
+        }
+        auto expected = index == 0
+                            ? planAuthoredOpeningUnchecked(definition, projected)
+                            : decideAuthoredCounselAnswerUnchecked(definition, projected,
+                                                                   *event.counsel);
+        if (!expected || *expected != event) {
+            return fail(ErrorCode::InvalidSession,
+                        expected ? "canonical event differs from exact authored decision"
+                                 : expected.error().message);
+        }
+        projected = applyAcceptedEvent(definition.configuration, projected, event);
+    }
+    return projected;
+}
+
+[[nodiscard]] auto validateCanonicalState(
+    const model::CanonicalOralArgumentDefinition& definition,
+    const model::OralArgumentState& state) -> std::expected<void, Error> {
+    if (!validEnum(state.phase) ||
+        state.behavior_definition_digest != definition.configuration.behavior_definition_digest ||
+        state.grounding_digest != definition.configuration.grounding_digest ||
+        state.legal_state_digest != definition.configuration.legal_state_digest ||
+        state.authored_disposition_id != definition.configuration.authored_disposition_id ||
+        state.canonical_contract !=
+            std::optional<model::CanonicalOralArgumentContract>{
+                canonicalContract(definition.question_bank)} ||
+        state.journal.size() > maximum_events ||
+        state.transcript.size() > maximum_transcript_entries ||
+        state.concessions.size() > maximum_events || state.next_event_sequence == 0 ||
+        state.next_event_sequence != static_cast<std::uint64_t>(state.journal.size()) + 1 ||
+        state.principal_remaining < std::chrono::seconds::zero() ||
+        state.principal_remaining > definition.configuration.principal_time ||
+        state.rebuttal_remaining < std::chrono::seconds::zero() ||
+        state.rebuttal_remaining > definition.configuration.rebuttal_time ||
+        state.follow_up_depth > definition.configuration.maximum_follow_up_depth) {
+        return fail(ErrorCode::InvalidSession,
+                    "canonical oral argument does not match its definition and immutable pins");
+    }
+    const auto projected = projectAuthoredJournal(definition, state.journal);
+    if (!projected || *projected != state) {
+        return fail(ErrorCode::InvalidSession,
+                    projected ? "canonical oral state is not its journal projection"
+                              : projected.error().message);
+    }
+    return {};
+}
+
 } // namespace
 
 std::expected<std::string, Error> behaviorDefinitionDigest(const model::BenchConfiguration& bench) {
@@ -1278,6 +2139,14 @@ std::expected<std::string, Error> groundingDigest(const model::ArgumentGrounding
         return std::unexpected(valid.error());
     }
     return digestGroundingUnchecked(grounding);
+}
+
+std::expected<std::string, Error>
+groundingDigest(const model::AuthoredQuestionBank& question_bank) {
+    if (const auto valid = validateQuestionBank(question_bank); !valid) {
+        return std::unexpected(valid.error());
+    }
+    return digestQuestionBankUnchecked(question_bank);
 }
 
 bool isQuestionAct(model::BenchActKind kind) noexcept { return questionActKind(kind); }
@@ -1376,6 +2245,98 @@ std::expected<model::OralArgumentState, Error> replayOralArgument(
                     "replay seed is not the canonical initialized state");
     }
     return projectJournal(configuration, bench, grounding, events);
+}
+
+std::expected<model::OralArgumentState, Error>
+initializeOralArgument(const model::CanonicalOralArgumentDefinition& definition) {
+    if (const auto valid = validateCanonicalBoundary(definition); !valid) {
+        return std::unexpected(valid.error());
+    }
+    return initialCanonicalStateUnchecked(definition);
+}
+
+std::expected<model::OralArgumentEvent, Error>
+planOpeningQuestion(const model::CanonicalOralArgumentDefinition& definition,
+                    const model::OralArgumentState& state) {
+    if (const auto valid = validateCanonicalBoundary(definition); !valid) {
+        return std::unexpected(valid.error());
+    }
+    if (const auto valid = validateCanonicalState(definition, state); !valid) {
+        return std::unexpected(valid.error());
+    }
+    return planAuthoredOpeningUnchecked(definition, state);
+}
+
+std::expected<model::OralArgumentEvent, Error>
+decideCounselAnswer(const model::CanonicalOralArgumentDefinition& definition,
+                    const model::OralArgumentState& state, const model::CounselAnswer& answer) {
+    if (const auto valid = validateCanonicalBoundary(definition); !valid) {
+        return std::unexpected(valid.error());
+    }
+    if (const auto valid = validateCanonicalState(definition, state); !valid) {
+        return std::unexpected(valid.error());
+    }
+    if (const auto valid = validateCanonicalCounselAnswer(definition.question_bank, answer);
+        !valid) {
+        return std::unexpected(valid.error());
+    }
+    return decideAuthoredCounselAnswerUnchecked(definition, state, answer);
+}
+
+std::expected<model::OralArgumentState, Error> applyOralArgumentEvent(
+    const model::CanonicalOralArgumentDefinition& definition,
+    const model::OralArgumentState& state, const model::OralArgumentEvent& event) {
+    if (const auto valid = validateCanonicalBoundary(definition); !valid) {
+        return std::unexpected(valid.error());
+    }
+    if (const auto valid = validateCanonicalState(definition, state); !valid) {
+        return std::unexpected(valid.error());
+    }
+    if (const auto capacity = ensureEventCapacity(state); !capacity) {
+        return std::unexpected(capacity.error());
+    }
+    if (const auto valid = validateAuthoredEventShape(definition, event); !valid) {
+        return std::unexpected(valid.error());
+    }
+    if (event.sequence != state.next_event_sequence) {
+        return fail(ErrorCode::InvalidEvent,
+                    "canonical oral-argument event sequence is invalid");
+    }
+    auto expected = state.phase == model::OralArgumentPhase::NotStarted
+                        ? planAuthoredOpeningUnchecked(definition, state)
+                    : event.counsel.has_value()
+                        ? decideAuthoredCounselAnswerUnchecked(definition, state, *event.counsel)
+                        : fail(ErrorCode::InvalidEvent, "counsel answer is missing");
+    if (!expected) {
+        return std::unexpected(expected.error());
+    }
+    if (*expected != event) {
+        return fail(ErrorCode::InvalidEvent,
+                    "canonical oral event differs from the exact authored decision");
+    }
+    return applyAcceptedEvent(definition.configuration, state, event);
+}
+
+std::expected<model::OralArgumentState, Error> replayOralArgument(
+    const model::CanonicalOralArgumentDefinition& definition,
+    const model::OralArgumentState& initial_state,
+    std::span<const model::OralArgumentEvent> events) {
+    if (const auto valid = validateCanonicalBoundary(definition); !valid) {
+        return std::unexpected(valid.error());
+    }
+    if (events.size() > maximum_events) {
+        return fail(ErrorCode::InvalidSession,
+                    "canonical replay journal exceeds its hard event limit");
+    }
+    const auto canonical = initializeOralArgument(definition);
+    if (!canonical) {
+        return std::unexpected(canonical.error());
+    }
+    if (initial_state != *canonical) {
+        return fail(ErrorCode::InvalidSession,
+                    "canonical replay seed is not the exact initialized state");
+    }
+    return projectAuthoredJournal(definition, events);
 }
 
 } // namespace appellate::engine
