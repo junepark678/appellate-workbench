@@ -74,6 +74,33 @@ struct WorkflowOrderPrecondition final {
                            const WorkflowOrderPrecondition&) = default;
 };
 
+// record_entry_id is an authored provenance anchor. Workflow commands do not carry
+// record-entry identities, so execution compares the remaining persisted fields;
+// pack loading proves that the anchor is an unsealed entry with document_sha256.
+struct WorkflowFilingInstancePrecondition final {
+    FilingTypeId filing_type;
+    bool present{};
+    ActorId actor_id;
+    WorkflowFilingId filing_id;
+    WorkflowOperationId accept_operation_id;
+    std::string record_entry_id;
+    std::string document_sha256;
+
+    friend bool operator==(const WorkflowFilingInstancePrecondition&,
+                           const WorkflowFilingInstancePrecondition&) = default;
+};
+
+struct WorkflowOrderInstancePrecondition final {
+    WorkflowOrderId order_id;
+    WorkflowOrderDisposition disposition{};
+    WorkflowOperationId operation_id;
+    std::string record_entry_id;
+    std::string document_sha256;
+
+    friend bool operator==(const WorkflowOrderInstancePrecondition&,
+                           const WorkflowOrderInstancePrecondition&) = default;
+};
+
 enum class WorkflowDeadlineCondition {
     Open,
     Satisfied,
@@ -118,7 +145,8 @@ struct WorkflowJudgmentPrecondition final {
 using WorkflowPrecondition =
     std::variant<WorkflowFilingPrecondition, WorkflowOrderPrecondition,
                  WorkflowDeadlinePrecondition, WorkflowArgumentPrecondition,
-                 WorkflowJudgmentPrecondition, WorkflowArgumentDatePrecondition>;
+                 WorkflowJudgmentPrecondition, WorkflowArgumentDatePrecondition,
+                 WorkflowFilingInstancePrecondition, WorkflowOrderInstancePrecondition>;
 
 struct WorkflowJudgmentOccurredDeadlineBase final {
     friend bool operator==(const WorkflowJudgmentOccurredDeadlineBase&,
@@ -163,6 +191,19 @@ struct WorkflowOperation final {
     std::optional<WorkflowDeadlineId> produced_deadline_id{};
     std::optional<WorkflowDeadlineEventBase> deadline_event_base{};
 
+    struct DocumentBinding final {
+        std::string record_entry_id;
+        std::string document_sha256;
+        LegalDate expected_court_date;
+        std::optional<WorkflowOrderId> order_id;
+        std::optional<WorkflowOrderDisposition> disposition;
+
+        friend bool operator==(const DocumentBinding&, const DocumentBinding&) = default;
+    };
+
+    std::optional<DocumentBinding> document_binding{};
+    std::optional<LegalDate> expected_argument_date{};
+
     friend bool operator==(const WorkflowOperation&, const WorkflowOperation&) = default;
 };
 
@@ -170,7 +211,26 @@ struct WorkflowDeadlinePlan final {
     WorkflowDeadlineId deadline_id;
     WorkflowOperationId operation_id;
 
+    struct StaticDeficiencyTrigger final {
+        WorkflowFilingId filing_id;
+        ActorId actor_id;
+        std::string record_entry_id;
+        std::string document_sha256;
+        LegalDate expected_court_date;
+
+        friend bool operator==(const StaticDeficiencyTrigger&,
+                               const StaticDeficiencyTrigger&) = default;
+    };
+
+    // Absence preserves the legacy dynamic prefix + command-id identity.
+    std::optional<StaticDeficiencyTrigger> static_trigger{};
+
     friend bool operator==(const WorkflowDeadlinePlan&, const WorkflowDeadlinePlan&) = default;
+};
+
+enum class WorkflowAuthorizedRoleScope {
+    CatalogExact,
+    CatalogSubset,
 };
 
 struct WorkflowFilingRoute final {
@@ -187,6 +247,7 @@ struct WorkflowFilingRoute final {
     std::optional<WorkflowOperationId> advance_operation_id;
     std::optional<WorkflowDeadlineId> satisfies_deadline_id;
     bool reject_after_deadline{true};
+    WorkflowAuthorizedRoleScope authorized_role_scope{WorkflowAuthorizedRoleScope::CatalogExact};
 
     friend bool operator==(const WorkflowFilingRoute&, const WorkflowFilingRoute&) = default;
 };

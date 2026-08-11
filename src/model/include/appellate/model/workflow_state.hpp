@@ -24,6 +24,9 @@ struct WorkflowFilingRecord final {
     std::string document_sha256;
     LegalTime accepted_at;
     std::vector<ActorId> served_actors;
+    // Optional for source compatibility with legacy materialized snapshots. Replay
+    // always reconstructs it from the accepted event's immutable operation header.
+    std::optional<WorkflowOperationId> accept_operation_id{};
 
     friend bool operator==(const WorkflowFilingRecord&, const WorkflowFilingRecord&) = default;
 };

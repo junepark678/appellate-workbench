@@ -1,5 +1,6 @@
 #include "appellate/storage/workflow_codec.hpp"
 
+#include <QCryptographicHash>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -239,6 +240,7 @@ class WorkflowCodecTest final : public QObject {
     void roundTripsMaximumStructuredPayload();
     void roundTripsPreconditionSnapshotsSchemaThree();
     void roundTripsAndFencesExtendedSchemaFour();
+    void roundTripsAndFencesInstanceSchemaFive();
     void rejectsStructuredVersionConfusionAndTampering();
     void rejectsAuthoritySchemaDowngradesAndMixedForms();
     void rejectsMutatedProvenance();
@@ -521,6 +523,8 @@ void WorkflowCodecTest::roundTripsPreconditionSnapshotsSchemaThree() {
     event.header.preconditions = preconditions();
     const auto encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{event});
     QVERIFY(encoded.has_value());
+    QCOMPARE(QCryptographicHash::hash(*encoded, QCryptographicHash::Sha256).toHex(),
+             QByteArray("4fc6c425be07f6b8c998889fe2dc7394c8192eec2df64a8faca3c66908b0e337"));
     const auto envelope = QJsonDocument::fromJson(*encoded).object();
     QCOMPARE(envelope.value(QStringLiteral("schema_version")).toInt(), 3);
     const auto encoded_preconditions = envelope.value(QStringLiteral("payload"))
@@ -571,6 +575,8 @@ void WorkflowCodecTest::roundTripsAndFencesExtendedSchemaFour() {
     named.produced_deadline_id = named.deadline_id;
     const auto named_encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{named});
     QVERIFY(named_encoded.has_value());
+    QCOMPARE(QCryptographicHash::hash(*named_encoded, QCryptographicHash::Sha256).toHex(),
+             QByteArray("798f8f236987af34d998b5fcac5ef27866e10832b24a11fbdabcb2400cddf18f"));
     auto named_envelope = QJsonDocument::fromJson(*named_encoded).object();
     QCOMPARE(named_envelope.value(QStringLiteral("schema_version")).toInt(), 4);
     auto named_payload = named_envelope.value(QStringLiteral("payload")).toObject();
@@ -704,6 +710,120 @@ void WorkflowCodecTest::roundTripsAndFencesExtendedSchemaFour() {
         storage::encodeWorkflowEvent(model::WorkflowEvent{unnamed_reached});
     QVERIFY(!unnamed_encoding.has_value());
     QCOMPARE(unnamed_encoding.error().code, WorkflowCodecErrorCode::InvalidField);
+}
+
+void WorkflowCodecTest::roundTripsAndFencesInstanceSchemaFive() {
+    auto event = std::get<model::WorkflowDeadlineCalculated>(events().at(3));
+    event.header.authority = authority(true);
+    event.produced_deadline_id = event.deadline_id;
+    event.header.preconditions = {
+        model::WorkflowFilingInstancePrecondition{
+            model::FilingTypeId{"test.filing-type.opening"}, true,
+            model::ActorId{"test.actor.appellant"}, model::WorkflowFilingId{"test.filing.opening"},
+            model::WorkflowOperationId{"test.operation.accept"}, "test.record.entry-opening",
+            std::string(64, 'a')},
+        model::WorkflowOrderInstancePrecondition{model::WorkflowOrderId{"test.order.extension"},
+                                                 model::WorkflowOrderDisposition::Granted,
+                                                 model::WorkflowOperationId{"test.operation.order"},
+                                                 "test.record.entry-order", std::string(64, 'b')},
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.prior"},
+                                            model::WorkflowDeadlineCondition::Reached},
+    };
+
+    const auto encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{event});
+    QVERIFY(encoded.has_value());
+    auto envelope = QJsonDocument::fromJson(*encoded).object();
+    QCOMPARE(envelope.value(QStringLiteral("schema_version")).toInt(), 5);
+    const auto payload = envelope.value(QStringLiteral("payload")).toObject();
+    QCOMPARE(payload.value(QStringLiteral("produced_deadline_id")).toString(),
+             QString::fromUtf8(event.deadline_id.value));
+    QCOMPARE(payload.value(QStringLiteral("preconditions")).toArray().size(), 3);
+    const auto decoded = storage::decodeWorkflowEvent(*encoded);
+    QVERIFY(decoded.has_value());
+    QVERIFY(*decoded == model::WorkflowEvent{event});
+    const auto reencoded = storage::encodeWorkflowEvent(*decoded);
+    QVERIFY(reencoded.has_value());
+    QCOMPARE(*reencoded, *encoded);
+
+    auto instance_only = std::get<model::WorkflowSealedSet>(events().at(6));
+    instance_only.header.authority = authority(true);
+    instance_only.header.preconditions = {event.header.preconditions.front()};
+    const auto instance_only_encoded =
+        storage::encodeWorkflowEvent(model::WorkflowEvent{instance_only});
+    QVERIFY(instance_only_encoded.has_value());
+    const auto instance_only_envelope = QJsonDocument::fromJson(*instance_only_encoded).object();
+    QCOMPARE(instance_only_envelope.value(QStringLiteral("schema_version")).toInt(), 5);
+    const auto instance_only_payload =
+        instance_only_envelope.value(QStringLiteral("payload")).toObject();
+    QVERIFY(!instance_only_payload.contains(QStringLiteral("deadline_base_id")));
+    QVERIFY(!instance_only_payload.contains(QStringLiteral("deadline_event_base")));
+    QVERIFY(!instance_only_payload.contains(QStringLiteral("produced_deadline_id")));
+    const auto instance_only_decoded = storage::decodeWorkflowEvent(*instance_only_encoded);
+    QVERIFY(instance_only_decoded.has_value());
+    QVERIFY(*instance_only_decoded == model::WorkflowEvent{instance_only});
+    for (const auto older_version : {1, 2, 3, 4}) {
+        auto older = instance_only_envelope;
+        older.insert(QStringLiteral("schema_version"), older_version);
+        const auto older_result = storage::decodeWorkflowEvent(compact(older));
+        QVERIFY(!older_result.has_value());
+    }
+
+    auto downgraded = envelope;
+    downgraded.insert(QStringLiteral("schema_version"), 4);
+    auto rejected = storage::decodeWorkflowEvent(compact(downgraded));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, WorkflowCodecErrorCode::UnsupportedVersion);
+
+    auto version_four = std::get<model::WorkflowSealedSet>(events().at(6));
+    version_four.header.authority = authority(true);
+    version_four.header.preconditions = {
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.prior"},
+                                            model::WorkflowDeadlineCondition::Reached}};
+    const auto version_four_encoded =
+        storage::encodeWorkflowEvent(model::WorkflowEvent{version_four});
+    QVERIFY(version_four_encoded.has_value());
+    auto relabeled = QJsonDocument::fromJson(*version_four_encoded).object();
+    QCOMPARE(relabeled.value(QStringLiteral("schema_version")).toInt(), 4);
+    relabeled.insert(QStringLiteral("schema_version"), 5);
+    rejected = storage::decodeWorkflowEvent(compact(relabeled));
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, WorkflowCodecErrorCode::IncompleteAuthority);
+
+    auto tampered = envelope;
+    auto tampered_payload = tampered.value(QStringLiteral("payload")).toObject();
+    auto guards = tampered_payload.value(QStringLiteral("preconditions")).toArray();
+    auto filing_guard = guards.at(0).toObject();
+    filing_guard.insert(QStringLiteral("accept_operation_id"),
+                        QStringLiteral("test.operation.substituted"));
+    guards.replace(0, filing_guard);
+    tampered_payload.insert(QStringLiteral("preconditions"), guards);
+    tampered.insert(QStringLiteral("payload"), tampered_payload);
+    const auto tampered_decoded = storage::decodeWorkflowEvent(compact(tampered));
+    QVERIFY(tampered_decoded.has_value());
+    QVERIFY(*tampered_decoded != model::WorkflowEvent{event});
+
+    auto generic_absent = event;
+    generic_absent.header.preconditions = {
+        model::WorkflowFilingPrecondition{model::FilingTypeId{"test.filing-type.opening"}, false},
+        std::get<model::WorkflowFilingInstancePrecondition>(event.header.preconditions.at(0)),
+    };
+    auto conflict = storage::encodeWorkflowEvent(model::WorkflowEvent{generic_absent});
+    QVERIFY(!conflict.has_value());
+    std::ranges::reverse(generic_absent.header.preconditions);
+    conflict = storage::encodeWorkflowEvent(model::WorkflowEvent{generic_absent});
+    QVERIFY(!conflict.has_value());
+
+    auto conflicting_envelope = envelope;
+    tampered_payload = conflicting_envelope.value(QStringLiteral("payload")).toObject();
+    guards = tampered_payload.value(QStringLiteral("preconditions")).toArray();
+    guards.prepend(
+        QJsonObject{{QStringLiteral("filing_type_id"), QStringLiteral("test.filing-type.opening")},
+                    {QStringLiteral("kind"), QStringLiteral("filing_presence")},
+                    {QStringLiteral("present"), false}});
+    tampered_payload.insert(QStringLiteral("preconditions"), guards);
+    conflicting_envelope.insert(QStringLiteral("payload"), tampered_payload);
+    rejected = storage::decodeWorkflowEvent(compact(conflicting_envelope));
+    QVERIFY(!rejected.has_value());
 }
 
 void WorkflowCodecTest::rejectsStructuredVersionConfusionAndTampering() {

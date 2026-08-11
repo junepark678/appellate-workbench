@@ -1090,6 +1090,63 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
     });
 }
 
+[[nodiscard]] bool usesRouteRoleSubsets(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::Workflow &&
+               std::ranges::any_of(
+                   resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                   [](const QJsonValue& route) {
+                       return route.toObject().contains(QStringLiteral("authorized_role_scope"));
+                   });
+    });
+}
+
+[[nodiscard]] bool usesWorkflowInstancePreconditions(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::Workflow &&
+               std::ranges::any_of(
+                   resource.document.value(QStringLiteral("operations")).toArray(),
+                   [](const QJsonValue& operation) {
+                       return std::ranges::any_of(
+                           operation.toObject().value(QStringLiteral("preconditions")).toArray(),
+                           [](const QJsonValue& value) {
+                               const auto kind =
+                                   value.toObject().value(QStringLiteral("kind")).toString();
+                               return kind == QStringLiteral("filing_instance") ||
+                                      kind == QStringLiteral("order_instance");
+                           });
+                   });
+    });
+}
+
+[[nodiscard]] bool usesStaticDeficiencyDeadlines(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::Workflow &&
+               std::ranges::any_of(
+                   resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                   [](const QJsonValue& route) {
+                       return route.toObject()
+                                  .value(QStringLiteral("deficiency_deadline"))
+                                  .toObject()
+                                  .value(QStringLiteral("id_mode"))
+                                  .toString() == QStringLiteral("exact");
+                   });
+    });
+}
+
+[[nodiscard]] bool usesOperationDocumentBindings(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::Workflow &&
+               std::ranges::any_of(
+                   resource.document.value(QStringLiteral("operations")).toArray(),
+                   [](const QJsonValue& operation_value) {
+                       const auto operation = operation_value.toObject();
+                       return operation.contains(QStringLiteral("document_binding")) ||
+                              operation.contains(QStringLiteral("expected_argument_date"));
+                   });
+    });
+}
+
 [[nodiscard]] auto validateResourceGraph(const std::vector<ValidatedResource>& resources,
                                          const std::vector<model::BlobDescriptor>& blobs)
     -> std::expected<void, Error> {
@@ -1331,6 +1388,59 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         QStringLiteral("deadline_days and deadline_counting must appear together"));
                 }
                 const auto opcode = operation.value(QStringLiteral("opcode")).toString();
+                const auto is_exact_iso_date = [](const QJsonValue& date_value) {
+                    if (!date_value.isString()) {
+                        return false;
+                    }
+                    const auto text = date_value.toString();
+                    const auto parsed = QDate::fromString(text, Qt::ISODate);
+                    return parsed.isValid() && parsed.toString(Qt::ISODate) == text;
+                };
+                const auto has_document_binding =
+                    operation.contains(QStringLiteral("document_binding"));
+                const auto has_expected_argument_date =
+                    operation.contains(QStringLiteral("expected_argument_date"));
+                if (has_document_binding) {
+                    const auto binding_value = operation.value(QStringLiteral("document_binding"));
+                    const auto binding = binding_value.toObject();
+                    const auto is_order = opcode == QStringLiteral("enter_order");
+                    const auto is_document_operation = is_order ||
+                                                       opcode == QStringLiteral("issue_judgment") ||
+                                                       opcode == QStringLiteral("issue_mandate");
+                    const auto binding_keys_are_exact =
+                        is_order ? hasExactKeys(binding,
+                                                {"record_entry_id", "document_sha256",
+                                                 "expected_court_date", "order_id", "disposition"})
+                                 : hasExactKeys(binding, {"record_entry_id", "document_sha256",
+                                                          "expected_court_date"});
+                    static const QSet<QString> dispositions{QStringLiteral("granted"),
+                                                            QStringLiteral("denied"),
+                                                            QStringLiteral("other")};
+                    if (resource.descriptor.schema_version != 2 || !binding_value.isObject() ||
+                        !is_document_operation || !binding_keys_are_exact ||
+                        !isNamespacedId(
+                            binding.value(QStringLiteral("record_entry_id")).toString()) ||
+                        !isSha256(binding.value(QStringLiteral("document_sha256")).toString()) ||
+                        !is_exact_iso_date(binding.value(QStringLiteral("expected_court_date"))) ||
+                        (is_order &&
+                         (!isNamespacedId(binding.value(QStringLiteral("order_id")).toString()) ||
+                          !dispositions.contains(
+                              binding.value(QStringLiteral("disposition")).toString())))) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("operations/document_binding"),
+                            QStringLiteral("document bindings must use the closed form for their "
+                                           "document-bearing opcode"));
+                    }
+                }
+                if (has_expected_argument_date &&
+                    (resource.descriptor.schema_version != 2 ||
+                     opcode != QStringLiteral("schedule_argument") || has_document_binding ||
+                     !is_exact_iso_date(
+                         operation.value(QStringLiteral("expected_argument_date"))))) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/expected_argument_date"),
+                        QStringLiteral("only ScheduleArgument can bind an exact argument date"));
+                }
                 if (opcode == QStringLiteral("calculate_deadline") && !has_days) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("operations/deadline_days"),
@@ -1426,6 +1536,8 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                             QStringLiteral("preconditions must be a bounded schema-2 array"));
                     }
                     QSet<QString> precondition_subjects;
+                    QSet<QString> absent_filing_types;
+                    QSet<QString> present_instance_filing_types;
                     for (const auto& precondition_value_item : precondition_value.toArray()) {
                         if (!precondition_value_item.isObject()) {
                             return crossReferenceFailure(
@@ -1446,8 +1558,54 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                                     resource, QStringLiteral("operations/preconditions"),
                                     QStringLiteral("filing precondition id is not canonical"));
                             }
-                            subject_key = kind + u':' + filing_id;
+                            subject_key = QStringLiteral("filing-type:") + filing_id;
                             precondition_filing_ids.insert(filing_id);
+                            if (!precondition.value(QStringLiteral("present")).toBool()) {
+                                if (present_instance_filing_types.contains(filing_id)) {
+                                    return crossReferenceFailure(
+                                        resource, QStringLiteral("operations/preconditions"),
+                                        QStringLiteral("filing absence contradicts a positive "
+                                                       "filing-instance precondition"));
+                                }
+                                absent_filing_types.insert(filing_id);
+                            }
+                        } else if (kind == QStringLiteral("filing_instance") &&
+                                   hasExactKeys(precondition,
+                                                {"kind", "filing_type_id", "present", "actor_id",
+                                                 "filing_id", "accept_operation_id",
+                                                 "record_entry_id", "document_sha256"}) &&
+                                   precondition.value(QStringLiteral("present")).isBool()) {
+                            const auto filing_type_id =
+                                precondition.value(QStringLiteral("filing_type_id")).toString();
+                            const auto filing_id =
+                                precondition.value(QStringLiteral("filing_id")).toString();
+                            const auto actor_id =
+                                precondition.value(QStringLiteral("actor_id")).toString();
+                            const auto accept_operation_id =
+                                precondition.value(QStringLiteral("accept_operation_id"))
+                                    .toString();
+                            const auto record_entry_id =
+                                precondition.value(QStringLiteral("record_entry_id")).toString();
+                            if (!isNamespacedId(filing_type_id) || !isNamespacedId(filing_id) ||
+                                !isNamespacedId(actor_id) || !isNamespacedId(accept_operation_id) ||
+                                !isNamespacedId(record_entry_id) ||
+                                !isSha256(precondition.value(QStringLiteral("document_sha256"))
+                                              .toString())) {
+                                return crossReferenceFailure(
+                                    resource, QStringLiteral("operations/preconditions"),
+                                    QStringLiteral("filing-instance selector is noncanonical"));
+                            }
+                            subject_key = QStringLiteral("filing-instance:") + filing_id;
+                            precondition_filing_ids.insert(filing_type_id);
+                            if (precondition.value(QStringLiteral("present")).toBool()) {
+                                if (absent_filing_types.contains(filing_type_id)) {
+                                    return crossReferenceFailure(
+                                        resource, QStringLiteral("operations/preconditions"),
+                                        QStringLiteral("positive filing instance contradicts a "
+                                                       "filing-absence precondition"));
+                                }
+                                present_instance_filing_types.insert(filing_type_id);
+                            }
                         } else if (kind == QStringLiteral("order_disposition") &&
                                    hasExactKeys(precondition,
                                                 {"kind", "order_id", "disposition"}) &&
@@ -1462,7 +1620,30 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                                     resource, QStringLiteral("operations/preconditions"),
                                     QStringLiteral("order precondition id is not canonical"));
                             }
-                            subject_key = kind + u':' + order_id;
+                            subject_key = QStringLiteral("order:") + order_id;
+                        } else if (kind == QStringLiteral("order_instance") &&
+                                   hasExactKeys(precondition,
+                                                {"kind", "order_id", "disposition", "operation_id",
+                                                 "record_entry_id", "document_sha256"}) &&
+                                   QSet<QString>{QStringLiteral("granted"),
+                                                 QStringLiteral("denied"), QStringLiteral("other")}
+                                       .contains(precondition.value(QStringLiteral("disposition"))
+                                                     .toString())) {
+                            const auto order_id =
+                                precondition.value(QStringLiteral("order_id")).toString();
+                            const auto source_operation_id =
+                                precondition.value(QStringLiteral("operation_id")).toString();
+                            const auto record_entry_id =
+                                precondition.value(QStringLiteral("record_entry_id")).toString();
+                            if (!isNamespacedId(order_id) || !isNamespacedId(source_operation_id) ||
+                                !isNamespacedId(record_entry_id) ||
+                                !isSha256(precondition.value(QStringLiteral("document_sha256"))
+                                              .toString())) {
+                                return crossReferenceFailure(
+                                    resource, QStringLiteral("operations/preconditions"),
+                                    QStringLiteral("order-instance selector is noncanonical"));
+                            }
+                            subject_key = QStringLiteral("order:") + order_id;
                         } else if (kind == QStringLiteral("deadline_status") &&
                                    hasExactKeys(precondition, {"kind", "deadline_id", "status"}) &&
                                    QSet<QString>{
@@ -1585,6 +1766,14 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 }
                 route_keys.insert(route_key);
                 declared_filing_type_ids.insert(filing_type_id);
+                if (route.contains(QStringLiteral("authorized_role_scope")) &&
+                    (resource.descriptor.schema_version != 2 ||
+                     route.value(QStringLiteral("authorized_role_scope")).toString() !=
+                         QStringLiteral("catalog_subset"))) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("filing_routes/authorized_role_scope"),
+                        QStringLiteral("explicit route role scope must be catalog_subset"));
+                }
                 if (!operationForId(route.value(QStringLiteral("accept_operation_id")).toString(),
                                     QStringLiteral("accept_filing"), stage_id) ||
                     !operationForId(route.value(QStringLiteral("reject_operation_id")).toString(),
@@ -1611,7 +1800,41 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     const auto deadline_id = plan.value(QStringLiteral("deadline_id")).toString();
                     const auto operation_id = plan.value(QStringLiteral("operation_id")).toString();
                     const auto operation = operation_documents.constFind(operation_id);
-                    if (declared_deadline_ids.contains(deadline_id) ||
+                    const auto has_id_mode = plan.contains(QStringLiteral("id_mode"));
+                    const auto static_exact =
+                        deficiency && has_id_mode &&
+                        plan.value(QStringLiteral("id_mode")).toString() == QStringLiteral("exact");
+                    const auto exact_plan_form =
+                        deficiency && resource.descriptor.schema_version == 2 && static_exact &&
+                        hasExactKeys(plan,
+                                     {"deadline_id", "operation_id", "id_mode", "trigger_filing"});
+                    const auto legacy_plan_form =
+                        !has_id_mode && hasExactKeys(plan, {"deadline_id", "operation_id"});
+                    auto trigger_is_valid = true;
+                    if (static_exact) {
+                        const auto trigger_value = plan.value(QStringLiteral("trigger_filing"));
+                        const auto trigger = trigger_value.toObject();
+                        const auto trigger_date =
+                            trigger.value(QStringLiteral("expected_court_date"));
+                        const auto parsed_date =
+                            QDate::fromString(trigger_date.toString(), Qt::ISODate);
+                        trigger_is_valid =
+                            trigger_value.isObject() &&
+                            hasExactKeys(trigger, {"filing_id", "actor_id", "record_entry_id",
+                                                   "document_sha256", "expected_court_date"}) &&
+                            isNamespacedId(trigger.value(QStringLiteral("filing_id")).toString()) &&
+                            isNamespacedId(trigger.value(QStringLiteral("actor_id")).toString()) &&
+                            isNamespacedId(
+                                trigger.value(QStringLiteral("record_entry_id")).toString()) &&
+                            isSha256(trigger.value(QStringLiteral("document_sha256")).toString()) &&
+                            trigger_date.isString() && parsed_date.isValid() &&
+                            parsed_date.toString(Qt::ISODate) == trigger_date.toString();
+                    }
+                    if ((!deficiency && !legacy_plan_form) ||
+                        (deficiency && !legacy_plan_form && !exact_plan_form) ||
+                        !trigger_is_valid || !isNamespacedId(deadline_id) ||
+                        !isNamespacedId(operation_id) ||
+                        declared_deadline_ids.contains(deadline_id) ||
                         operation == operation_documents.constEnd() ||
                         operation->value(QStringLiteral("opcode")).toString() !=
                             QStringLiteral("calculate_deadline") ||
@@ -1626,20 +1849,17 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                                 "calculation"));
                     }
                     const auto namespace_overlap =
-                        deficiency ? std::ranges::any_of(exact_deadline_ids,
-                                                         [&](const QString& exact) {
-                                                             return deadlineNamespacesOverlap(
-                                                                 deadline_id, exact);
-                                                         }) ||
-                                         std::ranges::any_of(deficiency_deadline_prefixes,
-                                                             [&](const QString& prefix) {
-                                                                 return deadlineNamespacesOverlap(
-                                                                     deadline_id, prefix);
-                                                             })
-                                   : std::ranges::any_of(
-                                         deficiency_deadline_prefixes, [&](const QString& prefix) {
-                                             return deadlineNamespacesOverlap(deadline_id, prefix);
-                                         });
+                        (deficiency && !static_exact
+                             ? std::ranges::any_of(exact_deadline_ids,
+                                                   [&](const QString& exact) {
+                                                       return deadlineNamespacesOverlap(deadline_id,
+                                                                                        exact);
+                                                   })
+                             : false) ||
+                        std::ranges::any_of(
+                            deficiency_deadline_prefixes, [&](const QString& prefix) {
+                                return deadlineNamespacesOverlap(deadline_id, prefix);
+                            });
                     if (namespace_overlap) {
                         return crossReferenceFailure(
                             resource, QStringLiteral("filing_routes/deadline"),
@@ -1647,7 +1867,7 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                                            "be disjoint"));
                     }
                     declared_deadline_ids.insert(deadline_id);
-                    if (deficiency) {
+                    if (deficiency && !static_exact) {
                         deficiency_deadline_prefixes.insert(deadline_id);
                     } else {
                         exact_deadline_ids.insert(deadline_id);
@@ -1675,6 +1895,49 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     return crossReferenceFailure(
                         resource, QStringLiteral("filing_routes/advance_operation_id"),
                         QStringLiteral("advance operation is incompatible with the route"));
+                }
+            }
+            for (const auto& operation_value :
+                 document.value(QStringLiteral("operations")).toArray()) {
+                for (const auto& precondition_value :
+                     operation_value.toObject().value(QStringLiteral("preconditions")).toArray()) {
+                    const auto precondition = precondition_value.toObject();
+                    const auto kind = precondition.value(QStringLiteral("kind")).toString();
+                    if (kind == QStringLiteral("filing_instance")) {
+                        const auto filing_type_id =
+                            precondition.value(QStringLiteral("filing_type_id")).toString();
+                        const auto accept_operation_id =
+                            precondition.value(QStringLiteral("accept_operation_id")).toString();
+                        const auto source = operation_documents.constFind(accept_operation_id);
+                        const auto route =
+                            std::ranges::find_if(filing_routes, [&](const QJsonValue& route_value) {
+                                const auto candidate_route = route_value.toObject();
+                                return candidate_route.value(QStringLiteral("filing_type_id"))
+                                               .toString() == filing_type_id &&
+                                       candidate_route.value(QStringLiteral("accept_operation_id"))
+                                               .toString() == accept_operation_id;
+                            });
+                        if (source == operation_documents.constEnd() ||
+                            source->value(QStringLiteral("opcode")).toString() !=
+                                QStringLiteral("accept_filing") ||
+                            route == filing_routes.end()) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("operations/preconditions"),
+                                QStringLiteral("filing-instance accept operation and route must "
+                                               "resolve exactly"));
+                        }
+                    } else if (kind == QStringLiteral("order_instance")) {
+                        const auto source = operation_documents.constFind(
+                            precondition.value(QStringLiteral("operation_id")).toString());
+                        if (source == operation_documents.constEnd() ||
+                            source->value(QStringLiteral("opcode")).toString() !=
+                                QStringLiteral("enter_order")) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("operations/preconditions"),
+                                QStringLiteral("order-instance operation must resolve to "
+                                               "EnterOrder"));
+                        }
+                    }
                 }
             }
             for (const auto& value : filing_routes) {
@@ -2205,12 +2468,27 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
              workflow_document.value(QStringLiteral("filing_routes")).toArray()) {
             const auto route = value.toObject();
             const auto filing_type_id = route.value(QStringLiteral("filing_type_id")).toString();
+            const auto route_roles =
+                stringSet(route.value(QStringLiteral("authorized_role_ids")).toArray());
+            const auto catalog_filing_roles = filing_authorized_roles.value(filing_type_id);
+            const auto has_role_scope = route.contains(QStringLiteral("authorized_role_scope"));
+            const auto subset_scope =
+                route.value(QStringLiteral("authorized_role_scope")).toString() ==
+                QStringLiteral("catalog_subset");
+            const auto roles_match_catalog =
+                subset_scope
+                    ? !route_roles.isEmpty() &&
+                          std::ranges::all_of(route_roles,
+                                              [&](const QString& role) {
+                                                  return catalog_filing_roles.contains(role);
+                                              })
+                    : route_roles == catalog_filing_roles;
             if (!catalog_filings.value(catalog_id).contains(filing_type_id) ||
+                (has_role_scope && !subset_scope) ||
                 !rolesAreDeclared(route.value(QStringLiteral("authorized_role_ids")).toArray()) ||
                 !rolesAreDeclared(
                     route.value(QStringLiteral("required_service_role_ids")).toArray()) ||
-                stringSet(route.value(QStringLiteral("authorized_role_ids")).toArray()) !=
-                    filing_authorized_roles.value(filing_type_id) ||
+                !roles_match_catalog ||
                 stringSet(route.value(QStringLiteral("required_field_ids")).toArray()) !=
                     filing_required_fields.value(filing_type_id)) {
                 return crossReferenceFailure(
@@ -2381,12 +2659,155 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     }
                 }
             }
+            QHash<QString, QString> case_actor_roles;
             for (const auto& value : document.value(QStringLiteral("actors")).toArray()) {
-                const auto role_id = value.toObject().value(QStringLiteral("role_id")).toString();
+                const auto actor = value.toObject();
+                const auto actor_id = actor.value(QStringLiteral("actor_id")).toString();
+                const auto role_id = actor.value(QStringLiteral("role_id")).toString();
                 if (!roles.contains(role_id)) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("actors/role_id"),
                         QStringLiteral("role %1 is not declared by the procedure").arg(role_id));
+                }
+                case_actor_roles.insert(actor_id, role_id);
+            }
+            const auto workflow_id =
+                (*procedure)->document.value(QStringLiteral("workflow_id")).toString();
+            const auto case_workflow =
+                requireKind(resource, QStringLiteral("procedure_profile_id/workflow_id"),
+                            workflow_id, model::ResourceKind::Workflow);
+            if (!case_workflow) {
+                return std::unexpected(case_workflow.error());
+            }
+            const auto& workflow_document = (*case_workflow)->document;
+            const auto workflow_filing_routes =
+                workflow_document.value(QStringLiteral("filing_routes")).toArray();
+            QHash<QString, QJsonObject> operations_by_id;
+            for (const auto& operation_value :
+                 workflow_document.value(QStringLiteral("operations")).toArray()) {
+                const auto operation = operation_value.toObject();
+                operations_by_id.insert(operation.value(QStringLiteral("operation_id")).toString(),
+                                        operation);
+            }
+            const auto record_docket = record_docket_entries.value(record_id);
+            const auto validEntry = [&](const QString& entry_id, const QString& digest,
+                                        const QString& expected_date = QString{}) {
+                const auto entry = record_docket.constFind(entry_id);
+                return entry != record_docket.constEnd() &&
+                       entry->value(QStringLiteral("sealed")).isBool() &&
+                       !entry->value(QStringLiteral("sealed")).toBool() &&
+                       entry->value(QStringLiteral("asset_sha256")).toString() == digest &&
+                       (expected_date.isEmpty() ||
+                        entry->value(QStringLiteral("filed_on")).toString() == expected_date);
+            };
+            for (const auto& operation_value :
+                 workflow_document.value(QStringLiteral("operations")).toArray()) {
+                const auto operation = operation_value.toObject();
+                if (operation.contains(QStringLiteral("document_binding"))) {
+                    const auto binding =
+                        operation.value(QStringLiteral("document_binding")).toObject();
+                    if (!validEntry(
+                            binding.value(QStringLiteral("record_entry_id")).toString(),
+                            binding.value(QStringLiteral("document_sha256")).toString(),
+                            binding.value(QStringLiteral("expected_court_date")).toString())) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("workflow/document_binding"),
+                            QStringLiteral("binding must resolve to the case's exact unsealed "
+                                           "record entry, digest, and filing date"));
+                    }
+                }
+                for (const auto& precondition_value :
+                     operation.value(QStringLiteral("preconditions")).toArray()) {
+                    const auto precondition = precondition_value.toObject();
+                    const auto kind = precondition.value(QStringLiteral("kind")).toString();
+                    if (kind == QStringLiteral("filing_instance")) {
+                        const auto actor_id =
+                            precondition.value(QStringLiteral("actor_id")).toString();
+                        const auto filing_type_id =
+                            precondition.value(QStringLiteral("filing_type_id")).toString();
+                        const auto accept_operation_id =
+                            precondition.value(QStringLiteral("accept_operation_id")).toString();
+                        const auto accept = operations_by_id.constFind(accept_operation_id);
+                        const auto route = std::ranges::find_if(
+                            workflow_filing_routes, [&](const QJsonValue& route_value) {
+                                const auto route_object = route_value.toObject();
+                                return route_object.value(QStringLiteral("filing_type_id"))
+                                               .toString() == filing_type_id &&
+                                       route_object.value(QStringLiteral("accept_operation_id"))
+                                               .toString() == accept_operation_id;
+                            });
+                        const auto actor_role = case_actor_roles.value(actor_id);
+                        if (!case_actor_roles.contains(actor_id) ||
+                            accept == operations_by_id.constEnd() ||
+                            accept->value(QStringLiteral("opcode")).toString() !=
+                                QStringLiteral("accept_filing") ||
+                            route == workflow_filing_routes.end() ||
+                            !stringSet(route->toObject()
+                                           .value(QStringLiteral("authorized_role_ids"))
+                                           .toArray())
+                                 .contains(actor_role) ||
+                            !validEntry(
+                                precondition.value(QStringLiteral("record_entry_id")).toString(),
+                                precondition.value(QStringLiteral("document_sha256")).toString())) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("workflow/preconditions/filing_instance"),
+                                QStringLiteral("selector must resolve within this case, route, and "
+                                               "exact unsealed record"));
+                        }
+                    } else if (kind == QStringLiteral("order_instance")) {
+                        const auto source_id =
+                            precondition.value(QStringLiteral("operation_id")).toString();
+                        const auto source = operations_by_id.constFind(source_id);
+                        auto companion_matches = true;
+                        if (source != operations_by_id.constEnd() &&
+                            source->contains(QStringLiteral("document_binding"))) {
+                            const auto binding =
+                                source->value(QStringLiteral("document_binding")).toObject();
+                            companion_matches =
+                                binding.value(QStringLiteral("record_entry_id")) ==
+                                    precondition.value(QStringLiteral("record_entry_id")) &&
+                                binding.value(QStringLiteral("document_sha256")) ==
+                                    precondition.value(QStringLiteral("document_sha256")) &&
+                                binding.value(QStringLiteral("order_id")) ==
+                                    precondition.value(QStringLiteral("order_id")) &&
+                                binding.value(QStringLiteral("disposition")) ==
+                                    precondition.value(QStringLiteral("disposition"));
+                        }
+                        if (source == operations_by_id.constEnd() ||
+                            source->value(QStringLiteral("opcode")).toString() !=
+                                QStringLiteral("enter_order") ||
+                            !companion_matches ||
+                            !validEntry(
+                                precondition.value(QStringLiteral("record_entry_id")).toString(),
+                                precondition.value(QStringLiteral("document_sha256")).toString())) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("workflow/preconditions/order_instance"),
+                                QStringLiteral("selector must resolve to an EnterOrder and this "
+                                               "case's exact unsealed record"));
+                        }
+                    }
+                }
+            }
+            for (const auto& route_value : workflow_filing_routes) {
+                const auto route = route_value.toObject();
+                const auto deadline = route.value(QStringLiteral("deficiency_deadline")).toObject();
+                if (deadline.value(QStringLiteral("id_mode")).toString() !=
+                    QStringLiteral("exact")) {
+                    continue;
+                }
+                const auto trigger = deadline.value(QStringLiteral("trigger_filing")).toObject();
+                const auto actor_id = trigger.value(QStringLiteral("actor_id")).toString();
+                const auto actor_role = case_actor_roles.value(actor_id);
+                if (!case_actor_roles.contains(actor_id) ||
+                    !stringSet(route.value(QStringLiteral("authorized_role_ids")).toArray())
+                         .contains(actor_role) ||
+                    !validEntry(trigger.value(QStringLiteral("record_entry_id")).toString(),
+                                trigger.value(QStringLiteral("document_sha256")).toString(),
+                                trigger.value(QStringLiteral("expected_court_date")).toString())) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("workflow/deficiency_deadline/trigger_filing"),
+                        QStringLiteral("trigger must resolve to an eligible case actor and the "
+                                       "exact unsealed record filing/date"));
                 }
             }
             QHash<QString, QSet<QString>> issue_targets;
@@ -2449,8 +2870,6 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     }
                 }
             }
-            const auto workflow_id =
-                (*procedure)->document.value(QStringLiteral("workflow_id")).toString();
             const auto disposition =
                 document.value(QStringLiteral("authored_disposition_id")).toString();
             const auto has_structured_plan =
@@ -2591,12 +3010,6 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         resource, QStringLiteral("authored_disposition_plan_id"),
                         QStringLiteral("authored plan is not declared by the case"));
                 }
-            }
-            const auto case_workflow =
-                requireKind(resource, QStringLiteral("authored_disposition_id"), workflow_id,
-                            model::ResourceKind::Workflow);
-            if (!case_workflow) {
-                return std::unexpected(case_workflow.error());
             }
             const auto operation_values =
                 (*case_workflow)->document.value(QStringLiteral("operations")).toArray();
@@ -3255,7 +3668,9 @@ readDirectoryImpl(const QString& directory, PackValidationScope scope,
         usesNamedDeadlines(resources), usesEventDateDeadlines(resources),
         usesArgumentDateGuards(resources), usesStructuredDisposition(resources),
         usesGroundedQuestions(resources), usesRealismEvidence(resources),
-        usesSealedRecordTwins(resources));
+        usesSealedRecordTwins(resources), usesRouteRoleSubsets(resources),
+        usesWorkflowInstancePreconditions(resources), usesStaticDeficiencyDeadlines(resources),
+        usesOperationDocumentBindings(resources));
     if (!content_capability_coverage) {
         return std::unexpected(content_capability_coverage.error());
     }
@@ -3346,7 +3761,10 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
             usesNamedDeadlines(pack.resources), usesEventDateDeadlines(pack.resources),
             usesArgumentDateGuards(pack.resources), usesStructuredDisposition(pack.resources),
             usesGroundedQuestions(pack.resources), usesRealismEvidence(pack.resources),
-            usesSealedRecordTwins(pack.resources));
+            usesSealedRecordTwins(pack.resources), usesRouteRoleSubsets(pack.resources),
+            usesWorkflowInstancePreconditions(pack.resources),
+            usesStaticDeficiencyDeadlines(pack.resources),
+            usesOperationDocumentBindings(pack.resources));
     };
     const auto root_capabilities = validate_capabilities(root);
     if (!root_capabilities) {

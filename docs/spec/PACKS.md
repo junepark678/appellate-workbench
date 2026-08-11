@@ -240,6 +240,12 @@ Every executable route must still name one declared catalog filing, exactly matc
 eligible roles and required fields, and use only actor and service roles declared by the owning
 procedure profile.
 
+A schema-version-2 route may instead opt into `authorized_role_scope: "catalog_subset"` under
+`workbench.pack.route-role-subsets` version 1. The route's authorized-role list must then be a
+nonempty subset of the filing catalog's eligible roles. Omitting the field preserves exact role
+equality. Required fields remain exact-equal in both modes; this capability does not relax field,
+service-role, procedure-role, or operation authorization checks.
+
 Each route names its own `accept_operation_id` and `reject_operation_id`. Both operations must
 belong to the route's stage and carry the matching typed opcode and a complete, versioned
 authority basis. Different filing types in the same stage may therefore use different rejection
@@ -358,6 +364,68 @@ schema-version-2 `argument_date_status: reached` precondition requires a schedul
 true only when the command court date is on or after that scheduled date. It conflicts with an
 `argument_scheduled: false` guard and may accompany `argument_scheduled: true`.
 
+### Exact workflow instances and record bindings
+
+`workbench.pack.workflow-instance-preconditions` version 1 adds two schema-version-2 guard forms.
+A `filing_instance` guard names `filing_type_id`, `present`, `actor_id`, `filing_id`,
+`accept_operation_id`, `record_entry_id`, and `document_sha256`. A positive guard requires the
+unique accepted filing with that ID to match every state-visible field. A negative guard succeeds
+only when that filing ID is absent; if the ID exists with a substituted type, actor, accepting
+operation, or digest, neither the positive nor negative exact guard succeeds. Distinct filing IDs
+of the same type may be selected independently. A deficient submission also owns its globally
+unique filing ID but is not an accepted filing instance, so it satisfies neither polarity. An
+`order_instance` guard binds `order_id`, `disposition`, the entering `operation_id`,
+`record_entry_id`, and `document_sha256`.
+
+For each case using either selector, pack reading and runtime projection resolve
+`record_entry_id` against that case's own docket, require an unsealed entry, and require its asset
+SHA-256 to equal `document_sha256`. The entry ID is an authoring-time provenance anchor, not a
+field carried by workflow commands or materialized workflow state. Operational matching therefore
+uses filing ID/type/actor/accepting operation/SHA-256 or order ID/disposition/entering
+operation/SHA-256. Two unsealed docket entries with the same asset SHA-256 are operationally
+indistinguishable after load. The complete selector, including `record_entry_id`, is still
+snapshotted in event persistence and compared exactly to the pinned definition during replay.
+Accepted-filing state records learn `accept_operation_id` from the accepted event header; it is
+not a new legacy event-payload field, so existing event bytes remain unchanged.
+
+`workbench.pack.static-deficiency-deadlines` version 1 adds
+`id_mode: "exact"` to a route's `deficiency_deadline`. Its `trigger_filing` binds the filing ID,
+actor ID, unsealed record-entry provenance, document SHA-256, and expected court date; filing type
+and stage are inherited from the route. An otherwise eligible deficient submission must match the
+trigger's filing ID, actor, SHA-256, and authoritative command-header `court_date` before either
+the deficiency or deadline event is emitted. A mismatch cannot reserve the exact ID. The exact
+deadline is a normal producer visible to ordinary deadline-status guards. A route may use that
+same exact ID as its own `satisfies_deadline_id`: the matching deficient trigger creates it, while
+a later conforming submission must find it open and name the unique matching
+`cures_deficiency_id` before it may both cure the deficiency and satisfy the deadline. An
+initially conforming submission cannot create the deadline.
+
+Omitting `id_mode` preserves the existing dynamic `deadline_id.command_id` namespace. Static
+exact IDs have ordinary exact-ID uniqueness: `x.y` and `x.y.z` may coexist as two exact IDs. A
+dynamic prefix reserves its boundary-aware namespace, so prefix `x.y` conflicts with exact
+`x.y` and `x.y.z`, but not exact `x.yz`, independent of declaration order. Exact deficiencies and
+their deadlines are validated bidirectionally on replay and on caller-supplied completed state;
+an orphan deadline, duplicated trigger filing, or borrowed cure-deadline ID is invalid.
+
+`workbench.pack.operation-document-bindings` version 1 adds an optional `document_binding` to
+`enter_order`, `issue_judgment`, and `issue_mandate`. Every binding names an exact unsealed
+`record_entry_id`, its SHA-256, and `expected_court_date`; pack reading requires that date to equal
+the docket entry's `filed_on`. An `enter_order` binding additionally requires the operation's
+`order_id` and `disposition` semantics, while judgment and mandate bindings forbid those fields.
+The engine compares the command's document digest, authoritative header `court_date`, and, for an
+order, ID and disposition before creating an event. The capability also allows
+`expected_argument_date` only on `schedule_argument`, and the engine compares it to the command's
+explicit argument date.
+
+These bindings establish exact document/date identity; they do not prove a timezone, instant, or
+inferred finality. `LegalTime.court_date` is the authoritative local court date. A bound historical
+`enter_order` may feed the existing `order_occurred` deadline base without inventing a new kind of
+finality. Deficiency or calendar notices may be modeled as companion bound orders. Opinion
+provenance remains a separate existing check. Materialized state carries enough provenance to
+revalidate accepted filings, entered orders, and static exact deficiencies, but it intentionally
+does not add source-operation fields for scheduled arguments, judgments, or mandates; those
+bindings are enforced at command decision and exact journal replay.
+
 Persistence schema version 3 is reserved for a structured judgment command/event or an event
 with a nonempty precondition snapshot. Schema-3 events require canonical authority provenance and
 always carry the precondition array, including an empty array on a structured judgment with no
@@ -375,6 +443,13 @@ Replay compares all three fields to the pinned operation definition and verifies
 base occurrence. Schema-4 non-deadline events carry no deadline-binding keys. Schema 3 rejects the
 new guard forms, and relabeling between schema 3 and 4 fails closed. Existing schema-1, schema-2,
 and schema-3 bytes and behavior remain unchanged.
+
+Persistence schema version 5 is selected if and only if an event header snapshots at least one
+`filing_instance` or `order_instance` guard, including when schema-4 deadline or reached-date
+features are present in the same event. It carries the complete instance selectors and otherwise
+retains the applicable extended fields. Decode re-derives the required version from the semantic
+payload, so upgrading an older event label to 5 or downgrading a schema-5 event to 1 through 4
+fails closed. Canonical schemas 1 through 4 and their byte encodings are unchanged.
 
 ## Dependencies and compatibility
 
@@ -407,8 +482,10 @@ must additionally declare `workbench.pack.judge-profile` version 2 and
 `workbench.pack.voice-style` version 2. Structured dispositions and workflow preconditions require
 their version-1 feature capabilities described above. Named deadlines, dependent deadlines,
 event-date deadline bases, and argument-date guards each require their independently negotiated
-version-1 capability described above. Authored grounded questions and exact realism evidence
-likewise require `workbench.pack.grounded-questions` version 1 and
+version-1 capability described above. Role subsets, exact workflow-instance guards, static exact
+deficiency deadlines, and operation document/date bindings likewise require their independently
+negotiated version-1 capabilities and schema-version-2 resources. Authored grounded questions and
+exact realism evidence likewise require `workbench.pack.grounded-questions` version 1 and
 `workbench.pack.realism-evidence` version 1, respectively. An empty list, an unrelated-only
 declaration, or a declaration missing any required capability fails at pack read,
 resolved-catalog load, and independent runtime projection. Unknown IDs, unsupported versions,

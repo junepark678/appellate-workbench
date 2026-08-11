@@ -833,11 +833,66 @@ struct ResourceIndex final {
                        (resource.document.contains(QStringLiteral("disclosure_policy")) ||
                         resource.document.contains(QStringLiteral("sealed_disclosures")));
             });
+        const auto uses_route_role_subsets =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [](const QJsonValue& route) {
+                               return route.toObject().contains(
+                                   QStringLiteral("authorized_role_scope"));
+                           });
+            });
+        const auto uses_workflow_instance_preconditions =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation) {
+                               return std::ranges::any_of(
+                                   operation.toObject()
+                                       .value(QStringLiteral("preconditions"))
+                                       .toArray(),
+                                   [](const QJsonValue& value) {
+                                       const auto kind = value.toObject()
+                                                             .value(QStringLiteral("kind"))
+                                                             .toString();
+                                       return kind == QStringLiteral("filing_instance") ||
+                                              kind == QStringLiteral("order_instance");
+                                   });
+                           });
+            });
+        const auto uses_static_deficiency_deadlines =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [](const QJsonValue& route) {
+                               return route.toObject()
+                                          .value(QStringLiteral("deficiency_deadline"))
+                                          .toObject()
+                                          .value(QStringLiteral("id_mode"))
+                                          .toString() == QStringLiteral("exact");
+                           });
+            });
+        const auto uses_operation_document_bindings =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation_value) {
+                               const auto operation = operation_value.toObject();
+                               return operation.contains(QStringLiteral("document_binding")) ||
+                                      operation.contains(QStringLiteral("expected_argument_date"));
+                           });
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             pack->manifest_schema_version, pack->required_capabilities, resource_kinds,
             uses_workflow_preconditions, uses_dependent_deadlines, uses_named_deadlines,
             uses_event_date_deadlines, uses_argument_date_guards, uses_structured_disposition,
-            uses_grounded_questions, uses_realism_evidence, uses_sealed_record_twins);
+            uses_grounded_questions, uses_realism_evidence, uses_sealed_record_twins,
+            uses_route_role_subsets, uses_workflow_instance_preconditions,
+            uses_static_deficiency_deadlines, uses_operation_document_bindings);
         if (!capabilities) {
             return fail(RuntimePackErrorCode::InvalidPack,
                         capabilities.error().message.toStdString());
@@ -1201,6 +1256,25 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
                 path + ".deadline_counting has an unsupported value");
 }
 
+[[nodiscard]] Result<model::WorkflowOrderDisposition>
+workflowOrderDisposition(const QJsonObject& object, const char* key, const std::string& path) {
+    const auto value = requiredString(object, key, path);
+    if (!value) {
+        return std::unexpected(value.error());
+    }
+    if (*value == "granted") {
+        return model::WorkflowOrderDisposition::Granted;
+    }
+    if (*value == "denied") {
+        return model::WorkflowOrderDisposition::Denied;
+    }
+    if (*value == "other") {
+        return model::WorkflowOrderDisposition::Other;
+    }
+    return fail(RuntimePackErrorCode::InvalidResource,
+                path + "." + key + " has an unsupported value");
+}
+
 [[nodiscard]] Result<model::WorkflowDeadlinePlan> parseDeadlinePlan(const QJsonObject& object,
                                                                     const std::string& path) {
     const auto deadline_id = requiredId(object, "deadline_id", path);
@@ -1213,6 +1287,54 @@ optionalDeadlineCounting(const QJsonObject& object, const std::string& path) {
     }
     return model::WorkflowDeadlinePlan{model::WorkflowDeadlineId{*deadline_id},
                                        model::WorkflowOperationId{*operation_id}};
+}
+
+[[nodiscard]] Result<model::WorkflowDeadlinePlan>
+parseDeficiencyDeadlinePlan(const QJsonObject& object, const std::string& path) {
+    auto plan = parseDeadlinePlan(object, path);
+    if (!plan) {
+        return std::unexpected(plan.error());
+    }
+    if (!object.contains(QStringLiteral("id_mode"))) {
+        if (!hasExactKeys(object, {"deadline_id", "operation_id"})) {
+            return fail(RuntimePackErrorCode::InvalidResource,
+                        path + " has an invalid dynamic deadline form");
+        }
+        return plan;
+    }
+    if (!hasExactKeys(object, {"deadline_id", "operation_id", "id_mode", "trigger_filing"}) ||
+        object.value(QStringLiteral("id_mode")).toString() != QStringLiteral("exact")) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + " has an invalid exact deadline form");
+    }
+    const auto trigger = requiredObject(object, "trigger_filing", path);
+    if (!trigger || !hasExactKeys(*trigger, {"filing_id", "actor_id", "record_entry_id",
+                                             "document_sha256", "expected_court_date"})) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + ".trigger_filing has an invalid closed form");
+    }
+    const auto filing_id = requiredId(*trigger, "filing_id", path + ".trigger_filing");
+    const auto actor_id = requiredId(*trigger, "actor_id", path + ".trigger_filing");
+    const auto record_entry_id = requiredId(*trigger, "record_entry_id", path + ".trigger_filing");
+    const auto document_sha256 =
+        requiredSha256(*trigger, "document_sha256", path + ".trigger_filing");
+    const auto expected_court_date =
+        requiredDate(*trigger, "expected_court_date", path + ".trigger_filing");
+    if (!filing_id || !actor_id || !record_entry_id || !document_sha256 || !expected_court_date) {
+        if (!filing_id)
+            return std::unexpected(filing_id.error());
+        if (!actor_id)
+            return std::unexpected(actor_id.error());
+        if (!record_entry_id)
+            return std::unexpected(record_entry_id.error());
+        if (!document_sha256)
+            return std::unexpected(document_sha256.error());
+        return std::unexpected(expected_court_date.error());
+    }
+    plan->static_trigger = model::WorkflowDeadlinePlan::StaticDeficiencyTrigger{
+        model::WorkflowFilingId{*filing_id}, model::ActorId{*actor_id}, *record_entry_id,
+        *document_sha256, *expected_court_date};
+    return plan;
 }
 
 [[nodiscard]] Result<std::vector<model::WorkflowPrecondition>>
@@ -1234,6 +1356,8 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
     std::vector<model::WorkflowPrecondition> result;
     result.reserve(static_cast<std::size_t>(values->size()));
     std::unordered_set<std::string> subjects;
+    std::unordered_set<std::string> absent_filing_types;
+    std::unordered_set<std::string> present_instance_filing_types;
     for (qsizetype index = 0; index < values->size(); ++index) {
         if (!values->at(index).isObject()) {
             return fail(RuntimePackErrorCode::InvalidResource,
@@ -1255,28 +1379,89 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
             if (!filing_type || !present) {
                 return std::unexpected(!filing_type ? filing_type.error() : present.error());
             }
-            subject = *kind + ':' + *filing_type;
+            subject = "filing-type:" + *filing_type;
+            if (!*present) {
+                if (present_instance_filing_types.contains(*filing_type)) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                path + ".preconditions contain an impossible filing absence");
+                }
+                absent_filing_types.emplace(*filing_type);
+            }
             result.emplace_back(
                 model::WorkflowFilingPrecondition{model::FilingTypeId{*filing_type}, *present});
         } else if (*kind == "order_disposition" &&
                    hasExactKeys(object, {"kind", "order_id", "disposition"})) {
             const auto order_id = requiredId(object, "order_id", item_path);
-            const auto disposition = requiredString(object, "disposition", item_path);
+            const auto disposition = workflowOrderDisposition(object, "disposition", item_path);
             if (!order_id || !disposition) {
                 return std::unexpected(!order_id ? order_id.error() : disposition.error());
             }
-            static const std::unordered_map<std::string, model::WorkflowOrderDisposition>
-                dispositions{{"granted", model::WorkflowOrderDisposition::Granted},
-                             {"denied", model::WorkflowOrderDisposition::Denied},
-                             {"other", model::WorkflowOrderDisposition::Other}};
-            const auto found = dispositions.find(*disposition);
-            if (found == dispositions.end()) {
-                return fail(RuntimePackErrorCode::InvalidResource,
-                            item_path + ".disposition has an unsupported value");
-            }
-            subject = *kind + ':' + *order_id;
+            subject = "order:" + *order_id;
             result.emplace_back(
-                model::WorkflowOrderPrecondition{model::WorkflowOrderId{*order_id}, found->second});
+                model::WorkflowOrderPrecondition{model::WorkflowOrderId{*order_id}, *disposition});
+        } else if (*kind == "filing_instance" &&
+                   hasExactKeys(object,
+                                {"kind", "filing_type_id", "present", "actor_id", "filing_id",
+                                 "accept_operation_id", "record_entry_id", "document_sha256"})) {
+            const auto filing_type = requiredId(object, "filing_type_id", item_path);
+            const auto present = requiredBoolean(object, "present", item_path);
+            const auto actor_id = requiredId(object, "actor_id", item_path);
+            const auto filing_id = requiredId(object, "filing_id", item_path);
+            const auto operation_id = requiredId(object, "accept_operation_id", item_path);
+            const auto record_entry_id = requiredId(object, "record_entry_id", item_path);
+            const auto document_sha256 = requiredSha256(object, "document_sha256", item_path);
+            if (!filing_type || !present || !actor_id || !filing_id || !operation_id ||
+                !record_entry_id || !document_sha256) {
+                if (!filing_type)
+                    return std::unexpected(filing_type.error());
+                if (!present)
+                    return std::unexpected(present.error());
+                if (!actor_id)
+                    return std::unexpected(actor_id.error());
+                if (!filing_id)
+                    return std::unexpected(filing_id.error());
+                if (!operation_id)
+                    return std::unexpected(operation_id.error());
+                if (!record_entry_id)
+                    return std::unexpected(record_entry_id.error());
+                return std::unexpected(document_sha256.error());
+            }
+            subject = "filing-id:" + *filing_id;
+            if (*present) {
+                if (absent_filing_types.contains(*filing_type)) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                path + ".preconditions contain an impossible filing instance");
+                }
+                present_instance_filing_types.emplace(*filing_type);
+            }
+            result.emplace_back(model::WorkflowFilingInstancePrecondition{
+                model::FilingTypeId{*filing_type}, *present, model::ActorId{*actor_id},
+                model::WorkflowFilingId{*filing_id}, model::WorkflowOperationId{*operation_id},
+                *record_entry_id, *document_sha256});
+        } else if (*kind == "order_instance" &&
+                   hasExactKeys(object, {"kind", "order_id", "disposition", "operation_id",
+                                         "record_entry_id", "document_sha256"})) {
+            const auto order_id = requiredId(object, "order_id", item_path);
+            const auto disposition = workflowOrderDisposition(object, "disposition", item_path);
+            const auto operation_id = requiredId(object, "operation_id", item_path);
+            const auto record_entry_id = requiredId(object, "record_entry_id", item_path);
+            const auto document_sha256 = requiredSha256(object, "document_sha256", item_path);
+            if (!order_id || !disposition || !operation_id || !record_entry_id ||
+                !document_sha256) {
+                if (!order_id)
+                    return std::unexpected(order_id.error());
+                if (!disposition)
+                    return std::unexpected(disposition.error());
+                if (!operation_id)
+                    return std::unexpected(operation_id.error());
+                if (!record_entry_id)
+                    return std::unexpected(record_entry_id.error());
+                return std::unexpected(document_sha256.error());
+            }
+            subject = "order:" + *order_id;
+            result.emplace_back(model::WorkflowOrderInstancePrecondition{
+                model::WorkflowOrderId{*order_id}, *disposition,
+                model::WorkflowOperationId{*operation_id}, *record_entry_id, *document_sha256});
         } else if (*kind == "deadline_status" &&
                    hasExactKeys(object, {"kind", "deadline_id", "status"})) {
             const auto deadline_id = requiredId(object, "deadline_id", item_path);
@@ -1512,11 +1697,78 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
                             operation_path + ".deadline_event_base has an unsupported form");
             }
         }
+        std::optional<model::WorkflowOperation::DocumentBinding> document_binding;
+        if (operation.contains(QStringLiteral("document_binding"))) {
+            if (schema_version != 2) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            operation_path + ".document_binding requires schema 2");
+            }
+            const auto object = requiredObject(operation, "document_binding", operation_path);
+            if (!object) {
+                return std::unexpected(object.error());
+            }
+            const auto is_order = *opcode == model::WorkflowOpcode::EnterOrder;
+            const auto is_non_order_document = *opcode == model::WorkflowOpcode::IssueJudgment ||
+                                               *opcode == model::WorkflowOpcode::IssueMandate;
+            if ((!is_order && !is_non_order_document) ||
+                (is_order &&
+                 !hasExactKeys(*object, {"record_entry_id", "document_sha256",
+                                         "expected_court_date", "order_id", "disposition"})) ||
+                (is_non_order_document &&
+                 !hasExactKeys(*object,
+                               {"record_entry_id", "document_sha256", "expected_court_date"}))) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            operation_path + ".document_binding has an incompatible closed form");
+            }
+            const auto record_entry_id =
+                requiredId(*object, "record_entry_id", operation_path + ".document_binding");
+            const auto document_sha256 =
+                requiredSha256(*object, "document_sha256", operation_path + ".document_binding");
+            const auto expected_court_date =
+                requiredDate(*object, "expected_court_date", operation_path + ".document_binding");
+            if (!record_entry_id || !document_sha256 || !expected_court_date) {
+                if (!record_entry_id)
+                    return std::unexpected(record_entry_id.error());
+                if (!document_sha256)
+                    return std::unexpected(document_sha256.error());
+                return std::unexpected(expected_court_date.error());
+            }
+            std::optional<model::WorkflowOrderId> order_id;
+            std::optional<model::WorkflowOrderDisposition> disposition;
+            if (is_order) {
+                const auto parsed_order_id =
+                    requiredId(*object, "order_id", operation_path + ".document_binding");
+                const auto parsed_disposition = workflowOrderDisposition(
+                    *object, "disposition", operation_path + ".document_binding");
+                if (!parsed_order_id || !parsed_disposition) {
+                    return std::unexpected(!parsed_order_id ? parsed_order_id.error()
+                                                            : parsed_disposition.error());
+                }
+                order_id = model::WorkflowOrderId{*parsed_order_id};
+                disposition = *parsed_disposition;
+            }
+            document_binding = model::WorkflowOperation::DocumentBinding{
+                *record_entry_id, *document_sha256, *expected_court_date, std::move(order_id),
+                disposition};
+        }
+        std::optional<model::LegalDate> expected_argument_date;
+        if (operation.contains(QStringLiteral("expected_argument_date"))) {
+            if (schema_version != 2 || *opcode != model::WorkflowOpcode::ScheduleArgument) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            operation_path +
+                                ".expected_argument_date is restricted to schedule_argument");
+            }
+            auto parsed = requiredDate(operation, "expected_argument_date", operation_path);
+            if (!parsed) {
+                return std::unexpected(parsed.error());
+            }
+            expected_argument_date = *parsed;
+        }
         operations.push_back(model::WorkflowOperation{
             model::WorkflowOperationId{*id}, model::WorkflowStageId{*stage}, *opcode,
             std::move(*authority), std::move(next), *days, *counting, std::move(authorized_roles),
-            std::move(*preconditions), std::move(base), std::move(produced),
-            std::move(event_base)});
+            std::move(*preconditions), std::move(base), std::move(produced), std::move(event_base),
+            std::move(document_binding), expected_argument_date});
     }
 
     std::vector<model::WorkflowFilingRoute> routes;
@@ -1586,10 +1838,14 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
             if (!deficiency_plan_object) {
                 return std::unexpected(deficiency_plan_object.error());
             }
-            auto parsed =
-                parseDeadlinePlan(*deficiency_plan_object, route_path + ".deficiency_deadline");
+            auto parsed = parseDeficiencyDeadlinePlan(*deficiency_plan_object,
+                                                      route_path + ".deficiency_deadline");
             if (!parsed) {
                 return std::unexpected(parsed.error());
+            }
+            if (schema_version != 2 && parsed->static_trigger.has_value()) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            route_path + ".deficiency_deadline exact mode requires schema 2");
             }
             deficiency_plan = std::move(*parsed);
         }
@@ -1598,6 +1854,10 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
             const auto accepted_object = requiredObject(route, "accepted_deadline", route_path);
             if (!accepted_object) {
                 return std::unexpected(accepted_object.error());
+            }
+            if (!hasExactKeys(*accepted_object, {"deadline_id", "operation_id"})) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            route_path + ".accepted_deadline has an invalid closed form");
             }
             auto parsed = parseDeadlinePlan(*accepted_object, route_path + ".accepted_deadline");
             if (!parsed) {
@@ -1629,12 +1889,22 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
         if (deficiency->has_value()) {
             deficiency_id = model::WorkflowOperationId{std::move(**deficiency)};
         }
+        auto role_scope = model::WorkflowAuthorizedRoleScope::CatalogExact;
+        if (route.contains(QStringLiteral("authorized_role_scope"))) {
+            if (schema_version != 2 ||
+                route.value(QStringLiteral("authorized_role_scope")).toString() !=
+                    QStringLiteral("catalog_subset")) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            route_path + ".authorized_role_scope is unsupported");
+            }
+            role_scope = model::WorkflowAuthorizedRoleScope::CatalogSubset;
+        }
         routes.push_back(model::WorkflowFilingRoute{
             model::FilingTypeId{*filing_type}, model::WorkflowStageId{*stage},
             std::move(authorized_roles), std::move(required_fields), std::move(service_roles),
             model::WorkflowOperationId{*accept}, model::WorkflowOperationId{*reject},
             std::move(deficiency_id), std::move(deficiency_plan), std::move(accepted_plan),
-            std::move(advance_id), std::move(satisfies_id), *reject_after_deadline});
+            std::move(advance_id), std::move(satisfies_id), *reject_after_deadline, role_scope});
     }
 
     const auto holiday_values =
@@ -1777,17 +2047,21 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
                         path + " has an incompatible deficiency operation");
         }
         if (route.deficiency_deadline.has_value()) {
-            const auto& prefix = route.deficiency_deadline->deadline_id.value;
+            const auto& deadline_id = route.deficiency_deadline->deadline_id.value;
+            const auto is_exact = route.deficiency_deadline->static_trigger.has_value();
+            const auto overlaps_exact =
+                is_exact ? exact_deadline_ids.contains(deadline_id)
+                         : std::ranges::any_of(exact_deadline_ids, [&](const auto& exact) {
+                               return deadlineNamespacesOverlap(deadline_id, exact);
+                           });
+            const auto overlaps_prefix =
+                std::ranges::any_of(deficiency_deadline_prefixes, [&](const auto& prefix) {
+                    return deadlineNamespacesOverlap(deadline_id, prefix);
+                });
             if (!route.deficiency_operation_id.has_value() ||
-                !deadline_ids.emplace(route.deficiency_deadline->deadline_id.value).second ||
-                std::ranges::any_of(
-                    exact_deadline_ids,
-                    [&](const auto& exact) { return deadlineNamespacesOverlap(prefix, exact); }) ||
-                std::ranges::any_of(deficiency_deadline_prefixes,
-                                    [&](const auto& other_prefix) {
-                                        return deadlineNamespacesOverlap(prefix, other_prefix);
-                                    }) ||
-                !deficiency_deadline_prefixes.emplace(prefix).second ||
+                !deadline_ids.emplace(deadline_id).second || overlaps_exact || overlaps_prefix ||
+                (is_exact ? !exact_deadline_ids.emplace(deadline_id).second
+                          : !deficiency_deadline_prefixes.emplace(deadline_id).second) ||
                 !independentDeadlineForRoute(route.deficiency_deadline->operation_id,
                                              route.stage_id)) {
                 return fail(RuntimePackErrorCode::CrossReferenceFailure,
@@ -3592,7 +3866,14 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         for (const auto& field : route.required_fields) {
             route_fields.insert(field.value);
         }
-        if (declared == catalog->end() || route_roles != declared->second.authorized_roles ||
+        const auto roles_match =
+            declared != catalog->end() &&
+            (route.authorized_role_scope == model::WorkflowAuthorizedRoleScope::CatalogExact
+                 ? route_roles == declared->second.authorized_roles
+                 : !route_roles.empty() && std::ranges::all_of(route_roles, [&](const auto& role) {
+                       return declared->second.authorized_roles.contains(role);
+                   }));
+        if (declared == catalog->end() || !roles_match ||
             route_fields != declared->second.required_fields ||
             std::ranges::any_of(
                 route.authorized_roles,
@@ -3603,6 +3884,103 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
             return fail(RuntimePackErrorCode::CrossReferenceFailure,
                         "workflow " + workflow->id.value +
                             " route conflicts with its procedure filing catalog");
+        }
+    }
+    const auto recordEntryFor = [&](const std::string& entry_id) -> const RuntimeDocketEntry* {
+        const auto found = std::ranges::find_if(
+            record->docket_entries, [&](const auto& entry) { return entry.id.value == entry_id; });
+        return found == record->docket_entries.end() ? nullptr : &*found;
+    };
+    const auto caseActorFor = [&](const model::ActorId& actor_id) -> const model::CaseActor* {
+        const auto found =
+            std::ranges::find(parsed_case->definition.actors, actor_id, &model::CaseActor::id);
+        return found == parsed_case->definition.actors.end() ? nullptr : &*found;
+    };
+    const auto operationForId =
+        [&](const model::WorkflowOperationId& operation_id) -> const model::WorkflowOperation* {
+        const auto found =
+            std::ranges::find(workflow->operations, operation_id, &model::WorkflowOperation::id);
+        return found == workflow->operations.end() ? nullptr : &*found;
+    };
+    const auto validProvenanceEntry = [&](const std::string& entry_id,
+                                          const std::string& document_sha256,
+                                          std::optional<model::LegalDate> filed_on = std::nullopt) {
+        const auto* entry = recordEntryFor(entry_id);
+        return entry != nullptr && !entry->sealed && entry->asset_sha256 == document_sha256 &&
+               (!filed_on.has_value() || entry->filed_on == *filed_on);
+    };
+    for (const auto& operation : workflow->operations) {
+        if (operation.document_binding.has_value()) {
+            const auto& binding = *operation.document_binding;
+            const auto order_shape = operation.opcode == model::WorkflowOpcode::EnterOrder &&
+                                     binding.order_id.has_value() &&
+                                     binding.disposition.has_value();
+            const auto non_order_shape =
+                (operation.opcode == model::WorkflowOpcode::IssueJudgment ||
+                 operation.opcode == model::WorkflowOpcode::IssueMandate) &&
+                !binding.order_id.has_value() && !binding.disposition.has_value();
+            if ((!order_shape && !non_order_shape) ||
+                !validProvenanceEntry(binding.record_entry_id, binding.document_sha256,
+                                      binding.expected_court_date)) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            "workflow " + workflow->id.value +
+                                " has an operation document binding outside its case record");
+            }
+        }
+        for (const auto& precondition : operation.preconditions) {
+            if (const auto* filing =
+                    std::get_if<model::WorkflowFilingInstancePrecondition>(&precondition)) {
+                const auto* actor = caseActorFor(filing->actor_id);
+                const auto* accept = operationForId(filing->accept_operation_id);
+                const auto route =
+                    std::ranges::find_if(workflow->filing_routes, [&](const auto& r) {
+                        return r.filing_type == filing->filing_type &&
+                               r.accept_operation_id == filing->accept_operation_id;
+                    });
+                if (actor == nullptr || accept == nullptr ||
+                    accept->opcode != model::WorkflowOpcode::AcceptFiling ||
+                    route == workflow->filing_routes.end() ||
+                    std::ranges::find(route->authorized_roles, actor->role) ==
+                        route->authorized_roles.end() ||
+                    !validProvenanceEntry(filing->record_entry_id, filing->document_sha256)) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                "workflow " + workflow->id.value +
+                                    " has an invalid filing-instance provenance selector");
+                }
+            } else if (const auto* order =
+                           std::get_if<model::WorkflowOrderInstancePrecondition>(&precondition)) {
+                const auto* source = operationForId(order->operation_id);
+                const auto binding_matches =
+                    source == nullptr || !source->document_binding.has_value() ||
+                    (source->document_binding->record_entry_id == order->record_entry_id &&
+                     source->document_binding->document_sha256 == order->document_sha256 &&
+                     source->document_binding->order_id == std::optional{order->order_id} &&
+                     source->document_binding->disposition == std::optional{order->disposition});
+                if (source == nullptr || source->opcode != model::WorkflowOpcode::EnterOrder ||
+                    !binding_matches ||
+                    !validProvenanceEntry(order->record_entry_id, order->document_sha256)) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                "workflow " + workflow->id.value +
+                                    " has an invalid order-instance provenance selector");
+                }
+            }
+        }
+    }
+    for (const auto& route : workflow->filing_routes) {
+        if (!route.deficiency_deadline.has_value() ||
+            !route.deficiency_deadline->static_trigger.has_value()) {
+            continue;
+        }
+        const auto& trigger = *route.deficiency_deadline->static_trigger;
+        const auto* actor = caseActorFor(trigger.actor_id);
+        if (actor == nullptr ||
+            std::ranges::find(route.authorized_roles, actor->role) ==
+                route.authorized_roles.end() ||
+            !validProvenanceEntry(trigger.record_entry_id, trigger.document_sha256,
+                                  trigger.expected_court_date)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        "workflow " + workflow->id.value +
+                            " has an invalid static deficiency trigger");
         }
     }
     for (const auto& actor : parsed_case->definition.actors) {

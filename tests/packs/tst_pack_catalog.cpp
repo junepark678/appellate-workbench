@@ -729,11 +729,55 @@ void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
             {QStringLiteral("kind"), QStringLiteral("argument_date_status")},
             {QStringLiteral("status"), QStringLiteral("reached")},
         });
+        preconditions.push_back(QJsonObject{
+            {QStringLiteral("kind"), QStringLiteral("filing_instance")},
+            {QStringLiteral("filing_type_id"), QStringLiteral("example.filing.notice")},
+            {QStringLiteral("present"), true},
+            {QStringLiteral("actor_id"), QStringLiteral("example.actor.appellant")},
+            {QStringLiteral("filing_id"), QStringLiteral("example.filing.notice-instance")},
+            {QStringLiteral("accept_operation_id"),
+             QStringLiteral("example.operation.accept-notice")},
+            {QStringLiteral("record_entry_id"), QStringLiteral("example.record.brief-opening")},
+            {QStringLiteral("document_sha256"),
+             QStringLiteral("bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366")},
+        });
         operation.insert(QStringLiteral("preconditions"), preconditions);
+        operation.insert(
+            QStringLiteral("document_binding"),
+            QJsonObject{
+                {QStringLiteral("record_entry_id"), QStringLiteral("example.record.brief-opening")},
+                {QStringLiteral("document_sha256"),
+                 QStringLiteral(
+                     "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366")},
+                {QStringLiteral("expected_court_date"), QStringLiteral("2026-01-03")},
+            });
         operations.replace(index, operation);
         break;
     }
     workflow.insert(QStringLiteral("operations"), operations);
+    auto routes = workflow.value(QStringLiteral("filing_routes")).toArray();
+    auto route = routes.at(0).toObject();
+    route.insert(QStringLiteral("authorized_role_scope"), QStringLiteral("catalog_subset"));
+    route.insert(
+        QStringLiteral("deficiency_deadline"),
+        QJsonObject{
+            {QStringLiteral("deadline_id"), QStringLiteral("example.deadline.notice-cure-exact")},
+            {QStringLiteral("operation_id"), QStringLiteral("example.operation.calculate-cure")},
+            {QStringLiteral("id_mode"), QStringLiteral("exact")},
+            {QStringLiteral("trigger_filing"),
+             QJsonObject{
+                 {QStringLiteral("filing_id"), QStringLiteral("example.filing.notice-deficient")},
+                 {QStringLiteral("actor_id"), QStringLiteral("example.actor.appellant")},
+                 {QStringLiteral("record_entry_id"),
+                  QStringLiteral("example.record.brief-opening")},
+                 {QStringLiteral("document_sha256"),
+                  QStringLiteral(
+                      "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366")},
+                 {QStringLiteral("expected_court_date"), QStringLiteral("2026-01-03")},
+             }},
+        });
+    routes.replace(0, route);
+    workflow.insert(QStringLiteral("filing_routes"), routes);
     const auto workflow_bytes = QJsonDocument(workflow).toJson(QJsonDocument::Indented);
     QVERIFY(replaceAll(workflow_path, workflow_bytes));
 
@@ -745,7 +789,10 @@ void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
     auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
     for (const auto* capability :
          {"workbench.pack.dependent-deadlines", "workbench.pack.named-deadlines",
-          "workbench.pack.event-date-deadlines", "workbench.pack.argument-date-guards"}) {
+          "workbench.pack.event-date-deadlines", "workbench.pack.argument-date-guards",
+          "workbench.pack.route-role-subsets", "workbench.pack.workflow-instance-preconditions",
+          "workbench.pack.static-deficiency-deadlines",
+          "workbench.pack.operation-document-bindings"}) {
         capabilities.push_back(QJsonObject{{QStringLiteral("id"), QString::fromLatin1(capability)},
                                            {QStringLiteral("version"), 1}});
     }

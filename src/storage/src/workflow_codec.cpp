@@ -31,6 +31,7 @@ constexpr auto legacy_schema_version = 1;
 constexpr auto provenance_schema_version = 2;
 constexpr auto structured_schema_version = 3;
 constexpr auto deadline_snapshot_schema_version = 4;
+constexpr auto instance_precondition_schema_version = 5;
 constexpr qsizetype maximum_payload_bytes = 1024 * 1024;
 constexpr qsizetype maximum_id_characters = 160;
 constexpr qsizetype maximum_text_characters = 4096;
@@ -1333,7 +1334,14 @@ template <typename Id>
             using Precondition = std::remove_cvref_t<decltype(concrete)>;
             if constexpr (std::same_as<Precondition, model::WorkflowFilingPrecondition>) {
                 return QStringLiteral("filing:") + QString::fromUtf8(concrete.filing_type.value);
+            } else if constexpr (std::same_as<Precondition,
+                                              model::WorkflowFilingInstancePrecondition>) {
+                return QStringLiteral("filing-instance:") +
+                       QString::fromUtf8(concrete.filing_id.value);
             } else if constexpr (std::same_as<Precondition, model::WorkflowOrderPrecondition>) {
+                return QStringLiteral("order:") + QString::fromUtf8(concrete.order_id.value);
+            } else if constexpr (std::same_as<Precondition,
+                                              model::WorkflowOrderInstancePrecondition>) {
                 return QStringLiteral("order:") + QString::fromUtf8(concrete.order_id.value);
             } else if constexpr (std::same_as<Precondition, model::WorkflowDeadlinePrecondition>) {
                 QString condition;
@@ -1407,6 +1415,18 @@ contradictoryPreconditionSubjects(const model::WorkflowPrecondition& preconditio
             opposite};
 }
 
+[[nodiscard]] bool filingPreconditionsConflict(const model::WorkflowPrecondition& left,
+                                               const model::WorkflowPrecondition& right) {
+    const auto conflict = [](const auto* generic, const auto* instance) {
+        return generic != nullptr && instance != nullptr && !generic->present &&
+               instance->present && generic->filing_type == instance->filing_type;
+    };
+    return conflict(std::get_if<model::WorkflowFilingPrecondition>(&left),
+                    std::get_if<model::WorkflowFilingInstancePrecondition>(&right)) ||
+           conflict(std::get_if<model::WorkflowFilingPrecondition>(&right),
+                    std::get_if<model::WorkflowFilingInstancePrecondition>(&left));
+}
+
 [[nodiscard]] auto encodePrecondition(const model::WorkflowPrecondition& precondition)
     -> std::expected<QJsonObject, WorkflowCodecError> {
     return std::visit(
@@ -1421,6 +1441,42 @@ contradictoryPreconditionSubjects(const model::WorkflowPrecondition& preconditio
                 return QJsonObject{{QStringLiteral("filing_type_id"), *filing_type},
                                    {QStringLiteral("kind"), QStringLiteral("filing_presence")},
                                    {QStringLiteral("present"), concrete.present}};
+            } else if constexpr (std::same_as<Precondition,
+                                              model::WorkflowFilingInstancePrecondition>) {
+                const auto filing_type =
+                    checkedId(concrete.filing_type.value, u"payload.preconditions.filing_type_id");
+                const auto actor_id =
+                    checkedId(concrete.actor_id.value, u"payload.preconditions.actor_id");
+                const auto filing_id =
+                    checkedId(concrete.filing_id.value, u"payload.preconditions.filing_id");
+                const auto operation_id = checkedId(concrete.accept_operation_id.value,
+                                                    u"payload.preconditions.accept_operation_id");
+                const auto record_entry_id =
+                    checkedId(concrete.record_entry_id, u"payload.preconditions.record_entry_id");
+                const auto digest = checkedDigest(concrete.document_sha256,
+                                                  u"payload.preconditions.document_sha256");
+                if (!filing_type)
+                    return std::unexpected(filing_type.error());
+                if (!actor_id)
+                    return std::unexpected(actor_id.error());
+                if (!filing_id)
+                    return std::unexpected(filing_id.error());
+                if (!operation_id)
+                    return std::unexpected(operation_id.error());
+                if (!record_entry_id)
+                    return std::unexpected(record_entry_id.error());
+                if (!digest)
+                    return std::unexpected(digest.error());
+                return QJsonObject{
+                    {QStringLiteral("accept_operation_id"), *operation_id},
+                    {QStringLiteral("actor_id"), *actor_id},
+                    {QStringLiteral("document_sha256"), *digest},
+                    {QStringLiteral("filing_id"), *filing_id},
+                    {QStringLiteral("filing_type_id"), *filing_type},
+                    {QStringLiteral("kind"), QStringLiteral("filing_instance")},
+                    {QStringLiteral("present"), concrete.present},
+                    {QStringLiteral("record_entry_id"), *record_entry_id},
+                };
             } else if constexpr (std::same_as<Precondition, model::WorkflowOrderPrecondition>) {
                 const auto order_id =
                     checkedId(concrete.order_id.value, u"payload.preconditions.order_id");
@@ -1434,6 +1490,33 @@ contradictoryPreconditionSubjects(const model::WorkflowPrecondition& preconditio
                 return QJsonObject{{QStringLiteral("disposition"), *disposition},
                                    {QStringLiteral("kind"), QStringLiteral("order_disposition")},
                                    {QStringLiteral("order_id"), *order_id}};
+            } else if constexpr (std::same_as<Precondition,
+                                              model::WorkflowOrderInstancePrecondition>) {
+                const auto order_id =
+                    checkedId(concrete.order_id.value, u"payload.preconditions.order_id");
+                const auto disposition = encodeOrderDisposition(concrete.disposition);
+                const auto operation_id =
+                    checkedId(concrete.operation_id.value, u"payload.preconditions.operation_id");
+                const auto record_entry_id =
+                    checkedId(concrete.record_entry_id, u"payload.preconditions.record_entry_id");
+                const auto digest = checkedDigest(concrete.document_sha256,
+                                                  u"payload.preconditions.document_sha256");
+                if (!order_id)
+                    return std::unexpected(order_id.error());
+                if (!disposition)
+                    return std::unexpected(disposition.error());
+                if (!operation_id)
+                    return std::unexpected(operation_id.error());
+                if (!record_entry_id)
+                    return std::unexpected(record_entry_id.error());
+                if (!digest)
+                    return std::unexpected(digest.error());
+                return QJsonObject{{QStringLiteral("disposition"), *disposition},
+                                   {QStringLiteral("document_sha256"), *digest},
+                                   {QStringLiteral("kind"), QStringLiteral("order_instance")},
+                                   {QStringLiteral("operation_id"), *operation_id},
+                                   {QStringLiteral("order_id"), *order_id},
+                                   {QStringLiteral("record_entry_id"), *record_entry_id}};
             } else if constexpr (std::same_as<Precondition, model::WorkflowDeadlinePrecondition>) {
                 const auto deadline_id =
                     checkedId(concrete.deadline_id.value, u"payload.preconditions.deadline_id");
@@ -1475,10 +1558,15 @@ encodePreconditions(const std::vector<model::WorkflowPrecondition>& precondition
     }
     QSet<QString> subjects;
     QJsonArray result;
-    for (const auto& precondition : preconditions) {
+    for (std::size_t index = 0; index < preconditions.size(); ++index) {
+        const auto& precondition = preconditions[index];
         const auto subject = preconditionSubject(precondition);
         const auto contradictory = contradictoryPreconditionSubjects(precondition);
-        if (subjects.contains(subject) ||
+        if (std::ranges::any_of(preconditions | std::views::take(index),
+                                [&](const auto& prior) {
+                                    return filingPreconditionsConflict(prior, precondition);
+                                }) ||
+            subjects.contains(subject) ||
             std::ranges::any_of(contradictory,
                                 [&](const QString& item) { return subjects.contains(item); })) {
             return fail(
@@ -1507,8 +1595,16 @@ usesExtendedPreconditions(const std::vector<model::WorkflowPrecondition>& precon
     });
 }
 
+[[nodiscard]] bool
+usesInstancePreconditions(const std::vector<model::WorkflowPrecondition>& preconditions) {
+    return std::ranges::any_of(preconditions, [](const auto& precondition) {
+        return std::holds_alternative<model::WorkflowFilingInstancePrecondition>(precondition) ||
+               std::holds_alternative<model::WorkflowOrderInstancePrecondition>(precondition);
+    });
+}
+
 [[nodiscard]] auto decodePrecondition(const QJsonObject& object, QStringView context,
-                                      bool allow_extended)
+                                      bool allow_extended, bool allow_instances)
     -> std::expected<model::WorkflowPrecondition, WorkflowCodecError> {
     const auto kind = readString(object, u"kind", 32, context);
     if (!kind) {
@@ -1530,6 +1626,47 @@ usesExtendedPreconditions(const std::vector<model::WorkflowPrecondition>& precon
         }
         return model::WorkflowFilingPrecondition{*filing_type, present.toBool()};
     }
+    if (*kind == u"filing_instance") {
+        if (!allow_instances) {
+            return fail(WorkflowCodecErrorCode::UnsupportedVersion,
+                        QStringLiteral("filing instances require workflow event schema 5"));
+        }
+        if (const auto keys =
+                exactKeys(object,
+                          {u"accept_operation_id", u"actor_id", u"document_sha256", u"filing_id",
+                           u"filing_type_id", u"kind", u"present", u"record_entry_id"},
+                          context);
+            !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto filing_type = decodeId<model::FilingTypeId>(object, u"filing_type_id", context);
+        const auto actor_id = decodeId<model::ActorId>(object, u"actor_id", context);
+        const auto filing_id = decodeId<model::WorkflowFilingId>(object, u"filing_id", context);
+        const auto operation_id =
+            decodeId<model::WorkflowOperationId>(object, u"accept_operation_id", context);
+        const auto record_entry_id = readId(object, u"record_entry_id", context);
+        const auto digest = readDigest(object, u"document_sha256", context);
+        const auto present = object.value(u"present");
+        if (!filing_type)
+            return std::unexpected(filing_type.error());
+        if (!actor_id)
+            return std::unexpected(actor_id.error());
+        if (!filing_id)
+            return std::unexpected(filing_id.error());
+        if (!operation_id)
+            return std::unexpected(operation_id.error());
+        if (!record_entry_id)
+            return std::unexpected(record_entry_id.error());
+        if (!digest)
+            return std::unexpected(digest.error());
+        if (!present.isBool()) {
+            return fail(WorkflowCodecErrorCode::InvalidField,
+                        QStringLiteral("%1.present must be a boolean").arg(context));
+        }
+        return model::WorkflowFilingInstancePrecondition{
+            *filing_type,  present.toBool(), *actor_id, *filing_id,
+            *operation_id, *record_entry_id, *digest};
+    }
     if (*kind == u"order_disposition") {
         if (const auto keys = exactKeys(object, {u"disposition", u"kind", u"order_id"}, context);
             !keys) {
@@ -1544,6 +1681,37 @@ usesExtendedPreconditions(const std::vector<model::WorkflowPrecondition>& precon
             return std::unexpected(disposition.error());
         }
         return model::WorkflowOrderPrecondition{*order_id, *disposition};
+    }
+    if (*kind == u"order_instance") {
+        if (!allow_instances) {
+            return fail(WorkflowCodecErrorCode::UnsupportedVersion,
+                        QStringLiteral("order instances require workflow event schema 5"));
+        }
+        if (const auto keys = exactKeys(object,
+                                        {u"disposition", u"document_sha256", u"kind",
+                                         u"operation_id", u"order_id", u"record_entry_id"},
+                                        context);
+            !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto order_id = decodeId<model::WorkflowOrderId>(object, u"order_id", context);
+        const auto disposition = decodeOrderDisposition(object, u"disposition", context);
+        const auto operation_id =
+            decodeId<model::WorkflowOperationId>(object, u"operation_id", context);
+        const auto record_entry_id = readId(object, u"record_entry_id", context);
+        const auto digest = readDigest(object, u"document_sha256", context);
+        if (!order_id)
+            return std::unexpected(order_id.error());
+        if (!disposition)
+            return std::unexpected(disposition.error());
+        if (!operation_id)
+            return std::unexpected(operation_id.error());
+        if (!record_entry_id)
+            return std::unexpected(record_entry_id.error());
+        if (!digest)
+            return std::unexpected(digest.error());
+        return model::WorkflowOrderInstancePrecondition{*order_id, *disposition, *operation_id,
+                                                        *record_entry_id, *digest};
     }
     if (*kind == u"deadline_status") {
         if (const auto keys = exactKeys(object, {u"deadline_id", u"kind", u"status"}, context);
@@ -1610,7 +1778,8 @@ usesExtendedPreconditions(const std::vector<model::WorkflowPrecondition>& precon
                 QStringLiteral("%1.kind is unknown").arg(context));
 }
 
-[[nodiscard]] auto decodePreconditions(const QJsonValue& value, bool allow_extended)
+[[nodiscard]] auto decodePreconditions(const QJsonValue& value, bool allow_extended,
+                                       bool allow_instances)
     -> std::expected<std::vector<model::WorkflowPrecondition>, WorkflowCodecError> {
     if (!value.isArray()) {
         return fail(WorkflowCodecErrorCode::InvalidField,
@@ -1631,13 +1800,16 @@ usesExtendedPreconditions(const std::vector<model::WorkflowPrecondition>& precon
         }
         const auto decoded = decodePrecondition(
             array.at(index).toObject(), QStringLiteral("payload.preconditions[%1]").arg(index),
-            allow_extended);
+            allow_extended, allow_instances);
         if (!decoded) {
             return std::unexpected(decoded.error());
         }
         const auto subject = preconditionSubject(*decoded);
         const auto contradictory = contradictoryPreconditionSubjects(*decoded);
-        if (subjects.contains(subject) ||
+        if (std::ranges::any_of(
+                result,
+                [&](const auto& prior) { return filingPreconditionsConflict(prior, *decoded); }) ||
+            subjects.contains(subject) ||
             std::ranges::any_of(contradictory,
                                 [&](const QString& item) { return subjects.contains(item); })) {
             return fail(
@@ -3100,7 +3272,12 @@ usesExtendedPreconditions(const std::vector<model::WorkflowPrecondition>& precon
 
 [[nodiscard]] auto decodeDeadlineCalculated(const QJsonObject& payload, int schema_version)
     -> std::expected<model::WorkflowEvent, WorkflowCodecError> {
-    const auto snapshot = schema_version == deadline_snapshot_schema_version;
+    const auto has_snapshot_member = payload.contains(u"deadline_base_id") ||
+                                     payload.contains(u"deadline_event_base") ||
+                                     payload.contains(u"produced_deadline_id");
+    const auto snapshot =
+        schema_version == deadline_snapshot_schema_version ||
+        (schema_version == instance_precondition_schema_version && has_snapshot_member);
     const auto keys =
         snapshot
             ? exactKeys(payload,
@@ -3376,10 +3553,10 @@ struct DecodedEnvelope final {
     int version{};
 };
 
-[[nodiscard]] auto decodeEnvelope(QByteArrayView encoded, QStringView type_key,
-                                  QStringView envelope_context, bool allow_provenance,
-                                  bool allow_structured = false,
-                                  bool allow_deadline_snapshot = false)
+[[nodiscard]] auto
+decodeEnvelope(QByteArrayView encoded, QStringView type_key, QStringView envelope_context,
+               bool allow_provenance, bool allow_structured = false,
+               bool allow_deadline_snapshot = false, bool allow_instance_preconditions = false)
     -> std::expected<DecodedEnvelope, WorkflowCodecError> {
     if (encoded.isEmpty() || encoded.size() > maximum_payload_bytes) {
         return fail(WorkflowCodecErrorCode::PayloadTooLarge,
@@ -3405,7 +3582,9 @@ struct DecodedEnvelope final {
         (version.toDouble() != legacy_schema_version &&
          (!allow_provenance || version.toDouble() != provenance_schema_version) &&
          (!allow_structured || version.toDouble() != structured_schema_version) &&
-         (!allow_deadline_snapshot || version.toDouble() != deadline_snapshot_schema_version))) {
+         (!allow_deadline_snapshot || version.toDouble() != deadline_snapshot_schema_version) &&
+         (!allow_instance_preconditions ||
+          version.toDouble() != instance_precondition_schema_version))) {
         return fail(WorkflowCodecErrorCode::UnsupportedVersion,
                     QStringLiteral("Unsupported workflow schema version"));
     }
@@ -3583,6 +3762,7 @@ encodeWorkflowEvent(const model::WorkflowEvent& event) {
         event);
     const auto structured = structured_disposition || !preconditions.empty();
     const auto extended_preconditions = usesExtendedPreconditions(preconditions);
+    const auto instance_preconditions = usesInstancePreconditions(preconditions);
     const auto extended = deadline_snapshot || extended_preconditions;
     if (extended_preconditions && !deadline_snapshot &&
         std::holds_alternative<model::WorkflowDeadlineCalculated>(event)) {
@@ -3602,14 +3782,15 @@ encodeWorkflowEvent(const model::WorkflowEvent& event) {
         encoded_payload.insert(QStringLiteral("preconditions"), *encoded_preconditions);
     }
     return encodeEnvelope(workflowEventType(event), encoded_payload, u"event_type",
-                          extended     ? deadline_snapshot_schema_version
-                          : structured ? structured_schema_version
-                                       : *authority_version);
+                          instance_preconditions ? instance_precondition_schema_version
+                          : extended             ? deadline_snapshot_schema_version
+                          : structured           ? structured_schema_version
+                                                 : *authority_version);
 }
 
 std::expected<model::WorkflowEvent, WorkflowCodecError>
 decodeWorkflowEvent(QByteArrayView encoded) {
-    const auto envelope = decodeEnvelope(encoded, u"event_type", u"event", true, true, true);
+    const auto envelope = decodeEnvelope(encoded, u"event_type", u"event", true, true, true, true);
     if (!envelope) {
         return std::unexpected(envelope.error());
     }
@@ -3617,13 +3798,17 @@ decodeWorkflowEvent(QByteArrayView encoded) {
     auto payload = envelope->payload;
     std::vector<model::WorkflowPrecondition> preconditions;
     if (envelope->version == structured_schema_version ||
-        envelope->version == deadline_snapshot_schema_version) {
+        envelope->version == deadline_snapshot_schema_version ||
+        envelope->version == instance_precondition_schema_version) {
         if (!payload.contains(u"preconditions")) {
             return fail(WorkflowCodecErrorCode::MissingField,
                         QStringLiteral("Missing payload.preconditions"));
         }
-        const auto decoded_preconditions = decodePreconditions(
-            payload.value(u"preconditions"), envelope->version == deadline_snapshot_schema_version);
+        const auto decoded_preconditions =
+            decodePreconditions(payload.value(u"preconditions"),
+                                envelope->version == deadline_snapshot_schema_version ||
+                                    envelope->version == instance_precondition_schema_version,
+                                envelope->version == instance_precondition_schema_version);
         if (!decoded_preconditions) {
             return std::unexpected(decoded_preconditions.error());
         }
@@ -3703,12 +3888,21 @@ decodeWorkflowEvent(QByteArrayView encoded) {
         },
         *decoded);
     const auto extended = deadline_snapshot || extended_preconditions;
-    if ((extended && (envelope->version != deadline_snapshot_schema_version ||
-                      *authority_version != provenance_schema_version)) ||
-        (!extended && structured &&
+    const auto instance_preconditions = std::visit(
+        [](const auto& concrete) {
+            return usesInstancePreconditions(concrete.header.preconditions);
+        },
+        *decoded);
+    if ((instance_preconditions && (envelope->version != instance_precondition_schema_version ||
+                                    *authority_version != provenance_schema_version)) ||
+        (!instance_preconditions && extended &&
+         (envelope->version != deadline_snapshot_schema_version ||
+          *authority_version != provenance_schema_version)) ||
+        (!instance_preconditions && !extended && structured &&
          (envelope->version != structured_schema_version ||
           *authority_version != provenance_schema_version)) ||
-        (!extended && !structured && *authority_version != envelope->version)) {
+        (!instance_preconditions && !extended && !structured &&
+         *authority_version != envelope->version)) {
         return fail(
             WorkflowCodecErrorCode::IncompleteAuthority,
             QStringLiteral("Event schema version does not match its authority or feature form"));

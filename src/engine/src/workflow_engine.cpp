@@ -468,8 +468,10 @@ deadlineIdReservedForDirectCalculation(const model::WorkflowDefinition& workflow
             return true;
         }
         if (route.deficiency_deadline.has_value() &&
-            deadlineNamespaceContains(route.deficiency_deadline->deadline_id.value,
-                                      deadline_id.value)) {
+            (route.deficiency_deadline->static_trigger.has_value()
+                 ? route.deficiency_deadline->deadline_id == deadline_id
+                 : deadlineNamespaceContains(route.deficiency_deadline->deadline_id.value,
+                                             deadline_id.value))) {
             return true;
         }
     }
@@ -492,11 +494,15 @@ deadlineIdReservedForDirectCalculation(const model::WorkflowDefinition& workflow
             return route.accepted_deadline->operation_id != operation.id;
         }
         if (route.deficiency_deadline.has_value() &&
-            deadlineNamespaceContains(route.deficiency_deadline->deadline_id.value,
-                                      deadline_id.value)) {
+            (route.deficiency_deadline->static_trigger.has_value()
+                 ? route.deficiency_deadline->deadline_id == deadline_id
+                 : deadlineNamespaceContains(route.deficiency_deadline->deadline_id.value,
+                                             deadline_id.value))) {
             return route.deficiency_deadline->operation_id != operation.id ||
-                   deadline_id.value !=
-                       route.deficiency_deadline->deadline_id.value + "." + command_id.value;
+                   (route.deficiency_deadline->static_trigger.has_value()
+                        ? deadline_id != route.deficiency_deadline->deadline_id
+                        : deadline_id.value != route.deficiency_deadline->deadline_id.value + "." +
+                                                   command_id.value);
         }
     }
     return false;
@@ -578,11 +584,41 @@ preconditionsSatisfied(const std::vector<model::WorkflowPrecondition>& precondit
                                           &model::WorkflowFilingRecord::filing_type) !=
                         state.accepted_filings.end();
                     return present == concrete.present;
+                } else if constexpr (std::same_as<Precondition,
+                                                  model::WorkflowFilingInstancePrecondition>) {
+                    const auto filing =
+                        std::ranges::find(state.accepted_filings, concrete.filing_id,
+                                          &model::WorkflowFilingRecord::filing_id);
+                    if (filing == state.accepted_filings.end()) {
+                        const auto deficient =
+                            std::ranges::find(state.deficiencies, concrete.filing_id,
+                                              &model::WorkflowDeficiencyRecord::filing_id);
+                        // A deficient submission still owns its globally unique filing ID.
+                        // It is not an accepted instance, but it is also not absent, so it
+                        // satisfies neither polarity of the exact accepted-instance claim.
+                        return deficient == state.deficiencies.end() && !concrete.present;
+                    }
+                    const auto exact =
+                        filing->filing_type == concrete.filing_type &&
+                        filing->actor_id == concrete.actor_id &&
+                        filing->document_sha256 == concrete.document_sha256 &&
+                        filing->accept_operation_id == std::optional{concrete.accept_operation_id};
+                    // A substituted record under the unique filing ID satisfies neither
+                    // the positive nor negative exact-instance claim.
+                    return exact && concrete.present;
                 } else if constexpr (std::same_as<Precondition, model::WorkflowOrderPrecondition>) {
                     const auto order = std::ranges::find(state.orders, concrete.order_id,
                                                          &model::WorkflowOrderRecord::order_id);
                     return order != state.orders.end() &&
                            order->disposition == concrete.disposition;
+                } else if constexpr (std::same_as<Precondition,
+                                                  model::WorkflowOrderInstancePrecondition>) {
+                    const auto order = std::ranges::find(state.orders, concrete.order_id,
+                                                         &model::WorkflowOrderRecord::order_id);
+                    return order != state.orders.end() &&
+                           order->disposition == concrete.disposition &&
+                           order->document_sha256 == concrete.document_sha256 &&
+                           order->operation_id == std::optional{concrete.operation_id};
                 } else if constexpr (std::same_as<Precondition,
                                                   model::WorkflowDeadlinePrecondition>) {
                     const auto* deadline = deadlineFor(state, concrete.deadline_id);
@@ -654,7 +690,17 @@ preconditionsSatisfied(const std::vector<model::WorkflowPrecondition>& precondit
 [[nodiscard]] auto deficiencyDeadlineIdFor(const model::WorkflowDeadlinePlan& plan,
                                            const model::WorkflowCommandId& command_id)
     -> model::WorkflowDeadlineId {
-    return model::WorkflowDeadlineId{plan.deadline_id.value + "." + command_id.value};
+    return plan.static_trigger.has_value()
+               ? plan.deadline_id
+               : model::WorkflowDeadlineId{plan.deadline_id.value + "." + command_id.value};
+}
+
+[[nodiscard]] bool
+staticDeficiencyTriggerMatches(const model::WorkflowDeadlinePlan::StaticDeficiencyTrigger& trigger,
+                               const model::SubmitWorkflowFiling& command) {
+    return trigger.filing_id == command.filing_id && trigger.actor_id == command.header.actor_id &&
+           trigger.document_sha256 == command.document_sha256 &&
+           trigger.expected_court_date == command.header.occurred_at.court_date;
 }
 
 [[nodiscard]] bool validPrecondition(const model::WorkflowPrecondition& precondition) {
@@ -663,9 +709,24 @@ preconditionsSatisfied(const std::vector<model::WorkflowPrecondition>& precondit
             using Precondition = std::remove_cvref_t<decltype(concrete)>;
             if constexpr (std::same_as<Precondition, model::WorkflowFilingPrecondition>) {
                 return validNamespacedId(concrete.filing_type.value);
+            } else if constexpr (std::same_as<Precondition,
+                                              model::WorkflowFilingInstancePrecondition>) {
+                return validNamespacedId(concrete.filing_type.value) &&
+                       validNamespacedId(concrete.actor_id.value) &&
+                       validNamespacedId(concrete.filing_id.value) &&
+                       validNamespacedId(concrete.accept_operation_id.value) &&
+                       validNamespacedId(concrete.record_entry_id) &&
+                       validDigest(concrete.document_sha256);
             } else if constexpr (std::same_as<Precondition, model::WorkflowOrderPrecondition>) {
                 return validNamespacedId(concrete.order_id.value) &&
                        validOrderDisposition(concrete.disposition);
+            } else if constexpr (std::same_as<Precondition,
+                                              model::WorkflowOrderInstancePrecondition>) {
+                return validNamespacedId(concrete.order_id.value) &&
+                       validOrderDisposition(concrete.disposition) &&
+                       validNamespacedId(concrete.operation_id.value) &&
+                       validNamespacedId(concrete.record_entry_id) &&
+                       validDigest(concrete.document_sha256);
             } else if constexpr (std::same_as<Precondition, model::WorkflowDeadlinePrecondition>) {
                 return validNamespacedId(concrete.deadline_id.value) &&
                        validDeadlineCondition(concrete.condition);
@@ -692,6 +753,25 @@ preconditionsSatisfied(const std::vector<model::WorkflowPrecondition>& precondit
         base);
 }
 
+[[nodiscard]] bool validDocumentBinding(const model::WorkflowOperation& operation) {
+    if (!operation.document_binding.has_value()) {
+        return true;
+    }
+    const auto& binding = *operation.document_binding;
+    if (!validNamespacedId(binding.record_entry_id) || !validDigest(binding.document_sha256) ||
+        !validLegalDate(binding.expected_court_date)) {
+        return false;
+    }
+    if (operation.opcode == model::WorkflowOpcode::EnterOrder) {
+        return binding.order_id.has_value() && binding.disposition.has_value() &&
+               validNamespacedId(binding.order_id->value) &&
+               validOrderDisposition(*binding.disposition);
+    }
+    return (operation.opcode == model::WorkflowOpcode::IssueJudgment ||
+            operation.opcode == model::WorkflowOpcode::IssueMandate) &&
+           !binding.order_id.has_value() && !binding.disposition.has_value();
+}
+
 [[nodiscard]] bool
 usesExtendedEventPrecondition(const std::vector<model::WorkflowPrecondition>& preconditions) {
     return std::ranges::any_of(preconditions, [](const auto& precondition) {
@@ -716,6 +796,42 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
             const auto& left = preconditions[left_index];
             const auto& right = preconditions[right_index];
             if (left == right) {
+                return false;
+            }
+            const auto orderSubject =
+                [](const model::WorkflowPrecondition& value) -> const model::WorkflowOrderId* {
+                if (const auto* legacy = std::get_if<model::WorkflowOrderPrecondition>(&value)) {
+                    return &legacy->order_id;
+                }
+                if (const auto* exact =
+                        std::get_if<model::WorkflowOrderInstancePrecondition>(&value)) {
+                    return &exact->order_id;
+                }
+                return nullptr;
+            };
+            const auto* left_order_subject = orderSubject(left);
+            const auto* right_order_subject = orderSubject(right);
+            if (left_order_subject != nullptr && right_order_subject != nullptr &&
+                *left_order_subject == *right_order_subject) {
+                return false;
+            }
+            const auto* left_filing_instance =
+                std::get_if<model::WorkflowFilingInstancePrecondition>(&left);
+            const auto* right_filing_instance =
+                std::get_if<model::WorkflowFilingInstancePrecondition>(&right);
+            if (left_filing_instance != nullptr && right_filing_instance != nullptr &&
+                left_filing_instance->filing_id == right_filing_instance->filing_id) {
+                return false;
+            }
+            const auto filing_absence_conflicts_with_instance = [](const auto& generic,
+                                                                   const auto& instance) {
+                return generic != nullptr && instance != nullptr && !generic->present &&
+                       instance->present && generic->filing_type == instance->filing_type;
+            };
+            if (filing_absence_conflicts_with_instance(
+                    std::get_if<model::WorkflowFilingPrecondition>(&left), right_filing_instance) ||
+                filing_absence_conflicts_with_instance(
+                    std::get_if<model::WorkflowFilingPrecondition>(&right), left_filing_instance)) {
                 return false;
             }
             if (const auto* left_filing = std::get_if<model::WorkflowFilingPrecondition>(&left)) {
@@ -903,10 +1019,20 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
         !case_definition.disposition_targets.empty() ||
         !case_definition.disposition_plans.empty() ||
         case_definition.authored_disposition_plan_id.has_value() ||
-        std::ranges::any_of(workflow.operations, [](const auto& operation) {
-            return !operation.preconditions.empty() || operation.deadline_base_id.has_value() ||
-                   operation.produced_deadline_id.has_value() ||
-                   operation.deadline_event_base.has_value();
+        std::ranges::any_of(workflow.operations,
+                            [](const auto& operation) {
+                                return !operation.preconditions.empty() ||
+                                       operation.deadline_base_id.has_value() ||
+                                       operation.produced_deadline_id.has_value() ||
+                                       operation.deadline_event_base.has_value() ||
+                                       operation.document_binding.has_value() ||
+                                       operation.expected_argument_date.has_value();
+                            }) ||
+        std::ranges::any_of(workflow.filing_routes, [](const auto& route) {
+            return route.authorized_role_scope ==
+                       model::WorkflowAuthorizedRoleScope::CatalogSubset ||
+                   (route.deficiency_deadline.has_value() &&
+                    route.deficiency_deadline->static_trigger.has_value());
         });
     if (uses_schema3_contract && !uses_canonical_authority) {
         return fail(WorkflowErrorCode::InvalidDefinition,
@@ -922,6 +1048,10 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
                  workflow.stages.end()) ||
             operation.authorized_roles.size() > max_route_items ||
             !preconditionsAreConsistent(operation.preconditions) ||
+            !validDocumentBinding(operation) ||
+            (operation.expected_argument_date.has_value() &&
+             (operation.opcode != model::WorkflowOpcode::ScheduleArgument ||
+              !validLegalDate(*operation.expected_argument_date))) ||
             hasDuplicates(operation.authorized_roles,
                           [](const auto& role) { return role.value; }) ||
             std::ranges::any_of(operation.authorized_roles,
@@ -1045,6 +1175,8 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
                                   : nullptr;
         if (!validNamespacedId(route.filing_type.value) ||
             std::ranges::find(workflow.stages, route.stage_id) == workflow.stages.end() ||
+            (route.authorized_role_scope != model::WorkflowAuthorizedRoleScope::CatalogExact &&
+             route.authorized_role_scope != model::WorkflowAuthorizedRoleScope::CatalogSubset) ||
             route.authorized_roles.empty() || route.authorized_roles.size() > max_route_items ||
             route.required_fields.size() > max_route_items ||
             route.required_service_roles.size() > max_route_items ||
@@ -1071,9 +1203,16 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
               deficiency_deadline->deadline_base_id.has_value() ||
               deficiency_deadline->produced_deadline_id.has_value() ||
               deficiency_deadline->deadline_event_base.has_value() ||
-              !validNamespacedId(route.deficiency_deadline->deadline_id.value))) ||
+              !validNamespacedId(route.deficiency_deadline->deadline_id.value) ||
+              (route.deficiency_deadline->static_trigger.has_value() &&
+               (!validNamespacedId(route.deficiency_deadline->static_trigger->filing_id.value) ||
+                !validNamespacedId(route.deficiency_deadline->static_trigger->actor_id.value) ||
+                !validNamespacedId(route.deficiency_deadline->static_trigger->record_entry_id) ||
+                !validDigest(route.deficiency_deadline->static_trigger->document_sha256) ||
+                !validLegalDate(
+                    route.deficiency_deadline->static_trigger->expected_court_date))))) ||
             (route.accepted_deadline.has_value() &&
-             (accepted_deadline == nullptr ||
+             (route.accepted_deadline->static_trigger.has_value() || accepted_deadline == nullptr ||
               accepted_deadline->opcode != model::WorkflowOpcode::CalculateDeadline ||
               accepted_deadline->deadline_base_id.has_value() ||
               accepted_deadline->produced_deadline_id.has_value() ||
@@ -1097,16 +1236,21 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
                         "accepted deadline identifiers must be valid and unique");
         }
         if (route.deficiency_deadline.has_value()) {
-            const auto& prefix = route.deficiency_deadline->deadline_id.value;
-            if (std::ranges::any_of(
-                    produced_deadline_ids,
-                    [&](const auto& exact) { return deadlineNamespacesOverlap(prefix, exact); }) ||
+            const auto& deadline_id = route.deficiency_deadline->deadline_id.value;
+            const auto exact = route.deficiency_deadline->static_trigger.has_value();
+            if ((exact ? produced_deadline_ids.contains(deadline_id)
+                       : std::ranges::any_of(produced_deadline_ids,
+                                             [&](const auto& produced) {
+                                                 return deadlineNamespacesOverlap(deadline_id,
+                                                                                  produced);
+                                             })) ||
                 std::ranges::any_of(deficiency_deadline_prefixes,
                                     [&](const auto& other_prefix) {
-                                        return deadlineNamespacesOverlap(prefix, other_prefix);
+                                        return deadlineNamespacesOverlap(deadline_id, other_prefix);
                                     }) ||
-                !declared_deadline_ids.emplace(prefix).second ||
-                !deficiency_deadline_prefixes.emplace(prefix).second) {
+                !declared_deadline_ids.emplace(deadline_id).second ||
+                (exact ? !produced_deadline_ids.emplace(deadline_id).second
+                       : !deficiency_deadline_prefixes.emplace(deadline_id).second)) {
                 return fail(WorkflowErrorCode::InvalidDefinition,
                             "deficiency deadline namespaces must be disjoint");
             }
@@ -1155,6 +1299,35 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
             return fail(WorkflowErrorCode::InvalidDefinition,
                         "deadline precondition references an unproduced exact deadline");
         }
+        for (const auto& precondition : operation.preconditions) {
+            if (const auto* filing =
+                    std::get_if<model::WorkflowFilingInstancePrecondition>(&precondition)) {
+                const auto* accept = operationFor(workflow, filing->accept_operation_id);
+                const auto route = std::ranges::find_if(workflow.filing_routes, [&](const auto& r) {
+                    return r.filing_type == filing->filing_type &&
+                           r.accept_operation_id == filing->accept_operation_id;
+                });
+                if (accept == nullptr || accept->opcode != model::WorkflowOpcode::AcceptFiling ||
+                    route == workflow.filing_routes.end()) {
+                    return fail(WorkflowErrorCode::InvalidDefinition,
+                                "filing-instance precondition has no compatible accept route");
+                }
+            } else if (const auto* order =
+                           std::get_if<model::WorkflowOrderInstancePrecondition>(&precondition)) {
+                const auto* source = operationFor(workflow, order->operation_id);
+                const auto binding_matches =
+                    source == nullptr || !source->document_binding.has_value() ||
+                    (source->document_binding->record_entry_id == order->record_entry_id &&
+                     source->document_binding->document_sha256 == order->document_sha256 &&
+                     source->document_binding->order_id == std::optional{order->order_id} &&
+                     source->document_binding->disposition == std::optional{order->disposition});
+                if (source == nullptr || source->opcode != model::WorkflowOpcode::EnterOrder ||
+                    !binding_matches) {
+                    return fail(WorkflowErrorCode::InvalidDefinition,
+                                "order-instance precondition has no entering operation");
+                }
+            }
+        }
     }
 
     if (!validNamespacedId(case_definition.id.value) ||
@@ -1166,6 +1339,37 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
             return !validNamespacedId(actor.id.value) || !validNamespacedId(actor.role.value);
         })) {
         return fail(WorkflowErrorCode::InvalidCase, "invalid case actors");
+    }
+    for (const auto& route : workflow.filing_routes) {
+        if (!route.deficiency_deadline.has_value() ||
+            !route.deficiency_deadline->static_trigger.has_value()) {
+            continue;
+        }
+        const auto& trigger = *route.deficiency_deadline->static_trigger;
+        const auto* actor = actorFor(case_definition, trigger.actor_id);
+        if (actor == nullptr || !roleAllowed(route.authorized_roles, actor->role)) {
+            return fail(WorkflowErrorCode::InvalidCase,
+                        "static deficiency trigger actor is not eligible for its route");
+        }
+    }
+    for (const auto& operation : workflow.operations) {
+        for (const auto& precondition : operation.preconditions) {
+            const auto* filing =
+                std::get_if<model::WorkflowFilingInstancePrecondition>(&precondition);
+            if (filing == nullptr) {
+                continue;
+            }
+            const auto* actor = actorFor(case_definition, filing->actor_id);
+            const auto route = std::ranges::find_if(workflow.filing_routes, [&](const auto& r) {
+                return r.filing_type == filing->filing_type &&
+                       r.accept_operation_id == filing->accept_operation_id;
+            });
+            if (actor == nullptr || route == workflow.filing_routes.end() ||
+                !roleAllowed(route->authorized_roles, actor->role)) {
+                return fail(WorkflowErrorCode::InvalidCase,
+                            "filing-instance selector actor is not eligible for its route");
+            }
+        }
     }
     const auto histories_are_bounded = state.decided_commands.size() <= max_state_items &&
                                        state.accepted_filings.size() <= max_state_items &&
@@ -1217,11 +1421,33 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
     for (const auto& actor : case_definition.actors) {
         actor_ids.emplace(actor.id.value);
     }
+    std::unordered_set<std::string> submission_filing_ids;
+    submission_filing_ids.reserve(state.accepted_filings.size() + state.deficiencies.size());
     for (const auto& filing : state.accepted_filings) {
-        if (!validNamespacedId(filing.filing_id.value) ||
+        const auto* filing_actor = actorFor(case_definition, filing.actor_id);
+        const auto* accept_operation = filing.accept_operation_id.has_value()
+                                           ? operationFor(workflow, *filing.accept_operation_id)
+                                           : nullptr;
+        const auto accept_route =
+            filing.accept_operation_id.has_value()
+                ? std::ranges::find_if(workflow.filing_routes,
+                                       [&](const auto& route) {
+                                           return route.filing_type == filing.filing_type &&
+                                                  route.accept_operation_id ==
+                                                      *filing.accept_operation_id;
+                                       })
+                : workflow.filing_routes.end();
+        if (!submission_filing_ids.emplace(filing.filing_id.value).second ||
+            !validNamespacedId(filing.filing_id.value) ||
             !validNamespacedId(filing.filing_type.value) ||
             !actor_ids.contains(filing.actor_id.value) || !validDigest(filing.document_sha256) ||
             !validLegalDate(filing.accepted_at.court_date) ||
+            (filing.accept_operation_id.has_value() &&
+             (!validNamespacedId(filing.accept_operation_id->value) ||
+              accept_operation == nullptr ||
+              accept_operation->opcode != model::WorkflowOpcode::AcceptFiling ||
+              accept_route == workflow.filing_routes.end() || filing_actor == nullptr ||
+              !roleAllowed(accept_route->authorized_roles, filing_actor->role))) ||
             filing.served_actors.size() > max_case_actors ||
             hasDuplicates(filing.served_actors, [](const auto& actor) { return actor.value; }) ||
             std::ranges::any_of(filing.served_actors,
@@ -1245,11 +1471,16 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
         }
         deadlines.emplace(deadline.deadline_id.value, &deadline);
     }
+    std::unordered_set<std::string> claimed_cure_deadline_ids;
+    claimed_cure_deadline_ids.reserve(state.deficiencies.size());
     for (const auto& deficiency : state.deficiencies) {
         const auto deadline = deficiency.cure_deadline_id
                                   ? deadlines.find(deficiency.cure_deadline_id->value)
                                   : deadlines.end();
-        if (!validNamespacedId(deficiency.deficiency_id.value) ||
+        if (!submission_filing_ids.emplace(deficiency.filing_id.value).second ||
+            (deficiency.cure_deadline_id.has_value() &&
+             !claimed_cure_deadline_ids.emplace(deficiency.cure_deadline_id->value).second) ||
+            !validNamespacedId(deficiency.deficiency_id.value) ||
             !validNamespacedId(deficiency.filing_id.value) ||
             !validNamespacedId(deficiency.filing_type.value) ||
             !actor_ids.contains(deficiency.actor_id.value) ||
@@ -1269,6 +1500,40 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
             return fail(WorkflowErrorCode::InvalidState, "invalid deficiency snapshot");
         }
     }
+    for (const auto& route : workflow.filing_routes) {
+        if (!route.deficiency_deadline.has_value() ||
+            !route.deficiency_deadline->static_trigger.has_value()) {
+            continue;
+        }
+        const auto& plan = *route.deficiency_deadline;
+        const auto& trigger = *plan.static_trigger;
+        const auto deadline = deadlines.find(plan.deadline_id.value);
+        const auto matching_deficiencies =
+            std::ranges::count_if(state.deficiencies, [&](const auto& deficiency) {
+                return deficiency.filing_id == trigger.filing_id &&
+                       deficiency.filing_type == route.filing_type &&
+                       deficiency.actor_id == trigger.actor_id;
+            });
+        const auto matching_deficiency =
+            std::ranges::find_if(state.deficiencies, [&](const auto& deficiency) {
+                return deficiency.filing_id == trigger.filing_id &&
+                       deficiency.filing_type == route.filing_type &&
+                       deficiency.actor_id == trigger.actor_id;
+            });
+        const auto due =
+            calculateDeadline(workflow.calendar, trigger.expected_court_date,
+                              deadlineRule(*operationFor(workflow, plan.operation_id)));
+        if ((deadline == deadlines.end()) != (matching_deficiencies == 0) ||
+            matching_deficiencies > 1 ||
+            (matching_deficiency != state.deficiencies.end() &&
+             matching_deficiency->cure_deadline_id != std::optional{plan.deadline_id}) ||
+            (deadline != deadlines.end() &&
+             (deadline->second->purpose != model::WorkflowDeadlinePurpose::DeficiencyCure ||
+              deadline->second->due_date != due))) {
+            return fail(WorkflowErrorCode::InvalidState,
+                        "static deficiency deadline is not bidirectionally grounded");
+        }
+    }
     for (const auto& order : state.orders) {
         const auto* source_operation =
             order.operation_id.has_value() ? operationFor(workflow, *order.operation_id) : nullptr;
@@ -1281,8 +1546,16 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
               (state.legal_time_cursor.has_value() &&
                (order.entered_at->instant > state.legal_time_cursor->instant ||
                 isLater(order.entered_at->court_date, state.legal_time_cursor->court_date)))));
+        const auto binding_mismatch =
+            source_operation != nullptr && source_operation->document_binding.has_value() &&
+            (source_operation->document_binding->order_id != std::optional{order.order_id} ||
+             source_operation->document_binding->disposition != std::optional{order.disposition} ||
+             source_operation->document_binding->document_sha256 != order.document_sha256 ||
+             !order.entered_at.has_value() ||
+             source_operation->document_binding->expected_court_date !=
+                 order.entered_at->court_date);
         if (!validNamespacedId(order.order_id.value) || !validOrderDisposition(order.disposition) ||
-            !validDigest(order.document_sha256) || invalid_source) {
+            !validDigest(order.document_sha256) || invalid_source || binding_mismatch) {
             return fail(WorkflowErrorCode::InvalidState, "invalid order snapshot");
         }
     }
@@ -1456,20 +1729,42 @@ rejectFiling(const model::WorkflowDefinition& workflow, const model::WorkflowSta
             }
         }
     }
+    auto missing = missingRequirements(*route, case_definition, command);
+    const auto enters_static_deficiency = !missing.empty() &&
+                                          route->deficiency_deadline.has_value() &&
+                                          route->deficiency_deadline->static_trigger.has_value();
+    const auto self_produces_satisfied_static_deadline =
+        enters_static_deficiency && route->satisfies_deadline_id.has_value() &&
+        *route->satisfies_deadline_id == route->deficiency_deadline->deadline_id;
     if (route->satisfies_deadline_id.has_value()) {
         const auto* deadline = deadlineFor(state, *route->satisfies_deadline_id);
-        if (deadline == nullptr || deadline->status != model::WorkflowDeadlineStatus::Open) {
+        if (!self_produces_satisfied_static_deadline &&
+            (deadline == nullptr || deadline->status != model::WorkflowDeadlineStatus::Open)) {
             return rejectFiling(workflow, state, *route, command,
                                 model::WorkflowFilingRejectionReason::IneligibleFiling);
         }
-        if (route->reject_after_deadline &&
+        if (!self_produces_satisfied_static_deadline && route->reject_after_deadline &&
             isLater(command.header.occurred_at.court_date, deadline->due_date)) {
             return rejectFiling(workflow, state, *route, command,
                                 model::WorkflowFilingRejectionReason::DeadlineExpired);
         }
+        if (!self_produces_satisfied_static_deadline &&
+            deadline->purpose == model::WorkflowDeadlinePurpose::DeficiencyCure) {
+            const auto* cured = command.cures_deficiency_id.has_value()
+                                    ? deficiencyFor(state, *command.cures_deficiency_id)
+                                    : nullptr;
+            if (cured == nullptr || cured->cure_deadline_id != route->satisfies_deadline_id) {
+                return rejectFiling(workflow, state, *route, command,
+                                    model::WorkflowFilingRejectionReason::IneligibleFiling);
+            }
+        }
+    }
+    if (enters_static_deficiency &&
+        !staticDeficiencyTriggerMatches(*route->deficiency_deadline->static_trigger, command)) {
+        return fail(WorkflowErrorCode::InvalidCommand,
+                    "filing does not match the exact deficiency trigger");
     }
 
-    auto missing = missingRequirements(*route, case_definition, command);
     if (!missing.empty()) {
         if (!route->deficiency_operation_id.has_value()) {
             return rejectFiling(workflow, state, *route, command,
@@ -1607,6 +1902,16 @@ decideOrder(const model::WorkflowDefinition& workflow, const model::CaseDefiniti
         std::ranges::find(state.orders, command.order_id, &model::WorkflowOrderRecord::order_id) !=
             state.orders.end()) {
         return fail(WorkflowErrorCode::InvalidCommand, "invalid or duplicate court order");
+    }
+    if ((**operation).document_binding.has_value()) {
+        const auto& binding = *(**operation).document_binding;
+        if (binding.order_id != std::optional{command.order_id} ||
+            binding.disposition != std::optional{command.disposition} ||
+            binding.document_sha256 != command.document_sha256 ||
+            binding.expected_court_date != command.header.occurred_at.court_date) {
+            return fail(WorkflowErrorCode::InvalidCommand,
+                        "court order does not match its authored document binding");
+        }
     }
 
     std::optional<model::WorkflowDeadlineExtension> extension;
@@ -1859,7 +2164,9 @@ decideWorkflowImpl(const model::WorkflowDefinition& workflow,
                     return std::unexpected(operation.error());
                 }
                 if (!validLegalDate(concrete.argument_date) ||
-                    isLater(concrete.header.occurred_at.court_date, concrete.argument_date)) {
+                    isLater(concrete.header.occurred_at.court_date, concrete.argument_date) ||
+                    ((**operation).expected_argument_date.has_value() &&
+                     concrete.argument_date != *(**operation).expected_argument_date)) {
                     return fail(WorkflowErrorCode::InvalidCommand, "argument date is in the past");
                 }
                 return oneEvent(workflow, state, concrete.header, **operation,
@@ -1872,7 +2179,11 @@ decideWorkflowImpl(const model::WorkflowDefinition& workflow,
                 if (!operation) {
                     return std::unexpected(operation.error());
                 }
-                if (!validDigest(concrete.document_sha256) || state.judgment_sha256.has_value()) {
+                if (!validDigest(concrete.document_sha256) || state.judgment_sha256.has_value() ||
+                    ((**operation).document_binding.has_value() &&
+                     ((**operation).document_binding->document_sha256 != concrete.document_sha256 ||
+                      (**operation).document_binding->expected_court_date !=
+                          concrete.header.occurred_at.court_date))) {
                     return fail(WorkflowErrorCode::InvalidCommand, "invalid judgment");
                 }
                 model::WorkflowJudgmentDisposition disposition;
@@ -1907,7 +2218,11 @@ decideWorkflowImpl(const model::WorkflowDefinition& workflow,
                     return std::unexpected(operation.error());
                 }
                 if (!validDigest(concrete.document_sha256) || !state.judgment_sha256.has_value() ||
-                    state.mandate_sha256.has_value()) {
+                    state.mandate_sha256.has_value() ||
+                    ((**operation).document_binding.has_value() &&
+                     ((**operation).document_binding->document_sha256 != concrete.document_sha256 ||
+                      (**operation).document_binding->expected_court_date !=
+                          concrete.header.occurred_at.court_date))) {
                     return fail(WorkflowErrorCode::InvalidCommand, "invalid mandate");
                 }
                 return oneEvent(workflow, state, concrete.header, **operation,
@@ -1970,6 +2285,19 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                         state.accepted_filings.end()) {
                     return fail(WorkflowErrorCode::InvalidTransition, "invalid accepted filing");
                 }
+                if (concrete.satisfied_deadline_id.has_value()) {
+                    const auto* due = deadlineFor(state, *concrete.satisfied_deadline_id);
+                    const auto* cured = concrete.cured_deficiency_id.has_value()
+                                            ? deficiencyFor(state, *concrete.cured_deficiency_id)
+                                            : nullptr;
+                    if (due != nullptr &&
+                        due->purpose == model::WorkflowDeadlinePurpose::DeficiencyCure &&
+                        (cured == nullptr ||
+                         cured->cure_deadline_id != concrete.satisfied_deadline_id)) {
+                        return fail(WorkflowErrorCode::InvalidTransition,
+                                    "a deficiency-cure deadline requires its exact cure");
+                    }
+                }
                 if (concrete.cured_deficiency_id.has_value()) {
                     auto* deficiency = deficiencyFor(next, *concrete.cured_deficiency_id);
                     if (deficiency == nullptr || deficiency->cured) {
@@ -1987,16 +2315,30 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                     }
                 }
                 if (concrete.satisfied_deadline_id.has_value()) {
+                    const auto already_satisfied_by_cure =
+                        concrete.cured_deficiency_id.has_value() && [&] {
+                            const auto* deficiency =
+                                deficiencyFor(next, *concrete.cured_deficiency_id);
+                            return deficiency != nullptr &&
+                                   deficiency->cure_deadline_id == concrete.satisfied_deadline_id;
+                        }();
                     auto* due = deadlineFor(next, *concrete.satisfied_deadline_id);
-                    if (due == nullptr || due->status != model::WorkflowDeadlineStatus::Open) {
+                    if (due == nullptr ||
+                        (!already_satisfied_by_cure &&
+                         due->status != model::WorkflowDeadlineStatus::Open) ||
+                        (already_satisfied_by_cure &&
+                         due->status != model::WorkflowDeadlineStatus::Satisfied)) {
                         return fail(WorkflowErrorCode::InvalidTransition,
                                     "filing cannot satisfy the deadline");
                     }
-                    due->status = model::WorkflowDeadlineStatus::Satisfied;
+                    if (!already_satisfied_by_cure) {
+                        due->status = model::WorkflowDeadlineStatus::Satisfied;
+                    }
                 }
                 next.accepted_filings.push_back(model::WorkflowFilingRecord{
                     concrete.filing_id, concrete.filing_type, concrete.actor_id,
-                    concrete.document_sha256, concrete.header.occurred_at, concrete.served_actors});
+                    concrete.document_sha256, concrete.header.occurred_at, concrete.served_actors,
+                    concrete.header.operation_id});
             } else if constexpr (std::same_as<Event, model::WorkflowFilingRejected>) {
                 if ((**operation).opcode != model::WorkflowOpcode::RejectFiling) {
                     return fail(WorkflowErrorCode::InvalidTransition, "invalid filing rejection");
@@ -2010,12 +2352,24 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                         ? std::optional{deficiencyDeadlineIdFor(*route->deficiency_deadline,
                                                                 concrete.header.command_id)}
                         : std::nullopt;
+                const auto static_trigger_matches =
+                    route == nullptr || !route->deficiency_deadline.has_value() ||
+                    !route->deficiency_deadline->static_trigger.has_value() ||
+                    (route->deficiency_deadline->static_trigger->filing_id == concrete.filing_id &&
+                     route->deficiency_deadline->static_trigger->actor_id == concrete.actor_id &&
+                     route->deficiency_deadline->static_trigger->expected_court_date ==
+                         concrete.header.occurred_at.court_date);
+                const auto static_group_matches =
+                    route == nullptr || !route->deficiency_deadline.has_value() ||
+                    !route->deficiency_deadline->static_trigger.has_value() ||
+                    (concrete.header.command_event_index == 0 &&
+                     concrete.header.command_event_count == 2);
                 if (route == nullptr || state.deficiencies.size() == max_state_items ||
                     !route->deficiency_operation_id.has_value() ||
                     *route->deficiency_operation_id != concrete.header.operation_id ||
                     concrete.deficiency_id != expected_deficiency_id ||
-                    concrete.cure_deadline_id != expected_deadline_id ||
-                    concrete.missing_requirements.empty() ||
+                    concrete.cure_deadline_id != expected_deadline_id || !static_trigger_matches ||
+                    !static_group_matches || concrete.missing_requirements.empty() ||
                     deficiencyFor(state, concrete.deficiency_id) != nullptr) {
                     return fail(WorkflowErrorCode::InvalidTransition, "invalid deficiency");
                 }
@@ -2031,6 +2385,39 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                     (**operation).deadline_event_base.has_value()
                         ? deadlineEventBaseDate(state, *(**operation).deadline_event_base)
                         : std::nullopt;
+                const auto static_route =
+                    std::ranges::find_if(workflow.filing_routes, [&](const auto& route) {
+                        return route.deficiency_deadline.has_value() &&
+                               route.deficiency_deadline->static_trigger.has_value() &&
+                               route.deficiency_deadline->operation_id ==
+                                   concrete.header.operation_id &&
+                               route.deficiency_deadline->deadline_id == concrete.deadline_id;
+                    });
+                const auto static_base_matches =
+                    static_route == workflow.filing_routes.end() ||
+                    (concrete.base_date ==
+                         static_route->deficiency_deadline->static_trigger->expected_court_date &&
+                     concrete.header.occurred_at.court_date ==
+                         static_route->deficiency_deadline->static_trigger->expected_court_date);
+                const auto* static_deficiency =
+                    static_route == workflow.filing_routes.end()
+                        ? nullptr
+                        : deficiencyFor(state, deficiencyIdFor(concrete.header.command_id));
+                const auto static_sequence_matches =
+                    static_route == workflow.filing_routes.end() ||
+                    (concrete.purpose == model::WorkflowDeadlinePurpose::DeficiencyCure &&
+                     concrete.header.command_event_index == 1 &&
+                     concrete.header.command_event_count == 2 &&
+                     state.pending_command.has_value() &&
+                     state.pending_command->command_id == concrete.header.command_id &&
+                     state.pending_command->next_event_index == 1 &&
+                     state.pending_command->event_count == 2 && static_deficiency != nullptr &&
+                     static_deficiency->filing_id ==
+                         static_route->deficiency_deadline->static_trigger->filing_id &&
+                     static_deficiency->actor_id ==
+                         static_route->deficiency_deadline->static_trigger->actor_id &&
+                     static_deficiency->filing_type == static_route->filing_type &&
+                     static_deficiency->cure_deadline_id == std::optional{concrete.deadline_id});
                 if (!(**operation).deadline_days.has_value() ||
                     state.deadlines.size() == max_state_items ||
                     !validNamespacedId(concrete.deadline_id.value) ||
@@ -2044,6 +2431,7 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                      concrete.deadline_id != *concrete.produced_deadline_id) ||
                     deadlineClaimHasWrongOwner(workflow, **operation, concrete.deadline_id,
                                                concrete.header.command_id) ||
+                    !static_base_matches || !static_sequence_matches ||
                     ((**operation).deadline_base_id.has_value() &&
                      (base == nullptr || concrete.base_date != base->due_date)) ||
                     ((**operation).deadline_event_base.has_value() &&
@@ -2056,7 +2444,15 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                     concrete.deadline_id, concrete.purpose, concrete.due_date,
                     model::WorkflowDeadlineStatus::Open});
             } else if constexpr (std::same_as<Event, model::WorkflowOrderEntered>) {
-                if (!validNamespacedId(concrete.order_id.value) ||
+                const auto binding_mismatch =
+                    (**operation).document_binding.has_value() &&
+                    ((**operation).document_binding->order_id != std::optional{concrete.order_id} ||
+                     (**operation).document_binding->disposition !=
+                         std::optional{concrete.disposition} ||
+                     (**operation).document_binding->document_sha256 != concrete.document_sha256 ||
+                     (**operation).document_binding->expected_court_date !=
+                         concrete.header.occurred_at.court_date);
+                if (binding_mismatch || !validNamespacedId(concrete.order_id.value) ||
                     !validOrderDisposition(concrete.disposition) ||
                     state.orders.size() == max_state_items ||
                     !validDigest(concrete.document_sha256) ||
@@ -2093,6 +2489,8 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
             } else if constexpr (std::same_as<Event, model::WorkflowArgumentScheduled>) {
                 if (!validLegalDate(concrete.argument_date) ||
                     isLater(concrete.header.occurred_at.court_date, concrete.argument_date) ||
+                    ((**operation).expected_argument_date.has_value() &&
+                     concrete.argument_date != *(**operation).expected_argument_date) ||
                     concrete.next_stage_id != (**operation).next_stage_id) {
                     return fail(WorkflowErrorCode::InvalidTransition, "invalid argument schedule");
                 }
@@ -2101,7 +2499,12 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                     next.current_stage_id = *concrete.next_stage_id;
                 }
             } else if constexpr (std::same_as<Event, model::WorkflowJudgmentIssued>) {
-                if (!validDigest(concrete.document_sha256) ||
+                const auto binding_mismatch =
+                    (**operation).document_binding.has_value() &&
+                    ((**operation).document_binding->document_sha256 != concrete.document_sha256 ||
+                     (**operation).document_binding->expected_court_date !=
+                         concrete.header.occurred_at.court_date);
+                if (binding_mismatch || !validDigest(concrete.document_sha256) ||
                     !validJudgmentDisposition(case_definition, concrete.disposition) ||
                     state.judgment_sha256.has_value() ||
                     concrete.next_stage_id != (**operation).next_stage_id) {
@@ -2114,8 +2517,13 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                     next.current_stage_id = *concrete.next_stage_id;
                 }
             } else {
-                if (!validDigest(concrete.document_sha256) || !state.judgment_sha256.has_value() ||
-                    state.mandate_sha256.has_value() ||
+                const auto binding_mismatch =
+                    (**operation).document_binding.has_value() &&
+                    ((**operation).document_binding->document_sha256 != concrete.document_sha256 ||
+                     (**operation).document_binding->expected_court_date !=
+                         concrete.header.occurred_at.court_date);
+                if (binding_mismatch || !validDigest(concrete.document_sha256) ||
+                    !state.judgment_sha256.has_value() || state.mandate_sha256.has_value() ||
                     concrete.next_stage_id != (**operation).next_stage_id) {
                     return fail(WorkflowErrorCode::InvalidTransition, "invalid mandate");
                 }

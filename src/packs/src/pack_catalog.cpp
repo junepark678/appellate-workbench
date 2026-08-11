@@ -1371,11 +1371,66 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
                        (resource.document.contains(QStringLiteral("disclosure_policy")) ||
                         resource.document.contains(QStringLiteral("sealed_disclosures")));
             });
+        const auto uses_route_role_subsets =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [](const QJsonValue& route) {
+                               return route.toObject().contains(
+                                   QStringLiteral("authorized_role_scope"));
+                           });
+            });
+        const auto uses_workflow_instance_preconditions =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation) {
+                               return std::ranges::any_of(
+                                   operation.toObject()
+                                       .value(QStringLiteral("preconditions"))
+                                       .toArray(),
+                                   [](const QJsonValue& value) {
+                                       const auto kind = value.toObject()
+                                                             .value(QStringLiteral("kind"))
+                                                             .toString();
+                                       return kind == QStringLiteral("filing_instance") ||
+                                              kind == QStringLiteral("order_instance");
+                                   });
+                           });
+            });
+        const auto uses_static_deficiency_deadlines =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [](const QJsonValue& route) {
+                               return route.toObject()
+                                          .value(QStringLiteral("deficiency_deadline"))
+                                          .toObject()
+                                          .value(QStringLiteral("id_mode"))
+                                          .toString() == QStringLiteral("exact");
+                           });
+            });
+        const auto uses_operation_document_bindings =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation_value) {
+                               const auto operation = operation_value.toObject();
+                               return operation.contains(QStringLiteral("document_binding")) ||
+                                      operation.contains(QStringLiteral("expected_argument_date"));
+                           });
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds,
             uses_workflow_preconditions, uses_dependent_deadlines, uses_named_deadlines,
             uses_event_date_deadlines, uses_argument_date_guards, uses_structured_disposition,
-            uses_grounded_questions, uses_realism_evidence, uses_sealed_record_twins);
+            uses_grounded_questions, uses_realism_evidence, uses_sealed_record_twins,
+            uses_route_role_subsets, uses_workflow_instance_preconditions,
+            uses_static_deficiency_deadlines, uses_operation_document_bindings);
         if (!capabilities) {
             return fail(CatalogErrorCode::UnsupportedCapability,
                         QStringLiteral("Pack %1 requires an unsupported capability: %2")

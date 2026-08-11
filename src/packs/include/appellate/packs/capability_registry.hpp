@@ -39,7 +39,10 @@ class CapabilityRegistry final {
         std::span<const model::ResourceKind> resource_kinds, bool uses_workflow_preconditions,
         bool uses_dependent_deadlines, bool uses_named_deadlines, bool uses_event_date_deadlines,
         bool uses_argument_date_guards, bool uses_structured_disposition,
-        bool uses_grounded_questions, bool uses_realism_evidence, bool uses_sealed_record_twins);
+        bool uses_grounded_questions, bool uses_realism_evidence, bool uses_sealed_record_twins,
+        bool uses_route_role_subsets = false, bool uses_workflow_instance_preconditions = false,
+        bool uses_static_deficiency_deadlines = false,
+        bool uses_operation_document_bindings = false);
 };
 
 } // namespace appellate::packs

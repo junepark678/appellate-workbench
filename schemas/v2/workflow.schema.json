@@ -33,6 +33,38 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "document_binding": { "type": "null" },
+              "expected_argument_date": { "type": "null" }
+            }
+          },
+          {
+            "required": ["document_binding"],
+            "properties": {
+              "opcode": { "const": "enter_order" },
+              "document_binding": { "$ref": "#/$defs/order_document_binding" },
+              "expected_argument_date": { "type": "null" }
+            }
+          },
+          {
+            "required": ["document_binding"],
+            "properties": {
+              "opcode": { "enum": ["issue_judgment", "issue_mandate"] },
+              "document_binding": { "$ref": "#/$defs/non_order_document_binding" },
+              "expected_argument_date": { "type": "null" }
+            }
+          },
+          {
+            "required": ["expected_argument_date"],
+            "properties": {
+              "opcode": { "const": "schedule_argument" },
+              "document_binding": { "type": "null" },
+              "expected_argument_date": { "type": "string", "format": "date" }
+            }
+          }
+        ],
         "required": [
           "operation_id",
           "stage_id",
@@ -85,6 +117,8 @@
               }
             ]
           },
+          "document_binding": { "$ref": "#/$defs/document_binding" },
+          "expected_argument_date": { "type": "string", "format": "date" },
           "authorized_role_ids": {
             "type": "array",
             "maxItems": 64,
@@ -118,6 +152,50 @@
                     "kind": { "const": "order_disposition" },
                     "order_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
                     "disposition": { "enum": ["granted", "denied", "other"] }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "kind",
+                    "filing_type_id",
+                    "present",
+                    "actor_id",
+                    "filing_id",
+                    "accept_operation_id",
+                    "record_entry_id",
+                    "document_sha256"
+                  ],
+                  "properties": {
+                    "kind": { "const": "filing_instance" },
+                    "filing_type_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "present": { "type": "boolean" },
+                    "actor_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "filing_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "accept_operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "record_entry_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "document_sha256": { "$ref": "common.schema.json#/$defs/sha256" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "kind",
+                    "order_id",
+                    "disposition",
+                    "operation_id",
+                    "record_entry_id",
+                    "document_sha256"
+                  ],
+                  "properties": {
+                    "kind": { "const": "order_instance" },
+                    "order_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "disposition": { "enum": ["granted", "denied", "other"] },
+                    "operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "record_entry_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                    "document_sha256": { "$ref": "common.schema.json#/$defs/sha256" }
                   }
                 },
                 {
@@ -192,6 +270,7 @@
             "uniqueItems": true,
             "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
           },
+          "authorized_role_scope": { "const": "catalog_subset" },
           "required_field_ids": {
             "type": "array",
             "maxItems": 256,
@@ -207,7 +286,7 @@
           "accept_operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
           "reject_operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
           "deficiency_operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
-          "deficiency_deadline": { "$ref": "#/$defs/deadline_plan" },
+          "deficiency_deadline": { "$ref": "#/$defs/deficiency_deadline_plan" },
           "accepted_deadline": { "$ref": "#/$defs/deadline_plan" },
           "advance_operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
           "satisfies_deadline_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
@@ -237,6 +316,73 @@
       "properties": {
         "deadline_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
         "operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+      }
+    },
+    "deficiency_deadline_plan": {
+      "oneOf": [
+        { "$ref": "#/$defs/deadline_plan" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["deadline_id", "operation_id", "id_mode", "trigger_filing"],
+          "properties": {
+            "deadline_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+            "operation_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+            "id_mode": { "const": "exact" },
+            "trigger_filing": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "filing_id",
+                "actor_id",
+                "record_entry_id",
+                "document_sha256",
+                "expected_court_date"
+              ],
+              "properties": {
+                "filing_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                "actor_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                "record_entry_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+                "document_sha256": { "$ref": "common.schema.json#/$defs/sha256" },
+                "expected_court_date": { "type": "string", "format": "date" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "document_binding": {
+      "oneOf": [
+        { "$ref": "#/$defs/non_order_document_binding" },
+        { "$ref": "#/$defs/order_document_binding" }
+      ]
+    },
+    "non_order_document_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_entry_id", "document_sha256", "expected_court_date"],
+      "properties": {
+        "record_entry_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "document_sha256": { "$ref": "common.schema.json#/$defs/sha256" },
+        "expected_court_date": { "type": "string", "format": "date" }
+      }
+    },
+    "order_document_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_entry_id",
+        "document_sha256",
+        "expected_court_date",
+        "order_id",
+        "disposition"
+      ],
+      "properties": {
+        "record_entry_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "document_sha256": { "$ref": "common.schema.json#/$defs/sha256" },
+        "expected_court_date": { "type": "string", "format": "date" },
+        "order_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+        "disposition": { "enum": ["granted", "denied", "other"] }
       }
     }
   }
