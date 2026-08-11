@@ -140,6 +140,32 @@ Reviewer identity, qualification, affiliation, reference, and date are declared 
 metadata; this version of the contract does not provide a cryptographic reviewer signature or
 identity proof.
 
+For developer authoring, `author-realism-evidence` completes an existing, manifest-declared
+schema-version-2 review scaffold from an executed canonical trace and an exact local dependency
+catalog. The command preserves the scaffold's review state, dimension scores, uncertainties, and
+reviewer metadata as exact JSON values. It cannot create an independent-review
+claim or substantiate a score above 1. A single workflow journal is not treated as machine proof of
+adverse branches, oral or bench behavior, deadlines, or consequences at realism level 2. Manual
+and independently authored reviews retain the ordinary score-2/3 contract when they do not claim
+this helper's engine profile. Resource and blob bindings cover the complete review-excluded case
+closure. Authority bindings are the exact union of canonical authorities actually referenced by
+the selected case, selected workflow operations, record and case-specific oral resources, plus
+only filing-catalog entries whose filing types occur in that workflow's routes. Each dimension
+uses its relevant authority partition, and every authority remains within the selected procedure's
+exact authority-set scope.
+
+The trace input supplies `evidence_id`, `trace_id`, `workflow_id`, and the canonical command/event
+`journal`. The command inserts the code-owned engine revision
+`appellate.realism-evidence.codec-replay.v1`; if the input supplies `engine_revision`, it must equal
+that value. The trace may also supply `command_count`, `event_count`,
+`journal_sha256`, `operation_ids`, `terminal_stage_id`, and `digest`; omitted derived fields are
+computed from the canonical bytes and replay, while a supplied stale value fails closed. The
+command also derives closure metadata, deterministic resource/blob/check/authority evidence IDs,
+both record checks, and all dimension references. Normal resolved validation recomputes those
+helper-profile resource/blob evidence IDs and record-check IDs; changing an ID and repairing its
+references or dependent digest does not turn it into valid helper evidence. Repeating the command
+against unchanged inputs produces identical review and manifest bytes.
+
 ### Canonical authority provenance
 
 Schema version 1 remains frozen: authority references keep their original citation, source date,
@@ -393,6 +419,7 @@ appellate-pack export-deferred <directory> <new-awpack>
 appellate-pack install <awpack> <catalog> [--installed-at YYYY-MM-DDTHH:MM:SSZ]
 appellate-pack list <catalog>
 appellate-pack validate-resolved <catalog> <pack-id> <version> <digest>
+appellate-pack author-realism-evidence <directory> <catalog> <review-resource-id> <trace-json>
 ```
 
 `template` creates a complete fictional/composite schema-version-2 example containing every
@@ -408,3 +435,34 @@ JSON response states that resolution has not yet occurred. `validate-resolved` a
 root revision in a local catalog, validates the whole installed closure, and returns the complete
 pack-ID-sorted revision-pin set. Neither command performs network access or makes a deferred pack
 directly executable.
+
+`author-realism-evidence` requires every exact dependency to be installed in `catalog`; it never
+installs the root or dependencies. It precomputes and validates the final review, manifest, replay,
+and exact resolved graph before changing source files. A catalog row with the same root pack ID and
+version is accepted only when its digest equals the prospective final digest. Trace, source, and
+transaction inputs use bounded no-follow regular-file reads. The canonical root is held by a
+directory descriptor; root members are traversed component-by-component without following links,
+and publication targets descriptor-relative directories. Renaming or replacing the named root
+or its named parent fails the retained device/inode identity checks, including a final check after
+transaction cleanup and immediately before success. A private sibling lock with finite stale-lock
+recovery serializes cooperating invocations for the same root; byte-stamp checks detect observed
+edits by other tools, but this is not an absolute concurrency guarantee against noncooperating
+processes.
+
+The two-file update is deliberately not described as atomic. Authored and original bytes plus a
+digest journal are fsynced in a private sibling transaction directory on the same filesystem; no
+temporary member is placed inside the pack root. The transaction directory is created and opened
+relative to the anchored parent, its device/inode identity is retained, and every member read,
+write, inspection, enumeration, removal, and publication stays relative to that descriptor. The
+named sibling must still identify that exact directory before publication or cleanup. The review
+is atomically replaced first and `manifest.json` last; a target whose old and new bytes are equal is
+not replaced. An interruption between distinct replacements leaves a fail-closed digest mismatch.
+Under the sibling lock, rerun accepts only the journal's exact old/old, new/old, or new/new byte
+states. Before a new/old recovery can publish the manifest, its journal root ID, version, and final
+digest are checked against any installed immutable root. Recovery then completes and strictly
+verifies the declared final state before removing the journal. An unrecognized target state is
+never rolled back or overwritten. Ordinary rollback is likewise attempted only while both
+observed target digests equal a declared transaction state. Final success is reported only after a
+full reread and exact catalog resolution.
+Success JSON includes the final pack revision, review ID/path/SHA-256, case and closure digest,
+deterministic evidence counts, and `updated` (`false` for an idempotent rerun).

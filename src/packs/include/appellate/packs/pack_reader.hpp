@@ -4,6 +4,7 @@
 #include "appellate/model/pack_id.hpp"
 #include "appellate/model/resource.hpp"
 #include "appellate/packs/error.hpp"
+#include "appellate/packs/realism_evidence_authoring.hpp"
 
 #include <QJsonObject>
 #include <QString>
@@ -54,6 +55,14 @@ class PackReader final {
     [[nodiscard]] static std::expected<void, Error>
     validateResolvedGraph(const LoadedPack& root,
                           std::span<const LoadedPack* const> dependencies_dependency_first);
+
+  private:
+    friend auto authorRealismEvidence(const PackCatalog& catalog,
+                                      const RealismEvidenceAuthoringInput& input)
+        -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
+
+    [[nodiscard]] static std::expected<LoadedPack, Error>
+    readDirectoryForRealismAuthoring(const QString& directory, const QString& review_resource_id);
 };
 
 } // namespace appellate::packs

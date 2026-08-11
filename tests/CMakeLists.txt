@@ -96,9 +96,11 @@ qt_add_executable(tst_pack_cli cli/tst_pack_cli.cpp)
 target_link_libraries(
     tst_pack_cli
     PRIVATE
+        appellate::engine
         appellate::pack_cli
         appellate::project_warnings
         appellate::project_sanitizers
+        appellate::storage
         Qt6::Test
 )
 target_compile_features(tst_pack_cli PRIVATE cxx_std_26)

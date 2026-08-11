@@ -78,6 +78,14 @@ Create, validate, export, and install a complete declarative starter pack:
 ./build/dev/src/cli/appellate-pack list /tmp/appellate-pack-catalog
 ```
 
+Complete a manifest-declared schema-version-2 realism-review scaffold (scores 0-1) from a canonical
+executed trace after installing its exact dependencies in the local catalog:
+
+```sh
+./build/dev/src/cli/appellate-pack author-realism-evidence /tmp/my-appellate-pack \
+  /tmp/appellate-pack-catalog my.pack.review /tmp/canonical-trace.json
+```
+
 The CLI emits one compact, schema-versioned JSON object to stdout on success and stderr on
 failure. `template` never overwrites an existing destination. See the
 [pack contract and CLI reference](docs/spec/PACKS.md) before editing a generated pack.

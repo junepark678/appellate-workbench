@@ -2691,8 +2691,11 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
 
 } // namespace
 
-std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& directory,
-                                                           PackValidationScope scope) {
+namespace {
+
+std::expected<LoadedPack, Error>
+readDirectoryImpl(const QString& directory, PackValidationScope scope,
+                  const std::optional<QString>& authoring_review_id) {
     const QFileInfo root_info(directory);
     if (!root_info.isDir() || root_info.isSymLink()) {
         return fail(ErrorCode::UnsafePath,
@@ -3034,13 +3037,36 @@ std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& direct
         graph_state,
     };
     if (graph_state == PackGraphState::StandaloneValidated) {
-        const auto evidence_result =
-            validateRealismEvidence(loaded, std::span<const LoadedPack* const>{});
+        std::expected<void, Error> evidence_result;
+        if (authoring_review_id.has_value()) {
+            auto evidence_root = loaded;
+            std::erase_if(evidence_root.resources, [&](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::RealismReview &&
+                       QString::fromStdString(resource.descriptor.id) == *authoring_review_id;
+            });
+            evidence_result =
+                validateRealismEvidence(evidence_root, std::span<const LoadedPack* const>{});
+        } else {
+            evidence_result = validateRealismEvidence(loaded, std::span<const LoadedPack* const>{});
+        }
         if (!evidence_result) {
             return std::unexpected(evidence_result.error());
         }
     }
     return loaded;
+}
+
+} // namespace
+
+std::expected<LoadedPack, Error> PackReader::readDirectory(const QString& directory,
+                                                           PackValidationScope scope) {
+    return readDirectoryImpl(directory, scope, std::nullopt);
+}
+
+std::expected<LoadedPack, Error>
+PackReader::readDirectoryForRealismAuthoring(const QString& directory,
+                                             const QString& review_resource_id) {
+    return readDirectoryImpl(directory, PackValidationScope::ResolvedClosure, review_resource_id);
 }
 
 std::expected<void, Error> PackReader::validateResolvedGraph(

@@ -2,6 +2,7 @@
 
 #include "appellate/model/pack_id.hpp"
 #include "appellate/packs/pack_archive.hpp"
+#include "appellate/packs/realism_evidence_authoring.hpp"
 #include "appellate/packs/resolved_pack.hpp"
 
 #include <QSqlDatabase>
@@ -93,6 +94,10 @@ class PackCatalog final {
     [[nodiscard]] int schemaVersion() const;
 
   private:
+    friend auto authorRealismEvidence(const PackCatalog& catalog,
+                                      const RealismEvidenceAuthoringInput& input)
+        -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
+
     PackCatalog(QString root_directory, QString connection_name);
 
     [[nodiscard]] auto configure() -> std::expected<void, CatalogError>;
