@@ -29,6 +29,11 @@ constexpr auto appellee_role = "test.role.appellee";
 constexpr auto court_role = "test.role.court";
 constexpr auto response_deadline = "test.deadline.response";
 constexpr auto reply_deadline = "test.deadline.reply";
+constexpr auto structured_case_id = "example.case.fictional";
+constexpr auto structured_judgment_operation = "example.operation.issue-judgment";
+constexpr auto structured_plan_id = "example.disposition.fictional";
+constexpr auto structured_plan_digest =
+    "d9c97181a59eb4a0fd79aa3fcad32bd9cd5e4128aad8a49a68384900a1eb5121";
 
 [[nodiscard]] model::LegalDate date(int year, unsigned month, unsigned day) {
     return model::LegalDate{std::chrono::year{year} / std::chrono::month{month} /
@@ -243,6 +248,97 @@ operation(std::string id, std::string stage, model::WorkflowOpcode opcode,
     };
 }
 
+[[nodiscard]] model::WorkflowDefinition canonicalWorkflow() {
+    auto definition = workflow();
+    for (auto& candidate : definition.operations) {
+        candidate.authority.primary.provenance = provenance();
+    }
+    return definition;
+}
+
+[[nodiscard]] model::WorkflowDefinition structuredWorkflow() {
+    auto definition = canonicalWorkflow();
+    auto judgment = std::ranges::find(definition.operations,
+                                      model::WorkflowOperationId{"test.op.issue-judgment"},
+                                      &model::WorkflowOperation::id);
+    if (judgment == definition.operations.end()) {
+        return {};
+    }
+    judgment->id = model::WorkflowOperationId{structured_judgment_operation};
+    judgment->preconditions = {
+        model::WorkflowFilingPrecondition{model::FilingTypeId{"test.filing.opening"}, true},
+        model::WorkflowOrderPrecondition{model::WorkflowOrderId{"test.order.extension"},
+                                         model::WorkflowOrderDisposition::Granted},
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{response_deadline},
+                                            model::WorkflowDeadlineCondition::Satisfied},
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{response_deadline},
+                                            model::WorkflowDeadlineCondition::Elapsed},
+        model::WorkflowArgumentPrecondition{true},
+        model::WorkflowJudgmentPrecondition{false},
+    };
+    return definition;
+}
+
+[[nodiscard]] model::CaseDefinition structuredCaseDefinition() {
+    auto case_definition = caseDefinition();
+    case_definition.id = model::CaseId{structured_case_id};
+    case_definition.disposition_targets = {
+        {model::CaseIssueId{"example.issue.preservation"},
+         model::DispositionTargetId{"example.target.preservation"}},
+    };
+    case_definition.disposition_plans = {
+        {model::DispositionPlanId{structured_plan_id},
+         model::DispositionFinality::Final,
+         structured_plan_digest,
+         {{model::CaseIssueId{"example.issue.preservation"},
+           model::DispositionTargetId{"example.target.preservation"},
+           model::DispositionScope::Whole,
+           model::DispositionAction::Dismiss,
+           true,
+           {model::AuthorityId{"example.authority.rule-one"}},
+           {model::RecordAnchorId{"example.record.entry-one"},
+            model::RecordAnchorId{"example.record.anchor.ja2"}}}}},
+    };
+    case_definition.authored_disposition_plan_id = model::DispositionPlanId{structured_plan_id};
+    case_definition.authored_disposition_operation_id =
+        model::WorkflowOperationId{structured_judgment_operation};
+    return case_definition;
+}
+
+[[nodiscard]] model::CaseDefinition maximumStructuredCaseDefinition() {
+    auto case_definition = caseDefinition();
+    case_definition.id = model::CaseId{"test.case.maximum-plan"};
+    model::DispositionPlan plan{model::DispositionPlanId{"test.plan.maximum"},
+                                model::DispositionFinality::Nonfinal,
+                                "4ea2741cdfec1373a23f5f67c69bca286472c1d1b0aead7c485f0c4ad25f4051",
+                                {}};
+    for (std::size_t component_index = 0; component_index < 32; ++component_index) {
+        const auto suffix = std::to_string(component_index);
+        const auto issue_id = "test.issue.maximum-" + suffix;
+        const auto target_id = "test.target.maximum-" + suffix;
+        case_definition.disposition_targets.push_back(
+            {model::CaseIssueId{issue_id}, model::DispositionTargetId{target_id}});
+        std::vector<model::AuthorityId> authority_ids;
+        std::vector<model::RecordAnchorId> anchor_ids;
+        for (std::size_t reference_index = 0; reference_index < 32; ++reference_index) {
+            const auto reference_suffix = std::to_string(reference_index);
+            authority_ids.push_back(
+                model::AuthorityId{"test.authority.maximum-" + suffix + "-" + reference_suffix});
+            anchor_ids.push_back(
+                model::RecordAnchorId{"test.anchor.maximum-" + suffix + "-" + reference_suffix});
+        }
+        plan.components.push_back({model::CaseIssueId{issue_id},
+                                   model::DispositionTargetId{target_id},
+                                   model::DispositionScope::Whole, model::DispositionAction::Affirm,
+                                   false, std::move(authority_ids), std::move(anchor_ids)});
+    }
+    case_definition.disposition_plans.push_back(std::move(plan));
+    case_definition.authored_disposition_plan_id = model::DispositionPlanId{"test.plan.maximum"};
+    case_definition.authored_disposition_operation_id =
+        model::WorkflowOperationId{"test.op.issue-judgment"};
+    return case_definition;
+}
+
 [[nodiscard]] model::WorkflowState initialState() {
     return model::WorkflowState{
         "test.session.one",
@@ -398,6 +494,24 @@ struct Run final {
     return run;
 }
 
+[[nodiscard]] auto structuredReadyRun() -> std::expected<Run, std::string> {
+    const auto source = happyRun();
+    if (!source) {
+        return std::unexpected(source.error());
+    }
+    const auto definition = structuredWorkflow();
+    const auto case_definition = structuredCaseDefinition();
+    auto run = emptyRun();
+    const auto prefix_size = source->journal.size() - 2U;
+    for (std::size_t index = 0; index < prefix_size; ++index) {
+        if (auto result = execute(definition, case_definition, run, source->journal[index].command);
+            !result) {
+            return std::unexpected(result.error());
+        }
+    }
+    return run;
+}
+
 [[nodiscard]] auto submittedRun() -> std::expected<Run, std::string> {
     const auto definition = workflow();
     const auto case_definition = caseDefinition();
@@ -479,6 +593,9 @@ class WorkflowEngineTest final : public QObject {
     void rejectsDirtySnapshotsAndMalformedDefinitions();
     void rejectsMalformedRouteOutcomeCombinations();
     void replayRejectsTamperedTrace();
+    void usesStructuredDispositionPlanAndCanonicalDigest();
+    void enforcesBoundedAllOfPreconditionsAndReplaySnapshots();
+    void rejectsMalformedAndOversizedDispositionInventories();
 };
 
 void WorkflowEngineTest::completesDeterministicGoldenAppeal() {
@@ -1162,6 +1279,310 @@ void WorkflowEngineTest::replayRejectsTamperedTrace() {
         engine::replayWorkflow(workflow(), caseDefinition(), initialState(), journal);
     QVERIFY(!replayed.has_value());
     QCOMPARE(replayed.error().code, engine::WorkflowErrorCode::InvalidEvent);
+}
+
+void WorkflowEngineTest::usesStructuredDispositionPlanAndCanonicalDigest() {
+    const auto definition = structuredWorkflow();
+    const auto case_definition = structuredCaseDefinition();
+    auto ready = structuredReadyRun();
+    QVERIFY2(ready.has_value(), ready ? "" : ready.error().c_str());
+
+    const auto command = model::IssueWorkflowJudgment{
+        header("command.structured-judgment", "test.actor.court", date(2026, 11, 10)),
+        model::WorkflowOperationId{structured_judgment_operation}, std::string(64, 'e'),
+        model::DispositionPlanId{structured_plan_id}};
+    const auto decision =
+        engine::decideWorkflow(definition, case_definition, ready->state, command);
+    QVERIFY2(decision.has_value(), decision ? "" : decision.error().message.c_str());
+    QCOMPARE(decision->size(), std::size_t{1});
+    const auto* judgment = std::get_if<model::WorkflowJudgmentIssued>(&decision->front());
+    QVERIFY(judgment != nullptr);
+    const auto* plan = std::get_if<model::DispositionPlan>(&judgment->disposition);
+    QVERIFY(plan != nullptr);
+    QCOMPARE(*plan, case_definition.disposition_plans.front());
+    QCOMPARE(plan->canonical_sha256, std::string(structured_plan_digest));
+    QCOMPARE(judgment->header.preconditions,
+             std::ranges::find(definition.operations,
+                               model::WorkflowOperationId{structured_judgment_operation},
+                               &model::WorkflowOperation::id)
+                 ->preconditions);
+
+    const auto before_judgment = *ready;
+    const auto executed = execute(definition, case_definition, *ready, command);
+    QVERIFY2(executed.has_value(), executed ? "" : executed.error().c_str());
+    QVERIFY(ready->state.judgment_disposition.has_value());
+    const auto* state_plan =
+        std::get_if<model::DispositionPlan>(&*ready->state.judgment_disposition);
+    QVERIFY(state_plan != nullptr);
+    QCOMPARE(*state_plan, case_definition.disposition_plans.front());
+
+    const auto legacy_text = model::IssueWorkflowJudgment{
+        header("command.arbitrary-text", "test.actor.court", date(2026, 11, 10)),
+        model::WorkflowOperationId{structured_judgment_operation}, std::string(64, 'e'),
+        std::string{"affirmed"}};
+    auto rejected =
+        engine::decideWorkflow(definition, case_definition, before_judgment.state, legacy_text);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    auto wrong_plan = command;
+    wrong_plan.header.command_id = model::WorkflowCommandId{"command.wrong-plan"};
+    wrong_plan.disposition = model::DispositionPlanId{"example.disposition.unwritten"};
+    rejected =
+        engine::decideWorkflow(definition, case_definition, before_judgment.state, wrong_plan);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    auto tampered_journal = ready->journal;
+    auto& recorded_judgment =
+        std::get<model::WorkflowJudgmentIssued>(tampered_journal.back().events.front());
+    std::get<model::DispositionPlan>(recorded_judgment.disposition).components.front().action =
+        model::DispositionAction::Deny;
+    const auto tampered = engine::replayWorkflow(definition, case_definition,
+                                                 before_judgment.initial_state, tampered_journal);
+    QVERIFY(!tampered.has_value());
+    QCOMPARE(tampered.error().code, engine::WorkflowErrorCode::InvalidEvent);
+}
+
+void WorkflowEngineTest::enforcesBoundedAllOfPreconditionsAndReplaySnapshots() {
+    const auto case_definition = structuredCaseDefinition();
+    const auto definition = structuredWorkflow();
+    auto ready = structuredReadyRun();
+    QVERIFY2(ready.has_value(), ready ? "" : ready.error().c_str());
+    const auto command = model::IssueWorkflowJudgment{
+        header("command.guarded-judgment", "test.actor.court", date(2026, 11, 10)),
+        model::WorkflowOperationId{structured_judgment_operation}, std::string(64, 'f'),
+        model::DispositionPlanId{structured_plan_id}};
+
+    auto unmet = definition;
+    auto unmet_operation = std::ranges::find(
+        unmet.operations, model::WorkflowOperationId{structured_judgment_operation},
+        &model::WorkflowOperation::id);
+    QVERIFY(unmet_operation != unmet.operations.end());
+    auto elapsed = std::ranges::find_if(unmet_operation->preconditions, [](const auto& predicate) {
+        const auto* deadline = std::get_if<model::WorkflowDeadlinePrecondition>(&predicate);
+        return deadline != nullptr &&
+               deadline->condition == model::WorkflowDeadlineCondition::Elapsed;
+    });
+    QVERIFY(elapsed != unmet_operation->preconditions.end());
+    std::get<model::WorkflowDeadlinePrecondition>(*elapsed).condition =
+        model::WorkflowDeadlineCondition::NotElapsed;
+    auto result = engine::decideWorkflow(unmet, case_definition, ready->state, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+
+    auto unresolved = definition;
+    auto unresolved_operation = std::ranges::find(
+        unresolved.operations, model::WorkflowOperationId{structured_judgment_operation},
+        &model::WorkflowOperation::id);
+    QVERIFY(unresolved_operation != unresolved.operations.end());
+    unresolved_operation->preconditions.front() =
+        model::WorkflowFilingPrecondition{model::FilingTypeId{"test.filing.unknown"}, false};
+    result = engine::decideWorkflow(unresolved, case_definition, ready->state, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    const auto opening_command =
+        filing("command.guarded-opening", "filing.guarded-opening", "test.actor.appellant",
+               "test.filing.opening", date(2026, 8, 13), {model::ActorId{"test.actor.appellee"}});
+    auto missing_order = canonicalWorkflow();
+    auto guarded_opening = std::ranges::find(missing_order.operations,
+                                             model::WorkflowOperationId{"test.op.opening.accept"},
+                                             &model::WorkflowOperation::id);
+    QVERIFY(guarded_opening != missing_order.operations.end());
+    guarded_opening->preconditions = {
+        model::WorkflowOrderPrecondition{model::WorkflowOrderId{"test.order.not-entered"},
+                                         model::WorkflowOrderDisposition::Granted}};
+    result =
+        engine::decideWorkflow(missing_order, caseDefinition(), initialState(), opening_command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+
+    auto missing_deadline = canonicalWorkflow();
+    guarded_opening = std::ranges::find(missing_deadline.operations,
+                                        model::WorkflowOperationId{"test.op.opening.accept"},
+                                        &model::WorkflowOperation::id);
+    QVERIFY(guarded_opening != missing_deadline.operations.end());
+    guarded_opening->preconditions = {
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{"test.deadline.not-created"},
+                                            model::WorkflowDeadlineCondition::Open}};
+    result =
+        engine::decideWorkflow(missing_deadline, caseDefinition(), initialState(), opening_command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+
+    auto command_start_definition = canonicalWorkflow();
+    auto second_event_operation = std::ranges::find(
+        command_start_definition.operations,
+        model::WorkflowOperationId{"test.op.response.deadline"}, &model::WorkflowOperation::id);
+    QVERIFY(second_event_operation != command_start_definition.operations.end());
+    second_event_operation->preconditions = {
+        model::WorkflowFilingPrecondition{model::FilingTypeId{"test.filing.opening"}, true}};
+    result = engine::decideWorkflow(command_start_definition, caseDefinition(), initialState(),
+                                    opening_command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+
+    auto bounded = definition;
+    auto bounded_operation = std::ranges::find(
+        bounded.operations, model::WorkflowOperationId{structured_judgment_operation},
+        &model::WorkflowOperation::id);
+    QVERIFY(bounded_operation != bounded.operations.end());
+    for (std::size_t index = bounded_operation->preconditions.size(); index <= 32; ++index) {
+        bounded_operation->preconditions.push_back(model::WorkflowOrderPrecondition{
+            model::WorkflowOrderId{"test.order.guard-" + std::to_string(index)},
+            model::WorkflowOrderDisposition::Granted});
+    }
+    result = engine::decideWorkflow(bounded, case_definition, ready->state, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    auto completed = *ready;
+    const auto executed = execute(definition, case_definition, completed, command);
+    QVERIFY2(executed.has_value(), executed ? "" : executed.error().c_str());
+    auto changed_definition = definition;
+    auto changed_operation = std::ranges::find(
+        changed_definition.operations, model::WorkflowOperationId{structured_judgment_operation},
+        &model::WorkflowOperation::id);
+    QVERIFY(changed_operation != changed_definition.operations.end());
+    changed_operation->preconditions.front() =
+        model::WorkflowFilingPrecondition{model::FilingTypeId{"test.filing.response"}, true};
+    const auto changed_replay = engine::replayWorkflow(changed_definition, case_definition,
+                                                       completed.initial_state, completed.journal);
+    QVERIFY(!changed_replay.has_value());
+    QCOMPARE(changed_replay.error().code, engine::WorkflowErrorCode::InvalidEvent);
+
+    auto not_elapsed_definition = canonicalWorkflow();
+    auto extension_accept = std::ranges::find(
+        not_elapsed_definition.operations, model::WorkflowOperationId{"test.op.extension.accept"},
+        &model::WorkflowOperation::id);
+    QVERIFY(extension_accept != not_elapsed_definition.operations.end());
+    extension_accept->preconditions = {
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{response_deadline},
+                                            model::WorkflowDeadlineCondition::Open},
+        model::WorkflowDeadlinePrecondition{model::WorkflowDeadlineId{response_deadline},
+                                            model::WorkflowDeadlineCondition::NotElapsed},
+    };
+    auto not_elapsed_run = emptyRun();
+    QVERIFY(execute(not_elapsed_definition, caseDefinition(), not_elapsed_run,
+                    filing("command.opening", "filing.opening", "test.actor.appellant",
+                           "test.filing.opening", date(2026, 8, 13),
+                           {model::ActorId{"test.actor.appellee"}}))
+                .has_value());
+    const auto timely =
+        engine::decideWorkflow(not_elapsed_definition, caseDefinition(), not_elapsed_run.state,
+                               filing("command.extension", "filing.extension",
+                                      "test.actor.appellee", "test.filing.extension",
+                                      date(2026, 8, 20), {model::ActorId{"test.actor.appellant"}}));
+    QVERIFY(timely.has_value());
+    const auto late =
+        engine::decideWorkflow(not_elapsed_definition, caseDefinition(), not_elapsed_run.state,
+                               filing("command.late-extension", "filing.late-extension",
+                                      "test.actor.appellee", "test.filing.extension",
+                                      date(2026, 9, 22), {model::ActorId{"test.actor.appellant"}}));
+    QVERIFY(!late.has_value());
+    QCOMPARE(late.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+
+    auto elapsed_definition = canonicalWorkflow();
+    extension_accept = std::ranges::find(elapsed_definition.operations,
+                                         model::WorkflowOperationId{"test.op.extension.accept"},
+                                         &model::WorkflowOperation::id);
+    QVERIFY(extension_accept != elapsed_definition.operations.end());
+    extension_accept->preconditions = {model::WorkflowDeadlinePrecondition{
+        model::WorkflowDeadlineId{response_deadline}, model::WorkflowDeadlineCondition::Elapsed}};
+    auto elapsed_run = emptyRun();
+    QVERIFY(execute(elapsed_definition, caseDefinition(), elapsed_run,
+                    filing("command.elapsed-opening", "filing.elapsed-opening",
+                           "test.actor.appellant", "test.filing.opening", date(2026, 8, 13),
+                           {model::ActorId{"test.actor.appellee"}}))
+                .has_value());
+    const auto response =
+        std::ranges::find(elapsed_run.state.deadlines, model::WorkflowDeadlineId{response_deadline},
+                          &model::WorkflowDeadlineRecord::deadline_id);
+    QVERIFY(response != elapsed_run.state.deadlines.end());
+    const auto due_date = response->due_date;
+    const auto next_day = model::LegalDate{
+        std::chrono::year_month_day{std::chrono::sys_days{due_date.value} + std::chrono::days{1}}};
+    const auto on_due_date = engine::decideWorkflow(
+        elapsed_definition, caseDefinition(), elapsed_run.state,
+        filing("command.extension-on-due-date", "filing.extension-on-due-date",
+               "test.actor.appellee", "test.filing.extension", due_date,
+               {model::ActorId{"test.actor.appellant"}}));
+    QVERIFY(!on_due_date.has_value());
+    QCOMPARE(on_due_date.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+    const auto after_due_date = engine::decideWorkflow(
+        elapsed_definition, caseDefinition(), elapsed_run.state,
+        filing("command.extension-after-due-date", "filing.extension-after-due-date",
+               "test.actor.appellee", "test.filing.extension", next_day,
+               {model::ActorId{"test.actor.appellant"}}));
+    QVERIFY(after_due_date.has_value());
+
+    auto legacy_with_guard = workflow();
+    auto legacy_guarded_operation = std::ranges::find(
+        legacy_with_guard.operations, model::WorkflowOperationId{"test.op.opening.accept"},
+        &model::WorkflowOperation::id);
+    QVERIFY(legacy_guarded_operation != legacy_with_guard.operations.end());
+    legacy_guarded_operation->preconditions = {
+        model::WorkflowFilingPrecondition{model::FilingTypeId{"test.filing.opening"}, false},
+    };
+    const auto legacy_guard_result = engine::decideWorkflow(
+        legacy_with_guard, caseDefinition(), initialState(),
+        filing("command.legacy-guard", "filing.legacy-guard", "test.actor.appellant",
+               "test.filing.opening", date(2026, 8, 13), {model::ActorId{"test.actor.appellee"}}));
+    QVERIFY(!legacy_guard_result.has_value());
+    QCOMPARE(legacy_guard_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+}
+
+void WorkflowEngineTest::rejectsMalformedAndOversizedDispositionInventories() {
+    const auto definition = canonicalWorkflow();
+    const auto initial = initialState();
+    const auto command =
+        filing("command.maximum-plan", "filing.maximum-plan", "test.actor.appellant",
+               "test.filing.opening", date(2026, 8, 13), {model::ActorId{"test.actor.appellee"}});
+
+    const auto maximum = maximumStructuredCaseDefinition();
+    auto result = engine::decideWorkflow(definition, maximum, initial, command);
+    QVERIFY2(result.has_value(), result ? "" : result.error().message.c_str());
+
+    const auto legacy_plan_result = engine::decideWorkflow(workflow(), maximum, initial, command);
+    QVERIFY(!legacy_plan_result.has_value());
+    QCOMPARE(legacy_plan_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    auto oversized = maximum;
+    oversized.disposition_targets.push_back({model::CaseIssueId{"test.issue.maximum-32"},
+                                             model::DispositionTargetId{"test.target.maximum-32"}});
+    oversized.disposition_plans.front().components.push_back(
+        {model::CaseIssueId{"test.issue.maximum-32"},
+         model::DispositionTargetId{"test.target.maximum-32"},
+         model::DispositionScope::Whole,
+         model::DispositionAction::Affirm,
+         false,
+         {model::AuthorityId{"test.authority.maximum-32"}},
+         {model::RecordAnchorId{"test.anchor.maximum-32"}}});
+    result = engine::decideWorkflow(definition, oversized, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidCase);
+
+    auto overlapping = structuredCaseDefinition();
+    overlapping.disposition_targets.push_back(
+        {model::CaseIssueId{"example.issue.other"},
+         model::DispositionTargetId{"example.target.preservation"}});
+    result = engine::decideWorkflow(structuredWorkflow(), overlapping, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidCase);
+
+    auto invalid_remand = structuredCaseDefinition();
+    invalid_remand.disposition_plans.front().components.front().action =
+        model::DispositionAction::Affirm;
+    result = engine::decideWorkflow(structuredWorkflow(), invalid_remand, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidCase);
+
+    auto altered_digest = structuredCaseDefinition();
+    altered_digest.disposition_plans.front().canonical_sha256.front() = '0';
+    result = engine::decideWorkflow(structuredWorkflow(), altered_digest, initial, command);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error().code, engine::WorkflowErrorCode::InvalidCase);
 }
 
 } // namespace

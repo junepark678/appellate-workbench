@@ -27,6 +27,7 @@ enum class WorkflowErrorCode {
     InvalidEvent,
     InvalidTransition,
     SequenceOverflow,
+    UnmetPrecondition,
 };
 
 struct WorkflowError final {

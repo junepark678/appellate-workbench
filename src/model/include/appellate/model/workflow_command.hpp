@@ -38,12 +38,6 @@ struct SubmitWorkflowFiling final {
     friend bool operator==(const SubmitWorkflowFiling&, const SubmitWorkflowFiling&) = default;
 };
 
-enum class WorkflowOrderDisposition {
-    Granted,
-    Denied,
-    Other,
-};
-
 struct EnterWorkflowOrder final {
     WorkflowCommandHeader header;
     WorkflowOperationId operation_id;
@@ -72,11 +66,13 @@ struct ScheduleWorkflowArgument final {
                            const ScheduleWorkflowArgument&) = default;
 };
 
+using WorkflowJudgmentSelection = std::variant<std::string, DispositionPlanId>;
+
 struct IssueWorkflowJudgment final {
     WorkflowCommandHeader header;
     WorkflowOperationId operation_id;
     std::string document_sha256;
-    std::string disposition;
+    WorkflowJudgmentSelection disposition;
 
     friend bool operator==(const IssueWorkflowJudgment&, const IssueWorkflowJudgment&) = default;
 };

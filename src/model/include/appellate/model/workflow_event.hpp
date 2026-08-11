@@ -20,6 +20,7 @@ struct WorkflowEventHeader final {
     std::uint32_t command_event_count{};
     LegalTime occurred_at;
     AuthorityBasis authority;
+    std::vector<WorkflowPrecondition> preconditions{};
 
     friend bool operator==(const WorkflowEventHeader&, const WorkflowEventHeader&) = default;
 };
@@ -127,10 +128,12 @@ struct WorkflowArgumentScheduled final {
                            const WorkflowArgumentScheduled&) = default;
 };
 
+using WorkflowJudgmentDisposition = std::variant<std::string, DispositionPlan>;
+
 struct WorkflowJudgmentIssued final {
     WorkflowEventHeader header;
     std::string document_sha256;
-    std::string disposition;
+    WorkflowJudgmentDisposition disposition;
     std::optional<WorkflowStageId> next_stage_id;
 
     friend bool operator==(const WorkflowJudgmentIssued&, const WorkflowJudgmentIssued&) = default;

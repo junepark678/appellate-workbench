@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace appellate::model {
@@ -19,11 +20,6 @@ struct WorkflowId final {
 struct WorkflowStageId final {
     std::string value;
     friend bool operator==(const WorkflowStageId&, const WorkflowStageId&) = default;
-};
-
-struct WorkflowOperationId final {
-    std::string value;
-    friend bool operator==(const WorkflowOperationId&, const WorkflowOperationId&) = default;
 };
 
 struct WorkflowDeadlineId final {
@@ -56,6 +52,62 @@ struct WorkflowRequirementId final {
     friend bool operator==(const WorkflowRequirementId&, const WorkflowRequirementId&) = default;
 };
 
+enum class WorkflowOrderDisposition {
+    Granted,
+    Denied,
+    Other,
+};
+
+struct WorkflowFilingPrecondition final {
+    FilingTypeId filing_type;
+    bool present{};
+
+    friend bool operator==(const WorkflowFilingPrecondition&,
+                           const WorkflowFilingPrecondition&) = default;
+};
+
+struct WorkflowOrderPrecondition final {
+    WorkflowOrderId order_id;
+    WorkflowOrderDisposition disposition{};
+
+    friend bool operator==(const WorkflowOrderPrecondition&,
+                           const WorkflowOrderPrecondition&) = default;
+};
+
+enum class WorkflowDeadlineCondition {
+    Open,
+    Satisfied,
+    Elapsed,
+    NotElapsed,
+};
+
+struct WorkflowDeadlinePrecondition final {
+    WorkflowDeadlineId deadline_id;
+    WorkflowDeadlineCondition condition{};
+
+    friend bool operator==(const WorkflowDeadlinePrecondition&,
+                           const WorkflowDeadlinePrecondition&) = default;
+};
+
+struct WorkflowArgumentPrecondition final {
+    bool scheduled{};
+
+    friend bool operator==(const WorkflowArgumentPrecondition&,
+                           const WorkflowArgumentPrecondition&) = default;
+};
+
+struct WorkflowJudgmentPrecondition final {
+    bool issued{};
+
+    friend bool operator==(const WorkflowJudgmentPrecondition&,
+                           const WorkflowJudgmentPrecondition&) = default;
+};
+
+using WorkflowPrecondition =
+    std::variant<WorkflowFilingPrecondition, WorkflowOrderPrecondition,
+                 WorkflowDeadlinePrecondition, WorkflowArgumentPrecondition,
+                 WorkflowJudgmentPrecondition>;
+
 enum class WorkflowOpcode {
     AcceptFiling,
     RejectFiling,
@@ -78,6 +130,7 @@ struct WorkflowOperation final {
     std::optional<std::uint32_t> deadline_days;
     std::optional<DeadlineCounting> deadline_counting;
     std::vector<ActorRoleId> authorized_roles;
+    std::vector<WorkflowPrecondition> preconditions{};
 
     friend bool operator==(const WorkflowOperation&, const WorkflowOperation&) = default;
 };

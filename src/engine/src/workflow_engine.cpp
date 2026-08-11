@@ -3,6 +3,8 @@
 #include "appellate/engine/business_calendar.hpp"
 
 #include <algorithm>
+#include <array>
+#include <bit>
 #include <cctype>
 #include <chrono>
 #include <cstdint>
@@ -10,13 +12,16 @@
 #include <limits>
 #include <optional>
 #include <ranges>
+#include <span>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <variant>
+#include <vector>
 
 namespace appellate::engine {
 namespace {
@@ -29,6 +34,11 @@ constexpr std::size_t max_case_actors = 1024;
 constexpr std::size_t max_route_items = 256;
 constexpr std::size_t max_authorities = 32;
 constexpr std::size_t max_state_items = 4096;
+constexpr std::size_t max_disposition_targets = 4096;
+constexpr std::size_t max_disposition_plans = 64;
+constexpr std::size_t max_disposition_components = 32;
+constexpr std::size_t max_record_anchors = 32;
+constexpr std::size_t max_preconditions = 32;
 constexpr std::uint32_t max_events_per_command = 3;
 
 [[nodiscard]] auto fail(WorkflowErrorCode code, std::string message)
@@ -99,6 +109,183 @@ constexpr std::uint32_t max_events_per_command = 3;
                       (character >= static_cast<unsigned char>('a') &&
                        character <= static_cast<unsigned char>('f'));
            });
+}
+
+[[nodiscard]] auto sha256(std::span<const std::uint8_t> input) -> std::string {
+    constexpr std::array<std::uint32_t, 64> constants{
+        0x428a2f98U, 0x71374491U, 0xb5c0fbcfU, 0xe9b5dba5U, 0x3956c25bU, 0x59f111f1U, 0x923f82a4U,
+        0xab1c5ed5U, 0xd807aa98U, 0x12835b01U, 0x243185beU, 0x550c7dc3U, 0x72be5d74U, 0x80deb1feU,
+        0x9bdc06a7U, 0xc19bf174U, 0xe49b69c1U, 0xefbe4786U, 0x0fc19dc6U, 0x240ca1ccU, 0x2de92c6fU,
+        0x4a7484aaU, 0x5cb0a9dcU, 0x76f988daU, 0x983e5152U, 0xa831c66dU, 0xb00327c8U, 0xbf597fc7U,
+        0xc6e00bf3U, 0xd5a79147U, 0x06ca6351U, 0x14292967U, 0x27b70a85U, 0x2e1b2138U, 0x4d2c6dfcU,
+        0x53380d13U, 0x650a7354U, 0x766a0abbU, 0x81c2c92eU, 0x92722c85U, 0xa2bfe8a1U, 0xa81a664bU,
+        0xc24b8b70U, 0xc76c51a3U, 0xd192e819U, 0xd6990624U, 0xf40e3585U, 0x106aa070U, 0x19a4c116U,
+        0x1e376c08U, 0x2748774cU, 0x34b0bcb5U, 0x391c0cb3U, 0x4ed8aa4aU, 0x5b9cca4fU, 0x682e6ff3U,
+        0x748f82eeU, 0x78a5636fU, 0x84c87814U, 0x8cc70208U, 0x90befffaU, 0xa4506cebU, 0xbef9a3f7U,
+        0xc67178f2U};
+    std::array<std::uint32_t, 8> hash{0x6a09e667U, 0xbb67ae85U, 0x3c6ef372U, 0xa54ff53aU,
+                                      0x510e527fU, 0x9b05688cU, 0x1f83d9abU, 0x5be0cd19U};
+    std::vector<std::uint8_t> padded(input.begin(), input.end());
+    const auto bit_length = static_cast<std::uint64_t>(padded.size()) * 8U;
+    padded.push_back(0x80U);
+    while (padded.size() % 64U != 56U) {
+        padded.push_back(0U);
+    }
+    for (int shift = 56; shift >= 0; shift -= 8) {
+        padded.push_back(static_cast<std::uint8_t>(bit_length >> static_cast<unsigned>(shift)));
+    }
+
+    for (std::size_t offset = 0; offset < padded.size(); offset += 64U) {
+        std::array<std::uint32_t, 64> words{};
+        for (std::size_t index = 0; index < 16U; ++index) {
+            const auto position = offset + index * 4U;
+            words[index] = (static_cast<std::uint32_t>(padded[position]) << 24U) |
+                           (static_cast<std::uint32_t>(padded[position + 1U]) << 16U) |
+                           (static_cast<std::uint32_t>(padded[position + 2U]) << 8U) |
+                           static_cast<std::uint32_t>(padded[position + 3U]);
+        }
+        for (std::size_t index = 16U; index < words.size(); ++index) {
+            const auto sigma0 = std::rotr(words[index - 15U], 7) ^
+                                std::rotr(words[index - 15U], 18) ^ (words[index - 15U] >> 3U);
+            const auto sigma1 = std::rotr(words[index - 2U], 17) ^
+                                std::rotr(words[index - 2U], 19) ^ (words[index - 2U] >> 10U);
+            words[index] = words[index - 16U] + sigma0 + words[index - 7U] + sigma1;
+        }
+
+        auto a = hash[0];
+        auto b = hash[1];
+        auto c = hash[2];
+        auto d = hash[3];
+        auto e = hash[4];
+        auto f = hash[5];
+        auto g = hash[6];
+        auto h = hash[7];
+        for (std::size_t index = 0; index < words.size(); ++index) {
+            const auto sum1 = std::rotr(e, 6) ^ std::rotr(e, 11) ^ std::rotr(e, 25);
+            const auto choice = (e & f) ^ ((~e) & g);
+            const auto temporary1 = h + sum1 + choice + constants[index] + words[index];
+            const auto sum0 = std::rotr(a, 2) ^ std::rotr(a, 13) ^ std::rotr(a, 22);
+            const auto majority = (a & b) ^ (a & c) ^ (b & c);
+            const auto temporary2 = sum0 + majority;
+            h = g;
+            g = f;
+            f = e;
+            e = d + temporary1;
+            d = c;
+            c = b;
+            b = a;
+            a = temporary1 + temporary2;
+        }
+        hash[0] += a;
+        hash[1] += b;
+        hash[2] += c;
+        hash[3] += d;
+        hash[4] += e;
+        hash[5] += f;
+        hash[6] += g;
+        hash[7] += h;
+    }
+
+    constexpr std::string_view hexadecimal = "0123456789abcdef";
+    std::string result;
+    result.reserve(64U);
+    for (const auto word : hash) {
+        for (int shift = 28; shift >= 0; shift -= 4) {
+            const auto digit = static_cast<std::size_t>((word >> static_cast<unsigned>(shift)) &
+                                                        std::uint32_t{0x0fU});
+            result.push_back(hexadecimal[digit]);
+        }
+    }
+    return result;
+}
+
+void appendUint64(std::vector<std::uint8_t>& output, std::uint64_t value) {
+    for (int shift = 56; shift >= 0; shift -= 8) {
+        output.push_back(static_cast<std::uint8_t>(value >> static_cast<unsigned>(shift)));
+    }
+}
+
+void appendCanonicalString(std::vector<std::uint8_t>& output, std::string_view value) {
+    appendUint64(output, static_cast<std::uint64_t>(value.size()));
+    output.insert(output.end(), value.begin(), value.end());
+}
+
+[[nodiscard]] auto dispositionFinalityName(model::DispositionFinality finality)
+    -> std::string_view {
+    switch (finality) {
+    case model::DispositionFinality::Final:
+        return "final";
+    case model::DispositionFinality::Nonfinal:
+        return "nonfinal";
+    }
+    return {};
+}
+
+[[nodiscard]] auto dispositionScopeName(model::DispositionScope scope) -> std::string_view {
+    switch (scope) {
+    case model::DispositionScope::Whole:
+        return "whole";
+    case model::DispositionScope::Part:
+        return "part";
+    }
+    return {};
+}
+
+[[nodiscard]] auto dispositionActionName(model::DispositionAction action) -> std::string_view {
+    switch (action) {
+    case model::DispositionAction::Affirm:
+        return "affirm";
+    case model::DispositionAction::Reverse:
+        return "reverse";
+    case model::DispositionAction::Vacate:
+        return "vacate";
+    case model::DispositionAction::Dismiss:
+        return "dismiss";
+    case model::DispositionAction::Grant:
+        return "grant";
+    case model::DispositionAction::Deny:
+        return "deny";
+    }
+    return {};
+}
+
+[[nodiscard]] auto canonicalDispositionDigest(const model::CaseDefinition& case_definition,
+                                              const model::DispositionPlan& plan) -> std::string {
+    std::vector<std::uint8_t> canonical;
+    constexpr std::string_view domain = "appellate-workbench-disposition-plan-v1";
+    appendCanonicalString(canonical, domain);
+    appendCanonicalString(canonical, case_definition.id.value);
+    appendCanonicalString(canonical, case_definition.authored_disposition_operation_id->value);
+    appendCanonicalString(canonical, plan.id.value);
+    appendCanonicalString(canonical, dispositionFinalityName(plan.finality));
+
+    auto components = plan.components;
+    std::ranges::sort(components, {}, [](const auto& component) {
+        return std::tie(component.issue_id.value, component.target_id.value);
+    });
+    appendUint64(canonical, static_cast<std::uint64_t>(components.size()));
+    for (const auto& component : components) {
+        appendCanonicalString(canonical, component.issue_id.value);
+        appendCanonicalString(canonical, component.target_id.value);
+        appendCanonicalString(canonical, dispositionScopeName(component.scope));
+        appendCanonicalString(canonical, dispositionActionName(component.action));
+        appendUint64(canonical, component.remand ? std::uint64_t{1U} : std::uint64_t{0U});
+
+        auto authorities = component.authority_ids;
+        std::ranges::sort(authorities, {}, &model::AuthorityId::value);
+        appendUint64(canonical, static_cast<std::uint64_t>(authorities.size()));
+        for (const auto& authority : authorities) {
+            appendCanonicalString(canonical, authority.value);
+        }
+
+        auto anchors = component.record_anchor_ids;
+        std::ranges::sort(anchors, {}, &model::RecordAnchorId::value);
+        appendUint64(canonical, static_cast<std::uint64_t>(anchors.size()));
+        for (const auto& anchor : anchors) {
+            appendCanonicalString(canonical, anchor.value);
+        }
+    }
+    return sha256(canonical);
 }
 
 [[nodiscard]] bool validAuthorityType(model::AuthorityType type) {
@@ -213,6 +400,41 @@ template <typename Range, typename Projection>
            disposition == model::WorkflowOrderDisposition::Other;
 }
 
+[[nodiscard]] bool validDeadlineCondition(model::WorkflowDeadlineCondition condition) {
+    return condition == model::WorkflowDeadlineCondition::Open ||
+           condition == model::WorkflowDeadlineCondition::Satisfied ||
+           condition == model::WorkflowDeadlineCondition::Elapsed ||
+           condition == model::WorkflowDeadlineCondition::NotElapsed;
+}
+
+[[nodiscard]] bool validDispositionScope(model::DispositionScope scope) {
+    return scope == model::DispositionScope::Whole || scope == model::DispositionScope::Part;
+}
+
+[[nodiscard]] bool validDispositionAction(model::DispositionAction action) {
+    switch (action) {
+    case model::DispositionAction::Affirm:
+    case model::DispositionAction::Reverse:
+    case model::DispositionAction::Vacate:
+    case model::DispositionAction::Dismiss:
+    case model::DispositionAction::Grant:
+    case model::DispositionAction::Deny:
+        return true;
+    }
+    return false;
+}
+
+[[nodiscard]] bool validDispositionFinality(model::DispositionFinality finality) {
+    return finality == model::DispositionFinality::Final ||
+           finality == model::DispositionFinality::Nonfinal;
+}
+
+[[nodiscard]] bool mayRemand(model::DispositionAction action) {
+    return action == model::DispositionAction::Reverse ||
+           action == model::DispositionAction::Vacate ||
+           action == model::DispositionAction::Dismiss || action == model::DispositionAction::Grant;
+}
+
 [[nodiscard]] auto operationFor(const model::WorkflowDefinition& workflow,
                                 const model::WorkflowOperationId& id)
     -> const model::WorkflowOperation* {
@@ -256,6 +478,54 @@ template <typename Range, typename Projection>
     return found == state.deadlines.end() ? nullptr : &*found;
 }
 
+[[nodiscard]] bool
+preconditionsSatisfied(const std::vector<model::WorkflowPrecondition>& preconditions,
+                       const model::WorkflowState& state, model::LegalDate command_date) {
+    return std::ranges::all_of(preconditions, [&](const auto& precondition) {
+        return std::visit(
+            [&](const auto& concrete) {
+                using Precondition = std::remove_cvref_t<decltype(concrete)>;
+                if constexpr (std::same_as<Precondition, model::WorkflowFilingPrecondition>) {
+                    const auto present =
+                        std::ranges::find(state.accepted_filings, concrete.filing_type,
+                                          &model::WorkflowFilingRecord::filing_type) !=
+                        state.accepted_filings.end();
+                    return present == concrete.present;
+                } else if constexpr (std::same_as<Precondition, model::WorkflowOrderPrecondition>) {
+                    const auto order = std::ranges::find(state.orders, concrete.order_id,
+                                                         &model::WorkflowOrderRecord::order_id);
+                    return order != state.orders.end() &&
+                           order->disposition == concrete.disposition;
+                } else if constexpr (std::same_as<Precondition,
+                                                  model::WorkflowDeadlinePrecondition>) {
+                    const auto* deadline = deadlineFor(state, concrete.deadline_id);
+                    if (deadline == nullptr) {
+                        return false;
+                    }
+                    switch (concrete.condition) {
+                    case model::WorkflowDeadlineCondition::Open:
+                        return deadline->status == model::WorkflowDeadlineStatus::Open;
+                    case model::WorkflowDeadlineCondition::Satisfied:
+                        return deadline->status == model::WorkflowDeadlineStatus::Satisfied;
+                    case model::WorkflowDeadlineCondition::Elapsed:
+                        return std::chrono::sys_days{command_date.value} >
+                               std::chrono::sys_days{deadline->due_date.value};
+                    case model::WorkflowDeadlineCondition::NotElapsed:
+                        return std::chrono::sys_days{command_date.value} <=
+                               std::chrono::sys_days{deadline->due_date.value};
+                    }
+                    return false;
+                } else if constexpr (std::same_as<Precondition,
+                                                  model::WorkflowArgumentPrecondition>) {
+                    return state.argument_date.has_value() == concrete.scheduled;
+                } else {
+                    return state.judgment_sha256.has_value() == concrete.issued;
+                }
+            },
+            precondition);
+    });
+}
+
 [[nodiscard]] auto deficiencyFor(model::WorkflowState& state, const model::WorkflowDeficiencyId& id)
     -> model::WorkflowDeficiencyRecord* {
     const auto found =
@@ -291,6 +561,178 @@ template <typename Range, typename Projection>
     return model::WorkflowDeadlineId{plan.deadline_id.value + "." + command_id.value};
 }
 
+[[nodiscard]] bool validPrecondition(const model::WorkflowPrecondition& precondition) {
+    return std::visit(
+        [](const auto& concrete) {
+            using Precondition = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Precondition, model::WorkflowFilingPrecondition>) {
+                return validNamespacedId(concrete.filing_type.value);
+            } else if constexpr (std::same_as<Precondition, model::WorkflowOrderPrecondition>) {
+                return validNamespacedId(concrete.order_id.value) &&
+                       validOrderDisposition(concrete.disposition);
+            } else if constexpr (std::same_as<Precondition, model::WorkflowDeadlinePrecondition>) {
+                return validNamespacedId(concrete.deadline_id.value) &&
+                       validDeadlineCondition(concrete.condition);
+            } else {
+                return true;
+            }
+        },
+        precondition);
+}
+
+[[nodiscard]] bool
+preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preconditions) {
+    if (preconditions.size() > max_preconditions ||
+        !std::ranges::all_of(preconditions, validPrecondition)) {
+        return false;
+    }
+    for (std::size_t left_index = 0; left_index < preconditions.size(); ++left_index) {
+        for (std::size_t right_index = left_index + 1; right_index < preconditions.size();
+             ++right_index) {
+            const auto& left = preconditions[left_index];
+            const auto& right = preconditions[right_index];
+            if (left == right) {
+                return false;
+            }
+            if (const auto* left_filing = std::get_if<model::WorkflowFilingPrecondition>(&left)) {
+                const auto* right_filing = std::get_if<model::WorkflowFilingPrecondition>(&right);
+                if (right_filing != nullptr &&
+                    left_filing->filing_type == right_filing->filing_type) {
+                    return false;
+                }
+            } else if (const auto* left_order =
+                           std::get_if<model::WorkflowOrderPrecondition>(&left)) {
+                const auto* right_order = std::get_if<model::WorkflowOrderPrecondition>(&right);
+                if (right_order != nullptr && left_order->order_id == right_order->order_id) {
+                    return false;
+                }
+            } else if (const auto* left_deadline =
+                           std::get_if<model::WorkflowDeadlinePrecondition>(&left)) {
+                const auto* right_deadline =
+                    std::get_if<model::WorkflowDeadlinePrecondition>(&right);
+                if (right_deadline != nullptr &&
+                    left_deadline->deadline_id == right_deadline->deadline_id &&
+                    ((left_deadline->condition == model::WorkflowDeadlineCondition::Open &&
+                      right_deadline->condition == model::WorkflowDeadlineCondition::Satisfied) ||
+                     (left_deadline->condition == model::WorkflowDeadlineCondition::Satisfied &&
+                      right_deadline->condition == model::WorkflowDeadlineCondition::Open) ||
+                     (left_deadline->condition == model::WorkflowDeadlineCondition::Elapsed &&
+                      right_deadline->condition == model::WorkflowDeadlineCondition::NotElapsed) ||
+                     (left_deadline->condition == model::WorkflowDeadlineCondition::NotElapsed &&
+                      right_deadline->condition == model::WorkflowDeadlineCondition::Elapsed))) {
+                    return false;
+                }
+            } else if (std::holds_alternative<model::WorkflowArgumentPrecondition>(left) &&
+                       std::holds_alternative<model::WorkflowArgumentPrecondition>(right)) {
+                return false;
+            } else if (std::holds_alternative<model::WorkflowJudgmentPrecondition>(left) &&
+                       std::holds_alternative<model::WorkflowJudgmentPrecondition>(right)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+[[nodiscard]] bool validDispositionInventory(const model::CaseDefinition& case_definition) {
+    const auto legacy = case_definition.disposition_targets.empty() &&
+                        case_definition.disposition_plans.empty() &&
+                        !case_definition.authored_disposition_plan_id.has_value();
+    if (legacy) {
+        return !case_definition.authored_disposition_operation_id.has_value() ||
+               validNamespacedId(case_definition.authored_disposition_operation_id->value);
+    }
+    if (case_definition.disposition_targets.empty() ||
+        case_definition.disposition_targets.size() > max_disposition_targets ||
+        case_definition.disposition_plans.empty() ||
+        case_definition.disposition_plans.size() > max_disposition_plans ||
+        !case_definition.authored_disposition_plan_id.has_value() ||
+        !case_definition.authored_disposition_operation_id.has_value() ||
+        !validNamespacedId(case_definition.authored_disposition_plan_id->value) ||
+        !validNamespacedId(case_definition.authored_disposition_operation_id->value) ||
+        hasDuplicates(case_definition.disposition_targets,
+                      [](const auto& target) { return target.target_id.value; }) ||
+        hasDuplicates(case_definition.disposition_plans,
+                      [](const auto& plan) { return plan.id.value; }) ||
+        std::ranges::any_of(case_definition.disposition_targets, [](const auto& target) {
+            return !validNamespacedId(target.issue_id.value) ||
+                   !validNamespacedId(target.target_id.value);
+        })) {
+        return false;
+    }
+
+    std::unordered_set<std::string> targets;
+    targets.reserve(case_definition.disposition_targets.size());
+    for (const auto& target : case_definition.disposition_targets) {
+        targets.emplace(target.issue_id.value + "\n" + target.target_id.value);
+    }
+    for (const auto& plan : case_definition.disposition_plans) {
+        if (!validNamespacedId(plan.id.value) || !validDispositionFinality(plan.finality) ||
+            !validDigest(plan.canonical_sha256) || plan.components.empty() ||
+            plan.components.size() > max_disposition_components) {
+            return false;
+        }
+        std::unordered_set<std::string> covered_targets;
+        covered_targets.reserve(plan.components.size());
+        for (const auto& component : plan.components) {
+            const auto target_key = component.issue_id.value + "\n" + component.target_id.value;
+            if (!validNamespacedId(component.issue_id.value) ||
+                !validNamespacedId(component.target_id.value) ||
+                !validDispositionScope(component.scope) ||
+                !validDispositionAction(component.action) ||
+                (component.remand && !mayRemand(component.action)) ||
+                component.authority_ids.empty() ||
+                component.authority_ids.size() > max_authorities ||
+                component.record_anchor_ids.empty() ||
+                component.record_anchor_ids.size() > max_record_anchors ||
+                !targets.contains(target_key) || !covered_targets.emplace(target_key).second ||
+                hasDuplicates(component.authority_ids,
+                              [](const auto& authority) { return authority.value; }) ||
+                hasDuplicates(component.record_anchor_ids,
+                              [](const auto& anchor) { return anchor.value; }) ||
+                std::ranges::any_of(
+                    component.authority_ids,
+                    [](const auto& authority) { return !validNamespacedId(authority.value); }) ||
+                std::ranges::any_of(component.record_anchor_ids, [](const auto& anchor) {
+                    return !validNamespacedId(anchor.value);
+                })) {
+                return false;
+            }
+        }
+        if (canonicalDispositionDigest(case_definition, plan) != plan.canonical_sha256) {
+            return false;
+        }
+    }
+    return std::ranges::find(
+               case_definition.disposition_plans, *case_definition.authored_disposition_plan_id,
+               &model::DispositionPlan::id) != case_definition.disposition_plans.end();
+}
+
+[[nodiscard]] auto dispositionPlanFor(const model::CaseDefinition& case_definition,
+                                      const model::DispositionPlanId& id)
+    -> const model::DispositionPlan* {
+    const auto found =
+        std::ranges::find(case_definition.disposition_plans, id, &model::DispositionPlan::id);
+    return found == case_definition.disposition_plans.end() ? nullptr : &*found;
+}
+
+[[nodiscard]] bool usesStructuredDisposition(const model::CaseDefinition& case_definition) {
+    return case_definition.authored_disposition_plan_id.has_value();
+}
+
+[[nodiscard]] bool validJudgmentDisposition(const model::CaseDefinition& case_definition,
+                                            const model::WorkflowJudgmentDisposition& disposition) {
+    if (const auto* legacy = std::get_if<std::string>(&disposition)) {
+        return !usesStructuredDisposition(case_definition) && validText(*legacy, 4096);
+    }
+    const auto& plan = std::get<model::DispositionPlan>(disposition);
+    const auto* authored =
+        case_definition.authored_disposition_plan_id.has_value()
+            ? dispositionPlanFor(case_definition, *case_definition.authored_disposition_plan_id)
+            : nullptr;
+    return authored != nullptr && plan == *authored;
+}
+
 [[nodiscard]] auto validateDefinition(const model::WorkflowDefinition& workflow,
                                       const model::CaseDefinition& case_definition,
                                       const model::WorkflowState& state)
@@ -318,6 +760,16 @@ template <typename Range, typename Projection>
 
     const auto uses_canonical_authority =
         workflow.operations.front().authority.primary.provenance.has_value();
+    const auto uses_schema3_contract =
+        !case_definition.disposition_targets.empty() ||
+        !case_definition.disposition_plans.empty() ||
+        case_definition.authored_disposition_plan_id.has_value() ||
+        std::ranges::any_of(workflow.operations,
+                            [](const auto& operation) { return !operation.preconditions.empty(); });
+    if (uses_schema3_contract && !uses_canonical_authority) {
+        return fail(WorkflowErrorCode::InvalidDefinition,
+                    "structured dispositions and preconditions require canonical authority");
+    }
     for (const auto& operation : workflow.operations) {
         if (!validNamespacedId(operation.id.value) || !validOpcode(operation.opcode) ||
             std::ranges::find(workflow.stages, operation.stage_id) == workflow.stages.end() ||
@@ -325,6 +777,7 @@ template <typename Range, typename Projection>
              std::ranges::find(workflow.stages, *operation.next_stage_id) ==
                  workflow.stages.end()) ||
             operation.authorized_roles.size() > max_route_items ||
+            !preconditionsAreConsistent(operation.preconditions) ||
             hasDuplicates(operation.authorized_roles,
                           [](const auto& role) { return role.value; }) ||
             std::ranges::any_of(operation.authorized_roles,
@@ -376,6 +829,15 @@ template <typename Range, typename Projection>
                         "court operation requires authorized roles");
         }
     }
+    if (case_definition.authored_disposition_operation_id.has_value()) {
+        const auto* authored_operation =
+            operationFor(workflow, *case_definition.authored_disposition_operation_id);
+        if (authored_operation == nullptr ||
+            authored_operation->opcode != model::WorkflowOpcode::IssueJudgment) {
+            return fail(WorkflowErrorCode::InvalidCase,
+                        "authored disposition operation is not a judgment operation");
+        }
+    }
 
     if (hasDuplicates(workflow.filing_routes, [](const auto& route) {
             return route.stage_id.value + "\n" + route.filing_type.value;
@@ -384,6 +846,7 @@ template <typename Range, typename Projection>
     }
     std::unordered_set<std::string> declared_deadline_ids;
     std::unordered_set<std::string> produced_deadline_ids;
+    std::unordered_set<std::string> filing_types;
     for (const auto& route : workflow.filing_routes) {
         const auto* accept = operationFor(workflow, route.accept_operation_id);
         const auto* reject = operationFor(workflow, route.reject_operation_id);
@@ -459,6 +922,7 @@ template <typename Range, typename Projection>
                             "filing-route operations must share its stage");
             }
         }
+        filing_types.emplace(route.filing_type.value);
     }
     for (const auto& route : workflow.filing_routes) {
         if (route.satisfies_deadline_id.has_value() &&
@@ -467,10 +931,20 @@ template <typename Range, typename Projection>
                         "filing route references an unproduced deadline");
         }
     }
+    for (const auto& operation : workflow.operations) {
+        if (std::ranges::any_of(operation.preconditions, [&](const auto& precondition) {
+                const auto* filing = std::get_if<model::WorkflowFilingPrecondition>(&precondition);
+                return filing != nullptr && !filing_types.contains(filing->filing_type.value);
+            })) {
+            return fail(WorkflowErrorCode::InvalidDefinition,
+                        "filing precondition references an unknown filing type");
+        }
+    }
 
     if (!validNamespacedId(case_definition.id.value) ||
         !validNamespacedId(case_definition.procedure_id.value) || case_definition.actors.empty() ||
         case_definition.actors.size() > max_case_actors ||
+        !validDispositionInventory(case_definition) ||
         hasDuplicates(case_definition.actors, [](const auto& actor) { return actor.id.value; }) ||
         std::ranges::any_of(case_definition.actors, [](const auto& actor) {
             return !validNamespacedId(actor.id.value) || !validNamespacedId(actor.role.value);
@@ -587,6 +1061,9 @@ template <typename Range, typename Projection>
     }
     if ((state.argument_date.has_value() && !validLegalDate(*state.argument_date)) ||
         (state.judgment_sha256.has_value() && !validDigest(*state.judgment_sha256)) ||
+        (state.judgment_sha256.has_value() != state.judgment_disposition.has_value()) ||
+        (state.judgment_disposition.has_value() &&
+         !validJudgmentDisposition(case_definition, *state.judgment_disposition)) ||
         (state.mandate_sha256.has_value() && !validDigest(*state.mandate_sha256)) ||
         (state.mandate_sha256.has_value() && !state.judgment_sha256.has_value()) ||
         (state.next_event_sequence == 1 &&
@@ -595,7 +1072,8 @@ template <typename Range, typename Projection>
           !state.accepted_filings.empty() || !state.deadlines.empty() ||
           !state.deficiencies.empty() || !state.orders.empty() || state.sealed ||
           state.argument_date.has_value() || state.judgment_sha256.has_value() ||
-          state.mandate_sha256.has_value() || state.legal_time_cursor.has_value()))) {
+          state.mandate_sha256.has_value() || state.legal_time_cursor.has_value() ||
+          state.judgment_disposition.has_value()))) {
         return fail(WorkflowErrorCode::InvalidState, "invalid adjudicative snapshot");
     }
     return {};
@@ -626,7 +1104,8 @@ template <typename Range, typename Projection>
                                       index,
                                       count,
                                       command.occurred_at,
-                                      operation.authority};
+                                      operation.authority,
+                                      operation.preconditions};
 }
 
 [[nodiscard]] auto
@@ -1030,7 +1509,8 @@ template <typename Event>
         !validLegalDate(header.occurred_at.court_date) || operation == nullptr ||
         operation->opcode != expectedOpcode(event) ||
         operation->stage_id != state.current_stage_id || !validAuthority(header.authority) ||
-        header.authority != operation->authority) {
+        header.authority != operation->authority ||
+        header.preconditions != operation->preconditions) {
         return fail(WorkflowErrorCode::InvalidEvent, "event envelope is inconsistent");
     }
     if (state.legal_time_cursor.has_value() &&
@@ -1132,14 +1612,32 @@ decideWorkflowImpl(const model::WorkflowDefinition& workflow,
                 if (!operation) {
                     return std::unexpected(operation.error());
                 }
-                if (!validDigest(concrete.document_sha256) ||
-                    !validText(concrete.disposition, 4096) || state.judgment_sha256.has_value()) {
+                if (!validDigest(concrete.document_sha256) || state.judgment_sha256.has_value()) {
                     return fail(WorkflowErrorCode::InvalidCommand, "invalid judgment");
+                }
+                model::WorkflowJudgmentDisposition disposition;
+                if (const auto* legacy = std::get_if<std::string>(&concrete.disposition)) {
+                    if (usesStructuredDisposition(case_definition) || !validText(*legacy, 4096)) {
+                        return fail(WorkflowErrorCode::InvalidCommand,
+                                    "legacy judgment text is not eligible");
+                    }
+                    disposition = *legacy;
+                } else {
+                    const auto& selected = std::get<model::DispositionPlanId>(concrete.disposition);
+                    const auto* plan = dispositionPlanFor(case_definition, selected);
+                    if (!usesStructuredDisposition(case_definition) || plan == nullptr ||
+                        selected != *case_definition.authored_disposition_plan_id ||
+                        concrete.operation_id !=
+                            *case_definition.authored_disposition_operation_id) {
+                        return fail(WorkflowErrorCode::InvalidCommand,
+                                    "judgment does not select the authored disposition plan");
+                    }
+                    disposition = *plan;
                 }
                 return oneEvent(workflow, state, concrete.header, **operation,
                                 model::WorkflowJudgmentIssued{{},
                                                               concrete.document_sha256,
-                                                              concrete.disposition,
+                                                              std::move(disposition),
                                                               (**operation).next_stage_id});
             } else {
                 const auto operation =
@@ -1160,6 +1658,15 @@ decideWorkflowImpl(const model::WorkflowDefinition& workflow,
         command);
     if (!result) {
         return std::unexpected(result.error());
+    }
+    for (const auto& event : *result) {
+        const auto& event_header = eventHeader(event);
+        const auto* operation = operationFor(workflow, event_header.operation_id);
+        if (operation == nullptr || !preconditionsSatisfied(operation->preconditions, state,
+                                                            event_header.occurred_at.court_date)) {
+            return fail(WorkflowErrorCode::UnmetPrecondition,
+                        "operation preconditions are not satisfied");
+        }
     }
     if (result->empty() || result->size() > max_events_per_command ||
         result->size() > static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max()) ||
@@ -1316,11 +1823,13 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                 }
             } else if constexpr (std::same_as<Event, model::WorkflowJudgmentIssued>) {
                 if (!validDigest(concrete.document_sha256) ||
-                    !validText(concrete.disposition, 4096) || state.judgment_sha256.has_value() ||
+                    !validJudgmentDisposition(case_definition, concrete.disposition) ||
+                    state.judgment_sha256.has_value() ||
                     concrete.next_stage_id != (**operation).next_stage_id) {
                     return fail(WorkflowErrorCode::InvalidTransition, "invalid judgment");
                 }
                 next.judgment_sha256 = concrete.document_sha256;
+                next.judgment_disposition = concrete.disposition;
                 if (concrete.next_stage_id) {
                     next.current_stage_id = *concrete.next_stage_id;
                 }

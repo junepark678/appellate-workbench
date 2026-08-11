@@ -79,6 +79,7 @@ struct WorkflowState final {
     std::optional<std::string> judgment_sha256;
     std::optional<std::string> mandate_sha256;
     std::optional<LegalTime> legal_time_cursor;
+    std::optional<WorkflowJudgmentDisposition> judgment_disposition{};
 
     friend bool operator==(const WorkflowState&, const WorkflowState&) = default;
 };
