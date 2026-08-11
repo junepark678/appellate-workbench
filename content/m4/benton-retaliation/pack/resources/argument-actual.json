@@ -1,0 +1,218 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.benton.argument.actual-record",
+  "case_id": "ca4m4.case.benton-retaliation",
+  "bench_configuration_id": "ca4m4.benton.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.benton.issue.retaliation-summary-judgment",
+    "ca4m4.benton.issue.disclosure-boundary-hypothetical"
+  ],
+  "grounded_question_bank": {
+    "mode": "actual_record",
+    "grounding_digest": "11f8725c1ad1f8aab1eecade698f3592c7ee5fa1e021a2b4a0b71171f0b7332d",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+        "topic_ids": [
+          "workbench.topic.standard-of-review",
+          "workbench.topic.record-support",
+          "workbench.topic.governing-authority",
+          "workbench.topic.merits",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.benton.issue.disclosure-boundary-hypothetical",
+        "topic_ids": [
+          "workbench.topic.preservation",
+          "workbench.topic.record-support",
+          "workbench.topic.governing-authority",
+          "workbench.topic.merits",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.benton.question.actual-retaliation-standard",
+        "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "Under Rule 56 and Foster, which disputes in the employer's knowledge and explanation accounts must be viewed for the nonmovant rather than resolved by weighing credibility?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-standard-rule56", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-56-summary-judgment"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-standard-foster", "kind": "authority", "authority_id": "ca4m4.benton.authority.foster-pretext"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-standard-ja7", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja7"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-standard-ja42", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja42"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-standard-ja44", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja44"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-standard-ja93", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja93"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-retaliation-record",
+        "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Which exact pages connect Benton's protected opposition and charge to Pike before selection, and what limits does each page place on the inference of knowledge?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-record-titlevii", "kind": "authority", "authority_id": "ca4m4.benton.authority.title-vii-retaliation"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-record-ja3", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja3"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-record-ja4", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja4"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-record-ja47", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja47"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-record-ja58", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja58"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-record-ja64", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja64"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-record-ja65", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja65"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-record-ja110", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja110"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-record-ja118", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja118"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-retaliation-authority",
+        "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "How do Title VII and Foster separate prima-facie causation from the ultimate but-for showing when the RIF itself and its savings target are not disputed?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-authority-titlevii", "kind": "authority", "authority_id": "ca4m4.benton.authority.title-vii-retaliation"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-authority-framework", "kind": "authority", "authority_id": "ca4m4.benton.authority.foster-framework"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-authority-pretext", "kind": "authority", "authority_id": "ca4m4.benton.authority.foster-pretext"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-authority-ja5", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja5"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-authority-ja68", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja68"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-authority-ja120", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja120"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-retaliation-merits",
+        "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Taken together, do the comparator exceptions, Benton reductions, and explanation sequence permit a reasonable finding that retaliation was the real selection reason?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-foster", "kind": "authority", "authority_id": "ca4m4.benton.authority.foster-pretext"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja6", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja6"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja43", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja43"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja70", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja70"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja71", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja71"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja82", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja82"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja88", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja88"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja89", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja89"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja91", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja91"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja112", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja112"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja121", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja121"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja122", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja122"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja124", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja124"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-merits-ja125", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja125"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-retaliation-remedy",
+        "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "If the admitted record presents a genuine pretext and but-for dispute, what Rule 56 disposition follows without deciding credibility or the ultimate trial result?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-remedy-rule56", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-56-summary-judgment"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-remedy-foster", "kind": "authority", "authority_id": "ca4m4.benton.authority.foster-pretext"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-remedy-ja96", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja96"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-remedy-ja98", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja98"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-remedy-ja111", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja111"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-remedy-ja113", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja113"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-retaliation-practical",
+        "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "How can the court acknowledge a real seven-position savings plan while preserving the distinct factual question why Blue Cedar chose Benton among target-reaching alternatives?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-practical-foster", "kind": "authority", "authority_id": "ca4m4.benton.authority.foster-pretext"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-practical-ja72", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja72"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-retaliation-practical-ja103", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja103"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-disclosure-preservation",
+        "issue_id": "ca4m4.benton.issue.disclosure-boundary-hypothetical",
+        "topic_id": "workbench.topic.preservation",
+        "prompt": "Which Wynn subjects does batch 1 identify, and what supplementation duty would apply if a party hypothetically learned a materially different subject later?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-rule26", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-26e-supplementation"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-ja21", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja21"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-ja23", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja23"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-ja24", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja24"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-ja28", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja28"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-ja29", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja29"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-ja30", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja30"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-ja34", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja34"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-ja114", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja114"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-preservation-ja121", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja121"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-disclosure-record",
+        "issue_id": "ca4m4.benton.issue.disclosure-boundary-hypothetical",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Which exact batch-1 pages define Wynn's disclosed subjects, and what facts about any hypothetical later subject are absent from the current record?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-record-rule26", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-26e-supplementation"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-record-ja24", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja24"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-record-ja28", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja28"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-record-ja30", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja30"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-record-ja121", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja121"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-record-ja114", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja114"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-disclosure-authority",
+        "issue_id": "ca4m4.benton.issue.disclosure-boundary-hypothetical",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "For a hypothetical materially new witness subject learned after these disclosures, how do Rules 26(e)(1) and 37(c)(1) connect supplementation, use, substantial justification, and harmlessness?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-authority-rule26", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-26e-supplementation"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-authority-rule37", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-37c1-nondisclosure"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-authority-ja21", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja21"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-authority-ja28", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja28"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-authority-ja34", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja34"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-disclosure-merits",
+        "issue_id": "ca4m4.benton.issue.disclosure-boundary-hypothetical",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "What additional timing, notice, justification, and prejudice facts would have to be established before Rule 37(c)(1) could be applied to a hypothetical materially new Wynn subject?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-merits-rule26", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-26e-supplementation"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-merits-rule37", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-37c1-nondisclosure"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-merits-ja24", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja24"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-merits-ja28", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja28"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-merits-ja30", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja30"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-merits-ja34", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja34"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-merits-ja114", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja114"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-merits-ja121", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja121"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-disclosure-remedy",
+        "issue_id": "ca4m4.benton.issue.disclosure-boundary-hypothetical",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Without predicting a ruling, what range of use restrictions and additional measures would Rule 37(c)(1) permit in a hypothetical future record establishing an unjustified and harmful supplementation failure?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-remedy-rule37", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-37c1-nondisclosure"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-remedy-ja21", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja21"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-remedy-ja23", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja23"}
+        ]
+      },
+      {
+        "question_id": "ca4m4.benton.question.actual-disclosure-practical",
+        "issue_id": "ca4m4.benton.issue.disclosure-boundary-hypothetical",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "How can counsel preserve the exact batch-1 comparator subjects while separately identifying and timely supplementing a hypothetical materially different subject learned later?",
+        "grounding": [
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-practical-rule26", "kind": "authority", "authority_id": "ca4m4.benton.authority.frcp-26e-supplementation"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-practical-ja29", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja29"},
+          {"grounding_id": "ca4m4.benton.grounding.actual-disclosure-practical-ja34", "kind": "record_page", "anchor_id": "ca4m4.benton.anchor.ja34"}
+        ]
+      }
+    ]
+  }
+}

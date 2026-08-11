@@ -478,4 +478,110 @@ set_tests_properties(
         LABELS "ui;local"
 )
 
+qt_add_executable(
+    tst_m4_arm_agency
+    integration/tst_m4_arm_agency.cpp
+)
+target_link_libraries(
+    tst_m4_arm_agency
+    PRIVATE
+        appellate::engine
+        appellate::packs
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Pdf
+)
+target_compile_definitions(
+    tst_m4_arm_agency
+    PRIVATE
+        APPELLATE_M4_ARM_ROOT="${PROJECT_SOURCE_DIR}/content/m4/arm-agency"
+        APPELLATE_M4_FOUNDATIONS="${PROJECT_SOURCE_DIR}/content/foundations"
+)
+target_compile_features(tst_m4_arm_agency PRIVATE cxx_std_26)
+add_test(NAME m4_arm_agency COMMAND tst_m4_arm_agency)
+set_tests_properties(
+    m4_arm_agency
+    PROPERTIES LABELS "content;integration;local"
+)
+
+qt_add_executable(
+    tst_m4_arm_agency_ui_e2e
+    integration/tst_m4_arm_agency_ui_e2e.cpp
+)
+target_link_libraries(
+    tst_m4_arm_agency_ui_e2e
+    PRIVATE
+        appellate::desktop_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_m4_arm_agency_ui_e2e
+    PRIVATE
+        APPELLATE_M4_ARM_ROOT="${PROJECT_SOURCE_DIR}/content/m4/arm-agency"
+        APPELLATE_M4_FOUNDATIONS="${PROJECT_SOURCE_DIR}/content/foundations"
+)
+target_compile_features(tst_m4_arm_agency_ui_e2e PRIVATE cxx_std_26)
+add_test(NAME m4_arm_agency_ui_e2e COMMAND tst_m4_arm_agency_ui_e2e)
+set_tests_properties(
+    m4_arm_agency_ui_e2e
+    PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        LABELS "e2e;ui;local;offscreen"
+)
+
+qt_add_executable(
+    tst_m4_benton_retaliation
+    integration/tst_m4_benton_retaliation.cpp
+)
+target_link_libraries(
+    tst_m4_benton_retaliation
+    PRIVATE
+        appellate::engine
+        appellate::packs
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Pdf
+)
+target_compile_definitions(
+    tst_m4_benton_retaliation
+    PRIVATE
+        APPELLATE_M4_BENTON_ROOT="${PROJECT_SOURCE_DIR}/content/m4/benton-retaliation"
+        APPELLATE_M4_FOUNDATIONS="${PROJECT_SOURCE_DIR}/content/foundations"
+)
+target_compile_features(tst_m4_benton_retaliation PRIVATE cxx_std_26)
+add_test(NAME m4_benton_retaliation COMMAND tst_m4_benton_retaliation)
+set_tests_properties(
+    m4_benton_retaliation
+    PROPERTIES LABELS "content;integration;local"
+)
+
+qt_add_executable(
+    tst_m4_benton_retaliation_ui_e2e
+    integration/tst_m4_benton_retaliation_ui_e2e.cpp
+)
+target_link_libraries(
+    tst_m4_benton_retaliation_ui_e2e
+    PRIVATE
+        appellate::desktop_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_m4_benton_retaliation_ui_e2e
+    PRIVATE
+        APPELLATE_M4_BENTON_ROOT="${PROJECT_SOURCE_DIR}/content/m4/benton-retaliation"
+        APPELLATE_M4_FOUNDATIONS="${PROJECT_SOURCE_DIR}/content/foundations"
+)
+target_compile_features(tst_m4_benton_retaliation_ui_e2e PRIVATE cxx_std_26)
+add_test(NAME m4_benton_retaliation_ui_e2e COMMAND tst_m4_benton_retaliation_ui_e2e)
+set_tests_properties(
+    m4_benton_retaliation_ui_e2e
+    PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        LABELS "e2e;ui;local;offscreen"
+)
+
 add_subdirectory(content)

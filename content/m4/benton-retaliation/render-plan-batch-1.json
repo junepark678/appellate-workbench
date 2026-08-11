@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {"source_path": "documents/batch-1/01-complaint.md", "output_path": "objects/01-complaint.pdf", "page_label_prefix": "JA", "page_label_start": 1, "title": "Synthetic Complaint and Jury Demand"},
+    {"source_path": "documents/batch-1/02-answer.md", "output_path": "objects/02-answer.pdf", "page_label_prefix": "JA", "page_label_start": 12, "title": "Synthetic Answer and Affirmative Defenses"},
+    {"source_path": "documents/batch-1/03-rule-26-report.md", "output_path": "objects/03-rule-26-report.pdf", "page_label_prefix": "JA", "page_label_start": 19, "title": "Synthetic Joint Rule 26 Report"},
+    {"source_path": "documents/batch-1/04-benton-disclosures.md", "output_path": "objects/04-benton-disclosures.pdf", "page_label_prefix": "JA", "page_label_start": 24, "title": "Synthetic Benton Initial Disclosures"},
+    {"source_path": "documents/batch-1/05-blue-cedar-disclosures.md", "output_path": "objects/05-blue-cedar-disclosures.pdf", "page_label_prefix": "JA", "page_label_start": 30, "title": "Synthetic Blue Cedar Initial Disclosures"},
+    {"source_path": "documents/batch-1/06-eeoc-charge.md", "output_path": "objects/06-eeoc-charge.pdf", "page_label_prefix": "JA", "page_label_start": 35, "title": "Synthetic EEOC Charge and Amendment"},
+    {"source_path": "documents/batch-1/07-eeoc-position.md", "output_path": "objects/07-eeoc-position.pdf", "page_label_prefix": "JA", "page_label_start": 40, "title": "Synthetic Employer EEOC Position Statement"},
+    {"source_path": "documents/batch-1/08-eeoc-notice-right-to-sue.md", "output_path": "objects/08-eeoc-notice-right-to-sue.pdf", "page_label_prefix": "JA", "page_label_start": 46, "title": "Synthetic EEOC Notice and Right-to-Sue File"},
+    {"source_path": "documents/batch-1/09-policies-rif-protocol.md", "output_path": "objects/09-policies-rif-protocol.pdf", "page_label_prefix": "JA", "page_label_start": 49, "title": "Synthetic Anti-Retaliation Policy and RIF Protocol"},
+    {"source_path": "documents/batch-1/10-opposition-emails.md", "output_path": "objects/10-opposition-emails.pdf", "page_label_prefix": "JA", "page_label_start": 58, "title": "Synthetic Protected-Opposition Email Chain"},
+    {"source_path": "documents/batch-1/11-eeoc-acknowledgments.md", "output_path": "objects/11-eeoc-acknowledgments.pdf", "page_label_prefix": "JA", "page_label_start": 63, "title": "Synthetic EEOC Notice and Decisionmaker Acknowledgments"},
+    {"source_path": "documents/batch-1/12-rif-workbook.md", "output_path": "objects/12-rif-workbook.pdf", "page_label_prefix": "JA", "page_label_start": 66, "title": "Synthetic RIF Planning Workbook and Change Log"},
+    {"source_path": "documents/batch-1/13-comparator-scorecards.md", "output_path": "objects/13-comparator-scorecards.pdf", "page_label_prefix": "JA", "page_label_start": 74, "title": "Synthetic Comparator Scorecards"},
+    {"source_path": "documents/batch-1/14-calibration-minutes.md", "output_path": "objects/14-calibration-minutes.pdf", "page_label_prefix": "JA", "page_label_start": 83, "title": "Synthetic RIF Calibration Minutes and Version Log"},
+    {"source_path": "documents/batch-1/15-explanation-communications.md", "output_path": "objects/15-explanation-communications.pdf", "page_label_prefix": "JA", "page_label_start": 88, "title": "Synthetic Termination-Explanation Communications"},
+    {"source_path": "documents/batch-1/16-performance-metrics.md", "output_path": "objects/16-performance-metrics.pdf", "page_label_prefix": "JA", "page_label_start": 94, "title": "Synthetic Benton Performance Reviews and Audit Metrics"},
+    {"source_path": "documents/batch-1/17-headcount-ledger.md", "output_path": "objects/17-headcount-ledger.pdf", "page_label_prefix": "JA", "page_label_start": 101, "title": "Synthetic Organization Chart and Headcount Ledger"},
+    {"source_path": "documents/batch-1/18-benton-deposition.md", "output_path": "objects/18-benton-deposition.pdf", "page_label_prefix": "JA", "page_label_start": 106, "title": "Synthetic Deposition of Leora Benton"},
+    {"source_path": "documents/batch-1/19-pike-deposition.md", "output_path": "objects/19-pike-deposition.pdf", "page_label_prefix": "JA", "page_label_start": 116, "title": "Synthetic Deposition of Draven Pike"}
+  ]
+}

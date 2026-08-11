@@ -1,0 +1,1138 @@
+{
+  "schema_version": 2,
+  "resource_kind": "record",
+  "resource_id": "ca4m4.benton.record",
+  "caption": "Leora Benton v. Blue Cedar Compliance, Inc.",
+  "dockets": [
+    {
+      "docket_id": "ca4m4.benton.docket.district",
+      "docket_type": "district",
+      "court_ref": "United States District Court for the Eastern District of Virginia, Richmond Division",
+      "public_docket_number": "SYN-EDVA-25-CV-0412",
+      "caption": "Leora Benton v. Blue Cedar Compliance, Inc."
+    },
+    {
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit",
+      "public_docket_number": "SYN-CA4-26-CV-4101",
+      "caption": "Leora Benton v. Blue Cedar Compliance, Inc."
+    }
+  ],
+  "docket_entries": [
+    {
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "entry_number": 1,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "District ECF No. 1",
+      "filed_on": "2025-06-16",
+      "title": "Complaint and Jury Demand",
+      "actor": "Leora Benton (fictional)",
+      "description": "Complaint asserting a Title VII retaliation claim and requesting a jury trial.",
+      "tags": [
+        "pleading",
+        "complaint",
+        "district-record"
+      ],
+      "asset_path": "objects/01-complaint.pdf",
+      "asset_sha256": "b3cffb233c293c107f33107f49fbf41db8e544aee4b146caab01b9f0a6802242",
+      "page_count": 11,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.answer",
+      "entry_number": 2,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "District ECF No. 7",
+      "filed_on": "2025-07-07",
+      "title": "Answer and Affirmative Defenses",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Answer admitting the RIF target and termination while disputing knowledge, pretext, and causation.",
+      "tags": [
+        "pleading",
+        "answer",
+        "district-record"
+      ],
+      "asset_path": "objects/02-answer.pdf",
+      "asset_sha256": "485edb096f79451809f23672f4d7d819cd2e4c41a04d397819929074b73f6698",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.rule-26-report",
+      "entry_number": 3,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "District ECF No. 11",
+      "filed_on": "2025-08-11",
+      "title": "Joint Rule 26 Report",
+      "actor": "Parties jointly (fictional)",
+      "description": "Discovery plan defining the claims, source production, deposition sequence, and supplementation chronology.",
+      "tags": [
+        "discovery",
+        "rule-26-report",
+        "district-record"
+      ],
+      "asset_path": "objects/03-rule-26-report.pdf",
+      "asset_sha256": "37b127979c200b9e15c3fc487835bbb8ede8382897f9c75a0dca38926a0e4fdf",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.benton-disclosures",
+      "entry_number": 4,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Discovery Exchange BENTON-R26-001",
+      "filed_on": "2025-08-15",
+      "title": "Benton Initial Disclosures",
+      "actor": "Leora Benton (fictional)",
+      "description": "Initial disclosures identifying known witnesses, their stated information subjects, documents, and supplementation duties.",
+      "tags": [
+        "discovery",
+        "initial-disclosure",
+        "initiating-party"
+      ],
+      "asset_path": "objects/04-benton-disclosures.pdf",
+      "asset_sha256": "14a85104c5b8b8219957b64fa4e2abccb9d975e6701571db979ef3fe9bb6d714",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.blue-cedar-disclosures",
+      "entry_number": 5,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Discovery Exchange BCC-R26-001",
+      "filed_on": "2025-08-15",
+      "title": "Blue Cedar Initial Disclosures",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Initial disclosures identifying custodians, repositories, record categories, witness subjects, and supplementation duties.",
+      "tags": [
+        "discovery",
+        "initial-disclosure",
+        "responding-party"
+      ],
+      "asset_path": "objects/05-blue-cedar-disclosures.pdf",
+      "asset_sha256": "4bcf56de9cc0a92ab0a8ad42bd7778fe024e75f7f0d2d1e920b8549f451be774",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.eeoc-charge",
+      "entry_number": 6,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Administrative File SYN-EEOC-RIC-2025-0203",
+      "filed_on": "2025-03-28",
+      "title": "EEOC Charge and Amendment",
+      "actor": "Leora Benton (fictional)",
+      "description": "Synthetic charge recording the January opposition, February participation, employer notice, and March termination amendment.",
+      "tags": [
+        "administrative-exhaustion",
+        "protected-activity",
+        "charge"
+      ],
+      "asset_path": "objects/06-eeoc-charge.pdf",
+      "asset_sha256": "edb382280d303a9b78a530aaba330ecc821a3428f231481cd0d209bd0b41c941",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.eeoc-position",
+      "entry_number": 7,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Administrative Response SYN-EEOC-RIC-2025-0203",
+      "filed_on": "2025-04-18",
+      "title": "Employer EEOC Position Statement",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Employer response describing cost, redundancy, calibrated criteria, disputed knowledge, and comparator distinctions.",
+      "tags": [
+        "administrative-exhaustion",
+        "employer-position",
+        "pretext"
+      ],
+      "asset_path": "objects/07-eeoc-position.pdf",
+      "asset_sha256": "6d9d2e6044550596964183b71b120570f1b3fb8ad0683864be60e4c9bb7ef523",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.eeoc-notice-right-to-sue",
+      "entry_number": 8,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Administrative Notices SYN-EEOC-RIC-2025-0203",
+      "filed_on": "2025-05-23",
+      "title": "EEOC Notice and Right-to-Sue File",
+      "actor": "Fictional administrative exercise office",
+      "description": "Composite administrative file through May 23, including charge notice, receipt and routing history, closure, right-to-sue notice, and delivery ledger.",
+      "tags": [
+        "administrative-exhaustion",
+        "notice",
+        "right-to-sue"
+      ],
+      "asset_path": "objects/08-eeoc-notice-right-to-sue.pdf",
+      "asset_sha256": "fc55134bed254a1dd96624f49363ad377ef63600ab5716a53a4321e9b2716a3b",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "entry_number": 9,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Blue Cedar Policy File POL-RIF-2025",
+      "filed_on": "2025-02-14",
+      "title": "Anti-Retaliation Policy and RIF Protocol",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Composite policy file through the February 14 RIF authorization, defining protected activity, escalation, criteria, score changes, exceptions, and post-RIF audit.",
+      "tags": [
+        "policy",
+        "anti-retaliation",
+        "rif-protocol"
+      ],
+      "asset_path": "objects/09-policies-rif-protocol.pdf",
+      "asset_sha256": "515b6b22f0d443c04cd35abcf863d06add6234fd62117564e08606b8d8388e0b",
+      "page_count": 9,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.opposition-emails",
+      "entry_number": 10,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Production BENTON-EMAIL-001",
+      "filed_on": "2025-01-31",
+      "title": "Protected-Opposition Email Chain",
+      "actor": "Leora Benton and Blue Cedar personnel (fictional)",
+      "description": "Composite email production through January 31, including opposition, management acknowledgment, human-resources intake, supporting data, and follow-up.",
+      "tags": [
+        "protected-activity",
+        "opposition",
+        "email"
+      ],
+      "asset_path": "objects/10-opposition-emails.pdf",
+      "asset_sha256": "6e02930185e3d70ae596844581f2efbd21ab7933953f7233509f312452b0abc1",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.eeoc-acknowledgments",
+      "entry_number": 11,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Production BCC-ROUTE-014",
+      "filed_on": "2025-02-12",
+      "title": "EEOC Notice and Decisionmaker Acknowledgments",
+      "actor": "Blue Cedar personnel (fictional)",
+      "description": "Composite routing production through February 12, including the incoming notice, Solis routing, Pike open event and reply, calendar, and action record.",
+      "tags": [
+        "knowledge",
+        "notice-routing",
+        "email"
+      ],
+      "asset_path": "objects/11-eeoc-acknowledgments.pdf",
+      "asset_sha256": "7cdb4376eb92dc9ff1fdbc700e5c71a4f03c8c309aed8b1927901bc417966928",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.rif-workbook",
+      "entry_number": 12,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Production BCC-RIF-2025-Q1",
+      "filed_on": "2025-03-21",
+      "title": "RIF Planning Workbook and Change Log",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Baseline scores, savings alternatives, calibrated changes, exceptions, final scenario, and version history.",
+      "tags": [
+        "rif",
+        "workbook",
+        "pretext"
+      ],
+      "asset_path": "objects/12-rif-workbook.pdf",
+      "asset_sha256": "0e36eb310f80e1fbd33b0525a6176e3e09280fc05da20c9608b54141df4de6c9",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "entry_number": 13,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Production BCC-SCORE-2025",
+      "filed_on": "2025-03-21",
+      "title": "Comparator Scorecards",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Composite scorecard file through Pike's March 21 approval, with a common rubric, individual cards, and cross-score variances.",
+      "tags": [
+        "comparators",
+        "scorecards",
+        "pretext"
+      ],
+      "asset_path": "objects/13-comparator-scorecards.pdf",
+      "asset_sha256": "917227fb1151ba0ca13c7d60def844c907a1939498732f1892c3a93cf36e2fee",
+      "page_count": 9,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.calibration-minutes",
+      "entry_number": 14,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Production BCC-CAL-2025",
+      "filed_on": "2025-03-21",
+      "title": "RIF Calibration Minutes and Version Log",
+      "actor": "Blue Cedar calibration team (fictional)",
+      "description": "Minutes recording score reductions, retained-employee exceptions, scenario review, and Pike's approval.",
+      "tags": [
+        "rif",
+        "calibration",
+        "knowledge"
+      ],
+      "asset_path": "objects/14-calibration-minutes.pdf",
+      "asset_sha256": "0cedbe9753d5e619fa8d1cec03a544677f0a3d215c45fb16429e93525e2a829b",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.explanation-communications",
+      "entry_number": 15,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Production BCC-EXPL-2025",
+      "filed_on": "2025-07-08",
+      "title": "Termination-Explanation Communications",
+      "actor": "Blue Cedar personnel (fictional)",
+      "description": "Chronological communications comparing the selection email, termination letter, duty transfers, and later explanations.",
+      "tags": [
+        "termination",
+        "explanations",
+        "pretext"
+      ],
+      "asset_path": "objects/15-explanation-communications.pdf",
+      "asset_sha256": "2bb66986ed0b3fa29cdedba2edc218144d3a06da991f7323899f6d7e2aebbd33",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.performance-metrics",
+      "entry_number": 16,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Production BCC-PERF-BENTON",
+      "filed_on": "2025-03-25",
+      "title": "Benton Performance Reviews and Audit Metrics",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Composite performance file through the March 25 transfer entry, including annual reviews, completion, client, travel, credential, and succession records.",
+      "tags": [
+        "performance",
+        "metrics",
+        "pretext"
+      ],
+      "asset_path": "objects/16-performance-metrics.pdf",
+      "asset_sha256": "fc538397e57768915638c4924b55b3d18873775fa663598b7d6cca8891cff4bc",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.headcount-ledger",
+      "entry_number": 17,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Production BCC-HC-2025",
+      "filed_on": "2025-05-31",
+      "title": "Organization Chart and Headcount Ledger",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Pre- and post-RIF organization, savings reconciliation, redistributed duties, and termination register.",
+      "tags": [
+        "rif",
+        "headcount",
+        "redistribution"
+      ],
+      "asset_path": "objects/17-headcount-ledger.pdf",
+      "asset_sha256": "90e043d7ccc3bdf13f9156912d01bec8f80740d9c338ae82d2bd2238f6d7fb05",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "entry_number": 18,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Deposition Transcript BENTON",
+      "filed_on": "2025-09-18",
+      "title": "Deposition of Leora Benton",
+      "actor": "Leora Benton (fictional)",
+      "description": "Testimony on duties, opposition, participation, workbook evidence, comparators, termination, and admitted-record independence.",
+      "tags": [
+        "deposition",
+        "initiating-party",
+        "merits"
+      ],
+      "asset_path": "objects/18-benton-deposition.pdf",
+      "asset_sha256": "261607e0b7cef29ac12c77620a4bd3b58c1826b20af27e20b433c2e8ecc77a47",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "entry_number": 19,
+      "docket_id": "ca4m4.benton.docket.district",
+      "entry_label": "Deposition Transcript PIKE",
+      "filed_on": "2025-09-25",
+      "title": "Deposition of Draven Pike",
+      "actor": "Draven Pike (fictional)",
+      "description": "Decisionmaker testimony on notice, knowledge, scenarios, scoring adjustments, comparator exceptions, and explanations.",
+      "tags": [
+        "deposition",
+        "decisionmaker",
+        "merits"
+      ],
+      "asset_path": "objects/19-pike-deposition.pdf",
+      "asset_sha256": "26c56da8a9098722e1932f816604f690330d48d9ae1936fac75af5025d6ce4df",
+      "page_count": 10,
+      "sealed": false
+    }
+  ],
+  "page_anchors": [
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja1",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 1,
+      "citation_label": "JA1"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja2",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 2,
+      "citation_label": "JA2"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja3",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 3,
+      "citation_label": "JA3"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja4",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 4,
+      "citation_label": "JA4"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja5",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 5,
+      "citation_label": "JA5"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja6",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 6,
+      "citation_label": "JA6"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja7",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 7,
+      "citation_label": "JA7"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja8",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 8,
+      "citation_label": "JA8"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja9",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 9,
+      "citation_label": "JA9"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja10",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 10,
+      "citation_label": "JA10"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja11",
+      "entry_id": "ca4m4.benton.record.entry.complaint",
+      "page_number": 11,
+      "citation_label": "JA11"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja12",
+      "entry_id": "ca4m4.benton.record.entry.answer",
+      "page_number": 1,
+      "citation_label": "JA12"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja13",
+      "entry_id": "ca4m4.benton.record.entry.answer",
+      "page_number": 2,
+      "citation_label": "JA13"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja14",
+      "entry_id": "ca4m4.benton.record.entry.answer",
+      "page_number": 3,
+      "citation_label": "JA14"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja15",
+      "entry_id": "ca4m4.benton.record.entry.answer",
+      "page_number": 4,
+      "citation_label": "JA15"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja16",
+      "entry_id": "ca4m4.benton.record.entry.answer",
+      "page_number": 5,
+      "citation_label": "JA16"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja17",
+      "entry_id": "ca4m4.benton.record.entry.answer",
+      "page_number": 6,
+      "citation_label": "JA17"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja18",
+      "entry_id": "ca4m4.benton.record.entry.answer",
+      "page_number": 7,
+      "citation_label": "JA18"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja19",
+      "entry_id": "ca4m4.benton.record.entry.rule-26-report",
+      "page_number": 1,
+      "citation_label": "JA19"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja20",
+      "entry_id": "ca4m4.benton.record.entry.rule-26-report",
+      "page_number": 2,
+      "citation_label": "JA20"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja21",
+      "entry_id": "ca4m4.benton.record.entry.rule-26-report",
+      "page_number": 3,
+      "citation_label": "JA21"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja22",
+      "entry_id": "ca4m4.benton.record.entry.rule-26-report",
+      "page_number": 4,
+      "citation_label": "JA22"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja23",
+      "entry_id": "ca4m4.benton.record.entry.rule-26-report",
+      "page_number": 5,
+      "citation_label": "JA23"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja24",
+      "entry_id": "ca4m4.benton.record.entry.benton-disclosures",
+      "page_number": 1,
+      "citation_label": "JA24"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja25",
+      "entry_id": "ca4m4.benton.record.entry.benton-disclosures",
+      "page_number": 2,
+      "citation_label": "JA25"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja26",
+      "entry_id": "ca4m4.benton.record.entry.benton-disclosures",
+      "page_number": 3,
+      "citation_label": "JA26"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja27",
+      "entry_id": "ca4m4.benton.record.entry.benton-disclosures",
+      "page_number": 4,
+      "citation_label": "JA27"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja28",
+      "entry_id": "ca4m4.benton.record.entry.benton-disclosures",
+      "page_number": 5,
+      "citation_label": "JA28"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja29",
+      "entry_id": "ca4m4.benton.record.entry.benton-disclosures",
+      "page_number": 6,
+      "citation_label": "JA29"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja30",
+      "entry_id": "ca4m4.benton.record.entry.blue-cedar-disclosures",
+      "page_number": 1,
+      "citation_label": "JA30"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja31",
+      "entry_id": "ca4m4.benton.record.entry.blue-cedar-disclosures",
+      "page_number": 2,
+      "citation_label": "JA31"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja32",
+      "entry_id": "ca4m4.benton.record.entry.blue-cedar-disclosures",
+      "page_number": 3,
+      "citation_label": "JA32"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja33",
+      "entry_id": "ca4m4.benton.record.entry.blue-cedar-disclosures",
+      "page_number": 4,
+      "citation_label": "JA33"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja34",
+      "entry_id": "ca4m4.benton.record.entry.blue-cedar-disclosures",
+      "page_number": 5,
+      "citation_label": "JA34"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja35",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-charge",
+      "page_number": 1,
+      "citation_label": "JA35"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja36",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-charge",
+      "page_number": 2,
+      "citation_label": "JA36"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja37",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-charge",
+      "page_number": 3,
+      "citation_label": "JA37"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja38",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-charge",
+      "page_number": 4,
+      "citation_label": "JA38"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja39",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-charge",
+      "page_number": 5,
+      "citation_label": "JA39"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja40",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-position",
+      "page_number": 1,
+      "citation_label": "JA40"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja41",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-position",
+      "page_number": 2,
+      "citation_label": "JA41"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja42",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-position",
+      "page_number": 3,
+      "citation_label": "JA42"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja43",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-position",
+      "page_number": 4,
+      "citation_label": "JA43"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja44",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-position",
+      "page_number": 5,
+      "citation_label": "JA44"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja45",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-position",
+      "page_number": 6,
+      "citation_label": "JA45"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja46",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-notice-right-to-sue",
+      "page_number": 1,
+      "citation_label": "JA46"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja47",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-notice-right-to-sue",
+      "page_number": 2,
+      "citation_label": "JA47"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja48",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-notice-right-to-sue",
+      "page_number": 3,
+      "citation_label": "JA48"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja49",
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "page_number": 1,
+      "citation_label": "JA49"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja50",
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "page_number": 2,
+      "citation_label": "JA50"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja51",
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "page_number": 3,
+      "citation_label": "JA51"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja52",
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "page_number": 4,
+      "citation_label": "JA52"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja53",
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "page_number": 5,
+      "citation_label": "JA53"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja54",
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "page_number": 6,
+      "citation_label": "JA54"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja55",
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "page_number": 7,
+      "citation_label": "JA55"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja56",
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "page_number": 8,
+      "citation_label": "JA56"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja57",
+      "entry_id": "ca4m4.benton.record.entry.policies-rif-protocol",
+      "page_number": 9,
+      "citation_label": "JA57"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja58",
+      "entry_id": "ca4m4.benton.record.entry.opposition-emails",
+      "page_number": 1,
+      "citation_label": "JA58"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja59",
+      "entry_id": "ca4m4.benton.record.entry.opposition-emails",
+      "page_number": 2,
+      "citation_label": "JA59"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja60",
+      "entry_id": "ca4m4.benton.record.entry.opposition-emails",
+      "page_number": 3,
+      "citation_label": "JA60"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja61",
+      "entry_id": "ca4m4.benton.record.entry.opposition-emails",
+      "page_number": 4,
+      "citation_label": "JA61"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja62",
+      "entry_id": "ca4m4.benton.record.entry.opposition-emails",
+      "page_number": 5,
+      "citation_label": "JA62"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja63",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-acknowledgments",
+      "page_number": 1,
+      "citation_label": "JA63"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja64",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-acknowledgments",
+      "page_number": 2,
+      "citation_label": "JA64"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja65",
+      "entry_id": "ca4m4.benton.record.entry.eeoc-acknowledgments",
+      "page_number": 3,
+      "citation_label": "JA65"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja66",
+      "entry_id": "ca4m4.benton.record.entry.rif-workbook",
+      "page_number": 1,
+      "citation_label": "JA66"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja67",
+      "entry_id": "ca4m4.benton.record.entry.rif-workbook",
+      "page_number": 2,
+      "citation_label": "JA67"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja68",
+      "entry_id": "ca4m4.benton.record.entry.rif-workbook",
+      "page_number": 3,
+      "citation_label": "JA68"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja69",
+      "entry_id": "ca4m4.benton.record.entry.rif-workbook",
+      "page_number": 4,
+      "citation_label": "JA69"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja70",
+      "entry_id": "ca4m4.benton.record.entry.rif-workbook",
+      "page_number": 5,
+      "citation_label": "JA70"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja71",
+      "entry_id": "ca4m4.benton.record.entry.rif-workbook",
+      "page_number": 6,
+      "citation_label": "JA71"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja72",
+      "entry_id": "ca4m4.benton.record.entry.rif-workbook",
+      "page_number": 7,
+      "citation_label": "JA72"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja73",
+      "entry_id": "ca4m4.benton.record.entry.rif-workbook",
+      "page_number": 8,
+      "citation_label": "JA73"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja74",
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "page_number": 1,
+      "citation_label": "JA74"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja75",
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "page_number": 2,
+      "citation_label": "JA75"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja76",
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "page_number": 3,
+      "citation_label": "JA76"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja77",
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "page_number": 4,
+      "citation_label": "JA77"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja78",
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "page_number": 5,
+      "citation_label": "JA78"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja79",
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "page_number": 6,
+      "citation_label": "JA79"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja80",
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "page_number": 7,
+      "citation_label": "JA80"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja81",
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "page_number": 8,
+      "citation_label": "JA81"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja82",
+      "entry_id": "ca4m4.benton.record.entry.comparator-scorecards",
+      "page_number": 9,
+      "citation_label": "JA82"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja83",
+      "entry_id": "ca4m4.benton.record.entry.calibration-minutes",
+      "page_number": 1,
+      "citation_label": "JA83"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja84",
+      "entry_id": "ca4m4.benton.record.entry.calibration-minutes",
+      "page_number": 2,
+      "citation_label": "JA84"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja85",
+      "entry_id": "ca4m4.benton.record.entry.calibration-minutes",
+      "page_number": 3,
+      "citation_label": "JA85"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja86",
+      "entry_id": "ca4m4.benton.record.entry.calibration-minutes",
+      "page_number": 4,
+      "citation_label": "JA86"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja87",
+      "entry_id": "ca4m4.benton.record.entry.calibration-minutes",
+      "page_number": 5,
+      "citation_label": "JA87"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja88",
+      "entry_id": "ca4m4.benton.record.entry.explanation-communications",
+      "page_number": 1,
+      "citation_label": "JA88"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja89",
+      "entry_id": "ca4m4.benton.record.entry.explanation-communications",
+      "page_number": 2,
+      "citation_label": "JA89"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja90",
+      "entry_id": "ca4m4.benton.record.entry.explanation-communications",
+      "page_number": 3,
+      "citation_label": "JA90"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja91",
+      "entry_id": "ca4m4.benton.record.entry.explanation-communications",
+      "page_number": 4,
+      "citation_label": "JA91"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja92",
+      "entry_id": "ca4m4.benton.record.entry.explanation-communications",
+      "page_number": 5,
+      "citation_label": "JA92"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja93",
+      "entry_id": "ca4m4.benton.record.entry.explanation-communications",
+      "page_number": 6,
+      "citation_label": "JA93"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja94",
+      "entry_id": "ca4m4.benton.record.entry.performance-metrics",
+      "page_number": 1,
+      "citation_label": "JA94"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja95",
+      "entry_id": "ca4m4.benton.record.entry.performance-metrics",
+      "page_number": 2,
+      "citation_label": "JA95"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja96",
+      "entry_id": "ca4m4.benton.record.entry.performance-metrics",
+      "page_number": 3,
+      "citation_label": "JA96"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja97",
+      "entry_id": "ca4m4.benton.record.entry.performance-metrics",
+      "page_number": 4,
+      "citation_label": "JA97"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja98",
+      "entry_id": "ca4m4.benton.record.entry.performance-metrics",
+      "page_number": 5,
+      "citation_label": "JA98"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja99",
+      "entry_id": "ca4m4.benton.record.entry.performance-metrics",
+      "page_number": 6,
+      "citation_label": "JA99"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja100",
+      "entry_id": "ca4m4.benton.record.entry.performance-metrics",
+      "page_number": 7,
+      "citation_label": "JA100"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja101",
+      "entry_id": "ca4m4.benton.record.entry.headcount-ledger",
+      "page_number": 1,
+      "citation_label": "JA101"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja102",
+      "entry_id": "ca4m4.benton.record.entry.headcount-ledger",
+      "page_number": 2,
+      "citation_label": "JA102"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja103",
+      "entry_id": "ca4m4.benton.record.entry.headcount-ledger",
+      "page_number": 3,
+      "citation_label": "JA103"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja104",
+      "entry_id": "ca4m4.benton.record.entry.headcount-ledger",
+      "page_number": 4,
+      "citation_label": "JA104"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja105",
+      "entry_id": "ca4m4.benton.record.entry.headcount-ledger",
+      "page_number": 5,
+      "citation_label": "JA105"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja106",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 1,
+      "citation_label": "JA106"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja107",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 2,
+      "citation_label": "JA107"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja108",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 3,
+      "citation_label": "JA108"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja109",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 4,
+      "citation_label": "JA109"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja110",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 5,
+      "citation_label": "JA110"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja111",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 6,
+      "citation_label": "JA111"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja112",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 7,
+      "citation_label": "JA112"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja113",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 8,
+      "citation_label": "JA113"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja114",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 9,
+      "citation_label": "JA114"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja115",
+      "entry_id": "ca4m4.benton.record.entry.benton-deposition",
+      "page_number": 10,
+      "citation_label": "JA115"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja116",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 1,
+      "citation_label": "JA116"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja117",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 2,
+      "citation_label": "JA117"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja118",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 3,
+      "citation_label": "JA118"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja119",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 4,
+      "citation_label": "JA119"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja120",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 5,
+      "citation_label": "JA120"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja121",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 6,
+      "citation_label": "JA121"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja122",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 7,
+      "citation_label": "JA122"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja123",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 8,
+      "citation_label": "JA123"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja124",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 9,
+      "citation_label": "JA124"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.ja125",
+      "entry_id": "ca4m4.benton.record.entry.pike-deposition",
+      "page_number": 10,
+      "citation_label": "JA125"
+    }
+  ]
+}

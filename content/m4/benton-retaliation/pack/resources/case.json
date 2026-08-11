@@ -1,0 +1,102 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4m4.case.benton-retaliation",
+  "title": "Leora Benton v. Blue Cedar Compliance, Inc.",
+  "procedure_profile_id": "ca4m4.benton.procedure.civil-appeal",
+  "record_id": "ca4m4.benton.record",
+  "actors": [
+    {
+      "actor_id": "ca4m4.benton.actor.leora-benton",
+      "role_id": "us.ca4.role.initiating-party",
+      "display_name": "Leora Benton (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.benton.actor.blue-cedar",
+      "role_id": "us.ca4.role.responding-party",
+      "display_name": "Blue Cedar Compliance, Inc. (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.benton.actor.ca4-clerk",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional Fourth Circuit exercise clerk",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.benton.actor.composite-panel",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional composite Fourth Circuit panel",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+      "title": "Whether the admitted record permits a reasonable factfinder to find protected activity, decisionmaker knowledge, pretext, and but-for causation",
+      "authority_ids": [
+        "ca4m4.benton.authority.title-vii-retaliation",
+        "ca4m4.benton.authority.foster-framework",
+        "ca4m4.benton.authority.foster-pretext",
+        "ca4m4.benton.authority.frcp-56-summary-judgment"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.benton.anchor.ja3",
+        "ca4m4.benton.anchor.ja4",
+        "ca4m4.benton.anchor.ja5",
+        "ca4m4.benton.anchor.ja6",
+        "ca4m4.benton.anchor.ja7",
+        "ca4m4.benton.anchor.ja42",
+        "ca4m4.benton.anchor.ja43",
+        "ca4m4.benton.anchor.ja44",
+        "ca4m4.benton.anchor.ja47",
+        "ca4m4.benton.anchor.ja58",
+        "ca4m4.benton.anchor.ja64",
+        "ca4m4.benton.anchor.ja65",
+        "ca4m4.benton.anchor.ja68",
+        "ca4m4.benton.anchor.ja70",
+        "ca4m4.benton.anchor.ja71",
+        "ca4m4.benton.anchor.ja72",
+        "ca4m4.benton.anchor.ja82",
+        "ca4m4.benton.anchor.ja88",
+        "ca4m4.benton.anchor.ja89",
+        "ca4m4.benton.anchor.ja91",
+        "ca4m4.benton.anchor.ja93",
+        "ca4m4.benton.anchor.ja96",
+        "ca4m4.benton.anchor.ja98",
+        "ca4m4.benton.anchor.ja103",
+        "ca4m4.benton.anchor.ja110",
+        "ca4m4.benton.anchor.ja111",
+        "ca4m4.benton.anchor.ja112",
+        "ca4m4.benton.anchor.ja113",
+        "ca4m4.benton.anchor.ja118",
+        "ca4m4.benton.anchor.ja120",
+        "ca4m4.benton.anchor.ja121",
+        "ca4m4.benton.anchor.ja122",
+        "ca4m4.benton.anchor.ja124",
+        "ca4m4.benton.anchor.ja125"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.benton.issue.disclosure-boundary-hypothetical",
+      "title": "What Rules 26(e)(1) and 37(c)(1) would require if a party later learned a materially different witness subject beyond the subjects identified in batch 1",
+      "authority_ids": [
+        "ca4m4.benton.authority.frcp-26e-supplementation",
+        "ca4m4.benton.authority.frcp-37c1-nondisclosure"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.benton.anchor.ja21",
+        "ca4m4.benton.anchor.ja23",
+        "ca4m4.benton.anchor.ja24",
+        "ca4m4.benton.anchor.ja28",
+        "ca4m4.benton.anchor.ja29",
+        "ca4m4.benton.anchor.ja30",
+        "ca4m4.benton.anchor.ja34",
+        "ca4m4.benton.anchor.ja114",
+        "ca4m4.benton.anchor.ja121"
+      ]
+    }
+  ],
+  "authored_disposition_id": "ca4m4.benton.operation.issue-judgment"
+}
