@@ -690,6 +690,7 @@ void OralArgumentDesktopE2eTest::
         actual_state = *window.oralArgumentWorkspace()->sessionState();
         actual_transcript = window.oralArgumentWorkspace()->transcriptView()->toPlainText();
         QVERIFY(actual_transcript.contains(QStringLiteral("joint appendix preserve it")));
+        QVERIFY(actual_transcript.contains(QStringLiteral("Fictional/composite judge:")));
     }
 
     std::optional<model::OralArgumentState> counterfactual_state;
@@ -758,6 +759,7 @@ void OralArgumentDesktopE2eTest::
             QStringLiteral("On that counterfactual, timing changes but the legal pin does not."));
         counterfactual_state = *window.oralArgumentWorkspace()->sessionState();
         counterfactual_transcript = window.oralArgumentWorkspace()->transcriptView()->toPlainText();
+        QVERIFY(counterfactual_transcript.contains(QStringLiteral("Fictional/composite judge:")));
 
         const auto workflow_rows_immediately_after_counterfactual =
             workflowDatabaseRows(database_path, QString::fromLatin1(workflow_session_id));

@@ -518,9 +518,10 @@ void OralArgumentWorkspace::renderSession() {
         }
         const auto transcript_seat =
             std::ranges::find(definition->bench.seats, entry.seat_id, &model::BenchSeat::id);
-        const auto speaker = transcript_seat == definition->bench.seats.end()
-                                 ? utf8(entry.seat_id)
-                                 : utf8(transcript_seat->profile.display_name);
+        const auto speaker = QStringLiteral("Fictional/composite judge: %1")
+                                 .arg(transcript_seat == definition->bench.seats.end()
+                                          ? utf8(entry.seat_id)
+                                          : utf8(transcript_seat->profile.display_name));
         const auto kind = entry.bench_act_kind.has_value() ? actName(*entry.bench_act_kind)
                                                            : QStringLiteral("Bench");
         transcript.push_back(QStringLiteral("[%1] %2 — %3: %4")

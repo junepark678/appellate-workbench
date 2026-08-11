@@ -308,7 +308,8 @@ void OralArgumentWorkspaceTest::rendersExactActualQuestionAndTypedGrounding() {
             workspace.groundingTable()->item(row, 0)->flags().testFlag(Qt::ItemIsUserCheckable));
     }
 
-    QVERIFY(workspace.transcriptView()->toPlainText().contains(QStringLiteral("Justice Cedar")));
+    QVERIFY(workspace.transcriptView()->toPlainText().contains(
+        QStringLiteral("Fictional/composite judge: Justice Cedar")));
     QVERIFY(workspace.transcriptView()->toPlainText().contains(
         QStringLiteral("where does the record support")));
     QCOMPARE(workspace.principalClockLabel()->text(), QStringLiteral("02:00"));
@@ -391,6 +392,9 @@ void OralArgumentWorkspaceTest::controlReturnSubmitsExactSelectionsWithInjectedC
         QStringLiteral("The record claim is pinned")));
     QVERIFY(workspace.transcriptView()->toPlainText().contains(
         QStringLiteral("answer the authored remedy question")));
+    QCOMPARE(workspace.transcriptView()->toPlainText().count(
+                 QStringLiteral("Fictional/composite judge: Justice Cedar")),
+             2);
     QVERIFY(workspace.statusLabel()->text().contains(QStringLiteral("event 2")));
 }
 
