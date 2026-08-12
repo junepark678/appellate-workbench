@@ -273,6 +273,47 @@
       ]
     },
     {
+      "operation_id": "ca4m4.norvale.operation.advance-counterfactual-rule8-scenario-to-appellate-stay",
+      "stage_id": "ca4m4.norvale.stage.district-stay",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-8-stay",
+        "supporting_authority_ids": [
+          "ca4m4.norvale.authority.local-rule-8-district-first"
+        ]
+      },
+      "next_stage_id": "ca4m4.norvale.stage.appellate-stay",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.norvale.order.preliminary-injunction",
+          "disposition": "granted",
+          "operation_id": "ca4m4.norvale.operation.enter-preliminary-injunction-order",
+          "record_entry_id": "ca4m4.norvale.record.entry.l17",
+          "document_sha256": "ce228230d6f61d42522abefbcb6050dfdb90abdf2db63bdf4ed92fc7bbc0155b"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.norvale.actor.city",
+          "filing_id": "ca4m4.norvale.filing.l18-district-stay-motion",
+          "accept_operation_id": "ca4m4.norvale.operation.accept-district-stay-filing",
+          "record_entry_id": "ca4m4.norvale.record.entry.l18",
+          "document_sha256": "a89eb3ac60223cc6fb0a3cf5dcd5d15a8e2980d8f932588dd1cb92c27b93b01d"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
       "operation_id": "ca4m4.norvale.operation.accept-notice-of-appeal",
       "stage_id": "ca4m4.norvale.stage.opened",
       "opcode": "accept_filing",
@@ -769,7 +810,7 @@
         "record_entry_id": "ca4m4.norvale.record.entry.b05",
         "document_sha256": "8edd1ff49d439e2326e2b8a413731e386db1332295ac5a716f32d361dd2a140f",
         "expected_court_date": "2026-02-06",
-        "order_id": "ca4m4.norvale.order.impracticability-stay-denial",
+        "order_id": "ca4m4.norvale.order.impracticability-stay-outcome",
         "disposition": "denied"
       },
       "preconditions": [
@@ -839,7 +880,7 @@
         "record_entry_id": "ca4m4.norvale.record.entry.b06",
         "document_sha256": "d50e4af85acce388c882087117e75452d4a5c63deeee64376995c7d0f0c921d1",
         "expected_court_date": "2026-02-06",
-        "order_id": "ca4m4.norvale.order.appellate-stay-grant",
+        "order_id": "ca4m4.norvale.order.impracticability-stay-outcome",
         "disposition": "granted"
       },
       "preconditions": [
@@ -895,37 +936,6 @@
       ]
     },
     {
-      "operation_id": "ca4m4.norvale.operation.advance-threshold-denial-to-record",
-      "stage_id": "ca4m4.norvale.stage.appellate-stay",
-      "opcode": "advance_stage",
-      "authority": {
-        "primary_authority_id": "us.federal.authority.frap-10-record",
-        "supporting_authority_ids": [
-          "us.federal.authority.frap-11-record-forwarding"
-        ]
-      },
-      "next_stage_id": "ca4m4.norvale.stage.record",
-      "preconditions": [
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.rule8-threshold-denial",
-          "disposition": "denied",
-          "operation_id": "ca4m4.norvale.operation.enter-rule8-threshold-denial",
-          "record_entry_id": "ca4m4.norvale.record.entry.b02",
-          "document_sha256": "421fafe4a84b0b0ee922f60492035287234076c3bd0ef8ad1ed57ed915f2238b"
-        }
-      ],
-      "authorized_role_ids": [
-        "us.ca4.role.court"
-      ],
-      "allowed_legal_times": [
-        {
-          "court_date": "2026-02-03",
-          "instant_unix_seconds": "1770076800"
-        }
-      ]
-    },
-    {
       "operation_id": "ca4m4.norvale.operation.advance-actual-stay-denial-to-record",
       "stage_id": "ca4m4.norvale.stage.appellate-stay",
       "opcode": "advance_stage",
@@ -944,68 +954,6 @@
           "operation_id": "ca4m4.norvale.operation.enter-actual-appellate-stay-denial",
           "record_entry_id": "ca4m4.norvale.record.entry.a07",
           "document_sha256": "6c04e8866321a96faa4777ebc21612947dcea88a1a6ee1915096d9fd55842054"
-        }
-      ],
-      "authorized_role_ids": [
-        "us.ca4.role.court"
-      ],
-      "allowed_legal_times": [
-        {
-          "court_date": "2026-02-06",
-          "instant_unix_seconds": "1770336000"
-        }
-      ]
-    },
-    {
-      "operation_id": "ca4m4.norvale.operation.advance-impracticability-denial-to-record",
-      "stage_id": "ca4m4.norvale.stage.appellate-stay",
-      "opcode": "advance_stage",
-      "authority": {
-        "primary_authority_id": "us.federal.authority.frap-10-record",
-        "supporting_authority_ids": [
-          "us.federal.authority.frap-11-record-forwarding"
-        ]
-      },
-      "next_stage_id": "ca4m4.norvale.stage.record",
-      "preconditions": [
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.impracticability-stay-denial",
-          "disposition": "denied",
-          "operation_id": "ca4m4.norvale.operation.enter-impracticability-stay-denial",
-          "record_entry_id": "ca4m4.norvale.record.entry.b05",
-          "document_sha256": "8edd1ff49d439e2326e2b8a413731e386db1332295ac5a716f32d361dd2a140f"
-        }
-      ],
-      "authorized_role_ids": [
-        "us.ca4.role.court"
-      ],
-      "allowed_legal_times": [
-        {
-          "court_date": "2026-02-06",
-          "instant_unix_seconds": "1770336000"
-        }
-      ]
-    },
-    {
-      "operation_id": "ca4m4.norvale.operation.advance-stay-grant-to-record",
-      "stage_id": "ca4m4.norvale.stage.appellate-stay",
-      "opcode": "advance_stage",
-      "authority": {
-        "primary_authority_id": "us.federal.authority.frap-10-record",
-        "supporting_authority_ids": [
-          "us.federal.authority.frap-11-record-forwarding"
-        ]
-      },
-      "next_stage_id": "ca4m4.norvale.stage.record",
-      "preconditions": [
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.appellate-stay-grant",
-          "disposition": "granted",
-          "operation_id": "ca4m4.norvale.operation.enter-appellate-stay-grant",
-          "record_entry_id": "ca4m4.norvale.record.entry.b06",
-          "document_sha256": "d50e4af85acce388c882087117e75452d4a5c63deeee64376995c7d0f0c921d1"
         }
       ],
       "authorized_role_ids": [
@@ -1136,7 +1084,7 @@
     },
     {
       "operation_id": "ca4m4.norvale.operation.enter-appellate-stay-dissolution",
-      "stage_id": "ca4m4.norvale.stage.record",
+      "stage_id": "ca4m4.norvale.stage.appellate-stay",
       "opcode": "enter_order",
       "authority": {
         "primary_authority_id": "us.federal.authority.frap-8-stay",
@@ -1154,19 +1102,11 @@
       "preconditions": [
         {
           "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.appellate-stay-grant",
+          "order_id": "ca4m4.norvale.order.impracticability-stay-outcome",
           "disposition": "granted",
           "operation_id": "ca4m4.norvale.operation.enter-appellate-stay-grant",
           "record_entry_id": "ca4m4.norvale.record.entry.b06",
           "document_sha256": "d50e4af85acce388c882087117e75452d4a5c63deeee64376995c7d0f0c921d1"
-        },
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.record-complete-briefing",
-          "disposition": "other",
-          "operation_id": "ca4m4.norvale.operation.enter-record-complete-briefing-order",
-          "record_entry_id": "ca4m4.norvale.record.entry.a10",
-          "document_sha256": "6a35fc399b86e13a719c821469007cae629b202d5388359fa32bb964e0403957"
         }
       ],
       "authorized_role_ids": [
@@ -1219,50 +1159,6 @@
       ]
     },
     {
-      "operation_id": "ca4m4.norvale.operation.advance-record-after-threshold-denial",
-      "stage_id": "ca4m4.norvale.stage.record",
-      "opcode": "advance_stage",
-      "authority": {
-        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
-        "supporting_authority_ids": [
-          "us.ca4.authority.local-rule-31b-briefing-order"
-        ]
-      },
-      "next_stage_id": "ca4m4.norvale.stage.opening-briefing",
-      "preconditions": [
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.rule8-threshold-denial",
-          "disposition": "denied",
-          "operation_id": "ca4m4.norvale.operation.enter-rule8-threshold-denial",
-          "record_entry_id": "ca4m4.norvale.record.entry.b02",
-          "document_sha256": "421fafe4a84b0b0ee922f60492035287234076c3bd0ef8ad1ed57ed915f2238b"
-        },
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.record-complete-briefing",
-          "disposition": "other",
-          "operation_id": "ca4m4.norvale.operation.enter-record-complete-briefing-order",
-          "record_entry_id": "ca4m4.norvale.record.entry.a10",
-          "document_sha256": "6a35fc399b86e13a719c821469007cae629b202d5388359fa32bb964e0403957"
-        },
-        {
-          "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.opening-brief",
-          "status": "open"
-        }
-      ],
-      "authorized_role_ids": [
-        "us.ca4.role.court"
-      ],
-      "allowed_legal_times": [
-        {
-          "court_date": "2026-02-09",
-          "instant_unix_seconds": "1770595200"
-        }
-      ]
-    },
-    {
       "operation_id": "ca4m4.norvale.operation.advance-record-after-actual-stay-denial",
       "stage_id": "ca4m4.norvale.stage.record",
       "opcode": "advance_stage",
@@ -1294,102 +1190,6 @@
           "kind": "deadline_status",
           "deadline_id": "ca4m4.norvale.deadline.opening-brief",
           "status": "open"
-        }
-      ],
-      "authorized_role_ids": [
-        "us.ca4.role.court"
-      ],
-      "allowed_legal_times": [
-        {
-          "court_date": "2026-02-09",
-          "instant_unix_seconds": "1770595200"
-        }
-      ]
-    },
-    {
-      "operation_id": "ca4m4.norvale.operation.advance-record-after-impracticability-denial",
-      "stage_id": "ca4m4.norvale.stage.record",
-      "opcode": "advance_stage",
-      "authority": {
-        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
-        "supporting_authority_ids": [
-          "us.ca4.authority.local-rule-31b-briefing-order"
-        ]
-      },
-      "next_stage_id": "ca4m4.norvale.stage.opening-briefing",
-      "preconditions": [
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.impracticability-stay-denial",
-          "disposition": "denied",
-          "operation_id": "ca4m4.norvale.operation.enter-impracticability-stay-denial",
-          "record_entry_id": "ca4m4.norvale.record.entry.b05",
-          "document_sha256": "8edd1ff49d439e2326e2b8a413731e386db1332295ac5a716f32d361dd2a140f"
-        },
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.record-complete-briefing",
-          "disposition": "other",
-          "operation_id": "ca4m4.norvale.operation.enter-record-complete-briefing-order",
-          "record_entry_id": "ca4m4.norvale.record.entry.a10",
-          "document_sha256": "6a35fc399b86e13a719c821469007cae629b202d5388359fa32bb964e0403957"
-        },
-        {
-          "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.opening-brief",
-          "status": "open"
-        }
-      ],
-      "authorized_role_ids": [
-        "us.ca4.role.court"
-      ],
-      "allowed_legal_times": [
-        {
-          "court_date": "2026-02-09",
-          "instant_unix_seconds": "1770595200"
-        }
-      ]
-    },
-    {
-      "operation_id": "ca4m4.norvale.operation.advance-record-after-stay-dissolution",
-      "stage_id": "ca4m4.norvale.stage.record",
-      "opcode": "advance_stage",
-      "authority": {
-        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
-        "supporting_authority_ids": [
-          "us.ca4.authority.local-rule-31b-briefing-order"
-        ]
-      },
-      "next_stage_id": "ca4m4.norvale.stage.opening-briefing",
-      "preconditions": [
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.appellate-stay-grant",
-          "disposition": "granted",
-          "operation_id": "ca4m4.norvale.operation.enter-appellate-stay-grant",
-          "record_entry_id": "ca4m4.norvale.record.entry.b06",
-          "document_sha256": "d50e4af85acce388c882087117e75452d4a5c63deeee64376995c7d0f0c921d1"
-        },
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.record-complete-briefing",
-          "disposition": "other",
-          "operation_id": "ca4m4.norvale.operation.enter-record-complete-briefing-order",
-          "record_entry_id": "ca4m4.norvale.record.entry.a10",
-          "document_sha256": "6a35fc399b86e13a719c821469007cae629b202d5388359fa32bb964e0403957"
-        },
-        {
-          "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.opening-brief",
-          "status": "open"
-        },
-        {
-          "kind": "order_instance",
-          "order_id": "ca4m4.norvale.order.appellate-stay-dissolution",
-          "disposition": "other",
-          "operation_id": "ca4m4.norvale.operation.enter-appellate-stay-dissolution",
-          "record_entry_id": "ca4m4.norvale.record.entry.b07",
-          "document_sha256": "fed6b65d542abd81dddec0c614f220b9727ccf51fdfdc646ece57a83ed130d64"
         }
       ],
       "authorized_role_ids": [
@@ -2387,7 +2187,7 @@
       ]
     },
     {
-      "operation_id": "ca4m4.norvale.operation.calculate-rehearing-deadline",
+      "operation_id": "ca4m4.norvale.operation.calculate-adverse-rehearing-deadline",
       "stage_id": "ca4m4.norvale.stage.post-judgment",
       "opcode": "calculate_deadline",
       "authority": {
@@ -2399,7 +2199,7 @@
       },
       "deadline_days": 14,
       "deadline_counting": "calendar_days",
-      "produced_deadline_id": "ca4m4.norvale.deadline.rehearing",
+      "produced_deadline_id": "ca4m4.norvale.deadline.rehearing-adverse",
       "deadline_event_base": {
         "kind": "judgment_occurred"
       },
@@ -2407,6 +2207,14 @@
         {
           "kind": "judgment_issued",
           "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.norvale.order.adverse-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.norvale.operation.enter-adverse-opinion",
+          "record_entry_id": "ca4m4.norvale.record.entry.b09",
+          "document_sha256": "a5a256c9f95ddc2394561de000c1adc7adb08964de2eede6342c20b58f586ff4"
         }
       ],
       "authorized_role_ids": [
@@ -2416,7 +2224,44 @@
         {
           "court_date": "2026-05-22",
           "instant_unix_seconds": "1779408000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.norvale.operation.calculate-actual-rehearing-deadline",
+      "stage_id": "ca4m4.norvale.stage.post-judgment",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
+      "deadline_event_base": {
+        "kind": "judgment_occurred"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
         },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.norvale.order.actual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.norvale.operation.enter-actual-opinion",
+          "record_entry_id": "ca4m4.norvale.record.entry.a20",
+          "document_sha256": "02c225c48c3c5c5ca592d21dba7efff2c17608be70f497760faf8f2d8441c736"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
         {
           "court_date": "2026-06-18",
           "instant_unix_seconds": "1781740800"
@@ -2424,7 +2269,7 @@
       ]
     },
     {
-      "operation_id": "ca4m4.norvale.operation.calculate-ordinary-mandate-deadline",
+      "operation_id": "ca4m4.norvale.operation.calculate-adverse-ordinary-mandate-deadline",
       "stage_id": "ca4m4.norvale.stage.post-judgment",
       "opcode": "calculate_deadline",
       "authority": {
@@ -2436,16 +2281,24 @@
       },
       "deadline_days": 7,
       "deadline_counting": "calendar_days",
-      "deadline_base_id": "ca4m4.norvale.deadline.rehearing",
-      "produced_deadline_id": "ca4m4.norvale.deadline.mandate-ordinary",
+      "deadline_base_id": "ca4m4.norvale.deadline.rehearing-adverse",
+      "produced_deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-adverse",
       "preconditions": [
         {
           "kind": "judgment_issued",
           "issued": true
         },
         {
+          "kind": "order_instance",
+          "order_id": "ca4m4.norvale.order.adverse-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.norvale.operation.enter-adverse-opinion",
+          "record_entry_id": "ca4m4.norvale.record.entry.b09",
+          "document_sha256": "a5a256c9f95ddc2394561de000c1adc7adb08964de2eede6342c20b58f586ff4"
+        },
+        {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.rehearing",
+          "deadline_id": "ca4m4.norvale.deadline.rehearing-adverse",
           "status": "open"
         }
       ],
@@ -2456,7 +2309,47 @@
         {
           "court_date": "2026-06-05",
           "instant_unix_seconds": "1780617600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.norvale.operation.calculate-actual-ordinary-mandate-deadline",
+      "stage_id": "ca4m4.norvale.stage.post-judgment",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "deadline_base_id": "ca4m4.norvale.deadline.rehearing-actual",
+      "produced_deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-actual",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
         },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.norvale.order.actual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.norvale.operation.enter-actual-opinion",
+          "record_entry_id": "ca4m4.norvale.record.entry.a20",
+          "document_sha256": "02c225c48c3c5c5ca592d21dba7efff2c17608be70f497760faf8f2d8441c736"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
         {
           "court_date": "2026-07-02",
           "instant_unix_seconds": "1782950400"
@@ -2525,7 +2418,7 @@
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.rehearing",
+          "deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
           "status": "satisfied"
         }
       ],
@@ -2676,12 +2569,12 @@
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.rehearing",
+          "deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
           "status": "elapsed"
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary",
+          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-actual",
           "status": "not_elapsed"
         }
       ],
@@ -2832,12 +2725,12 @@
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.rehearing",
+          "deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
           "status": "elapsed"
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary",
+          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-actual",
           "status": "not_elapsed"
         }
       ],
@@ -2982,12 +2875,12 @@
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.rehearing",
+          "deadline_id": "ca4m4.norvale.deadline.rehearing-adverse",
           "status": "elapsed"
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary",
+          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-adverse",
           "status": "not_elapsed"
         }
       ],
@@ -3057,12 +2950,12 @@
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.rehearing",
+          "deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
           "status": "elapsed"
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary",
+          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-actual",
           "status": "not_elapsed"
         }
       ],
@@ -3108,7 +3001,7 @@
         },
         {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary",
+          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-adverse",
           "status": "reached"
         }
       ],
@@ -3184,8 +3077,38 @@
           "document_sha256": "02c225c48c3c5c5ca592d21dba7efff2c17608be70f497760faf8f2d8441c736"
         },
         {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.norvale.actor.city",
+          "filing_id": "ca4m4.norvale.filing.b11-rehearing-petition",
+          "accept_operation_id": "ca4m4.norvale.operation.accept-rehearing-petition",
+          "record_entry_id": "ca4m4.norvale.record.entry.b11",
+          "document_sha256": "47ddc4b695fc0c4154b9b49c955c2aea14b3cdf24e46eea7303f9d3a7a87f10b"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.norvale.actor.city",
+          "filing_id": "ca4m4.norvale.filing.b15-mandate-stay-motion-denial",
+          "accept_operation_id": "ca4m4.norvale.operation.accept-post-judgment-motion",
+          "record_entry_id": "ca4m4.norvale.record.entry.b15",
+          "document_sha256": "c777a646176d472d8cfb16c766b0fedefd7798ac9f4fe27c976c17ca0a05ccda"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.norvale.actor.city",
+          "filing_id": "ca4m4.norvale.filing.b19-mandate-stay-motion-grant",
+          "accept_operation_id": "ca4m4.norvale.operation.accept-post-judgment-motion",
+          "record_entry_id": "ca4m4.norvale.record.entry.b19",
+          "document_sha256": "1ca12e6087ff700463e34b550f32675012fdc7b9a46e4d13d219644cd46637a4"
+        },
+        {
           "kind": "deadline_status",
-          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary",
+          "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-actual",
           "status": "reached"
         }
       ],
@@ -3744,6 +3667,11 @@
               "operation_id": "ca4m4.norvale.operation.enter-preliminary-injunction-order",
               "record_entry_id": "ca4m4.norvale.record.entry.l17",
               "document_sha256": "ce228230d6f61d42522abefbcb6050dfdb90abdf2db63bdf4ed92fc7bbc0155b"
+            },
+            {
+              "kind": "deadline_status",
+              "deadline_id": "ca4m4.norvale.deadline.notice-of-appeal",
+              "status": "open"
             }
           ]
         },
@@ -3961,6 +3889,16 @@
             {
               "kind": "filing_instance",
               "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.norvale.actor.city",
+              "filing_id": "ca4m4.norvale.filing.l18-district-stay-motion",
+              "accept_operation_id": "ca4m4.norvale.operation.accept-district-stay-filing",
+              "record_entry_id": "ca4m4.norvale.record.entry.l18",
+              "document_sha256": "a89eb3ac60223cc6fb0a3cf5dcd5d15a8e2980d8f932588dd1cb92c27b93b01d"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
               "present": false,
               "actor_id": "ca4m4.norvale.actor.city",
               "filing_id": "ca4m4.norvale.filing.b01-rule8-motion-omitting-district-relief",
@@ -4089,6 +4027,16 @@
               "filing_type_id": "us.ca4.filing.motion",
               "present": false,
               "actor_id": "ca4m4.norvale.actor.city",
+              "filing_id": "ca4m4.norvale.filing.l18-district-stay-motion",
+              "accept_operation_id": "ca4m4.norvale.operation.accept-district-stay-filing",
+              "record_entry_id": "ca4m4.norvale.record.entry.l18",
+              "document_sha256": "a89eb3ac60223cc6fb0a3cf5dcd5d15a8e2980d8f932588dd1cb92c27b93b01d"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.norvale.actor.city",
               "filing_id": "ca4m4.norvale.filing.a04-city-rule8-stay-motion",
               "accept_operation_id": "ca4m4.norvale.operation.accept-appellate-stay-filing",
               "record_entry_id": "ca4m4.norvale.record.entry.a04",
@@ -4121,6 +4069,16 @@
               "filing_type_id": "us.ca4.filing.motion",
               "present": false,
               "actor_id": "ca4m4.norvale.actor.city",
+              "filing_id": "ca4m4.norvale.filing.l18-district-stay-motion",
+              "accept_operation_id": "ca4m4.norvale.operation.accept-district-stay-filing",
+              "record_entry_id": "ca4m4.norvale.record.entry.l18",
+              "document_sha256": "a89eb3ac60223cc6fb0a3cf5dcd5d15a8e2980d8f932588dd1cb92c27b93b01d"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.norvale.actor.city",
               "filing_id": "ca4m4.norvale.filing.a04-city-rule8-stay-motion",
               "accept_operation_id": "ca4m4.norvale.operation.accept-appellate-stay-filing",
               "record_entry_id": "ca4m4.norvale.record.entry.a04",
@@ -4148,6 +4106,16 @@
             "instant_unix_seconds": "1770163200"
           },
           "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.norvale.actor.city",
+              "filing_id": "ca4m4.norvale.filing.l18-district-stay-motion",
+              "accept_operation_id": "ca4m4.norvale.operation.accept-district-stay-filing",
+              "record_entry_id": "ca4m4.norvale.record.entry.l18",
+              "document_sha256": "a89eb3ac60223cc6fb0a3cf5dcd5d15a8e2980d8f932588dd1cb92c27b93b01d"
+            },
             {
               "kind": "filing_instance",
               "filing_type_id": "us.ca4.filing.motion",
@@ -4528,7 +4496,7 @@
       "reject_operation_id": "ca4m4.norvale.operation.reject-post-judgment-filing",
       "reject_after_deadline": true,
       "authorized_role_scope": "catalog_subset",
-      "satisfies_deadline_id": "ca4m4.norvale.deadline.rehearing",
+      "satisfies_deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
       "filing_bindings": [
         {
           "filing_id": "ca4m4.norvale.filing.b11-rehearing-petition",
@@ -4574,7 +4542,12 @@
             },
             {
               "kind": "deadline_status",
-              "deadline_id": "ca4m4.norvale.deadline.rehearing",
+              "deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
+              "status": "open"
+            },
+            {
+              "kind": "deadline_status",
+              "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-actual",
               "status": "open"
             }
           ]
@@ -4645,7 +4618,12 @@
             },
             {
               "kind": "deadline_status",
-              "deadline_id": "ca4m4.norvale.deadline.rehearing",
+              "deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
+              "status": "open"
+            },
+            {
+              "kind": "deadline_status",
+              "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-actual",
               "status": "open"
             }
           ]
@@ -4694,7 +4672,12 @@
             },
             {
               "kind": "deadline_status",
-              "deadline_id": "ca4m4.norvale.deadline.rehearing",
+              "deadline_id": "ca4m4.norvale.deadline.rehearing-actual",
+              "status": "open"
+            },
+            {
+              "kind": "deadline_status",
+              "deadline_id": "ca4m4.norvale.deadline.mandate-ordinary-actual",
               "status": "open"
             }
           ]
