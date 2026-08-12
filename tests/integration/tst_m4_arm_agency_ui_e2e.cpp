@@ -3,6 +3,7 @@
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/storage/asset_store.hpp"
 #include "appellate/storage/session_store.hpp"
+#include "appellate/storage/workflow_codec.hpp"
 #include "bench_profile_editor.hpp"
 #include "main_window.hpp"
 #include "oral_argument_launch_provider.hpp"
@@ -15,7 +16,12 @@
 #include <QComboBox>
 #include <QCryptographicHash>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
 #include <QLabel>
 #include <QListWidget>
 #include <QPdfSearchModel>
@@ -33,13 +39,13 @@
 
 #include <algorithm>
 #include <array>
-#include <chrono>
 #include <cstdint>
 #include <expected>
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -59,11 +65,11 @@ namespace packs = appellate::packs;
 namespace storage = appellate::storage;
 namespace ui = appellate::ui;
 
-constexpr auto root_digest = "bd1bd37e1e99ecb8239fa41b040aa72a0a856dd012442bcc1061b7d137e6651d";
+constexpr auto root_digest = "ae33933c7cf18f77e662eb302d563afd860e8e900bac8debb081b81b35404edb";
 constexpr auto federal_digest = "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9";
 constexpr auto ca4_digest = "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262";
 constexpr auto bench_digest = "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d";
-constexpr auto workflow_session_id = "ca4m4.arm.session.ui-workflow";
+constexpr auto workflow_session_id = "ca4m4.arm.session.actual-through-mandate";
 constexpr auto actual_session_id = "ca4m4.arm.session.ui-actual";
 constexpr auto counterfactual_session_id = "ca4m4.arm.session.ui-counterfactual";
 constexpr auto workflow_engine_revision = "engine.workflow.arm-ui-e2e.1";
@@ -226,10 +232,95 @@ void appendFrame(QByteArray& output, const QString& value) {
     return encoded;
 }
 
-[[nodiscard]] model::LegalTime legalTime(int year, unsigned month, unsigned day) {
-    const auto date = std::chrono::year{year} / std::chrono::month{month} / std::chrono::day{day};
-    return model::LegalTime{std::chrono::sys_seconds{std::chrono::sys_days{date}},
-                            model::LegalDate{date}};
+struct FrozenWorkflowStep final {
+    model::WorkflowCommand command;
+    std::optional<QByteArray> document_bytes;
+};
+
+[[nodiscard]] auto commandDocumentDigest(const model::WorkflowCommand& command)
+    -> std::optional<std::string> {
+    return std::visit(
+        [](const auto& concrete) -> std::optional<std::string> {
+            if constexpr (requires { concrete.document_sha256; }) {
+                return concrete.document_sha256;
+            }
+            return std::nullopt;
+        },
+        command);
+}
+
+[[nodiscard]] auto loadFrozenWorkflowTrace(const QString& trace_path,
+                                           std::string_view expected_session_id,
+                                           const packs::RuntimeRecord& record)
+    -> std::expected<std::vector<FrozenWorkflowStep>, QString> {
+    QFile trace_file(trace_path);
+    if (!trace_file.open(QIODevice::ReadOnly)) {
+        return std::unexpected(trace_file.errorString());
+    }
+    QJsonParseError parse_error;
+    const auto trace_document = QJsonDocument::fromJson(trace_file.readAll(), &parse_error);
+    if (parse_error.error != QJsonParseError::NoError || !trace_document.isObject()) {
+        return std::unexpected(QStringLiteral("Cannot parse frozen workflow trace: %1")
+                                   .arg(parse_error.errorString()));
+    }
+    const auto journal_value = trace_document.object().value(QStringLiteral("journal"));
+    if (!journal_value.isArray()) {
+        return std::unexpected(QStringLiteral("Frozen workflow trace has no journal"));
+    }
+
+    std::vector<FrozenWorkflowStep> steps;
+    const auto journal = journal_value.toArray();
+    steps.reserve(static_cast<std::size_t>(journal.size()));
+    for (const auto& entry_value : journal) {
+        if (!entry_value.isObject()) {
+            return std::unexpected(
+                QStringLiteral("Frozen workflow journal entry is not an object"));
+        }
+        const auto command_base64 =
+            entry_value.toObject().value(QStringLiteral("command_base64")).toString().toLatin1();
+        const auto command_bytes = QByteArray::fromBase64(command_base64);
+        const auto decoded = storage::decodeWorkflowCommand(QByteArrayView(command_bytes));
+        if (!decoded) {
+            return std::unexpected(decoded.error().message);
+        }
+        const auto session_matches = std::visit(
+            [expected_session_id](const auto& concrete) {
+                return concrete.header.session_id == expected_session_id;
+            },
+            *decoded);
+        if (!session_matches) {
+            return std::unexpected(
+                QStringLiteral("Frozen workflow command has an unexpected session identity"));
+        }
+
+        std::optional<QByteArray> document_bytes;
+        if (const auto digest = commandDocumentDigest(*decoded); digest.has_value()) {
+            const auto entry = std::ranges::find(record.docket_entries, *digest,
+                                                 &packs::RuntimeDocketEntry::asset_sha256);
+            if (entry == record.docket_entries.end()) {
+                return std::unexpected(
+                    QStringLiteral("Frozen workflow document digest is absent from the record"));
+            }
+            const auto asset_path = QDir(QStringLiteral(APPELLATE_M4_ARM_ROOT))
+                                        .filePath(QStringLiteral("pack/%1").arg(
+                                            QString::fromStdString(entry->asset_path)));
+            QFile asset(asset_path);
+            if (!asset.open(QIODevice::ReadOnly)) {
+                return std::unexpected(asset.errorString());
+            }
+            document_bytes = asset.readAll();
+            const auto actual_digest =
+                QCryptographicHash::hash(*document_bytes, QCryptographicHash::Sha256)
+                    .toHex()
+                    .toStdString();
+            if (actual_digest != *digest) {
+                return std::unexpected(
+                    QStringLiteral("Frozen workflow document bytes have the wrong digest"));
+            }
+        }
+        steps.push_back(FrozenWorkflowStep{std::move(*decoded), std::move(document_bytes)});
+    }
+    return steps;
 }
 
 class PersistedArmLaunchProvider final : public ui::OralArgumentLaunchProvider {
@@ -351,6 +442,44 @@ class PersistedArmLaunchProvider final : public ui::OralArgumentLaunchProvider {
                : static_cast<int>(std::distance(configurations.begin(), found));
 }
 
+void selectAndVerifyDifferentiatedProfiles(ui::MainWindow& window, int configuration_index,
+                                           const std::vector<std::string>& expected_profiles) {
+    window.argumentConfigurationSelector()->setCurrentIndex(configuration_index);
+    QCOMPARE(window.profileSelector()->count(), 3);
+    for (int index = 0; index < window.profileSelector()->count(); ++index) {
+        window.profileSelector()->setCurrentIndex(index);
+        const auto profile = window.profileEditor()->profile();
+        QVERIFY(profile.has_value());
+        QCOMPARE(profile->id, expected_profiles.at(static_cast<std::size_t>(index)));
+        QVERIFY(profile->interaction.issue_focus.size() >= std::size_t{3});
+
+        if (profile->id == "us.ca4.bench-profile.rowan") {
+            QCOMPARE(profile->interaction.follow_up_depth, 0.92);
+            QCOMPARE(profile->interaction.issue_focus.front().topic_id,
+                     std::string("workbench.topic.standard-of-review"));
+            QVERIFY(profile->voice.register_style == model::VoiceRegister::Technical);
+            QVERIFY(profile->voice.cadence == model::VoiceCadence::Measured);
+            QVERIFY(profile->voice.question_framing == model::QuestionFraming::Socratic);
+        } else if (profile->id == "us.ca4.bench-profile.reed") {
+            QCOMPARE(profile->interaction.record_pin_demand, 0.92);
+            QCOMPARE(profile->interaction.issue_focus.front().topic_id,
+                     std::string("workbench.topic.record-support"));
+            QVERIFY(profile->voice.register_style == model::VoiceRegister::Technical);
+            QVERIFY(profile->voice.cadence == model::VoiceCadence::Clipped);
+            QVERIFY(profile->voice.question_framing == model::QuestionFraming::Direct);
+        } else if (profile->id == "us.ca4.bench-profile.quill") {
+            QCOMPARE(profile->interaction.time_strictness, 0.90);
+            QCOMPARE(profile->interaction.issue_focus.front().topic_id,
+                     std::string("workbench.topic.jurisdiction"));
+            QVERIFY(profile->voice.register_style == model::VoiceRegister::Plain);
+            QVERIFY(profile->voice.cadence == model::VoiceCadence::Clipped);
+            QVERIFY(profile->voice.question_framing == model::QuestionFraming::Direct);
+        } else {
+            QFAIL("Unexpected ARM bench profile");
+        }
+    }
+}
+
 void submitGroundedAnswer(ui::OralArgumentWorkspace& workspace, const QString& answer) {
     QVERIFY(workspace.isReady());
     QVERIFY(workspace.canonicalDefinition() != nullptr);
@@ -375,7 +504,7 @@ class M4ArmAgencyUiE2eTest final : public QObject {
 };
 
 void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
-    const model::PackRevision expected_root{model::PackId{"us.ca4.m4.arm-agency"}, "1.1.0",
+    const model::PackRevision expected_root{model::PackId{"us.ca4.m4.arm-agency"}, "1.2.0",
                                             root_digest};
     const model::PackRevision expected_federal{model::PackId{"foundation.us-federal"}, "2025.12.01",
                                                federal_digest};
@@ -432,6 +561,130 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
     QCOMPARE(runtime->cases.size(), std::size_t{1});
     const auto& runtime_case = runtime->cases.front();
 
+    QCOMPARE(runtime_case.record.dockets.size(), std::size_t{3});
+    QCOMPARE(runtime_case.record.docket_entries.size(), std::size_t{54});
+    QCOMPARE(runtime_case.record.page_anchors.size(), std::size_t{415});
+    const auto has_tag = [](const packs::RuntimeDocketEntry& entry, std::string_view tag) {
+        return std::ranges::find(entry.tags, tag) != entry.tags.end();
+    };
+    std::size_t agency_document_count{};
+    std::size_t actual_document_count{};
+    std::size_t proffer_document_count{};
+    std::size_t branch_document_count{};
+    std::uint32_t agency_page_count{};
+    std::uint32_t actual_page_count{};
+    std::uint32_t proffer_page_count{};
+    std::uint32_t branch_page_count{};
+    for (const auto& entry : runtime_case.record.docket_entries) {
+        if (entry.docket_id.has_value() && entry.docket_id->value == "ca4m4.arm.docket.agency") {
+            ++agency_document_count;
+            agency_page_count += entry.page_count;
+        } else if (has_tag(entry, "actual_appellate_docket")) {
+            ++actual_document_count;
+            actual_page_count += entry.page_count;
+            QVERIFY(entry.docket_id.has_value());
+            QCOMPARE(entry.docket_id->value, std::string("ca4m4.arm.docket.ca4"));
+            QVERIFY(!has_tag(entry, "counterfactual_appellate_branch"));
+        } else if (has_tag(entry, "extra_record_proffer")) {
+            ++proffer_document_count;
+            proffer_page_count += entry.page_count;
+            QCOMPARE(entry.id.value, std::string("ca4m4.arm.record.pa01"));
+            QVERIFY(entry.parent_entry_id.has_value());
+            QCOMPARE(entry.parent_entry_id->value, std::string("ca4m4.arm.record.a06"));
+            QVERIFY(entry.relationship == packs::RuntimeRecordEntryRelationship::Attachment);
+            QVERIFY(has_tag(entry, "not_administrative_record"));
+        } else if (has_tag(entry, "counterfactual_appellate_branch")) {
+            ++branch_document_count;
+            branch_page_count += entry.page_count;
+            QVERIFY(entry.docket_id.has_value());
+            QCOMPARE(entry.docket_id->value,
+                     std::string("ca4m4.arm.docket.counterfactual-branches"));
+            QVERIFY(has_tag(entry, "never_filed"));
+            QVERIFY(!has_tag(entry, "actual_appellate_docket"));
+        } else {
+            QFAIL("Unclassified ARM record document");
+        }
+    }
+    QCOMPARE(agency_document_count, std::size_t{18});
+    QCOMPARE(agency_page_count, std::uint32_t{238});
+    QCOMPARE(actual_document_count, std::size_t{22});
+    QCOMPARE(actual_page_count, std::uint32_t{119});
+    QCOMPARE(proffer_document_count, std::size_t{1});
+    QCOMPARE(proffer_page_count, std::uint32_t{8});
+    QCOMPARE(branch_document_count, std::size_t{13});
+    QCOMPARE(branch_page_count, std::uint32_t{50});
+    QCOMPARE(actual_document_count + proffer_document_count + branch_document_count,
+             std::size_t{36});
+    QCOMPARE(actual_page_count + proffer_page_count + branch_page_count, std::uint32_t{177});
+
+    std::vector<unsigned> ar_labels;
+    std::vector<unsigned> pa_labels;
+    for (const auto& anchor : runtime_case.record.page_anchors) {
+        QVERIFY(anchor.citation_label.has_value());
+        const std::string_view label(*anchor.citation_label);
+        const auto entry = std::ranges::find(runtime_case.record.docket_entries, anchor.entry_id,
+                                             &packs::RuntimeDocketEntry::id);
+        QVERIFY(entry != runtime_case.record.docket_entries.end());
+        if (label.starts_with("AR")) {
+            ar_labels.push_back(static_cast<unsigned>(std::stoul(std::string(label.substr(2)))));
+            QVERIFY(entry->id.value.starts_with("ca4m4.arm.record.ar"));
+        } else if (label.starts_with("PA")) {
+            const auto page = static_cast<unsigned>(std::stoul(std::string(label.substr(2))));
+            pa_labels.push_back(page);
+            if (page <= 8U) {
+                QCOMPARE(entry->id.value, std::string("ca4m4.arm.record.pa01"));
+                QVERIFY(has_tag(*entry, "extra_record_proffer"));
+            } else if (page <= 127U) {
+                QVERIFY(has_tag(*entry, "actual_appellate_docket"));
+                QVERIFY(!has_tag(*entry, "counterfactual_appellate_branch"));
+            } else {
+                QVERIFY(has_tag(*entry, "counterfactual_appellate_branch"));
+                QVERIFY(has_tag(*entry, "never_filed"));
+            }
+        } else {
+            QFAIL("Unexpected ARM citation label family");
+        }
+    }
+    std::ranges::sort(ar_labels);
+    std::ranges::sort(pa_labels);
+    QCOMPARE(ar_labels.size(), std::size_t{238});
+    QCOMPARE(pa_labels.size(), std::size_t{177});
+    for (std::size_t index = 0; index < ar_labels.size(); ++index) {
+        QCOMPARE(ar_labels.at(index), static_cast<unsigned>(index + 1U));
+    }
+    for (std::size_t index = 0; index < pa_labels.size(); ++index) {
+        QCOMPARE(pa_labels.at(index), static_cast<unsigned>(index + 1U));
+    }
+
+    const auto actual_configuration = std::ranges::find(
+        runtime_case.argument_configurations, std::string_view("ca4m4.arm.argument.actual-record"),
+        [](const auto& configuration) { return std::string_view(configuration.id.value); });
+    const auto counterfactual_configuration = std::ranges::find(
+        runtime_case.argument_configurations, std::string_view("ca4m4.arm.argument.counterfactual"),
+        [](const auto& configuration) { return std::string_view(configuration.id.value); });
+    QVERIFY(actual_configuration != runtime_case.argument_configurations.end());
+    QVERIFY(counterfactual_configuration != runtime_case.argument_configurations.end());
+    QCOMPARE(actual_configuration->permitted_issue_ids.size(), std::size_t{5});
+    QCOMPARE(counterfactual_configuration->permitted_issue_ids.size(), std::size_t{5});
+    QVERIFY(actual_configuration->grounded_question_bank.has_value());
+    QVERIFY(counterfactual_configuration->grounded_question_bank.has_value());
+    const auto& actual_bank = *actual_configuration->grounded_question_bank;
+    const auto& counterfactual_bank = *counterfactual_configuration->grounded_question_bank;
+    QVERIFY(actual_bank.mode == model::OralArgumentMode::ActualRecord);
+    QVERIFY(counterfactual_bank.mode == model::OralArgumentMode::CounterfactualTraining);
+    QCOMPARE(actual_bank.issue_topics.size(), std::size_t{5});
+    QCOMPARE(counterfactual_bank.issue_topics.size(), std::size_t{5});
+    QCOMPARE(actual_bank.questions.size(), std::size_t{15});
+    QCOMPARE(counterfactual_bank.questions.size(), std::size_t{10});
+    QCOMPARE(actual_bank.grounding_digest,
+             std::string("0bf9b67b1ad8bf28c5c061deda496a1047d731ce66fdec9a864c112c637cd2b5"));
+    QCOMPARE(counterfactual_bank.grounding_digest,
+             std::string("27f6387c45efb7ac62c798164dbd1a78cfc699bc8cc53a7c36b75e8a220e7124"));
+    QVERIFY(std::ranges::all_of(actual_bank.questions,
+                                [](const auto& question) { return !question.grounding.empty(); }));
+    QVERIFY(std::ranges::all_of(counterfactual_bank.questions,
+                                [](const auto& question) { return !question.grounding.empty(); }));
+
     model::WorkflowState workflow_initial;
     workflow_initial.session_id = workflow_session_id;
     workflow_initial.workflow_id = runtime_case.workflow.id;
@@ -444,48 +697,63 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
         std::move(*workflow_store), QString::fromLatin1(workflow_engine_revision),
         QStringLiteral("2026-08-11T09:00:00Z"), *resolved);
     QVERIFY2(workflow.has_value(), workflow ? "" : qPrintable(workflow.error().message));
-    const QByteArray petition_bytes("ARM UI E2E exact agency petition bytes");
-    const auto petition_digest =
-        QCryptographicHash::hash(petition_bytes, QCryptographicHash::Sha256).toHex().toStdString();
-    const auto filed = (*workflow)->submit(
-        model::WorkflowCommand{model::SubmitWorkflowFiling{
-            model::WorkflowCommandHeader{
-                workflow_session_id, model::WorkflowCommandId{"ca4m4.arm.command.ui-file-petition"},
-                model::ActorId{"ca4m4.arm.actor.petitioner"}, legalTime(2025, 2U, 11U)},
-            model::WorkflowFilingId{"ca4m4.arm.filing.ui-petition"},
-            model::FilingTypeId{"us.ca4.filing.agency-petition-for-review"},
-            petition_digest,
-            {
-                {model::FilingFieldId{"us.ca4.field.agency-petition.caption"}, "present"},
-                {model::FilingFieldId{"us.ca4.field.agency-petition.parties-seeking-review"},
-                 "present"},
-                {model::FilingFieldId{"us.ca4.field.agency-petition.agency"}, "present"},
-                {model::FilingFieldId{"us.ca4.field.agency-petition.order-reference"}, "present"},
-                {model::FilingFieldId{"us.ca4.field.agency-petition.order-copy-attached"},
-                 "present"},
-                {model::FilingFieldId{"us.ca4.field.agency-petition.respondent-names-addresses"},
-                 "present"},
-            },
-            {model::ActorId{"ca4m4.arm.actor.respondent"}},
-            std::nullopt,
-        }},
-        QByteArrayView(petition_bytes), QStringLiteral("2026-08-11T09:01:00Z"));
-    QVERIFY2(filed.has_value(), filed ? "" : qPrintable(filed.error().message));
-    QVERIFY(filed->asset.has_value());
-    QCOMPARE(filed->asset->sha256, QString::fromStdString(petition_digest));
-    QCOMPARE(filed->asset->size, static_cast<qint64>(petition_bytes.size()));
-    const auto persisted_petition =
-        storage::AssetStore(asset_root).read(QString::fromStdString(petition_digest));
-    QVERIFY2(persisted_petition.has_value(),
-             persisted_petition ? "" : qPrintable(persisted_petition.error().message));
-    QCOMPARE(*persisted_petition, petition_bytes);
+    const auto actual_trace =
+        loadFrozenWorkflowTrace(QDir(QStringLiteral(APPELLATE_M4_ARM_ROOT))
+                                    .filePath(QStringLiteral("traces/actual-through-mandate.json")),
+                                workflow_session_id, runtime_case.record);
+    QVERIFY2(actual_trace.has_value(), actual_trace ? "" : qPrintable(actual_trace.error()));
+    QCOMPARE(actual_trace->size(), std::size_t{39});
+    QVERIFY(actual_trace->front().document_bytes.has_value());
+    auto wrong_final_order = *actual_trace->front().document_bytes;
+    wrong_final_order[0] = static_cast<char>(wrong_final_order.at(0) ^ 0x01);
+    const auto wrong_identity =
+        (*workflow)->submit(actual_trace->front().command, QByteArrayView(wrong_final_order),
+                            QStringLiteral("2026-08-11T09:00:30Z"));
+    QVERIFY(!wrong_identity.has_value());
+    QVERIFY(wrong_identity.error().code == app::WorkflowSessionErrorCode::DocumentDigestMismatch);
+    QCOMPARE((*workflow)->state(), workflow_initial);
+    QVERIFY((*workflow)->journal().empty());
+    QCOMPARE((*workflow)->snapshot().sequence, qint64{0});
+
+    for (std::size_t index = 0; index < actual_trace->size(); ++index) {
+        const auto& step = actual_trace->at(index);
+        std::optional<QByteArrayView> document_view;
+        if (step.document_bytes.has_value()) {
+            document_view = QByteArrayView(*step.document_bytes);
+        }
+        const auto submitted =
+            (*workflow)->submit(step.command, document_view,
+                                QStringLiteral("2026-08-11T09:%1:00Z")
+                                    .arg(static_cast<int>(index + 1U), 2, 10, QLatin1Char('0')));
+        QVERIFY2(submitted.has_value(), submitted ? "" : qPrintable(submitted.error().message));
+        QCOMPARE(submitted->asset.has_value(), step.document_bytes.has_value());
+        if (step.document_bytes.has_value()) {
+            const auto expected_digest = commandDocumentDigest(step.command);
+            QVERIFY(expected_digest.has_value());
+            QCOMPARE(submitted->asset->sha256, QString::fromStdString(*expected_digest));
+            QCOMPARE(submitted->asset->size, static_cast<qint64>(step.document_bytes->size()));
+        }
+    }
     QCOMPARE((*workflow)->state().current_stage_id,
-             model::WorkflowStageId{"ca4m4.arm.stage.record"});
-    QCOMPARE((*workflow)->journal().size(), std::size_t{1});
-    QCOMPARE((*workflow)->snapshot().commands.size(), std::size_t{1});
-    QCOMPARE((*workflow)->snapshot().events.size(), std::size_t{2});
-    QCOMPARE((*workflow)->snapshot().docket.size(), std::size_t{2});
-    QCOMPARE((*workflow)->snapshot().asset_references.size(), std::size_t{1});
+             model::WorkflowStageId{"ca4m4.arm.stage.mandate-issued"});
+    QCOMPARE((*workflow)->journal().size(), std::size_t{39});
+    QCOMPARE((*workflow)->snapshot().commands.size(), std::size_t{39});
+    QCOMPARE((*workflow)->snapshot().events.size(), std::size_t{42});
+    QCOMPARE((*workflow)->snapshot().docket.size(), std::size_t{42});
+    QCOMPARE((*workflow)->snapshot().asset_references.size(), std::size_t{24});
+    constexpr auto cured_petition_digest =
+        "ce2f6cd5c33e1eef5b2afc78189a80626b8b4b240f0b9cc23530318948571a8d";
+    const auto cured_petition_step =
+        std::ranges::find_if(*actual_trace, [cured_petition_digest](const auto& step) {
+            return commandDocumentDigest(step.command) == cured_petition_digest;
+        });
+    QVERIFY(cured_petition_step != actual_trace->end());
+    QVERIFY(cured_petition_step->document_bytes.has_value());
+    const auto persisted_cured_petition =
+        storage::AssetStore(asset_root).read(QString::fromLatin1(cured_petition_digest));
+    QVERIFY2(persisted_cured_petition.has_value(),
+             persisted_cured_petition ? "" : qPrintable(persisted_cured_petition.error().message));
+    QCOMPARE(*persisted_cured_petition, *cured_petition_step->document_bytes);
     const auto workflow_state_before = (*workflow)->state();
     const auto workflow_journal_before = (*workflow)->journal();
     const auto workflow_snapshot_before = snapshotBytes((*workflow)->snapshot());
@@ -494,6 +762,19 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
         workflowDatabaseRows(session_database, QString::fromLatin1(workflow_session_id));
     QVERIFY2(workflow_rows_before.has_value(),
              workflow_rows_before ? "" : qPrintable(workflow_rows_before.error()));
+    auto duplicate_workflow_store = storage::SessionStore::open(session_database);
+    QVERIFY2(duplicate_workflow_store.has_value(),
+             duplicate_workflow_store ? "" : qPrintable(duplicate_workflow_store.error().message));
+    const auto duplicate_workflow = app::WorkflowSessionController::create(
+        runtime_case.definition.id, workflow_initial, storage::AssetStore(asset_root),
+        std::move(*duplicate_workflow_store), QString::fromLatin1(workflow_engine_revision),
+        QStringLiteral("2026-08-11T10:00:00Z"), *resolved);
+    QVERIFY(!duplicate_workflow.has_value());
+    QVERIFY(duplicate_workflow.error().code == app::WorkflowSessionErrorCode::SessionStoreFailure);
+    const auto workflow_rows_after_duplicate =
+        workflowDatabaseRows(session_database, QString::fromLatin1(workflow_session_id));
+    QVERIFY(workflow_rows_after_duplicate.has_value());
+    QCOMPARE(*workflow_rows_after_duplicate, *workflow_rows_before);
     const auto legal_state_digest =
         QCryptographicHash::hash(workflow_snapshot_before, QCryptographicHash::Sha256)
             .toHex()
@@ -527,18 +808,7 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
         QVERIFY(actual_index >= 0);
         QVERIFY(counterfactual_index >= 0);
 
-        const auto select_profiles = [&](int configuration_index) {
-            window.argumentConfigurationSelector()->setCurrentIndex(configuration_index);
-            QCOMPARE(window.profileSelector()->count(), 3);
-            for (int index = 0; index < window.profileSelector()->count(); ++index) {
-                window.profileSelector()->setCurrentIndex(index);
-                const auto profile = window.profileEditor()->profile();
-                QVERIFY(profile.has_value());
-                QCOMPARE(profile->id, expected_profiles.at(static_cast<std::size_t>(index)));
-            }
-        };
-
-        select_profiles(actual_index);
+        selectAndVerifyDifferentiatedProfiles(window, actual_index, expected_profiles);
         const auto actual_launch = window.openSelectedOralArgument();
         QVERIFY2(actual_launch.has_value(), actual_launch ? "" : qPrintable(actual_launch.error()));
         QVERIFY(window.oralArgumentWorkspace() != nullptr);
@@ -546,6 +816,9 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
                      ->canonicalDefinition()
                      ->question_bank.argument_configuration_id,
                  std::string("ca4m4.arm.argument.actual-record"));
+        QCOMPARE(
+            window.oralArgumentWorkspace()->canonicalDefinition()->question_bank.questions.size(),
+            std::size_t{15});
         QCOMPARE(
             window.oralArgumentWorkspace()->canonicalDefinition()->configuration.legal_state_digest,
             legal_state_digest);
@@ -562,15 +835,22 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
         QVERIFY(record_workspace != nullptr);
         auto* pdf_search = record_workspace->findChild<QPdfSearchModel*>();
         QVERIFY(pdf_search != nullptr);
-        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{19});
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{54});
         record_workspace->setDocketFilter(QStringLiteral("ca4m4.arm.docket.agency"));
         QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{18});
         record_workspace->setDocketFilter(QStringLiteral("ca4m4.arm.docket.ca4"));
-        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{1});
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{23});
+        record_workspace->setDocketFilter(
+            QStringLiteral("ca4m4.arm.docket.counterfactual-branches"));
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{13});
+        record_workspace->setDocketFilter(QStringLiteral("actual_appellate_docket"));
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{22});
         record_workspace->setDocketFilter(QStringLiteral("generated_appellate_filing"));
         QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{1});
+        record_workspace->setDocketFilter(QStringLiteral("never_filed"));
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{13});
         record_workspace->setDocketFilter({});
-        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{19});
+        QCOMPARE(record_workspace->visibleDocketCount(), qsizetype{54});
 
         const auto ar_anchor = record_workspace->navigateToCitation(QStringLiteral("AR33"));
         QVERIFY2(ar_anchor.has_value(), ar_anchor ? "" : qPrintable(ar_anchor.error().message));
@@ -668,6 +948,54 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
         QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
         QTRY_VERIFY_WITH_TIMEOUT(
             !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto actual_first_anchor =
+            record_workspace->navigateToCitation(QStringLiteral("PA9"));
+        QVERIFY2(actual_first_anchor.has_value(),
+                 actual_first_anchor ? "" : qPrintable(actual_first_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.a01"));
+        QCOMPARE(record_workspace->loadedPageCount(), 2);
+        QCOMPARE(record_workspace->currentPageIndex(), 0);
+        record_workspace->setDocumentSearch(QStringLiteral("twenty-nine days"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto actual_last_anchor =
+            record_workspace->navigateToCitation(QStringLiteral("PA127"));
+        QVERIFY2(actual_last_anchor.has_value(),
+                 actual_last_anchor ? "" : qPrintable(actual_last_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.a22"));
+        QCOMPARE(record_workspace->loadedPageCount(), 2);
+        QCOMPARE(record_workspace->currentPageIndex(), 1);
+        record_workspace->setDocumentSearch(QStringLiteral("seven-component disposition"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto branch_first_anchor =
+            record_workspace->navigateToCitation(QStringLiteral("PA128"));
+        QVERIFY2(branch_first_anchor.has_value(),
+                 branch_first_anchor ? "" : qPrintable(branch_first_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.b01"));
+        QCOMPARE(record_workspace->loadedPageCount(), 12);
+        QCOMPARE(record_workspace->currentPageIndex(), 0);
+        record_workspace->setDocumentSearch(QStringLiteral("February 13, 2025"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
+
+        const auto branch_last_anchor =
+            record_workspace->navigateToCitation(QStringLiteral("PA177"));
+        QVERIFY2(branch_last_anchor.has_value(),
+                 branch_last_anchor ? "" : qPrintable(branch_last_anchor.error().message));
+        QCOMPARE(record_workspace->currentDocumentId(), QStringLiteral("ca4m4.arm.record.b13"));
+        QCOMPARE(record_workspace->loadedPageCount(), 2);
+        QCOMPARE(record_workspace->currentPageIndex(), 1);
+        record_workspace->setDocumentSearch(QStringLiteral("possible certiorari petition"));
+        QTRY_VERIFY_WITH_TIMEOUT(record_workspace->documentSearchResultCount() > 0, 10'000);
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !pdf_search->resultsOnPage(record_workspace->currentPageIndex()).isEmpty(), 10'000);
     }
 
     {
@@ -677,14 +1005,7 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
         const auto counterfactual_index =
             configurationIndex(window, "ca4m4.arm.argument.counterfactual");
         QVERIFY(counterfactual_index >= 0);
-        window.argumentConfigurationSelector()->setCurrentIndex(counterfactual_index);
-        QCOMPARE(window.profileSelector()->count(), 3);
-        for (int index = 0; index < window.profileSelector()->count(); ++index) {
-            window.profileSelector()->setCurrentIndex(index);
-            const auto profile = window.profileEditor()->profile();
-            QVERIFY(profile.has_value());
-            QCOMPARE(profile->id, expected_profiles.at(static_cast<std::size_t>(index)));
-        }
+        selectAndVerifyDifferentiatedProfiles(window, counterfactual_index, expected_profiles);
         const auto counterfactual_launch = window.openSelectedOralArgument();
         QVERIFY2(counterfactual_launch.has_value(),
                  counterfactual_launch ? "" : qPrintable(counterfactual_launch.error()));
@@ -692,6 +1013,9 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
                      ->canonicalDefinition()
                      ->question_bank.argument_configuration_id,
                  std::string("ca4m4.arm.argument.counterfactual"));
+        QCOMPARE(
+            window.oralArgumentWorkspace()->canonicalDefinition()->question_bank.questions.size(),
+            std::size_t{10});
         QCOMPARE(
             window.oralArgumentWorkspace()->canonicalDefinition()->configuration.legal_state_digest,
             legal_state_digest);
@@ -815,7 +1139,13 @@ void M4ArmAgencyUiE2eTest::persistsExactArgumentsAndKeepsWorkflowIsolated() {
              std::string("ca4m4.arm.argument.actual-record"));
     QCOMPARE(provider->calls.at(1).configuration_id.value,
              std::string("ca4m4.arm.argument.counterfactual"));
+    QCOMPARE(provider->calls.at(2).configuration_id.value,
+             std::string("ca4m4.arm.argument.actual-record"));
+    QCOMPARE(provider->calls.at(3).configuration_id.value,
+             std::string("ca4m4.arm.argument.counterfactual"));
     for (const auto& call : provider->calls) {
+        QCOMPARE(call.root_revision, expected_root);
+        QCOMPARE(call.case_id, runtime_case.definition.id);
         QCOMPARE(call.configuration_owner, std::optional<model::PackRevision>{expected_root});
         QVERIFY(call.profile_ids == expected_profiles);
     }

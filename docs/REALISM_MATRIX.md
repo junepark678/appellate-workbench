@@ -22,7 +22,7 @@ designation and does not satisfy the level-3 gate.
 | Post-trial JMOL | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Sealed FOIA | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Criminal sentencing / waiver | Criminal (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
-| Immigration agency review | Agency (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
+| Immigration agency review | Agency (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Privileged-discovery mandamus | Writ (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 
 For each nonzero score, the case review file must link the exact authority version, automated
@@ -38,3 +38,9 @@ The checked-in Asterglen `0.1.0` pack predates the schema-version-2 contract. It
 and revision digest remain frozen and its author review remains honestly level 2. A future level-3
 claim must be a detached review pack that pins that exact reviewed revision and supplies qualified
 independent reviewer metadata; the original pack is not rewritten to manufacture level 3.
+
+The A.R.M. `1.2.0` root is the agency gold candidate, not the agency gold pack. Its exact
+level-2 evidence closes four packs, 44 non-review resources, 54 blobs, seven production-engine
+traces, two record checks, and 32 authorities. The root review remains
+`independent_review_pending`; a qualified immigration/appellate review must be recorded in a
+detached pack that exact-pins the reviewed root before every dimension may become 3.

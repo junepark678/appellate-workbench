@@ -18,6 +18,14 @@
       "court_ref": "United States Court of Appeals for the Fourth Circuit",
       "public_docket_number": "SYN-CA4-25-AG-4301",
       "caption": "A.R.M. v. Attorney General of the United States"
+    },
+    {
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "Counterfactual Fourth Circuit branch docket; every entry was never filed",
+      "public_docket_number": "SYN-CA4-25-AG-4301-CF-NEVER-FILED",
+      "caption": "A.R.M. v. Attorney General of the United States — counterfactual branches only"
     }
   ],
   "docket_entries": [
@@ -362,10 +370,120 @@
       "sealed": false
     },
     {
-      "entry_id": "ca4m4.arm.record.pa01",
+      "entry_id": "ca4m4.arm.record.a01",
       "entry_number": 19,
       "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 1",
+      "filed_on": "2025-02-11",
+      "title": "Deficient Petition for Review",
+      "actor": "A.R.M. through counsel",
+      "description": "Actual appellate docket document A01, filed 2025-02-11; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a01-petition-deficient.pdf",
+      "asset_sha256": "e8d4f32e69a878751f4a6da8726d99beb845726f656d08c8957e4db41efa4c42",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a02",
+      "entry_number": 20,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 2",
+      "filed_on": "2025-02-11",
+      "title": "Notice of Petition Deficiency",
+      "actor": "Fourth Circuit clerk",
+      "description": "Actual appellate docket document A02, filed 2025-02-11; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a02-petition-deficiency-notice.pdf",
+      "asset_sha256": "2c3554659a805dc375b0283c4bd2407c3c6db81bfcc6884c3fef71448946f603",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a03",
+      "entry_number": 21,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 3",
+      "filed_on": "2025-02-12",
+      "title": "Cured Petition for Review and Attached Board Order",
+      "actor": "A.R.M. through counsel",
+      "description": "Actual appellate docket document A03, filed 2025-02-12; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record",
+        "contains_agency_order_copy"
+      ],
+      "asset_path": "assets/a03-cured-petition-order-copy.pdf",
+      "asset_sha256": "ce2f6cd5c33e1eef5b2afc78189a80626b8b4b240f0b9cc23530318948571a8d",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a04",
+      "entry_number": 22,
+      "docket_id": "ca4m4.arm.docket.ca4",
       "entry_label": "Appellate ECF No. 4",
+      "filed_on": "2025-02-13",
+      "title": "Docketing Notice",
+      "actor": "Fourth Circuit clerk",
+      "description": "Actual appellate docket document A04, filed 2025-02-13; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a04-docketing-notice.pdf",
+      "asset_sha256": "1bf110a13b837251de8e609b4df53c6156cdaaa60531d8aed21ac5f6dd0be9a3",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a05",
+      "entry_number": 23,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 5",
+      "filed_on": "2025-02-18",
+      "title": "Respondent Appearance",
+      "actor": "Institutional respondent through counsel",
+      "description": "Actual appellate docket document A05, filed 2025-02-18; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a05-respondent-appearance.pdf",
+      "asset_sha256": "1fb3869986913a1a5a799a3d8f06398d77787f936a377edbe6530b7a1e148a48",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a06",
+      "entry_number": 24,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 6",
+      "filed_on": "2025-02-24",
+      "title": "Motion to Supplement with Post-Order Proffer",
+      "actor": "A.R.M. through counsel",
+      "description": "Actual appellate docket document A06, filed 2025-02-24; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record",
+        "references_extra_record_proffer"
+      ],
+      "asset_path": "assets/a06-motion-to-supplement.pdf",
+      "asset_sha256": "6a6f714afd5a1053ba936cee30082f769b056706198ba44814d2a663db86f70a",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.pa01",
+      "entry_number": 25,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 6-1",
       "filed_on": "2025-02-24",
       "title": "T.R. Post-Order Declaration and Proffer Notice",
       "actor": "A.R.M. through fictional exercise counsel",
@@ -378,6 +496,546 @@
       "asset_path": "assets/pa01-new-cousin-declaration.pdf",
       "asset_sha256": "9eaf41da5d095f579e299260bc85ccc249580c50ae0e27e6a6102c43026fd6be",
       "page_count": 8,
+      "sealed": false,
+      "parent_entry_id": "ca4m4.arm.record.a06",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a07",
+      "entry_number": 26,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 7",
+      "filed_on": "2025-02-26",
+      "title": "Motion to Correct the Certified Agency Record",
+      "actor": "A.R.M. through counsel",
+      "description": "Actual appellate docket document A07, filed 2025-02-26; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a07-motion-to-correct-record.pdf",
+      "asset_sha256": "b716be28692e1746c230166115cd133fb1809a640848ed9865a437fb4560972e",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a08",
+      "entry_number": 27,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 8",
+      "filed_on": "2025-02-26",
+      "title": "Petitioner Appearance",
+      "actor": "A.R.M. through counsel",
+      "description": "Actual appellate docket document A08, filed 2025-02-26; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a08-petitioner-appearance.pdf",
+      "asset_sha256": "23fa4485b90c718530e6308c94492129f3410f31bfc500977d8fb90be91af375",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a09",
+      "entry_number": 28,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 9",
+      "filed_on": "2025-02-27",
+      "title": "Petitioner Docketing Statement",
+      "actor": "A.R.M. through counsel",
+      "description": "Actual appellate docket document A09, filed 2025-02-27; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a09-docketing-statement.pdf",
+      "asset_sha256": "53f221286a490b65d2363d476c1a2f98701062705657ffded8f53ccc41d1c197",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a10",
+      "entry_number": 29,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 10",
+      "filed_on": "2025-02-28",
+      "title": "Government Response to Record Motions",
+      "actor": "Institutional respondent through counsel",
+      "description": "Actual appellate docket document A10, filed 2025-02-28; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a10-government-record-motions-response.pdf",
+      "asset_sha256": "2940b72e7dc7ce0bbaae625ee2773ff0b8530dd0a0c1f4490305fe54708af45e",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a11",
+      "entry_number": 30,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 11",
+      "filed_on": "2025-03-03",
+      "title": "Rule 16(b) Stipulation",
+      "actor": "A.R.M. and institutional respondent through counsel",
+      "description": "Actual appellate docket document A11, filed 2025-03-03; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a11-rule16b-stipulation.pdf",
+      "asset_sha256": "a1db9dc3d6bf5df9c6705d40d9399ad993b0d39465044252f3fa393b3c8ec5ab",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a12",
+      "entry_number": 31,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 12",
+      "filed_on": "2025-03-05",
+      "title": "Order Granting Record Correction",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Actual appellate docket document A12, filed 2025-03-05; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a12-order-granting-correction.pdf",
+      "asset_sha256": "e4bd6f14f07ce01136e0ad003195763c3c67e10a2e536f1bb4ec1e9f56c476fe",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a13",
+      "entry_number": 32,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 13",
+      "filed_on": "2025-03-05",
+      "title": "Order Denying Supplementation",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Actual appellate docket document A13, filed 2025-03-05; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a13-order-denying-supplementation.pdf",
+      "asset_sha256": "6a7c7589877eb5e7da832e357fe459fcfe95b1fb9bdf79992235140705e2d3e9",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a14",
+      "entry_number": 33,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 14",
+      "filed_on": "2025-03-06",
+      "title": "Briefing Order",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Actual appellate docket document A14, filed 2025-03-06; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a14-briefing-order.pdf",
+      "asset_sha256": "c3073495aee8ed1b7bd6d7bf6aa480c986881085bd864543800674026c1bb451",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a15",
+      "entry_number": 34,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 15",
+      "filed_on": "2025-04-14",
+      "title": "Petitioner Opening Brief",
+      "actor": "A.R.M. through counsel",
+      "description": "Actual appellate docket document A15, filed 2025-04-14; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a15-petitioner-opening-brief.pdf",
+      "asset_sha256": "a58b9a3f6bc0e4b2e365eb8378f43e5dbd230578edb9efc8832e1a3949439a9d",
+      "page_count": 20,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a16",
+      "entry_number": 35,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 16",
+      "filed_on": "2025-05-14",
+      "title": "Government Response Brief",
+      "actor": "Institutional respondent through counsel",
+      "description": "Actual appellate docket document A16, filed 2025-05-14; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a16-government-response-brief.pdf",
+      "asset_sha256": "a1e2becf8721e694cbfb058a9fa32574e2c3d0d413d56e48904486a8be2f8309",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a17",
+      "entry_number": 36,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 17",
+      "filed_on": "2025-05-28",
+      "title": "Petitioner Reply Brief",
+      "actor": "A.R.M. through counsel",
+      "description": "Actual appellate docket document A17, filed 2025-05-28; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a17-petitioner-reply-brief.pdf",
+      "asset_sha256": "6f16c3556a1af1642c693b81efb31e6f8b8cec0d87aa24abc2ea98dcda13a4c6",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a18",
+      "entry_number": 37,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 18",
+      "filed_on": "2025-07-15",
+      "title": "Oral Argument Calendar Notice",
+      "actor": "Fourth Circuit clerk",
+      "description": "Actual appellate docket document A18, filed 2025-07-15; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a18-argument-calendar-notice.pdf",
+      "asset_sha256": "a43bea75c4a99128f8469c2e93446828bed9b619aa91b0d0eb63be9e05a3669f",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a19",
+      "entry_number": 38,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 19",
+      "filed_on": "2025-08-05",
+      "title": "Order Recording Argument Held and Submission",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Actual appellate docket document A19, filed 2025-08-05; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a19-argument-held-submission-order.pdf",
+      "asset_sha256": "4a21bda97202dff18bc4a44f20848a4d657d4752f71c296352ba8cdf04630d47",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a20",
+      "entry_number": 39,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 20",
+      "filed_on": "2025-09-09",
+      "title": "Panel Opinion",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Actual appellate docket document A20, filed 2025-09-09; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record",
+        "authored_disposition"
+      ],
+      "asset_path": "assets/a20-synthetic-opinion.pdf",
+      "asset_sha256": "ba48c202e6fd1607194a93ccf9869d43a2453053878600dc450abf1f12ad23b4",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a21",
+      "entry_number": 40,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 21",
+      "filed_on": "2025-09-09",
+      "title": "Judgment",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Actual appellate docket document A21, filed 2025-09-09; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record",
+        "authored_disposition"
+      ],
+      "asset_path": "assets/a21-judgment.pdf",
+      "asset_sha256": "e69fbaf48c1cbf81e1e875bc7754aa6ffff5f8a548571cab828b5998ec3e4cfe",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.a22",
+      "entry_number": 41,
+      "docket_id": "ca4m4.arm.docket.ca4",
+      "entry_label": "Appellate ECF No. 22",
+      "filed_on": "2025-10-31",
+      "title": "Mandate",
+      "actor": "Fourth Circuit clerk",
+      "description": "Actual appellate docket document A22, filed 2025-10-31; separately PA-labeled and not part of the certified administrative record.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/a22-mandate.pdf",
+      "asset_sha256": "3339dfac8a0ac36442b8d39d589366eefbab69cdc5596f771668cf4d0324b7b7",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b01",
+      "entry_number": 42,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B01 — Never Filed",
+      "filed_on": "2025-02-13",
+      "title": "Counterfactual Day-31 Petition and Attached Board Order",
+      "actor": "A.R.M. through counsel",
+      "description": "Counterfactual branch document B01 dated 2025-02-13; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record",
+        "contains_agency_order_copy"
+      ],
+      "asset_path": "assets/b01-day31-petition-order-copy.pdf",
+      "asset_sha256": "c8b6ea5c7d64a283eac66cfe96276a5b2842221c2429b8cb6b9f3fabe6f67c5c",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b05",
+      "entry_number": 43,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B05 — Never Filed",
+      "filed_on": "2025-02-19",
+      "title": "Counterfactual Uncured-Deficiency Dismissal Order",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Counterfactual branch document B05 dated 2025-02-19; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b05-uncured-deficiency-dismissal.pdf",
+      "asset_sha256": "75423cda2ed9856d32e6bb49d7782d69adc4d240359f5a478f8b498dcc5ffbd5",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b02",
+      "entry_number": 44,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B02 — Never Filed",
+      "filed_on": "2025-06-27",
+      "title": "Counterfactual Timeliness Show-Cause Order",
+      "actor": "Fourth Circuit clerk",
+      "description": "Counterfactual branch document B02 dated 2025-06-27; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b02-timeliness-show-cause-order.pdf",
+      "asset_sha256": "a05ab1c75ae3167e120130888ccd223f25cfb822618d95ce60ccf41f475fb03d",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b03",
+      "entry_number": 45,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B03 — Never Filed",
+      "filed_on": "2025-07-02",
+      "title": "Counterfactual Government Motion Invoking Petition Deadline",
+      "actor": "Institutional respondent through counsel",
+      "description": "Counterfactual branch document B03 dated 2025-07-02; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b03-government-invocation-motion.pdf",
+      "asset_sha256": "eafdf4f96240146c452132419d97d00c07a68ff15964ae54a63644391b3e8c37",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b04",
+      "entry_number": 46,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B04 — Never Filed",
+      "filed_on": "2025-07-08",
+      "title": "Counterfactual Day-31 Dismissal Order",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Counterfactual branch document B04 dated 2025-07-08; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b04-day31-dismissal-order.pdf",
+      "asset_sha256": "160aaea85258291e5fb50d986cc2f5d9e148087e35305c712d61fd125df0ea71",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b06",
+      "entry_number": 47,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B06 — Never Filed",
+      "filed_on": "2025-07-08",
+      "title": "Counterfactual Order Discharging Timeliness Show Cause",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Counterfactual branch document B06 dated 2025-07-08; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b06-show-cause-discharged.pdf",
+      "asset_sha256": "aace594b5dcbed1b1b24721c4bf4ae09b2ad0aa09d3cc968ed9ca4aa8777e0f8",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b09",
+      "entry_number": 48,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B09 — Never Filed",
+      "filed_on": "2025-10-23",
+      "title": "Counterfactual Motion to Stay the Mandate",
+      "actor": "Institutional respondent through counsel",
+      "description": "Counterfactual branch document B09 dated 2025-10-23; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b09-mandate-stay-motion.pdf",
+      "asset_sha256": "403482aa2242f550a6b4d7915433ba645447014b04e4ebff62508931d565f5bf",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b07",
+      "entry_number": 49,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B07 — Never Filed",
+      "filed_on": "2025-10-24",
+      "title": "Counterfactual Timely Rehearing Petition",
+      "actor": "A.R.M. through counsel",
+      "description": "Counterfactual branch document B07 dated 2025-10-24; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b07-timely-rehearing-petition.pdf",
+      "asset_sha256": "c22b4c4a956a279dd9498fc123104fd9cadbfdf0e8ed9c71639c3f88641e82b7",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b11",
+      "entry_number": 50,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B11 — Never Filed",
+      "filed_on": "2025-10-30",
+      "title": "Counterfactual Stay Grant Order",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Counterfactual branch document B11 dated 2025-10-30; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b11-stay-grant.pdf",
+      "asset_sha256": "cb73ea5d36bb6e8dd8e03ef645e95e5f1124f2782d05420e68ad7c43aa220770",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b10",
+      "entry_number": 51,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B10 — Never Filed",
+      "filed_on": "2025-11-05",
+      "title": "Counterfactual Stay Denial Order",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Counterfactual branch document B10 dated 2025-11-05; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b10-stay-denial.pdf",
+      "asset_sha256": "c7da61d9bb9c8f13d30b632bcae0201d5301f4bb7aa6af93563b9cd45ca725b0",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b08",
+      "entry_number": 52,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B08 — Never Filed",
+      "filed_on": "2025-11-07",
+      "title": "Counterfactual Rehearing Denial Order",
+      "actor": "Composite Fourth Circuit panel",
+      "description": "Counterfactual branch document B08 dated 2025-11-07; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b08-rehearing-denial.pdf",
+      "asset_sha256": "4944aca6f747c049db30b0131cc063c43d0da549ae1895b121ccfbde348e838d",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b13",
+      "entry_number": 53,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B13 — Never Filed",
+      "filed_on": "2025-11-12",
+      "title": "Counterfactual Mandate After Stay Denial",
+      "actor": "Fourth Circuit clerk",
+      "description": "Counterfactual branch document B13 dated 2025-11-12; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b13-mandate-after-stay-denial.pdf",
+      "asset_sha256": "2f27c7fd8c181d15317d76fe9da71561906693b34084ce9c056241e660c8497c",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.arm.record.b12",
+      "entry_number": 54,
+      "docket_id": "ca4m4.arm.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B12 — Never Filed",
+      "filed_on": "2025-11-14",
+      "title": "Counterfactual Mandate After Rehearing Denial",
+      "actor": "Fourth Circuit clerk",
+      "description": "Counterfactual branch document B12 dated 2025-11-14; never filed on the actual docket and not part of the certified administrative record.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "not_administrative_record"
+      ],
+      "asset_path": "assets/b12-mandate-after-rehearing-denial.pdf",
+      "asset_sha256": "1a1e1841cbf68e2d61292c7ef5dbdc2eadf015f6e4d33b6504666815c09196df",
+      "page_count": 2,
       "sealed": false
     }
   ],
@@ -1857,6 +2515,1020 @@
       "entry_id": "ca4m4.arm.record.pa01",
       "page_number": 8,
       "citation_label": "PA8"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa9",
+      "entry_id": "ca4m4.arm.record.a01",
+      "page_number": 1,
+      "citation_label": "PA9"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa10",
+      "entry_id": "ca4m4.arm.record.a01",
+      "page_number": 2,
+      "citation_label": "PA10"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa11",
+      "entry_id": "ca4m4.arm.record.a02",
+      "page_number": 1,
+      "citation_label": "PA11"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa12",
+      "entry_id": "ca4m4.arm.record.a02",
+      "page_number": 2,
+      "citation_label": "PA12"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa13",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 1,
+      "citation_label": "PA13"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa14",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 2,
+      "citation_label": "PA14"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa15",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 3,
+      "citation_label": "PA15"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa16",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 4,
+      "citation_label": "PA16"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa17",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 5,
+      "citation_label": "PA17"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa18",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 6,
+      "citation_label": "PA18"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa19",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 7,
+      "citation_label": "PA19"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa20",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 8,
+      "citation_label": "PA20"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa21",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 9,
+      "citation_label": "PA21"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa22",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 10,
+      "citation_label": "PA22"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa23",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 11,
+      "citation_label": "PA23"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa24",
+      "entry_id": "ca4m4.arm.record.a03",
+      "page_number": 12,
+      "citation_label": "PA24"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa25",
+      "entry_id": "ca4m4.arm.record.a04",
+      "page_number": 1,
+      "citation_label": "PA25"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa26",
+      "entry_id": "ca4m4.arm.record.a04",
+      "page_number": 2,
+      "citation_label": "PA26"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa27",
+      "entry_id": "ca4m4.arm.record.a04",
+      "page_number": 3,
+      "citation_label": "PA27"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa28",
+      "entry_id": "ca4m4.arm.record.a05",
+      "page_number": 1,
+      "citation_label": "PA28"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa29",
+      "entry_id": "ca4m4.arm.record.a05",
+      "page_number": 2,
+      "citation_label": "PA29"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa30",
+      "entry_id": "ca4m4.arm.record.a06",
+      "page_number": 1,
+      "citation_label": "PA30"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa31",
+      "entry_id": "ca4m4.arm.record.a06",
+      "page_number": 2,
+      "citation_label": "PA31"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa32",
+      "entry_id": "ca4m4.arm.record.a06",
+      "page_number": 3,
+      "citation_label": "PA32"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa33",
+      "entry_id": "ca4m4.arm.record.a06",
+      "page_number": 4,
+      "citation_label": "PA33"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa34",
+      "entry_id": "ca4m4.arm.record.a06",
+      "page_number": 5,
+      "citation_label": "PA34"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa35",
+      "entry_id": "ca4m4.arm.record.a06",
+      "page_number": 6,
+      "citation_label": "PA35"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa36",
+      "entry_id": "ca4m4.arm.record.a07",
+      "page_number": 1,
+      "citation_label": "PA36"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa37",
+      "entry_id": "ca4m4.arm.record.a07",
+      "page_number": 2,
+      "citation_label": "PA37"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa38",
+      "entry_id": "ca4m4.arm.record.a07",
+      "page_number": 3,
+      "citation_label": "PA38"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa39",
+      "entry_id": "ca4m4.arm.record.a07",
+      "page_number": 4,
+      "citation_label": "PA39"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa40",
+      "entry_id": "ca4m4.arm.record.a07",
+      "page_number": 5,
+      "citation_label": "PA40"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa41",
+      "entry_id": "ca4m4.arm.record.a07",
+      "page_number": 6,
+      "citation_label": "PA41"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa42",
+      "entry_id": "ca4m4.arm.record.a08",
+      "page_number": 1,
+      "citation_label": "PA42"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa43",
+      "entry_id": "ca4m4.arm.record.a08",
+      "page_number": 2,
+      "citation_label": "PA43"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa44",
+      "entry_id": "ca4m4.arm.record.a09",
+      "page_number": 1,
+      "citation_label": "PA44"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa45",
+      "entry_id": "ca4m4.arm.record.a09",
+      "page_number": 2,
+      "citation_label": "PA45"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa46",
+      "entry_id": "ca4m4.arm.record.a09",
+      "page_number": 3,
+      "citation_label": "PA46"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa47",
+      "entry_id": "ca4m4.arm.record.a09",
+      "page_number": 4,
+      "citation_label": "PA47"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa48",
+      "entry_id": "ca4m4.arm.record.a10",
+      "page_number": 1,
+      "citation_label": "PA48"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa49",
+      "entry_id": "ca4m4.arm.record.a10",
+      "page_number": 2,
+      "citation_label": "PA49"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa50",
+      "entry_id": "ca4m4.arm.record.a10",
+      "page_number": 3,
+      "citation_label": "PA50"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa51",
+      "entry_id": "ca4m4.arm.record.a10",
+      "page_number": 4,
+      "citation_label": "PA51"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa52",
+      "entry_id": "ca4m4.arm.record.a10",
+      "page_number": 5,
+      "citation_label": "PA52"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa53",
+      "entry_id": "ca4m4.arm.record.a11",
+      "page_number": 1,
+      "citation_label": "PA53"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa54",
+      "entry_id": "ca4m4.arm.record.a11",
+      "page_number": 2,
+      "citation_label": "PA54"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa55",
+      "entry_id": "ca4m4.arm.record.a11",
+      "page_number": 3,
+      "citation_label": "PA55"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa56",
+      "entry_id": "ca4m4.arm.record.a12",
+      "page_number": 1,
+      "citation_label": "PA56"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa57",
+      "entry_id": "ca4m4.arm.record.a12",
+      "page_number": 2,
+      "citation_label": "PA57"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa58",
+      "entry_id": "ca4m4.arm.record.a13",
+      "page_number": 1,
+      "citation_label": "PA58"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa59",
+      "entry_id": "ca4m4.arm.record.a13",
+      "page_number": 2,
+      "citation_label": "PA59"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa60",
+      "entry_id": "ca4m4.arm.record.a14",
+      "page_number": 1,
+      "citation_label": "PA60"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa61",
+      "entry_id": "ca4m4.arm.record.a14",
+      "page_number": 2,
+      "citation_label": "PA61"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa62",
+      "entry_id": "ca4m4.arm.record.a14",
+      "page_number": 3,
+      "citation_label": "PA62"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa63",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 1,
+      "citation_label": "PA63"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa64",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 2,
+      "citation_label": "PA64"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa65",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 3,
+      "citation_label": "PA65"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa66",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 4,
+      "citation_label": "PA66"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa67",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 5,
+      "citation_label": "PA67"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa68",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 6,
+      "citation_label": "PA68"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa69",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 7,
+      "citation_label": "PA69"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa70",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 8,
+      "citation_label": "PA70"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa71",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 9,
+      "citation_label": "PA71"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa72",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 10,
+      "citation_label": "PA72"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa73",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 11,
+      "citation_label": "PA73"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa74",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 12,
+      "citation_label": "PA74"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa75",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 13,
+      "citation_label": "PA75"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa76",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 14,
+      "citation_label": "PA76"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa77",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 15,
+      "citation_label": "PA77"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa78",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 16,
+      "citation_label": "PA78"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa79",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 17,
+      "citation_label": "PA79"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa80",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 18,
+      "citation_label": "PA80"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa81",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 19,
+      "citation_label": "PA81"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa82",
+      "entry_id": "ca4m4.arm.record.a15",
+      "page_number": 20,
+      "citation_label": "PA82"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa83",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 1,
+      "citation_label": "PA83"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa84",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 2,
+      "citation_label": "PA84"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa85",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 3,
+      "citation_label": "PA85"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa86",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 4,
+      "citation_label": "PA86"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa87",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 5,
+      "citation_label": "PA87"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa88",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 6,
+      "citation_label": "PA88"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa89",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 7,
+      "citation_label": "PA89"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa90",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 8,
+      "citation_label": "PA90"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa91",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 9,
+      "citation_label": "PA91"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa92",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 10,
+      "citation_label": "PA92"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa93",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 11,
+      "citation_label": "PA93"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa94",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 12,
+      "citation_label": "PA94"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa95",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 13,
+      "citation_label": "PA95"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa96",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 14,
+      "citation_label": "PA96"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa97",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 15,
+      "citation_label": "PA97"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa98",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 16,
+      "citation_label": "PA98"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa99",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 17,
+      "citation_label": "PA99"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa100",
+      "entry_id": "ca4m4.arm.record.a16",
+      "page_number": 18,
+      "citation_label": "PA100"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa101",
+      "entry_id": "ca4m4.arm.record.a17",
+      "page_number": 1,
+      "citation_label": "PA101"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa102",
+      "entry_id": "ca4m4.arm.record.a17",
+      "page_number": 2,
+      "citation_label": "PA102"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa103",
+      "entry_id": "ca4m4.arm.record.a17",
+      "page_number": 3,
+      "citation_label": "PA103"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa104",
+      "entry_id": "ca4m4.arm.record.a17",
+      "page_number": 4,
+      "citation_label": "PA104"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa105",
+      "entry_id": "ca4m4.arm.record.a17",
+      "page_number": 5,
+      "citation_label": "PA105"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa106",
+      "entry_id": "ca4m4.arm.record.a17",
+      "page_number": 6,
+      "citation_label": "PA106"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa107",
+      "entry_id": "ca4m4.arm.record.a17",
+      "page_number": 7,
+      "citation_label": "PA107"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa108",
+      "entry_id": "ca4m4.arm.record.a17",
+      "page_number": 8,
+      "citation_label": "PA108"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa109",
+      "entry_id": "ca4m4.arm.record.a18",
+      "page_number": 1,
+      "citation_label": "PA109"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa110",
+      "entry_id": "ca4m4.arm.record.a18",
+      "page_number": 2,
+      "citation_label": "PA110"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa111",
+      "entry_id": "ca4m4.arm.record.a19",
+      "page_number": 1,
+      "citation_label": "PA111"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa112",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 1,
+      "citation_label": "PA112"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa113",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 2,
+      "citation_label": "PA113"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa114",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 3,
+      "citation_label": "PA114"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa115",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 4,
+      "citation_label": "PA115"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa116",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 5,
+      "citation_label": "PA116"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa117",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 6,
+      "citation_label": "PA117"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa118",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 7,
+      "citation_label": "PA118"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa119",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 8,
+      "citation_label": "PA119"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa120",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 9,
+      "citation_label": "PA120"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa121",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 10,
+      "citation_label": "PA121"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa122",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 11,
+      "citation_label": "PA122"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa123",
+      "entry_id": "ca4m4.arm.record.a20",
+      "page_number": 12,
+      "citation_label": "PA123"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa124",
+      "entry_id": "ca4m4.arm.record.a21",
+      "page_number": 1,
+      "citation_label": "PA124"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa125",
+      "entry_id": "ca4m4.arm.record.a21",
+      "page_number": 2,
+      "citation_label": "PA125"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa126",
+      "entry_id": "ca4m4.arm.record.a22",
+      "page_number": 1,
+      "citation_label": "PA126"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa127",
+      "entry_id": "ca4m4.arm.record.a22",
+      "page_number": 2,
+      "citation_label": "PA127"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa128",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 1,
+      "citation_label": "PA128"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa129",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 2,
+      "citation_label": "PA129"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa130",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 3,
+      "citation_label": "PA130"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa131",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 4,
+      "citation_label": "PA131"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa132",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 5,
+      "citation_label": "PA132"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa133",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 6,
+      "citation_label": "PA133"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa134",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 7,
+      "citation_label": "PA134"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa135",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 8,
+      "citation_label": "PA135"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa136",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 9,
+      "citation_label": "PA136"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa137",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 10,
+      "citation_label": "PA137"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa138",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 11,
+      "citation_label": "PA138"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa139",
+      "entry_id": "ca4m4.arm.record.b01",
+      "page_number": 12,
+      "citation_label": "PA139"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa140",
+      "entry_id": "ca4m4.arm.record.b02",
+      "page_number": 1,
+      "citation_label": "PA140"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa141",
+      "entry_id": "ca4m4.arm.record.b02",
+      "page_number": 2,
+      "citation_label": "PA141"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa142",
+      "entry_id": "ca4m4.arm.record.b02",
+      "page_number": 3,
+      "citation_label": "PA142"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa143",
+      "entry_id": "ca4m4.arm.record.b03",
+      "page_number": 1,
+      "citation_label": "PA143"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa144",
+      "entry_id": "ca4m4.arm.record.b03",
+      "page_number": 2,
+      "citation_label": "PA144"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa145",
+      "entry_id": "ca4m4.arm.record.b03",
+      "page_number": 3,
+      "citation_label": "PA145"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa146",
+      "entry_id": "ca4m4.arm.record.b03",
+      "page_number": 4,
+      "citation_label": "PA146"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa147",
+      "entry_id": "ca4m4.arm.record.b03",
+      "page_number": 5,
+      "citation_label": "PA147"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa148",
+      "entry_id": "ca4m4.arm.record.b04",
+      "page_number": 1,
+      "citation_label": "PA148"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa149",
+      "entry_id": "ca4m4.arm.record.b04",
+      "page_number": 2,
+      "citation_label": "PA149"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa150",
+      "entry_id": "ca4m4.arm.record.b04",
+      "page_number": 3,
+      "citation_label": "PA150"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa151",
+      "entry_id": "ca4m4.arm.record.b05",
+      "page_number": 1,
+      "citation_label": "PA151"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa152",
+      "entry_id": "ca4m4.arm.record.b05",
+      "page_number": 2,
+      "citation_label": "PA152"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa153",
+      "entry_id": "ca4m4.arm.record.b06",
+      "page_number": 1,
+      "citation_label": "PA153"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa154",
+      "entry_id": "ca4m4.arm.record.b06",
+      "page_number": 2,
+      "citation_label": "PA154"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa155",
+      "entry_id": "ca4m4.arm.record.b07",
+      "page_number": 1,
+      "citation_label": "PA155"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa156",
+      "entry_id": "ca4m4.arm.record.b07",
+      "page_number": 2,
+      "citation_label": "PA156"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa157",
+      "entry_id": "ca4m4.arm.record.b07",
+      "page_number": 3,
+      "citation_label": "PA157"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa158",
+      "entry_id": "ca4m4.arm.record.b07",
+      "page_number": 4,
+      "citation_label": "PA158"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa159",
+      "entry_id": "ca4m4.arm.record.b07",
+      "page_number": 5,
+      "citation_label": "PA159"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa160",
+      "entry_id": "ca4m4.arm.record.b07",
+      "page_number": 6,
+      "citation_label": "PA160"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa161",
+      "entry_id": "ca4m4.arm.record.b07",
+      "page_number": 7,
+      "citation_label": "PA161"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa162",
+      "entry_id": "ca4m4.arm.record.b07",
+      "page_number": 8,
+      "citation_label": "PA162"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa163",
+      "entry_id": "ca4m4.arm.record.b08",
+      "page_number": 1,
+      "citation_label": "PA163"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa164",
+      "entry_id": "ca4m4.arm.record.b08",
+      "page_number": 2,
+      "citation_label": "PA164"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa165",
+      "entry_id": "ca4m4.arm.record.b09",
+      "page_number": 1,
+      "citation_label": "PA165"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa166",
+      "entry_id": "ca4m4.arm.record.b09",
+      "page_number": 2,
+      "citation_label": "PA166"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa167",
+      "entry_id": "ca4m4.arm.record.b09",
+      "page_number": 3,
+      "citation_label": "PA167"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa168",
+      "entry_id": "ca4m4.arm.record.b09",
+      "page_number": 4,
+      "citation_label": "PA168"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa169",
+      "entry_id": "ca4m4.arm.record.b09",
+      "page_number": 5,
+      "citation_label": "PA169"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa170",
+      "entry_id": "ca4m4.arm.record.b10",
+      "page_number": 1,
+      "citation_label": "PA170"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa171",
+      "entry_id": "ca4m4.arm.record.b10",
+      "page_number": 2,
+      "citation_label": "PA171"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa172",
+      "entry_id": "ca4m4.arm.record.b11",
+      "page_number": 1,
+      "citation_label": "PA172"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa173",
+      "entry_id": "ca4m4.arm.record.b11",
+      "page_number": 2,
+      "citation_label": "PA173"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa174",
+      "entry_id": "ca4m4.arm.record.b12",
+      "page_number": 1,
+      "citation_label": "PA174"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa175",
+      "entry_id": "ca4m4.arm.record.b12",
+      "page_number": 2,
+      "citation_label": "PA175"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa176",
+      "entry_id": "ca4m4.arm.record.b13",
+      "page_number": 1,
+      "citation_label": "PA176"
+    },
+    {
+      "anchor_id": "ca4m4.arm.anchor.pa177",
+      "entry_id": "ca4m4.arm.record.b13",
+      "page_number": 2,
+      "citation_label": "PA177"
     }
   ]
 }

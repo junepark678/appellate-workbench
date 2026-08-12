@@ -6,9 +6,9 @@ legal advice or independent legal review.
 ## Frozen breadth and evidence floor
 
 The launch content has one jurisdiction, `us-ca4`, and four procedure profiles: six civil
-appeals, one criminal appeal, one agency review, and one original writ. The nine root packs must
-contain exactly **283 unique substantive, searchable record PDFs** linked by 283 docket-to-asset
-relationships:
+appeals, one criminal appeal, one agency review, and one original writ. The nine root packs have
+an aggregate floor of exactly **283 unique substantive, searchable lower-tribunal or certified-
+agency-record PDFs** linked by 283 docket-to-asset relationships:
 
 | Case | Profile | PDFs | Minimum substantive pages | Gold candidate |
 | --- | --- | ---: | ---: | --- |
@@ -23,9 +23,17 @@ relationships:
 | Cinder Lake privilege | Original writ | 23 | 180 | Writ |
 | **Total** | **Four profiles** | **283** | **2,245** | **Four** |
 
-Reusable forms, shared authorities, generated appellate filings, and optional audio/video blobs
-do not count toward 283. Blank or padding pages do not count toward the page floor. The existing
-Asterglen v1 `0.1.0` pack remains immutable; its expanded v2 successor is a new `0.2.0` revision.
+Reusable forms, shared authorities, generated appellate filings, counterfactual training
+documents, and optional audio/video blobs do not count toward 283. Blank or padding pages do not
+count toward the page floor. A root may therefore contain more total blobs than its row without
+changing this breadth floor. The existing Asterglen v1 `0.1.0` pack remains immutable; its
+expanded v2 successor is a new `0.2.0` revision.
+
+The finalized A.R.M. `1.2.0` candidate demonstrates that distinction: its certified agency
+record is 18 PDFs/238 AR pages, satisfying the 18-PDF/220-page floor, while its complete root is
+54 PDFs/415 pages after adding 36 post-agency PDFs/177 PA pages. PA1–PA127 belong to the actual
+appellate docket (with PA1–PA8 still extra-record), and PA128–PA177 is an isolated, never-filed
+counterfactual bank.
 
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
@@ -175,8 +183,12 @@ Slate presides with Alder and March.
   A day-31 petition is nonjurisdictionally late and requires government invocation.
 - **Disposition:** grant correction for the admitted declaration, deny supplementation, grant the
   petition in part, vacate the BIA order, and remand.
-- **Limits:** parallel stay/merits, final-order classification, invocation, and semantic
-  correction-versus-new-evidence rules need later trusted capabilities.
+- **Limits:** exact role subsets, filing/order-instance guards, static deficiency deadlines, and
+  bound order/judgment/mandate documents now enforce the authored actual and adverse branches.
+  The engine still does not infer final-order status or the legal meaning of novel filings, and
+  parallel stay-and-merits work remains out of scope. The day-31 invocation and record-motion
+  semantics are therefore authored exact-byte document bindings validated by replay, not
+  universal legal classifiers or claims of independent legal review.
 
 ### 9. Cinder Lake writ — `ca4m4.case.cinderlake-writ`
 
@@ -224,10 +236,15 @@ precedential status, proposition, evidence closure, and trace required by #26 an
 
 ## Realism and sequencing gates
 
-All cases begin at realism level 0. Automated traces, page/authority resolution, chronology
-checks, and author review establish at most level 2. Level 3 requires a detached, exact-dependent
-review pack signed off by a qualified independent reviewer; any record, question, authority, or
-workflow change invalidates that review.
+Cases begin at realism level 0. Automated traces, page/authority resolution, chronology checks,
+and author review establish at most level 2. Level 3 requires a detached, exact-dependent review
+pack signed off by a qualified independent reviewer; any record, question, authority, or workflow
+change invalidates that review.
+
+The A.R.M. `1.2.0` root currently records level 2 in every dimension with exact closure over four
+packs, 44 non-review resources, 54 blobs, seven traces, two record checks, and 32 authorities.
+Its state is `independent_review_pending`, so it remains the agency gold candidate rather than the
+agency gold pack.
 
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and
@@ -237,9 +254,9 @@ behavior.
 After #23–#28 and the three shared foundations freeze, isolated root authoring may proceed in
 parallel without shared-file overlap:
 
-- Benton + Asterglen + A.R.M.: 92 PDFs / 710 pages.
-- Ellison + Open Grid + Cinder Lake: 97 PDFs / 705 pages.
-- Norvale + Blue Ember + Serrano: 94 PDFs / 830 pages.
+- Benton + Asterglen + A.R.M.: 92 lower-tribunal/certified-record PDFs / 710 floor pages.
+- Ellison + Open Grid + Cinder Lake: 97 lower-tribunal/certified-record PDFs / 705 floor pages.
+- Norvale + Blue Ember + Serrano: 94 lower-tribunal/certified-record PDFs / 830 floor pages.
 
 Per-case commit boundaries are source/schema skeleton, record batch 1, record batch 2,
 workflow/adverse traces, disposition/argument/bench, and level-2 evidence. Only the integrator

@@ -23,7 +23,6 @@
 
 #include <algorithm>
 #include <array>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <initializer_list>
@@ -54,11 +53,17 @@ using appellate::packs::PackReader;
 using appellate::packs::PackValidationScope;
 using appellate::packs::ValidatedResource;
 
-constexpr auto root_digest = "bd1bd37e1e99ecb8239fa41b040aa72a0a856dd012442bcc1061b7d137e6651d";
+constexpr auto root_digest = "ae33933c7cf18f77e662eb302d563afd860e8e900bac8debb081b81b35404edb";
 constexpr auto federal_digest = "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9";
 constexpr auto ca4_digest = "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262";
 constexpr auto bench_digest = "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d";
-constexpr auto archive_digest = "57f84192541e5a273ff4f69b27902a06b1fdea0a58acc7752b4c22d9c69f338e";
+constexpr auto manifest_digest = "4e39f7b614201623f33bc317810a6b5ae5d93fd54826dada3af7874276ab6d4b";
+constexpr auto archive_digest = "a150903c6c3332d8de582a8ef46e7fd1dd17cee0ac52c93c0ebaf51313cf54d2";
+constexpr auto successor_inventory_digest =
+    "b29e419b9b92dc60c2b014381d9172bd753931825a48266368e0ed2472b7669c";
+constexpr auto legacy_blob_identity_digest =
+    "ba25b4baa63c51fc95906516244c3abf0143900d19aa40fced1eae40226fd03b";
+constexpr auto realism_engine_revision = "appellate.realism-evidence.codec-replay-multi.v1";
 
 [[nodiscard]] QByteArray readAll(const QString& file_name) {
     QFile file(file_name);
@@ -76,6 +81,73 @@ void addDigestFrame(QCryptographicHash& hash, QByteArrayView name, QByteArrayVie
     hash.addData(QByteArrayView("\0", 1));
     hash.addData(value);
     hash.addData(QByteArrayView("\0", 1));
+}
+
+void addUint64(QCryptographicHash& hash, std::uint64_t value) {
+    std::array<char, 8> bytes{};
+    for (int index = 7; index >= 0; --index) {
+        bytes.at(static_cast<std::size_t>(index)) = static_cast<char>(value & 0xffU);
+        value >>= 8U;
+    }
+    hash.addData(QByteArrayView(bytes.data(), static_cast<qsizetype>(bytes.size())));
+}
+
+void addEvidenceFrame(QCryptographicHash& hash, QByteArrayView bytes) {
+    addUint64(hash, static_cast<std::uint64_t>(bytes.size()));
+    hash.addData(bytes);
+}
+
+void addEvidenceFrame(QCryptographicHash& hash, QStringView value) {
+    const auto bytes = value.toUtf8();
+    addEvidenceFrame(hash, QByteArrayView(bytes));
+}
+
+[[nodiscard]] std::optional<QString> realismJournalDigest(const QJsonArray& journal) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addEvidenceFrame(hash, QStringLiteral("appellate-workbench-executed-workflow-journal-v1"));
+    addUint64(hash, static_cast<std::uint64_t>(journal.size()));
+    for (const auto& entry_value : journal) {
+        const auto entry = entry_value.toObject();
+        const auto command_encoded =
+            entry.value(QStringLiteral("command_base64")).toString().toLatin1();
+        const auto command = QByteArray::fromBase64(command_encoded);
+        if (command.isEmpty() || command.toBase64() != command_encoded) {
+            return std::nullopt;
+        }
+        addEvidenceFrame(hash, QByteArrayView(command));
+        const auto events = entry.value(QStringLiteral("events_base64")).toArray();
+        addUint64(hash, static_cast<std::uint64_t>(events.size()));
+        for (const auto& event_value : events) {
+            const auto event_encoded = event_value.toString().toLatin1();
+            const auto event = QByteArray::fromBase64(event_encoded);
+            if (event.isEmpty() || event.toBase64() != event_encoded) {
+                return std::nullopt;
+            }
+            addEvidenceFrame(hash, QByteArrayView(event));
+        }
+    }
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] QString realismTraceDigest(const QString& case_id, const QJsonObject& trace) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addEvidenceFrame(hash, QStringLiteral("appellate-workbench-executed-trace-evidence-v1"));
+    addEvidenceFrame(hash, case_id);
+    addEvidenceFrame(hash, trace.value(QStringLiteral("evidence_id")).toString());
+    addEvidenceFrame(hash, trace.value(QStringLiteral("trace_id")).toString());
+    addEvidenceFrame(hash, trace.value(QStringLiteral("workflow_id")).toString());
+    addEvidenceFrame(hash, trace.value(QStringLiteral("engine_revision")).toString());
+    addUint64(hash,
+              static_cast<std::uint64_t>(trace.value(QStringLiteral("command_count")).toInt()));
+    addUint64(hash, static_cast<std::uint64_t>(trace.value(QStringLiteral("event_count")).toInt()));
+    addEvidenceFrame(hash, trace.value(QStringLiteral("journal_sha256")).toString());
+    const auto operations = trace.value(QStringLiteral("operation_ids")).toArray();
+    addUint64(hash, static_cast<std::uint64_t>(operations.size()));
+    for (const auto& operation : operations) {
+        addEvidenceFrame(hash, operation.toString());
+    }
+    addEvidenceFrame(hash, trace.value(QStringLiteral("terminal_stage_id")).toString());
+    return QString::fromLatin1(hash.result().toHex());
 }
 
 [[nodiscard]] QString semanticRenderDigest(QByteArrayView source, QStringView title,
@@ -137,31 +209,19 @@ void addDigestFrame(QCryptographicHash& hash, QByteArrayView name, QByteArrayVie
     return pages;
 }
 
+[[nodiscard]] QString normalizedBiaCopyPage(QString page) {
+    page.remove(QRegularExpression(
+        QStringLiteral("^\\s*SYNTHETIC (?:TRAINING RECORD|TRAINING APPELLATE DOCKET|"
+                       "COUNTERFACTUAL TRAINING BRANCH)[^\\n]*\\n+"),
+        QRegularExpression::CaseInsensitiveOption));
+    page.remove(QRegularExpression(QStringLiteral("^\\s*CERTIFIED EXERCISE COPY[^\\n]*\\n+"),
+                                   QRegularExpression::CaseInsensitiveOption));
+    return normalizedSemanticText(page);
+}
+
 [[nodiscard]] int fail(const QString& message) {
     std::cerr << message.toStdString() << '\n';
     return 1;
-}
-
-[[nodiscard]] appellate::model::LegalTime legalTime(int year, unsigned month, unsigned day) {
-    const auto date = std::chrono::year{year} / std::chrono::month{month} / std::chrono::day{day};
-    return appellate::model::LegalTime{std::chrono::sys_seconds{std::chrono::sys_days{date}},
-                                       appellate::model::LegalDate{date}};
-}
-
-[[nodiscard]] appellate::model::WorkflowCommandHeader commandHeader(std::string command_id) {
-    return appellate::model::WorkflowCommandHeader{
-        "ca4m4.arm.session.negative-gates",
-        appellate::model::WorkflowCommandId{std::move(command_id)},
-        appellate::model::ActorId{"ca4m4.arm.actor.composite-panel"}, legalTime(2026, 8U, 11U)};
-}
-
-[[nodiscard]] appellate::model::WorkflowCommandHeader
-positiveCommandHeader(std::string command_id, std::string actor_id, int year, unsigned month,
-                      unsigned day) {
-    return appellate::model::WorkflowCommandHeader{
-        "ca4m4.arm.session.positive-path",
-        appellate::model::WorkflowCommandId{std::move(command_id)},
-        appellate::model::ActorId{std::move(actor_id)}, legalTime(year, month, day)};
 }
 
 } // namespace
@@ -172,7 +232,7 @@ int main(int argc, char* argv[]) {
     const auto pack_root = authoring_root.filePath(QStringLiteral("pack"));
     const auto foundations_root = QDir(QStringLiteral(APPELLATE_M4_FOUNDATIONS));
 
-    const PackRevision expected_root{PackId{"us.ca4.m4.arm-agency"}, "1.1.0", root_digest};
+    const PackRevision expected_root{PackId{"us.ca4.m4.arm-agency"}, "1.2.0", root_digest};
     const PackRevision expected_federal{PackId{"foundation.us-federal"}, "2025.12.01",
                                         federal_digest};
     const PackRevision expected_ca4{PackId{"foundation.us-ca4"}, "2026.03.23", ca4_digest};
@@ -183,33 +243,42 @@ int main(int argc, char* argv[]) {
     if (!source) {
         return fail(QStringLiteral("source pack: %1").arg(source.error().message));
     }
+    const auto manifest_bytes = readAll(QDir(pack_root).filePath(QStringLiteral("manifest.json")));
+    if (QCryptographicHash::hash(manifest_bytes, QCryptographicHash::Sha256).toHex() !=
+        QByteArray(manifest_digest)) {
+        return fail(QStringLiteral("frozen manifest digest mismatch"));
+    }
     if (source->revision != expected_root ||
         source->graph_state != PackGraphState::DeferredReferences ||
         source->dependencies.size() != std::size_t{3} ||
-        source->required_capabilities.size() != std::size_t{8} ||
-        source->resources.size() != std::size_t{8} || source->blobs.size() != std::size_t{19}) {
+        source->required_capabilities.size() != std::size_t{14} ||
+        source->resources.size() != std::size_t{9} || source->blobs.size() != std::size_t{54}) {
         return fail(QStringLiteral("source pack revision/count contract mismatch"));
     }
 
     const auto readme =
         QString::fromUtf8(readAll(authoring_root.filePath(QStringLiteral("README.md"))))
             .simplified();
-    if (!readme.contains(QStringLiteral("incomplete, pre-release")) ||
-        !readme.contains(QStringLiteral("not a releasable pack")) ||
-        !readme.contains(QStringLiteral("eighteen AR-labeled agency PDFs")) ||
+    if (!readme.contains(QStringLiteral("us.ca4.m4.arm-agency@1.2.0")) ||
+        !readme.contains(QStringLiteral("installable schema-v2 root")) ||
+        !readme.contains(QStringLiteral("18 PDFs and 238")) ||
         !readme.contains(QStringLiteral("AR1–AR238")) ||
         !readme.contains(QStringLiteral("PA1–PA8")) ||
-        !readme.contains(QStringLiteral("not counted toward the 18-PDF/238-page")) ||
-        !readme.contains(QStringLiteral("Two minimal argument configurations")) ||
-        !readme.contains(QStringLiteral("No appellate result or realism level")) ||
-        !readme.contains(QStringLiteral("default no-rehearing-petition/no-stay branch"))) {
-        return fail(QStringLiteral("README does not preserve the incomplete boundary"));
+        !readme.contains(QStringLiteral("PA9–PA127")) ||
+        !readme.contains(QStringLiteral("PA128–PA177")) ||
+        !readme.contains(QStringLiteral("54 PDFs and 415")) ||
+        !readme.contains(QStringLiteral("Seven canonical journals")) ||
+        !readme.contains(QStringLiteral("15 and 10 questions")) ||
+        !readme.contains(QStringLiteral("independent_review_pending"))) {
+        return fail(QStringLiteral("README does not describe the finalized 1.2 boundary"));
     }
 
     QStringList markdown_paths;
     const std::array source_directories{
         std::pair{QStringLiteral("documents/batch-1"), 7},
         std::pair{QStringLiteral("documents/batch-2"), 12},
+        std::pair{QStringLiteral("documents/appellate-actual"), 22},
+        std::pair{QStringLiteral("documents/appellate-branches"), 13},
     };
     for (const auto& [relative_path, expected_count] : source_directories) {
         const auto documents = QDir(authoring_root.filePath(relative_path));
@@ -221,13 +290,19 @@ int main(int argc, char* argv[]) {
             markdown_paths.push_back(documents.filePath(name));
         }
     }
-    if (markdown_paths.size() != 19) {
-        return fail(QStringLiteral("ARM must have exactly nineteen rendered sources"));
+    if (markdown_paths.size() != 54) {
+        return fail(QStringLiteral("ARM must have exactly fifty-four rendered sources"));
     }
     const QString record_banner = QStringLiteral(
         "SYNTHETIC TRAINING RECORD — NOT FILED — ALL FACTS AND IDENTIFIERS ARE FICTIONAL");
     const QString proffer_banner = QStringLiteral(
         "SYNTHETIC TRAINING APPELLATE PROFFER — NOT ADMINISTRATIVE RECORD — ALL FACTS ARE "
+        "FICTIONAL");
+    const QString appellate_banner = QStringLiteral(
+        "SYNTHETIC TRAINING APPELLATE DOCKET — NOT FILED — ALL FACTS AND IDENTIFIERS ARE "
+        "FICTIONAL");
+    const QString branch_banner = QStringLiteral(
+        "SYNTHETIC COUNTERFACTUAL TRAINING BRANCH — NEVER FILED — ALL FACTS AND IDENTIFIERS ARE "
         "FICTIONAL");
     const QStringList forbidden_authoring_voice{
         QStringLiteral("initial appellate certification"),
@@ -367,28 +442,35 @@ int main(int argc, char* argv[]) {
     QSet<QString> distinct_markdown_pages;
     QString batch_two_corpus;
     int authored_page_count = 0;
+    int legacy_authored_page_count = 0;
+    int successor_authored_page_count = 0;
     for (const auto& markdown_path : markdown_paths) {
         const auto markdown_name = QFileInfo(markdown_path).fileName();
         const auto raw = QString::fromUtf8(readAll(markdown_path));
-        const auto expected_banner =
-            markdown_name.startsWith(QStringLiteral("pa")) ? proffer_banner : record_banner;
+        const bool actual_source = markdown_path.contains(QStringLiteral("/appellate-actual/"));
+        const bool branch_source = markdown_path.contains(QStringLiteral("/appellate-branches/"));
+        const bool proffer_source = markdown_name.startsWith(QStringLiteral("pa"));
+        const bool legacy_source = !actual_source && !branch_source;
+        const auto expected_banner = branch_source    ? branch_banner
+                                     : actual_source  ? appellate_banner
+                                     : proffer_source ? proffer_banner
+                                                      : record_banner;
         const auto newline = raw.indexOf(QLatin1Char('\n'));
         const auto body = raw.mid(newline + 1);
         if (!raw.startsWith(expected_banner + QLatin1Char('\n')) ||
             raw.count(expected_banner) != 1 || newline < 0 ||
-            compiled_ar_label.match(body).hasMatch()) {
+            (legacy_source && compiled_ar_label.match(body).hasMatch())) {
             return fail(
                 QStringLiteral("source safety/temporal boundary mismatch: %1").arg(markdown_name));
         }
         const auto lower_body = body.toLower();
         const auto searchable_body = lower_body.simplified();
-        if (lower_body.contains(QStringLiteral("placeholder"))) {
+        if (legacy_source && lower_body.contains(QStringLiteral("placeholder"))) {
             return fail(QStringLiteral("placeholder token escaped into %1").arg(markdown_name));
         }
         const bool may_identify_post_order_material =
-            markdown_name.startsWith(QStringLiteral("pa")) ||
-            markdown_name.startsWith(QStringLiteral("18-"));
-        if (!may_identify_post_order_material &&
+            proffer_source || markdown_name.startsWith(QStringLiteral("18-"));
+        if (legacy_source && !may_identify_post_order_material &&
             (lower_body.contains(QStringLiteral("cousin's")) ||
              lower_body.contains(QStringLiteral("cousin declaration")) ||
              lower_body.contains(QStringLiteral("appellate proffer")) ||
@@ -398,7 +480,7 @@ int main(int argc, char* argv[]) {
                 QStringLiteral("future-record knowledge leaked into %1").arg(markdown_name));
         }
         for (const auto& phrase : forbidden_authoring_voice) {
-            if (lower_body.contains(phrase)) {
+            if (legacy_source && lower_body.contains(phrase)) {
                 return fail(QStringLiteral("inline authoring voice leaked into %1: %2")
                                 .arg(markdown_name, phrase));
             }
@@ -435,6 +517,11 @@ int main(int argc, char* argv[]) {
             }
             distinct_markdown_pages.insert(normalized_page);
             ++authored_page_count;
+            if (legacy_source) {
+                ++legacy_authored_page_count;
+            } else {
+                ++successor_authored_page_count;
+            }
         }
         normalized_markdown_pages_by_asset.insert(asset_path, normalized_pages);
         if (markdown_path.contains(QStringLiteral("/batch-2/"))) {
@@ -481,9 +568,34 @@ int main(int argc, char* argv[]) {
                 QStringLiteral("initial index contains retrospective diagnosis: %1").arg(phrase));
         }
     }
-    if (authored_page_count != 246 || distinct_markdown_pages.size() != 246 ||
-        normalized_markdown_pages_by_asset.size() != 19) {
+    if (authored_page_count != 415 || legacy_authored_page_count != 246 ||
+        successor_authored_page_count != 169 || distinct_markdown_pages.size() != 415 ||
+        normalized_markdown_pages_by_asset.size() != 54) {
         return fail(QStringLiteral("normalized Markdown page closure mismatch"));
+    }
+
+    const auto bia_pages = QString::fromUtf8(readAll(authoring_root.filePath(QStringLiteral(
+                                                 "documents/batch-2/16-bia-final-order.md"))))
+                               .split(QStringLiteral("<!-- PAGE BREAK -->"));
+    const auto actual_copy_pages =
+        QString::fromUtf8(readAll(authoring_root.filePath(QStringLiteral(
+                              "documents/appellate-actual/a03-cured-petition-order-copy.md"))))
+            .split(QStringLiteral("<!-- PAGE BREAK -->"));
+    const auto branch_copy_pages =
+        QString::fromUtf8(readAll(authoring_root.filePath(QStringLiteral(
+                              "documents/appellate-branches/b01-day31-petition-order-copy.md"))))
+            .split(QStringLiteral("<!-- PAGE BREAK -->"));
+    if (bia_pages.size() != 8 || actual_copy_pages.size() != 12 || branch_copy_pages.size() != 12) {
+        return fail(QStringLiteral("BIA copy source page contract mismatch"));
+    }
+    for (qsizetype index = 0; index < bia_pages.size(); ++index) {
+        if (normalizedBiaCopyPage(bia_pages.at(index)) !=
+                normalizedBiaCopyPage(actual_copy_pages.at(index + 4)) ||
+            normalizedBiaCopyPage(bia_pages.at(index)) !=
+                normalizedBiaCopyPage(branch_copy_pages.at(index + 4))) {
+            return fail(QStringLiteral("BIA source-copy equivalence drifted at copy page %1")
+                            .arg(index + 1));
+        }
     }
 
     const std::array controlled_objects{
@@ -587,43 +699,30 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    const auto grounded_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.grounded-questions" && capability.version == 1U;
-        });
-    const auto dependent_deadline_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.dependent-deadlines" &&
-                   capability.version == 1U;
-        });
-    const auto named_deadline_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.named-deadlines" && capability.version == 1U;
-        });
-    const auto event_date_deadline_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.event-date-deadlines" &&
-                   capability.version == 1U;
-        });
-    const auto argument_date_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.argument-date-guards" &&
-                   capability.version == 1U;
-        });
-    if (grounded_capability == source->required_capabilities.end() ||
-        dependent_deadline_capability == source->required_capabilities.end() ||
-        named_deadline_capability == source->required_capabilities.end() ||
-        event_date_deadline_capability == source->required_capabilities.end() ||
-        argument_date_capability == source->required_capabilities.end() ||
-        std::ranges::any_of(source->required_capabilities,
-                            [](const auto& capability) {
-                                return capability.id == "workbench.pack.structured-disposition" ||
-                                       capability.id == "workbench.pack.realism-evidence";
-                            }) ||
-        std::ranges::any_of(source->resources, [](const auto& resource) {
-            return resource.descriptor.kind == ResourceKind::RealismReview;
-        })) {
-        return fail(QStringLiteral("grounded/deferred capability boundary mismatch"));
+    QSet<QString> actual_capabilities;
+    for (const auto& capability : source->required_capabilities) {
+        actual_capabilities.insert(QStringLiteral("%1@%2")
+                                       .arg(QString::fromStdString(capability.id))
+                                       .arg(capability.version));
+    }
+    const QSet<QString> expected_capabilities{
+        QStringLiteral("workbench.pack.declarative-resources@2"),
+        QStringLiteral("workbench.pack.canonical-authority@1"),
+        QStringLiteral("workbench.pack.workflow-preconditions@1"),
+        QStringLiteral("workbench.pack.dependent-deadlines@1"),
+        QStringLiteral("workbench.pack.named-deadlines@1"),
+        QStringLiteral("workbench.pack.event-date-deadlines@1"),
+        QStringLiteral("workbench.pack.argument-date-guards@1"),
+        QStringLiteral("workbench.pack.grounded-questions@1"),
+        QStringLiteral("workbench.pack.route-role-subsets@1"),
+        QStringLiteral("workbench.pack.workflow-instance-preconditions@1"),
+        QStringLiteral("workbench.pack.static-deficiency-deadlines@1"),
+        QStringLiteral("workbench.pack.operation-document-bindings@1"),
+        QStringLiteral("workbench.pack.structured-disposition@1"),
+        QStringLiteral("workbench.pack.realism-evidence@1"),
+    };
+    if (actual_capabilities != expected_capabilities) {
+        return fail(QStringLiteral("exact 1.2 capability contract mismatch"));
     }
 
     for (const auto& resource : source->resources) {
@@ -656,26 +755,22 @@ int main(int argc, char* argv[]) {
         findResource(source->resources, "ca4m4.arm.argument.actual-record");
     const auto* counterfactual_argument =
         findResource(source->resources, "ca4m4.arm.argument.counterfactual");
+    const auto* procedure_resource =
+        findResource(source->resources, "ca4m4.arm.procedure.agency-review");
+    const auto* realism_resource =
+        findResource(source->resources, "ca4m4.arm.review.authoring-2026-08-12");
     if (case_resource == nullptr || record_resource == nullptr || authority_resource == nullptr ||
         workflow_resource == nullptr || bench_resource == nullptr || actual_argument == nullptr ||
-        counterfactual_argument == nullptr ||
-        case_resource->descriptor.kind != ResourceKind::Case ||
+        counterfactual_argument == nullptr || procedure_resource == nullptr ||
+        realism_resource == nullptr || case_resource->descriptor.kind != ResourceKind::Case ||
         record_resource->descriptor.kind != ResourceKind::Record ||
         actual_argument->descriptor.kind != ResourceKind::ArgumentConfig ||
-        counterfactual_argument->descriptor.kind != ResourceKind::ArgumentConfig) {
+        counterfactual_argument->descriptor.kind != ResourceKind::ArgumentConfig ||
+        procedure_resource->descriptor.kind != ResourceKind::ProcedureProfile ||
+        realism_resource->descriptor.kind != ResourceKind::RealismReview) {
         return fail(QStringLiteral("required ARM resources are absent"));
     }
 
-    if (case_resource->document.contains(QStringLiteral("disposition_plans")) ||
-        case_resource->document.contains(QStringLiteral("authored_disposition_plan_id"))) {
-        return fail(QStringLiteral("ARM content lane must not contain a structured disposition"));
-    }
-    for (const auto& issue_value :
-         case_resource->document.value(QStringLiteral("issues")).toArray()) {
-        if (issue_value.toObject().contains(QStringLiteral("target_ids"))) {
-            return fail(QStringLiteral("deferred disposition target leaked into ARM content"));
-        }
-    }
     for (const auto& actor_value :
          case_resource->document.value(QStringLiteral("actors")).toArray()) {
         if (!actor_value.toObject().value(QStringLiteral("synthetic")).toBool()) {
@@ -683,167 +778,90 @@ int main(int argc, char* argv[]) {
         }
     }
     const auto case_issues = case_resource->document.value(QStringLiteral("issues")).toArray();
-    if (case_issues.size() != 5) {
-        return fail(QStringLiteral("ARM issue matrix must contain five current issues"));
+    const auto disposition_plans =
+        case_resource->document.value(QStringLiteral("disposition_plans")).toArray();
+    if (case_issues.size() != 6 || disposition_plans.size() != 1 ||
+        case_resource->document.value(QStringLiteral("authored_disposition_plan_id")).toString() !=
+            QStringLiteral("ca4m4.arm.disposition.authored-vacate-remand") ||
+        case_resource->document.value(QStringLiteral("authored_disposition_id")).toString() !=
+            QStringLiteral("ca4m4.arm.operation.issue-judgment")) {
+        return fail(QStringLiteral("ARM issue/disposition envelope mismatch"));
     }
-
-    const QHash<QString, QSet<QString>> actual_question_groundings{
-        {QStringLiteral("ca4m4.arm.question.actual-record-composition"),
-         {QStringLiteral("ca4m4.arm.grounding.actual-record-rule|authority|ca4m4.arm.authority."
-                         "frap-16-record"),
-          QStringLiteral("ca4m4.arm.grounding.actual-record-statute|authority|ca4m4.arm.authority."
-                         "usc-1252-record-limit"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-record-index|record_page|ca4m4.arm.anchor.ar30"),
-          QStringLiteral("ca4m4.arm.grounding.actual-record-p7|record_page|ca4m4.arm.anchor.ar33"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-record-admission|record_page|ca4m4.arm.anchor.ar117"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-record-initial-gap|record_page|ca4m4.arm.anchor.ar219"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-record-stipulation|record_page|ca4m4.arm.anchor.ar227"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-record-receipt|record_page|ca4m4.arm.anchor.ar229"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-record-cause|record_page|ca4m4.arm.anchor.ar232"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-record-identity|record_page|ca4m4.arm.anchor.ar233"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-record-exclusion|record_page|ca4m4.arm.anchor.ar235"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-record-correction|record_page|ca4m4.arm.anchor.ar237"),
-          QStringLiteral("ca4m4.arm.grounding.actual-record-pa|record_page|ca4m4.arm.anchor.pa1")}},
-        {QStringLiteral("ca4m4.arm.question.actual-aggregate-risk"),
-         {QStringLiteral("ca4m4.arm.grounding.actual-aggregate-rule|authority|ca4m4.arm.authority."
-                         "rodriguez-arias-aggregation"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-aggregate-page|record_page|ca4m4.arm.anchor.ar29"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-aggregate-report|record_page|ca4m4.arm.anchor.ar86"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-aggregate-testimony|record_page|ca4m4.arm.anchor.ar137"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-aggregate-ij|record_page|ca4m4.arm.anchor.ar171"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-aggregate-board|record_page|ca4m4.arm.anchor.ar212")}},
-        {QStringLiteral("ca4m4.arm.question.actual-acquiescence"),
-         {QStringLiteral("ca4m4.arm.grounding.actual-acquiescence-rule|authority|ca4m4.arm."
-                         "authority.cfr-1208-torture-acquiescence"),
-          QStringLiteral("ca4m4.arm.grounding.actual-acquiescence-declaration|record_page|ca4m4."
-                         "arm.anchor.ar45"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-acquiescence-routing|record_page|ca4m4.arm.anchor.ar66"),
-          QStringLiteral("ca4m4.arm.grounding.actual-acquiescence-testimony|record_page|ca4m4.arm."
-                         "anchor.ar148"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-acquiescence-ij|record_page|ca4m4.arm.anchor.ar172"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-acquiescence-board|record_page|ca4m4.arm.anchor.ar215")}},
-        {QStringLiteral("ca4m4.arm.question.actual-review-standard"),
-         {QStringLiteral("ca4m4.arm.grounding.actual-review-rule|authority|ca4m4.arm.authority.usc-"
-                         "1252-review-standard"),
-          QStringLiteral("ca4m4.arm.grounding.actual-review-consideration|authority|ca4m4.arm."
-                         "authority.rodriguez-arias-consideration"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-review-application|record_page|ca4m4.arm.anchor.ar31"),
-          QStringLiteral("ca4m4.arm.grounding.actual-review-ij|record_page|ca4m4.arm.anchor.ar171"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-review-brief|record_page|ca4m4.arm.anchor.ar197"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-review-board|record_page|ca4m4.arm.anchor.ar216")}},
-        {QStringLiteral("ca4m4.arm.question.actual-timeliness"),
-         {QStringLiteral("ca4m4.arm.grounding.actual-timeliness-statute|authority|ca4m4.arm."
-                         "authority.usc-1252-deadline"),
-          QStringLiteral("ca4m4.arm.grounding.actual-timeliness-riley|authority|ca4m4.arm."
-                         "authority.riley-claims-processing"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-timeliness-order|record_page|ca4m4.arm.anchor.ar211"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-timeliness-notice|record_page|ca4m4.arm.anchor.ar218"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-timeliness-index|record_page|ca4m4.arm.anchor.ar219"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.actual-timeliness-page|record_page|ca4m4.arm.anchor.pa1")}},
+    QHash<QString, QSet<QString>> issue_authorities;
+    QHash<QString, QSet<QString>> issue_anchors;
+    QHash<QString, QSet<QString>> issue_targets;
+    QSet<QString> all_targets;
+    for (const auto& issue_value : case_issues) {
+        const auto issue = issue_value.toObject();
+        const auto issue_id = issue.value(QStringLiteral("issue_id")).toString();
+        if (issue_id.isEmpty() || issue_authorities.contains(issue_id)) {
+            return fail(QStringLiteral("case issue IDs are not exact and unique"));
+        }
+        issue_authorities.insert(issue_id,
+                                 strings(issue.value(QStringLiteral("authority_ids")).toArray()));
+        issue_anchors.insert(issue_id,
+                             strings(issue.value(QStringLiteral("record_anchor_ids")).toArray()));
+        issue_targets.insert(issue_id,
+                             strings(issue.value(QStringLiteral("target_ids")).toArray()));
+        all_targets.unite(issue_targets.value(issue_id));
+    }
+    const auto disposition = disposition_plans.first().toObject();
+    const auto components = disposition.value(QStringLiteral("components")).toArray();
+    const QSet<QString> expected_components{
+        QStringLiteral("ca4m4.arm.issue.record-composition|ca4m4.arm.target.corrected-certified-"
+                       "record|whole|affirm|0"),
+        QStringLiteral("ca4m4.arm.issue.record-composition|ca4m4.arm.target.extra-record-proffer|"
+                       "whole|deny|0"),
+        QStringLiteral("ca4m4.arm.issue.aggregate-cat-risk|ca4m4.arm.target.aggregate-analysis|"
+                       "whole|vacate|1"),
+        QStringLiteral(
+            "ca4m4.arm.issue.official-acquiescence|ca4m4.arm.target.acquiescence-analysis|"
+            "whole|vacate|1"),
+        QStringLiteral("ca4m4.arm.issue.review-standard|ca4m4.arm.target.meaningful-consideration|"
+                       "whole|vacate|1"),
+        QStringLiteral(
+            "ca4m4.arm.issue.petition-timeliness|ca4m4.arm.target.actual-timing-challenge|"
+            "whole|deny|0"),
+        QStringLiteral("ca4m4.arm.issue.disposition-remedy|ca4m4.arm.target.petition-for-review|"
+                       "part|grant|1"),
     };
-    const QHash<QString, QSet<QString>> counterfactual_question_groundings{
-        {QStringLiteral("ca4m4.arm.question.counterfactual-record-composition"),
-         {QStringLiteral("ca4m4.arm.grounding.counterfactual-record-rule|authority|ca4m4.arm."
-                         "authority.frap-16-record"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-statute|authority|ca4m4.arm."
-                         "authority.usc-1252-record-limit"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.counterfactual-record-index|record_page|ca4m4.arm.anchor.ar30"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.counterfactual-record-p7|record_page|ca4m4.arm.anchor.ar33"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-admission|record_page|ca4m4."
-                         "arm.anchor.ar117"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-initial-gap|record_page|ca4m4."
-                         "arm.anchor.ar219"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-stipulation|record_page|ca4m4."
-                         "arm.anchor.ar227"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-receipt|record_page|ca4m4.arm."
-                         "anchor.ar229"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-exclusion|record_page|ca4m4."
-                         "arm.anchor.ar235"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-record-correction|record_page|ca4m4."
-                         "arm.anchor.ar237"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.counterfactual-record-pa|record_page|ca4m4.arm.anchor.pa1")}},
-        {QStringLiteral("ca4m4.arm.question.counterfactual-aggregate-risk"),
-         {QStringLiteral("ca4m4.arm.grounding.counterfactual-aggregate-rule|authority|ca4m4.arm."
-                         "authority.rodriguez-arias-aggregation"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-aggregate-page|record_page|ca4m4.arm."
-                         "anchor.ar29"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-aggregate-report|record_page|ca4m4."
-                         "arm.anchor.ar86"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.counterfactual-aggregate-ij|record_page|ca4m4.arm.anchor.ar171"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-aggregate-board|record_page|ca4m4.arm."
-                         "anchor.ar212")}},
-        {QStringLiteral("ca4m4.arm.question.counterfactual-acquiescence"),
-         {QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-rule|authority|ca4m4.arm."
-                         "authority.cfr-1208-torture-acquiescence"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-routing|record_page|"
-                         "ca4m4.arm.anchor.ar66"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-authentication|record_"
-                         "page|ca4m4.arm.anchor.ar71"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-testimony|record_page|"
-                         "ca4m4.arm.anchor.ar148"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-ij|record_page|ca4m4.arm."
-                         "anchor.ar172"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-acquiescence-board|record_page|ca4m4."
-                         "arm.anchor.ar215")}},
-        {QStringLiteral("ca4m4.arm.question.counterfactual-review-standard"),
-         {QStringLiteral("ca4m4.arm.grounding.counterfactual-review-rule|authority|ca4m4.arm."
-                         "authority.rodriguez-arias-consideration"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-review-standard|authority|ca4m4.arm."
-                         "authority.usc-1252-review-standard"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-review-application|record_page|ca4m4."
-                         "arm.anchor.ar31"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.counterfactual-review-ij|record_page|ca4m4.arm.anchor.ar171"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-review-board|record_page|ca4m4.arm."
-                         "anchor.ar216")}},
-        {QStringLiteral("ca4m4.arm.question.counterfactual-day-31"),
-         {QStringLiteral("ca4m4.arm.grounding.counterfactual-day-31-statute|authority|ca4m4.arm."
-                         "authority.usc-1252-deadline"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-day-31-riley|authority|ca4m4.arm."
-                         "authority.riley-claims-processing"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.counterfactual-day-31-order|record_page|ca4m4.arm.anchor.ar211"),
-          QStringLiteral("ca4m4.arm.grounding.counterfactual-day-31-notice|record_page|ca4m4.arm."
-                         "anchor.ar218"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.counterfactual-day-31-index|record_page|ca4m4.arm.anchor.ar219"),
-          QStringLiteral(
-              "ca4m4.arm.grounding.counterfactual-day-31-page|record_page|ca4m4.arm.anchor.pa1")}},
-    };
+    QSet<QString> actual_components;
+    QSet<QString> component_targets;
+    for (const auto& component_value : components) {
+        const auto component = component_value.toObject();
+        const auto issue_id = component.value(QStringLiteral("issue_id")).toString();
+        const auto target_id = component.value(QStringLiteral("target_id")).toString();
+        const auto authorities =
+            strings(component.value(QStringLiteral("authority_ids")).toArray());
+        const auto anchors =
+            strings(component.value(QStringLiteral("record_anchor_ids")).toArray());
+        if (!issue_targets.value(issue_id).contains(target_id) || authorities.isEmpty() ||
+            anchors.isEmpty() || !(authorities - issue_authorities.value(issue_id)).isEmpty() ||
+            !(anchors - issue_anchors.value(issue_id)).isEmpty() ||
+            component_targets.contains(target_id)) {
+            return fail(QStringLiteral("disposition component is ungrounded or duplicated: %1")
+                            .arg(target_id));
+        }
+        component_targets.insert(target_id);
+        actual_components.insert(
+            QStringLiteral("%1|%2|%3|%4|%5")
+                .arg(issue_id, target_id, component.value(QStringLiteral("scope")).toString(),
+                     component.value(QStringLiteral("action")).toString())
+                .arg(component.value(QStringLiteral("remand")).toBool() ? 1 : 0));
+    }
+    if (disposition.value(QStringLiteral("plan_id")).toString() !=
+            QStringLiteral("ca4m4.arm.disposition.authored-vacate-remand") ||
+        disposition.value(QStringLiteral("finality")).toString() != QStringLiteral("final") ||
+        disposition.value(QStringLiteral("digest")).toString() !=
+            QStringLiteral("cd104002da124bd64ba967deedde73be0d70b307e9ebcd760350b5b5c6eb95f2") ||
+        components.size() != 7 || all_targets.size() != 7 || component_targets != all_targets ||
+        actual_components != expected_components) {
+        return fail(QStringLiteral("seven-component disposition contract mismatch"));
+    }
 
     const auto check_argument_bank =
         [&](const ValidatedResource& resource, const QString& expected_mode,
-            const QString& expected_digest,
-            const QHash<QString, QSet<QString>>& expected_question_groundings)
-        -> std::optional<QString> {
+            const QString& expected_digest, int expected_question_count) -> std::optional<QString> {
         const auto document = resource.document;
         const auto permitted =
             strings(document.value(QStringLiteral("permitted_issue_ids")).toArray());
@@ -857,7 +875,7 @@ int main(int argc, char* argv[]) {
             permitted.size() != 5 ||
             bank.value(QStringLiteral("mode")).toString() != expected_mode ||
             bank.value(QStringLiteral("grounding_digest")).toString() != expected_digest ||
-            bindings.size() != 5 || questions.size() != 5) {
+            bindings.size() != 5 || questions.size() != expected_question_count) {
             return QStringLiteral("argument-bank envelope mismatch");
         }
         QSet<QString> bound_issues;
@@ -865,30 +883,44 @@ int main(int argc, char* argv[]) {
         QSet<QString> question_ids;
         QSet<QString> grounding_ids;
         QSet<QString> topics;
-        bool saw_pa = false;
-        bool saw_ar = false;
+        QHash<QString, QSet<QString>> binding_topics;
+        QHash<QString, int> questions_per_issue;
+        bool saw_branch_pa = false;
+        const bool actual_mode = expected_mode == QStringLiteral("actual_record");
         for (const auto& binding_value : bindings) {
             const auto binding = binding_value.toObject();
             const auto issue = binding.value(QStringLiteral("issue_id")).toString();
-            const auto bound_topics = binding.value(QStringLiteral("topic_ids")).toArray();
-            if (!permitted.contains(issue) || bound_topics.size() != 1) {
+            const auto bound_topics = strings(binding.value(QStringLiteral("topic_ids")).toArray());
+            if (!permitted.contains(issue) || bound_topics.size() != (actual_mode ? 3 : 2) ||
+                !bound_topics.contains(QStringLiteral("workbench.topic.remedy")) ||
+                (bound_topics.contains(QStringLiteral("workbench.topic.practical-consequences")) !=
+                 actual_mode)) {
                 return QStringLiteral("argument-bank issue binding mismatch");
             }
             bound_issues.insert(issue);
-            topics.insert(bound_topics.at(0).toString());
+            topics.unite(bound_topics);
+            binding_topics.insert(issue, bound_topics);
         }
         for (const auto& question_value : questions) {
             const auto question = question_value.toObject();
             const auto issue = question.value(QStringLiteral("issue_id")).toString();
             const auto question_id = question.value(QStringLiteral("question_id")).toString();
+            const auto topic_id = question.value(QStringLiteral("topic_id")).toString();
             if (!permitted.contains(issue) || question_ids.contains(question_id) ||
-                !expected_question_groundings.contains(question_id) ||
+                !binding_topics.value(issue).contains(topic_id) ||
+                !question_id.startsWith(
+                    expected_mode == QStringLiteral("actual_record")
+                        ? QStringLiteral("ca4m4.arm.question.actual-")
+                        : QStringLiteral("ca4m4.arm.question.counterfactual-")) ||
                 question.value(QStringLiteral("prompt")).toString().isEmpty()) {
                 return QStringLiteral("argument-bank question coverage mismatch");
             }
             question_ids.insert(question_id);
             question_issues.insert(issue);
-            QSet<QString> actual_groundings;
+            ++questions_per_issue[issue];
+            bool question_has_authority = false;
+            bool question_has_ar = false;
+            bool question_has_pa = false;
             for (const auto& grounding_value :
                  question.value(QStringLiteral("grounding")).toArray()) {
                 const auto grounding = grounding_value.toObject();
@@ -902,53 +934,86 @@ int main(int argc, char* argv[]) {
                 QString target;
                 if (kind == QStringLiteral("record_page")) {
                     target = grounding.value(QStringLiteral("anchor_id")).toString();
-                    saw_pa = saw_pa || target.startsWith(QStringLiteral("ca4m4.arm.anchor.pa"));
-                    saw_ar = saw_ar || target.startsWith(QStringLiteral("ca4m4.arm.anchor.ar"));
+                    if (!issue_anchors.value(issue).contains(target)) {
+                        return QStringLiteral("question uses anchor outside its issue: %1")
+                            .arg(question_id);
+                    }
+                    question_has_pa =
+                        question_has_pa || target.startsWith(QStringLiteral("ca4m4.arm.anchor.pa"));
+                    question_has_ar =
+                        question_has_ar || target.startsWith(QStringLiteral("ca4m4.arm.anchor.ar"));
+                    if (target.startsWith(QStringLiteral("ca4m4.arm.anchor.pa"))) {
+                        bool parsed = false;
+                        const auto page =
+                            target.mid(QStringLiteral("ca4m4.arm.anchor.pa").size()).toInt(&parsed);
+                        if (!parsed ||
+                            (page <= 8 &&
+                             issue != QStringLiteral("ca4m4.arm.issue.record-composition")) ||
+                            (expected_mode == QStringLiteral("actual_record") && page >= 128)) {
+                            return QStringLiteral(
+                                "argument bank crosses the PA classification boundary");
+                        }
+                        saw_branch_pa = saw_branch_pa || page >= 128;
+                    }
                 } else if (kind == QStringLiteral("authority")) {
                     target = grounding.value(QStringLiteral("authority_id")).toString();
+                    if (!issue_authorities.value(issue).contains(target)) {
+                        return QStringLiteral("question uses authority outside its issue: %1")
+                            .arg(question_id);
+                    }
+                    question_has_authority = true;
                 } else {
                     return QStringLiteral("argument bank uses noncanonical grounding kind");
                 }
-                actual_groundings.insert(
-                    QStringLiteral("%1|%2|%3").arg(grounding_id, kind, target));
             }
-            if (actual_groundings != expected_question_groundings.value(question_id)) {
-                return QStringLiteral("per-question grounding set mismatch: %1").arg(question_id);
+            if (!question_has_authority || !question_has_ar || !question_has_pa) {
+                return QStringLiteral("question lacks authority/AR/PA grounding: %1")
+                    .arg(question_id);
             }
         }
-        const QSet<QString> expected_topics{
+        QSet<QString> expected_topics{
             QStringLiteral("workbench.topic.record-support"),
             QStringLiteral("workbench.topic.governing-authority"),
             QStringLiteral("workbench.topic.merits"),
             QStringLiteral("workbench.topic.standard-of-review"),
             QStringLiteral("workbench.topic.jurisdiction"),
+            QStringLiteral("workbench.topic.remedy"),
         };
+        if (actual_mode) {
+            expected_topics.insert(QStringLiteral("workbench.topic.practical-consequences"));
+        }
+        const auto expected_per_issue = expected_question_count / 5;
         if (bound_issues != permitted || question_issues != permitted ||
-            question_ids != QSet<QString>(expected_question_groundings.keyBegin(),
-                                          expected_question_groundings.keyEnd()) ||
-            topics != expected_topics || !saw_ar || !saw_pa) {
+            topics != expected_topics ||
+            std::ranges::any_of(permitted,
+                                [&](const auto& issue) {
+                                    return questions_per_issue.value(issue) != expected_per_issue;
+                                }) ||
+            (actual_mode ? saw_branch_pa : !saw_branch_pa)) {
             return QStringLiteral("argument bank is not grounded across the five-issue matrix");
         }
         return std::nullopt;
     };
     if (const auto error = check_argument_bank(
             *actual_argument, QStringLiteral("actual_record"),
-            QStringLiteral("9da889348681230a0f65b8cec31713970001b567597a8b0066baa21f66421b8c"),
-            actual_question_groundings);
+            QStringLiteral("0bf9b67b1ad8bf28c5c061deda496a1047d731ce66fdec9a864c112c637cd2b5"), 15);
         error.has_value()) {
         return fail(*error);
     }
     if (const auto error = check_argument_bank(
             *counterfactual_argument, QStringLiteral("counterfactual_training"),
-            QStringLiteral("a2eceeedf028ed50080e511f7a0cdbc81cc542c3a76a14c47ec77363da16d582"),
-            counterfactual_question_groundings);
+            QStringLiteral("27f6387c45efb7ac62c798164dbd1a78cfc699bc8cc53a7c36b75e8a220e7124"), 10);
         error.has_value()) {
         return fail(*error);
     }
     const auto counterfactual_text = QString::fromUtf8(
         QJsonDocument(counterfactual_argument->document).toJson(QJsonDocument::Compact));
-    if (!counterfactual_text.contains(QStringLiteral("day 31")) ||
-        !counterfactual_text.contains(QStringLiteral("timely invoked"))) {
+    if (!counterfactual_text.contains(QStringLiteral(
+            "ca4m4.arm.question.counterfactual-petition-timeliness-premise-reversal")) ||
+        !counterfactual_text.contains(QStringLiteral(
+            "ca4m4.arm.question.counterfactual-petition-timeliness-adverse-remedy")) ||
+        !counterfactual_text.contains(QStringLiteral("day-31 petition")) ||
+        !counterfactual_text.contains(QStringLiteral("timely Government invocation"))) {
         return fail(QStringLiteral("day-31 invocation remains ungrounded or implicit"));
     }
 
@@ -985,18 +1050,34 @@ int main(int argc, char* argv[]) {
     const auto entries =
         record_resource->document.value(QStringLiteral("docket_entries")).toArray();
     const auto anchors = record_resource->document.value(QStringLiteral("page_anchors")).toArray();
-    if (dockets.size() != 2 || entries.size() != 19 || anchors.size() != 246) {
+    if (dockets.size() != 3 || entries.size() != 54 || anchors.size() != 415) {
         return fail(QStringLiteral("record count contract mismatch"));
     }
 
     QHash<QString, QJsonObject> anchor_by_label;
+    QHash<QString, QJsonObject> anchor_by_entry_page;
     for (const auto& anchor_value : anchors) {
         const auto anchor = anchor_value.toObject();
         const auto label = anchor.value(QStringLiteral("citation_label")).toString();
-        if (label.isEmpty() || anchor_by_label.contains(label)) {
+        const auto entry_page = QStringLiteral("%1|%2")
+                                    .arg(anchor.value(QStringLiteral("entry_id")).toString())
+                                    .arg(anchor.value(QStringLiteral("page_number")).toInt());
+        if (label.isEmpty() || anchor_by_label.contains(label) ||
+            anchor_by_entry_page.contains(entry_page)) {
             return fail(QStringLiteral("duplicate or empty page-anchor label"));
         }
         anchor_by_label.insert(label, anchor);
+        anchor_by_entry_page.insert(entry_page, anchor);
+    }
+    for (int page = 1; page <= 238; ++page) {
+        if (!anchor_by_label.contains(QStringLiteral("AR%1").arg(page))) {
+            return fail(QStringLiteral("AR continuity mismatch at %1").arg(page));
+        }
+    }
+    for (int page = 1; page <= 177; ++page) {
+        if (!anchor_by_label.contains(QStringLiteral("PA%1").arg(page))) {
+            return fail(QStringLiteral("PA continuity mismatch at %1").arg(page));
+        }
     }
 
     const QRegularExpression any_page_label(QStringLiteral("\\b(?:AR|PA)\\d+\\b"));
@@ -1143,8 +1224,10 @@ int main(int argc, char* argv[]) {
     int administrative_pages = 0;
     int generated_documents = 0;
     int generated_pages = 0;
-    int expected_ar = 1;
-    int expected_pa = 1;
+    int actual_documents = 0;
+    int actual_pages = 0;
+    int branch_documents = 0;
+    int branch_pages = 0;
     int rendered_placeholder_occurrences = 0;
     bool saw_proven_p7 = false;
     bool saw_new_proffer = false;
@@ -1187,6 +1270,10 @@ int main(int argc, char* argv[]) {
         QStringLiteral("ca4m4.arm.record.ar09"),
     };
     bool saw_exact_combined_packet_entry = false;
+    QHash<QString, QJsonObject> record_entry_by_id;
+    QHash<QString, QString> record_entry_id_by_sha;
+    QHash<QString, QString> last_filed_on_by_docket;
+    QStringList legacy_blob_identity_lines;
 
     for (const auto& entry_value : entries) {
         const auto entry = entry_value.toObject();
@@ -1198,11 +1285,34 @@ int main(int argc, char* argv[]) {
         entry_numbers.insert(entry_number);
         const bool generated = tags.contains(QStringLiteral("generated_appellate_filing"));
         const bool administrative =
-            !generated && tags.contains(QStringLiteral("certified_administrative_record"));
-        if (administrative == generated || tags.contains(QStringLiteral("batch_1"))) {
-            return fail(QStringLiteral("entry is ambiguously classified as AR/generated"));
+            tags.contains(QStringLiteral("certified_administrative_record"));
+        const bool actual = tags.contains(QStringLiteral("actual_appellate_docket"));
+        const bool branch = tags.contains(QStringLiteral("counterfactual_appellate_branch"));
+        const auto classification_count = static_cast<int>(administrative) +
+                                          static_cast<int>(generated) + static_cast<int>(actual) +
+                                          static_cast<int>(branch);
+        if (classification_count != 1 || tags.contains(QStringLiteral("batch_1")) ||
+            (branch != tags.contains(QStringLiteral("never_filed"))) ||
+            (administrative && tags.contains(QStringLiteral("not_administrative_record"))) ||
+            (!administrative && !tags.contains(QStringLiteral("not_administrative_record")))) {
+            return fail(QStringLiteral("entry classification is ambiguous or crosses dockets"));
         }
         const auto entry_id = entry.value(QStringLiteral("entry_id")).toString();
+        const auto docket_id = entry.value(QStringLiteral("docket_id")).toString();
+        const auto filed_on = entry.value(QStringLiteral("filed_on")).toString();
+        const auto asset_sha = entry.value(QStringLiteral("asset_sha256")).toString();
+        if (entry_id.isEmpty() || record_entry_by_id.contains(entry_id) || asset_sha.isEmpty() ||
+            record_entry_id_by_sha.contains(asset_sha) ||
+            (!administrative && !last_filed_on_by_docket.value(docket_id).isEmpty() &&
+             last_filed_on_by_docket.value(docket_id) > filed_on)) {
+            return fail(QStringLiteral("record identity, digest, or chronology mismatch: %1")
+                            .arg(entry_id));
+        }
+        record_entry_by_id.insert(entry_id, entry);
+        record_entry_id_by_sha.insert(asset_sha, entry_id);
+        if (!administrative) {
+            last_filed_on_by_docket.insert(docket_id, filed_on);
+        }
         if (admitted_exhibit_entries.contains(entry_id) !=
             tags.contains(QStringLiteral("admitted"))) {
             return fail(
@@ -1241,16 +1351,32 @@ int main(int argc, char* argv[]) {
                 return fail(QStringLiteral("administrative entry has no frozen category"));
             }
             ++category_counts[category];
-        } else {
+        } else if (generated) {
             ++generated_documents;
             generated_pages += entry.value(QStringLiteral("page_count")).toInt();
             if (!tags.contains(QStringLiteral("extra_record_proffer")) ||
                 !tags.contains(QStringLiteral("not_administrative_record")) ||
-                entry.value(QStringLiteral("docket_id")).toString() !=
-                    QStringLiteral("ca4m4.arm.docket.ca4")) {
+                docket_id != QStringLiteral("ca4m4.arm.docket.ca4") ||
+                entry_id != QStringLiteral("ca4m4.arm.record.pa01") ||
+                entry.value(QStringLiteral("parent_entry_id")).toString() !=
+                    QStringLiteral("ca4m4.arm.record.a06") ||
+                entry.value(QStringLiteral("relationship")).toString() !=
+                    QStringLiteral("attachment")) {
                 return fail(QStringLiteral("generated PA proffer classification mismatch"));
             }
             saw_new_proffer = true;
+        } else if (actual) {
+            ++actual_documents;
+            actual_pages += entry.value(QStringLiteral("page_count")).toInt();
+            if (docket_id != QStringLiteral("ca4m4.arm.docket.ca4")) {
+                return fail(QStringLiteral("actual appellate entry is on wrong docket"));
+            }
+        } else {
+            ++branch_documents;
+            branch_pages += entry.value(QStringLiteral("page_count")).toInt();
+            if (docket_id != QStringLiteral("ca4m4.arm.docket.counterfactual-branches")) {
+                return fail(QStringLiteral("counterfactual entry is on wrong docket"));
+            }
         }
 
         if (entry_id == QStringLiteral("ca4m4.arm.record.ar04")) {
@@ -1273,9 +1399,23 @@ int main(int argc, char* argv[]) {
         record_asset_paths.insert(relative_asset);
         record_page_counts.insert(relative_asset,
                                   entry.value(QStringLiteral("page_count")).toInt());
-        record_label_starts.insert(relative_asset, administrative ? expected_ar : expected_pa);
+        const auto first_anchor = anchor_by_entry_page.value(QStringLiteral("%1|1").arg(entry_id));
+        const auto first_label = first_anchor.value(QStringLiteral("citation_label")).toString();
+        bool label_start_parsed = false;
+        const auto label_start = first_label.mid(2).toInt(&label_start_parsed);
+        if (first_anchor.isEmpty() || !label_start_parsed || label_start < 1 ||
+            first_label.startsWith(administrative ? QStringLiteral("AR") : QStringLiteral("PA")) ==
+                false) {
+            return fail(QStringLiteral("entry has no exact first page anchor: %1").arg(entry_id));
+        }
+        record_label_starts.insert(relative_asset, label_start);
         record_label_prefixes.insert(relative_asset,
                                      administrative ? QStringLiteral("AR") : QStringLiteral("PA"));
+        const auto pdf_bytes = readAll(QDir(pack_root).filePath(relative_asset));
+        if (administrative || generated) {
+            legacy_blob_identity_lines.push_back(
+                QStringLiteral("%1|%2|%3\n").arg(relative_asset, asset_sha).arg(pdf_bytes.size()));
+        }
         QPdfDocument pdf;
         if (pdf.load(QDir(pack_root).filePath(relative_asset)) != QPdfDocument::Error::None ||
             pdf.status() != QPdfDocument::Status::Ready ||
@@ -1287,19 +1427,21 @@ int main(int argc, char* argv[]) {
         if (normalized_markdown_pages.size() != pdf.pageCount()) {
             return fail(QStringLiteral("Markdown/PDF page-count mismatch: %1").arg(relative_asset));
         }
-        if (relative_asset == QStringLiteral("assets/09-certified-translation-packet.pdf")) {
-            const auto combined_pdf_bytes = readAll(QDir(pack_root).filePath(relative_asset));
-            if (combined_pdf_bytes.contains("/Subtype /Image") ||
-                combined_pdf_bytes.contains("/Subtype/Image")) {
-                return fail(QStringLiteral("combined searchable-text packet contains raster image "
-                                           "objects contrary to its certification"));
-            }
+        if (pdf_bytes.contains("/Subtype /Image") || pdf_bytes.contains("/Subtype/Image")) {
+            return fail(QStringLiteral("searchable-text PDF contains raster image objects: %1")
+                            .arg(relative_asset));
         }
         int extracted_banner_occurrences = 0;
+        const auto entry_banner = branch      ? branch_banner
+                                  : actual    ? appellate_banner
+                                  : generated ? proffer_banner
+                                              : record_banner;
 
         for (int page_index = 0; page_index < pdf.pageCount(); ++page_index) {
-            const auto expected_label = administrative ? QStringLiteral("AR%1").arg(expected_ar++)
-                                                       : QStringLiteral("PA%1").arg(expected_pa++);
+            const auto page_anchor = anchor_by_entry_page.value(
+                QStringLiteral("%1|%2").arg(entry_id).arg(page_index + 1));
+            const auto expected_label =
+                page_anchor.value(QStringLiteral("citation_label")).toString();
             auto page_text = pdf.getAllText(page_index).text().simplified();
             QStringList extracted_labels;
             auto label_matches = any_page_label.globalMatch(page_text);
@@ -1324,7 +1466,7 @@ int main(int argc, char* argv[]) {
                                 .arg(expected_label, relative_asset));
             }
             const auto lower_page_text = page_text.toLower();
-            extracted_banner_occurrences += static_cast<int>(page_text.count(record_banner));
+            extracted_banner_occurrences += static_cast<int>(page_text.count(entry_banner));
             if (batch_two_administrative) {
                 auto lower_record_body = lower_page_text;
                 lower_record_body.remove(record_banner.toLower());
@@ -1340,7 +1482,8 @@ int main(int argc, char* argv[]) {
                 return fail(
                     QStringLiteral("AR/PA label universe contaminated at %1").arg(expected_label));
             }
-            if (lower_page_text.contains(QStringLiteral("placeholder"))) {
+            if ((administrative || generated) &&
+                lower_page_text.contains(QStringLiteral("placeholder"))) {
                 ++rendered_placeholder_occurrences;
                 return fail(
                     QStringLiteral("rendered placeholder escaped into %1").arg(expected_label));
@@ -1424,7 +1567,7 @@ int main(int argc, char* argv[]) {
                  lower_page_text.contains(
                      QStringLiteral("contains no bytes from appellate proffer pages 1–8")));
             for (const auto& phrase : forbidden_authoring_voice) {
-                if (lower_page_text.contains(phrase)) {
+                if ((administrative || generated) && lower_page_text.contains(phrase)) {
                     return fail(QStringLiteral("rendered authoring voice leaked at %1: %2")
                                     .arg(expected_label, phrase));
                 }
@@ -1454,7 +1597,7 @@ int main(int argc, char* argv[]) {
             distinct_page_bodies.insert(page_text);
 
             const auto anchor = anchor_by_label.value(expected_label);
-            if (anchor.isEmpty() ||
+            if (anchor.isEmpty() || page_anchor != anchor ||
                 anchor.value(QStringLiteral("entry_id")).toString() !=
                     entry.value(QStringLiteral("entry_id")).toString() ||
                 anchor.value(QStringLiteral("page_number")).toInt() != page_index + 1 ||
@@ -1463,11 +1606,21 @@ int main(int argc, char* argv[]) {
                 return fail(QStringLiteral("page-anchor mismatch at %1").arg(expected_label));
             }
         }
-        if (administrative && entry_number >= 7 && entry_number <= 18 &&
-            extracted_banner_occurrences != 1) {
-            return fail(QStringLiteral("batch-2 PDF must contain exactly one safety banner: %1")
+        if (extracted_banner_occurrences != 1) {
+            return fail(QStringLiteral("PDF must contain exactly one classification banner: %1")
                             .arg(relative_asset));
         }
+    }
+
+    std::ranges::sort(legacy_blob_identity_lines);
+    QCryptographicHash legacy_identity_hash(QCryptographicHash::Sha256);
+    for (const auto& line : legacy_blob_identity_lines) {
+        const auto bytes = line.toUtf8();
+        legacy_identity_hash.addData(QByteArrayView(bytes));
+    }
+    if (legacy_blob_identity_lines.size() != 19 ||
+        legacy_identity_hash.result().toHex() != QByteArray(legacy_blob_identity_digest)) {
+        return fail(QStringLiteral("original 19-PDF identity set drifted from ARM 1.1"));
     }
 
     const QHash<QString, int> expected_categories{
@@ -1480,12 +1633,12 @@ int main(int argc, char* argv[]) {
         {QStringLiteral("bia_final_order"), 1},
         {QStringLiteral("certified_index_omission"), 2},
     };
-    if (administrative_documents != 18 || administrative_pages != 238 || expected_ar != 239 ||
-        generated_documents != 1 || generated_pages != 8 || expected_pa != 9 ||
-        distinct_page_bodies.size() != 246 || !saw_proven_p7 || !saw_new_proffer ||
-        !saw_exact_combined_packet_entry || category_counts != expected_categories ||
-        rendered_placeholder_occurrences != 0 || !saw_admission_page ||
-        !saw_adjournment_admission_page || !saw_reconvening_admission_page ||
+    if (administrative_documents != 18 || administrative_pages != 238 || actual_documents != 22 ||
+        actual_pages != 119 || generated_documents != 1 || generated_pages != 8 ||
+        branch_documents != 13 || branch_pages != 50 || distinct_page_bodies.size() != 415 ||
+        !saw_proven_p7 || !saw_new_proffer || !saw_exact_combined_packet_entry ||
+        category_counts != expected_categories || rendered_placeholder_occurrences != 0 ||
+        !saw_admission_page || !saw_adjournment_admission_page || !saw_reconvening_admission_page ||
         !saw_closed_record_page || !saw_ij_admission_page || !saw_initial_gap_page ||
         !saw_initial_certification_page || !saw_audit_receipt_page ||
         !saw_transcript_crosscheck_page || !saw_decision_crosscheck_page ||
@@ -1495,6 +1648,16 @@ int main(int argc, char* argv[]) {
     }
     if (verified_page_propositions.size() != required_page_propositions.size()) {
         return fail(QStringLiteral("P-7 admission/omission/correction chain is incomplete"));
+    }
+    const auto p7_bytes =
+        readAll(QDir(pack_root).filePath(QStringLiteral("assets/04-arm-sworn-declaration.pdf")));
+    const auto appellate_stipulation_source = readAll(authoring_root.filePath(
+        QStringLiteral("documents/appellate-actual/a11-rule16b-stipulation.md")));
+    if (QCryptographicHash::hash(p7_bytes, QCryptographicHash::Sha256).toHex() !=
+            QByteArrayLiteral("08e8294532c23fe9feb5962ca5b7780ae958178e6c8e2b4840d1ee28f3c5d212") ||
+        !appellate_stipulation_source.contains(stipulation_bytes) ||
+        !appellate_stipulation_source.contains(stipulation_hash)) {
+        return fail(QStringLiteral("P-7 or Rule 16(b) successor identity drifted"));
     }
 
     struct RenderInventorySpec final {
@@ -1509,6 +1672,8 @@ int main(int argc, char* argv[]) {
         RenderInventorySpec{QStringLiteral("render-plan-canonical-repair.json"),
                             QStringLiteral("metadata/render-inventory-canonical-repair.json"), 14,
                             false},
+        RenderInventorySpec{QStringLiteral("render-plan-successor.json"),
+                            QStringLiteral("metadata/render-inventory-successor.json"), 35, false},
     };
     if (QFileInfo::exists(authoring_root.filePath(QStringLiteral("render-plan-batch-2.json"))) ||
         QFileInfo::exists(
@@ -1544,10 +1709,15 @@ int main(int argc, char* argv[]) {
         const auto plan_entries = plan.value(QStringLiteral("entries")).toArray();
         const auto plan_digest = QString::fromLatin1(
             QCryptographicHash::hash(plan_bytes, QCryptographicHash::Sha256).toHex());
-        const auto render_inventory =
-            QJsonDocument::fromJson(readAll(authoring_root.filePath(specification.inventory_path)))
-                .object();
+        const auto inventory_bytes = readAll(authoring_root.filePath(specification.inventory_path));
+        const auto render_inventory = QJsonDocument::fromJson(inventory_bytes).object();
         const auto render_entries = render_inventory.value(QStringLiteral("entries")).toArray();
+        if (specification.inventory_path ==
+                QStringLiteral("metadata/render-inventory-successor.json") &&
+            QCryptographicHash::hash(inventory_bytes, QCryptographicHash::Sha256).toHex() !=
+                QByteArray(successor_inventory_digest)) {
+            return fail(QStringLiteral("successor render inventory digest mismatch"));
+        }
         if (plan.value(QStringLiteral("schema_version")).toInt() != 1 || plan_bytes.isEmpty() ||
             plan_entries.size() != specification.entry_count ||
             render_inventory.value(QStringLiteral("schema_version")).toInt() != 1 ||
@@ -1691,14 +1861,14 @@ int main(int argc, char* argv[]) {
             semantic_render_hashes.insert(recorded_semantic_render_hash);
         }
     }
-    if (pinned_render_entries != 19 || superseded_historical_entries != 2 ||
-        authored_source_paths.size() != 19 || planned_source_paths != authored_source_paths ||
+    if (pinned_render_entries != 54 || superseded_historical_entries != 2 ||
+        authored_source_paths.size() != 54 || planned_source_paths != authored_source_paths ||
         inventoried_source_paths != authored_source_paths ||
         planned_output_paths != record_asset_paths ||
         inventoried_output_paths != record_asset_paths ||
-        manifest_blob_paths != record_asset_paths || source_hashes.size() != 19 ||
-        assembly_hashes.size() != 19 || semantic_plan_hashes.size() != 19 ||
-        semantic_render_hashes.size() != 19) {
+        manifest_blob_paths != record_asset_paths || source_hashes.size() != 54 ||
+        assembly_hashes.size() != 54 || semantic_plan_hashes.size() != 54 ||
+        semantic_render_hashes.size() != 54) {
         return fail(QStringLiteral(
             "render plans and inventories do not close exactly over sources, record, and blobs"));
     }
@@ -1733,23 +1903,55 @@ int main(int argc, char* argv[]) {
     bool saw_mandate_delay = false;
     bool saw_mandate_gate = false;
     int calculated_deadlines = 0;
-    for (const auto& operation_value :
-         workflow_resource->document.value(QStringLiteral("operations")).toArray()) {
+    int document_bindings = 0;
+    QSet<QString> workflow_operation_ids;
+    const auto workflow_stages =
+        workflow_resource->document.value(QStringLiteral("stages")).toArray();
+    const auto workflow_operations =
+        workflow_resource->document.value(QStringLiteral("operations")).toArray();
+    const auto workflow_routes =
+        workflow_resource->document.value(QStringLiteral("filing_routes")).toArray();
+    if (workflow_stages.size() != 13 || workflow_operations.size() != 67 ||
+        workflow_routes.size() != 11 ||
+        workflow_resource->document.value(QStringLiteral("initial_stage_id")).toString() !=
+            QStringLiteral("ca4m4.arm.stage.opened")) {
+        return fail(QStringLiteral("workflow 13/67/11 envelope mismatch"));
+    }
+    for (const auto& operation_value : workflow_operations) {
         const auto operation = operation_value.toObject();
         const auto id = operation.value(QStringLiteral("operation_id")).toString();
         const auto authority = operation.value(QStringLiteral("authority")).toObject();
+        if (id.isEmpty() || workflow_operation_ids.contains(id)) {
+            return fail(QStringLiteral("workflow operation IDs are empty or duplicated"));
+        }
+        workflow_operation_ids.insert(id);
         if (operation.value(QStringLiteral("opcode")).toString() ==
             QStringLiteral("calculate_deadline")) {
             ++calculated_deadlines;
         }
-        if (id == QStringLiteral("ca4m4.arm.operation.order-correct-record")) {
+        const auto document_binding =
+            operation.value(QStringLiteral("document_binding")).toObject();
+        if (!document_binding.isEmpty()) {
+            ++document_bindings;
+            const auto bound_entry_id =
+                document_binding.value(QStringLiteral("record_entry_id")).toString();
+            const auto bound_entry = record_entry_by_id.value(bound_entry_id);
+            if (bound_entry.isEmpty() ||
+                document_binding.value(QStringLiteral("document_sha256")).toString() !=
+                    bound_entry.value(QStringLiteral("asset_sha256")).toString() ||
+                document_binding.value(QStringLiteral("expected_court_date")).toString() !=
+                    bound_entry.value(QStringLiteral("filed_on")).toString()) {
+                return fail(QStringLiteral("workflow document binding mismatch: %1").arg(id));
+            }
+        }
+        if (id == QStringLiteral("ca4m4.arm.operation.enter-record-correction-order")) {
             saw_correction_order =
                 authority.value(QStringLiteral("primary_authority_id")).toString() ==
                     QStringLiteral("ca4m4.arm.authority.frap-16-record") &&
                 operation.value(QStringLiteral("authorized_role_ids")).toArray() ==
                     QJsonArray{QStringLiteral("us.ca4.role.court")};
         }
-        if (id == QStringLiteral("ca4m4.arm.operation.order-deny-supplement")) {
+        if (id == QStringLiteral("ca4m4.arm.operation.enter-supplement-denial-order")) {
             saw_supplement_order =
                 authority.value(QStringLiteral("primary_authority_id")).toString() ==
                     QStringLiteral("ca4m4.arm.authority.usc-1252-record-limit") &&
@@ -1759,44 +1961,55 @@ int main(int argc, char* argv[]) {
         const auto preconditions = operation.value(QStringLiteral("preconditions")).toArray();
         const auto precondition_text =
             QString::fromUtf8(QJsonDocument(preconditions).toJson(QJsonDocument::Compact));
-        if (id == QStringLiteral("ca4m4.arm.operation.calculate-docketing")) {
+        for (const auto& precondition_value : preconditions) {
+            const auto precondition = precondition_value.toObject();
+            const auto entry_id = precondition.value(QStringLiteral("record_entry_id")).toString();
+            if (!entry_id.isEmpty() &&
+                precondition.value(QStringLiteral("document_sha256")).toString() !=
+                    record_entry_by_id.value(entry_id)
+                        .value(QStringLiteral("asset_sha256"))
+                        .toString()) {
+                return fail(QStringLiteral("workflow precondition binding mismatch: %1").arg(id));
+            }
+        }
+        if (id == QStringLiteral("ca4m4.arm.operation.calculate-docketing-statement")) {
             saw_docketing_clock =
                 operation.value(QStringLiteral("deadline_days")).toInt() == 14 &&
                 authority.value(QStringLiteral("primary_authority_id")).toString() ==
                     QStringLiteral("us.ca4.authority.local-rule-3b-docketing") &&
-                precondition_text.contains(
-                    QStringLiteral("us.ca4.filing.agency-petition-for-review"));
+                precondition_text.contains(QStringLiteral("ca4m4.arm.order.docketing-notice"));
         }
-        if (id == QStringLiteral("ca4m4.arm.operation.order-briefing-complete")) {
+        if (id == QStringLiteral("ca4m4.arm.operation.advance-reply-to-argument")) {
             saw_briefing_complete_gate =
-                precondition_text.contains(QStringLiteral("us.ca4.filing.principal-brief"));
+                precondition_text.contains(QStringLiteral("ca4m4.arm.record.a17")) &&
+                precondition_text.contains(QStringLiteral("ca4m4.arm.deadline.reply-brief"));
         }
         if (id == QStringLiteral("ca4m4.arm.operation.schedule-argument")) {
             saw_argument_schedule_gate =
-                precondition_text.contains(QStringLiteral("ca4m4.arm.order.briefing-complete"));
+                precondition_text.contains(QStringLiteral("ca4m4.arm.record.a17")) &&
+                precondition_text.contains(QStringLiteral("ca4m4.arm.record.a18"));
         }
-        if (id == QStringLiteral("ca4m4.arm.operation.order-argument-held")) {
+        if (id == QStringLiteral("ca4m4.arm.operation.enter-argument-held-order")) {
             saw_argument_held_gate =
-                precondition_text.contains(QStringLiteral("ca4m4.arm.order.briefing-complete")) &&
+                precondition_text.contains(QStringLiteral("ca4m4.arm.record.a18")) &&
                 precondition_text.contains(QStringLiteral("argument_scheduled")) &&
                 precondition_text.contains(QStringLiteral("argument_date_status")) &&
                 precondition_text.contains(QStringLiteral("reached"));
         }
-        if (id == QStringLiteral("ca4m4.arm.operation.advance-submitted")) {
+        if (id == QStringLiteral("ca4m4.arm.operation.advance-argument-to-submitted")) {
             saw_submitted_gate =
-                precondition_text.contains(QStringLiteral("ca4m4.arm.order.briefing-complete")) &&
                 precondition_text.contains(QStringLiteral("ca4m4.arm.order.argument-held")) &&
-                !precondition_text.contains(QStringLiteral("filing_presence")) &&
-                !precondition_text.contains(QStringLiteral("argument_scheduled"));
+                precondition_text.contains(QStringLiteral("ca4m4.arm.record.a19"));
         }
         if (id == QStringLiteral("ca4m4.arm.operation.issue-judgment")) {
             saw_judgment_gate =
                 operation.value(QStringLiteral("next_stage_id")).toString() ==
                     QStringLiteral("ca4m4.arm.stage.rehearing") &&
-                precondition_text.contains(QStringLiteral("ca4m4.arm.order.briefing-complete")) &&
-                precondition_text.contains(QStringLiteral("ca4m4.arm.order.argument-held"));
+                precondition_text.contains(QStringLiteral("ca4m4.arm.order.argument-held")) &&
+                document_binding.value(QStringLiteral("record_entry_id")).toString() ==
+                    QStringLiteral("ca4m4.arm.record.a21");
         }
-        if (id == QStringLiteral("ca4m4.arm.operation.calculate-rehearing-deadline")) {
+        if (id == QStringLiteral("ca4m4.arm.operation.calculate-rehearing")) {
             saw_rehearing_clock =
                 operation.value(QStringLiteral("stage_id")).toString() ==
                     QStringLiteral("ca4m4.arm.stage.rehearing") &&
@@ -1811,46 +2024,344 @@ int main(int argc, char* argv[]) {
                     QStringLiteral("us.federal.authority.frap-40-rehearing") &&
                 precondition_text.contains(QStringLiteral("judgment_issued"));
         }
-        if (id == QStringLiteral("ca4m4.arm.operation.advance-mandate-wait")) {
+        if (id == QStringLiteral("ca4m4.arm.operation.advance-ordinary-mandate-wait")) {
             saw_mandate_wait_gate =
                 operation.value(QStringLiteral("next_stage_id")).toString() ==
                     QStringLiteral("ca4m4.arm.stage.mandate-wait") &&
                 precondition_text.contains(QStringLiteral("ca4m4.arm.deadline.rehearing")) &&
                 precondition_text.contains(QStringLiteral("elapsed"));
         }
-        if (id == QStringLiteral("ca4m4.arm.operation.calculate-mandate-no-petition")) {
+        if (id == QStringLiteral("ca4m4.arm.operation.calculate-ordinary-mandate")) {
             saw_mandate_delay =
                 operation.value(QStringLiteral("stage_id")).toString() ==
-                    QStringLiteral("ca4m4.arm.stage.mandate-wait") &&
+                    QStringLiteral("ca4m4.arm.stage.rehearing") &&
                 operation.value(QStringLiteral("deadline_days")).toInt() == 7 &&
                 operation.value(QStringLiteral("deadline_base_id")).toString() ==
                     QStringLiteral("ca4m4.arm.deadline.rehearing") &&
                 operation.value(QStringLiteral("produced_deadline_id")).toString() ==
-                    QStringLiteral("ca4m4.arm.deadline.mandate-no-petition") &&
+                    QStringLiteral("ca4m4.arm.deadline.mandate-ordinary") &&
                 authority.value(QStringLiteral("primary_authority_id")).toString() ==
                     QStringLiteral("us.federal.authority.frap-41-mandate") &&
                 precondition_text.contains(QStringLiteral("ca4m4.arm.deadline.rehearing")) &&
-                precondition_text.contains(QStringLiteral("elapsed"));
+                precondition_text.contains(QStringLiteral("open"));
         }
-        if (id == QStringLiteral("ca4m4.arm.operation.issue-mandate-no-petition")) {
+        if (id == QStringLiteral("ca4m4.arm.operation.issue-ordinary-mandate")) {
             saw_mandate_gate =
                 operation.value(QStringLiteral("stage_id")).toString() ==
                     QStringLiteral("ca4m4.arm.stage.mandate-wait") &&
                 operation.value(QStringLiteral("next_stage_id")).toString() ==
                     QStringLiteral("ca4m4.arm.stage.mandate-issued") &&
                 precondition_text.contains(QStringLiteral("judgment_issued")) &&
-                precondition_text.contains(QStringLiteral("ca4m4.arm.deadline.rehearing")) &&
-                precondition_text.contains(
-                    QStringLiteral("ca4m4.arm.deadline.mandate-no-petition")) &&
-                precondition_text.count(QStringLiteral("elapsed")) == 1 &&
-                precondition_text.contains(QStringLiteral("reached"));
+                precondition_text.contains(QStringLiteral("ca4m4.arm.deadline.mandate-ordinary")) &&
+                precondition_text.contains(QStringLiteral("reached")) &&
+                document_binding.value(QStringLiteral("record_entry_id")).toString() ==
+                    QStringLiteral("ca4m4.arm.record.a22");
         }
     }
-    if (calculated_deadlines != 3 || !saw_docketing_clock || !saw_correction_order ||
-        !saw_supplement_order || !saw_briefing_complete_gate || !saw_argument_schedule_gate ||
-        !saw_argument_held_gate || !saw_submitted_gate || !saw_judgment_gate ||
-        !saw_rehearing_clock || !saw_mandate_wait_gate || !saw_mandate_delay || !saw_mandate_gate) {
+    if (calculated_deadlines != 14 || document_bindings != 19 || !saw_docketing_clock ||
+        !saw_correction_order || !saw_supplement_order || !saw_briefing_complete_gate ||
+        !saw_argument_schedule_gate || !saw_argument_held_gate || !saw_submitted_gate ||
+        !saw_judgment_gate || !saw_rehearing_clock || !saw_mandate_wait_gate ||
+        !saw_mandate_delay || !saw_mandate_gate) {
         return fail(QStringLiteral("record/order/timing workflow contract mismatch"));
+    }
+
+    const auto review = realism_resource->document;
+    const auto dimensions = review.value(QStringLiteral("dimensions")).toObject();
+    const auto evidence = review.value(QStringLiteral("evidence")).toObject();
+    const auto evidence_packs = evidence.value(QStringLiteral("packs")).toArray();
+    const auto evidence_resources = evidence.value(QStringLiteral("resources")).toArray();
+    const auto evidence_blobs = evidence.value(QStringLiteral("blobs")).toArray();
+    const auto evidence_traces = evidence.value(QStringLiteral("traces")).toArray();
+    const auto evidence_record_checks = evidence.value(QStringLiteral("record_checks")).toArray();
+    const auto evidence_authorities = evidence.value(QStringLiteral("authorities")).toArray();
+    const auto dimension_evidence = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+    const QSet<QString> expected_dimensions{
+        QStringLiteral("procedural_law"),     QStringLiteral("deadlines_authority"),
+        QStringLiteral("record_consistency"), QStringLiteral("bench_differentiation"),
+        QStringLiteral("oral_argument"),      QStringLiteral("consequences"),
+        QStringLiteral("provenance"),
+    };
+    QSet<QString> dimension_keys;
+    bool all_dimensions_two = true;
+    for (auto iterator = dimensions.constBegin(); iterator != dimensions.constEnd(); ++iterator) {
+        dimension_keys.insert(iterator.key());
+        all_dimensions_two = all_dimensions_two && iterator.value().toInt() == 2;
+    }
+    QSet<QString> dimension_evidence_keys;
+    for (auto iterator = dimension_evidence.constBegin(); iterator != dimension_evidence.constEnd();
+         ++iterator) {
+        dimension_evidence_keys.insert(iterator.key());
+    }
+    if (review.value(QStringLiteral("review_state")).toString() !=
+            QStringLiteral("independent_review_pending") ||
+        review.value(QStringLiteral("reviewed_on")).toString() != QStringLiteral("2026-08-12") ||
+        dimension_keys != expected_dimensions || dimension_evidence_keys != expected_dimensions ||
+        !all_dimensions_two || evidence_packs.size() != 4 || evidence_resources.size() != 44 ||
+        evidence_blobs.size() != 54 || evidence_traces.size() != 7 ||
+        evidence_record_checks.size() != 2 || evidence_authorities.size() != 32 ||
+        evidence.value(QStringLiteral("closure_digest")).toString() !=
+            QStringLiteral("5718e65aff5986c9640dc75ca99995482bf0065b1191a5154c4d934de785aa2c")) {
+        return fail(QStringLiteral("realism evidence 4/44/54/7/2/32 envelope mismatch"));
+    }
+    const QSet<QString> expected_uncertainty_ids{
+        QStringLiteral("ca4m4.arm.uncertainty.qualified-review-pending"),
+        QStringLiteral("ca4m4.arm.uncertainty.automated-legal-realism-limit"),
+        QStringLiteral("ca4m4.arm.uncertainty.exact-document-classification-scope"),
+        QStringLiteral("ca4m4.arm.uncertainty.authored-final-order-deadline-base"),
+        QStringLiteral("ca4m4.arm.uncertainty.counterfactual-never-filed-isolation"),
+        QStringLiteral("ca4m4.arm.uncertainty.synthetic-bench-oral-limit"),
+        QStringLiteral("ca4m4.arm.uncertainty.generated-pdf-provenance-limit"),
+    };
+    QSet<QString> uncertainty_ids;
+    for (const auto& uncertainty_value :
+         review.value(QStringLiteral("known_uncertainty")).toArray()) {
+        const auto uncertainty = uncertainty_value.toObject();
+        const auto id = uncertainty.value(QStringLiteral("uncertainty_id")).toString();
+        if (id.isEmpty() || uncertainty_ids.contains(id) ||
+            uncertainty.value(QStringLiteral("blocking")).toBool()) {
+            return fail(QStringLiteral("pending realism uncertainty contract mismatch"));
+        }
+        uncertainty_ids.insert(id);
+    }
+    if (uncertainty_ids != expected_uncertainty_ids) {
+        return fail(QStringLiteral("pending realism uncertainty IDs drifted"));
+    }
+    QSet<QString> evidence_ids;
+    const std::array evidence_groups{evidence_resources, evidence_blobs, evidence_traces,
+                                     evidence_record_checks, evidence_authorities};
+    for (const auto& group : evidence_groups) {
+        for (const auto& value : group) {
+            const auto id = value.toObject().value(QStringLiteral("evidence_id")).toString();
+            if (id.isEmpty() || evidence_ids.contains(id)) {
+                return fail(QStringLiteral("realism evidence IDs are empty or duplicated"));
+            }
+            evidence_ids.insert(id);
+        }
+    }
+    if (evidence_ids.size() != 139 ||
+        std::ranges::any_of(evidence_resources, [](const auto& value) {
+            return value.toObject().value(QStringLiteral("resource_kind")).toString() ==
+                   QStringLiteral("realism_review");
+        })) {
+        return fail(QStringLiteral("realism review exclusion or 139-ID closure mismatch"));
+    }
+    const QHash<QString, int> expected_dimension_evidence_counts{
+        {QStringLiteral("bench_differentiation"), 4}, {QStringLiteral("consequences"), 32},
+        {QStringLiteral("deadlines_authority"), 26},  {QStringLiteral("oral_argument"), 18},
+        {QStringLiteral("procedural_law"), 46},       {QStringLiteral("provenance"), 92},
+        {QStringLiteral("record_consistency"), 57},
+    };
+    for (const auto& dimension : expected_dimensions) {
+        const auto references = dimension_evidence.value(dimension).toArray();
+        const auto unique_references = strings(references);
+        if (references.size() != expected_dimension_evidence_counts.value(dimension) ||
+            unique_references.size() != references.size()) {
+            return fail(QStringLiteral("realism dimension evidence cardinality drifted: %1")
+                            .arg(dimension));
+        }
+        for (const auto& reference : unique_references) {
+            if (!evidence_ids.contains(reference)) {
+                return fail(QStringLiteral("realism dimension has an unresolved evidence ID"));
+            }
+        }
+    }
+
+    struct TraceSpec final {
+        QString file_name;
+        QString sha256;
+        QString trace_id;
+        QString evidence_id;
+        QString terminal_stage_id;
+        int command_count{};
+        int event_count{};
+        QSet<QString> branch_entries;
+    };
+    const std::array trace_specs{
+        TraceSpec{
+            QStringLiteral("actual-through-mandate.json"),
+            QStringLiteral("4d27adefa6f47a17da749d7bd2071367ae96498599495f3dedc8e9daa9d27283"),
+            QStringLiteral("ca4m4.arm.trace.actual-through-mandate"),
+            QStringLiteral("ca4m4.arm.evidence.trace.actual-through-mandate"),
+            QStringLiteral("ca4m4.arm.stage.mandate-issued"),
+            39,
+            42,
+            {}},
+        TraceSpec{
+            QStringLiteral("day31-government-forfeiture.json"),
+            QStringLiteral("9928e6d50b06b3d69e6c7d181491c2335bc7e9aeb78d0dafb9e1def637e26aae"),
+            QStringLiteral("ca4m4.arm.trace.day31-government-forfeiture"),
+            QStringLiteral("ca4m4.arm.evidence.trace.day31-government-forfeiture"),
+            QStringLiteral("ca4m4.arm.stage.record"),
+            8,
+            8,
+            {QStringLiteral("ca4m4.arm.record.b01"), QStringLiteral("ca4m4.arm.record.b02"),
+             QStringLiteral("ca4m4.arm.record.b06")}},
+        TraceSpec{
+            QStringLiteral("day31-invoked-dismissal.json"),
+            QStringLiteral("c7e19c9f432e99667e4687f1a2186a3ae63f6becb26d671d8338e24e8c6d41e8"),
+            QStringLiteral("ca4m4.arm.trace.day31-invoked-dismissal"),
+            QStringLiteral("ca4m4.arm.evidence.trace.day31-invoked-dismissal"),
+            QStringLiteral("ca4m4.arm.stage.terminated"),
+            9,
+            9,
+            {QStringLiteral("ca4m4.arm.record.b01"), QStringLiteral("ca4m4.arm.record.b02"),
+             QStringLiteral("ca4m4.arm.record.b03"), QStringLiteral("ca4m4.arm.record.b04")}},
+        TraceSpec{
+            QStringLiteral("deficient-petition-uncured.json"),
+            QStringLiteral("e951c729f3ab8257a3d5fe1ddb47bf551eae699d79a210ed9130a33c5a03af11"),
+            QStringLiteral("ca4m4.arm.trace.deficient-petition-uncured"),
+            QStringLiteral("ca4m4.arm.evidence.trace.deficient-petition-uncured"),
+            QStringLiteral("ca4m4.arm.stage.terminated"),
+            6,
+            7,
+            {QStringLiteral("ca4m4.arm.record.b05")}},
+        TraceSpec{
+            QStringLiteral("stay-denied-later-of-mandate.json"),
+            QStringLiteral("a1314702f842ec5ed654592000bbf095e5475a60cd0082a138926a70260c07c3"),
+            QStringLiteral("ca4m4.arm.trace.stay-denied-later-of-mandate"),
+            QStringLiteral("ca4m4.arm.evidence.trace.stay-denied-later-of-mandate"),
+            QStringLiteral("ca4m4.arm.stage.mandate-issued"),
+            42,
+            45,
+            {QStringLiteral("ca4m4.arm.record.b09"), QStringLiteral("ca4m4.arm.record.b10"),
+             QStringLiteral("ca4m4.arm.record.b13")}},
+        TraceSpec{
+            QStringLiteral("stay-granted-blocks-mandate.json"),
+            QStringLiteral("06f196cf5d15ee499fce930cd1553b0e5b4f84bbc9c5bfc2e6f528fc32276edd"),
+            QStringLiteral("ca4m4.arm.trace.stay-granted-blocks-mandate"),
+            QStringLiteral("ca4m4.arm.evidence.trace.stay-granted-blocks-mandate"),
+            QStringLiteral("ca4m4.arm.stage.mandate-stayed"),
+            41,
+            44,
+            {QStringLiteral("ca4m4.arm.record.b09"), QStringLiteral("ca4m4.arm.record.b11")}},
+        TraceSpec{
+            QStringLiteral("timely-rehearing-denied-mandate.json"),
+            QStringLiteral("0ff21c0f47cb92fb3cdcf4eaa7d6f38bcba0e33746673787a7b64760606653e7"),
+            QStringLiteral("ca4m4.arm.trace.timely-rehearing-denied-mandate"),
+            QStringLiteral("ca4m4.arm.evidence.trace.timely-rehearing-denied-mandate"),
+            QStringLiteral("ca4m4.arm.stage.mandate-issued"),
+            42,
+            45,
+            {QStringLiteral("ca4m4.arm.record.b07"), QStringLiteral("ca4m4.arm.record.b08"),
+             QStringLiteral("ca4m4.arm.record.b12")}},
+    };
+    QHash<QString, QJsonObject> embedded_trace_by_id;
+    for (const auto& trace_value : evidence_traces) {
+        const auto trace = trace_value.toObject();
+        embedded_trace_by_id.insert(trace.value(QStringLiteral("trace_id")).toString(), trace);
+    }
+    const auto traces_root = QDir(authoring_root.filePath(QStringLiteral("traces")));
+    if (traces_root.entryList({QStringLiteral("*.json")}, QDir::Files, QDir::Name).size() != 7) {
+        return fail(QStringLiteral("canonical trace source count mismatch"));
+    }
+    QSet<QString> seen_trace_ids;
+    QSet<QString> seen_trace_evidence_ids;
+    QSet<QString> executed_operation_ids;
+    for (const auto& specification : trace_specs) {
+        const auto trace_bytes = readAll(traces_root.filePath(specification.file_name));
+        const auto trace = QJsonDocument::fromJson(trace_bytes).object();
+        const auto trace_id = trace.value(QStringLiteral("trace_id")).toString();
+        const auto trace_evidence_id = trace.value(QStringLiteral("evidence_id")).toString();
+        const auto journal = trace.value(QStringLiteral("journal")).toArray();
+        const auto operation_ids = trace.value(QStringLiteral("operation_ids")).toArray();
+        if (QCryptographicHash::hash(trace_bytes, QCryptographicHash::Sha256).toHex() !=
+                specification.sha256.toLatin1() ||
+            embedded_trace_by_id.value(trace_id) != trace || seen_trace_ids.contains(trace_id) ||
+            seen_trace_evidence_ids.contains(trace_evidence_id) ||
+            trace_id != specification.trace_id || trace_evidence_id != specification.evidence_id ||
+            trace.value(QStringLiteral("workflow_id")).toString() !=
+                QStringLiteral("ca4m4.arm.workflow.agency-review") ||
+            trace.value(QStringLiteral("engine_revision")).toString() !=
+                QString::fromLatin1(realism_engine_revision) ||
+            trace.value(QStringLiteral("terminal_stage_id")).toString() !=
+                specification.terminal_stage_id ||
+            trace.value(QStringLiteral("command_count")).toInt() != specification.command_count ||
+            journal.size() != specification.command_count ||
+            trace.value(QStringLiteral("event_count")).toInt() != specification.event_count ||
+            operation_ids.size() != specification.event_count ||
+            realismJournalDigest(journal) !=
+                std::optional{trace.value(QStringLiteral("journal_sha256")).toString()} ||
+            realismTraceDigest(QStringLiteral("ca4m4.case.arm-agency"), trace) !=
+                trace.value(QStringLiteral("digest")).toString()) {
+            return fail(QStringLiteral("canonical trace envelope/digest mismatch: %1")
+                            .arg(specification.file_name));
+        }
+        seen_trace_ids.insert(trace_id);
+        seen_trace_evidence_ids.insert(trace_evidence_id);
+        executed_operation_ids.unite(strings(operation_ids));
+        QSet<QString> used_branch_entries;
+        int event_count = 0;
+        QJsonArray decoded_operation_ids;
+        for (const auto& journal_entry_value : journal) {
+            const auto journal_entry = journal_entry_value.toObject();
+            const auto command_encoded =
+                journal_entry.value(QStringLiteral("command_base64")).toString().toLatin1();
+            const auto command_bytes = QByteArray::fromBase64(command_encoded);
+            const auto command_document = QJsonDocument::fromJson(command_bytes);
+            if (command_bytes.isEmpty() || command_bytes.toBase64() != command_encoded ||
+                !command_document.isObject() ||
+                command_document.toJson(QJsonDocument::Compact) != command_bytes) {
+                return fail(QStringLiteral("trace command is not canonical base64 JSON"));
+            }
+            const auto document_sha = command_document.object()
+                                          .value(QStringLiteral("payload"))
+                                          .toObject()
+                                          .value(QStringLiteral("document_sha256"))
+                                          .toString();
+            if (!document_sha.isEmpty()) {
+                const auto record_entry_id = record_entry_id_by_sha.value(document_sha);
+                if (record_entry_id.isEmpty()) {
+                    return fail(QStringLiteral("trace command document SHA does not resolve"));
+                }
+                const auto tags = strings(record_entry_by_id.value(record_entry_id)
+                                              .value(QStringLiteral("tags"))
+                                              .toArray());
+                if (tags.contains(QStringLiteral("never_filed"))) {
+                    used_branch_entries.insert(record_entry_id);
+                }
+            }
+            for (const auto& event_value :
+                 journal_entry.value(QStringLiteral("events_base64")).toArray()) {
+                ++event_count;
+                const auto event_encoded = event_value.toString().toLatin1();
+                const auto event_bytes = QByteArray::fromBase64(event_encoded);
+                const auto event_document = QJsonDocument::fromJson(event_bytes);
+                if (event_bytes.isEmpty() || event_bytes.toBase64() != event_encoded ||
+                    !event_document.isObject() ||
+                    event_document.toJson(QJsonDocument::Compact) != event_bytes) {
+                    return fail(QStringLiteral("trace event is not canonical base64 JSON"));
+                }
+                decoded_operation_ids.push_back(event_document.object()
+                                                    .value(QStringLiteral("payload"))
+                                                    .toObject()
+                                                    .value(QStringLiteral("operation_id"))
+                                                    .toString());
+            }
+        }
+        if (event_count != trace.value(QStringLiteral("event_count")).toInt() ||
+            decoded_operation_ids != operation_ids ||
+            used_branch_entries != specification.branch_entries ||
+            (specification.file_name == QStringLiteral("actual-through-mandate.json") &&
+             !used_branch_entries.isEmpty())) {
+            return fail(QStringLiteral("trace replay operation or branch-document mismatch: %1")
+                            .arg(specification.file_name));
+        }
+    }
+    const QSet<QString> intentionally_unexecuted_reject_operations{
+        QStringLiteral("ca4m4.arm.operation.reject-opened"),
+        QStringLiteral("ca4m4.arm.operation.reject-timeliness"),
+        QStringLiteral("ca4m4.arm.operation.reject-record"),
+        QStringLiteral("ca4m4.arm.operation.reject-opening-brief"),
+        QStringLiteral("ca4m4.arm.operation.reject-response-brief"),
+        QStringLiteral("ca4m4.arm.operation.reject-reply-brief"),
+        QStringLiteral("ca4m4.arm.operation.reject-rehearing"),
+    };
+    if (executed_operation_ids.size() != 60 ||
+        !(executed_operation_ids - workflow_operation_ids).isEmpty() ||
+        workflow_operation_ids - executed_operation_ids !=
+            intentionally_unexecuted_reject_operations) {
+        return fail(QStringLiteral("seven-trace workflow operation coverage drifted"));
     }
 
     QTemporaryDir temporary;
@@ -1918,406 +2429,87 @@ int main(int argc, char* argv[]) {
         return fail(QStringLiteral("resolved graph does not match exact pins"));
     }
 
+    std::vector<const appellate::packs::LoadedPack*> resolved_dependencies;
+    resolved_dependencies.reserve(resolved->dependenciesDependencyFirst().size());
+    for (const auto& dependency : resolved->dependenciesDependencyFirst()) {
+        resolved_dependencies.push_back(&dependency);
+    }
+
+    const auto expect_realism_mutation_rejected =
+        [&](appellate::packs::LoadedPack candidate, const auto& mutate) -> std::optional<QString> {
+        const auto candidate_review = std::ranges::find(
+            candidate.resources, std::string_view("ca4m4.arm.review.authoring-2026-08-12"),
+            [](const auto& resource) { return std::string_view(resource.descriptor.id); });
+        if (candidate_review == candidate.resources.end()) {
+            return QStringLiteral("resolved root lost its realism review");
+        }
+        mutate(candidate_review->document);
+        const auto validation = PackReader::validateResolvedGraph(candidate, resolved_dependencies);
+        if (validation ||
+            validation.error().code != appellate::packs::ErrorCode::CrossReferenceFailure) {
+            return QStringLiteral("mutated realism evidence did not fail closed");
+        }
+        return std::nullopt;
+    };
+    if (const auto error = expect_realism_mutation_rejected(
+            resolved->root(),
+            [](QJsonObject& document) {
+                auto mutated_dimensions = document.value(QStringLiteral("dimensions")).toObject();
+                mutated_dimensions.insert(QStringLiteral("procedural_law"), 3);
+                document.insert(QStringLiteral("dimensions"), mutated_dimensions);
+            });
+        error.has_value()) {
+        return fail(*error + QStringLiteral(": score-3 pending-review mutation"));
+    }
+    if (const auto error = expect_realism_mutation_rejected(
+            resolved->root(),
+            [](QJsonObject& document) {
+                auto mutated_evidence = document.value(QStringLiteral("evidence")).toObject();
+                auto traces = mutated_evidence.value(QStringLiteral("traces")).toArray();
+                auto trace = traces.at(1).toObject();
+                auto journal = trace.value(QStringLiteral("journal")).toArray();
+                auto entry = journal.at(0).toObject();
+                auto events = entry.value(QStringLiteral("events_base64")).toArray();
+                auto bytes = QByteArray::fromBase64(events.at(0).toString().toLatin1());
+                bytes[0] = bytes.at(0) == '{' ? '[' : '{';
+                events.replace(0, QString::fromLatin1(bytes.toBase64()));
+                entry.insert(QStringLiteral("events_base64"), events);
+                journal.replace(0, entry);
+                trace.insert(QStringLiteral("journal"), journal);
+                traces.replace(1, trace);
+                mutated_evidence.insert(QStringLiteral("traces"), traces);
+                document.insert(QStringLiteral("evidence"), mutated_evidence);
+            });
+        error.has_value()) {
+        return fail(*error + QStringLiteral(": second-trace event mutation"));
+    }
+
     const auto runtime = appellate::packs::loadRuntimePack(*resolved);
     if (!runtime || runtime->revision != expected_root || runtime->cases.size() != std::size_t{1} ||
-        runtime->cases.front().argument_configurations.size() != std::size_t{2} ||
-        std::ranges::any_of(
-            runtime->cases.front().argument_configurations, [](const auto& configuration) {
-                return !configuration.grounded_question_bank.has_value() ||
-                       configuration.permitted_issue_ids.size() != std::size_t{5} ||
-                       configuration.grounded_question_bank->questions.size() != std::size_t{5};
-            })) {
+        runtime->cases.front().argument_configurations.size() != std::size_t{2}) {
         return fail(QStringLiteral("catalog-valid ARM closure is not runtime-loadable"));
     }
 
-    const auto& runtime_case = runtime->cases.front();
-    appellate::model::WorkflowState briefing_state;
-    briefing_state.session_id = "ca4m4.arm.session.negative-gates";
-    briefing_state.workflow_id = runtime_case.workflow.id;
-    briefing_state.current_stage_id = appellate::model::WorkflowStageId{"ca4m4.arm.stage.briefing"};
-    briefing_state.next_event_sequence = 2;
-    briefing_state.decided_commands.push_back(
-        appellate::model::WorkflowCommandId{"ca4m4.arm.command.snapshot-briefing"});
-    briefing_state.legal_time_cursor = legalTime(2026, 8U, 11U);
-    briefing_state.accepted_filings.push_back(appellate::model::WorkflowFilingRecord{
-        appellate::model::WorkflowFilingId{"ca4m4.arm.filing.one-principal-brief"},
-        appellate::model::FilingTypeId{"us.ca4.filing.principal-brief"},
-        appellate::model::ActorId{"ca4m4.arm.actor.petitioner"},
-        std::string(64, 'a'),
-        legalTime(2026, 8U, 10U),
-        {appellate::model::ActorId{"ca4m4.arm.actor.respondent"}},
-    });
-    const auto early_schedule = appellate::engine::decideWorkflow(
-        runtime_case.workflow, runtime_case.definition, briefing_state,
-        appellate::model::WorkflowCommand{appellate::model::ScheduleWorkflowArgument{
-            commandHeader("ca4m4.arm.command.premature-schedule"),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.schedule-argument"},
-            legalTime(2026, 8U, 12U).court_date}});
-    if (early_schedule) {
-        return fail(QStringLiteral("argument scheduling bypasses briefing-complete order"));
-    }
-    if (early_schedule.error().code != appellate::engine::WorkflowErrorCode::UnmetPrecondition) {
-        return fail(QStringLiteral("argument schedule negative gate returned: %1")
-                        .arg(QString::fromStdString(early_schedule.error().message)));
-    }
-
-    auto scheduled_briefing_state = briefing_state;
-    scheduled_briefing_state.argument_date = legalTime(2026, 8U, 11U).court_date;
-    const auto early_submit = appellate::engine::decideWorkflow(
-        runtime_case.workflow, runtime_case.definition, scheduled_briefing_state,
-        appellate::model::WorkflowCommand{appellate::model::AdvanceWorkflowStage{
-            commandHeader("ca4m4.arm.command.premature-submit"),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.advance-submitted"}}});
-    if (early_submit ||
-        early_submit.error().code != appellate::engine::WorkflowErrorCode::UnmetPrecondition) {
-        return fail(QStringLiteral("one principal brief/scheduled argument bypasses completion"));
-    }
-
-    auto submitted_state = scheduled_briefing_state;
-    submitted_state.current_stage_id =
-        appellate::model::WorkflowStageId{"ca4m4.arm.stage.submitted"};
-    const auto early_judgment = appellate::engine::decideWorkflow(
-        runtime_case.workflow, runtime_case.definition, submitted_state,
-        appellate::model::WorkflowCommand{appellate::model::IssueWorkflowJudgment{
-            commandHeader("ca4m4.arm.command.premature-judgment"),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.issue-judgment"},
-            std::string(64, 'b'), std::string("premature judgment")}});
-    if (early_judgment ||
-        early_judgment.error().code != appellate::engine::WorkflowErrorCode::UnmetPrecondition) {
-        return fail(QStringLiteral("scheduled argument bypasses argument-held order"));
-    }
-
-    appellate::model::WorkflowState mandate_state;
-    mandate_state.session_id = "ca4m4.arm.session.negative-gates";
-    mandate_state.workflow_id = runtime_case.workflow.id;
-    mandate_state.current_stage_id =
-        appellate::model::WorkflowStageId{"ca4m4.arm.stage.mandate-wait"};
-    mandate_state.next_event_sequence = 2;
-    mandate_state.decided_commands.push_back(
-        appellate::model::WorkflowCommandId{"ca4m4.arm.command.snapshot-judgment"});
-    mandate_state.legal_time_cursor = legalTime(2026, 8U, 11U);
-    mandate_state.judgment_sha256 = std::string(64, 'c');
-    mandate_state.judgment_disposition = std::string("judgment entered");
-    mandate_state.judgment_issued_at = legalTime(2026, 8U, 10U);
-    const auto early_mandate = appellate::engine::decideWorkflow(
-        runtime_case.workflow, runtime_case.definition, mandate_state,
-        appellate::model::WorkflowCommand{appellate::model::IssueWorkflowMandate{
-            commandHeader("ca4m4.arm.command.premature-mandate"),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.issue-mandate-no-petition"},
-            std::string(64, 'd')}});
-    if (early_mandate ||
-        early_mandate.error().code != appellate::engine::WorkflowErrorCode::UnmetPrecondition) {
-        return fail(QStringLiteral("judgment alone bypasses rehearing/mandate delay guards"));
-    }
-
-    appellate::model::WorkflowState holiday_roll_state;
-    holiday_roll_state.session_id = "ca4m4.arm.session.holiday-roll";
-    holiday_roll_state.workflow_id = runtime_case.workflow.id;
-    holiday_roll_state.current_stage_id =
-        appellate::model::WorkflowStageId{"ca4m4.arm.stage.mandate-wait"};
-    holiday_roll_state.next_event_sequence = 2;
-    holiday_roll_state.decided_commands.push_back(
-        appellate::model::WorkflowCommandId{"ca4m4.arm.command.holiday-snapshot"});
-    holiday_roll_state.legal_time_cursor = legalTime(2026, 6U, 26U);
-    holiday_roll_state.judgment_sha256 = std::string(64, 'e');
-    holiday_roll_state.judgment_disposition = std::string("judgment entered");
-    holiday_roll_state.judgment_issued_at = legalTime(2026, 5U, 12U);
-    holiday_roll_state.deadlines.push_back(appellate::model::WorkflowDeadlineRecord{
-        appellate::model::WorkflowDeadlineId{"ca4m4.arm.deadline.rehearing"},
-        appellate::model::WorkflowDeadlinePurpose::Filing,
-        legalTime(2026, 6U, 26U).court_date,
-        appellate::model::WorkflowDeadlineStatus::Open,
-    });
-    const auto holiday_roll = appellate::engine::decideWorkflow(
-        runtime_case.workflow, runtime_case.definition, holiday_roll_state,
-        appellate::model::WorkflowCommand{appellate::model::CalculateWorkflowDeadline{
-            appellate::model::WorkflowCommandHeader{
-                holiday_roll_state.session_id,
-                appellate::model::WorkflowCommandId{"ca4m4.arm.command.holiday-roll"},
-                appellate::model::ActorId{"ca4m4.arm.actor.ca4-clerk"}, legalTime(2026, 6U, 27U)},
-            appellate::model::WorkflowOperationId{
-                "ca4m4.arm.operation.calculate-mandate-no-petition"},
-            appellate::model::WorkflowDeadlineId{"ca4m4.arm.deadline.mandate-no-petition"}}});
-    if (!holiday_roll || holiday_roll->size() != std::size_t{1}) {
-        return fail(
-            holiday_roll
-                ? QStringLiteral("holiday-roll mandate calculation emitted the wrong event count")
-                : QStringLiteral("holiday-roll mandate calculation was rejected: %1")
-                      .arg(QString::fromStdString(holiday_roll.error().message)));
-    }
-    const auto* holiday_deadline =
-        std::get_if<appellate::model::WorkflowDeadlineCalculated>(&holiday_roll->front());
-    if (holiday_deadline == nullptr ||
-        holiday_deadline->base_date != legalTime(2026, 6U, 26U).court_date ||
-        holiday_deadline->due_date != legalTime(2026, 7U, 6U).court_date) {
-        return fail(QStringLiteral("July 3 holiday/weekend roll did not land on July 6"));
-    }
-
-    const auto fields = [](std::initializer_list<std::string_view> ids) {
-        std::vector<appellate::model::WorkflowFieldValue> result;
-        result.reserve(ids.size());
-        for (const auto id : ids) {
-            result.push_back(appellate::model::WorkflowFieldValue{
-                appellate::model::FilingFieldId{std::string(id)}, "present"});
+    QHash<QString, int> runtime_question_counts;
+    for (const auto& configuration : runtime->cases.front().argument_configurations) {
+        if (!configuration.grounded_question_bank.has_value() ||
+            configuration.permitted_issue_ids.size() != std::size_t{5}) {
+            return fail(QStringLiteral("runtime argument bank lost grounded five-issue coverage"));
         }
-        return result;
+        runtime_question_counts.insert(
+            QString::fromStdString(configuration.id.value),
+            static_cast<int>(configuration.grounded_question_bank->questions.size()));
+    }
+    const QHash<QString, int> expected_runtime_question_counts{
+        {QStringLiteral("ca4m4.arm.argument.actual-record"), 15},
+        {QStringLiteral("ca4m4.arm.argument.counterfactual"), 10},
     };
-    appellate::model::WorkflowState positive_initial;
-    positive_initial.session_id = "ca4m4.arm.session.positive-path";
-    positive_initial.workflow_id = runtime_case.workflow.id;
-    positive_initial.current_stage_id = runtime_case.workflow.initial_stage_id;
-    auto positive_state = positive_initial;
-    std::vector<appellate::model::WorkflowJournalEntry> positive_journal;
-    const auto execute = [&](appellate::model::WorkflowCommand command,
-                             std::vector<appellate::model::WorkflowEvent>* emitted =
-                                 nullptr) -> std::optional<QString> {
-        auto decision = appellate::engine::decideWorkflow(
-            runtime_case.workflow, runtime_case.definition, positive_state, command);
-        if (!decision) {
-            return QStringLiteral("positive command rejected: %1")
-                .arg(QString::fromStdString(decision.error().message));
-        }
-        if (emitted != nullptr) {
-            *emitted = *decision;
-        }
-        positive_journal.push_back(
-            appellate::model::WorkflowJournalEntry{std::move(command), std::move(*decision)});
-        auto replayed = appellate::engine::replayWorkflow(
-            runtime_case.workflow, runtime_case.definition, positive_initial, positive_journal);
-        if (!replayed) {
-            return QStringLiteral("positive journal replay failed: %1")
-                .arg(QString::fromStdString(replayed.error().message));
-        }
-        positive_state = std::move(*replayed);
-        return std::nullopt;
-    };
-    const auto require_execute = [&](appellate::model::WorkflowCommand command,
-                                     std::vector<appellate::model::WorkflowEvent>* emitted =
-                                         nullptr) -> std::optional<QString> {
-        return execute(std::move(command), emitted);
-    };
-
-    if (const auto error = require_execute(appellate::model::SubmitWorkflowFiling{
-            positiveCommandHeader("ca4m4.arm.command.file-petition", "ca4m4.arm.actor.petitioner",
-                                  2025, 2U, 11U),
-            appellate::model::WorkflowFilingId{"ca4m4.arm.filing.petition"},
-            appellate::model::FilingTypeId{"us.ca4.filing.agency-petition-for-review"},
-            std::string(64, '1'),
-            fields({"us.ca4.field.agency-petition.caption",
-                    "us.ca4.field.agency-petition.parties-seeking-review",
-                    "us.ca4.field.agency-petition.agency",
-                    "us.ca4.field.agency-petition.order-reference",
-                    "us.ca4.field.agency-petition.order-copy-attached",
-                    "us.ca4.field.agency-petition.respondent-names-addresses"}),
-            {appellate::model::ActorId{"ca4m4.arm.actor.respondent"}},
-            std::nullopt});
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (positive_state.current_stage_id.value != "ca4m4.arm.stage.record") {
-        return fail(QStringLiteral("petition route did not enter the record stage"));
-    }
-    if (const auto error = require_execute(appellate::model::CalculateWorkflowDeadline{
-            positiveCommandHeader("ca4m4.arm.command.calculate-docketing",
-                                  "ca4m4.arm.actor.ca4-clerk", 2025, 2U, 12U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.calculate-docketing"},
-            appellate::model::WorkflowDeadlineId{"ca4m4.arm.deadline.docketing"}});
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error = require_execute(appellate::model::SubmitWorkflowFiling{
-            positiveCommandHeader("ca4m4.arm.command.file-record", "ca4m4.arm.actor.respondent",
-                                  2025, 3U, 3U),
-            appellate::model::WorkflowFilingId{"ca4m4.arm.filing.agency-record"},
-            appellate::model::FilingTypeId{"us.ca4.filing.agency-record"},
-            std::string(64, '2'),
-            fields(
-                {"us.ca4.field.agency-record.index", "us.ca4.field.agency-record.certification"}),
-            {appellate::model::ActorId{"ca4m4.arm.actor.petitioner"}},
-            std::nullopt});
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error = require_execute(appellate::model::AdvanceWorkflowStage{
-            positiveCommandHeader("ca4m4.arm.command.advance-briefing", "ca4m4.arm.actor.ca4-clerk",
-                                  2025, 3U, 3U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.advance-briefing"}});
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto brief_fields =
-        fields({"us.ca4.field.brief.issues", "us.ca4.field.brief.argument",
-                "us.ca4.field.brief.record-citations", "us.ca4.field.brief.authority-citations"});
-    if (const auto error = require_execute(appellate::model::SubmitWorkflowFiling{
-            positiveCommandHeader("ca4m4.arm.command.file-petitioner-brief",
-                                  "ca4m4.arm.actor.petitioner", 2025, 3U, 10U),
-            appellate::model::WorkflowFilingId{"ca4m4.arm.filing.petitioner-brief"},
-            appellate::model::FilingTypeId{"us.ca4.filing.principal-brief"},
-            std::string(64, '3'),
-            brief_fields,
-            {appellate::model::ActorId{"ca4m4.arm.actor.respondent"}},
-            std::nullopt});
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error = require_execute(appellate::model::SubmitWorkflowFiling{
-            positiveCommandHeader("ca4m4.arm.command.file-respondent-brief",
-                                  "ca4m4.arm.actor.respondent", 2025, 3U, 20U),
-            appellate::model::WorkflowFilingId{"ca4m4.arm.filing.respondent-brief"},
-            appellate::model::FilingTypeId{"us.ca4.filing.principal-brief"},
-            std::string(64, '4'),
-            brief_fields,
-            {appellate::model::ActorId{"ca4m4.arm.actor.petitioner"}},
-            std::nullopt});
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error = require_execute(appellate::model::EnterWorkflowOrder{
-            positiveCommandHeader("ca4m4.arm.command.briefing-complete",
-                                  "ca4m4.arm.actor.composite-panel", 2025, 3U, 21U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.order-briefing-complete"},
-            appellate::model::WorkflowOrderId{"ca4m4.arm.order.briefing-complete"},
-            appellate::model::WorkflowOrderDisposition::Granted, std::string(64, '5'),
-            std::nullopt});
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error = require_execute(appellate::model::ScheduleWorkflowArgument{
-            positiveCommandHeader("ca4m4.arm.command.schedule-argument",
-                                  "ca4m4.arm.actor.composite-panel", 2025, 3U, 22U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.schedule-argument"},
-            legalTime(2025, 5U, 1U).court_date});
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto argument_day_minus_one = appellate::engine::decideWorkflow(
-        runtime_case.workflow, runtime_case.definition, positive_state,
-        appellate::model::WorkflowCommand{appellate::model::EnterWorkflowOrder{
-            positiveCommandHeader("ca4m4.arm.command.argument-held-early",
-                                  "ca4m4.arm.actor.composite-panel", 2025, 4U, 30U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.order-argument-held"},
-            appellate::model::WorkflowOrderId{"ca4m4.arm.order.argument-held"},
-            appellate::model::WorkflowOrderDisposition::Granted, std::string(64, '6'),
-            std::nullopt}});
-    if (argument_day_minus_one || argument_day_minus_one.error().code !=
-                                      appellate::engine::WorkflowErrorCode::UnmetPrecondition) {
-        return fail(QStringLiteral("argument-held order did not reject on scheduled date D-1"));
-    }
-    if (const auto error = require_execute(appellate::model::EnterWorkflowOrder{
-            positiveCommandHeader("ca4m4.arm.command.argument-held",
-                                  "ca4m4.arm.actor.composite-panel", 2025, 5U, 1U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.order-argument-held"},
-            appellate::model::WorkflowOrderId{"ca4m4.arm.order.argument-held"},
-            appellate::model::WorkflowOrderDisposition::Granted, std::string(64, '6'),
-            std::nullopt});
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error = require_execute(appellate::model::AdvanceWorkflowStage{
-            positiveCommandHeader("ca4m4.arm.command.advance-submitted",
-                                  "ca4m4.arm.actor.composite-panel", 2025, 5U, 1U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.advance-submitted"}});
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error = require_execute(appellate::model::IssueWorkflowJudgment{
-            positiveCommandHeader("ca4m4.arm.command.issue-judgment",
-                                  "ca4m4.arm.actor.composite-panel", 2026, 3U, 2U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.issue-judgment"},
-            std::string(64, '7'), std::string("petition resolved on the authored record")});
-        error.has_value()) {
-        return fail(*error);
-    }
-    std::vector<appellate::model::WorkflowEvent> rehearing_events;
-    if (const auto error = require_execute(
-            appellate::model::CalculateWorkflowDeadline{
-                positiveCommandHeader("ca4m4.arm.command.calculate-rehearing",
-                                      "ca4m4.arm.actor.ca4-clerk", 2026, 3U, 5U),
-                appellate::model::WorkflowOperationId{
-                    "ca4m4.arm.operation.calculate-rehearing-deadline"},
-                appellate::model::WorkflowDeadlineId{"ca4m4.arm.deadline.rehearing"}},
-            &rehearing_events);
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto* rehearing_event =
-        std::get_if<appellate::model::WorkflowDeadlineCalculated>(&rehearing_events.front());
-    if (rehearing_event == nullptr ||
-        rehearing_event->base_date != legalTime(2026, 3U, 2U).court_date ||
-        rehearing_event->due_date != legalTime(2026, 4U, 16U).court_date ||
-        rehearing_event->produced_deadline_id !=
-            std::optional{appellate::model::WorkflowDeadlineId{"ca4m4.arm.deadline.rehearing"}} ||
-        !rehearing_event->deadline_event_base.has_value() ||
-        !std::holds_alternative<appellate::model::WorkflowJudgmentOccurredDeadlineBase>(
-            *rehearing_event->deadline_event_base)) {
-        return fail(QStringLiteral("delayed rehearing calculation did not bind judgment D+45"));
+    if (runtime_question_counts != expected_runtime_question_counts) {
+        return fail(QStringLiteral("runtime argument bank 15/10 split drifted"));
     }
 
-    const auto at_d45 = appellate::engine::decideWorkflow(
-        runtime_case.workflow, runtime_case.definition, positive_state,
-        appellate::model::WorkflowCommand{appellate::model::AdvanceWorkflowStage{
-            positiveCommandHeader("ca4m4.arm.command.advance-at-d45", "ca4m4.arm.actor.ca4-clerk",
-                                  2026, 4U, 16U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.advance-mandate-wait"}}});
-    if (at_d45 || at_d45.error().code != appellate::engine::WorkflowErrorCode::UnmetPrecondition) {
-        return fail(QStringLiteral("elapsed rehearing guard did not reject at D+45"));
-    }
-    if (const auto error = require_execute(appellate::model::AdvanceWorkflowStage{
-            positiveCommandHeader("ca4m4.arm.command.advance-at-d46", "ca4m4.arm.actor.ca4-clerk",
-                                  2026, 4U, 17U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.advance-mandate-wait"}});
-        error.has_value()) {
-        return fail(*error);
-    }
-    std::vector<appellate::model::WorkflowEvent> mandate_delay_events;
-    if (const auto error = require_execute(
-            appellate::model::CalculateWorkflowDeadline{
-                positiveCommandHeader("ca4m4.arm.command.calculate-mandate-delay",
-                                      "ca4m4.arm.actor.ca4-clerk", 2026, 4U, 17U),
-                appellate::model::WorkflowOperationId{
-                    "ca4m4.arm.operation.calculate-mandate-no-petition"},
-                appellate::model::WorkflowDeadlineId{"ca4m4.arm.deadline.mandate-no-petition"}},
-            &mandate_delay_events);
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto* mandate_delay_event =
-        std::get_if<appellate::model::WorkflowDeadlineCalculated>(&mandate_delay_events.front());
-    if (mandate_delay_event == nullptr ||
-        mandate_delay_event->base_date != legalTime(2026, 4U, 16U).court_date ||
-        mandate_delay_event->due_date != legalTime(2026, 4U, 23U).court_date ||
-        mandate_delay_event->deadline_base_id !=
-            std::optional{appellate::model::WorkflowDeadlineId{"ca4m4.arm.deadline.rehearing"}} ||
-        mandate_delay_event->produced_deadline_id !=
-            std::optional{
-                appellate::model::WorkflowDeadlineId{"ca4m4.arm.deadline.mandate-no-petition"}}) {
-        return fail(QStringLiteral("mandate delay did not use the exact rehearing due date"));
-    }
-    const auto at_d51 = appellate::engine::decideWorkflow(
-        runtime_case.workflow, runtime_case.definition, positive_state,
-        appellate::model::WorkflowCommand{appellate::model::IssueWorkflowMandate{
-            positiveCommandHeader("ca4m4.arm.command.mandate-at-d51", "ca4m4.arm.actor.ca4-clerk",
-                                  2026, 4U, 22U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.issue-mandate-no-petition"},
-            std::string(64, '8')}});
-    if (at_d51 || at_d51.error().code != appellate::engine::WorkflowErrorCode::UnmetPrecondition) {
-        return fail(QStringLiteral("reached mandate guard did not reject through D+51"));
-    }
-    if (const auto error = require_execute(appellate::model::IssueWorkflowMandate{
-            positiveCommandHeader("ca4m4.arm.command.mandate-at-d52", "ca4m4.arm.actor.ca4-clerk",
-                                  2026, 4U, 23U),
-            appellate::model::WorkflowOperationId{"ca4m4.arm.operation.issue-mandate-no-petition"},
-            std::string(64, '9')});
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (positive_state.current_stage_id.value != "ca4m4.arm.stage.mandate-issued" ||
-        !positive_state.mandate_sha256.has_value() || positive_journal.size() != std::size_t{15}) {
-        return fail(QStringLiteral("positive ARM workflow did not terminate at mandate"));
-    }
-
-    std::cout << "ARM batch-2 integration contract passed: 18 AR PDFs / 238 AR pages, "
-                 "1 PA proffer / 8 PA pages, 246 unique searchable pages, two grounded banks, "
-                 "runtime negative gates and D+52 positive mandate path, four exact revisions.\n";
+    std::cout << "ARM 1.2 integration contract passed: 54 PDFs / 415 pages (AR1-238 and "
+                 "PA1-177), 15/10 grounded banks, 13-stage/67-operation workflow, seven "
+                 "replayed traces, deterministic archive, and four exact revisions.\n";
     return 0;
 }

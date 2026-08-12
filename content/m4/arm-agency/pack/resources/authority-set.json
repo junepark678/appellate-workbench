@@ -39,12 +39,12 @@
       "issuing_body_id": "us.congress",
       "precedential_status": "not_applicable",
       "official_source": true,
-      "citation": "8 U.S.C. § 1252(b)(1)",
+      "citation": "8 U.S.C. § 1252(b)(1), (b)(3)(C)",
       "source_version": "2025-01-06",
       "checked_on": "2026-08-11",
-      "locator": "2024 U.S. Code edition, codification PDF page 338; subsection (b)(1)",
+      "locator": "2024 U.S. Code edition, codification PDF page 338; subsections (b)(1) and (b)(3)(C)",
       "source_url": "https://www.govinfo.gov/content/pkg/USCODE-2024-title8/pdf/USCODE-2024-title8-chap12-subchapII-partV-sec1252.pdf",
-      "proposition": "A petition for review must be filed not later than 30 days after the date of the final order of removal."
+      "proposition": "A petition for review must be filed not later than 30 days after the date of the final order of removal; the petitioner must serve and file an opening brief not later than 40 days after the administrative record is available, may serve and file a reply brief not later than 14 days after service of the Attorney General's brief, and may obtain an extension of either briefing deadline only on motion for good cause shown."
     },
     {
       "authority_id": "ca4m4.arm.authority.cfr-1208-cat-burden",
