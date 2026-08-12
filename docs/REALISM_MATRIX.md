@@ -15,7 +15,7 @@ designation and does not satisfy the level-3 gate.
 
 | Case family | Procedure | Law | Deadlines / authority | Record | Consequences | Argument | Bench differentiation | Provenance | Review state |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| Employment retaliation | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
+| Employment retaliation | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Author self-reviewed; independent review pending |
 | Preliminary injunction / stay | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Section 1983 qualified immunity | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
@@ -44,3 +44,9 @@ level-2 evidence closes four packs, 44 non-review resources, 54 blobs, seven pro
 traces, two record checks, and 32 authorities. The root review remains
 `independent_review_pending`; a qualified immigration/appellate review must be recorded in a
 detached pack that exact-pins the reviewed root before every dimension may become 3.
+
+The Benton retaliation `1.2.0` root is a non-gold civil authoring candidate. Its exact level-2
+evidence closes four packs, 44 non-review resources, 67 blobs, seven production-engine traces,
+two record checks, and 28 authorities, with 148 unique non-pack evidence IDs. Its review remains
+`independent_review_pending`; replay and author review do not substitute for qualified independent
+employment/appellate review or change Asterglen's designation as the civil gold candidate.

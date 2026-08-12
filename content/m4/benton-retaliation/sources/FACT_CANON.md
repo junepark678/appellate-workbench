@@ -14,7 +14,7 @@ All identifiers and facts below are fictional and fixed for this exercise.
 - Sable Finch: Blue Cedar finance director who supplied the savings target.
 - Counsel, clerks, and the composite panel use plainly fictional or institutional labels.
 
-## Immutable chronology
+## Immutable lower-court chronology
 
 - 2025-01-17: Benton sends a written opposition complaint concerning sex-based allocation of
   high-visibility audit leads and the scoring consequences of that allocation.
@@ -48,6 +48,44 @@ All identifiers and facts below are fictional and fixed for this exercise.
 - 2026-01-16: Benton files the notice of appeal.
 - 2026-01-23: the district clerk certifies the 37-document, JA1–JA262 record for transmission.
 
+## Actual appellate chronology
+
+- 2026-01-20: the Fourth Circuit dockets the appeal and opens
+  `SYN-CA4-26-CV-4101`.
+- 2026-02-03: Benton files the appellant docketing statement.
+- 2026-02-20: the clerk records the transmitted JA1–JA262 record complete and enters the
+  principal-brief schedule.
+- 2026-03-16: Benton files the opening brief.
+- 2026-04-15: Blue Cedar files and electronically serves the response brief.
+- 2026-04-17: Benton gives notice that she will file no reply, and the clerk records briefing
+  complete.
+- 2026-04-20: the clerk calendars oral argument for May 20.
+- 2026-05-20: the fictional composite panel hears argument and submits the appeal for decision.
+- 2026-06-15: the panel issues its opinion and judgment. It affirms the narrow exclusion ruling,
+  vacates the retaliation summary judgment, and remands for proceedings consistent with the
+  opinion.
+- 2026-06-29: the ordinary 14-day rehearing deadline expires without a petition on the actual
+  path.
+- 2026-07-06: the clerk releases and issues the ordinary mandate seven days after the rehearing
+  deadline.
+
+## Counterfactual appellate branches
+
+PA71–PA127 is a separately docketed bank of mutually exclusive training documents. None of these
+filings, orders, opinions, judgments, or mandates occurred on the actual appeal:
+
+- 2026-04-20 through 2026-05-01: the on-briefs branch submits the case without argument and enters
+  an adverse opinion and judgment affirming both the declaration exclusion and summary judgment.
+- 2026-06-30: Benton tenders a rehearing petition one day after the June 29 deadline; the clerk
+  rejects it as untimely, and it never becomes an accepted filing.
+- 2026-06-25 through 2026-07-08: Blue Cedar timely seeks rehearing from the actual-path judgment;
+  the panel denies the petition on July 1, and the clerk releases and issues the mandate on July 8.
+- 2026-07-02 through 2026-07-15: Blue Cedar moves to stay the mandate pending certiorari; the panel
+  grants the stay on July 6, so mandate remains unavailable until the panel dissolves the stay and
+  releases it on July 15, followed by the clerk's mandate.
+- 2026-06-18 through 2026-06-22: both parties jointly move to shorten the mandate; the panel grants
+  shortening, and the clerk records release and issues the shortened mandate on June 22.
+
 ## Fixed evidentiary wedge
 
 The complete record contains Benton's opposition and participation, Pike's knowledge, the six-week
@@ -67,8 +105,9 @@ does not invoke the sham-affidavit rule and leaves Wynn's disclosed comparator t
 The admitted record independently retains Pike's knowledge, six-week timing, Benton's 84-to-68
 score change, preserved comparator credits, target-reaching alternatives, unresolved consistency
 flags, redistributed work, and changing explanations. The district court nevertheless grants
-summary judgment at pretext and but-for causation. No appellate disposition is authored in this
-record-complete boundary.
+summary judgment at pretext and but-for causation. The authored actual appellate disposition
+affirms the declaration exclusion but vacates that summary judgment and remands. It does not hold
+that Benton wins on the merits or direct entry of judgment for her.
 
 The covered RIF population is fixed at twenty-three authorized positions: twenty-one filled and two
 vacant. B-7 ends five filled positions and eliminates both vacancies, leaving sixteen filled
@@ -77,8 +116,9 @@ positions and no covered vacancy. Thus `23 = 21 + 2`, `16 = 21 - 5`, and `16 = 2
 The no-knowledge counterfactual changes one premise only: Pike neither receives nor learns of the
 opposition or EEOC participation before March 24. It does not change scores, comparator duties,
 the savings target, termination timing, Wynn's late declaration, or the exclusion ruling. No
-engine component may infer the answer; questions are authored, while the structured disposition
-remains deferred.
+engine component may infer the answer; questions and disposition components are exact authored
+inputs. The separate adverse disposition affirms both targets without remand and is bound only to
+the counterfactual on-briefs judgment.
 
 The immutable complaint at JA9 calls a calendar attachment February 11. The controlling routing
 records establish a February 11 open and reply and a February 12 calendar event. Successor
@@ -87,3 +127,27 @@ misdescription. Keene received the 2024 Lantern lead credit, while Wynn owned th
 through May 30. Benton's employment ended March 24; April 1 is only the modeled payroll-savings
 effective date. Solis certified formula reconciliation, not consistent treatment: variance flags
 remained open when Pike approved the selection under “business continuity.”
+
+## Fixed disposition and execution boundary
+
+`ca4m4.benton.disposition.authored` has two whole-target components: affirm the late-declaration
+exclusion without remand, and vacate the retaliation summary judgment with remand.
+`ca4m4.benton.disposition.counterfactual-adverse` instead affirms both whole targets without
+remand. The actual A11 and counterfactual B03 judgment digests select those plans through exact
+operation bindings. The engine does not derive a disposition from opinion prose, predict a merits
+result, or classify a novel judgment.
+
+Seven production journals preserve the actual argued/no-petition route plus six adverse paths:
+on-briefs judgment, day-late rehearing rejection, timely rehearing denial and mandate, stay grant
+without release, later stay dissolution and mandate, and shortened mandate. Court commands are
+authorized by the shared court role. The canonical journals use the fictional clerk for generic
+ministerial deadline calculations, stage advances, argument scheduling, and mandate issuance and
+for exact clerk-authored bound orders. They use the fictional composite panel for exact
+adjudicative bound orders and judgments, including B12's combined stay-dissolution-and-release
+order. The district court remains the record author of the lower final judgment, while the clerk
+enters that judgment occurrence into appellate workflow state; the role model itself does not
+infer any of these finer distinctions.
+
+The exact root records level 2 in all seven realism dimensions with
+`independent_review_pending`. Automated replay, provenance, page resolution, and author review do
+not establish qualified independent legal review or a level-3/gold claim.

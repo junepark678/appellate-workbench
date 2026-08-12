@@ -5,6 +5,7 @@
 #include "appellate/packs/pack_reader.hpp"
 #include "appellate/packs/runtime_pack.hpp"
 
+#include <QByteArrayView>
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDir>
@@ -21,16 +22,14 @@
 
 #include <algorithm>
 #include <array>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
-#include <expected>
+#include <functional>
 #include <iostream>
 #include <optional>
 #include <ranges>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #ifndef APPELLATE_M4_BENTON_ROOT
@@ -43,7 +42,6 @@
 
 namespace {
 
-namespace engine = appellate::engine;
 namespace model = appellate::model;
 namespace packs = appellate::packs;
 
@@ -57,11 +55,27 @@ using packs::PackReader;
 using packs::PackValidationScope;
 using packs::ValidatedResource;
 
-constexpr auto root_digest = "eaf5f52940d968f33a3b3501e20414081f7f3573d90ba1abb7c3b2f33636ad4e";
+constexpr auto root_digest = "59467350af5f381ef429ecf210d38de5503d40fb2e9baf02f56b2ef5023ced28";
 constexpr auto federal_digest = "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9";
 constexpr auto ca4_digest = "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262";
 constexpr auto bench_digest = "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d";
-constexpr auto archive_digest = "867b45b117b51f08419d1ee2993dd5cd3af27b94367124a9c3ba531d9fb27bda";
+constexpr auto manifest_digest = "2705a970c34c83317a940e00dc11b51ac8ca205424f3a9a30df405bbcb27717a";
+constexpr auto archive_digest = "9515bdde1e3405e6e82488abd73314a31c33a2062f9e34b4cecdaaff8b634a05";
+constexpr auto archive_byte_size = std::uint64_t{3'408'701};
+constexpr auto successor_inventory_digest =
+    "c9887d3c15b51cf278d18e1c1c160f48c03b1153181465f493a9fbaf4ebaa972";
+constexpr auto case_digest = "21b068c597c15399aaada912e1e653ca1f53f7325561955976e21fa02576ef8b";
+constexpr auto record_digest = "191aac8abba8fb7817cf15c3019429e50dc70b0afa66dfd5e2f2df392a94e875";
+constexpr auto workflow_digest = "b4f73bcb6b4451a06a1d1fb6b23fd94549d5968de7bb0f9f0a19bbba7a624e36";
+constexpr auto realism_review_digest =
+    "fd42415873af8558112a21312eaad87c0020da256f17178fa58554009328dff0";
+constexpr auto evidence_closure_digest =
+    "cf3538ecc449cc3e8a0a05220a1b8a741c636a17c05fec571c1851ea320aea43";
+constexpr auto authored_disposition_digest =
+    "40fd60e4fe24ddcbecfd61d72a39db361c2aebc82601521082d2e2e0e472b51e";
+constexpr auto adverse_disposition_digest =
+    "5a9f06407f6e82dc194f9ba74335573c600cb44a2b9dd5215dc84f90379b819b";
+constexpr auto realism_engine_revision = "appellate.realism-evidence.codec-replay-multi.v1";
 constexpr auto actual_bank_digest =
     "161431c279887ac0914029a8912515fa271a9c3a6d1957ab507f3b6facbf6ff6";
 constexpr auto counterfactual_bank_digest =
@@ -69,11 +83,6 @@ constexpr auto counterfactual_bank_digest =
 
 constexpr auto retaliation_issue = "ca4m4.benton.issue.retaliation-summary-judgment";
 constexpr auto exclusion_issue = "ca4m4.benton.issue.late-comparator-declaration-exclusion";
-constexpr auto appellant_actor = "ca4m4.benton.actor.leora-benton";
-constexpr auto appellee_actor = "ca4m4.benton.actor.blue-cedar";
-constexpr auto clerk_actor = "ca4m4.benton.actor.ca4-clerk";
-constexpr auto panel_actor = "ca4m4.benton.actor.composite-panel";
-
 struct RenderExpected final {
     std::string_view source_path;
     std::string_view output_path;
@@ -255,7 +264,7 @@ constexpr std::array expected_render{
                    "9b2ffb64c9501150c71f2bf5ef5fef5ca303ddc271339c23bcc43559ea612e78"},
 };
 
-constexpr std::array<std::string_view, 65> retaliation_anchors{
+constexpr std::array<std::string_view, 66> retaliation_anchors{
     "ca4m4.benton.anchor.ja3",   "ca4m4.benton.anchor.ja4",   "ca4m4.benton.anchor.ja5",
     "ca4m4.benton.anchor.ja6",   "ca4m4.benton.anchor.ja7",   "ca4m4.benton.anchor.ja42",
     "ca4m4.benton.anchor.ja43",  "ca4m4.benton.anchor.ja44",  "ca4m4.benton.anchor.ja47",
@@ -277,7 +286,7 @@ constexpr std::array<std::string_view, 65> retaliation_anchors{
     "ca4m4.benton.anchor.ja237", "ca4m4.benton.anchor.ja238", "ca4m4.benton.anchor.ja239",
     "ca4m4.benton.anchor.ja240", "ca4m4.benton.anchor.ja241", "ca4m4.benton.anchor.ja242",
     "ca4m4.benton.anchor.ja243", "ca4m4.benton.anchor.ja244", "ca4m4.benton.anchor.ja245",
-    "ca4m4.benton.anchor.ja246", "ca4m4.benton.anchor.ja247",
+    "ca4m4.benton.anchor.ja246", "ca4m4.benton.anchor.ja247", "ca4m4.benton.anchor.ja248",
 };
 
 constexpr std::array<std::string_view, 29> exclusion_anchors{
@@ -303,6 +312,73 @@ constexpr std::array<std::string_view, 29> exclusion_anchors{
 
 [[nodiscard]] QByteArray sha256(const QByteArray& bytes) {
     return QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex();
+}
+
+void addUint64(QCryptographicHash& hash, std::uint64_t value) {
+    std::array<char, 8> bytes{};
+    for (int index = 7; index >= 0; --index) {
+        bytes.at(static_cast<std::size_t>(index)) = static_cast<char>(value & 0xffU);
+        value >>= 8U;
+    }
+    hash.addData(QByteArrayView(bytes.data(), static_cast<qsizetype>(bytes.size())));
+}
+
+void addEvidenceFrame(QCryptographicHash& hash, QByteArrayView bytes) {
+    addUint64(hash, static_cast<std::uint64_t>(bytes.size()));
+    hash.addData(bytes);
+}
+
+void addEvidenceFrame(QCryptographicHash& hash, QStringView value) {
+    const auto bytes = value.toUtf8();
+    addEvidenceFrame(hash, QByteArrayView(bytes));
+}
+
+[[nodiscard]] std::optional<QString> realismJournalDigest(const QJsonArray& journal) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addEvidenceFrame(hash, QStringLiteral("appellate-workbench-executed-workflow-journal-v1"));
+    addUint64(hash, static_cast<std::uint64_t>(journal.size()));
+    for (const auto& entry_value : journal) {
+        const auto entry = entry_value.toObject();
+        const auto command_encoded =
+            entry.value(QStringLiteral("command_base64")).toString().toLatin1();
+        const auto command = QByteArray::fromBase64(command_encoded);
+        if (command.isEmpty() || command.toBase64() != command_encoded) {
+            return std::nullopt;
+        }
+        addEvidenceFrame(hash, QByteArrayView(command));
+        const auto events = entry.value(QStringLiteral("events_base64")).toArray();
+        addUint64(hash, static_cast<std::uint64_t>(events.size()));
+        for (const auto& event_value : events) {
+            const auto event_encoded = event_value.toString().toLatin1();
+            const auto event = QByteArray::fromBase64(event_encoded);
+            if (event.isEmpty() || event.toBase64() != event_encoded) {
+                return std::nullopt;
+            }
+            addEvidenceFrame(hash, QByteArrayView(event));
+        }
+    }
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] QString realismTraceDigest(const QString& case_id, const QJsonObject& trace) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addEvidenceFrame(hash, QStringLiteral("appellate-workbench-executed-trace-evidence-v1"));
+    addEvidenceFrame(hash, case_id);
+    addEvidenceFrame(hash, trace.value(QStringLiteral("evidence_id")).toString());
+    addEvidenceFrame(hash, trace.value(QStringLiteral("trace_id")).toString());
+    addEvidenceFrame(hash, trace.value(QStringLiteral("workflow_id")).toString());
+    addEvidenceFrame(hash, trace.value(QStringLiteral("engine_revision")).toString());
+    addUint64(hash,
+              static_cast<std::uint64_t>(trace.value(QStringLiteral("command_count")).toInt()));
+    addUint64(hash, static_cast<std::uint64_t>(trace.value(QStringLiteral("event_count")).toInt()));
+    addEvidenceFrame(hash, trace.value(QStringLiteral("journal_sha256")).toString());
+    const auto operations = trace.value(QStringLiteral("operation_ids")).toArray();
+    addUint64(hash, static_cast<std::uint64_t>(operations.size()));
+    for (const auto& operation : operations) {
+        addEvidenceFrame(hash, operation.toString());
+    }
+    addEvidenceFrame(hash, trace.value(QStringLiteral("terminal_stage_id")).toString());
+    return QString::fromLatin1(hash.result().toHex());
 }
 
 [[nodiscard]] const ValidatedResource* findResource(const std::vector<ValidatedResource>& resources,
@@ -347,150 +423,6 @@ template <std::size_t Size>
     return 1;
 }
 
-[[nodiscard]] model::LegalDate date(int year, unsigned month, unsigned day) {
-    return model::LegalDate{std::chrono::year{year} / std::chrono::month{month} /
-                            std::chrono::day{day}};
-}
-
-[[nodiscard]] model::LegalTime at(model::LegalDate court_date) {
-    return model::LegalTime{std::chrono::sys_seconds{std::chrono::sys_days{court_date.value}},
-                            court_date};
-}
-
-[[nodiscard]] model::WorkflowCommandHeader header(std::string session_id, std::string command_id,
-                                                  std::string actor_id,
-                                                  model::LegalDate occurred_on) {
-    return model::WorkflowCommandHeader{std::move(session_id),
-                                        model::WorkflowCommandId{std::move(command_id)},
-                                        model::ActorId{std::move(actor_id)}, at(occurred_on)};
-}
-
-[[nodiscard]] model::WorkflowFieldValue field(std::string id, std::string value) {
-    return model::WorkflowFieldValue{model::FilingFieldId{std::move(id)}, std::move(value)};
-}
-
-[[nodiscard]] model::WorkflowState initialState(const packs::RuntimeCase& runtime_case,
-                                                std::string session_id) {
-    model::WorkflowState state;
-    state.session_id = std::move(session_id);
-    state.workflow_id = runtime_case.workflow.id;
-    state.current_stage_id = runtime_case.workflow.initial_stage_id;
-    return state;
-}
-
-struct Run final {
-    model::WorkflowState initial_state;
-    model::WorkflowState state;
-    std::vector<model::WorkflowJournalEntry> journal;
-    std::vector<model::WorkflowEvent> trace;
-};
-
-[[nodiscard]] Run emptyRun(const packs::RuntimeCase& runtime_case, std::string session_id) {
-    auto initial = initialState(runtime_case, std::move(session_id));
-    return Run{initial, initial, {}, {}};
-}
-
-[[nodiscard]] auto execute(const packs::RuntimeCase& runtime_case, Run& run,
-                           model::WorkflowCommand command) -> std::expected<void, std::string> {
-    const auto decision =
-        engine::decideWorkflow(runtime_case.workflow, runtime_case.definition, run.state, command);
-    if (!decision) {
-        return std::unexpected(decision.error().message);
-    }
-    auto candidate_journal = run.journal;
-    candidate_journal.push_back(model::WorkflowJournalEntry{std::move(command), *decision});
-    const auto replayed = engine::replayWorkflow(runtime_case.workflow, runtime_case.definition,
-                                                 run.initial_state, candidate_journal);
-    if (!replayed) {
-        return std::unexpected(replayed.error().message);
-    }
-    run.trace.insert(run.trace.end(), decision->begin(), decision->end());
-    run.journal = std::move(candidate_journal);
-    run.state = *replayed;
-    return {};
-}
-
-[[nodiscard]] bool isUnmet(const packs::RuntimeCase& runtime_case, const Run& run,
-                           const model::WorkflowCommand& command) {
-    const auto decision =
-        engine::decideWorkflow(runtime_case.workflow, runtime_case.definition, run.state, command);
-    return !decision && decision.error().code == engine::WorkflowErrorCode::UnmetPrecondition;
-}
-
-[[nodiscard]] bool isRejectedWith(const packs::RuntimeCase& runtime_case, const Run& run,
-                                  const model::WorkflowCommand& command,
-                                  engine::WorkflowErrorCode expected_code) {
-    const auto decision =
-        engine::decideWorkflow(runtime_case.workflow, runtime_case.definition, run.state, command);
-    return !decision && decision.error().code == expected_code;
-}
-
-[[nodiscard]] model::SubmitWorkflowFiling notice(std::string session_id, std::string command_id,
-                                                 std::string filing_id,
-                                                 model::LegalDate occurred_on) {
-    return model::SubmitWorkflowFiling{
-        header(std::move(session_id), std::move(command_id), appellant_actor, occurred_on),
-        model::WorkflowFilingId{std::move(filing_id)},
-        model::FilingTypeId{"us.ca4.filing.civil-notice-of-appeal"},
-        std::string(64, 'a'),
-        {field("us.ca4.field.civil-notice.caption", "Leora Benton v. Blue Cedar Compliance"),
-         field("us.ca4.field.civil-notice.appealing-parties", "Leora Benton"),
-         field("us.ca4.field.civil-notice.originating-docket", "SYN-EDVA-25-CV-0412"),
-         field("us.ca4.field.civil-notice.judgment-or-order",
-               "Final summary-judgment order and judgment"),
-         field("us.ca4.field.civil-notice.order-date", "2025-12-19"),
-         field("us.ca4.field.civil-notice.destination-court",
-               "United States Court of Appeals for the Fourth Circuit")},
-        {model::ActorId{appellee_actor}},
-        std::nullopt};
-}
-
-[[nodiscard]] model::SubmitWorkflowFiling
-principalBrief(std::string session_id, std::string command_id, std::string filing_id,
-               std::string actor_id, std::string served_actor_id, model::LegalDate occurred_on) {
-    return model::SubmitWorkflowFiling{
-        header(std::move(session_id), std::move(command_id), std::move(actor_id), occurred_on),
-        model::WorkflowFilingId{std::move(filing_id)},
-        model::FilingTypeId{"us.ca4.filing.principal-brief"},
-        std::string(64, 'b'),
-        {field("us.ca4.field.brief.issues", "Two preserved issues"),
-         field("us.ca4.field.brief.argument", "Record-grounded merits argument"),
-         field("us.ca4.field.brief.record-citations", "JA3-JA262 curated citations"),
-         field("us.ca4.field.brief.authority-citations", "Title VII, Foster, Rules 26, 37, 56")},
-        {model::ActorId{std::move(served_actor_id)}},
-        std::nullopt};
-}
-
-[[nodiscard]] model::SubmitWorkflowFiling rehearingPetition(std::string session_id,
-                                                            std::string command_id,
-                                                            std::string filing_id,
-                                                            model::LegalDate occurred_on) {
-    return model::SubmitWorkflowFiling{
-        header(std::move(session_id), std::move(command_id), appellant_actor, occurred_on),
-        model::WorkflowFilingId{std::move(filing_id)},
-        model::FilingTypeId{"us.ca4.filing.rehearing-petition"},
-        std::string(64, 'a'),
-        {field("us.ca4.field.rehearing.kind", "panel rehearing"),
-         field("us.ca4.field.rehearing.purpose-statement", "Material point asserted"),
-         field("us.ca4.field.rehearing.grounds", "FRAP 40 grounds")},
-        {model::ActorId{appellee_actor}},
-        std::nullopt};
-}
-
-[[nodiscard]] model::EnterWorkflowOrder order(std::string session_id, std::string command_id,
-                                              std::string actor_id, std::string operation_id,
-                                              std::string order_id,
-                                              model::WorkflowOrderDisposition disposition,
-                                              model::LegalDate occurred_on, char digest_char) {
-    return model::EnterWorkflowOrder{
-        header(std::move(session_id), std::move(command_id), std::move(actor_id), occurred_on),
-        model::WorkflowOperationId{std::move(operation_id)},
-        model::WorkflowOrderId{std::move(order_id)},
-        disposition,
-        std::string(64, digest_char),
-        std::nullopt};
-}
-
 } // namespace
 
 int main(int argc, char* argv[]) {
@@ -499,7 +431,7 @@ int main(int argc, char* argv[]) {
     const auto pack_root = authoring_root.filePath(QStringLiteral("pack"));
     const auto foundations_root = QDir(QStringLiteral(APPELLATE_M4_FOUNDATIONS));
 
-    const PackRevision expected_root{PackId{"us.ca4.m4.benton-retaliation"}, "1.1.0", root_digest};
+    const PackRevision expected_root{PackId{"us.ca4.m4.benton-retaliation"}, "1.2.0", root_digest};
     const PackRevision expected_federal{PackId{"foundation.us-federal"}, "2025.12.01",
                                         federal_digest};
     const PackRevision expected_ca4{PackId{"foundation.us-ca4"}, "2026.03.23", ca4_digest};
@@ -510,31 +442,41 @@ int main(int argc, char* argv[]) {
     if (!source) {
         return fail(QStringLiteral("source pack: %1").arg(source.error().message));
     }
+    const auto manifest_bytes = readAll(QDir(pack_root).filePath(QStringLiteral("manifest.json")));
+    if (sha256(manifest_bytes) != QByteArray(manifest_digest)) {
+        return fail(QStringLiteral("frozen manifest digest mismatch"));
+    }
     if (source->revision != expected_root ||
         source->graph_state != PackGraphState::DeferredReferences ||
         source->dependencies.size() != std::size_t{3} ||
-        source->required_capabilities.size() != std::size_t{8} ||
-        source->resources.size() != std::size_t{8} || source->blobs.size() != std::size_t{37}) {
+        source->required_capabilities.size() != std::size_t{14} ||
+        source->resources.size() != std::size_t{9} || source->blobs.size() != std::size_t{67}) {
         return fail(QStringLiteral("source pack revision/count contract mismatch"));
     }
 
     const auto readme =
         QString::fromUtf8(readAll(authoring_root.filePath(QStringLiteral("README.md"))))
             .simplified();
-    if (!readme.contains(QStringLiteral("record-complete successor")) ||
-        !readme.contains(QStringLiteral("record-complete authoring checkpoint")) ||
-        !readme.contains(
-            QStringLiteral("37 unique substantive searchable PDFs totaling 262 pages")) ||
-        !readme.contains(QStringLiteral("19 PDFs and JA1–JA125")) ||
-        !readme.contains(QStringLiteral("18 PDFs and JA126–JA262")) ||
-        !readme.contains(QStringLiteral("filing presence does not prove that both an")) ||
-        !readme.contains(QStringLiteral("opening and response brief exist")) ||
-        !readme.contains(
-            QStringLiteral("Structured disposition, executed appellate workflow traces")) ||
-        !readme.contains(QStringLiteral("actual, narrow exclusion of the late Wynn declaration")) ||
-        !readme.contains(QStringLiteral("expressly does not rely on a sham-affidavit rule")) ||
-        !readme.contains(QStringLiteral("court records `ca4m4.benton.deadline.rehearing`"))) {
-        return fail(QStringLiteral("README does not preserve the 1.1 record-complete contract"));
+    if (!readme.contains(QStringLiteral("us.ca4.m4.benton-retaliation@1.2.0")) ||
+        !readme.contains(QStringLiteral("installable schema-v2 root")) ||
+        !readme.contains(QStringLiteral("67 unique substantive")) ||
+        !readme.contains(QStringLiteral("389 page anchors")) ||
+        !readme.contains(QStringLiteral("37 PDFs and 262 continuous JA pages")) ||
+        !readme.contains(QStringLiteral("13 actual appellate PDFs at PA1–PA70")) ||
+        !readme.contains(QStringLiteral("17 separately docketed")) ||
+        !readme.contains(QStringLiteral("PA71–PA127")) ||
+        !readme.contains(QStringLiteral("13-stage, 53-operation workflow")) ||
+        !readme.contains(QStringLiteral("Seventeen operations bind")) ||
+        !readme.contains(QStringLiteral("both judgment operations additionally bind")) ||
+        !readme.contains(QStringLiteral("seven checked-in production journals")) ||
+        !readme.contains(QStringLiteral("independent_review_pending")) ||
+        !readme.contains(QStringLiteral("actual judgment affirms the narrow exclusion")) ||
+        !readme.contains(QStringLiteral("does not rely on a sham-affidavit rule")) ||
+        !readme.contains(QStringLiteral("vacates the retaliation summary judgment")) ||
+        !readme.contains(QStringLiteral("B04 rehearing tender")) ||
+        !readme.contains(QStringLiteral("Blue Cedar owns the response brief")) ||
+        !readme.contains(QStringLiteral("B14 is a joint motion"))) {
+        return fail(QStringLiteral("README does not describe the finalized 1.2 boundary"));
     }
 
     const std::array expected_dependencies{expected_federal, expected_ca4, expected_bench};
@@ -547,43 +489,30 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    const auto grounded_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.grounded-questions" && capability.version == 1U;
-        });
-    const auto dependent_deadline_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.dependent-deadlines" &&
-                   capability.version == 1U;
-        });
-    const auto named_deadline_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.named-deadlines" && capability.version == 1U;
-        });
-    const auto event_deadline_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.event-date-deadlines" &&
-                   capability.version == 1U;
-        });
-    const auto argument_date_capability =
-        std::ranges::find_if(source->required_capabilities, [](const auto& capability) {
-            return capability.id == "workbench.pack.argument-date-guards" &&
-                   capability.version == 1U;
-        });
-    if (grounded_capability == source->required_capabilities.end() ||
-        dependent_deadline_capability == source->required_capabilities.end() ||
-        named_deadline_capability == source->required_capabilities.end() ||
-        event_deadline_capability == source->required_capabilities.end() ||
-        argument_date_capability == source->required_capabilities.end() ||
-        std::ranges::any_of(source->required_capabilities,
-                            [](const auto& capability) {
-                                return capability.id == "workbench.pack.structured-disposition" ||
-                                       capability.id == "workbench.pack.realism-evidence";
-                            }) ||
-        std::ranges::any_of(source->resources, [](const auto& resource) {
-            return resource.descriptor.kind == ResourceKind::RealismReview;
-        })) {
-        return fail(QStringLiteral("grounded/deferred capability boundary mismatch"));
+    QSet<QString> actual_capabilities;
+    for (const auto& capability : source->required_capabilities) {
+        actual_capabilities.insert(QStringLiteral("%1@%2")
+                                       .arg(QString::fromStdString(capability.id))
+                                       .arg(capability.version));
+    }
+    const QSet<QString> expected_capabilities{
+        QStringLiteral("workbench.pack.declarative-resources@2"),
+        QStringLiteral("workbench.pack.canonical-authority@1"),
+        QStringLiteral("workbench.pack.workflow-preconditions@1"),
+        QStringLiteral("workbench.pack.dependent-deadlines@1"),
+        QStringLiteral("workbench.pack.named-deadlines@1"),
+        QStringLiteral("workbench.pack.event-date-deadlines@1"),
+        QStringLiteral("workbench.pack.argument-date-guards@1"),
+        QStringLiteral("workbench.pack.grounded-questions@1"),
+        QStringLiteral("workbench.pack.route-role-subsets@1"),
+        QStringLiteral("workbench.pack.workflow-instance-preconditions@1"),
+        QStringLiteral("workbench.pack.operation-document-bindings@1"),
+        QStringLiteral("workbench.pack.operation-disposition-bindings@1"),
+        QStringLiteral("workbench.pack.structured-disposition@1"),
+        QStringLiteral("workbench.pack.realism-evidence@1"),
+    };
+    if (actual_capabilities != expected_capabilities) {
+        return fail(QStringLiteral("exact 1.2 capability contract mismatch"));
     }
 
     for (const auto& resource : source->resources) {
@@ -615,27 +544,23 @@ int main(int argc, char* argv[]) {
         findResource(source->resources, "ca4m4.benton.argument.actual-record");
     const auto* counterfactual_argument =
         findResource(source->resources, "ca4m4.benton.argument.no-knowledge-counterfactual");
+    const auto* realism_resource =
+        findResource(source->resources, "ca4m4.benton.review.authoring-2026-08-12");
     if (case_resource == nullptr || record_resource == nullptr || authority_resource == nullptr ||
         workflow_resource == nullptr || bench_resource == nullptr || actual_argument == nullptr ||
-        counterfactual_argument == nullptr ||
+        counterfactual_argument == nullptr || realism_resource == nullptr ||
         case_resource->descriptor.kind != ResourceKind::Case ||
         record_resource->descriptor.kind != ResourceKind::Record ||
         actual_argument->descriptor.kind != ResourceKind::ArgumentConfig ||
-        counterfactual_argument->descriptor.kind != ResourceKind::ArgumentConfig) {
+        counterfactual_argument->descriptor.kind != ResourceKind::ArgumentConfig ||
+        realism_resource->descriptor.kind != ResourceKind::RealismReview ||
+        case_resource->descriptor.sha256 != case_digest ||
+        record_resource->descriptor.sha256 != record_digest ||
+        workflow_resource->descriptor.sha256 != workflow_digest ||
+        realism_resource->descriptor.sha256 != realism_review_digest) {
         return fail(QStringLiteral("required Benton resources are absent"));
     }
 
-    if (case_resource->document.contains(QStringLiteral("disposition_plans")) ||
-        case_resource->document.contains(QStringLiteral("authored_disposition_plan_id")) ||
-        case_resource->document.contains(QStringLiteral("authored_disposition_operation_id"))) {
-        return fail(QStringLiteral("Benton 1.1 must not contain a structured disposition"));
-    }
-    for (const auto& issue_value :
-         case_resource->document.value(QStringLiteral("issues")).toArray()) {
-        if (issue_value.toObject().contains(QStringLiteral("target_ids"))) {
-            return fail(QStringLiteral("future disposition target leaked into Benton 1.1"));
-        }
-    }
     for (const auto& actor_value :
          case_resource->document.value(QStringLiteral("actors")).toArray()) {
         if (!actor_value.toObject().value(QStringLiteral("synthetic")).toBool()) {
@@ -651,6 +576,51 @@ int main(int argc, char* argv[]) {
         objectById(case_issues, QStringLiteral("issue_id"), QString::fromLatin1(retaliation_issue));
     const auto exclusion =
         objectById(case_issues, QStringLiteral("issue_id"), QString::fromLatin1(exclusion_issue));
+    const auto disposition_plans =
+        case_resource->document.value(QStringLiteral("disposition_plans")).toArray();
+    const auto authored_plan = objectById(disposition_plans, QStringLiteral("plan_id"),
+                                          QStringLiteral("ca4m4.benton.disposition.authored"));
+    const auto adverse_plan =
+        objectById(disposition_plans, QStringLiteral("plan_id"),
+                   QStringLiteral("ca4m4.benton.disposition.counterfactual-adverse"));
+    const auto authored_components = authored_plan.value(QStringLiteral("components")).toArray();
+    const auto adverse_components = adverse_plan.value(QStringLiteral("components")).toArray();
+    const auto authored_retaliation = objectById(authored_components, QStringLiteral("issue_id"),
+                                                 QString::fromLatin1(retaliation_issue));
+    const auto authored_exclusion = objectById(authored_components, QStringLiteral("issue_id"),
+                                               QString::fromLatin1(exclusion_issue));
+    const auto adverse_retaliation = objectById(adverse_components, QStringLiteral("issue_id"),
+                                                QString::fromLatin1(retaliation_issue));
+    const auto adverse_exclusion = objectById(adverse_components, QStringLiteral("issue_id"),
+                                              QString::fromLatin1(exclusion_issue));
+    if (disposition_plans.size() != 2 ||
+        case_resource->document.value(QStringLiteral("authored_disposition_plan_id")).toString() !=
+            QStringLiteral("ca4m4.benton.disposition.authored") ||
+        case_resource->document.value(QStringLiteral("authored_disposition_id")).toString() !=
+            QStringLiteral("ca4m4.benton.operation.issue-judgment") ||
+        authored_plan.value(QStringLiteral("finality")).toString() != QStringLiteral("final") ||
+        adverse_plan.value(QStringLiteral("finality")).toString() != QStringLiteral("final") ||
+        authored_plan.value(QStringLiteral("digest")).toString() !=
+            QString::fromLatin1(authored_disposition_digest) ||
+        adverse_plan.value(QStringLiteral("digest")).toString() !=
+            QString::fromLatin1(adverse_disposition_digest) ||
+        authored_components.size() != 2 || adverse_components.size() != 2 ||
+        authored_retaliation.value(QStringLiteral("target_id")).toString() !=
+            QStringLiteral("ca4m4.benton.target.retaliation-summary-judgment") ||
+        authored_retaliation.value(QStringLiteral("action")).toString() !=
+            QStringLiteral("vacate") ||
+        !authored_retaliation.value(QStringLiteral("remand")).toBool() ||
+        authored_exclusion.value(QStringLiteral("target_id")).toString() !=
+            QStringLiteral("ca4m4.benton.target.wynn-declaration-exclusion") ||
+        authored_exclusion.value(QStringLiteral("action")).toString() != QStringLiteral("affirm") ||
+        authored_exclusion.value(QStringLiteral("remand")).toBool() ||
+        adverse_retaliation.value(QStringLiteral("action")).toString() !=
+            QStringLiteral("affirm") ||
+        adverse_retaliation.value(QStringLiteral("remand")).toBool() ||
+        adverse_exclusion.value(QStringLiteral("action")).toString() != QStringLiteral("affirm") ||
+        adverse_exclusion.value(QStringLiteral("remand")).toBool()) {
+        return fail(QStringLiteral("two-plan structured disposition contract mismatch"));
+    }
     const QJsonArray retaliation_authorities{
         QStringLiteral("ca4m4.benton.authority.title-vii-retaliation"),
         QStringLiteral("ca4m4.benton.authority.foster-framework"),
@@ -665,7 +635,7 @@ int main(int argc, char* argv[]) {
     if (retaliation.isEmpty() || exclusion.isEmpty() ||
         !exclusion.value(QStringLiteral("title"))
              .toString()
-             .contains(QStringLiteral("narrowly excluding the late Wynn declaration")) ||
+             .contains(QStringLiteral("Wynn's materially new March 7 statement")) ||
         retaliation.value(QStringLiteral("record_anchor_ids")).toArray() !=
             jsonArray(retaliation_anchors) ||
         exclusion.value(QStringLiteral("record_anchor_ids")).toArray() !=
@@ -946,7 +916,9 @@ int main(int argc, char* argv[]) {
         !source_ledger.contains(QStringLiteral("The late Wynn declaration remains")) ||
         !fact_canon.contains(QStringLiteral("Counsel knows the new subject on October 15")) ||
         !fact_canon.contains(QStringLiteral("excludes only the new subject")) ||
-        !fact_canon.contains(QStringLiteral("No appellate disposition is authored")) ||
+        !fact_canon.contains(QStringLiteral("authored actual appellate disposition")) ||
+        !fact_canon.contains(QStringLiteral("vacates that summary judgment and remands")) ||
+        !fact_canon.contains(QStringLiteral("separate adverse disposition affirms both targets")) ||
         !fact_canon.contains(QStringLiteral("does not invoke the sham-affidavit rule")) ||
         !fact_canon.contains(QStringLiteral("23 = 21 + 2")) ||
         !fact_canon.contains(QStringLiteral("16 = 21 - 5")) ||
@@ -962,12 +934,7 @@ int main(int argc, char* argv[]) {
         record_source_semantics +=
             QString::fromUtf8(readAll(authoring_root.filePath(source_path))) + QLatin1Char('\n');
     }
-    const auto current_semantics =
-        QString::fromUtf8(QJsonDocument(case_resource->document).toJson(QJsonDocument::Compact)) +
-        QString::fromUtf8(QJsonDocument(actual_argument->document).toJson(QJsonDocument::Compact)) +
-        QString::fromUtf8(
-            QJsonDocument(counterfactual_argument->document).toJson(QJsonDocument::Compact)) +
-        fact_canon + source_ledger + record_source_semantics;
+    const auto current_semantics = record_source_semantics;
     const QStringList premature_appellate_claims{
         QStringLiteral("instruction-to-conceal"),
         QStringLiteral("instruction to conceal"),
@@ -1001,8 +968,8 @@ int main(int argc, char* argv[]) {
     const auto record_entries =
         record_resource->document.value(QStringLiteral("docket_entries")).toArray();
     const auto anchors = record_resource->document.value(QStringLiteral("page_anchors")).toArray();
-    if (record_resource->document.value(QStringLiteral("dockets")).toArray().size() != 2 ||
-        record_entries.size() != 37 || anchors.size() != 262) {
+    if (record_resource->document.value(QStringLiteral("dockets")).toArray().size() != 3 ||
+        record_entries.size() != 67 || anchors.size() != 389) {
         return fail(QStringLiteral("record count contract mismatch"));
     }
     const std::array composite_dates{
@@ -1383,6 +1350,161 @@ int main(int argc, char* argv[]) {
         return fail(QStringLiteral("JA/source/PDF substantive-page closure mismatch"));
     }
 
+    const auto successor_plan_bytes =
+        readAll(authoring_root.filePath(QStringLiteral("render-plan-successor.json")));
+    const auto successor_inventory_bytes = readAll(
+        authoring_root.filePath(QStringLiteral("metadata/render-inventory-successor.json")));
+    const auto successor_plan = QJsonDocument::fromJson(successor_plan_bytes).object();
+    const auto successor_inventory = QJsonDocument::fromJson(successor_inventory_bytes).object();
+    const auto successor_plan_entries = successor_plan.value(QStringLiteral("entries")).toArray();
+    const auto successor_rendered_entries =
+        successor_inventory.value(QStringLiteral("entries")).toArray();
+    const auto successor_plan_digest = QString::fromLatin1(sha256(successor_plan_bytes));
+    if (sha256(successor_inventory_bytes) != QByteArray(successor_inventory_digest) ||
+        successor_plan.value(QStringLiteral("schema_version")).toInt() != 1 ||
+        successor_inventory.value(QStringLiteral("schema_version")).toInt() != 1 ||
+        successor_plan_entries.size() != 30 || successor_rendered_entries.size() != 30 ||
+        successor_inventory.value(QStringLiteral("plan_sha256")).toString() !=
+            successor_plan_digest ||
+        successor_inventory.value(QStringLiteral("ordering")).toString() !=
+            QStringLiteral("output_path_casefolded_then_codepoint") ||
+        successor_inventory.value(QStringLiteral("pdf_byte_deterministic")).toBool(true) ||
+        successor_inventory.value(QStringLiteral("renderer_contract")).toString() !=
+            QStringLiteral("appellate.markdown-pdf.semantic-layout.v2")) {
+        return fail(QStringLiteral("successor render plan/inventory envelope mismatch"));
+    }
+
+    int expected_pa = 1;
+    int actual_pa_pages = 0;
+    int branch_pa_pages = 0;
+    for (int index = 0; index < successor_plan_entries.size(); ++index) {
+        const auto plan = successor_plan_entries.at(index).toObject();
+        const auto rendered = successor_rendered_entries.at(index).toObject();
+        const auto record_entry = record_entries.at(37 + index).toObject();
+        const auto source_path = plan.value(QStringLiteral("source_path")).toString();
+        const auto output_path = plan.value(QStringLiteral("output_path")).toString();
+        const auto title = plan.value(QStringLiteral("title")).toString();
+        const auto source_bytes = readAll(authoring_root.filePath(source_path));
+        const auto pdf_bytes = readAll(QDir(pack_root).filePath(output_path));
+        const auto assembly = rendered.value(QStringLiteral("assembly_provenance")).toObject();
+        const auto labels = rendered.value(QStringLiteral("page_labels")).toObject();
+        const auto page_count = rendered.value(QStringLiteral("page_count")).toInt();
+        const auto source_digest = QString::fromLatin1(sha256(source_bytes));
+        const auto pdf_digest = QString::fromLatin1(sha256(pdf_bytes));
+        const auto blob = std::ranges::find(source->blobs, output_path.toStdString(),
+                                            &model::BlobDescriptor::path);
+        const bool actual = index < 13;
+        const auto expected_docket =
+            actual ? QStringLiteral("ca4m4.benton.docket.appellate")
+                   : QStringLiteral("ca4m4.benton.docket.counterfactual-branches");
+        const auto expected_tag = actual ? QStringLiteral("actual_appellate_docket")
+                                         : QStringLiteral("counterfactual_appellate_branch");
+        const auto record_tags = strings(record_entry.value(QStringLiteral("tags")).toArray());
+        if (source_bytes.isEmpty() || pdf_bytes.isEmpty() ||
+            plan.value(QStringLiteral("page_label_prefix")).toString() != QStringLiteral("PA") ||
+            plan.value(QStringLiteral("page_label_start")).toInt() != expected_pa ||
+            rendered.value(QStringLiteral("output_path")).toString() != output_path ||
+            rendered.value(QStringLiteral("title")).toString() != title ||
+            rendered.value(QStringLiteral("source_sha256")).toString() != source_digest ||
+            rendered.value(QStringLiteral("pdf_sha256")).toString() != pdf_digest ||
+            rendered.value(QStringLiteral("byte_size")).toInteger() != pdf_bytes.size() ||
+            rendered.value(QStringLiteral("pdf_byte_deterministic")).toBool(true) ||
+            rendered.value(QStringLiteral("renderer_contract")).toString() !=
+                QStringLiteral("appellate.markdown-pdf.semantic-layout.v2") ||
+            assembly.value(QStringLiteral("assembly_contract")).toString() !=
+                QStringLiteral("appellate.markdown-assembly.v1") ||
+            assembly.value(QStringLiteral("kind")).toString() != QStringLiteral("single_source") ||
+            assembly.value(QStringLiteral("source_path")).toString() != source_path ||
+            assembly.value(QStringLiteral("source_sha256")).toString() != source_digest ||
+            assembly.value(QStringLiteral("logical_page_count")).toInt() != page_count ||
+            labels.value(QStringLiteral("prefix")).toString() != QStringLiteral("PA") ||
+            labels.value(QStringLiteral("first_number")).toInt() != expected_pa ||
+            labels.value(QStringLiteral("last_number")).toInt() != expected_pa + page_count - 1 ||
+            blob == source->blobs.end() || blob->sha256 != pdf_digest.toStdString() ||
+            blob->byte_size != static_cast<std::uint64_t>(pdf_bytes.size()) ||
+            record_entry.value(QStringLiteral("entry_number")).toInt() != 38 + index ||
+            record_entry.value(QStringLiteral("docket_id")).toString() != expected_docket ||
+            record_entry.value(QStringLiteral("asset_path")).toString() != output_path ||
+            record_entry.value(QStringLiteral("asset_sha256")).toString() != pdf_digest ||
+            record_entry.value(QStringLiteral("page_count")).toInt() != page_count ||
+            record_entry.value(QStringLiteral("sealed")).toBool(true) ||
+            !record_tags.contains(expected_tag) ||
+            (!actual && !record_tags.contains(QStringLiteral("never_occurred_on_actual_docket")))) {
+            return fail(
+                QStringLiteral("successor source/PDF/blob/record mismatch: %1").arg(output_path));
+        }
+
+        const auto source_text = QString::fromUtf8(source_bytes);
+        const auto expected_banner =
+            actual ? QStringLiteral("SYNTHETIC APPELLATE DOCKET — NOT FILED — ALL FACTS AND "
+                                    "IDENTIFIERS ARE FICTIONAL")
+                   : QStringLiteral("SYNTHETIC COUNTERFACTUAL APPELLATE BRANCH — NEVER OCCURRED ON "
+                                    "THE ACTUAL DOCKET — ALL FACTS AND IDENTIFIERS ARE FICTIONAL");
+        const auto source_pages =
+            source_text.split(QStringLiteral("<!-- PAGE BREAK -->"), Qt::KeepEmptyParts);
+        if (!source_text.startsWith(expected_banner) || source_pages.size() != page_count) {
+            return fail(
+                QStringLiteral("successor source banner/page mismatch: %1").arg(source_path));
+        }
+        for (auto page : source_pages) {
+            page = page.simplified();
+            if (page.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts).size() <
+                    30 ||
+                distinct_source_pages.contains(page)) {
+                return fail(
+                    QStringLiteral("thin/duplicate successor Markdown page: %1").arg(source_path));
+            }
+            distinct_source_pages.insert(page);
+        }
+
+        QPdfDocument pdf;
+        if (pdf.load(QDir(pack_root).filePath(output_path)) != QPdfDocument::Error::None ||
+            pdf.status() != QPdfDocument::Status::Ready || pdf.pageCount() != page_count ||
+            pdf.metaData(QPdfDocument::MetaDataField::Title).toString() != title ||
+            pdf.metaData(QPdfDocument::MetaDataField::Author).toString() !=
+                QStringLiteral("Appellate Workbench synthetic content") ||
+            pdf.metaData(QPdfDocument::MetaDataField::Creator).toString() !=
+                QStringLiteral("Appellate Workbench Markdown PDF Renderer")) {
+            return fail(
+                QStringLiteral("successor PDF metadata/page mismatch: %1").arg(output_path));
+        }
+        for (int page_index = 0; page_index < page_count; ++page_index) {
+            const auto expected_label = QStringLiteral("PA%1").arg(expected_pa);
+            auto page_text = pdf.getAllText(page_index).text().simplified();
+            if (page_text.size() < 200 || !page_text.contains(expected_label)) {
+                return fail(QStringLiteral("thin/unlabeled successor page %1 in %2")
+                                .arg(expected_label, output_path));
+            }
+            page_text.remove(QRegularExpression(QStringLiteral("\\bPA\\d+\\b")));
+            page_text = page_text.simplified();
+            if (distinct_pdf_pages.contains(page_text)) {
+                return fail(
+                    QStringLiteral("duplicate successor PDF page at %1").arg(expected_label));
+            }
+            distinct_pdf_pages.insert(page_text);
+            const auto anchor = anchors.at(262 + expected_pa - 1).toObject();
+            if (anchor.value(QStringLiteral("anchor_id")).toString() !=
+                    QStringLiteral("ca4m4.benton.anchor.pa%1").arg(expected_pa) ||
+                anchor.value(QStringLiteral("entry_id")).toString() !=
+                    record_entry.value(QStringLiteral("entry_id")).toString() ||
+                anchor.value(QStringLiteral("page_number")).toInt() != page_index + 1 ||
+                anchor.value(QStringLiteral("citation_label")).toString() != expected_label) {
+                return fail(
+                    QStringLiteral("successor record anchor mismatch at %1").arg(expected_label));
+            }
+            ++expected_pa;
+        }
+        if (actual) {
+            actual_pa_pages += page_count;
+        } else {
+            branch_pa_pages += page_count;
+        }
+    }
+    if (expected_pa != 128 || actual_pa_pages != 70 || branch_pa_pages != 57 ||
+        distinct_source_pages.size() != 389 || distinct_pdf_pages.size() != 389) {
+        return fail(QStringLiteral("37/262 JA + 13/70 actual PA + 17/57 branch PA mismatch"));
+    }
+
     const QJsonArray expected_seats{
         QJsonObject{{QStringLiteral("seat_id"), QStringLiteral("ca4m4.benton.seat.rowan")},
                     {QStringLiteral("profile_id"), QStringLiteral("us.ca4.bench-profile.rowan")},
@@ -1400,851 +1522,708 @@ int main(int argc, char* argv[]) {
         return fail(QStringLiteral("Rowan/Alder/Fen bench contract mismatch"));
     }
 
-    const auto routes =
+    QHash<QString, QJsonObject> final_record_entry_by_id;
+    QHash<QString, QString> final_record_entry_id_by_sha;
+    for (const auto& value : record_entries) {
+        const auto entry = value.toObject();
+        const auto id = entry.value(QStringLiteral("entry_id")).toString();
+        const auto digest = entry.value(QStringLiteral("asset_sha256")).toString();
+        if (id.isEmpty() || digest.isEmpty() || final_record_entry_by_id.contains(id) ||
+            final_record_entry_id_by_sha.contains(digest)) {
+            return fail(QStringLiteral("record entry identity is empty or duplicated"));
+        }
+        final_record_entry_by_id.insert(id, entry);
+        final_record_entry_id_by_sha.insert(digest, id);
+    }
+
+    const auto final_stages = workflow_resource->document.value(QStringLiteral("stages")).toArray();
+    const auto final_routes =
         workflow_resource->document.value(QStringLiteral("filing_routes")).toArray();
-    const auto operations =
+    const auto final_operations =
         workflow_resource->document.value(QStringLiteral("operations")).toArray();
-    const QJsonArray expected_stages{
-        QStringLiteral("ca4m4.benton.stage.opened"),
-        QStringLiteral("ca4m4.benton.stage.briefing"),
-        QStringLiteral("ca4m4.benton.stage.submitted"),
-        QStringLiteral("ca4m4.benton.stage.post-judgment"),
-    };
-    const auto notice_route = objectById(routes, QStringLiteral("filing_type_id"),
-                                         QStringLiteral("us.ca4.filing.civil-notice-of-appeal"));
-    const auto brief_route = objectById(routes, QStringLiteral("filing_type_id"),
-                                        QStringLiteral("us.ca4.filing.principal-brief"));
-    const auto rehearing_route = objectById(routes, QStringLiteral("filing_type_id"),
-                                            QStringLiteral("us.ca4.filing.rehearing-petition"));
-    const QJsonArray both_party_roles{
-        QStringLiteral("us.ca4.role.initiating-party"),
-        QStringLiteral("us.ca4.role.responding-party"),
-    };
+    QSet<QString> final_workflow_operation_ids;
+    int final_document_bindings = 0;
+    int final_disposition_bindings = 0;
+    bool final_workflow_bindings_valid = true;
+    for (const auto& value : final_operations) {
+        const auto operation_value = value.toObject();
+        const auto operation_id = operation_value.value(QStringLiteral("operation_id")).toString();
+        if (operation_id.isEmpty() || final_workflow_operation_ids.contains(operation_id)) {
+            final_workflow_bindings_valid = false;
+            continue;
+        }
+        final_workflow_operation_ids.insert(operation_id);
+        const auto binding = operation_value.value(QStringLiteral("document_binding")).toObject();
+        if (!binding.isEmpty()) {
+            ++final_document_bindings;
+            const auto entry_id = binding.value(QStringLiteral("record_entry_id")).toString();
+            const auto entry = final_record_entry_by_id.value(entry_id);
+            final_workflow_bindings_valid =
+                final_workflow_bindings_valid && !entry.isEmpty() &&
+                binding.value(QStringLiteral("document_sha256")).toString() ==
+                    entry.value(QStringLiteral("asset_sha256")).toString() &&
+                binding.value(QStringLiteral("expected_court_date")).toString() ==
+                    entry.value(QStringLiteral("filed_on")).toString();
+        }
+        const auto disposition_plan_id =
+            operation_value.value(QStringLiteral("disposition_plan_id")).toString();
+        if (!disposition_plan_id.isEmpty()) {
+            ++final_disposition_bindings;
+            if (operation_id == QStringLiteral("ca4m4.benton.operation.issue-judgment")) {
+                final_workflow_bindings_valid =
+                    final_workflow_bindings_valid &&
+                    disposition_plan_id == QStringLiteral("ca4m4.benton.disposition.authored") &&
+                    binding.value(QStringLiteral("record_entry_id")).toString() ==
+                        QStringLiteral("ca4m4.benton.record.entry.a11");
+            } else if (operation_id ==
+                       QStringLiteral("ca4m4.benton.operation.issue-judgment-on-briefs")) {
+                final_workflow_bindings_valid =
+                    final_workflow_bindings_valid &&
+                    disposition_plan_id ==
+                        QStringLiteral("ca4m4.benton.disposition.counterfactual-adverse") &&
+                    binding.value(QStringLiteral("record_entry_id")).toString() ==
+                        QStringLiteral("ca4m4.benton.record.entry.b03");
+            } else {
+                final_workflow_bindings_valid = false;
+            }
+        }
+    }
     if (workflow_resource->document.value(QStringLiteral("initial_stage_id")).toString() !=
             QStringLiteral("ca4m4.benton.stage.opened") ||
-        workflow_resource->document.value(QStringLiteral("stages")).toArray() != expected_stages ||
-        routes.size() != 3 || operations.size() != 28 || notice_route.isEmpty() ||
-        brief_route.isEmpty() || rehearing_route.isEmpty() ||
-        notice_route.contains(QStringLiteral("accepted_deadline")) ||
-        notice_route.contains(QStringLiteral("advance_operation_id")) ||
-        rehearing_route.contains(QStringLiteral("accepted_deadline")) ||
-        rehearing_route.value(QStringLiteral("satisfies_deadline_id")).toString() !=
-            QStringLiteral("ca4m4.benton.deadline.rehearing") ||
-        !rehearing_route.value(QStringLiteral("reject_after_deadline")).toBool() ||
-        brief_route.value(QStringLiteral("required_service_role_ids")).toArray() !=
-            both_party_roles ||
-        rehearing_route.value(QStringLiteral("required_service_role_ids")).toArray() !=
-            both_party_roles) {
-        return fail(QStringLiteral("filing-route/stage contract mismatch"));
+        final_stages.size() != 13 || final_operations.size() != 53 || final_routes.size() != 6 ||
+        final_workflow_operation_ids.size() != 53 || final_document_bindings != 17 ||
+        final_disposition_bindings != 2 || !final_workflow_bindings_valid) {
+        return fail(QStringLiteral("13/53/6 workflow or 17/2 binding contract mismatch"));
     }
 
-    const auto operation = [&](const char* id) {
-        return objectById(operations, QStringLiteral("operation_id"), QString::fromLatin1(id));
+    const QHash<QString, QString> expected_selector_actors{
+        {QStringLiteral("ca4m4.benton.filing.notice-of-appeal"),
+         QStringLiteral("ca4m4.benton.actor.leora-benton")},
+        {QStringLiteral("ca4m4.benton.filing.a02-docketing-statement"),
+         QStringLiteral("ca4m4.benton.actor.leora-benton")},
+        {QStringLiteral("ca4m4.benton.filing.a04-opening-brief"),
+         QStringLiteral("ca4m4.benton.actor.leora-benton")},
+        {QStringLiteral("ca4m4.benton.filing.a05-response-brief"),
+         QStringLiteral("ca4m4.benton.actor.blue-cedar")},
+        {QStringLiteral("ca4m4.benton.filing.b06-rehearing-petition"),
+         QStringLiteral("ca4m4.benton.actor.blue-cedar")},
+        {QStringLiteral("ca4m4.benton.filing.b10-stay-motion"),
+         QStringLiteral("ca4m4.benton.actor.blue-cedar")},
+        {QStringLiteral("ca4m4.benton.filing.b14-joint-shortening-motion"),
+         QStringLiteral("ca4m4.benton.actor.leora-benton")},
     };
-    const auto preconditionText = [&](const char* id) {
-        return QString::fromUtf8(
-            QJsonDocument(operation(id).value(QStringLiteral("preconditions")).toArray())
-                .toJson(QJsonDocument::Compact));
+    int selector_occurrences = 0;
+    QSet<QString> selector_filing_ids;
+    bool selectors_valid = true;
+    std::function<void(const QJsonValue&)> visit_workflow_value;
+    visit_workflow_value = [&](const QJsonValue& value) {
+        if (value.isArray()) {
+            for (const auto& child : value.toArray()) {
+                visit_workflow_value(child);
+            }
+            return;
+        }
+        if (!value.isObject()) {
+            return;
+        }
+        const auto object = value.toObject();
+        if (object.value(QStringLiteral("kind")).toString() == QStringLiteral("filing_instance")) {
+            ++selector_occurrences;
+            const auto filing_id = object.value(QStringLiteral("filing_id")).toString();
+            const auto entry = final_record_entry_by_id.value(
+                object.value(QStringLiteral("record_entry_id")).toString());
+            selector_filing_ids.insert(filing_id);
+            selectors_valid = selectors_valid && expected_selector_actors.contains(filing_id) &&
+                              object.value(QStringLiteral("actor_id")).toString() ==
+                                  expected_selector_actors.value(filing_id) &&
+                              !entry.isEmpty() &&
+                              object.value(QStringLiteral("document_sha256")).toString() ==
+                                  entry.value(QStringLiteral("asset_sha256")).toString();
+        }
+        for (auto iterator = object.constBegin(); iterator != object.constEnd(); ++iterator) {
+            visit_workflow_value(iterator.value());
+        }
     };
-    const QJsonArray court_role{QStringLiteral("us.ca4.role.court")};
-    const auto record_complete = operation("ca4m4.benton.operation.enter-record-complete");
-    const auto advance_briefing = operation("ca4m4.benton.operation.advance-briefing");
-    const auto briefing_complete = operation("ca4m4.benton.operation.enter-briefing-complete");
-    const auto schedule_argument = operation("ca4m4.benton.operation.schedule-argument");
-    const auto argument_held = operation("ca4m4.benton.operation.enter-argument-held");
-    const auto advance_after_argument =
-        operation("ca4m4.benton.operation.advance-submitted-after-argument");
-    const auto advance_on_briefs = operation("ca4m4.benton.operation.advance-submitted-on-briefs");
-    const auto judgment = operation("ca4m4.benton.operation.issue-judgment");
-    const auto judgment_on_briefs = operation("ca4m4.benton.operation.issue-judgment-on-briefs");
-    const auto calculate_rehearing = operation("ca4m4.benton.operation.calculate-rehearing");
-    const auto calculate_mandate_time =
-        operation("ca4m4.benton.operation.calculate-mandate-after-rehearing-time");
-    const auto calculate_mandate_denial =
-        operation("ca4m4.benton.operation.calculate-mandate-after-rehearing-denial");
-    const auto issue_no_petition = operation("ca4m4.benton.operation.issue-mandate-no-petition");
-    const auto issue_after_denial =
-        operation("ca4m4.benton.operation.issue-mandate-after-rehearing-denial");
-    const auto issue_shortened = operation("ca4m4.benton.operation.issue-mandate-shortened");
-    const QJsonObject judgment_event_base{
-        {QStringLiteral("kind"), QStringLiteral("judgment_occurred")}};
-    const QJsonObject denial_event_base{
-        {QStringLiteral("kind"), QStringLiteral("order_occurred")},
-        {QStringLiteral("order_id"), QStringLiteral("ca4m4.benton.order.rehearing-disposition")},
-        {QStringLiteral("operation_id"),
-         QStringLiteral("ca4m4.benton.operation.enter-rehearing-disposition")}};
-    if (record_complete.value(QStringLiteral("authorized_role_ids")).toArray() != court_role ||
-        advance_briefing.value(QStringLiteral("authorized_role_ids")).toArray() != court_role ||
-        briefing_complete.value(QStringLiteral("authorized_role_ids")).toArray() != court_role ||
-        schedule_argument.value(QStringLiteral("authorized_role_ids")).toArray() != court_role ||
-        argument_held.value(QStringLiteral("authorized_role_ids")).toArray() != court_role ||
-        !operation("ca4m4.benton.operation.enter-submitted-on-briefs").isEmpty() ||
-        advance_after_argument.value(QStringLiteral("authorized_role_ids")).toArray() !=
-            court_role ||
-        advance_on_briefs.value(QStringLiteral("authorized_role_ids")).toArray() != court_role ||
-        judgment.value(QStringLiteral("authorized_role_ids")).toArray() != court_role ||
-        judgment_on_briefs.value(QStringLiteral("authorized_role_ids")).toArray() != court_role ||
-        calculate_rehearing.value(QStringLiteral("deadline_days")).toInt() != 14 ||
-        calculate_rehearing.value(QStringLiteral("produced_deadline_id")).toString() !=
-            QStringLiteral("ca4m4.benton.deadline.rehearing") ||
-        calculate_rehearing.value(QStringLiteral("deadline_event_base")).toObject() !=
-            judgment_event_base ||
-        calculate_mandate_time.value(QStringLiteral("deadline_days")).toInt() != 7 ||
-        calculate_mandate_time.value(QStringLiteral("deadline_base_id")).toString() !=
-            QStringLiteral("ca4m4.benton.deadline.rehearing") ||
-        calculate_mandate_time.value(QStringLiteral("produced_deadline_id")).toString() !=
-            QStringLiteral("ca4m4.benton.deadline.mandate-no-petition") ||
-        calculate_mandate_denial.value(QStringLiteral("deadline_days")).toInt() != 7 ||
-        calculate_mandate_denial.value(QStringLiteral("produced_deadline_id")).toString() !=
-            QStringLiteral("ca4m4.benton.deadline.mandate-after-rehearing-denial") ||
-        calculate_mandate_denial.value(QStringLiteral("deadline_event_base")).toObject() !=
-            denial_event_base ||
-        !preconditionText("ca4m4.benton.operation.enter-record-complete")
-             .contains(QStringLiteral("us.ca4.filing.civil-notice-of-appeal")) ||
-        !preconditionText("ca4m4.benton.operation.advance-briefing")
-             .contains(QStringLiteral("ca4m4.benton.order.record-complete")) ||
-        !preconditionText("ca4m4.benton.operation.enter-briefing-complete")
-             .contains(QStringLiteral("us.ca4.filing.principal-brief")) ||
-        !preconditionText("ca4m4.benton.operation.schedule-argument")
-             .contains(QStringLiteral("ca4m4.benton.order.briefing-complete")) ||
-        !preconditionText("ca4m4.benton.operation.enter-argument-held")
-             .contains(QStringLiteral("argument_scheduled")) ||
-        !preconditionText("ca4m4.benton.operation.enter-argument-held")
-             .contains(QStringLiteral("argument_date_status")) ||
-        !preconditionText("ca4m4.benton.operation.advance-submitted-on-briefs")
-             .contains(QStringLiteral("ca4m4.benton.order.briefing-complete")) ||
-        !preconditionText("ca4m4.benton.operation.advance-submitted-on-briefs")
-             .contains(QStringLiteral("\"scheduled\":false")) ||
-        !preconditionText("ca4m4.benton.operation.issue-judgment")
-             .contains(QStringLiteral("ca4m4.benton.order.argument-held")) ||
-        !preconditionText("ca4m4.benton.operation.issue-judgment-on-briefs")
-             .contains(QStringLiteral("\"scheduled\":false")) ||
-        !preconditionText("ca4m4.benton.operation.calculate-rehearing")
-             .contains(QStringLiteral("judgment_issued")) ||
-        !preconditionText("ca4m4.benton.operation.calculate-mandate-after-rehearing-time")
-             .contains(QStringLiteral("ca4m4.benton.deadline.rehearing")) ||
-        !preconditionText("ca4m4.benton.operation.calculate-mandate-after-rehearing-time")
-             .contains(QStringLiteral("\"status\":\"reached\"")) ||
-        !preconditionText("ca4m4.benton.operation.calculate-mandate-after-rehearing-time")
-             .contains(QStringLiteral("\"present\":false")) ||
-        !preconditionText("ca4m4.benton.operation.calculate-mandate-after-rehearing-denial")
-             .contains(QStringLiteral("ca4m4.benton.order.rehearing-disposition")) ||
-        !preconditionText("ca4m4.benton.operation.calculate-mandate-after-rehearing-denial")
-             .contains(QStringLiteral("\"present\":true")) ||
-        !preconditionText("ca4m4.benton.operation.issue-mandate-no-petition")
-             .contains(QStringLiteral("ca4m4.benton.deadline.mandate-no-petition")) ||
-        !preconditionText("ca4m4.benton.operation.issue-mandate-no-petition")
-             .contains(QStringLiteral("\"status\":\"reached\"")) ||
-        !preconditionText("ca4m4.benton.operation.issue-mandate-no-petition")
-             .contains(QStringLiteral("\"present\":false")) ||
-        !preconditionText("ca4m4.benton.operation.issue-mandate-no-petition")
-             .contains(QStringLiteral("ca4m4.benton.order.mandate-release")) ||
-        !preconditionText("ca4m4.benton.operation.issue-mandate-after-rehearing-denial")
-             .contains(QStringLiteral("ca4m4.benton.deadline.mandate-after-rehearing-denial")) ||
-        !preconditionText("ca4m4.benton.operation.issue-mandate-after-rehearing-denial")
-             .contains(QStringLiteral("ca4m4.benton.order.rehearing-disposition")) ||
-        !preconditionText("ca4m4.benton.operation.issue-mandate-after-rehearing-denial")
-             .contains(QStringLiteral("\"present\":true")) ||
-        !preconditionText("ca4m4.benton.operation.issue-mandate-shortened")
-             .contains(QStringLiteral("ca4m4.benton.order.mandate-shortening")) ||
-        !preconditionText("ca4m4.benton.operation.issue-mandate-shortened")
-             .contains(QStringLiteral("ca4m4.benton.order.mandate-release")) ||
-        issue_no_petition.isEmpty() || issue_after_denial.isEmpty() || issue_shortened.isEmpty()) {
-        return fail(QStringLiteral("workflow order/branch/deadline guard contract mismatch"));
+    visit_workflow_value(workflow_resource->document);
+    if (!selectors_valid || selector_occurrences != 19 || selector_filing_ids.size() != 7) {
+        return fail(QStringLiteral("workflow filing-instance identity contract mismatch"));
     }
 
-    QTemporaryDir temporary;
-    if (!temporary.isValid()) {
+    const auto final_review = realism_resource->document;
+    const auto final_dimensions = final_review.value(QStringLiteral("dimensions")).toObject();
+    const auto final_evidence = final_review.value(QStringLiteral("evidence")).toObject();
+    const auto final_evidence_packs = final_evidence.value(QStringLiteral("packs")).toArray();
+    const auto final_evidence_resources =
+        final_evidence.value(QStringLiteral("resources")).toArray();
+    const auto final_evidence_blobs = final_evidence.value(QStringLiteral("blobs")).toArray();
+    const auto final_evidence_traces = final_evidence.value(QStringLiteral("traces")).toArray();
+    const auto final_evidence_record_checks =
+        final_evidence.value(QStringLiteral("record_checks")).toArray();
+    const auto final_evidence_authorities =
+        final_evidence.value(QStringLiteral("authorities")).toArray();
+    const auto final_dimension_evidence =
+        final_evidence.value(QStringLiteral("dimension_evidence")).toObject();
+    const QSet<QString> final_expected_dimensions{
+        QStringLiteral("procedural_law"),     QStringLiteral("deadlines_authority"),
+        QStringLiteral("record_consistency"), QStringLiteral("bench_differentiation"),
+        QStringLiteral("oral_argument"),      QStringLiteral("consequences"),
+        QStringLiteral("provenance"),
+    };
+    QSet<QString> final_dimension_keys;
+    bool final_dimensions_are_two = true;
+    for (auto iterator = final_dimensions.constBegin(); iterator != final_dimensions.constEnd();
+         ++iterator) {
+        final_dimension_keys.insert(iterator.key());
+        final_dimensions_are_two = final_dimensions_are_two && iterator.value().toInt() == 2;
+    }
+    QSet<QString> final_dimension_evidence_keys;
+    for (auto iterator = final_dimension_evidence.constBegin();
+         iterator != final_dimension_evidence.constEnd(); ++iterator) {
+        final_dimension_evidence_keys.insert(iterator.key());
+    }
+    if (final_review.value(QStringLiteral("review_state")).toString() !=
+            QStringLiteral("independent_review_pending") ||
+        final_review.value(QStringLiteral("reviewed_on")).toString() !=
+            QStringLiteral("2026-08-12") ||
+        final_dimension_keys != final_expected_dimensions ||
+        final_dimension_evidence_keys != final_expected_dimensions || !final_dimensions_are_two ||
+        final_evidence_packs.size() != 4 || final_evidence_resources.size() != 44 ||
+        final_evidence_blobs.size() != 67 || final_evidence_traces.size() != 7 ||
+        final_evidence_record_checks.size() != 2 || final_evidence_authorities.size() != 28 ||
+        final_evidence.value(QStringLiteral("closure_digest")).toString() !=
+            QString::fromLatin1(evidence_closure_digest)) {
+        return fail(QStringLiteral("realism evidence 4/44/67/7/2/28 envelope mismatch"));
+    }
+    const QSet<QString> expected_uncertainty_ids{
+        QStringLiteral("ca4m4.benton.uncertainty.qualified-review-pending"),
+        QStringLiteral("ca4m4.benton.uncertainty.automated-legal-realism-limit"),
+        QStringLiteral("ca4m4.benton.uncertainty.exact-document-classification-scope"),
+        QStringLiteral("ca4m4.benton.uncertainty.authored-deadline-bases"),
+        QStringLiteral("ca4m4.benton.uncertainty.counterfactual-never-filed-isolation"),
+        QStringLiteral("ca4m4.benton.uncertainty.synthetic-bench-oral-limit"),
+        QStringLiteral("ca4m4.benton.uncertainty.generated-pdf-provenance-limit"),
+    };
+    QSet<QString> final_uncertainty_ids;
+    for (const auto& value : final_review.value(QStringLiteral("known_uncertainty")).toArray()) {
+        const auto uncertainty = value.toObject();
+        const auto id = uncertainty.value(QStringLiteral("uncertainty_id")).toString();
+        if (id.isEmpty() || final_uncertainty_ids.contains(id) ||
+            uncertainty.value(QStringLiteral("blocking")).toBool()) {
+            return fail(QStringLiteral("pending realism uncertainty contract mismatch"));
+        }
+        final_uncertainty_ids.insert(id);
+    }
+    if (final_uncertainty_ids != expected_uncertainty_ids) {
+        return fail(QStringLiteral("pending realism uncertainty IDs drifted"));
+    }
+    QSet<QString> final_evidence_ids;
+    const std::array final_evidence_groups{final_evidence_resources, final_evidence_blobs,
+                                           final_evidence_traces, final_evidence_record_checks,
+                                           final_evidence_authorities};
+    for (const auto& group : final_evidence_groups) {
+        for (const auto& value : group) {
+            const auto id = value.toObject().value(QStringLiteral("evidence_id")).toString();
+            if (id.isEmpty() || final_evidence_ids.contains(id)) {
+                return fail(QStringLiteral("realism evidence IDs are empty or duplicated"));
+            }
+            final_evidence_ids.insert(id);
+        }
+    }
+    if (final_evidence_ids.size() != 148 ||
+        std::ranges::any_of(final_evidence_resources, [](const auto& value) {
+            return value.toObject().value(QStringLiteral("resource_kind")).toString() ==
+                   QStringLiteral("realism_review");
+        })) {
+        return fail(QStringLiteral("realism review exclusion or 148-ID closure mismatch"));
+    }
+    const QHash<QString, int> expected_dimension_evidence_counts{
+        {QStringLiteral("procedural_law"), 43},     {QStringLiteral("deadlines_authority"), 23},
+        {QStringLiteral("record_consistency"), 70}, {QStringLiteral("consequences"), 29},
+        {QStringLiteral("oral_argument"), 14},      {QStringLiteral("bench_differentiation"), 4},
+        {QStringLiteral("provenance"), 102},
+    };
+    for (const auto& dimension : final_expected_dimensions) {
+        const auto references = final_dimension_evidence.value(dimension).toArray();
+        const auto unique_references = strings(references);
+        if (references.size() != expected_dimension_evidence_counts.value(dimension) ||
+            unique_references.size() != references.size()) {
+            return fail(QStringLiteral("realism dimension evidence cardinality drifted: %1")
+                            .arg(dimension));
+        }
+        for (const auto& reference : unique_references) {
+            if (!final_evidence_ids.contains(reference)) {
+                return fail(QStringLiteral("realism dimension has an unresolved evidence ID"));
+            }
+        }
+    }
+
+    struct FinalTraceSpec final {
+        QString file_name;
+        QString sha256;
+        QString trace_id;
+        QString evidence_id;
+        QString terminal_stage_id;
+        int command_count{};
+        int event_count{};
+        QSet<QString> branch_entries;
+    };
+    const std::array final_trace_specs{
+        FinalTraceSpec{
+            QStringLiteral("actual-argued-no-petition-mandate.json"),
+            QStringLiteral("0ea935423c4b4a80201b36e803d09fa0dc87d6b0ad2e510cc2f64be7c02bfc99"),
+            QStringLiteral("ca4m4.benton.trace.actual-argued-no-petition-mandate"),
+            QStringLiteral("ca4m4.benton.evidence.trace.actual-argued-no-petition-mandate"),
+            QStringLiteral("ca4m4.benton.stage.terminated"),
+            26,
+            27,
+            {}},
+        FinalTraceSpec{
+            QStringLiteral("counterfactual-on-briefs-adverse-judgment.json"),
+            QStringLiteral("793bb9deb256ac13c5db5f931fe407c4324b76a393f349ca135fc567500d57ba"),
+            QStringLiteral("ca4m4.benton.trace.counterfactual-on-briefs-adverse-judgment"),
+            QStringLiteral("ca4m4.benton.evidence.trace.counterfactual-on-briefs-adverse-judgment"),
+            QStringLiteral("ca4m4.benton.stage.post-judgment"),
+            18,
+            19,
+            {QStringLiteral("ca4m4.benton.record.entry.b03")}},
+        FinalTraceSpec{
+            QStringLiteral("counterfactual-day-late-rehearing-rejected.json"),
+            QStringLiteral("aee9cd480c90b677e8fbe3e64013aeba607b9b42fc2af5bf726a0e1828b2d56a"),
+            QStringLiteral("ca4m4.benton.trace.counterfactual-day-late-rehearing-rejected"),
+            QStringLiteral(
+                "ca4m4.benton.evidence.trace.counterfactual-day-late-rehearing-rejected"),
+            QStringLiteral("ca4m4.benton.stage.post-judgment"),
+            22,
+            23,
+            {QStringLiteral("ca4m4.benton.record.entry.b04")}},
+        FinalTraceSpec{
+            QStringLiteral("counterfactual-timely-rehearing-denied-mandate.json"),
+            QStringLiteral("3f8548ca2f012bcc920ebbceef96877a9e2a1585f497ae7020ece0a826a25284"),
+            QStringLiteral("ca4m4.benton.trace.counterfactual-timely-rehearing-denied-mandate"),
+            QStringLiteral(
+                "ca4m4.benton.evidence.trace.counterfactual-timely-rehearing-denied-mandate"),
+            QStringLiteral("ca4m4.benton.stage.terminated"),
+            29,
+            30,
+            {QStringLiteral("ca4m4.benton.record.entry.b06"),
+             QStringLiteral("ca4m4.benton.record.entry.b07"),
+             QStringLiteral("ca4m4.benton.record.entry.b08"),
+             QStringLiteral("ca4m4.benton.record.entry.b09")}},
+        FinalTraceSpec{
+            QStringLiteral("counterfactual-stay-granted-blocks-mandate.json"),
+            QStringLiteral("7a25758d4f35b80b5177960283edead8eac3a903b003ef3b54fdf455d09f3be2"),
+            QStringLiteral("ca4m4.benton.trace.counterfactual-stay-granted-blocks-mandate"),
+            QStringLiteral(
+                "ca4m4.benton.evidence.trace.counterfactual-stay-granted-blocks-mandate"),
+            QStringLiteral("ca4m4.benton.stage.mandate-stayed"),
+            28,
+            29,
+            {QStringLiteral("ca4m4.benton.record.entry.b06"),
+             QStringLiteral("ca4m4.benton.record.entry.b07"),
+             QStringLiteral("ca4m4.benton.record.entry.b10"),
+             QStringLiteral("ca4m4.benton.record.entry.b11")}},
+        FinalTraceSpec{
+            QStringLiteral("counterfactual-stay-released-mandate.json"),
+            QStringLiteral("02add46e3b624dc1a329ea6fdde486de2476c9d77ae6f0095cb62b98dd8a80d8"),
+            QStringLiteral("ca4m4.benton.trace.counterfactual-stay-released-mandate"),
+            QStringLiteral("ca4m4.benton.evidence.trace.counterfactual-stay-released-mandate"),
+            QStringLiteral("ca4m4.benton.stage.terminated"),
+            32,
+            33,
+            {QStringLiteral("ca4m4.benton.record.entry.b06"),
+             QStringLiteral("ca4m4.benton.record.entry.b07"),
+             QStringLiteral("ca4m4.benton.record.entry.b10"),
+             QStringLiteral("ca4m4.benton.record.entry.b11"),
+             QStringLiteral("ca4m4.benton.record.entry.b12"),
+             QStringLiteral("ca4m4.benton.record.entry.b13")}},
+        FinalTraceSpec{
+            QStringLiteral("counterfactual-shortened-mandate.json"),
+            QStringLiteral("735c93fddbf7846be6e8e1726e991d06cce2f1e797ea6b04cb4a48d05e31209f"),
+            QStringLiteral("ca4m4.benton.trace.counterfactual-shortened-mandate"),
+            QStringLiteral("ca4m4.benton.evidence.trace.counterfactual-shortened-mandate"),
+            QStringLiteral("ca4m4.benton.stage.terminated"),
+            27,
+            28,
+            {QStringLiteral("ca4m4.benton.record.entry.b14"),
+             QStringLiteral("ca4m4.benton.record.entry.b15"),
+             QStringLiteral("ca4m4.benton.record.entry.b16"),
+             QStringLiteral("ca4m4.benton.record.entry.b17")}},
+    };
+    QHash<QString, QJsonObject> final_embedded_trace_by_id;
+    for (const auto& value : final_evidence_traces) {
+        const auto trace = value.toObject();
+        final_embedded_trace_by_id.insert(trace.value(QStringLiteral("trace_id")).toString(),
+                                          trace);
+    }
+    const auto final_traces_root = QDir(authoring_root.filePath(QStringLiteral("traces")));
+    if (final_traces_root.entryList({QStringLiteral("*.json")}, QDir::Files, QDir::Name).size() !=
+        7) {
+        return fail(QStringLiteral("canonical trace source count mismatch"));
+    }
+
+    const QHash<QString, QString> expected_filing_semantics{
+        {QStringLiteral("ca4m4.benton.filing.notice-of-appeal"),
+         QStringLiteral("ca4m4.benton.actor.leora-benton|2026-01-16|"
+                        "3e75e87fd04fd52e35865085dbd2f13c48c0f92e92354c34eb8ba30c09432012")},
+        {QStringLiteral("ca4m4.benton.filing.a02-docketing-statement"),
+         QStringLiteral("ca4m4.benton.actor.leora-benton|2026-02-03|"
+                        "305437ad29730589f849255cb14d9ea5ed58eebf349e74865fe36fb9d37f59d0")},
+        {QStringLiteral("ca4m4.benton.filing.a04-opening-brief"),
+         QStringLiteral("ca4m4.benton.actor.leora-benton|2026-03-16|"
+                        "515683e33f7e6d3a4c962e798de078a0114d31b1b592a84f6a5c6d22e40c7090")},
+        {QStringLiteral("ca4m4.benton.filing.a05-response-brief"),
+         QStringLiteral("ca4m4.benton.actor.blue-cedar|2026-04-15|"
+                        "75ed6e9aa8508730b0b8757c1151cd52c2985b030ffde7bbabf8c03bdaae55fa")},
+        {QStringLiteral("ca4m4.benton.filing.b04-late-rehearing-petition"),
+         QStringLiteral("ca4m4.benton.actor.leora-benton|2026-06-30|"
+                        "48973cbefb83fd92622087d0e7a697f6021fa320f2cd786d855b50c0a9eb2065")},
+        {QStringLiteral("ca4m4.benton.filing.b06-rehearing-petition"),
+         QStringLiteral("ca4m4.benton.actor.blue-cedar|2026-06-25|"
+                        "cf4e03eb0fcdf6852ab7f7642d924ab14f35048c587dc2399e367de3fd9bc8d4")},
+        {QStringLiteral("ca4m4.benton.filing.b10-stay-motion"),
+         QStringLiteral("ca4m4.benton.actor.blue-cedar|2026-07-02|"
+                        "51a1fa1554916d59c84c259c8604c4ef9e143c9afbc9eda8e65eb0f8bbfe2810")},
+        {QStringLiteral("ca4m4.benton.filing.b14-joint-shortening-motion"),
+         QStringLiteral("ca4m4.benton.actor.leora-benton|2026-06-18|"
+                        "f3418e35e9d9a4197df11b85659140137d7f8829716ff18b894dce58391dc81f")},
+    };
+    const QHash<QString, int> expected_filing_counts{
+        {QStringLiteral("ca4m4.benton.filing.notice-of-appeal"), 7},
+        {QStringLiteral("ca4m4.benton.filing.a02-docketing-statement"), 7},
+        {QStringLiteral("ca4m4.benton.filing.a04-opening-brief"), 7},
+        {QStringLiteral("ca4m4.benton.filing.a05-response-brief"), 7},
+        {QStringLiteral("ca4m4.benton.filing.b04-late-rehearing-petition"), 1},
+        {QStringLiteral("ca4m4.benton.filing.b06-rehearing-petition"), 3},
+        {QStringLiteral("ca4m4.benton.filing.b10-stay-motion"), 2},
+        {QStringLiteral("ca4m4.benton.filing.b14-joint-shortening-motion"), 1},
+    };
+    const QSet<QString> expected_panel_operations{
+        QStringLiteral("ca4m4.benton.operation.enter-argument-held"),
+        QStringLiteral("ca4m4.benton.operation.issue-judgment"),
+        QStringLiteral("ca4m4.benton.operation.issue-judgment-on-briefs"),
+        QStringLiteral("ca4m4.benton.operation.enter-rehearing-denial"),
+        QStringLiteral("ca4m4.benton.operation.enter-mandate-stay-grant"),
+        QStringLiteral("ca4m4.benton.operation.enter-stay-dissolution-release"),
+        QStringLiteral("ca4m4.benton.operation.enter-mandate-shortening"),
+    };
+    QHash<QString, int> actual_filing_counts;
+    QSet<QString> final_seen_trace_ids;
+    QSet<QString> final_seen_trace_evidence_ids;
+    QSet<QString> final_executed_operation_ids;
+    bool saw_late_rejection = false;
+    bool saw_joint_shortening_semantics = false;
+    for (const auto& specification : final_trace_specs) {
+        const auto trace_bytes = readAll(final_traces_root.filePath(specification.file_name));
+        const auto trace = QJsonDocument::fromJson(trace_bytes).object();
+        const auto trace_id = trace.value(QStringLiteral("trace_id")).toString();
+        const auto trace_evidence_id = trace.value(QStringLiteral("evidence_id")).toString();
+        const auto journal = trace.value(QStringLiteral("journal")).toArray();
+        const auto operation_ids = trace.value(QStringLiteral("operation_ids")).toArray();
+        if (sha256(trace_bytes) != specification.sha256.toLatin1() ||
+            final_embedded_trace_by_id.value(trace_id) != trace ||
+            final_seen_trace_ids.contains(trace_id) ||
+            final_seen_trace_evidence_ids.contains(trace_evidence_id) ||
+            trace_id != specification.trace_id || trace_evidence_id != specification.evidence_id ||
+            trace.value(QStringLiteral("workflow_id")).toString() !=
+                QStringLiteral("ca4m4.benton.workflow.civil-appeal") ||
+            trace.value(QStringLiteral("engine_revision")).toString() !=
+                QString::fromLatin1(realism_engine_revision) ||
+            trace.value(QStringLiteral("terminal_stage_id")).toString() !=
+                specification.terminal_stage_id ||
+            trace.value(QStringLiteral("command_count")).toInt() != specification.command_count ||
+            journal.size() != specification.command_count ||
+            trace.value(QStringLiteral("event_count")).toInt() != specification.event_count ||
+            operation_ids.size() != specification.event_count ||
+            realismJournalDigest(journal) !=
+                std::optional{trace.value(QStringLiteral("journal_sha256")).toString()} ||
+            realismTraceDigest(QStringLiteral("ca4m4.case.benton-retaliation"), trace) !=
+                trace.value(QStringLiteral("digest")).toString()) {
+            return fail(QStringLiteral("canonical trace envelope/digest mismatch: %1")
+                            .arg(specification.file_name));
+        }
+        final_seen_trace_ids.insert(trace_id);
+        final_seen_trace_evidence_ids.insert(trace_evidence_id);
+        final_executed_operation_ids.unite(strings(operation_ids));
+        QSet<QString> used_branch_entries;
+        QJsonArray decoded_operation_ids;
+        int decoded_event_count = 0;
+        int notice_count = 0;
+        int january_twentieth_operations = 0;
+        for (const auto& journal_entry_value : journal) {
+            const auto journal_entry = journal_entry_value.toObject();
+            const auto command_encoded =
+                journal_entry.value(QStringLiteral("command_base64")).toString().toLatin1();
+            const auto command_bytes = QByteArray::fromBase64(command_encoded);
+            const auto command_document = QJsonDocument::fromJson(command_bytes);
+            if (command_bytes.isEmpty() || command_bytes.toBase64() != command_encoded ||
+                !command_document.isObject() ||
+                command_document.toJson(QJsonDocument::Compact) != command_bytes) {
+                return fail(QStringLiteral("trace command is not canonical base64 JSON"));
+            }
+            const auto command = command_document.object();
+            const auto payload = command.value(QStringLiteral("payload")).toObject();
+            const auto document_sha = payload.value(QStringLiteral("document_sha256")).toString();
+            if (!document_sha.isEmpty()) {
+                const auto entry_id = final_record_entry_id_by_sha.value(document_sha);
+                const auto entry = final_record_entry_by_id.value(entry_id);
+                if (entry_id.isEmpty() || entry.value(QStringLiteral("filed_on")).toString() !=
+                                              payload.value(QStringLiteral("occurred_at"))
+                                                  .toObject()
+                                                  .value(QStringLiteral("court_date"))
+                                                  .toString()) {
+                    return fail(QStringLiteral("trace command document SHA/date does not resolve"));
+                }
+                if (entry.value(QStringLiteral("docket_id")).toString() ==
+                    QStringLiteral("ca4m4.benton.docket.counterfactual-branches")) {
+                    used_branch_entries.insert(entry_id);
+                }
+            }
+            const auto filing_id = payload.value(QStringLiteral("filing_id")).toString();
+            if (!filing_id.isEmpty()) {
+                const auto actual_semantics = payload.value(QStringLiteral("actor_id")).toString() +
+                                              QLatin1Char('|') +
+                                              payload.value(QStringLiteral("occurred_at"))
+                                                  .toObject()
+                                                  .value(QStringLiteral("court_date"))
+                                                  .toString() +
+                                              QLatin1Char('|') + document_sha;
+                if (!expected_filing_semantics.contains(filing_id) ||
+                    actual_semantics != expected_filing_semantics.value(filing_id)) {
+                    return fail(QStringLiteral("trace filing actor/date/document drifted: %1")
+                                    .arg(filing_id));
+                }
+                ++actual_filing_counts[filing_id];
+                if (filing_id == QStringLiteral("ca4m4.benton.filing.notice-of-appeal")) {
+                    ++notice_count;
+                }
+                if (filing_id ==
+                    QStringLiteral("ca4m4.benton.filing.b14-joint-shortening-motion")) {
+                    const auto served = payload.value(QStringLiteral("served_actors")).toArray();
+                    const auto fields = QString::fromUtf8(
+                        QJsonDocument(payload.value(QStringLiteral("fields")).toArray())
+                            .toJson(QJsonDocument::Compact));
+                    saw_joint_shortening_semantics =
+                        served == QJsonArray{QStringLiteral("ca4m4.benton.actor.blue-cedar")} &&
+                        fields.contains(QStringLiteral("Joint motion by Benton and Blue Cedar")) &&
+                        fields.contains(QStringLiteral("Joint good-cause request"));
+                }
+            }
+            const auto operation_id = payload.value(QStringLiteral("operation_id")).toString();
+            if (!operation_id.isEmpty()) {
+                const auto actor_id = payload.value(QStringLiteral("actor_id")).toString();
+                const auto expected_actor =
+                    expected_panel_operations.contains(operation_id)
+                        ? QStringLiteral("ca4m4.benton.actor.composite-panel")
+                        : QStringLiteral("ca4m4.benton.actor.ca4-clerk");
+                if (actor_id != expected_actor) {
+                    return fail(
+                        QStringLiteral("trace clerk/panel actor mismatch: %1").arg(operation_id));
+                }
+                if (operation_id ==
+                        QStringLiteral("ca4m4.benton.operation.advance-opened-to-record") ||
+                    operation_id ==
+                        QStringLiteral("ca4m4.benton.operation.calculate-docketing-statement")) {
+                    if (payload.value(QStringLiteral("occurred_at"))
+                            .toObject()
+                            .value(QStringLiteral("court_date"))
+                            .toString() != QStringLiteral("2026-01-20")) {
+                        return fail(QStringLiteral("Jan. 20 docket operation date drifted"));
+                    }
+                    ++january_twentieth_operations;
+                }
+            }
+            for (const auto& event_value :
+                 journal_entry.value(QStringLiteral("events_base64")).toArray()) {
+                ++decoded_event_count;
+                const auto event_encoded = event_value.toString().toLatin1();
+                const auto event_bytes = QByteArray::fromBase64(event_encoded);
+                const auto event_document = QJsonDocument::fromJson(event_bytes);
+                if (event_bytes.isEmpty() || event_bytes.toBase64() != event_encoded ||
+                    !event_document.isObject() ||
+                    event_document.toJson(QJsonDocument::Compact) != event_bytes) {
+                    return fail(QStringLiteral("trace event is not canonical base64 JSON"));
+                }
+                const auto event = event_document.object();
+                const auto event_payload = event.value(QStringLiteral("payload")).toObject();
+                decoded_operation_ids.push_back(
+                    event_payload.value(QStringLiteral("operation_id")).toString());
+                if (event.value(QStringLiteral("event_type")).toString() ==
+                    QStringLiteral("filing.rejected")) {
+                    saw_late_rejection =
+                        event_payload.value(QStringLiteral("filing_id")).toString() ==
+                            QStringLiteral("ca4m4.benton.filing.b04-late-rehearing-petition") &&
+                        event_payload.value(QStringLiteral("actor_id")).toString() ==
+                            QStringLiteral("ca4m4.benton.actor.leora-benton") &&
+                        event_payload.value(QStringLiteral("operation_id")).toString() ==
+                            QStringLiteral("ca4m4.benton.operation.reject-post-judgment") &&
+                        event_payload.value(QStringLiteral("reason")).toString() ==
+                            QStringLiteral("deadline_expired") &&
+                        event_payload.value(QStringLiteral("occurred_at"))
+                                .toObject()
+                                .value(QStringLiteral("court_date"))
+                                .toString() == QStringLiteral("2026-06-30");
+                }
+            }
+        }
+        if (decoded_event_count != specification.event_count ||
+            decoded_operation_ids != operation_ids ||
+            used_branch_entries != specification.branch_entries || notice_count != 1 ||
+            january_twentieth_operations != 2) {
+            return fail(QStringLiteral("trace replay operation/document/date mismatch: %1")
+                            .arg(specification.file_name));
+        }
+    }
+    const QSet<QString> intentionally_unexecuted_operations{
+        QStringLiteral("ca4m4.benton.operation.issue-notice-deficiency"),
+        QStringLiteral("ca4m4.benton.operation.reject-opened"),
+        QStringLiteral("ca4m4.benton.operation.reject-record"),
+        QStringLiteral("ca4m4.benton.operation.reject-opening-brief"),
+        QStringLiteral("ca4m4.benton.operation.reject-response-brief"),
+    };
+    if (actual_filing_counts != expected_filing_counts || !saw_late_rejection ||
+        !saw_joint_shortening_semantics || final_executed_operation_ids.size() != 48 ||
+        !(final_executed_operation_ids - final_workflow_operation_ids).isEmpty() ||
+        final_workflow_operation_ids - final_executed_operation_ids !=
+            intentionally_unexecuted_operations) {
+        return fail(QStringLiteral("seven-trace actor/nonmutation/operation coverage drifted"));
+    }
+
+    QTemporaryDir final_temporary;
+    if (!final_temporary.isValid()) {
         return fail(QStringLiteral("cannot create temporary validation directory"));
     }
-    const auto archive_a = QDir(temporary.path()).filePath(QStringLiteral("benton-a.awpack"));
-    const auto archive_b = QDir(temporary.path()).filePath(QStringLiteral("benton-b.awpack"));
-    const auto exported_a = PackArchive::exportDirectory(pack_root, archive_a, {},
-                                                         PackValidationScope::ResolvedClosure);
-    const auto exported_b = PackArchive::exportDirectory(pack_root, archive_b, {},
-                                                         PackValidationScope::ResolvedClosure);
-    if (!exported_a || !exported_b || *exported_a != expected_root ||
-        *exported_b != expected_root || readAll(archive_a).isEmpty() ||
-        readAll(archive_a) != readAll(archive_b) ||
-        sha256(readAll(archive_a)) != QByteArray::fromStdString(archive_digest)) {
+    const auto final_archive_a =
+        QDir(final_temporary.path()).filePath(QStringLiteral("benton-a.awpack"));
+    const auto final_archive_b =
+        QDir(final_temporary.path()).filePath(QStringLiteral("benton-b.awpack"));
+    const auto final_exported_a = PackArchive::exportDirectory(
+        pack_root, final_archive_a, {}, PackValidationScope::ResolvedClosure);
+    const auto final_exported_b = PackArchive::exportDirectory(
+        pack_root, final_archive_b, {}, PackValidationScope::ResolvedClosure);
+    const auto final_archive_bytes = readAll(final_archive_a);
+    if (!final_exported_a || !final_exported_b || *final_exported_a != expected_root ||
+        *final_exported_b != expected_root || final_archive_bytes.isEmpty() ||
+        final_archive_bytes != readAll(final_archive_b) ||
+        static_cast<std::uint64_t>(final_archive_bytes.size()) != archive_byte_size ||
+        sha256(final_archive_bytes) != QByteArray(archive_digest)) {
         return fail(QStringLiteral("deferred archive export is not stable"));
     }
-    const auto imported =
-        PackArchive::importArchive(archive_a, {}, PackValidationScope::ResolvedClosure);
-    if (!imported || imported->revision != source->revision ||
-        imported->resources.size() != source->resources.size() ||
-        imported->blobs != source->blobs) {
+    const auto final_imported =
+        PackArchive::importArchive(final_archive_a, {}, PackValidationScope::ResolvedClosure);
+    if (!final_imported || final_imported->revision != source->revision ||
+        final_imported->resources.size() != source->resources.size() ||
+        final_imported->blobs != source->blobs) {
         return fail(QStringLiteral("directory/archive descriptor equality mismatch"));
     }
 
-    const auto catalog_result =
-        PackCatalog::open(QDir(temporary.path()).filePath(QStringLiteral("catalog")));
-    if (!catalog_result) {
-        return fail(QStringLiteral("catalog open: %1").arg(catalog_result.error().message));
+    const auto final_catalog_result =
+        PackCatalog::open(QDir(final_temporary.path()).filePath(QStringLiteral("catalog")));
+    if (!final_catalog_result) {
+        return fail(QStringLiteral("catalog open: %1").arg(final_catalog_result.error().message));
     }
-    auto& catalog = *catalog_result;
-    const auto federal_archive = foundations_root.filePath(
+    auto& final_catalog = *final_catalog_result;
+    const auto final_federal_archive = foundations_root.filePath(
         QStringLiteral("us-federal/foundation-us-federal-2025.12.01.awpack"));
-    const auto ca4_archive =
+    const auto final_ca4_archive =
         foundations_root.filePath(QStringLiteral("us-ca4/foundation-us-ca4-2026.03.23.awpack"));
-    const auto bench_archive = foundations_root.filePath(
+    const auto final_bench_archive = foundations_root.filePath(
         QStringLiteral("us-ca4-fictional-bench/foundation-us-ca4-fictional-bench-1.0.0.awpack"));
-    const auto installed_federal =
-        catalog->installArchive(federal_archive, QStringLiteral("2026-08-11T00:00:00Z"));
-    const auto installed_ca4 =
-        catalog->installArchive(ca4_archive, QStringLiteral("2026-08-11T00:00:01Z"));
-    const auto installed_bench =
-        catalog->installArchive(bench_archive, QStringLiteral("2026-08-11T00:00:02Z"));
-    const auto installed_root =
-        catalog->installArchive(archive_a, QStringLiteral("2026-08-11T00:00:03Z"));
-    if (!installed_federal || !installed_ca4 || !installed_bench || !installed_root ||
-        installed_federal->revision != expected_federal ||
-        installed_ca4->revision != expected_ca4 || installed_bench->revision != expected_bench ||
-        installed_root->revision != expected_root) {
+    const auto final_installed_federal = final_catalog->installArchive(
+        final_federal_archive, QStringLiteral("2026-08-12T00:00:00Z"));
+    const auto final_installed_ca4 =
+        final_catalog->installArchive(final_ca4_archive, QStringLiteral("2026-08-12T00:00:01Z"));
+    const auto final_installed_bench =
+        final_catalog->installArchive(final_bench_archive, QStringLiteral("2026-08-12T00:00:02Z"));
+    const auto final_installed_root =
+        final_catalog->installArchive(final_archive_a, QStringLiteral("2026-08-12T00:00:03Z"));
+    if (!final_installed_federal || !final_installed_ca4 || !final_installed_bench ||
+        !final_installed_root || final_installed_federal->revision != expected_federal ||
+        final_installed_ca4->revision != expected_ca4 ||
+        final_installed_bench->revision != expected_bench ||
+        final_installed_root->revision != expected_root) {
         return fail(QStringLiteral("exact catalog installation failed"));
     }
 
-    const auto resolved = catalog->loadResolved(expected_root);
-    if (!resolved || resolved->root().revision != expected_root ||
-        resolved->revisionsByPackId().size() != std::size_t{4} ||
-        resolved->resourceOwner("us.ca4.court.appeals") !=
+    const auto final_resolved = final_catalog->loadResolved(expected_root);
+    if (!final_resolved || final_resolved->root().revision != expected_root ||
+        final_resolved->revisionsByPackId().size() != std::size_t{4} ||
+        final_resolved->resourceOwner("us.ca4.court.appeals") !=
             std::optional<PackRevision>{expected_ca4} ||
-        resolved->resourceOwner("us.federal.authorities.appellate-rules") !=
+        final_resolved->resourceOwner("us.federal.authorities.appellate-rules") !=
             std::optional<PackRevision>{expected_federal} ||
-        resolved->resourceOwner("us.ca4.bench-profile.rowan") !=
+        final_resolved->resourceOwner("us.ca4.bench-profile.rowan") !=
             std::optional<PackRevision>{expected_bench} ||
-        resolved->resourceOwner("us.ca4.bench-profile.alder") !=
-            std::optional<PackRevision>{expected_bench} ||
-        resolved->resourceOwner("us.ca4.bench-profile.fen") !=
-            std::optional<PackRevision>{expected_bench} ||
-        resolved->resourceOwner("ca4m4.benton.argument.actual-record") !=
+        final_resolved->resourceOwner("ca4m4.benton.record") !=
             std::optional<PackRevision>{expected_root} ||
-        resolved->resourceOwner("ca4m4.benton.argument.no-knowledge-counterfactual") !=
-            std::optional<PackRevision>{expected_root} ||
-        resolved->resourceOwner("ca4m4.benton.record") !=
-            std::optional<PackRevision>{expected_root} ||
-        resolved->resourceOwner("ca4m4.benton.workflow.civil-appeal") !=
+        final_resolved->resourceOwner("ca4m4.benton.review.authoring-2026-08-12") !=
             std::optional<PackRevision>{expected_root}) {
         return fail(QStringLiteral("resolved graph owner/pin contract mismatch"));
     }
 
-    const auto runtime = packs::loadRuntimePack(*resolved);
-    if (!runtime || runtime->revision != expected_root || runtime->cases.size() != std::size_t{1} ||
-        runtime->cases.front().argument_configurations.size() != std::size_t{2} ||
+    std::vector<const packs::LoadedPack*> final_resolved_dependencies;
+    final_resolved_dependencies.reserve(final_resolved->dependenciesDependencyFirst().size());
+    for (const auto& dependency : final_resolved->dependenciesDependencyFirst()) {
+        final_resolved_dependencies.push_back(&dependency);
+    }
+    for (std::size_t trace_index = 0; trace_index < final_trace_specs.size(); ++trace_index) {
+        auto candidate = final_resolved->root();
+        const auto candidate_review = std::ranges::find(
+            candidate.resources, std::string_view("ca4m4.benton.review.authoring-2026-08-12"),
+            [](const auto& resource) { return std::string_view(resource.descriptor.id); });
+        if (candidate_review == candidate.resources.end()) {
+            return fail(QStringLiteral("resolved root lost its realism review"));
+        }
+        auto candidate_evidence =
+            candidate_review->document.value(QStringLiteral("evidence")).toObject();
+        auto candidate_traces = candidate_evidence.value(QStringLiteral("traces")).toArray();
+        auto candidate_trace = candidate_traces.at(static_cast<qsizetype>(trace_index)).toObject();
+        auto candidate_journal = candidate_trace.value(QStringLiteral("journal")).toArray();
+        auto candidate_entry = candidate_journal.at(0).toObject();
+        auto candidate_events = candidate_entry.value(QStringLiteral("events_base64")).toArray();
+        auto event_document = QJsonDocument::fromJson(
+            QByteArray::fromBase64(candidate_events.at(0).toString().toLatin1()));
+        auto event_object = event_document.object();
+        auto event_payload = event_object.value(QStringLiteral("payload")).toObject();
+        event_payload.insert(
+            QStringLiteral("sequence"),
+            QString::number(
+                event_payload.value(QStringLiteral("sequence")).toString().toULongLong() + 1000U));
+        event_object.insert(QStringLiteral("payload"), event_payload);
+        candidate_events.replace(
+            0, QString::fromLatin1(
+                   QJsonDocument(event_object).toJson(QJsonDocument::Compact).toBase64()));
+        candidate_entry.insert(QStringLiteral("events_base64"), candidate_events);
+        candidate_journal.replace(0, candidate_entry);
+        candidate_trace.insert(QStringLiteral("journal"), candidate_journal);
+        candidate_traces.replace(static_cast<qsizetype>(trace_index), candidate_trace);
+        candidate_evidence.insert(QStringLiteral("traces"), candidate_traces);
+        candidate_review->document.insert(QStringLiteral("evidence"), candidate_evidence);
+        const auto validation =
+            PackReader::validateResolvedGraph(candidate, final_resolved_dependencies);
+        if (validation || validation.error().code != packs::ErrorCode::CrossReferenceFailure) {
+            return fail(QStringLiteral("trace tamper did not fail closed: %1")
+                            .arg(final_trace_specs.at(trace_index).file_name));
+        }
+    }
+
+    const auto final_runtime = packs::loadRuntimePack(*final_resolved);
+    if (!final_runtime || final_runtime->revision != expected_root ||
+        final_runtime->cases.size() != std::size_t{1} ||
+        final_runtime->cases.front().argument_configurations.size() != std::size_t{2} ||
         std::ranges::any_of(
-            runtime->cases.front().argument_configurations, [](const auto& configuration) {
+            final_runtime->cases.front().argument_configurations, [](const auto& configuration) {
                 return !configuration.grounded_question_bank.has_value() ||
                        configuration.permitted_issue_ids.size() != std::size_t{2} ||
                        configuration.grounded_question_bank->issue_topics.size() !=
                            std::size_t{2} ||
                        configuration.grounded_question_bank->questions.size() != std::size_t{12};
             })) {
-        return fail(QStringLiteral("resolved Benton closure is not runtime-loadable"));
-    }
-    const auto& runtime_case = runtime->cases.front();
-    const QSet<QString> bank_topics{
-        QStringLiteral("workbench.topic.standard-of-review"),
-        QStringLiteral("workbench.topic.preservation"),
-        QStringLiteral("workbench.topic.record-support"),
-        QStringLiteral("workbench.topic.governing-authority"),
-        QStringLiteral("workbench.topic.merits"),
-        QStringLiteral("workbench.topic.remedy"),
-        QStringLiteral("workbench.topic.practical-consequences"),
-    };
-    for (const auto& configuration : runtime_case.argument_configurations) {
-        if (configuration.bench.seats.size() != std::size_t{3}) {
-            return fail(QStringLiteral("runtime bench does not have three seats"));
-        }
-        for (const auto& seat : configuration.bench.seats) {
-            const auto intersects =
-                std::ranges::any_of(seat.profile.interaction.issue_focus, [&](const auto& focus) {
-                    return bank_topics.contains(QString::fromStdString(focus.topic_id));
-                });
-            if (!intersects ||
-                seat.profile.profile_class != model::ProfileClass::FictionalComposite) {
-                return fail(QStringLiteral("runtime bench focus/synthetic contract mismatch"));
-            }
-        }
+        return fail(QStringLiteral("catalog-valid Benton 1.2 closure is not runtime-loadable"));
     }
 
-    const auto runCommand = [&](Run& run,
-                                model::WorkflowCommand command) -> std::optional<QString> {
-        const auto result = execute(runtime_case, run, std::move(command));
-        if (!result) {
-            return QString::fromStdString(result.error());
-        }
-        return std::nullopt;
-    };
-    const auto mustRun = [&](Run& run, model::WorkflowCommand command,
-                             const QString& context) -> std::optional<QString> {
-        const auto error = runCommand(run, std::move(command));
-        if (error.has_value()) {
-            return context + QStringLiteral(": ") + *error;
-        }
-        return std::nullopt;
-    };
-    const auto deadline = [](const Run& run, std::string_view id) {
-        return std::ranges::find(run.state.deadlines, id, [](const auto& item) {
-            return std::string_view(item.deadline_id.value);
-        });
-    };
-
-    const std::string argued_session = "ca4m4.benton.session.argued-positive";
-    auto argued = emptyRun(runtime_case, argued_session);
-    if (const auto error = mustRun(argued,
-                                   notice(argued_session, "ca4m4.benton.command.notice",
-                                          "ca4m4.benton.filing.notice", date(2026, 1U, 16U)),
-                                   QStringLiteral("accept notice"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::AdvanceWorkflowStage{
-                     header(argued_session, "ca4m4.benton.command.early-briefing", clerk_actor,
-                            date(2026, 1U, 16U)),
-                     model::WorkflowOperationId{"ca4m4.benton.operation.advance-briefing"}}})) {
-        return fail(QStringLiteral("briefing can begin before the record-complete order"));
-    }
-    if (const auto error =
-            mustRun(argued,
-                    model::CalculateWorkflowDeadline{
-                        header(argued_session, "ca4m4.benton.command.calculate-docketing",
-                               clerk_actor, date(2026, 1U, 20U)),
-                        model::WorkflowOperationId{"ca4m4.benton.operation.calculate-docketing"},
-                        model::WorkflowDeadlineId{"ca4m4.benton.deadline.docketing-statement"}},
-                    QStringLiteral("calculate docketing deadline"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto docketing = deadline(argued, "ca4m4.benton.deadline.docketing-statement");
-    if (docketing == argued.state.deadlines.end() || docketing->due_date != date(2026, 2U, 3U)) {
-        return fail(QStringLiteral("docketing deadline does not run 14 days from court event"));
-    }
-    if (const auto error =
-            mustRun(argued,
-                    order(argued_session, "ca4m4.benton.command.record-complete", clerk_actor,
-                          "ca4m4.benton.operation.enter-record-complete",
-                          "ca4m4.benton.order.record-complete",
-                          model::WorkflowOrderDisposition::Other, date(2026, 2U, 20U), 'c'),
-                    QStringLiteral("enter record-complete order"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error =
-            mustRun(argued,
-                    model::AdvanceWorkflowStage{
-                        header(argued_session, "ca4m4.benton.command.advance-briefing", clerk_actor,
-                               date(2026, 2U, 20U)),
-                        model::WorkflowOperationId{"ca4m4.benton.operation.advance-briefing"}},
-                    QStringLiteral("advance to briefing"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error =
-            mustRun(argued,
-                    principalBrief(argued_session, "ca4m4.benton.command.opening-brief",
-                                   "ca4m4.benton.filing.opening-brief", appellant_actor,
-                                   appellee_actor, date(2026, 3U, 16U)),
-                    QStringLiteral("accept opening brief"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error =
-            mustRun(argued,
-                    principalBrief(argued_session, "ca4m4.benton.command.response-brief",
-                                   "ca4m4.benton.filing.response-brief", appellee_actor,
-                                   appellant_actor, date(2026, 4U, 16U)),
-                    QStringLiteral("accept response brief"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::ScheduleWorkflowArgument{
-                     header(argued_session, "ca4m4.benton.command.early-schedule", clerk_actor,
-                            date(2026, 4U, 16U)),
-                     model::WorkflowOperationId{"ca4m4.benton.operation.schedule-argument"},
-                     date(2026, 5U, 20U)}})) {
-        return fail(QStringLiteral("argument can be scheduled before briefing-complete order"));
-    }
-    if (const auto error =
-            mustRun(argued,
-                    order(argued_session, "ca4m4.benton.command.briefing-complete", clerk_actor,
-                          "ca4m4.benton.operation.enter-briefing-complete",
-                          "ca4m4.benton.order.briefing-complete",
-                          model::WorkflowOrderDisposition::Other, date(2026, 4U, 17U), 'd'),
-                    QStringLiteral("enter briefing-complete order"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error =
-            mustRun(argued,
-                    model::ScheduleWorkflowArgument{
-                        header(argued_session, "ca4m4.benton.command.schedule-argument",
-                               clerk_actor, date(2026, 4U, 20U)),
-                        model::WorkflowOperationId{"ca4m4.benton.operation.schedule-argument"},
-                        date(2026, 5U, 20U)},
-                    QStringLiteral("schedule argument"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::AdvanceWorkflowStage{
-                     header(argued_session, "ca4m4.benton.command.early-submit", clerk_actor,
-                            date(2026, 4U, 20U)),
-                     model::WorkflowOperationId{
-                         "ca4m4.benton.operation.advance-submitted-after-argument"}}})) {
-        return fail(QStringLiteral("scheduled argument bypasses argument-held order"));
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::AdvanceWorkflowStage{
-                     header(argued_session, "ca4m4.benton.command.wrong-on-briefs-advance",
-                            clerk_actor, date(2026, 4U, 20U)),
-                     model::WorkflowOperationId{
-                         "ca4m4.benton.operation.advance-submitted-on-briefs"}}})) {
-        return fail(QStringLiteral("scheduled argument permits submitted-on-briefs advance"));
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{
-                     order(argued_session, "ca4m4.benton.command.day-before-argument-held",
-                           panel_actor, "ca4m4.benton.operation.enter-argument-held",
-                           "ca4m4.benton.order.argument-held",
-                           model::WorkflowOrderDisposition::Other, date(2026, 5U, 19U), 'e')})) {
-        return fail(QStringLiteral("argument-held marker is accepted before the scheduled date"));
-    }
-    if (const auto error = mustRun(
-            argued,
-            order(argued_session, "ca4m4.benton.command.argument-held", panel_actor,
-                  "ca4m4.benton.operation.enter-argument-held", "ca4m4.benton.order.argument-held",
-                  model::WorkflowOrderDisposition::Other, date(2026, 5U, 20U), 'e'),
-            QStringLiteral("enter argument-held order"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error =
-            mustRun(argued,
-                    model::AdvanceWorkflowStage{
-                        header(argued_session, "ca4m4.benton.command.advance-submitted",
-                               clerk_actor, date(2026, 5U, 20U)),
-                        model::WorkflowOperationId{
-                            "ca4m4.benton.operation.advance-submitted-after-argument"}},
-                    QStringLiteral("advance argued case to submission"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::IssueWorkflowJudgment{
-                     header(argued_session, "ca4m4.benton.command.wrong-branch-judgment",
-                            panel_actor, date(2026, 6U, 15U)),
-                     model::WorkflowOperationId{"ca4m4.benton.operation.issue-judgment-on-briefs"},
-                     std::string(64, 'a'), std::string("wrong submission branch")}})) {
-        return fail(QStringLiteral("argument-held case accepts on-briefs judgment operation"));
-    }
-    if (const auto error =
-            mustRun(argued,
-                    model::IssueWorkflowJudgment{
-                        header(argued_session, "ca4m4.benton.command.issue-judgment", panel_actor,
-                               date(2026, 6U, 15U)),
-                        model::WorkflowOperationId{"ca4m4.benton.operation.issue-judgment"},
-                        std::string(64, 'f'), std::string("Fictional exercise judgment")},
-                    QStringLiteral("issue guarded judgment"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error =
-            mustRun(argued,
-                    model::AdvanceWorkflowStage{
-                        header(argued_session, "ca4m4.benton.command.advance-post-judgment",
-                               clerk_actor, date(2026, 6U, 15U)),
-                        model::WorkflowOperationId{"ca4m4.benton.operation.advance-post-judgment"}},
-                    QStringLiteral("advance to post-judgment"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error =
-            mustRun(argued,
-                    model::CalculateWorkflowDeadline{
-                        header(argued_session, "ca4m4.benton.command.calculate-rehearing",
-                               clerk_actor, date(2026, 6U, 20U)),
-                        model::WorkflowOperationId{"ca4m4.benton.operation.calculate-rehearing"},
-                        model::WorkflowDeadlineId{"ca4m4.benton.deadline.rehearing"}},
-                    QStringLiteral("calculate rehearing deadline"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto rehearing = deadline(argued, "ca4m4.benton.deadline.rehearing");
-    if (rehearing == argued.state.deadlines.end() || rehearing->due_date != date(2026, 6U, 29U)) {
-        return fail(QStringLiteral("rehearing deadline does not run 14 days from judgment"));
-    }
-    auto post_judgment = argued;
-    const auto post_judgment_state = post_judgment.state;
-    const auto post_judgment_journal = post_judgment.journal;
-    if (!isUnmet(runtime_case, post_judgment,
-                 model::WorkflowCommand{
-                     order(argued_session, "ca4m4.benton.command.denial-without-petition",
-                           panel_actor, "ca4m4.benton.operation.enter-rehearing-disposition",
-                           "ca4m4.benton.order.rehearing-disposition",
-                           model::WorkflowOrderDisposition::Denied, date(2026, 6U, 21U), 'a')}) ||
-        post_judgment.state != post_judgment_state ||
-        post_judgment.journal != post_judgment_journal) {
-        return fail(QStringLiteral("rehearing denial order is not blocked without a petition"));
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::CalculateWorkflowDeadline{
-                     header(argued_session, "ca4m4.benton.command.early-mandate-clock", clerk_actor,
-                            date(2026, 6U, 28U)),
-                     model::WorkflowOperationId{
-                         "ca4m4.benton.operation.calculate-mandate-after-rehearing-time"},
-                     model::WorkflowDeadlineId{"ca4m4.benton.deadline.mandate-no-petition"}}})) {
-        return fail(QStringLiteral("mandate clock starts before rehearing boundary"));
-    }
-
-    auto boundary_petition = post_judgment;
-    if (const auto error =
-            mustRun(boundary_petition,
-                    rehearingPetition(argued_session, "ca4m4.benton.command.boundary-petition",
-                                      "ca4m4.benton.filing.boundary-petition", date(2026, 6U, 29U)),
-                    QStringLiteral("accept rehearing petition on exact due date"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto boundary_rehearing = deadline(boundary_petition, "ca4m4.benton.deadline.rehearing");
-    if (boundary_rehearing == boundary_petition.state.deadlines.end() ||
-        boundary_rehearing->status != model::WorkflowDeadlineStatus::Satisfied) {
-        return fail(
-            QStringLiteral("exact-date rehearing petition does not satisfy named deadline"));
-    }
-
-    auto late_petition = post_judgment;
-    if (const auto error =
-            mustRun(late_petition,
-                    rehearingPetition(argued_session, "ca4m4.benton.command.late-petition",
-                                      "ca4m4.benton.filing.late-petition", date(2026, 6U, 30U)),
-                    QStringLiteral("record late rehearing rejection"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto* late_rejection =
-        late_petition.trace.empty()
-            ? nullptr
-            : std::get_if<model::WorkflowFilingRejected>(&late_petition.trace.back());
-    if (late_rejection == nullptr ||
-        late_rejection->reason != model::WorkflowFilingRejectionReason::DeadlineExpired ||
-        late_petition.state.accepted_filings != post_judgment.state.accepted_filings) {
-        return fail(QStringLiteral("day-late rehearing petition is not rejected as expired"));
-    }
-
-    auto no_petition = post_judgment;
-    if (const auto error =
-            mustRun(no_petition,
-                    model::CalculateWorkflowDeadline{
-                        header(argued_session, "ca4m4.benton.command.boundary-mandate-clock",
-                               clerk_actor, date(2026, 6U, 29U)),
-                        model::WorkflowOperationId{
-                            "ca4m4.benton.operation.calculate-mandate-after-rehearing-time"},
-                        model::WorkflowDeadlineId{"ca4m4.benton.deadline.mandate-no-petition"}},
-                    QStringLiteral("calculate mandate at rehearing boundary"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto no_petition_mandate =
-        deadline(no_petition, "ca4m4.benton.deadline.mandate-no-petition");
-    if (no_petition_mandate == no_petition.state.deadlines.end() ||
-        no_petition_mandate->due_date != date(2026, 7U, 6U)) {
-        return fail(QStringLiteral("dependent mandate clock is not seven literal days from "
-                                   "the rehearing due date"));
-    }
-    if (const auto error =
-            mustRun(no_petition,
-                    order(argued_session, "ca4m4.benton.command.no-petition-release", panel_actor,
-                          "ca4m4.benton.operation.enter-mandate-release",
-                          "ca4m4.benton.order.mandate-release",
-                          model::WorkflowOrderDisposition::Granted, date(2026, 7U, 5U), 'c'),
-                    QStringLiteral("release no-petition mandate"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!isUnmet(runtime_case, no_petition,
-                 model::WorkflowCommand{model::IssueWorkflowMandate{
-                     header(argued_session, "ca4m4.benton.command.day-before-mandate", clerk_actor,
-                            date(2026, 7U, 5U)),
-                     model::WorkflowOperationId{"ca4m4.benton.operation.issue-mandate-no-petition"},
-                     std::string(64, 'd')}})) {
-        return fail(QStringLiteral("ordinary mandate issues one day before its reached boundary"));
-    }
-    if (const auto error = mustRun(
-            no_petition,
-            model::IssueWorkflowMandate{
-                header(argued_session, "ca4m4.benton.command.boundary-mandate", clerk_actor,
-                       date(2026, 7U, 6U)),
-                model::WorkflowOperationId{"ca4m4.benton.operation.issue-mandate-no-petition"},
-                std::string(64, 'e')},
-            QStringLiteral("issue no-petition mandate on reached boundary"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!no_petition.state.mandate_sha256.has_value() ||
-        no_petition.journal.size() != std::size_t{16}) {
-        return fail(QStringLiteral("no-petition dependent-deadline trace did not close"));
-    }
-
-    auto shortened = post_judgment;
-    if (!isUnmet(runtime_case, shortened,
-                 model::WorkflowCommand{model::IssueWorkflowMandate{
-                     header(argued_session, "ca4m4.benton.command.shortened-without-orders",
-                            clerk_actor, date(2026, 6U, 21U)),
-                     model::WorkflowOperationId{"ca4m4.benton.operation.issue-mandate-shortened"},
-                     std::string(64, 'a')}})) {
-        return fail(QStringLiteral("shortened mandate issues without shortening/release orders"));
-    }
-    if (const auto error =
-            mustRun(shortened,
-                    order(argued_session, "ca4m4.benton.command.shorten-mandate", panel_actor,
-                          "ca4m4.benton.operation.enter-mandate-shortening",
-                          "ca4m4.benton.order.mandate-shortening",
-                          model::WorkflowOrderDisposition::Granted, date(2026, 6U, 21U), 'a'),
-                    QStringLiteral("enter mandate-shortening order"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!isUnmet(runtime_case, shortened,
-                 model::WorkflowCommand{model::IssueWorkflowMandate{
-                     header(argued_session, "ca4m4.benton.command.shortened-without-release",
-                            clerk_actor, date(2026, 6U, 21U)),
-                     model::WorkflowOperationId{"ca4m4.benton.operation.issue-mandate-shortened"},
-                     std::string(64, 'b')}})) {
-        return fail(QStringLiteral("shortened mandate issues without release order"));
-    }
-    if (const auto error =
-            mustRun(shortened,
-                    order(argued_session, "ca4m4.benton.command.release-shortened-mandate",
-                          panel_actor, "ca4m4.benton.operation.enter-mandate-release",
-                          "ca4m4.benton.order.mandate-release",
-                          model::WorkflowOrderDisposition::Granted, date(2026, 6U, 21U), 'b'),
-                    QStringLiteral("release shortened mandate"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error = mustRun(
-            shortened,
-            model::IssueWorkflowMandate{
-                header(argued_session, "ca4m4.benton.command.issue-shortened-mandate", clerk_actor,
-                       date(2026, 6U, 21U)),
-                model::WorkflowOperationId{"ca4m4.benton.operation.issue-mandate-shortened"},
-                std::string(64, 'c')},
-            QStringLiteral("issue shortened mandate"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!shortened.state.mandate_sha256.has_value() ||
-        shortened.journal.size() != std::size_t{16}) {
-        return fail(QStringLiteral("shortened-mandate positive branch did not close"));
-    }
-
-    if (const auto error = mustRun(
-            argued,
-            rehearingPetition(argued_session, "ca4m4.benton.command.rehearing-petition",
-                              "ca4m4.benton.filing.rehearing-petition", date(2026, 6U, 25U)),
-            QStringLiteral("accept timely rehearing petition"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::CalculateWorkflowDeadline{
-                     header(argued_session, "ca4m4.benton.command.petition-blocks-no-petition",
-                            clerk_actor, date(2026, 6U, 29U)),
-                     model::WorkflowOperationId{
-                         "ca4m4.benton.operation.calculate-mandate-after-rehearing-time"},
-                     model::WorkflowDeadlineId{"ca4m4.benton.deadline.mandate-no-petition"}}})) {
-        return fail(QStringLiteral("timely petition does not block no-petition mandate clock"));
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::CalculateWorkflowDeadline{
-                     header(argued_session, "ca4m4.benton.command.denial-clock-before-order",
-                            clerk_actor, date(2026, 6U, 29U)),
-                     model::WorkflowOperationId{
-                         "ca4m4.benton.operation.calculate-mandate-after-rehearing-denial"},
-                     model::WorkflowDeadlineId{
-                         "ca4m4.benton.deadline.mandate-after-rehearing-denial"}}})) {
-        return fail(QStringLiteral("denial mandate clock starts before denial order"));
-    }
-    if (const auto error =
-            mustRun(argued,
-                    order(argued_session, "ca4m4.benton.command.deny-rehearing", panel_actor,
-                          "ca4m4.benton.operation.enter-rehearing-disposition",
-                          "ca4m4.benton.order.rehearing-disposition",
-                          model::WorkflowOrderDisposition::Denied, date(2026, 7U, 1U), 'b'),
-                    QStringLiteral("enter rehearing denial"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (const auto error = mustRun(
-            argued,
-            model::CalculateWorkflowDeadline{
-                header(argued_session, "ca4m4.benton.command.calculate-mandate-denial", clerk_actor,
-                       date(2026, 7U, 3U)),
-                model::WorkflowOperationId{
-                    "ca4m4.benton.operation.calculate-mandate-after-rehearing-denial"},
-                model::WorkflowDeadlineId{"ca4m4.benton.deadline.mandate-after-rehearing-denial"}},
-            QStringLiteral("calculate mandate after rehearing denial"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto mandate = deadline(argued, "ca4m4.benton.deadline.mandate-after-rehearing-denial");
-    if (mandate == argued.state.deadlines.end() || mandate->due_date != date(2026, 7U, 8U)) {
-        return fail(QStringLiteral("denial-triggered mandate deadline is not seven days"));
-    }
-    if (const auto error = mustRun(
-            argued,
-            order(argued_session, "ca4m4.benton.command.stay-mandate", panel_actor,
-                  "ca4m4.benton.operation.enter-mandate-stay", "ca4m4.benton.order.mandate-stay",
-                  model::WorkflowOrderDisposition::Granted, date(2026, 7U, 4U), 'c'),
-            QStringLiteral("enter mandate stay"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::IssueWorkflowMandate{
-                     header(argued_session, "ca4m4.benton.command.mandate-without-release",
-                            clerk_actor, date(2026, 7U, 8U)),
-                     model::WorkflowOperationId{
-                         "ca4m4.benton.operation.issue-mandate-after-rehearing-denial"},
-                     std::string(64, 'd')}})) {
-        return fail(QStringLiteral("mandate issues while stay has no release order"));
-    }
-    if (const auto error =
-            mustRun(argued,
-                    order(argued_session, "ca4m4.benton.command.release-mandate", panel_actor,
-                          "ca4m4.benton.operation.enter-mandate-release",
-                          "ca4m4.benton.order.mandate-release",
-                          model::WorkflowOrderDisposition::Granted, date(2026, 7U, 8U), 'd'),
-                    QStringLiteral("enter mandate release"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!isUnmet(runtime_case, argued,
-                 model::WorkflowCommand{model::IssueWorkflowMandate{
-                     header(argued_session, "ca4m4.benton.command.wrong-no-petition-issue",
-                            clerk_actor, date(2026, 7U, 8U)),
-                     model::WorkflowOperationId{"ca4m4.benton.operation.issue-mandate-no-petition"},
-                     std::string(64, 'e')}})) {
-        return fail(QStringLiteral("denial branch accepts no-petition mandate operation"));
-    }
-    if (const auto error =
-            mustRun(argued,
-                    model::IssueWorkflowMandate{
-                        header(argued_session, "ca4m4.benton.command.issue-mandate", clerk_actor,
-                               date(2026, 7U, 8U)),
-                        model::WorkflowOperationId{
-                            "ca4m4.benton.operation.issue-mandate-after-rehearing-denial"},
-                        std::string(64, 'e')},
-                    QStringLiteral("issue released mandate"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!argued.state.mandate_sha256.has_value() || argued.journal.size() != std::size_t{19}) {
-        return fail(QStringLiteral("positive argued workflow trace did not close at mandate"));
-    }
-
-    const std::string briefs_session = "ca4m4.benton.session.briefs-positive";
-    auto on_briefs = emptyRun(runtime_case, briefs_session);
-    const std::array<std::pair<model::WorkflowCommand, QString>, 6> briefing_commands{
-        std::pair{model::WorkflowCommand{
-                      notice(briefs_session, "ca4m4.benton.command.briefs-notice",
-                             "ca4m4.benton.filing.briefs-notice", date(2026, 1U, 16U))},
-                  QStringLiteral("briefs branch notice")},
-        std::pair{model::WorkflowCommand{
-                      order(briefs_session, "ca4m4.benton.command.briefs-record", clerk_actor,
-                            "ca4m4.benton.operation.enter-record-complete",
-                            "ca4m4.benton.order.record-complete",
-                            model::WorkflowOrderDisposition::Other, date(2026, 2U, 20U), 'a')},
-                  QStringLiteral("briefs branch record order")},
-        std::pair{model::WorkflowCommand{model::AdvanceWorkflowStage{
-                      header(briefs_session, "ca4m4.benton.command.briefs-advance", clerk_actor,
-                             date(2026, 2U, 20U)),
-                      model::WorkflowOperationId{"ca4m4.benton.operation.advance-briefing"}}},
-                  QStringLiteral("briefs branch advance")},
-        std::pair{model::WorkflowCommand{
-                      principalBrief(briefs_session, "ca4m4.benton.command.briefs-opening",
-                                     "ca4m4.benton.filing.briefs-opening", appellant_actor,
-                                     appellee_actor, date(2026, 3U, 16U))},
-                  QStringLiteral("briefs branch opening")},
-        std::pair{model::WorkflowCommand{
-                      principalBrief(briefs_session, "ca4m4.benton.command.briefs-response",
-                                     "ca4m4.benton.filing.briefs-response", appellee_actor,
-                                     appellant_actor, date(2026, 4U, 16U))},
-                  QStringLiteral("briefs branch response")},
-        std::pair{model::WorkflowCommand{
-                      order(briefs_session, "ca4m4.benton.command.briefs-complete", clerk_actor,
-                            "ca4m4.benton.operation.enter-briefing-complete",
-                            "ca4m4.benton.order.briefing-complete",
-                            model::WorkflowOrderDisposition::Other, date(2026, 4U, 17U), 'b')},
-                  QStringLiteral("briefs branch complete")},
-    };
-    for (const auto& [command, context] : briefing_commands) {
-        if (const auto error = mustRun(on_briefs, command, context); error.has_value()) {
-            return fail(*error);
-        }
-    }
-    if (const auto error = mustRun(
-            on_briefs,
-            model::AdvanceWorkflowStage{
-                header(briefs_session, "ca4m4.benton.command.advance-on-briefs", clerk_actor,
-                       date(2026, 4U, 20U)),
-                model::WorkflowOperationId{"ca4m4.benton.operation.advance-submitted-on-briefs"}},
-            QStringLiteral("advance submitted-on-briefs branch"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    const auto committed_on_briefs_state = on_briefs.state;
-    const auto committed_on_briefs_journal = on_briefs.journal;
-    if (!isRejectedWith(runtime_case, on_briefs,
-                        model::WorkflowCommand{model::ScheduleWorkflowArgument{
-                            header(briefs_session, "ca4m4.benton.command.schedule-after-on-briefs",
-                                   clerk_actor, date(2026, 4U, 21U)),
-                            model::WorkflowOperationId{"ca4m4.benton.operation.schedule-argument"},
-                            date(2026, 5U, 20U)}},
-                        engine::WorkflowErrorCode::InvalidCommand) ||
-        on_briefs.state != committed_on_briefs_state ||
-        on_briefs.journal != committed_on_briefs_journal) {
-        return fail(QStringLiteral("on-briefs branch permits later argument scheduling"));
-    }
-    if (!isRejectedWith(
-            runtime_case, on_briefs,
-            model::WorkflowCommand{order(
-                briefs_session, "ca4m4.benton.command.argument-held-after-on-briefs", panel_actor,
-                "ca4m4.benton.operation.enter-argument-held", "ca4m4.benton.order.argument-held",
-                model::WorkflowOrderDisposition::Other, date(2026, 5U, 20U), 'c')},
-            engine::WorkflowErrorCode::InvalidCommand) ||
-        on_briefs.state != committed_on_briefs_state ||
-        on_briefs.journal != committed_on_briefs_journal) {
-        return fail(QStringLiteral("on-briefs branch permits later argument-held marker"));
-    }
-    if (!isUnmet(runtime_case, on_briefs,
-                 model::WorkflowCommand{model::IssueWorkflowJudgment{
-                     header(briefs_session, "ca4m4.benton.command.wrong-argued-judgment",
-                            panel_actor, date(2026, 5U, 1U)),
-                     model::WorkflowOperationId{"ca4m4.benton.operation.issue-judgment"},
-                     std::string(64, 'd'), std::string("wrong argued branch")}})) {
-        return fail(QStringLiteral("submitted-on-briefs case accepts argument-held judgment"));
-    }
-    if (const auto error = mustRun(
-            on_briefs,
-            model::IssueWorkflowJudgment{
-                header(briefs_session, "ca4m4.benton.command.briefs-judgment", panel_actor,
-                       date(2026, 5U, 1U)),
-                model::WorkflowOperationId{"ca4m4.benton.operation.issue-judgment-on-briefs"},
-                std::string(64, 'e'), std::string("Fictional on-briefs exercise judgment")},
-            QStringLiteral("issue on-briefs judgment"));
-        error.has_value()) {
-        return fail(*error);
-    }
-    if (!on_briefs.state.judgment_sha256.has_value() ||
-        on_briefs.journal.size() != std::size_t{8}) {
-        return fail(QStringLiteral("positive submitted-on-briefs trace did not reach judgment"));
-    }
-
-    std::cout << "Benton 1.1 integration contract passed: 37 PDFs, 262 unique searchable pages, "
-                 "two accepted render inventories, two actual-exclusion grounded banks, guarded "
-                 "dual submission paths and mandate, four exact revisions.\n";
+    std::cout << "Benton 1.2 integration contract passed: 67 PDFs / 389 pages "
+                 "(JA1-JA262 and PA1-PA127), two grounded banks, two disposition plans, "
+                 "13-stage/53-operation workflow, seven replayed traces, deterministic "
+                 "archive, and four exact revisions.\n";
     return 0;
 }

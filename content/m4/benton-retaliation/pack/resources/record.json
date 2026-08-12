@@ -18,6 +18,14 @@
       "court_ref": "United States Court of Appeals for the Fourth Circuit",
       "public_docket_number": "SYN-CA4-26-CV-4101",
       "caption": "Leora Benton v. Blue Cedar Compliance, Inc."
+    },
+    {
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit — counterfactual training branch bank",
+      "public_docket_number": "SYN-CA4-26-CV-4101-CF-NEVER-OCCURRED",
+      "caption": "Leora Benton v. Blue Cedar Compliance, Inc. — counterfactual training branches that never occurred on the actual docket"
     }
   ],
   "docket_entries": [
@@ -748,6 +756,594 @@
       "asset_path": "objects/37-certified-docket-record-certificate.pdf",
       "asset_sha256": "9b2ffb64c9501150c71f2bf5ef5fef5ca303ddc271339c23bcc43559ea612e78",
       "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a01",
+      "entry_number": 38,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 1",
+      "filed_on": "2026-01-20",
+      "title": "Docketing Notice",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual synthetic appellate docket artifact: Docketing Notice.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a01-docketing-notice.pdf",
+      "asset_sha256": "52c701c007e1272aca09bafa00d5f2ba3d68f526ae612ac9570e8d9a61f71f3a",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a02",
+      "entry_number": 39,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 2",
+      "filed_on": "2026-02-03",
+      "title": "Appellant Docketing Statement",
+      "actor": "Leora Benton (fictional)",
+      "description": "Actual synthetic appellate docket artifact: Appellant Docketing Statement.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a02-appellant-docketing-statement.pdf",
+      "asset_sha256": "305437ad29730589f849255cb14d9ea5ed58eebf349e74865fe36fb9d37f59d0",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a03",
+      "entry_number": 40,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 3",
+      "filed_on": "2026-02-20",
+      "title": "Record-Complete and Briefing Order",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual synthetic appellate docket artifact: Record-Complete and Briefing Order.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a03-record-complete-briefing-order.pdf",
+      "asset_sha256": "9ed0fdd8ba5883ab25dc7c300ea0219ba376813dc7f3a4c014deb0620da0d0fc",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "entry_number": 41,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 4",
+      "filed_on": "2026-03-16",
+      "title": "Opening Brief of Appellant Leora Benton",
+      "actor": "Leora Benton (fictional)",
+      "description": "Actual synthetic appellate docket artifact: Opening Brief of Appellant Leora Benton.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a04-benton-opening-brief.pdf",
+      "asset_sha256": "515683e33f7e6d3a4c962e798de078a0114d31b1b592a84f6a5c6d22e40c7090",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "entry_number": 42,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 5",
+      "filed_on": "2026-04-15",
+      "title": "Response Brief of Appellee Blue Cedar Compliance, Inc.",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Actual synthetic appellate docket artifact: Response Brief of Appellee Blue Cedar Compliance, Inc..",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a05-blue-cedar-response-brief.pdf",
+      "asset_sha256": "75ed6e9aa8508730b0b8757c1151cd52c2985b030ffde7bbabf8c03bdaae55fa",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a06",
+      "entry_number": 43,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 6",
+      "filed_on": "2026-04-17",
+      "title": "Appellant Notice That No Reply Brief Will Be Filed",
+      "actor": "Leora Benton (fictional)",
+      "description": "Actual synthetic appellate docket artifact: Appellant Notice That No Reply Brief Will Be Filed.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a06-benton-no-reply-notice.pdf",
+      "asset_sha256": "ed4e8192c487f421370214e03e4e551a061e29baa50e5214e3090346b6e87d65",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a07",
+      "entry_number": 44,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 7",
+      "filed_on": "2026-04-17",
+      "title": "Order Recording Briefing Complete",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual synthetic appellate docket artifact: Order Recording Briefing Complete.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a07-briefing-complete-order.pdf",
+      "asset_sha256": "d3c93eee14d95d48434d321beeed74672496b2a3cd63e3316690869ae625dafe",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a08",
+      "entry_number": 45,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 8",
+      "filed_on": "2026-04-20",
+      "title": "Oral-Argument Calendar Notice",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual synthetic appellate docket artifact: Oral-Argument Calendar Notice.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a08-oral-argument-calendar-notice.pdf",
+      "asset_sha256": "a7c0f66dfa79ca7d3ca5fa39da40caf9718bda3c377e0ac0ef904a445f40b472",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a09",
+      "entry_number": 46,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 9",
+      "filed_on": "2026-05-20",
+      "title": "Order Recording Argument Held and Appeal Submitted",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual synthetic appellate docket artifact: Order Recording Argument Held and Appeal Submitted.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a09-argument-held-submission-order.pdf",
+      "asset_sha256": "5bcf1bd69489e1de46e05e1145af10e92d3afa7fcbcbc1a8730a295ba56a9c2a",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "entry_number": 47,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 10",
+      "filed_on": "2026-06-15",
+      "title": "Panel Opinion",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual synthetic appellate docket artifact: Panel Opinion.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a10-panel-opinion.pdf",
+      "asset_sha256": "fc0680f0d4215786178e54ff5b4ff99a5d77bdebf076f0496ef878c6c51d599e",
+      "page_count": 14,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a11",
+      "entry_number": 48,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 11",
+      "filed_on": "2026-06-15",
+      "title": "Judgment",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual synthetic appellate docket artifact: Judgment.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a11-judgment.pdf",
+      "asset_sha256": "82e4f5932ee5b6b31f75a1466aeece20c05b601987a175fc114b9754484557eb",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a12",
+      "entry_number": 49,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 12",
+      "filed_on": "2026-07-06",
+      "title": "Clerk Order Releasing Ordinary Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual synthetic appellate docket artifact: Clerk Order Releasing Ordinary Mandate.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a12-mandate-release-order.pdf",
+      "asset_sha256": "3d68a73006082fa5e409a0e26188e38588e0c6604514722d898e7f0d3794f00a",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.a13",
+      "entry_number": 50,
+      "docket_id": "ca4m4.benton.docket.appellate",
+      "entry_label": "Appellate ECF No. 13",
+      "filed_on": "2026-07-06",
+      "title": "Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual synthetic appellate docket artifact: Mandate.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a13-mandate.pdf",
+      "asset_sha256": "7e2f032d51d648a8cf8e592bf53ff6c5019d9cfebdc95dc74595f2fa8ce75b66",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b01",
+      "entry_number": 51,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B01 - Never Occurred",
+      "filed_on": "2026-04-20",
+      "title": "Counterfactual Order Submitting Appeal on Briefs",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Order Submitting Appeal on Briefs.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b01-on-briefs-submission-order.pdf",
+      "asset_sha256": "d92b34e220e1630d6281dde7f257068d5ee7dc534934b30a8f01267674a8a580",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "entry_number": 52,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B02 - Never Occurred",
+      "filed_on": "2026-05-01",
+      "title": "Counterfactual On-Briefs Panel Opinion",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual On-Briefs Panel Opinion.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b02-on-briefs-panel-opinion.pdf",
+      "asset_sha256": "42923058c93b26da5574fbedb425bbd9a60f33ebe8f658a4848d884e624a1755",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b03",
+      "entry_number": 53,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B03 - Never Occurred",
+      "filed_on": "2026-05-01",
+      "title": "Counterfactual On-Briefs Judgment",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual On-Briefs Judgment.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b03-on-briefs-judgment.pdf",
+      "asset_sha256": "5774c30cbe7d2bc17d34f275c6298d4e950fdc5f25e096fa9358793e0b77c0b4",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b04",
+      "entry_number": 54,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B04 - Tendered but Never Accepted",
+      "filed_on": "2026-06-30",
+      "title": "Counterfactual Day-Late Petition for Panel and En Banc Rehearing",
+      "actor": "Leora Benton (fictional)",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Day-Late Petition for Panel and En Banc Rehearing.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "tendered_not_accepted",
+        "party_filing"
+      ],
+      "asset_path": "objects/b04-day-late-rehearing-petition.pdf",
+      "asset_sha256": "48973cbefb83fd92622087d0e7a697f6021fa320f2cd786d855b50c0a9eb2065",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b05",
+      "entry_number": 55,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B05 - Never Occurred",
+      "filed_on": "2026-06-30",
+      "title": "Counterfactual Clerk Notice Rejecting Untimely Rehearing Petition",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Clerk Notice Rejecting Untimely Rehearing Petition.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b05-untimely-rehearing-rejection.pdf",
+      "asset_sha256": "2d4c9738758f4b3b5aee05f4f4716d962fdeda243cf9ff76aefe60ef2473718c",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b06",
+      "entry_number": 56,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B06 - Never Occurred",
+      "filed_on": "2026-06-25",
+      "title": "Counterfactual Timely Petition for Panel and En Banc Rehearing",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Timely Petition for Panel and En Banc Rehearing.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/b06-timely-rehearing-petition.pdf",
+      "asset_sha256": "cf4e03eb0fcdf6852ab7f7642d924ab14f35048c587dc2399e367de3fd9bc8d4",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b07",
+      "entry_number": 57,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B07 - Never Occurred",
+      "filed_on": "2026-07-01",
+      "title": "Counterfactual Order Denying Rehearing",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Order Denying Rehearing.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b07-rehearing-denial.pdf",
+      "asset_sha256": "2a25439828e2b5574b6976914b1dc7b4fa37415bbbf65eff2434c4a25b6c35c2",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b08",
+      "entry_number": 58,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B08 - Never Occurred",
+      "filed_on": "2026-07-08",
+      "title": "Counterfactual Clerk Order Releasing Mandate After Rehearing Denial",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Clerk Order Releasing Mandate After Rehearing Denial.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b08-mandate-release-after-rehearing.pdf",
+      "asset_sha256": "ca9cecac3f9673d5fe04cb2541987cd3b59a6dcd3d29ed0e82d1342c5a9eb2b2",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b09",
+      "entry_number": 59,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B09 - Never Occurred",
+      "filed_on": "2026-07-08",
+      "title": "Counterfactual Mandate After Rehearing Denial",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Mandate After Rehearing Denial.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b09-mandate-after-rehearing-denial.pdf",
+      "asset_sha256": "c4e3a528018562e0110859d398d1ebcd60fecf35ba5ace96ff3fb54743a7f289",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b10",
+      "entry_number": 60,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B10 - Never Occurred",
+      "filed_on": "2026-07-02",
+      "title": "Counterfactual Motion to Stay Mandate Pending Certiorari",
+      "actor": "Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Motion to Stay Mandate Pending Certiorari.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/b10-motion-stay-mandate.pdf",
+      "asset_sha256": "51a1fa1554916d59c84c259c8604c4ef9e143c9afbc9eda8e65eb0f8bbfe2810",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b11",
+      "entry_number": 61,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B11 - Never Occurred",
+      "filed_on": "2026-07-06",
+      "title": "Counterfactual Order Granting Stay of Mandate",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Order Granting Stay of Mandate.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b11-stay-grant.pdf",
+      "asset_sha256": "65562f2963befd78a36b8f55c6c11d6f4dbe8ee9b8146180070fb170ae37d87d",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b12",
+      "entry_number": 62,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B12 - Never Occurred",
+      "filed_on": "2026-07-15",
+      "title": "Counterfactual Order Dissolving Stay and Releasing Mandate",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Order Dissolving Stay and Releasing Mandate.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b12-stay-dissolution-release.pdf",
+      "asset_sha256": "a0887aafe83035c7e63e31341579de234257723d693e620ee0a5819ecc3add60",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b13",
+      "entry_number": 63,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B13 - Never Occurred",
+      "filed_on": "2026-07-15",
+      "title": "Counterfactual Mandate After Stay Release",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Mandate After Stay Release.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b13-mandate-after-stay.pdf",
+      "asset_sha256": "e23f7b415772e03ad59af7e76ebd60f876cc7f2ac9675bf87e9aa4fb530d3649",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b14",
+      "entry_number": 64,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B14 - Never Occurred",
+      "filed_on": "2026-06-18",
+      "title": "Counterfactual Joint Motion to Shorten Mandate",
+      "actor": "Leora Benton and Blue Cedar Compliance, Inc. (fictional)",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Joint Motion to Shorten Mandate.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/b14-joint-motion-shorten-mandate.pdf",
+      "asset_sha256": "f3418e35e9d9a4197df11b85659140137d7f8829716ff18b894dce58391dc81f",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b15",
+      "entry_number": 65,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B15 - Never Occurred",
+      "filed_on": "2026-06-22",
+      "title": "Counterfactual Order Granting Mandate Shortening",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Order Granting Mandate Shortening.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b15-mandate-shortening-order.pdf",
+      "asset_sha256": "6e81dda69570b9e533caec5ec6b7c8a745c19f677153e1746c2632ed6cb33f78",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b16",
+      "entry_number": 66,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B16 - Never Occurred",
+      "filed_on": "2026-06-22",
+      "title": "Counterfactual Clerk Order Releasing Shortened Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Clerk Order Releasing Shortened Mandate.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b16-shortened-mandate-release-order.pdf",
+      "asset_sha256": "11c54c28a5c4d5ccc9c2b2877ec94f3fe73a10b618c73b99b99794a7a8a56021",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.benton.record.entry.b17",
+      "entry_number": 67,
+      "docket_id": "ca4m4.benton.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B17 - Never Occurred",
+      "filed_on": "2026-06-22",
+      "title": "Counterfactual Shortened Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual, never-occurred appellate artifact: Counterfactual Shortened Mandate.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b17-shortened-mandate.pdf",
+      "asset_sha256": "c7eca026a69eb0d9770cfad7dbe661a4abb4b3a4ef8dd2f24315261c43b7e10f",
+      "page_count": 2,
       "sealed": false
     }
   ],
@@ -2323,6 +2919,768 @@
       "entry_id": "ca4m4.benton.record.entry.certified-docket-record-certificate",
       "page_number": 10,
       "citation_label": "JA262"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa1",
+      "entry_id": "ca4m4.benton.record.entry.a01",
+      "page_number": 1,
+      "citation_label": "PA1"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa2",
+      "entry_id": "ca4m4.benton.record.entry.a01",
+      "page_number": 2,
+      "citation_label": "PA2"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa3",
+      "entry_id": "ca4m4.benton.record.entry.a02",
+      "page_number": 1,
+      "citation_label": "PA3"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa4",
+      "entry_id": "ca4m4.benton.record.entry.a02",
+      "page_number": 2,
+      "citation_label": "PA4"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa5",
+      "entry_id": "ca4m4.benton.record.entry.a02",
+      "page_number": 3,
+      "citation_label": "PA5"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa6",
+      "entry_id": "ca4m4.benton.record.entry.a02",
+      "page_number": 4,
+      "citation_label": "PA6"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa7",
+      "entry_id": "ca4m4.benton.record.entry.a03",
+      "page_number": 1,
+      "citation_label": "PA7"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa8",
+      "entry_id": "ca4m4.benton.record.entry.a03",
+      "page_number": 2,
+      "citation_label": "PA8"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa9",
+      "entry_id": "ca4m4.benton.record.entry.a03",
+      "page_number": 3,
+      "citation_label": "PA9"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa10",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 1,
+      "citation_label": "PA10"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa11",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 2,
+      "citation_label": "PA11"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa12",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 3,
+      "citation_label": "PA12"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa13",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 4,
+      "citation_label": "PA13"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa14",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 5,
+      "citation_label": "PA14"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa15",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 6,
+      "citation_label": "PA15"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa16",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 7,
+      "citation_label": "PA16"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa17",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 8,
+      "citation_label": "PA17"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa18",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 9,
+      "citation_label": "PA18"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa19",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 10,
+      "citation_label": "PA19"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa20",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 11,
+      "citation_label": "PA20"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa21",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 12,
+      "citation_label": "PA21"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa22",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 13,
+      "citation_label": "PA22"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa23",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 14,
+      "citation_label": "PA23"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa24",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 15,
+      "citation_label": "PA24"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa25",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 16,
+      "citation_label": "PA25"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa26",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 17,
+      "citation_label": "PA26"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa27",
+      "entry_id": "ca4m4.benton.record.entry.a04",
+      "page_number": 18,
+      "citation_label": "PA27"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa28",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 1,
+      "citation_label": "PA28"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa29",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 2,
+      "citation_label": "PA29"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa30",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 3,
+      "citation_label": "PA30"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa31",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 4,
+      "citation_label": "PA31"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa32",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 5,
+      "citation_label": "PA32"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa33",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 6,
+      "citation_label": "PA33"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa34",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 7,
+      "citation_label": "PA34"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa35",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 8,
+      "citation_label": "PA35"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa36",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 9,
+      "citation_label": "PA36"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa37",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 10,
+      "citation_label": "PA37"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa38",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 11,
+      "citation_label": "PA38"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa39",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 12,
+      "citation_label": "PA39"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa40",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 13,
+      "citation_label": "PA40"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa41",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 14,
+      "citation_label": "PA41"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa42",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 15,
+      "citation_label": "PA42"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa43",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 16,
+      "citation_label": "PA43"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa44",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 17,
+      "citation_label": "PA44"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa45",
+      "entry_id": "ca4m4.benton.record.entry.a05",
+      "page_number": 18,
+      "citation_label": "PA45"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa46",
+      "entry_id": "ca4m4.benton.record.entry.a06",
+      "page_number": 1,
+      "citation_label": "PA46"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa47",
+      "entry_id": "ca4m4.benton.record.entry.a07",
+      "page_number": 1,
+      "citation_label": "PA47"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa48",
+      "entry_id": "ca4m4.benton.record.entry.a07",
+      "page_number": 2,
+      "citation_label": "PA48"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa49",
+      "entry_id": "ca4m4.benton.record.entry.a08",
+      "page_number": 1,
+      "citation_label": "PA49"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa50",
+      "entry_id": "ca4m4.benton.record.entry.a08",
+      "page_number": 2,
+      "citation_label": "PA50"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa51",
+      "entry_id": "ca4m4.benton.record.entry.a09",
+      "page_number": 1,
+      "citation_label": "PA51"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa52",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 1,
+      "citation_label": "PA52"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa53",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 2,
+      "citation_label": "PA53"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa54",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 3,
+      "citation_label": "PA54"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa55",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 4,
+      "citation_label": "PA55"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa56",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 5,
+      "citation_label": "PA56"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa57",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 6,
+      "citation_label": "PA57"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa58",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 7,
+      "citation_label": "PA58"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa59",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 8,
+      "citation_label": "PA59"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa60",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 9,
+      "citation_label": "PA60"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa61",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 10,
+      "citation_label": "PA61"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa62",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 11,
+      "citation_label": "PA62"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa63",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 12,
+      "citation_label": "PA63"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa64",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 13,
+      "citation_label": "PA64"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa65",
+      "entry_id": "ca4m4.benton.record.entry.a10",
+      "page_number": 14,
+      "citation_label": "PA65"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa66",
+      "entry_id": "ca4m4.benton.record.entry.a11",
+      "page_number": 1,
+      "citation_label": "PA66"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa67",
+      "entry_id": "ca4m4.benton.record.entry.a11",
+      "page_number": 2,
+      "citation_label": "PA67"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa68",
+      "entry_id": "ca4m4.benton.record.entry.a12",
+      "page_number": 1,
+      "citation_label": "PA68"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa69",
+      "entry_id": "ca4m4.benton.record.entry.a13",
+      "page_number": 1,
+      "citation_label": "PA69"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa70",
+      "entry_id": "ca4m4.benton.record.entry.a13",
+      "page_number": 2,
+      "citation_label": "PA70"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa71",
+      "entry_id": "ca4m4.benton.record.entry.b01",
+      "page_number": 1,
+      "citation_label": "PA71"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa72",
+      "entry_id": "ca4m4.benton.record.entry.b01",
+      "page_number": 2,
+      "citation_label": "PA72"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa73",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 1,
+      "citation_label": "PA73"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa74",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 2,
+      "citation_label": "PA74"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa75",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 3,
+      "citation_label": "PA75"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa76",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 4,
+      "citation_label": "PA76"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa77",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 5,
+      "citation_label": "PA77"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa78",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 6,
+      "citation_label": "PA78"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa79",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 7,
+      "citation_label": "PA79"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa80",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 8,
+      "citation_label": "PA80"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa81",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 9,
+      "citation_label": "PA81"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa82",
+      "entry_id": "ca4m4.benton.record.entry.b02",
+      "page_number": 10,
+      "citation_label": "PA82"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa83",
+      "entry_id": "ca4m4.benton.record.entry.b03",
+      "page_number": 1,
+      "citation_label": "PA83"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa84",
+      "entry_id": "ca4m4.benton.record.entry.b03",
+      "page_number": 2,
+      "citation_label": "PA84"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa85",
+      "entry_id": "ca4m4.benton.record.entry.b04",
+      "page_number": 1,
+      "citation_label": "PA85"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa86",
+      "entry_id": "ca4m4.benton.record.entry.b04",
+      "page_number": 2,
+      "citation_label": "PA86"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa87",
+      "entry_id": "ca4m4.benton.record.entry.b04",
+      "page_number": 3,
+      "citation_label": "PA87"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa88",
+      "entry_id": "ca4m4.benton.record.entry.b04",
+      "page_number": 4,
+      "citation_label": "PA88"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa89",
+      "entry_id": "ca4m4.benton.record.entry.b04",
+      "page_number": 5,
+      "citation_label": "PA89"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa90",
+      "entry_id": "ca4m4.benton.record.entry.b04",
+      "page_number": 6,
+      "citation_label": "PA90"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa91",
+      "entry_id": "ca4m4.benton.record.entry.b04",
+      "page_number": 7,
+      "citation_label": "PA91"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa92",
+      "entry_id": "ca4m4.benton.record.entry.b04",
+      "page_number": 8,
+      "citation_label": "PA92"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa93",
+      "entry_id": "ca4m4.benton.record.entry.b05",
+      "page_number": 1,
+      "citation_label": "PA93"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa94",
+      "entry_id": "ca4m4.benton.record.entry.b05",
+      "page_number": 2,
+      "citation_label": "PA94"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa95",
+      "entry_id": "ca4m4.benton.record.entry.b06",
+      "page_number": 1,
+      "citation_label": "PA95"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa96",
+      "entry_id": "ca4m4.benton.record.entry.b06",
+      "page_number": 2,
+      "citation_label": "PA96"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa97",
+      "entry_id": "ca4m4.benton.record.entry.b06",
+      "page_number": 3,
+      "citation_label": "PA97"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa98",
+      "entry_id": "ca4m4.benton.record.entry.b06",
+      "page_number": 4,
+      "citation_label": "PA98"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa99",
+      "entry_id": "ca4m4.benton.record.entry.b06",
+      "page_number": 5,
+      "citation_label": "PA99"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa100",
+      "entry_id": "ca4m4.benton.record.entry.b06",
+      "page_number": 6,
+      "citation_label": "PA100"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa101",
+      "entry_id": "ca4m4.benton.record.entry.b06",
+      "page_number": 7,
+      "citation_label": "PA101"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa102",
+      "entry_id": "ca4m4.benton.record.entry.b06",
+      "page_number": 8,
+      "citation_label": "PA102"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa103",
+      "entry_id": "ca4m4.benton.record.entry.b07",
+      "page_number": 1,
+      "citation_label": "PA103"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa104",
+      "entry_id": "ca4m4.benton.record.entry.b07",
+      "page_number": 2,
+      "citation_label": "PA104"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa105",
+      "entry_id": "ca4m4.benton.record.entry.b08",
+      "page_number": 1,
+      "citation_label": "PA105"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa106",
+      "entry_id": "ca4m4.benton.record.entry.b09",
+      "page_number": 1,
+      "citation_label": "PA106"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa107",
+      "entry_id": "ca4m4.benton.record.entry.b09",
+      "page_number": 2,
+      "citation_label": "PA107"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa108",
+      "entry_id": "ca4m4.benton.record.entry.b10",
+      "page_number": 1,
+      "citation_label": "PA108"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa109",
+      "entry_id": "ca4m4.benton.record.entry.b10",
+      "page_number": 2,
+      "citation_label": "PA109"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa110",
+      "entry_id": "ca4m4.benton.record.entry.b10",
+      "page_number": 3,
+      "citation_label": "PA110"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa111",
+      "entry_id": "ca4m4.benton.record.entry.b10",
+      "page_number": 4,
+      "citation_label": "PA111"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa112",
+      "entry_id": "ca4m4.benton.record.entry.b10",
+      "page_number": 5,
+      "citation_label": "PA112"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa113",
+      "entry_id": "ca4m4.benton.record.entry.b11",
+      "page_number": 1,
+      "citation_label": "PA113"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa114",
+      "entry_id": "ca4m4.benton.record.entry.b11",
+      "page_number": 2,
+      "citation_label": "PA114"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa115",
+      "entry_id": "ca4m4.benton.record.entry.b12",
+      "page_number": 1,
+      "citation_label": "PA115"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa116",
+      "entry_id": "ca4m4.benton.record.entry.b12",
+      "page_number": 2,
+      "citation_label": "PA116"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa117",
+      "entry_id": "ca4m4.benton.record.entry.b13",
+      "page_number": 1,
+      "citation_label": "PA117"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa118",
+      "entry_id": "ca4m4.benton.record.entry.b13",
+      "page_number": 2,
+      "citation_label": "PA118"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa119",
+      "entry_id": "ca4m4.benton.record.entry.b14",
+      "page_number": 1,
+      "citation_label": "PA119"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa120",
+      "entry_id": "ca4m4.benton.record.entry.b14",
+      "page_number": 2,
+      "citation_label": "PA120"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa121",
+      "entry_id": "ca4m4.benton.record.entry.b14",
+      "page_number": 3,
+      "citation_label": "PA121"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa122",
+      "entry_id": "ca4m4.benton.record.entry.b14",
+      "page_number": 4,
+      "citation_label": "PA122"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa123",
+      "entry_id": "ca4m4.benton.record.entry.b15",
+      "page_number": 1,
+      "citation_label": "PA123"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa124",
+      "entry_id": "ca4m4.benton.record.entry.b15",
+      "page_number": 2,
+      "citation_label": "PA124"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa125",
+      "entry_id": "ca4m4.benton.record.entry.b16",
+      "page_number": 1,
+      "citation_label": "PA125"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa126",
+      "entry_id": "ca4m4.benton.record.entry.b17",
+      "page_number": 1,
+      "citation_label": "PA126"
+    },
+    {
+      "anchor_id": "ca4m4.benton.anchor.pa127",
+      "entry_id": "ca4m4.benton.record.entry.b17",
+      "page_number": 2,
+      "citation_label": "PA127"
     }
   ]
 }

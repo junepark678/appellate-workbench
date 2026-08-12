@@ -35,6 +35,9 @@
     {
       "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
       "title": "Whether the admitted record permits a reasonable factfinder to find protected activity, decisionmaker knowledge, pretext, and but-for causation",
+      "target_ids": [
+        "ca4m4.benton.target.retaliation-summary-judgment"
+      ],
       "authority_ids": [
         "ca4m4.benton.authority.title-vii-retaliation",
         "ca4m4.benton.authority.foster-framework",
@@ -106,12 +109,16 @@
         "ca4m4.benton.anchor.ja244",
         "ca4m4.benton.anchor.ja245",
         "ca4m4.benton.anchor.ja246",
-        "ca4m4.benton.anchor.ja247"
+        "ca4m4.benton.anchor.ja247",
+        "ca4m4.benton.anchor.ja248"
       ]
     },
     {
       "issue_id": "ca4m4.benton.issue.late-comparator-declaration-exclusion",
-      "title": "Whether the district court abused its discretion by narrowly excluding the late Wynn declaration under Rules 26 and 37",
+      "title": "Whether the district court abused its discretion by excluding Wynn's materially new March 7 statement under Rules 26(a)(1)(A)(i), 26(e)(1), and 37(c)(1)",
+      "target_ids": [
+        "ca4m4.benton.target.wynn-declaration-exclusion"
+      ],
       "authority_ids": [
         "ca4m4.benton.authority.frcp-26e-supplementation",
         "ca4m4.benton.authority.frcp-37c1-nondisclosure",
@@ -150,5 +157,196 @@
       ]
     }
   ],
+  "disposition_plans": [
+    {
+      "plan_id": "ca4m4.benton.disposition.authored",
+      "finality": "final",
+      "digest": "40fd60e4fe24ddcbecfd61d72a39db361c2aebc82601521082d2e2e0e472b51e",
+      "components": [
+        {
+          "issue_id": "ca4m4.benton.issue.late-comparator-declaration-exclusion",
+          "target_id": "ca4m4.benton.target.wynn-declaration-exclusion",
+          "scope": "whole",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.benton.authority.frcp-26e-supplementation",
+            "ca4m4.benton.authority.frcp-37c1-nondisclosure",
+            "ca4m4.benton.authority.benjamin-disclosure-sanction"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.benton.anchor.ja21",
+            "ca4m4.benton.anchor.ja23",
+            "ca4m4.benton.anchor.ja24",
+            "ca4m4.benton.anchor.ja28",
+            "ca4m4.benton.anchor.ja29",
+            "ca4m4.benton.anchor.ja30",
+            "ca4m4.benton.anchor.ja34",
+            "ca4m4.benton.anchor.ja136",
+            "ca4m4.benton.anchor.ja140",
+            "ca4m4.benton.anchor.ja145",
+            "ca4m4.benton.anchor.ja194",
+            "ca4m4.benton.anchor.ja195",
+            "ca4m4.benton.anchor.ja222",
+            "ca4m4.benton.anchor.ja223",
+            "ca4m4.benton.anchor.ja224",
+            "ca4m4.benton.anchor.ja225",
+            "ca4m4.benton.anchor.ja226",
+            "ca4m4.benton.anchor.ja227",
+            "ca4m4.benton.anchor.ja228",
+            "ca4m4.benton.anchor.ja229",
+            "ca4m4.benton.anchor.ja230",
+            "ca4m4.benton.anchor.ja231",
+            "ca4m4.benton.anchor.ja232",
+            "ca4m4.benton.anchor.ja233",
+            "ca4m4.benton.anchor.ja234",
+            "ca4m4.benton.anchor.ja235",
+            "ca4m4.benton.anchor.ja237"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+          "target_id": "ca4m4.benton.target.retaliation-summary-judgment",
+          "scope": "whole",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.benton.authority.title-vii-retaliation",
+            "ca4m4.benton.authority.foster-framework",
+            "ca4m4.benton.authority.foster-pretext",
+            "ca4m4.benton.authority.frcp-56-summary-judgment"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.benton.anchor.ja58",
+            "ca4m4.benton.anchor.ja64",
+            "ca4m4.benton.anchor.ja68",
+            "ca4m4.benton.anchor.ja70",
+            "ca4m4.benton.anchor.ja72",
+            "ca4m4.benton.anchor.ja82",
+            "ca4m4.benton.anchor.ja88",
+            "ca4m4.benton.anchor.ja91",
+            "ca4m4.benton.anchor.ja93",
+            "ca4m4.benton.anchor.ja96",
+            "ca4m4.benton.anchor.ja103",
+            "ca4m4.benton.anchor.ja118",
+            "ca4m4.benton.anchor.ja120",
+            "ca4m4.benton.anchor.ja121",
+            "ca4m4.benton.anchor.ja122",
+            "ca4m4.benton.anchor.ja146",
+            "ca4m4.benton.anchor.ja166",
+            "ca4m4.benton.anchor.ja188",
+            "ca4m4.benton.anchor.ja189",
+            "ca4m4.benton.anchor.ja190",
+            "ca4m4.benton.anchor.ja191",
+            "ca4m4.benton.anchor.ja192",
+            "ca4m4.benton.anchor.ja193",
+            "ca4m4.benton.anchor.ja217",
+            "ca4m4.benton.anchor.ja218",
+            "ca4m4.benton.anchor.ja219",
+            "ca4m4.benton.anchor.ja220",
+            "ca4m4.benton.anchor.ja221",
+            "ca4m4.benton.anchor.ja236",
+            "ca4m4.benton.anchor.ja247",
+            "ca4m4.benton.anchor.ja248"
+          ]
+        }
+      ]
+    },
+    {
+      "plan_id": "ca4m4.benton.disposition.counterfactual-adverse",
+      "finality": "final",
+      "digest": "5a9f06407f6e82dc194f9ba74335573c600cb44a2b9dd5215dc84f90379b819b",
+      "components": [
+        {
+          "issue_id": "ca4m4.benton.issue.late-comparator-declaration-exclusion",
+          "target_id": "ca4m4.benton.target.wynn-declaration-exclusion",
+          "scope": "whole",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.benton.authority.frcp-26e-supplementation",
+            "ca4m4.benton.authority.frcp-37c1-nondisclosure",
+            "ca4m4.benton.authority.benjamin-disclosure-sanction"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.benton.anchor.ja21",
+            "ca4m4.benton.anchor.ja23",
+            "ca4m4.benton.anchor.ja24",
+            "ca4m4.benton.anchor.ja28",
+            "ca4m4.benton.anchor.ja29",
+            "ca4m4.benton.anchor.ja30",
+            "ca4m4.benton.anchor.ja34",
+            "ca4m4.benton.anchor.ja136",
+            "ca4m4.benton.anchor.ja140",
+            "ca4m4.benton.anchor.ja145",
+            "ca4m4.benton.anchor.ja194",
+            "ca4m4.benton.anchor.ja195",
+            "ca4m4.benton.anchor.ja222",
+            "ca4m4.benton.anchor.ja223",
+            "ca4m4.benton.anchor.ja224",
+            "ca4m4.benton.anchor.ja225",
+            "ca4m4.benton.anchor.ja226",
+            "ca4m4.benton.anchor.ja227",
+            "ca4m4.benton.anchor.ja228",
+            "ca4m4.benton.anchor.ja229",
+            "ca4m4.benton.anchor.ja230",
+            "ca4m4.benton.anchor.ja231",
+            "ca4m4.benton.anchor.ja232",
+            "ca4m4.benton.anchor.ja233",
+            "ca4m4.benton.anchor.ja234",
+            "ca4m4.benton.anchor.ja235",
+            "ca4m4.benton.anchor.ja237"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.benton.issue.retaliation-summary-judgment",
+          "target_id": "ca4m4.benton.target.retaliation-summary-judgment",
+          "scope": "whole",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.benton.authority.title-vii-retaliation",
+            "ca4m4.benton.authority.foster-framework",
+            "ca4m4.benton.authority.foster-pretext",
+            "ca4m4.benton.authority.frcp-56-summary-judgment"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.benton.anchor.ja42",
+            "ca4m4.benton.anchor.ja44",
+            "ca4m4.benton.anchor.ja68",
+            "ca4m4.benton.anchor.ja70",
+            "ca4m4.benton.anchor.ja72",
+            "ca4m4.benton.anchor.ja82",
+            "ca4m4.benton.anchor.ja88",
+            "ca4m4.benton.anchor.ja93",
+            "ca4m4.benton.anchor.ja96",
+            "ca4m4.benton.anchor.ja103",
+            "ca4m4.benton.anchor.ja118",
+            "ca4m4.benton.anchor.ja120",
+            "ca4m4.benton.anchor.ja122",
+            "ca4m4.benton.anchor.ja124",
+            "ca4m4.benton.anchor.ja125",
+            "ca4m4.benton.anchor.ja132",
+            "ca4m4.benton.anchor.ja146",
+            "ca4m4.benton.anchor.ja166",
+            "ca4m4.benton.anchor.ja217",
+            "ca4m4.benton.anchor.ja218",
+            "ca4m4.benton.anchor.ja219",
+            "ca4m4.benton.anchor.ja220",
+            "ca4m4.benton.anchor.ja221",
+            "ca4m4.benton.anchor.ja236",
+            "ca4m4.benton.anchor.ja242",
+            "ca4m4.benton.anchor.ja243",
+            "ca4m4.benton.anchor.ja244",
+            "ca4m4.benton.anchor.ja245",
+            "ca4m4.benton.anchor.ja246",
+            "ca4m4.benton.anchor.ja247",
+            "ca4m4.benton.anchor.ja248"
+          ]
+        }
+      ]
+    }
+  ],
+  "authored_disposition_plan_id": "ca4m4.benton.disposition.authored",
   "authored_disposition_id": "ca4m4.benton.operation.issue-judgment"
 }

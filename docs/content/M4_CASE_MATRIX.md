@@ -35,6 +35,12 @@ record is 18 PDFs/238 AR pages, satisfying the 18-PDF/220-page floor, while its 
 appellate docket (with PA1–PA8 still extra-record), and PA128–PA177 is an isolated, never-filed
 counterfactual bank.
 
+The finalized Benton `1.2.0` candidate follows the same counting rule. Its lower-court record
+remains 37 PDFs/262 JA pages, satisfying the 37-PDF/260-page floor, while its complete root is
+67 PDFs/389 pages after adding 13 actual appellate PDFs/70 PA pages and 17 separately docketed,
+counterfactual PDFs/57 PA pages. The PA71–PA127 documents never occurred on the actual appeal and
+do not change the frozen 283-PDF lower-tribunal/certified-agency breadth total.
+
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
 records are fictional. Simulated docket numbers begin `SYN-`. Real courts, sovereigns, and
@@ -73,8 +79,10 @@ Reusable fictional/composite profiles are Alder (clipped/direct), Rowan
 - **Argument:** but-for causation in the pretext framework, comparator similarity, the record
   remaining after exclusion, and relief. Counterfactual: no decisionmaker knowledge.
 - **Disposition:** affirm exclusion; vacate retaliation summary judgment; remand.
-- **Limits:** packs author fixed facts and outcomes. Automatic inference of protected activity,
-  comparator similarity, knowledge, or pretext is outside issues #23–#28.
+- **Limits:** exact role subsets, instance predicates, document bindings, disposition-plan
+  bindings, and replay enforce the authored actual and adverse branches. The engine still does
+  not infer protected activity, comparator similarity, knowledge, pretext, the legal meaning of a
+  novel filing, or a clerk-versus-panel classification within the shared court role.
 
 ### 2. Asterglen finality — `ca4r54b.case.asterglen`
 
@@ -150,8 +158,10 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
   segregability, 7(F), and least-restrictive sealing.
 - **Disposition:** affirm 7(E) for operational decision trees; vacate categorical 7(F),
   segregability, and overbroad-sealing rulings; remand.
-- **Release blocker:** public/sealed twin lifecycle, per-document access control, and seal-motion
-  behavior are beyond #23–#28. This case cannot earn level-2 confidentiality evidence first.
+- **Confidentiality boundary:** public/sealed twins, per-document session grants, revocation,
+  stable-anchor projection, deferred CAS verification, and seal-motion deficiencies are now
+  implemented by `workbench.pack.sealed-record-twins@1`. Open Grid still must author and replay
+  those exact policies before it can claim level-2 confidentiality evidence.
 
 ### 7. Serrano waiver — `ca4m4.case.serrano-waiver`
 
@@ -166,7 +176,8 @@ Slate presides with Alder and March.
   produces dismissal. The waiver motion dismisses only the enhancement target.
 - **Disposition:** dismiss the enhancement appeal under the waiver; vacate sentence and remand
   for resentencing with allocution.
-- **Release blocker:** realistic PSR confidentiality requires per-document access control.
+- **Confidentiality boundary:** realistic PSR treatment must use and replay the implemented
+  `workbench.pack.sealed-record-twins@1` policy; the Serrano pack has not authored that evidence.
 
 ### 8. A.R.M. agency review — `ca4m4.case.arm-agency`
 
@@ -245,6 +256,12 @@ The A.R.M. `1.2.0` root currently records level 2 in every dimension with exact 
 packs, 44 non-review resources, 54 blobs, seven traces, two record checks, and 32 authorities.
 Its state is `independent_review_pending`, so it remains the agency gold candidate rather than the
 agency gold pack.
+
+The Benton `1.2.0` root currently records level 2 in every dimension with exact closure over four
+packs, 44 non-review resources, 67 blobs, seven traces, two record checks, and 28 authorities.
+Its 148 unique non-pack evidence IDs remain bound to an `independent_review_pending` root review.
+Benton is therefore an installable non-gold civil authoring candidate; Asterglen retains the civil
+gold-candidate designation.
 
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and

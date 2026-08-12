@@ -1,338 +1,549 @@
 {
-  "schema_version": 2,
-  "pack_id": "us.ca4.m4.benton-retaliation",
-  "version": "1.1.0",
-  "required_capabilities": [
-    {
-      "id": "workbench.pack.declarative-resources",
-      "version": 2
-    },
-    {
-      "id": "workbench.pack.canonical-authority",
-      "version": 1
-    },
-    {
-      "id": "workbench.pack.workflow-preconditions",
-      "version": 1
-    },
-    {
-      "id": "workbench.pack.dependent-deadlines",
-      "version": 1
-    },
-    {
-      "id": "workbench.pack.named-deadlines",
-      "version": 1
-    },
-    {
-      "id": "workbench.pack.event-date-deadlines",
-      "version": 1
-    },
-    {
-      "id": "workbench.pack.argument-date-guards",
-      "version": 1
-    },
-    {
-      "id": "workbench.pack.grounded-questions",
-      "version": 1
-    }
-  ],
-  "dependencies": [
-    {
-      "pack_id": "foundation.us-federal",
-      "version": "2025.12.01",
-      "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9"
-    },
-    {
-      "pack_id": "foundation.us-ca4",
-      "version": "2026.03.23",
-      "sha256": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262"
-    },
-    {
-      "pack_id": "foundation.us-ca4-fictional-bench",
-      "version": "1.0.0",
-      "sha256": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d"
-    }
-  ],
-  "blobs": [
-    {
-      "path": "objects/01-complaint.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 44357,
-      "sha256": "b3cffb233c293c107f33107f49fbf41db8e544aee4b146caab01b9f0a6802242"
-    },
-    {
-      "path": "objects/02-answer.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 33118,
-      "sha256": "485edb096f79451809f23672f4d7d819cd2e4c41a04d397819929074b73f6698"
-    },
-    {
-      "path": "objects/03-rule-26-report.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 27911,
-      "sha256": "37b127979c200b9e15c3fc487835bbb8ede8382897f9c75a0dca38926a0e4fdf"
-    },
-    {
-      "path": "objects/04-benton-disclosures.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 29625,
-      "sha256": "14a85104c5b8b8219957b64fa4e2abccb9d975e6701571db979ef3fe9bb6d714"
-    },
-    {
-      "path": "objects/05-blue-cedar-disclosures.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 27484,
-      "sha256": "4bcf56de9cc0a92ab0a8ad42bd7778fe024e75f7f0d2d1e920b8549f451be774"
-    },
-    {
-      "path": "objects/06-eeoc-charge.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 28950,
-      "sha256": "edb382280d303a9b78a530aaba330ecc821a3428f231481cd0d209bd0b41c941"
-    },
-    {
-      "path": "objects/07-eeoc-position.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 30883,
-      "sha256": "6d9d2e6044550596964183b71b120570f1b3fb8ad0683864be60e4c9bb7ef523"
-    },
-    {
-      "path": "objects/08-eeoc-notice-right-to-sue.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 23901,
-      "sha256": "fc55134bed254a1dd96624f49363ad377ef63600ab5716a53a4321e9b2716a3b"
-    },
-    {
-      "path": "objects/09-policies-rif-protocol.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 36859,
-      "sha256": "515b6b22f0d443c04cd35abcf863d06add6234fd62117564e08606b8d8388e0b"
-    },
-    {
-      "path": "objects/10-opposition-emails.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 28050,
-      "sha256": "6e02930185e3d70ae596844581f2efbd21ab7933953f7233509f312452b0abc1"
-    },
-    {
-      "path": "objects/11-eeoc-acknowledgments.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 23426,
-      "sha256": "7cdb4376eb92dc9ff1fdbc700e5c71a4f03c8c309aed8b1927901bc417966928"
-    },
-    {
-      "path": "objects/12-rif-workbook.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 36468,
-      "sha256": "0e36eb310f80e1fbd33b0525a6176e3e09280fc05da20c9608b54141df4de6c9"
-    },
-    {
-      "path": "objects/13-comparator-scorecards.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 35939,
-      "sha256": "917227fb1151ba0ca13c7d60def844c907a1939498732f1892c3a93cf36e2fee"
-    },
-    {
-      "path": "objects/14-calibration-minutes.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 28045,
-      "sha256": "0cedbe9753d5e619fa8d1cec03a544677f0a3d215c45fb16429e93525e2a829b"
-    },
-    {
-      "path": "objects/15-explanation-communications.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 29964,
-      "sha256": "2bb66986ed0b3fa29cdedba2edc218144d3a06da991f7323899f6d7e2aebbd33"
-    },
-    {
-      "path": "objects/16-performance-metrics.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 31880,
-      "sha256": "fc538397e57768915638c4924b55b3d18873775fa663598b7d6cca8891cff4bc"
-    },
-    {
-      "path": "objects/17-headcount-ledger.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 34240,
-      "sha256": "90e043d7ccc3bdf13f9156912d01bec8f80740d9c338ae82d2bd2238f6d7fb05"
-    },
-    {
-      "path": "objects/18-benton-deposition.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 38765,
-      "sha256": "261607e0b7cef29ac12c77620a4bd3b58c1826b20af27e20b433c2e8ecc77a47"
-    },
-    {
-      "path": "objects/19-pike-deposition.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 39023,
-      "sha256": "26c56da8a9098722e1932f816604f690330d48d9ae1936fac75af5025d6ce4df"
-    },
-    {
-      "path": "objects/20-solis-deposition.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 44500,
-      "sha256": "5d12e3166d1f71ed770cbf3b55f165383dabfa2ab0424f0627131f7ff073c3fa"
-    },
-    {
-      "path": "objects/21-wynn-deposition.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 42826,
-      "sha256": "085b7707ace592d949fa2f978151a1283eb644b829820e944f7709a724b7dce2"
-    },
-    {
-      "path": "objects/22-ibarra-deposition.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 42660,
-      "sha256": "d0dc18408639a7322902ee19abefc666d19912284de50284f46f91543695bba1"
-    },
-    {
-      "path": "objects/23-voss-deposition.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 43445,
-      "sha256": "feb915d99c9a0d4261d76f34f3defeef8a331f701f4bc243f4aabcd3c735d489"
-    },
-    {
-      "path": "objects/24-blue-cedar-30b6-deposition.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 44824,
-      "sha256": "ca2157694d54aeca2d2501712a90dd740c32cee4fd6ac2398ef6d6962707fb57"
-    },
-    {
-      "path": "objects/25-blue-cedar-summary-judgment.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 47728,
-      "sha256": "059fadabb8a7a3be2a76a4fd96bb589fd972fc3389baa68a7ac8c2039a6a59ee"
-    },
-    {
-      "path": "objects/26-benton-summary-judgment-opposition.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 48182,
-      "sha256": "707f8be1e84180e606a6e25b786c069b4b37097b1b0a71ade11b86cb9ced4e7e"
-    },
-    {
-      "path": "objects/27-blue-cedar-summary-judgment-reply.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 36135,
-      "sha256": "f2185ee3ba44aafefcce5407386ae4c2b7e0e39500ac713831df4d25122e0c9b"
-    },
-    {
-      "path": "objects/28-benton-disputed-facts.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 41699,
-      "sha256": "164060451f39e010b66b2e2dd658ffc2db2150cd08a319125365a70b6a65391e"
-    },
-    {
-      "path": "objects/29-blue-cedar-undisputed-facts.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 38450,
-      "sha256": "7e4f4ac7d06f48f50ac64809f263e7a51e9afc32be727d9896bfca392ce28db2"
-    },
-    {
-      "path": "objects/30-joint-causation-chart.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 41336,
-      "sha256": "224f1bafa8a7f6681169b5d25310acf2fecbcd8962a9ed32006ba1dd85f5089f"
-    },
-    {
-      "path": "objects/31-motion-to-exclude-wynn-declaration.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 34090,
-      "sha256": "76f33baa79c46d0623708251a247ac808cf6cbe34aecd6470e48ac8391104e19"
-    },
-    {
-      "path": "objects/32-opposition-wynn-declaration-proffer.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 31411,
-      "sha256": "9ae1b0df5a8f838d9978fa619f4af9157ebc4f015098e5e50fbd3dd130eaf81e"
-    },
-    {
-      "path": "objects/33-order-excluding-wynn-declaration.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 33165,
-      "sha256": "c78e9a751044faf8dacbf677e0a5410949745f632e0a3c4b42decf65407e929d"
-    },
-    {
-      "path": "objects/34-summary-judgment-opinion.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 56721,
-      "sha256": "7839f0b00618f1f6c2ad26317ee8f1bd0886da8e5d5651624cc1e085f74da35d"
-    },
-    {
-      "path": "objects/35-final-judgment.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 21540,
-      "sha256": "8477dc5f05ab8be5c13f8b3dd0c55392ccee7a53a29ea974b58732b42534d171"
-    },
-    {
-      "path": "objects/36-notice-of-appeal.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 24387,
-      "sha256": "3e75e87fd04fd52e35865085dbd2f13c48c0f92e92354c34eb8ba30c09432012"
-    },
-    {
-      "path": "objects/37-certified-docket-record-certificate.pdf",
-      "media_type": "application/pdf",
-      "byte_size": 50778,
-      "sha256": "9b2ffb64c9501150c71f2bf5ef5fef5ca303ddc271339c23bcc43559ea612e78"
-    }
-  ],
-  "contents": [
-    {
-      "id": "ca4m4.benton.argument.actual-record",
-      "kind": "argument_config",
-      "schema_version": 2,
-      "path": "resources/argument-actual.json",
-      "sha256": "e94722292d299b58fa4fc092d2accd7b39bffa72e90a92174f116caa318bf9a5"
-    },
-    {
-      "id": "ca4m4.benton.argument.no-knowledge-counterfactual",
-      "kind": "argument_config",
-      "schema_version": 2,
-      "path": "resources/argument-counterfactual.json",
-      "sha256": "3f4ddb59dc6d2e5c0632f2816dc9fca064dc73cda8e95aef18d570e13ab9f3c8"
-    },
-    {
-      "id": "ca4m4.benton.authorities.case-specific",
-      "kind": "authority_set",
-      "schema_version": 2,
-      "path": "resources/authority-set.json",
-      "sha256": "d7edaf4d0b369e770cfd8752e79f37b5f210533a64195450dd9789abd07dc530"
-    },
-    {
-      "id": "ca4m4.benton.bench.three-judge",
-      "kind": "bench_configuration",
-      "schema_version": 2,
-      "path": "resources/bench-configuration.json",
-      "sha256": "6aaedb3861e354a89ac3182416e95cdf5a60caefe74f92ae43f476f6544fd92c"
-    },
-    {
-      "id": "ca4m4.benton.procedure.civil-appeal",
-      "kind": "procedure_profile",
-      "schema_version": 2,
-      "path": "resources/procedure-profile.json",
-      "sha256": "2f2103dce14ac072302f539624a9deda9292703c039f409f457cd5209bfa4882"
-    },
-    {
-      "id": "ca4m4.benton.record",
-      "kind": "record",
-      "schema_version": 2,
-      "path": "resources/record.json",
-      "sha256": "8fda2aa91a3c712b81b127adf2d216cab4b57a7e466c198a3a4aa227f7702a4e"
-    },
-    {
-      "id": "ca4m4.benton.workflow.civil-appeal",
-      "kind": "workflow",
-      "schema_version": 2,
-      "path": "resources/workflow.json",
-      "sha256": "abdab61fb7bc12bfa87729e348f8f6fdd0ad460645199afbea3939d3160c5276"
-    },
-    {
-      "id": "ca4m4.case.benton-retaliation",
-      "kind": "case",
-      "schema_version": 2,
-      "path": "resources/case.json",
-      "sha256": "c10fe4a203946c75319d4078964b04d997d0f8ea76d460e1883bbc7dd52c7906"
-    }
-  ]
+    "blobs": [
+        {
+            "byte_size": 44357,
+            "media_type": "application/pdf",
+            "path": "objects/01-complaint.pdf",
+            "sha256": "b3cffb233c293c107f33107f49fbf41db8e544aee4b146caab01b9f0a6802242"
+        },
+        {
+            "byte_size": 33118,
+            "media_type": "application/pdf",
+            "path": "objects/02-answer.pdf",
+            "sha256": "485edb096f79451809f23672f4d7d819cd2e4c41a04d397819929074b73f6698"
+        },
+        {
+            "byte_size": 27911,
+            "media_type": "application/pdf",
+            "path": "objects/03-rule-26-report.pdf",
+            "sha256": "37b127979c200b9e15c3fc487835bbb8ede8382897f9c75a0dca38926a0e4fdf"
+        },
+        {
+            "byte_size": 29625,
+            "media_type": "application/pdf",
+            "path": "objects/04-benton-disclosures.pdf",
+            "sha256": "14a85104c5b8b8219957b64fa4e2abccb9d975e6701571db979ef3fe9bb6d714"
+        },
+        {
+            "byte_size": 27484,
+            "media_type": "application/pdf",
+            "path": "objects/05-blue-cedar-disclosures.pdf",
+            "sha256": "4bcf56de9cc0a92ab0a8ad42bd7778fe024e75f7f0d2d1e920b8549f451be774"
+        },
+        {
+            "byte_size": 28950,
+            "media_type": "application/pdf",
+            "path": "objects/06-eeoc-charge.pdf",
+            "sha256": "edb382280d303a9b78a530aaba330ecc821a3428f231481cd0d209bd0b41c941"
+        },
+        {
+            "byte_size": 30883,
+            "media_type": "application/pdf",
+            "path": "objects/07-eeoc-position.pdf",
+            "sha256": "6d9d2e6044550596964183b71b120570f1b3fb8ad0683864be60e4c9bb7ef523"
+        },
+        {
+            "byte_size": 23901,
+            "media_type": "application/pdf",
+            "path": "objects/08-eeoc-notice-right-to-sue.pdf",
+            "sha256": "fc55134bed254a1dd96624f49363ad377ef63600ab5716a53a4321e9b2716a3b"
+        },
+        {
+            "byte_size": 36859,
+            "media_type": "application/pdf",
+            "path": "objects/09-policies-rif-protocol.pdf",
+            "sha256": "515b6b22f0d443c04cd35abcf863d06add6234fd62117564e08606b8d8388e0b"
+        },
+        {
+            "byte_size": 28050,
+            "media_type": "application/pdf",
+            "path": "objects/10-opposition-emails.pdf",
+            "sha256": "6e02930185e3d70ae596844581f2efbd21ab7933953f7233509f312452b0abc1"
+        },
+        {
+            "byte_size": 23426,
+            "media_type": "application/pdf",
+            "path": "objects/11-eeoc-acknowledgments.pdf",
+            "sha256": "7cdb4376eb92dc9ff1fdbc700e5c71a4f03c8c309aed8b1927901bc417966928"
+        },
+        {
+            "byte_size": 36468,
+            "media_type": "application/pdf",
+            "path": "objects/12-rif-workbook.pdf",
+            "sha256": "0e36eb310f80e1fbd33b0525a6176e3e09280fc05da20c9608b54141df4de6c9"
+        },
+        {
+            "byte_size": 35939,
+            "media_type": "application/pdf",
+            "path": "objects/13-comparator-scorecards.pdf",
+            "sha256": "917227fb1151ba0ca13c7d60def844c907a1939498732f1892c3a93cf36e2fee"
+        },
+        {
+            "byte_size": 28045,
+            "media_type": "application/pdf",
+            "path": "objects/14-calibration-minutes.pdf",
+            "sha256": "0cedbe9753d5e619fa8d1cec03a544677f0a3d215c45fb16429e93525e2a829b"
+        },
+        {
+            "byte_size": 29964,
+            "media_type": "application/pdf",
+            "path": "objects/15-explanation-communications.pdf",
+            "sha256": "2bb66986ed0b3fa29cdedba2edc218144d3a06da991f7323899f6d7e2aebbd33"
+        },
+        {
+            "byte_size": 31880,
+            "media_type": "application/pdf",
+            "path": "objects/16-performance-metrics.pdf",
+            "sha256": "fc538397e57768915638c4924b55b3d18873775fa663598b7d6cca8891cff4bc"
+        },
+        {
+            "byte_size": 34240,
+            "media_type": "application/pdf",
+            "path": "objects/17-headcount-ledger.pdf",
+            "sha256": "90e043d7ccc3bdf13f9156912d01bec8f80740d9c338ae82d2bd2238f6d7fb05"
+        },
+        {
+            "byte_size": 38765,
+            "media_type": "application/pdf",
+            "path": "objects/18-benton-deposition.pdf",
+            "sha256": "261607e0b7cef29ac12c77620a4bd3b58c1826b20af27e20b433c2e8ecc77a47"
+        },
+        {
+            "byte_size": 39023,
+            "media_type": "application/pdf",
+            "path": "objects/19-pike-deposition.pdf",
+            "sha256": "26c56da8a9098722e1932f816604f690330d48d9ae1936fac75af5025d6ce4df"
+        },
+        {
+            "byte_size": 44500,
+            "media_type": "application/pdf",
+            "path": "objects/20-solis-deposition.pdf",
+            "sha256": "5d12e3166d1f71ed770cbf3b55f165383dabfa2ab0424f0627131f7ff073c3fa"
+        },
+        {
+            "byte_size": 42826,
+            "media_type": "application/pdf",
+            "path": "objects/21-wynn-deposition.pdf",
+            "sha256": "085b7707ace592d949fa2f978151a1283eb644b829820e944f7709a724b7dce2"
+        },
+        {
+            "byte_size": 42660,
+            "media_type": "application/pdf",
+            "path": "objects/22-ibarra-deposition.pdf",
+            "sha256": "d0dc18408639a7322902ee19abefc666d19912284de50284f46f91543695bba1"
+        },
+        {
+            "byte_size": 43445,
+            "media_type": "application/pdf",
+            "path": "objects/23-voss-deposition.pdf",
+            "sha256": "feb915d99c9a0d4261d76f34f3defeef8a331f701f4bc243f4aabcd3c735d489"
+        },
+        {
+            "byte_size": 44824,
+            "media_type": "application/pdf",
+            "path": "objects/24-blue-cedar-30b6-deposition.pdf",
+            "sha256": "ca2157694d54aeca2d2501712a90dd740c32cee4fd6ac2398ef6d6962707fb57"
+        },
+        {
+            "byte_size": 47728,
+            "media_type": "application/pdf",
+            "path": "objects/25-blue-cedar-summary-judgment.pdf",
+            "sha256": "059fadabb8a7a3be2a76a4fd96bb589fd972fc3389baa68a7ac8c2039a6a59ee"
+        },
+        {
+            "byte_size": 48182,
+            "media_type": "application/pdf",
+            "path": "objects/26-benton-summary-judgment-opposition.pdf",
+            "sha256": "707f8be1e84180e606a6e25b786c069b4b37097b1b0a71ade11b86cb9ced4e7e"
+        },
+        {
+            "byte_size": 36135,
+            "media_type": "application/pdf",
+            "path": "objects/27-blue-cedar-summary-judgment-reply.pdf",
+            "sha256": "f2185ee3ba44aafefcce5407386ae4c2b7e0e39500ac713831df4d25122e0c9b"
+        },
+        {
+            "byte_size": 41699,
+            "media_type": "application/pdf",
+            "path": "objects/28-benton-disputed-facts.pdf",
+            "sha256": "164060451f39e010b66b2e2dd658ffc2db2150cd08a319125365a70b6a65391e"
+        },
+        {
+            "byte_size": 38450,
+            "media_type": "application/pdf",
+            "path": "objects/29-blue-cedar-undisputed-facts.pdf",
+            "sha256": "7e4f4ac7d06f48f50ac64809f263e7a51e9afc32be727d9896bfca392ce28db2"
+        },
+        {
+            "byte_size": 41336,
+            "media_type": "application/pdf",
+            "path": "objects/30-joint-causation-chart.pdf",
+            "sha256": "224f1bafa8a7f6681169b5d25310acf2fecbcd8962a9ed32006ba1dd85f5089f"
+        },
+        {
+            "byte_size": 34090,
+            "media_type": "application/pdf",
+            "path": "objects/31-motion-to-exclude-wynn-declaration.pdf",
+            "sha256": "76f33baa79c46d0623708251a247ac808cf6cbe34aecd6470e48ac8391104e19"
+        },
+        {
+            "byte_size": 31411,
+            "media_type": "application/pdf",
+            "path": "objects/32-opposition-wynn-declaration-proffer.pdf",
+            "sha256": "9ae1b0df5a8f838d9978fa619f4af9157ebc4f015098e5e50fbd3dd130eaf81e"
+        },
+        {
+            "byte_size": 33165,
+            "media_type": "application/pdf",
+            "path": "objects/33-order-excluding-wynn-declaration.pdf",
+            "sha256": "c78e9a751044faf8dacbf677e0a5410949745f632e0a3c4b42decf65407e929d"
+        },
+        {
+            "byte_size": 56721,
+            "media_type": "application/pdf",
+            "path": "objects/34-summary-judgment-opinion.pdf",
+            "sha256": "7839f0b00618f1f6c2ad26317ee8f1bd0886da8e5d5651624cc1e085f74da35d"
+        },
+        {
+            "byte_size": 21540,
+            "media_type": "application/pdf",
+            "path": "objects/35-final-judgment.pdf",
+            "sha256": "8477dc5f05ab8be5c13f8b3dd0c55392ccee7a53a29ea974b58732b42534d171"
+        },
+        {
+            "byte_size": 24387,
+            "media_type": "application/pdf",
+            "path": "objects/36-notice-of-appeal.pdf",
+            "sha256": "3e75e87fd04fd52e35865085dbd2f13c48c0f92e92354c34eb8ba30c09432012"
+        },
+        {
+            "byte_size": 50778,
+            "media_type": "application/pdf",
+            "path": "objects/37-certified-docket-record-certificate.pdf",
+            "sha256": "9b2ffb64c9501150c71f2bf5ef5fef5ca303ddc271339c23bcc43559ea612e78"
+        },
+        {
+            "byte_size": 20667,
+            "media_type": "application/pdf",
+            "path": "objects/a01-docketing-notice.pdf",
+            "sha256": "52c701c007e1272aca09bafa00d5f2ba3d68f526ae612ac9570e8d9a61f71f3a"
+        },
+        {
+            "byte_size": 27976,
+            "media_type": "application/pdf",
+            "path": "objects/a02-appellant-docketing-statement.pdf",
+            "sha256": "305437ad29730589f849255cb14d9ea5ed58eebf349e74865fe36fb9d37f59d0"
+        },
+        {
+            "byte_size": 24682,
+            "media_type": "application/pdf",
+            "path": "objects/a03-record-complete-briefing-order.pdf",
+            "sha256": "9ed0fdd8ba5883ab25dc7c300ea0219ba376813dc7f3a4c014deb0620da0d0fc"
+        },
+        {
+            "byte_size": 66640,
+            "media_type": "application/pdf",
+            "path": "objects/a04-benton-opening-brief.pdf",
+            "sha256": "515683e33f7e6d3a4c962e798de078a0114d31b1b592a84f6a5c6d22e40c7090"
+        },
+        {
+            "byte_size": 67351,
+            "media_type": "application/pdf",
+            "path": "objects/a05-blue-cedar-response-brief.pdf",
+            "sha256": "75ed6e9aa8508730b0b8757c1151cd52c2985b030ffde7bbabf8c03bdaae55fa"
+        },
+        {
+            "byte_size": 17656,
+            "media_type": "application/pdf",
+            "path": "objects/a06-benton-no-reply-notice.pdf",
+            "sha256": "ed4e8192c487f421370214e03e4e551a061e29baa50e5214e3090346b6e87d65"
+        },
+        {
+            "byte_size": 21494,
+            "media_type": "application/pdf",
+            "path": "objects/a07-briefing-complete-order.pdf",
+            "sha256": "d3c93eee14d95d48434d321beeed74672496b2a3cd63e3316690869ae625dafe"
+        },
+        {
+            "byte_size": 21527,
+            "media_type": "application/pdf",
+            "path": "objects/a08-oral-argument-calendar-notice.pdf",
+            "sha256": "a7c0f66dfa79ca7d3ca5fa39da40caf9718bda3c377e0ac0ef904a445f40b472"
+        },
+        {
+            "byte_size": 17919,
+            "media_type": "application/pdf",
+            "path": "objects/a09-argument-held-submission-order.pdf",
+            "sha256": "5bcf1bd69489e1de46e05e1145af10e92d3afa7fcbcbc1a8730a295ba56a9c2a"
+        },
+        {
+            "byte_size": 55144,
+            "media_type": "application/pdf",
+            "path": "objects/a10-panel-opinion.pdf",
+            "sha256": "fc0680f0d4215786178e54ff5b4ff99a5d77bdebf076f0496ef878c6c51d599e"
+        },
+        {
+            "byte_size": 20614,
+            "media_type": "application/pdf",
+            "path": "objects/a11-judgment.pdf",
+            "sha256": "82e4f5932ee5b6b31f75a1466aeece20c05b601987a175fc114b9754484557eb"
+        },
+        {
+            "byte_size": 17416,
+            "media_type": "application/pdf",
+            "path": "objects/a12-mandate-release-order.pdf",
+            "sha256": "3d68a73006082fa5e409a0e26188e38588e0c6604514722d898e7f0d3794f00a"
+        },
+        {
+            "byte_size": 19763,
+            "media_type": "application/pdf",
+            "path": "objects/a13-mandate.pdf",
+            "sha256": "7e2f032d51d648a8cf8e592bf53ff6c5019d9cfebdc95dc74595f2fa8ce75b66"
+        },
+        {
+            "byte_size": 21225,
+            "media_type": "application/pdf",
+            "path": "objects/b01-on-briefs-submission-order.pdf",
+            "sha256": "d92b34e220e1630d6281dde7f257068d5ee7dc534934b30a8f01267674a8a580"
+        },
+        {
+            "byte_size": 49949,
+            "media_type": "application/pdf",
+            "path": "objects/b02-on-briefs-panel-opinion.pdf",
+            "sha256": "42923058c93b26da5574fbedb425bbd9a60f33ebe8f658a4848d884e624a1755"
+        },
+        {
+            "byte_size": 21031,
+            "media_type": "application/pdf",
+            "path": "objects/b03-on-briefs-judgment.pdf",
+            "sha256": "5774c30cbe7d2bc17d34f275c6298d4e950fdc5f25e096fa9358793e0b77c0b4"
+        },
+        {
+            "byte_size": 39059,
+            "media_type": "application/pdf",
+            "path": "objects/b04-day-late-rehearing-petition.pdf",
+            "sha256": "48973cbefb83fd92622087d0e7a697f6021fa320f2cd786d855b50c0a9eb2065"
+        },
+        {
+            "byte_size": 21877,
+            "media_type": "application/pdf",
+            "path": "objects/b05-untimely-rehearing-rejection.pdf",
+            "sha256": "2d4c9738758f4b3b5aee05f4f4716d962fdeda243cf9ff76aefe60ef2473718c"
+        },
+        {
+            "byte_size": 39389,
+            "media_type": "application/pdf",
+            "path": "objects/b06-timely-rehearing-petition.pdf",
+            "sha256": "cf4e03eb0fcdf6852ab7f7642d924ab14f35048c587dc2399e367de3fd9bc8d4"
+        },
+        {
+            "byte_size": 21366,
+            "media_type": "application/pdf",
+            "path": "objects/b07-rehearing-denial.pdf",
+            "sha256": "2a25439828e2b5574b6976914b1dc7b4fa37415bbbf65eff2434c4a25b6c35c2"
+        },
+        {
+            "byte_size": 18658,
+            "media_type": "application/pdf",
+            "path": "objects/b08-mandate-release-after-rehearing.pdf",
+            "sha256": "ca9cecac3f9673d5fe04cb2541987cd3b59a6dcd3d29ed0e82d1342c5a9eb2b2"
+        },
+        {
+            "byte_size": 21395,
+            "media_type": "application/pdf",
+            "path": "objects/b09-mandate-after-rehearing-denial.pdf",
+            "sha256": "c4e3a528018562e0110859d398d1ebcd60fecf35ba5ace96ff3fb54743a7f289"
+        },
+        {
+            "byte_size": 29966,
+            "media_type": "application/pdf",
+            "path": "objects/b10-motion-stay-mandate.pdf",
+            "sha256": "51a1fa1554916d59c84c259c8604c4ef9e143c9afbc9eda8e65eb0f8bbfe2810"
+        },
+        {
+            "byte_size": 21491,
+            "media_type": "application/pdf",
+            "path": "objects/b11-stay-grant.pdf",
+            "sha256": "65562f2963befd78a36b8f55c6c11d6f4dbe8ee9b8146180070fb170ae37d87d"
+        },
+        {
+            "byte_size": 21096,
+            "media_type": "application/pdf",
+            "path": "objects/b12-stay-dissolution-release.pdf",
+            "sha256": "a0887aafe83035c7e63e31341579de234257723d693e620ee0a5819ecc3add60"
+        },
+        {
+            "byte_size": 21257,
+            "media_type": "application/pdf",
+            "path": "objects/b13-mandate-after-stay.pdf",
+            "sha256": "e23f7b415772e03ad59af7e76ebd60f876cc7f2ac9675bf87e9aa4fb530d3649"
+        },
+        {
+            "byte_size": 26913,
+            "media_type": "application/pdf",
+            "path": "objects/b14-joint-motion-shorten-mandate.pdf",
+            "sha256": "f3418e35e9d9a4197df11b85659140137d7f8829716ff18b894dce58391dc81f"
+        },
+        {
+            "byte_size": 21133,
+            "media_type": "application/pdf",
+            "path": "objects/b15-mandate-shortening-order.pdf",
+            "sha256": "6e81dda69570b9e533caec5ec6b7c8a745c19f677153e1746c2632ed6cb33f78"
+        },
+        {
+            "byte_size": 18578,
+            "media_type": "application/pdf",
+            "path": "objects/b16-shortened-mandate-release-order.pdf",
+            "sha256": "11c54c28a5c4d5ccc9c2b2877ec94f3fe73a10b618c73b99b99794a7a8a56021"
+        },
+        {
+            "byte_size": 21218,
+            "media_type": "application/pdf",
+            "path": "objects/b17-shortened-mandate.pdf",
+            "sha256": "c7eca026a69eb0d9770cfad7dbe661a4abb4b3a4ef8dd2f24315261c43b7e10f"
+        }
+    ],
+    "contents": [
+        {
+            "id": "ca4m4.benton.argument.actual-record",
+            "kind": "argument_config",
+            "path": "resources/argument-actual.json",
+            "schema_version": 2,
+            "sha256": "e94722292d299b58fa4fc092d2accd7b39bffa72e90a92174f116caa318bf9a5"
+        },
+        {
+            "id": "ca4m4.benton.argument.no-knowledge-counterfactual",
+            "kind": "argument_config",
+            "path": "resources/argument-counterfactual.json",
+            "schema_version": 2,
+            "sha256": "3f4ddb59dc6d2e5c0632f2816dc9fca064dc73cda8e95aef18d570e13ab9f3c8"
+        },
+        {
+            "id": "ca4m4.benton.authorities.case-specific",
+            "kind": "authority_set",
+            "path": "resources/authority-set.json",
+            "schema_version": 2,
+            "sha256": "d7edaf4d0b369e770cfd8752e79f37b5f210533a64195450dd9789abd07dc530"
+        },
+        {
+            "id": "ca4m4.benton.bench.three-judge",
+            "kind": "bench_configuration",
+            "path": "resources/bench-configuration.json",
+            "schema_version": 2,
+            "sha256": "6aaedb3861e354a89ac3182416e95cdf5a60caefe74f92ae43f476f6544fd92c"
+        },
+        {
+            "id": "ca4m4.benton.procedure.civil-appeal",
+            "kind": "procedure_profile",
+            "path": "resources/procedure-profile.json",
+            "schema_version": 2,
+            "sha256": "2f2103dce14ac072302f539624a9deda9292703c039f409f457cd5209bfa4882"
+        },
+        {
+            "id": "ca4m4.benton.record",
+            "kind": "record",
+            "path": "resources/record.json",
+            "schema_version": 2,
+            "sha256": "191aac8abba8fb7817cf15c3019429e50dc70b0afa66dfd5e2f2df392a94e875"
+        },
+        {
+            "id": "ca4m4.benton.workflow.civil-appeal",
+            "kind": "workflow",
+            "path": "resources/workflow.json",
+            "schema_version": 2,
+            "sha256": "b4f73bcb6b4451a06a1d1fb6b23fd94549d5968de7bb0f9f0a19bbba7a624e36"
+        },
+        {
+            "id": "ca4m4.case.benton-retaliation",
+            "kind": "case",
+            "path": "resources/case.json",
+            "schema_version": 2,
+            "sha256": "21b068c597c15399aaada912e1e653ca1f53f7325561955976e21fa02576ef8b"
+        },
+        {
+            "id": "ca4m4.benton.review.authoring-2026-08-12",
+            "kind": "realism_review",
+            "path": "resources/realism-review.json",
+            "schema_version": 2,
+            "sha256": "fd42415873af8558112a21312eaad87c0020da256f17178fa58554009328dff0"
+        }
+    ],
+    "dependencies": [
+        {
+            "pack_id": "foundation.us-federal",
+            "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9",
+            "version": "2025.12.01"
+        },
+        {
+            "pack_id": "foundation.us-ca4",
+            "sha256": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262",
+            "version": "2026.03.23"
+        },
+        {
+            "pack_id": "foundation.us-ca4-fictional-bench",
+            "sha256": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d",
+            "version": "1.0.0"
+        }
+    ],
+    "pack_id": "us.ca4.m4.benton-retaliation",
+    "required_capabilities": [
+        {
+            "id": "workbench.pack.declarative-resources",
+            "version": 2
+        },
+        {
+            "id": "workbench.pack.canonical-authority",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-preconditions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.dependent-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.named-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.event-date-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.argument-date-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.grounded-questions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-role-subsets",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-instance-preconditions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-disposition-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-document-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.structured-disposition",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.realism-evidence",
+            "version": 1
+        }
+    ],
+    "schema_version": 2,
+    "version": "1.2.0"
 }

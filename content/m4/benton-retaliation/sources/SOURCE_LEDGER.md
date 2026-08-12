@@ -1,7 +1,8 @@
 # Benton source ledger
 
-Checked on 2026-08-11 and updated on 2026-08-12. This ledger separates official legal authority from the synthetic fact
-record. Official sources supply only the stated legal propositions; they supply no Benton fact.
+Checked on 2026-08-11 and updated on 2026-08-12. This ledger separates official legal authority
+from the synthetic fact record. Official sources supply only the stated legal propositions; they
+supply no Benton fact.
 
 ## Official authorities
 
@@ -16,7 +17,11 @@ record. Official sources supply only the stated legal propositions; they supply 
 | `ca4m4.benton.authority.benjamin-disclosure-sanction` | 2021-01-19 | *Benjamin v. Sparks*, 986 F.3d 332 (4th Cir. 2021), No. 19-2041, official opinion lines 197–200 and 259–300: disclosure violations and Rule 37(c)(1) exclusions are reviewed for abuse of discretion; surprise, ability to cure, disruption, importance, and explanation guide justification and harmlessness; the nondisclosing party bears the burden. | <https://www.ca4.uscourts.gov/opinions/192041.P.pdf> |
 
 Shared FRAP, Fourth Circuit local rules, calendar rules, and common civil authorities remain
-dependency-owned. The root does not copy or shadow them.
+dependency-owned. The root does not copy or shadow them. The exact 1.2.0 evidence closure selects
+28 canonical authorities: the seven root-owned entries above and 21 dependency-owned entries
+actually referenced by the case, workflow, routed filing types, or grounded argument resources.
+That exact selection is evidence scope, not an assertion that automated checks establish legal
+accuracy or completeness.
 
 The House preliminary-code page is a dynamic official compilation. Its `source_version` is the
 checked snapshot date, 2026-08-11, not a claim that Congress enacted or amended § 2000e-3(a) on
@@ -36,12 +41,26 @@ any real person or organization.
 
 ## Synthetic source classes
 
-Every record source under `documents/batch-1/` and `documents/batch-2/` was written for this exercise. Each page advances
-one or more fixed facts through allegations, admissions, dated communications, data, or sworn
-testimony. No source was scraped from a real person, employer, charge, case, or docket.
+Every source under `documents/batch-1/`, `documents/batch-2/`,
+`documents/appellate-actual/`, and `documents/appellate-branches/` was written for this exercise.
+Each page advances fixed allegations, admissions, communications, data, testimony, docket events,
+or authored outcomes. No source was scraped from a real person, employer, charge, case, or docket.
+
+The lower-court sources render to JA1–JA262. The actual appellate sources render to PA1–PA70.
+The branch sources render to PA71–PA127 on the separate counterfactual docket and are marked as
+never having occurred on the actual appeal. The documents' references to FRAP, Fourth Circuit
+rules, and common civil procedure use the exact dependency-owned authority entries; the synthetic
+PDFs are not themselves official legal sources.
 
 The source chronology and identity vocabulary are fixed in `FACT_CANON.md`. The record controls
 when witnesses disagree: a pleading allegation is not converted into an admitted fact, and a
 deposition answer is not silently reconciled with a scorecard. The late Wynn declaration remains
 in the certified record for review but is excluded from the summary-judgment merits evidence; the
 joint chart and opinion preserve that boundary rather than deleting or silently accepting it.
+
+The accepted successor render inventory has SHA-256
+`c9887d3c15b51cf278d18e1c1c160f48c03b1153181465f493a9fbaf4ebaa972` and binds all 30 new
+sources to their PDF hashes, sizes, page ranges, semantic plans, and assembly provenance. Those
+generated-artifact hashes document repository provenance only; they do not establish external
+authenticity, byte reproducibility across future renderer environments, or independent legal
+review.
