@@ -14,7 +14,7 @@
   ],
   "grounded_question_bank": {
     "mode": "actual_record",
-    "grounding_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "grounding_digest": "a7b9d3f45093cd389d57fea1522b1c2ae80fac29bf5705dd5b24033694c6f4ea",
     "issue_topic_bindings": [
       {"issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_ids":["workbench.topic.jurisdiction","workbench.topic.governing-authority","workbench.topic.record-support","workbench.topic.practical-consequences"]},
       {"issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_ids":["workbench.topic.jurisdiction","workbench.topic.governing-authority","workbench.topic.record-support","workbench.topic.practical-consequences"]},
