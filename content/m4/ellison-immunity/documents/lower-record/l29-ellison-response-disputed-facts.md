@@ -3,6 +3,8 @@
 UNITED STATES DISTRICT COURT FOR THE WESTERN DISTRICT OF VIRGINIA  
 Civil Action No. SYN-WDVA-25-CV-0733
 
+Record class: plaintiff's paragraph-by-paragraph fact response.
+
 # Mara Ellison's Response to Statement of Material Facts
 
 Filed December 12, 2025.
