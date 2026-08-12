@@ -594,73 +594,61 @@ Compensation is an objective line, but objectivity is not fit. It excludes an un
 
 ## Court's Questions on Guild Relief
 
-**THE COURT:** If I enjoin name and topic requirements, may the City require a unique schedule identifier and format?
+**THE COURT:** If name and topic requirements are enjoined, may Norvale require a unique schedule identifier, format, expected audience, and notice of a late operational change?
 
-**GUILD COUNSEL:** Yes, so long as format is operational and not a demand for ideological content.
+**GUILD COUNSEL:** Yes. Those are direct operational facts. A material change may support a documented condition, but format cannot become an ideological inquiry.
 
-**THE COURT:** May it require expected audience even though estimates can be wrong?
+**THE COURT:** What happens to the $240 charge and ordinary review costs?
 
-**GUILD COUNSEL:** A reasonable good-faith estimate, yes.
+**GUILD COUNSEL:** N-2025-18 imposes that charge because paid speech triggers coverage. The same physical event already requires ordinary review, and the worksheet does not isolate incremental presentation costs. We do not challenge a comparable neutral reservation fee.
 
-**THE COURT:** May it review a late change that affects those facts?
+**THE COURT:** Are unpaid authors, fewer authors, or another site adequate alternatives?
 
-**GUILD COUNSEL:** Yes, and impose a condition based on a documented material risk.
+**GUILD COUNSEL:** No. They exclude writers unable to donate time, reduce speech, or lose the established site and audience.
 
-**THE COURT:** What happens to the general $240 charge?
+**THE COURT:** How is harm irreparable before a denial?
 
-**GUILD COUNSEL:** Under N-2025-18 it exists because paid speech triggers coverage. We ask that it not be applied on that basis. We are not seeking relief from a separate, comparable reservation fee charged without regard to expression.
-
-**THE COURT:** The ordinance also includes sanitation and interdepartmental review. Is there evidence the base amount exceeds the cost of all that work?
-
-**GUILD COUNSEL:** There is an averaged worksheet, but the same physical event would require ordinary review without paid authors. The City did not separate the incremental work caused by protected presentations from general site administration.
-
-**THE COURT:** Address alternatives such as unpaid authors or another location.
-
-**GUILD COUNSEL:** Unpaid speaking excludes writers unable to donate labor or travel. Fewer writers is less speech, not another channel. Another site lacks the established location and audience and remains subject to availability. None preserves the same timely literary exchange.
-
-**THE COURT:** What authority supports irreparable harm before a denial?
-
-**GUILD COUNSEL:** The present deadline, fee, and uncertain process govern invitations now. First Amendment loss occurs when the organizer forgoes or delays protected programming; it need not await an ideologically motivated rejection.
+**GUILD COUNSEL:** The deadline, fee, and uncertain amendment process govern invitations now. Forgone or delayed programming cannot be restored after the opportunity passes.
 
 ## City's Merits and Winter Argument
 
-**CITY COUNSEL:** The ordinance regulates event structure, not message. A compensated scheduled appearance objectively identifies a program assembled by the organizer. Written decisions then turn on physical evidence. Pilot administration and the Guild's history show measured conditions, not censorship.
+**CITY COUNSEL:** The ordinance regulates event structure, not message. Compensation objectively identifies an organized program; written decisions then turn on physical evidence. Pilot administration shows measured conditions, not censorship.
 
-Norvale has proved more than conjecture. Cedar Commons has a constrained service approach, fountain-side narrowing, Market Lane loading, and nearby transit. Presentations create known transition times. Forty-five days is an interdepartmental compromise. The averaged fee does not vary with controversy. Narrow tailoring permits imperfect classifications and does not demand every alternative counsel proposes.
+Cedar Commons has a constrained service approach, fountain-side narrowing, Market Lane loading, and nearby transit. Presentations create transition times. Forty-five days is an interdepartmental compromise, and the averaged fee does not vary with controversy. Narrow tailoring permits imperfect classifications.
 
 <!-- PAGE BREAK -->
 
 **THE COURT:** What evidence connects the author's name or topic with staffing?
 
-**CITY COUNSEL:** They identify the organized program and allow consistent amendment review. We agree that time, format, and audience do more direct operational work. The constitutional inquiry considers the system as a whole, including the limited topic definition and prohibition on ideology.
+**CITY COUNSEL:** They identify the organized program and stabilize amendment review. Time, format, and audience do more direct work, but the system also limits topic descriptions and prohibits ideological review.
 
 **THE COURT:** Why charge another $45 if no operational fact changes?
 
-**CITY COUNSEL:** An actually additional slot requires schedule review even if the final recommendation is unchanged. Uniform averages avoid selective billing. A substitution is not charged twice when the original withdraws.
+**CITY COUNSEL:** An additional slot requires schedule review. Uniform averages avoid selective billing; a replacement is not charged twice.
 
-**CITY COUNSEL:** On irreparable harm, there is no rejected author. Staff intend prompt review. The Guild has not submitted full financial evidence showing that the fixed amounts prevent a fair. Meanwhile, broad relief could disrupt planning and create uncertainty over what staff may request. The public interest supports continued neutral coordination at a shared site.
+**CITY COUNSEL:** No author was rejected, staff intend prompt review, and no financial proof shows the charges prevent a fair. Broad relief could disrupt planning and obscure what staff may request.
 
 ## Court's Questions to the City and Guild Rebuttal
 
-**THE COURT:** Counsel, *Billups* requires attention to evidence connecting the burden to the interest. If your own witnesses say direct logistical facts do the work, what is left beyond administrative convenience?
+**THE COURT:** *Billups* requires evidence connecting burden and interest. If direct logistical facts do the work, what remains beyond convenience?
 
-**CITY COUNSEL:** Administrability is part of a workable content-neutral system, but not our only answer. The paid transaction distinguishes planned programming from incidental speech and makes the schedule duty predictable. Names and short labels stabilize that schedule. The ordinance then demands evidence for any restrictive condition.
+**CITY COUNSEL:** Payment distinguishes planned programming from incidental speech and makes the duty predictable. Names and short labels stabilize the schedule; any restrictive condition still requires evidence.
 
 **THE COURT:** Could the City accept a provisional schedule identifier at forty-five days and require direct facts?
 
-**CITY COUNSEL:** The current text requires the paid speaker's name. Staff may consider later amendments, but a provisional identifier would not satisfy the stated completeness rule.
+**CITY COUNSEL:** The text requires a name. Staff may consider amendments, but a provisional identifier is incomplete.
 
 **THE COURT:** Does no final denial defeat as-applied relief if the automatic fee and deadline are already operating?
 
-**CITY COUNSEL:** It narrows the ripe injury and weighs against broad relief. We acknowledge the published payment and deadline are current, but the feared exclusion remains contingent.
+**CITY COUNSEL:** It narrows ripe injury and weighs against breadth. The payment and deadline are current, but exclusion remains contingent.
 
-**GUILD COUNSEL:** Briefly, Your Honor. The City calls payment administrable because it is easy to observe, not because it advances traffic or access. The Constitution requires more when protected speech bears the burden. Its witnesses supplied the narrower line: scheduled operational features. The amendment path cannot be an adequate channel when it has no response deadline and no entitlement for an unchanged slot.
+**GUILD COUNSEL:** Payment is easy to observe, not tied to traffic or access. The witnesses identified the narrower line: scheduled operational features. An amendment path without a response deadline or protection for an unchanged slot is inadequate.
 
 **THE COURT:** If I preserve every direct site control, what irreparable municipal injury remains?
 
-**CITY COUNSEL:** Loss of the enacted scheduling framework and possible late instability. If the Court proceeds, it should define permitted information and material-change review precisely.
+**CITY COUNSEL:** Loss of the enacted framework and possible late instability. Any order should define permitted information and material-change review.
 
-**GUILD COUNSEL:** The Guild accepts that specificity. It does not seek surprise changes or immunity from documented conditions.
+**GUILD COUNSEL:** We accept that specificity, not surprise changes or immunity from documented conditions.
 
 <!-- PAGE BREAK -->
 
