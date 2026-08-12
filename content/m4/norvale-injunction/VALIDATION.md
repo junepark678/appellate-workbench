@@ -3,9 +3,9 @@
 Evidence status as of **2026-08-12**: all 73 synthetic sources are frozen; the fresh
 production render and schema-v2 record are accepted; seven non-workflow core resources
 have been copied byte-for-byte into the pack candidate; and the workflow is frozen after
-schema, resolved, reachability, replay, and hostile review. Canonical trace, manifest,
-realism-review, root, archive, and focused-test evidence are not final here. This document
-deliberately records placeholders instead of projecting a release result.
+schema, resolved, reachability, replay, and hostile review. The canonical traces, manifest,
+realism review, root, deterministic archive, and resolved install are final. Only the focused
+test result remains to be recorded below.
 
 ## Evidence pins
 
@@ -31,17 +31,27 @@ deliberately records placeholders instead of projecting a release result.
 | Counterfactual question-bank grounding digest | `5b5559db07537e94046dffc733b8f3f104f09533ff9ffede190f4e1758260ecb` | Recomputed from frozen authority/record bytes |
 | Workflow resource SHA-256 | `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a` | Frozen: 16 stages / 90 operations / 13 routes / 24 filing bindings / 31 document bindings / 2 dispositions / 14 concrete deadline IDs (12 logical concepts) |
 | Workflow hostile audit | `056370216e48f8cd04e0f078e31706b18d17c228e2df9ec1b7abc176fd7d4ea2` | Clear: 90/90 operations reachable; 2,212/2,212 replay mutations rejected |
-| Canonical trace pins | `PENDING_TRACE_PINS` | Nine traces planned; paths, hashes, command/event counts, coverage, and replay pending |
-| Manifest SHA-256 | `PENDING_MANIFEST_SHA256` | Not yet supplied |
-| Realism-review SHA-256 | `PENDING_REVIEW_SHA256` | Not yet supplied; independent review remains pending |
-| Exact evidence-closure digest | `PENDING_EVIDENCE_CLOSURE_SHA256` | Not yet supplied |
-| Root revision | `PENDING_ROOT_REVISION` | Not yet supplied |
-| Deterministic archive | `PENDING_ARCHIVE_SIZE`; `PENDING_ARCHIVE_SHA256` | Not exported or accepted here |
-| Focused tests | `PENDING_TEST_PINS` | Exact local and `TZ=UTC` targets/results not yet supplied |
+| Canonical trace bundle | `829b060c1fbda0ecdb09ee7624ed6a2ab178f4ad44216b04558403b1754af709` | Frozen: 9 traces / 316 commands / 334 events / exact 90-operation union |
+| Manifest SHA-256 | `e89b902b39d22bcc4f5b1aa407d754e665e1243d196dc4af3703816c355f46e4` | Final: 9 resources / 73 blobs / 16 capabilities / 3 dependencies |
+| Realism-review SHA-256 | `8870e5c8c10e956552f99c5069a2fbc6874402cc07e062bca38706ba565bc4e8` | Level 2 in all seven dimensions; `independent_review_pending` |
+| Exact evidence-closure digest | `1170d682b46773d09b63b5dcfcd5b7c485c2f792881c94027b76550ef021d82c` | Exact 4 packs / 44 resources / 73 blobs / 9 traces / 2 checks / 35 authorities |
+| Root revision | `a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f` | Final installable revision |
+| Deterministic archive | 4,744,009 bytes; `a4b993aa3cc6582d1d0f6ca9a7203109378f4f1c1b2e6ce32efbfe82b6a48e19` | Two byte-identical deferred exports; fresh four-revision resolved install passed |
+| Focused tests | Core `a610b8cf47a9bdc3d1ad2cbf0b4979e59b2bbbe296c9c05b52e9385eaebd8aec`; UI `d959c1ecaec43bf8294fa698749a997c80dab391f7f0064ad7a5515fd37264ed` | Local 2/2 passed in 39.37 seconds; `TZ=UTC` 2/2 passed in 39.15 seconds |
 
-The planned manifest must declare exactly 16 capabilities. That count is frozen in the
-successor plan, but manifest presence, resource closure, dependency resolution, and
-capability negotiation remain pending until the manifest itself is supplied.
+## Canonical trace pins
+
+| Trace | Commands / events | Final stage | File SHA-256 | Journal SHA-256 | Trace digest |
+| --- | ---: | --- | --- | --- | --- |
+| Actual through mandate | 56 / 59 | `terminated` | `e013c167acaaf0100eb5c4c23f40fe86592cc475380e928e23cb91bc6ed7e219` | `f4e5b154b7e50eb6a39ca85f3053b0871ddc8cb9e5277d0822313746572f55fd` | `b1d4843ba9c10145b319eacade64d1919ec1a2ccdd95345e43539253e7772af3` |
+| Rule 8 threshold | 4 / 4 | `appellate-stay` | `9e40a2379c8f8f57b98a20b7a3e0eaad2ff50cbaa2b0e232a8e8c6ec0ff15f33` | `6c60a78ce1b2d373b15a0929e744385bce135fab850af55a627f53923f75681e` | `6b72e66b0c3c4894edb9a9a5dcf6cdd6ab8d5bbfb6d0aba34afb95a5155f261e` |
+| Impracticability denial | 5 / 5 | `appellate-stay` | `03e23116c63243599db88316658d8dc9b9a5e7c7e4e221218ea3f5e89b4fd047` | `1ddfe2c88bfae561a1f8a93cc0e0a4da77dc17ce2424417caddb448000ad379d` | `c647ef86b841c961c5c4967a9895b6e6cf9638c017f8823d165652a2000a3304` |
+| Stay grant and dissolution | 6 / 6 | `appellate-stay` | `bc717657a552719a306cd59777c086db90a50e3e49b3f0c8bae07c75cbad2ae0` | `3010ceb30e9cfc7711ca3668d170d5016a60bb4cedb00f336233efea44435ee3` | `d593561719b425be28d0e85413b7649e91373888fd4956370f628388f79f73f6` |
+| Adverse on briefs | 44 / 47 | `terminated` | `d90d83aa967c0f38510aa894eee3a3314c3315810b472382cc3e771f0e11918c` | `73e784c4cd2f318c134c4f9c1afc797ffb2e7f71e18dbeeb53761c10f0668b40` | `9d651e70ada761957b933e2880ecc4fba0f43556d29337a09db39848bff2f97a` |
+| Rehearing denial | 52 / 55 | `terminated` | `af6ff0861cf3404dbd7c4d4929b68e852983e8e003d02c5008594ed12f36bcff` | `d1960e280650ae5839d7d8a52e76a209b2cea05f265ca0ec42efb3ed9225ee71` | `81eca7eed467449d0f05e7d363cec25b7a0c58180001e1b9efe15e2c59191bc1` |
+| Mandate-stay denial | 51 / 54 | `terminated` | `866e114af890a59c529bfa963dbb78d99055e6c29cfbcf8ddbcecf0b0881d048` | `04bb68e861b89f97b9012dc36865e512fcff6abe73a409c7d4ef94fbe342a032` | `d9cc719f41a8d1f925a9af784f04878bb4fb62698684bdcfc3ba76e966639732` |
+| Mandate-stay grant blocked | 47 / 50 | `mandate-stayed` | `b59c112aea175bdd13479f68e46a9aff9808804bdec52fe112d9c22974d115a9` | `cd2d92ab6e6f01e608c73221ab75484fbbf01843810d550eda80ac9728ed29e5` | `dbb507b1f2299aec12a1cb264bc2d9e92ffb468166d390adc1649d0cd62662bf` |
+| Stay dissolution release | 51 / 54 | `terminated` | `3992654f2876e9106f306a07da29409148c94fda54b717c38e9f2abe1301f954` | `3a6fa31312092c2b55723880dbdcb9e7b95c2d7b13d2930014b2c7b51d5b2f34` | `feff28559f694de81b8112b34da82e849eed5247b5278aa98e44558980d4acf8` |
 
 ## Completed source, render, and record gates
 
@@ -73,10 +83,9 @@ establishes its stated schema, reachability, replay, and branch-isolation proper
 slice establishes legal correctness, accessibility conformance, installability, deterministic
 export, or independent professional review.
 
-## Completed workflow gates and pending release gates
+## Completed workflow and release gates
 
-Before any final release statement, replace every `PENDING_*` value only from the exact
-accepted artifacts and verify all of the following:
+The final artifacts verify all of the following:
 
 1. the frozen workflow contains exactly 16 stages, 90 operations, 13 filing routes, 24 exact
    filing bindings, 31 document bindings, two structured-disposition bindings, and 14 concrete
@@ -93,8 +102,8 @@ accepted artifacts and verify all of the following:
    checks, and selected authorities without claiming independent review; and
 7. focused case/UI tests pass locally and under `TZ=UTC` against the same root and archive.
 
-Until those steps complete, the current tree is an authoring candidate with accepted
-record/render evidence, not an installable or release-ready pack.
+The result is an installable level-2 authoring candidate. It is not a level-3 independent-review
+or gold claim.
 
 ## Procedural and merits consistency gates
 
@@ -127,24 +136,39 @@ Final validation must preserve these authored boundaries:
 
 ## Reproduction scaffold
 
-Run final commands only after their corresponding pins are supplied. Do not substitute a
-generic successful test for the missing case-specific evidence.
+The following commands reproduce the pack-closure gate from the repository root:
 
 ```sh
 jq empty content/m4/norvale-injunction/metadata/render-inventory-successor.json
-jq empty content/m4/norvale-injunction/pack-candidate/resources/record.json
+jq empty content/m4/norvale-injunction/pack-candidate/manifest.json
 
-# Frozen workflow audit: 1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a
-# PENDING_TRACE_REPLAY_COMMANDS
-# PENDING_MANIFEST_VALIDATION_COMMANDS
-# PENDING_RESOLVED_VALIDATION_COMMANDS
-# PENDING_DETERMINISTIC_EXPORT_COMMANDS
-# PENDING_FOCUSED_TEST_COMMANDS
+norvale_check_root="$(mktemp -d)"
+norvale_catalog="$norvale_check_root/catalog"
+norvale_archive="$norvale_check_root/us-ca4-m4-norvale-injunction-1.2.0.awpack"
+
+./build/dev/src/cli/appellate-pack export-deferred \
+  content/m4/norvale-injunction/pack-candidate "$norvale_archive"
+./build/dev/src/cli/appellate-pack install \
+  content/foundations/us-federal/foundation-us-federal-2025.12.01.awpack "$norvale_catalog"
+./build/dev/src/cli/appellate-pack install \
+  content/foundations/us-ca4/foundation-us-ca4-2026.03.23.awpack "$norvale_catalog"
+./build/dev/src/cli/appellate-pack install \
+  content/foundations/us-ca4-fictional-bench/foundation-us-ca4-fictional-bench-1.0.0.awpack \
+  "$norvale_catalog"
+./build/dev/src/cli/appellate-pack install "$norvale_archive" "$norvale_catalog"
+./build/dev/src/cli/appellate-pack validate-resolved \
+  "$norvale_catalog" us.ca4.m4.norvale-injunction 1.2.0 \
+  a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f
+
+ctest --test-dir build/dev --output-on-failure \
+  -R '^m4_norvale_injunction(_ui_e2e)?$'
+TZ=UTC ctest --test-dir build/dev --output-on-failure \
+  -R '^m4_norvale_injunction(_ui_e2e)?$'
 ```
 
-Schema-v2 thin roots with dependency-owned references normally require deferred export,
-exact dependency installation, and resolved validation. That general contract is not a
-claim that those gates have passed for Norvale.
+Schema-v2 thin roots with dependency-owned references require deferred export, exact dependency
+installation, and resolved validation. Those gates passed for the exact root above; ordinary
+standalone validation is not a substitute.
 
 ## Independent-review gate
 

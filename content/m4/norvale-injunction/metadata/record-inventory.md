@@ -74,7 +74,8 @@ authored result; the structured judgment operation is intended to bind A21 to
 `ca4m4.norvale.disposition.authored-limited-remand`. A22 and A23 remain separate
 release and mandate artifacts. The frozen workflow binds them under SHA-256
 `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`;
-canonical trace pins remain `PENDING_TRACE_PINS`, not a completed claim in this inventory.
+the canonical nine-trace bundle SHA-256 is
+`829b060c1fbda0ecdb09ee7624ed6a2ab178f4ad44216b04558403b1754af709`.
 
 ## Counterfactual appellate bank — never filed
 
@@ -130,8 +131,14 @@ and framed SHA-256 is
 
 The record SHA-256 is
 `a25bb89f96b78bbf7b084b50c4327953ed0af602359e49460dd1e10ef48306c3`.
-Manifest, root, archive, review, trace, and test pins remain
-`PENDING_MANIFEST_SHA256`, `PENDING_ROOT_REVISION`, `PENDING_ARCHIVE_SHA256`,
-`PENDING_REVIEW_SHA256`, `PENDING_TRACE_PINS`, and `PENDING_TEST_PINS` until supplied
-from final accepted artifacts. The workflow SHA-256 is frozen as
-`1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`.
+Final pins are manifest
+`e89b902b39d22bcc4f5b1aa407d754e665e1243d196dc4af3703816c355f46e4`,
+root `a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f`,
+archive `a4b993aa3cc6582d1d0f6ca9a7203109378f4f1c1b2e6ce32efbfe82b6a48e19`,
+review `8870e5c8c10e956552f99c5069a2fbc6874402cc07e062bca38706ba565bc4e8`,
+trace bundle `829b060c1fbda0ecdb09ee7624ed6a2ab178f4ad44216b04558403b1754af709`,
+and workflow `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`.
+Focused core/UI test SHA-256 values are
+`a610b8cf47a9bdc3d1ad2cbf0b4979e59b2bbbe296c9c05b52e9385eaebd8aec` and
+`d959c1ecaec43bf8294fa698749a997c80dab391f7f0064ad7a5515fd37264ed`;
+both pass locally and under `TZ=UTC`.

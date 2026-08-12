@@ -17,7 +17,7 @@ designation and does not satisfy the level-3 gate.
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | Employment retaliation | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable successor level-2 evidence; qualified independent review pending |
-| Preliminary injunction / stay | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Source/render/record and workflow evidence frozen; traces, review, root, archive, and tests pending |
+| Preliminary injunction / stay | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Section 1983 qualified immunity | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Post-trial JMOL | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Sealed FOIA | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
@@ -59,16 +59,15 @@ two record checks, and 28 authorities, with 148 unique non-pack evidence IDs. It
 `independent_review_pending`; replay and author review do not substitute for qualified independent
 employment/appellate review or change Asterglen's designation as the civil gold candidate.
 
-The Norvale injunction `1.2.0` authoring candidate remains level 0 in this release matrix even
-though its source/render/record slice is frozen. That accepted slice contains 24 lower-record
+The Norvale injunction `1.2.0` root is an installable level-2 civil authoring candidate. Its
+accepted record contains 24 lower-record
 PDFs/149 JA pages, 23 actual appellate PDFs/135 PA pages, and 26 separately docketed,
 never-filed PDFs/99 PA pages, for 73 PDFs/383 anchors. Its frozen workflow SHA-256 is
 `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`, with
 16 stages, 90 operations, 13 filing routes, 24 exact filing bindings, 31 document bindings,
 two structured dispositions, and 14 concrete deadline IDs representing 12 logical concepts.
-All 90 operations are reachable across nine planned paths, but the checked-in canonical trace
-and release evidence remain pending. `PENDING_TRACE_PINS`,
-`PENDING_MANIFEST_SHA256`, `PENDING_REVIEW_SHA256`, `PENDING_ROOT_REVISION`,
-`PENDING_ARCHIVE_SHA256`, and `PENDING_TEST_PINS` must be replaced from exact accepted bytes
-before the row may claim level 2. Automated record checks do not substitute for qualified
-independent First Amendment/appellate review or make Norvale a gold candidate.
+Its nine canonical traces contain 316 commands and 334 events with exact 90-operation coverage.
+The final root is `a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f`;
+its evidence closure is `1170d682b46773d09b63b5dcfcd5b7c485c2f792881c94027b76550ef021d82c`.
+The review remains `independent_review_pending`; automated evidence does not substitute for
+qualified independent First Amendment/appellate review or make Norvale a gold candidate.

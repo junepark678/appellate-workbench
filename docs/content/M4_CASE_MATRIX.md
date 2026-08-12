@@ -51,9 +51,8 @@ The frozen Norvale source/render/record bytes likewise refine only its page floo
 283-PDF breadth total. Its lower-court record is 24 PDFs/149 JA pages, while its complete record
 is 73 PDFs/383 pages after adding 23 actual appellate PDFs/135 PA pages and 26 separately
 docketed, never-filed branch PDFs/99 PA pages. PA136–PA234 never occurred on the actual appeal.
-The workflow is frozen and independently hostile-reviewed; traces, manifest, review, root,
-archive, and focused-test evidence remain explicit `PENDING_*` pins. This is not yet an
-installable or level-2 claim.
+The independently hostile-reviewed workflow, nine traces, manifest, review, root, deterministic
+archive, resolved install, and focused tests now form an installable level-2 authoring candidate.
 
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
@@ -138,8 +137,11 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
   `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`:
   16 stages, 90 operations, 13 filing routes, 24 exact filing bindings, 31 document bindings,
   two disposition bindings, and 14 concrete deadline IDs representing 12 logical concepts.
-  Nine canonical traces and 16 required capabilities are planned. Trace, manifest, review,
-  root, archive, and test pins remain pending.
+  Nine canonical traces contain 316 commands and 334 events with exact 90-operation coverage.
+  The 16-capability root is
+  `a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f`,
+  with evidence closure
+  `1170d682b46773d09b63b5dcfcd5b7c485c2f792881c94027b76550ef021d82c`.
 - **Limits:** stay practice is serialized before merits briefing. The model does not infer
   concurrent clocks, impracticability, mootness, or the legal meaning of arbitrary filings;
   shared court-role authorization cannot itself distinguish clerk from panel. The structured

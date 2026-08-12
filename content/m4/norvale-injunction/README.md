@@ -61,8 +61,9 @@ The successor plan has `source_review_clear` on all 73 rows and at top level, an
 top-level render status is `rendered_accepted`. The source ledger's pre-render planning
 statements and the separate realism-review scaffold remain planning artifacts, not
 current render status or a completed review resource. Accepted render state is
-established by the plan, inventory, record, and byte checks above; final review remains
-`PENDING_REVIEW_SHA256`.
+established by the plan, inventory, record, and byte checks above. The final authoring
+review is level 2 throughout, remains `independent_review_pending`, and has SHA-256
+`8870e5c8c10e956552f99c5069a2fbc6874402cc07e062bca38706ba565bc4e8`.
 
 ## Legal and modeling boundary
 
@@ -96,39 +97,44 @@ record, briefing, or merits documents. The workflow abstracts the counterfactual
 and docket setup needed to present those exercises; it does not claim a complete alternate
 appellate docket for them.
 
-## Frozen workflow and pending evidence
+## Final workflow and evidence
 
 The frozen workflow SHA-256 is
 `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`.
 It contains 16 stages, 90 operations, 13 filing routes, 24 exact filing bindings,
 31 document bindings, two structured-disposition bindings, and 14 concrete deadline IDs
 representing 12 logical deadline concepts. All 90 operations are reachable across the nine
-planned paths. Schema validation, four-revision resolved validation, nine-path replay, and an
+paths. Schema validation, four-revision resolved validation, nine-path replay, and an
 independent hostile audit passed; the audit rejected 2,212 replay mutations across 316 journal
-entries. Canonical checked-in production traces and release closure are still pending.
+entries. The nine checked-in production traces contain 316 commands and 334 events, cover all
+90 operations, and bind the exact workflow and root revision.
 
-The root plans exactly 16 required capabilities and three exact-pinned foundation dependencies.
-These workflow counts are frozen evidence, but they are not by themselves an installable or
-release claim.
+The final manifest declares exactly 16 required capabilities and three exact-pinned foundation
+dependencies. Two exports were byte-identical, and fresh installation plus resolved validation
+passed for the four-pack closure.
 
-Current unresolved evidence pins are intentionally explicit:
+Final evidence pins are:
 
 - workflow resource SHA-256:
   `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`;
 - workflow structural/replay audit: exact 90/90 operation reachability and 2,212/2,212
   hostile replay mutations rejected;
-- nine trace paths and SHA-256 values: `PENDING_TRACE_PINS`;
-- manifest SHA-256: `PENDING_MANIFEST_SHA256`;
-- realism-review SHA-256 and evidence closure: `PENDING_REVIEW_SHA256` and
-  `PENDING_EVIDENCE_CLOSURE_SHA256`;
-- root revision: `PENDING_ROOT_REVISION`;
-- deterministic archive size/SHA-256: `PENDING_ARCHIVE_SIZE` and
-  `PENDING_ARCHIVE_SHA256`;
-- focused local and `TZ=UTC` results: `PENDING_TEST_PINS`.
+- nine-trace bundle SHA-256:
+  `829b060c1fbda0ecdb09ee7624ed6a2ab178f4ad44216b04558403b1754af709`;
+- manifest SHA-256: `e89b902b39d22bcc4f5b1aa407d754e665e1243d196dc4af3703816c355f46e4`;
+- realism-review SHA-256 and evidence closure:
+  `8870e5c8c10e956552f99c5069a2fbc6874402cc07e062bca38706ba565bc4e8` and
+  `1170d682b46773d09b63b5dcfcd5b7c485c2f792881c94027b76550ef021d82c`;
+- root revision: `a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f`;
+- deterministic archive size/SHA-256: 4,744,009 bytes and
+  `a4b993aa3cc6582d1d0f6ca9a7203109378f4f1c1b2e6ce32efbfe82b6a48e19`;
+- focused tests: local 2/2 passed in 39.37 seconds; `TZ=UTC` 2/2 passed in
+  39.15 seconds. Core/UI source SHA-256 values are
+  `a610b8cf47a9bdc3d1ad2cbf0b4979e59b2bbbe296c9c05b52e9385eaebd8aec` and
+  `d959c1ecaec43bf8294fa698749a997c80dab391f7f0064ad7a5515fd37264ed`.
 
-No level-2, level-3, installable, deterministic-export, resolved-validation, replay, or
-gold assertion should be inferred from these placeholders. Qualified independent First
-Amendment and appellate review remains required for any level-3 claim.
+This is an installable level-2 authoring candidate, not a level-3 or gold claim. Qualified
+independent First Amendment and appellate review remains required for any level-3 claim.
 
 ## Exact dependencies
 
