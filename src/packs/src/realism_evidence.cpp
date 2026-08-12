@@ -51,11 +51,19 @@ constexpr std::array dimension_names{
 };
 constexpr qsizetype maximum_authoring_manifest_bytes = 1024 * 1024;
 constexpr qsizetype maximum_authoring_review_bytes = 8 * 1024 * 1024;
+constexpr qsizetype maximum_authoring_trace_count = 256;
+constexpr qsizetype maximum_dimension_evidence_reference_count = 512;
 
 [[nodiscard]] QString authoringEngineRevision() {
     return QString::fromLatin1(
         realism_evidence_authoring_engine_revision.data(),
         static_cast<qsizetype>(realism_evidence_authoring_engine_revision.size()));
+}
+
+[[nodiscard]] QString multiTraceAuthoringEngineRevision() {
+    return QString::fromLatin1(
+        realism_evidence_multi_trace_authoring_engine_revision.data(),
+        static_cast<qsizetype>(realism_evidence_multi_trace_authoring_engine_revision.size()));
 }
 
 struct CapabilityBinding final {
@@ -990,7 +998,7 @@ struct AuthoringEvidenceBindings final {
     QHash<QString, QString> authorities_by_id;
     QSet<QString> record_blob_refs;
     QSet<QString> record_check_refs;
-    QString trace_ref;
+    QSet<QString> trace_refs;
 };
 
 [[nodiscard]] QHash<QString, QSet<QString>>
@@ -1019,8 +1027,6 @@ authoringDimensionGroups(const AuthoringEvidenceProfile& profile,
     const auto oneResourceRef = [&](const QString& resource_id) {
         return resourceRefs(QSet<QString>{resource_id});
     };
-    const QSet<QString> trace_refs =
-        bindings.trace_ref.isEmpty() ? QSet<QString>{} : QSet<QString>{bindings.trace_ref};
     const auto authority_set_refs = resourceRefs(profile.authority_set_ids);
 
     auto procedural_authorities = profile.case_authority_ids;
@@ -1032,14 +1038,14 @@ authoringDimensionGroups(const AuthoringEvidenceProfile& profile,
     procedural.unite(oneResourceRef(profile.filing_catalog_id));
     procedural.unite(authority_set_refs);
     procedural.unite(authorityRefs(procedural_authorities));
-    procedural.unite(trace_refs);
+    procedural.unite(bindings.trace_refs);
 
     auto deadlines = oneResourceRef(profile.procedure_id);
     deadlines.unite(oneResourceRef(profile.workflow_id));
     deadlines.unite(oneResourceRef(profile.court_id));
     deadlines.unite(authority_set_refs);
     deadlines.unite(authorityRefs(profile.deadline_authority_ids));
-    deadlines.unite(trace_refs);
+    deadlines.unite(bindings.trace_refs);
 
     auto record_consistency = oneResourceRef(profile.record_id);
     record_consistency.unite(bindings.record_blob_refs);
@@ -1050,7 +1056,7 @@ authoringDimensionGroups(const AuthoringEvidenceProfile& profile,
     auto consequences = oneResourceRef(profile.case_id);
     consequences.unite(oneResourceRef(profile.workflow_id));
     consequences.unite(authorityRefs(consequence_authorities));
-    consequences.unite(trace_refs);
+    consequences.unite(bindings.trace_refs);
 
     auto oral_argument = resourceRefs(profile.argument_resource_ids);
     oral_argument.unite(resourceRefs(profile.bench_resource_ids));
@@ -1353,8 +1359,9 @@ validateReview(const ValidatedResource& review, const LoadedPack& review_owner,
                     QStringLiteral("the projected subject case is absent"));
     }
     QSet<QString> trace_ids;
-    QString authoring_trace_ref;
+    QSet<QString> authoring_trace_refs;
     qsizetype authoring_trace_count = 0;
+    qsizetype multi_trace_authoring_count = 0;
     for (const auto& value : evidence.value(QStringLiteral("traces")).toArray()) {
         const auto trace = value.toObject();
         if (!addEvidenceId(trace)) {
@@ -1367,10 +1374,13 @@ validateReview(const ValidatedResource& review, const LoadedPack& review_owner,
                         QStringLiteral("trace IDs must be unique"));
         }
         trace_ids.insert(trace_id);
-        if (trace.value(QStringLiteral("engine_revision")).toString() ==
-            authoringEngineRevision()) {
+        const auto engine_revision = trace.value(QStringLiteral("engine_revision")).toString();
+        if (engine_revision == authoringEngineRevision()) {
             ++authoring_trace_count;
-            authoring_trace_ref = trace.value(QStringLiteral("evidence_id")).toString();
+            authoring_trace_refs.insert(trace.value(QStringLiteral("evidence_id")).toString());
+        } else if (engine_revision == multiTraceAuthoringEngineRevision()) {
+            ++multi_trace_authoring_count;
+            authoring_trace_refs.insert(trace.value(QStringLiteral("evidence_id")).toString());
         }
         const auto normalized = normalizeExecutedTrace(review, case_id, trace, *runtime_case);
         if (!normalized) {
@@ -1497,18 +1507,32 @@ validateReview(const ValidatedResource& review, const LoadedPack& review_owner,
         }
     }
 
-    if (authoring_trace_count != 0) {
-        if (authoring_trace_count != 1 ||
-            evidence.value(QStringLiteral("traces")).toArray().size() != 1) {
-            return fail(review, QStringLiteral("evidence/traces"),
-                        QStringLiteral("authoring-profile evidence requires exactly one trace"));
-        }
+    const auto declared_trace_count = evidence.value(QStringLiteral("traces")).toArray().size();
+    if (authoring_trace_count != 0 && (authoring_trace_count != 1 || declared_trace_count != 1)) {
+        return fail(review, QStringLiteral("evidence/traces"),
+                    QStringLiteral("authoring-profile evidence requires exactly one trace"));
+    }
+    if (multi_trace_authoring_count != 0 && multi_trace_authoring_count != declared_trace_count) {
+        return fail(review, QStringLiteral("evidence/traces"),
+                    QStringLiteral("multi-trace authoring-profile evidence requires every trace "
+                                   "to use its exact engine revision"));
+    }
+
+    const auto uses_single_trace_profile = authoring_trace_count != 0;
+    const auto uses_multi_trace_profile = multi_trace_authoring_count != 0;
+    if (uses_single_trace_profile || uses_multi_trace_profile) {
+        const auto maximum_score = uses_single_trace_profile ? 1 : 2;
         for (const auto* dimension_name : dimension_names) {
             const auto key = QLatin1StringView(dimension_name);
-            if (static_cast<int>(dimensions.value(key).toDouble()) > 1) {
+            if (static_cast<int>(dimensions.value(key).toDouble()) > maximum_score) {
                 return fail(
                     review, QStringLiteral("dimensions/") + key,
-                    QStringLiteral("authoring-profile evidence can substantiate level 1 at most"));
+                    uses_single_trace_profile
+                        ? QStringLiteral(
+                              "authoring-profile evidence can substantiate level 1 at most")
+                        : QStringLiteral(
+                              "multi-trace authoring-profile evidence can substantiate level 2 "
+                              "at most"));
             }
         }
 
@@ -1578,7 +1602,7 @@ validateReview(const ValidatedResource& review, const LoadedPack& review_owner,
             declared_authority_evidence_by_id,
             authoring_record_blob_refs,
             authoring_record_check_refs,
-            authoring_trace_ref,
+            authoring_trace_refs,
         };
         const auto expected_groups = authoringDimensionGroups(profile, bindings);
         for (const auto* dimension_name : dimension_names) {
@@ -1697,6 +1721,39 @@ authorRealismEvidence(const PackCatalog& catalog, const RealismEvidenceAuthoring
             RealismEvidenceAuthoringErrorCode::InvalidInput,
             QStringLiteral("Root directory, review resource ID, and trace are required"));
     }
+    return authorRealismEvidence(catalog, RealismEvidenceTraceSetAuthoringInput{
+                                              input.root_directory,
+                                              input.review_resource_id,
+                                              QJsonArray{input.trace},
+                                              RealismEvidenceTraceSetProfile::SingleTraceHelperV1,
+                                          });
+}
+
+std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>
+authorRealismEvidence(const PackCatalog& catalog,
+                      const RealismEvidenceTraceSetAuthoringInput& input) {
+    if (input.profile != RealismEvidenceTraceSetProfile::SingleTraceHelperV1 &&
+        input.profile != RealismEvidenceTraceSetProfile::MultiTraceProductionV1) {
+        return authoringFailure(RealismEvidenceAuthoringErrorCode::InvalidInput,
+                                QStringLiteral("Unknown realism-evidence authoring profile"));
+    }
+    const auto single_trace_profile =
+        input.profile == RealismEvidenceTraceSetProfile::SingleTraceHelperV1;
+    if (input.root_directory.trimmed().isEmpty() || input.review_resource_id.trimmed().isEmpty() ||
+        input.traces.isEmpty()) {
+        return authoringFailure(
+            RealismEvidenceAuthoringErrorCode::InvalidInput,
+            QStringLiteral("Root directory, review resource ID, and traces are required"));
+    }
+    if (input.traces.size() > maximum_authoring_trace_count) {
+        return authoringFailure(RealismEvidenceAuthoringErrorCode::InvalidInput,
+                                QStringLiteral("Trace sets may contain at most 256 traces"));
+    }
+    if (single_trace_profile && input.traces.size() != 1) {
+        return authoringFailure(
+            RealismEvidenceAuthoringErrorCode::InvalidInput,
+            QStringLiteral("The single-trace helper profile requires exactly one trace"));
+    }
 
     const auto loaded = PackReader::readDirectoryForRealismAuthoring(input.root_directory,
                                                                      input.review_resource_id);
@@ -1740,15 +1797,21 @@ authorRealismEvidence(const PackCatalog& catalog, const RealismEvidenceAuthoring
             QStringLiteral("The authoring command cannot claim or rewrite independent review"));
     }
     const auto dimensions = review->document.value(QStringLiteral("dimensions")).toObject();
+    const auto maximum_score = single_trace_profile ? 1 : 2;
     for (const auto* dimension_name : dimension_names) {
-        if (static_cast<int>(dimensions.value(QLatin1StringView(dimension_name)).toDouble()) > 1) {
+        if (static_cast<int>(dimensions.value(QLatin1StringView(dimension_name)).toDouble()) >
+            maximum_score) {
             return authoringFailure(
                 RealismEvidenceAuthoringErrorCode::InvalidPack,
-                QStringLiteral("The authoring command can substantiate realism level 1 at most"));
+                single_trace_profile
+                    ? QStringLiteral(
+                          "The authoring command can substantiate realism level 1 at most")
+                    : QStringLiteral(
+                          "The multi-trace authoring command can substantiate realism level 2 "
+                          "at most"));
         }
     }
 
-    auto authoring_trace = input.trace;
     static const QSet<QString> allowed_trace_fields{
         QStringLiteral("evidence_id"),   QStringLiteral("trace_id"),
         QStringLiteral("workflow_id"),   QStringLiteral("engine_revision"),
@@ -1757,36 +1820,65 @@ authorRealismEvidence(const PackCatalog& catalog, const RealismEvidenceAuthoring
         QStringLiteral("operation_ids"), QStringLiteral("terminal_stage_id"),
         QStringLiteral("digest"),
     };
-    for (auto iterator = authoring_trace.constBegin(); iterator != authoring_trace.constEnd();
-         ++iterator) {
-        if (!allowed_trace_fields.contains(iterator.key())) {
+    const auto fixed_engine_revision =
+        single_trace_profile ? authoringEngineRevision() : multiTraceAuthoringEngineRevision();
+    std::vector<QJsonObject> authoring_traces;
+    authoring_traces.reserve(static_cast<std::size_t>(input.traces.size()));
+    QSet<QString> evidence_ids;
+    QSet<QString> trace_ids;
+    for (const auto& trace_value : input.traces) {
+        if (!trace_value.isObject()) {
+            return authoringFailure(RealismEvidenceAuthoringErrorCode::InvalidInput,
+                                    QStringLiteral("Every trace must be a JSON object"));
+        }
+        auto authoring_trace = trace_value.toObject();
+        for (auto iterator = authoring_trace.constBegin(); iterator != authoring_trace.constEnd();
+             ++iterator) {
+            if (!allowed_trace_fields.contains(iterator.key())) {
+                return authoringFailure(
+                    RealismEvidenceAuthoringErrorCode::InvalidInput,
+                    QStringLiteral("Trace contains unsupported field %1").arg(iterator.key()));
+            }
+        }
+        for (const auto& field : {QStringLiteral("evidence_id"), QStringLiteral("trace_id"),
+                                  QStringLiteral("workflow_id")}) {
+            if (!authoring_trace.value(field).isString() ||
+                authoring_trace.value(field).toString().isEmpty()) {
+                return authoringFailure(RealismEvidenceAuthoringErrorCode::InvalidInput,
+                                        QStringLiteral("Trace field %1 is required").arg(field));
+            }
+        }
+        const auto evidence_id = authoring_trace.value(QStringLiteral("evidence_id")).toString();
+        if (evidence_ids.contains(evidence_id)) {
+            return authoringFailure(RealismEvidenceAuthoringErrorCode::InvalidInput,
+                                    QStringLiteral("Trace evidence_id values must be unique"));
+        }
+        evidence_ids.insert(evidence_id);
+        const auto trace_id = authoring_trace.value(QStringLiteral("trace_id")).toString();
+        if (trace_ids.contains(trace_id)) {
+            return authoringFailure(RealismEvidenceAuthoringErrorCode::InvalidInput,
+                                    QStringLiteral("Trace trace_id values must be unique"));
+        }
+        trace_ids.insert(trace_id);
+        if (authoring_trace.contains(QStringLiteral("engine_revision")) &&
+            (!authoring_trace.value(QStringLiteral("engine_revision")).isString() ||
+             authoring_trace.value(QStringLiteral("engine_revision")).toString() !=
+                 fixed_engine_revision)) {
             return authoringFailure(
                 RealismEvidenceAuthoringErrorCode::InvalidInput,
-                QStringLiteral("Trace contains unsupported field %1").arg(iterator.key()));
+                single_trace_profile
+                    ? QStringLiteral(
+                          "Trace engine_revision must equal the authoring engine revision")
+                    : QStringLiteral(
+                          "Trace engine_revision must equal the selected authoring profile"));
         }
-    }
-    for (const auto& field : {QStringLiteral("evidence_id"), QStringLiteral("trace_id"),
-                              QStringLiteral("workflow_id")}) {
-        if (!authoring_trace.value(field).isString() ||
-            authoring_trace.value(field).toString().isEmpty()) {
+        authoring_trace.insert(QStringLiteral("engine_revision"), fixed_engine_revision);
+        if (!authoring_trace.value(QStringLiteral("journal")).isArray() ||
+            authoring_trace.value(QStringLiteral("journal")).toArray().isEmpty()) {
             return authoringFailure(RealismEvidenceAuthoringErrorCode::InvalidInput,
-                                    QStringLiteral("Trace field %1 is required").arg(field));
+                                    QStringLiteral("Trace journal must be a nonempty array"));
         }
-    }
-    const auto fixed_engine_revision = authoringEngineRevision();
-    if (authoring_trace.contains(QStringLiteral("engine_revision")) &&
-        (!authoring_trace.value(QStringLiteral("engine_revision")).isString() ||
-         authoring_trace.value(QStringLiteral("engine_revision")).toString() !=
-             fixed_engine_revision)) {
-        return authoringFailure(
-            RealismEvidenceAuthoringErrorCode::InvalidInput,
-            QStringLiteral("Trace engine_revision must equal the authoring engine revision"));
-    }
-    authoring_trace.insert(QStringLiteral("engine_revision"), fixed_engine_revision);
-    if (!authoring_trace.value(QStringLiteral("journal")).isArray() ||
-        authoring_trace.value(QStringLiteral("journal")).toArray().isEmpty()) {
-        return authoringFailure(RealismEvidenceAuthoringErrorCode::InvalidInput,
-                                QStringLiteral("Trace journal must be a nonempty array"));
+        authoring_traces.push_back(std::move(authoring_trace));
     }
 
     const auto review_path = QString::fromStdString(review->descriptor.path);
@@ -1902,10 +1994,29 @@ authorRealismEvidence(const PackCatalog& catalog, const RealismEvidenceAuthoring
         return authoringFailure(RealismEvidenceAuthoringErrorCode::InvalidPack,
                                 QStringLiteral("The exact reviewed case is absent at runtime"));
     }
-    const auto normalized_trace =
-        normalizeExecutedTrace(*review, case_id, authoring_trace, *runtime_case);
-    if (!normalized_trace) {
-        return invalidPack(normalized_trace.error());
+    std::vector<QJsonObject> normalized_trace_objects;
+    normalized_trace_objects.reserve(authoring_traces.size());
+    for (const auto& authoring_trace : authoring_traces) {
+        const auto normalized_trace =
+            normalizeExecutedTrace(*review, case_id, authoring_trace, *runtime_case);
+        if (!normalized_trace) {
+            return invalidPack(normalized_trace.error());
+        }
+        normalized_trace_objects.push_back(*normalized_trace);
+    }
+    std::ranges::sort(normalized_trace_objects,
+                      [](const QJsonObject& left, const QJsonObject& right) {
+                          return std::tuple{left.value(QStringLiteral("trace_id")).toString(),
+                                            left.value(QStringLiteral("evidence_id")).toString()} <
+                                 std::tuple{right.value(QStringLiteral("trace_id")).toString(),
+                                            right.value(QStringLiteral("evidence_id")).toString()};
+                      });
+    QJsonArray normalized_traces;
+    QSet<QString> normalized_trace_refs;
+    for (const auto& normalized_trace : normalized_trace_objects) {
+        normalized_traces.push_back(normalized_trace);
+        normalized_trace_refs.insert(
+            normalized_trace.value(QStringLiteral("evidence_id")).toString());
     }
 
     const auto record_id =
@@ -1988,7 +2099,7 @@ authorRealismEvidence(const PackCatalog& catalog, const RealismEvidenceAuthoring
         record_blob_evidence,
         QSet<QString>{asset_check.value(QStringLiteral("evidence_id")).toString(),
                       anchor_check.value(QStringLiteral("evidence_id")).toString()},
-        normalized_trace->value(QStringLiteral("evidence_id")).toString(),
+        normalized_trace_refs,
     };
     const auto dimension_groups = authoringDimensionGroups(profile, authoring_bindings);
 
@@ -1999,7 +2110,8 @@ authorRealismEvidence(const PackCatalog& catalog, const RealismEvidenceAuthoring
         auto references = dimension_groups.value(key);
         if (score == 0) {
             references.clear();
-        } else if (references.isEmpty() || references.size() > 256 ||
+        } else if (references.isEmpty() ||
+                   references.size() > maximum_dimension_evidence_reference_count ||
                    (key == QStringLiteral("oral_argument") &&
                     profile.argument_resource_ids.isEmpty()) ||
                    (key == QStringLiteral("bench_differentiation") &&
@@ -2017,7 +2129,7 @@ authorRealismEvidence(const PackCatalog& catalog, const RealismEvidenceAuthoring
         {QStringLiteral("packs"), pack_values},
         {QStringLiteral("resources"), resource_values},
         {QStringLiteral("blobs"), blob_values},
-        {QStringLiteral("traces"), QJsonArray{*normalized_trace}},
+        {QStringLiteral("traces"), normalized_traces},
         {QStringLiteral("record_checks"), record_checks},
         {QStringLiteral("authorities"), authority_values},
         {QStringLiteral("dimension_evidence"), dimension_evidence},
@@ -2119,7 +2231,7 @@ authorRealismEvidence(const PackCatalog& catalog, const RealismEvidenceAuthoring
             closure.pack_bindings.size(),
             closure.resource_bindings.size(),
             closure.blob_bindings.size(),
-            std::size_t{1},
+            static_cast<std::size_t>(normalized_traces.size()),
             std::size_t{2},
             static_cast<std::size_t>(authority_values.size()),
         },

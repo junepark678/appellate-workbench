@@ -60,6 +60,9 @@ class PackReader final {
     friend auto authorRealismEvidence(const PackCatalog& catalog,
                                       const RealismEvidenceAuthoringInput& input)
         -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
+    friend auto authorRealismEvidence(const PackCatalog& catalog,
+                                      const RealismEvidenceTraceSetAuthoringInput& input)
+        -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
 
     [[nodiscard]] static std::expected<LoadedPack, Error>
     readDirectoryForRealismAuthoring(const QString& directory, const QString& review_resource_id);

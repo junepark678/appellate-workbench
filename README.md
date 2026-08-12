@@ -98,6 +98,14 @@ executed trace after installing its exact dependencies in the local catalog:
   /tmp/appellate-pack-catalog my.pack.review /tmp/canonical-trace.json
 ```
 
+For an explicit 1-256 trace production-authoring bundle (scores 0-2), use the separate
+`appellate.realism-evidence.codec-replay-multi.v1` profile and command:
+
+```sh
+./build/dev/src/cli/appellate-pack author-realism-evidence-multi /tmp/my-appellate-pack \
+  /tmp/appellate-pack-catalog my.pack.review /tmp/canonical-trace-set.json
+```
+
 The CLI emits one compact, schema-versioned JSON object to stdout on success and stderr on
 failure. `template` never overwrites an existing destination. See the
 [pack contract and CLI reference](docs/spec/PACKS.md) before editing a generated pack.

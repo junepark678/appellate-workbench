@@ -4327,6 +4327,19 @@ void SchemaDispatchTest::rejectsTamperedAndIncompleteRealismEvidence() {
              document.insert(QStringLiteral("evidence"), evidence);
          },
          ErrorCode::SchemaViolation},
+        {"too many dimension evidence references",
+         [](QJsonObject& document) {
+             QJsonArray references;
+             for (int index = 0; index < 513; ++index) {
+                 references.push_back(QStringLiteral("example.evidence.excess.%1").arg(index));
+             }
+             auto evidence = document.value(QStringLiteral("evidence")).toObject();
+             auto dimensions = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+             dimensions.insert(QStringLiteral("procedural_law"), references);
+             evidence.insert(QStringLiteral("dimension_evidence"), dimensions);
+             document.insert(QStringLiteral("evidence"), evidence);
+         },
+         ErrorCode::SchemaViolation},
     };
 
     for (const auto& mutation : mutations) {

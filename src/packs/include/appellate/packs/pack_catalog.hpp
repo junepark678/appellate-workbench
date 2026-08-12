@@ -97,6 +97,9 @@ class PackCatalog final {
     friend auto authorRealismEvidence(const PackCatalog& catalog,
                                       const RealismEvidenceAuthoringInput& input)
         -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
+    friend auto authorRealismEvidence(const PackCatalog& catalog,
+                                      const RealismEvidenceTraceSetAuthoringInput& input)
+        -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
 
     PackCatalog(QString root_directory, QString connection_name);
 

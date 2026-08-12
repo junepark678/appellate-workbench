@@ -184,7 +184,9 @@ constexpr auto output_schema_version = 1;
         "<archive> | export-deferred <directory> <archive> | validate-resolved <catalog> "
         "<pack-id> <version> <digest> | install <archive> <catalog> "
         "[--installed-at <canonical UTC>] | list <catalog> | template <new-destination> | "
-        "author-realism-evidence <directory> <catalog> <review-resource-id> <trace-json>");
+        "author-realism-evidence <directory> <catalog> <review-resource-id> <trace-json> | "
+        "author-realism-evidence-multi <directory> <catalog> <review-resource-id> "
+        "<trace-set-json>");
 }
 
 [[nodiscard]] bool isCanonicalUtc(const QString& value) {
@@ -1433,13 +1435,20 @@ applyTransaction(const AnchoredRoot& root, const RealismTransactionHandle& handl
            cleanupTransactionDirectory(root, handle.anchor).has_value();
 }
 
-[[nodiscard]] RunResult authorRealismEvidenceCommand(const QStringList& arguments) {
-    constexpr auto command = "author-realism-evidence";
+[[nodiscard]] RunResult
+authorRealismEvidenceCommand(const QStringList& arguments,
+                             packs::RealismEvidenceTraceSetProfile profile) {
+    const auto multi_trace =
+        profile == packs::RealismEvidenceTraceSetProfile::MultiTraceProductionV1;
+    const auto command = multi_trace ? "author-realism-evidence-multi" : "author-realism-evidence";
     constexpr qsizetype maximum_trace_bytes = 64 * 1024 * 1024;
     if (arguments.size() != 5) {
         return invalidArguments(
-            QStringLiteral(
-                "author-realism-evidence requires a root, catalog, review ID, and trace"),
+            multi_trace
+                ? QStringLiteral("author-realism-evidence-multi requires a root, catalog, review "
+                                 "ID, and trace-set bundle")
+                : QStringLiteral(
+                      "author-realism-evidence requires a root, catalog, review ID, and trace"),
             QLatin1StringView(command));
     }
 
@@ -1495,11 +1504,32 @@ applyTransaction(const AnchoredRoot& root, const RealismTransactionHandle& handl
                 .arg(trace_bytes.error()),
             QLatin1StringView(command));
     }
-    const auto trace = packs::SchemaValidator::parseObject(
+    const auto trace_input = packs::SchemaValidator::parseObject(
         QByteArrayView(*trace_bytes), arguments.at(4), packs::JsonLimits{64, 500'000});
-    if (!trace) {
-        return failure(ExitCode::InvalidPack, packErrorCode(trace.error().code),
-                       trace.error().message, QLatin1StringView(command));
+    if (!trace_input) {
+        return failure(ExitCode::InvalidPack, packErrorCode(trace_input.error().code),
+                       trace_input.error().message, QLatin1StringView(command));
+    }
+    QJsonObject single_trace;
+    QJsonArray multi_traces;
+    if (multi_trace) {
+        const auto expected_profile = QString::fromLatin1(
+            packs::realism_evidence_multi_trace_authoring_engine_revision.data(),
+            static_cast<qsizetype>(
+                packs::realism_evidence_multi_trace_authoring_engine_revision.size()));
+        if (trace_input->size() != 2 ||
+            trace_input->value(QStringLiteral("profile")).toString() != expected_profile ||
+            !trace_input->value(QStringLiteral("traces")).isArray()) {
+            return failure(
+                ExitCode::InvalidPack, QStringLiteral("invalid_realism_evidence"),
+                QStringLiteral("Multi-trace input must contain exactly profile %1 and a traces "
+                               "array")
+                    .arg(expected_profile),
+                QLatin1StringView(command));
+        }
+        multi_traces = trace_input->value(QStringLiteral("traces")).toArray();
+    } else {
+        single_trace = *trace_input;
     }
     if (const auto changed = rootChanged(); changed.has_value()) {
         return *changed;
@@ -1526,12 +1556,23 @@ applyTransaction(const AnchoredRoot& root, const RealismTransactionHandle& handl
     if (const auto changed = rootChanged(); changed.has_value()) {
         return *changed;
     }
-    const packs::RealismEvidenceAuthoringInput input{
-        root_directory,
-        arguments.at(3),
-        *trace,
+    const auto author = [&]() {
+        if (multi_trace) {
+            return packs::authorRealismEvidence(
+                **catalog, packs::RealismEvidenceTraceSetAuthoringInput{
+                               root_directory,
+                               arguments.at(3),
+                               multi_traces,
+                               packs::RealismEvidenceTraceSetProfile::MultiTraceProductionV1,
+                           });
+        }
+        return packs::authorRealismEvidence(**catalog, packs::RealismEvidenceAuthoringInput{
+                                                           root_directory,
+                                                           arguments.at(3),
+                                                           single_trace,
+                                                       });
     };
-    const auto authored = packs::authorRealismEvidence(**catalog, input);
+    const auto authored = author();
     if (const auto changed = rootChanged(); changed.has_value()) {
         return *changed;
     }
@@ -1622,7 +1663,7 @@ applyTransaction(const AnchoredRoot& root, const RealismTransactionHandle& handl
         }
     }
 
-    auto verified = packs::authorRealismEvidence(**catalog, input);
+    auto verified = author();
     if (const auto changed = rootChanged(); changed.has_value()) {
         return *changed;
     }
@@ -1832,7 +1873,12 @@ RunResult runPackCli(const QStringList& arguments) {
         return listCommand(arguments);
     }
     if (command == QStringLiteral("author-realism-evidence")) {
-        return authorRealismEvidenceCommand(arguments);
+        return authorRealismEvidenceCommand(
+            arguments, packs::RealismEvidenceTraceSetProfile::SingleTraceHelperV1);
+    }
+    if (command == QStringLiteral("author-realism-evidence-multi")) {
+        return authorRealismEvidenceCommand(
+            arguments, packs::RealismEvidenceTraceSetProfile::MultiTraceProductionV1);
     }
     if (command == QStringLiteral("template")) {
         return templateCommand(arguments);

@@ -144,10 +144,25 @@ For developer authoring, `author-realism-evidence` completes an existing, manife
 schema-version-2 review scaffold from an executed canonical trace and an exact local dependency
 catalog. The command preserves the scaffold's review state, dimension scores, uncertainties, and
 reviewer metadata as exact JSON values. It cannot create an independent-review
-claim or substantiate a score above 1. A single workflow journal is not treated as machine proof of
-adverse branches, oral or bench behavior, deadlines, or consequences at realism level 2. Manual
-and independently authored reviews retain the ordinary score-2/3 contract when they do not claim
-this helper's engine profile. Resource and blob bindings cover the complete review-excluded case
+claim or substantiate a score above 1. Its public API continues to accept exactly one trace, and its
+fixed `appellate.realism-evidence.codec-replay.v1` profile remains an exact-one-trace contract.
+A single workflow journal is not treated as machine proof of adverse branches, oral or bench
+behavior, deadlines, or consequences at realism level 2.
+
+The explicit `author-realism-evidence-multi` path uses the separate production-authoring profile
+`appellate.realism-evidence.codec-replay-multi.v1`. Its input bundle contains from one through 256
+trace objects. Every trace is independently normalized and replayed, every trace must use that
+profile revision, and duplicate `evidence_id` or `trace_id` values fail closed. Normalized traces
+are ordered by `trace_id` and then `evidence_id`, so permuting the input does not change authored
+bytes. This profile may preserve declared scores through level 2; the number of traces is not an
+automatic score or proof of coverage. Applicable dimension evidence includes every authored trace
+reference, including all trace references in the procedural-law, deadlines-authority, and
+consequences partitions. Each dimension may bind at most 512 unique evidence references, which
+leaves capacity for all 256 traces plus the mandatory non-trace references in an authorable
+subject closure.
+
+Manual and independently authored reviews retain the ordinary score-2/3 contract when they do not
+claim either authoring profile. Resource and blob bindings cover the complete review-excluded case
 closure. Authority bindings are the exact union of canonical authorities actually referenced by
 the selected case, selected workflow operations, record and case-specific oral resources, plus
 only filing-catalog entries whose filing types occur in that workflow's routes. Each dimension
@@ -165,6 +180,29 @@ both record checks, and all dimension references. Normal resolved validation rec
 helper-profile resource/blob evidence IDs and record-check IDs; changing an ID and repairing its
 references or dependent digest does not turn it into valid helper evidence. Repeating the command
 against unchanged inputs produces identical review and manifest bytes.
+
+The multi-trace CLI input is an object with exactly `profile` and `traces` members:
+
+```json
+{
+  "profile": "appellate.realism-evidence.codec-replay-multi.v1",
+  "traces": [
+    {
+      "evidence_id": "example.evidence.trace.one",
+      "trace_id": "example.trace.one",
+      "workflow_id": "example.workflow",
+      "journal": [
+        { "command_base64": "<canonical bytes>", "events_base64": ["<canonical bytes>"] }
+      ]
+    }
+  ]
+}
+```
+
+The angle-bracketed byte values are explanatory placeholders, not literal valid input. Each trace
+has the same field contract as the single-trace input, and journals must be nonempty. The legacy
+command continues to interpret its last operand only as one trace object and does not auto-detect
+this bundle.
 
 ### Canonical authority provenance
 
@@ -551,6 +589,7 @@ appellate-pack install <awpack> <catalog> [--installed-at YYYY-MM-DDTHH:MM:SSZ]
 appellate-pack list <catalog>
 appellate-pack validate-resolved <catalog> <pack-id> <version> <digest>
 appellate-pack author-realism-evidence <directory> <catalog> <review-resource-id> <trace-json>
+appellate-pack author-realism-evidence-multi <directory> <catalog> <review-resource-id> <trace-set-json>
 ```
 
 `template` creates a complete fictional/composite schema-version-2 example containing every
@@ -567,11 +606,12 @@ root revision in a local catalog, validates the whole installed closure, and ret
 pack-ID-sorted revision-pin set. Neither command performs network access or makes a deferred pack
 directly executable.
 
-`author-realism-evidence` requires every exact dependency to be installed in `catalog`; it never
-installs the root or dependencies. It precomputes and validates the final review, manifest, replay,
-and exact resolved graph before changing source files. A catalog row with the same root pack ID and
-version is accepted only when its digest equals the prospective final digest. Trace, source, and
-transaction inputs use bounded no-follow regular-file reads. The canonical root is held by a
+Both realism-evidence authoring commands require every exact dependency to be installed in
+`catalog`; neither installs the root or dependencies. They precompute and validate the final
+review, manifest, every replay, and exact resolved graph before changing source files. The two
+profiles share one root lock and transaction namespace. A catalog row with the same root pack ID
+and version is accepted only when its digest equals the prospective final digest. Trace, source,
+and transaction inputs use bounded no-follow regular-file reads. The canonical root is held by a
 directory descriptor; root members are traversed component-by-component without following links,
 and publication targets descriptor-relative directories. Renaming or replacing the named root
 or its named parent fails the retained device/inode identity checks, including a final check after

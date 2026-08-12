@@ -3,6 +3,7 @@
 #include "appellate/engine/workflow_engine.hpp"
 #include "appellate/packs/pack_catalog.hpp"
 #include "appellate/packs/pack_reader.hpp"
+#include "appellate/packs/realism_evidence_authoring.hpp"
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/storage/workflow_codec.hpp"
 
@@ -42,6 +43,7 @@ class PackCliTest final : public QObject {
   private slots:
     void completePackLifecycle();
     void authorsRealismEvidenceDeterministically();
+    void authorsMultiTraceRealismEvidenceDeterministically();
     void rejectsInvalidArgumentsAndExistingTemplateDestination();
 };
 
@@ -202,16 +204,19 @@ eventHeader(const appellate::model::WorkflowEvent& event) {
         event);
 }
 
-[[nodiscard]] std::optional<QJsonObject> executedTrace(const appellate::packs::LoadedPack& pack) {
-    const auto runtime = appellate::packs::loadRuntimePack(pack);
-    if (!runtime || runtime->cases.empty()) {
-        return std::nullopt;
-    }
-    const auto& runtime_case = runtime->cases.front();
+[[nodiscard]] std::optional<QJsonObject>
+executedTrace(const appellate::packs::RuntimeCase& runtime_case, const QString& suffix = {}) {
+    const auto suffixed = [&](QLatin1StringView base) {
+        return suffix.isEmpty() ? QString{base} : QString{base} + u'.' + suffix;
+    };
+    const auto session_id = suffixed(QLatin1StringView("example.session.cli-realism"));
+    const auto command_id = suffixed(QLatin1StringView("example.command.cli-realism"));
+    const auto filing_instance_id =
+        suffixed(QLatin1StringView("example.filing-instance.cli-realism"));
     const auto court_date = appellate::model::LegalDate{
         std::chrono::year{2026} / std::chrono::month{1} / std::chrono::day{4}};
     const appellate::model::WorkflowState initial_state{
-        "example.session.cli-realism",
+        session_id.toStdString(),
         runtime_case.workflow.id,
         runtime_case.workflow.initial_stage_id,
         std::uint64_t{1},
@@ -230,12 +235,12 @@ eventHeader(const appellate::model::WorkflowEvent& event) {
     const appellate::model::WorkflowCommand command = appellate::model::SubmitWorkflowFiling{
         appellate::model::WorkflowCommandHeader{
             initial_state.session_id,
-            appellate::model::WorkflowCommandId{"example.command.cli-realism"},
+            appellate::model::WorkflowCommandId{command_id.toStdString()},
             appellate::model::ActorId{"example.actor.appellant"},
             appellate::model::LegalTime{
                 std::chrono::sys_seconds{std::chrono::sys_days{court_date.value}}, court_date},
         },
-        appellate::model::WorkflowFilingId{"example.filing-instance.cli-realism"},
+        appellate::model::WorkflowFilingId{filing_instance_id.toStdString()},
         appellate::model::FilingTypeId{"example.filing.notice"},
         std::string(64, 'a'),
         {{appellate::model::FilingFieldId{"example.field.caption"}, "Example caption"}},
@@ -257,8 +262,9 @@ eventHeader(const appellate::model::WorkflowEvent& event) {
         encoded_events.push_back(QString::fromLatin1(bytes->toBase64()));
     }
     return QJsonObject{
-        {QStringLiteral("evidence_id"), QStringLiteral("example.evidence.trace.cli-realism")},
-        {QStringLiteral("trace_id"), QStringLiteral("example.trace.cli-realism")},
+        {QStringLiteral("evidence_id"),
+         suffixed(QLatin1StringView("example.evidence.trace.cli-realism"))},
+        {QStringLiteral("trace_id"), suffixed(QLatin1StringView("example.trace.cli-realism"))},
         {QStringLiteral("workflow_id"), QString::fromStdString(runtime_case.workflow.id.value)},
         {QStringLiteral("journal"),
          QJsonArray{QJsonObject{
@@ -266,6 +272,33 @@ eventHeader(const appellate::model::WorkflowEvent& event) {
              {QStringLiteral("events_base64"), encoded_events},
          }}},
     };
+}
+
+[[nodiscard]] std::optional<QJsonObject> executedTrace(const appellate::packs::LoadedPack& pack,
+                                                       const QString& suffix = {}) {
+    const auto runtime = appellate::packs::loadRuntimePack(pack);
+    if (!runtime || runtime->cases.empty()) {
+        return std::nullopt;
+    }
+    return executedTrace(runtime->cases.front(), suffix);
+}
+
+[[nodiscard]] std::optional<QJsonArray> executedTraces(const appellate::packs::LoadedPack& pack,
+                                                       qsizetype count) {
+    const auto runtime = appellate::packs::loadRuntimePack(pack);
+    if (!runtime || runtime->cases.empty() || count < 0) {
+        return std::nullopt;
+    }
+    QJsonArray traces;
+    for (qsizetype index = 0; index < count; ++index) {
+        const auto trace =
+            executedTrace(runtime->cases.front(), QStringLiteral("n") + QString::number(index));
+        if (!trace) {
+            return std::nullopt;
+        }
+        traces.push_back(*trace);
+    }
+    return traces;
 }
 
 [[nodiscard]] bool attachRealismScaffold(const QString& pack_directory, const QJsonObject& review) {
@@ -1299,6 +1332,223 @@ void PackCliTest::authorsRealismEvidenceDeterministically() {
     QCOMPARE(level_two.exit_code, static_cast<int>(ExitCode::InvalidPack));
     QCOMPARE(readAll(review_path), before_level_two_review);
     QCOMPARE(readAll(manifest_path), before_level_two_manifest);
+}
+
+void PackCliTest::authorsMultiTraceRealismEvidenceDeterministically() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto pack_directory =
+        QDir(temporary.path()).filePath(QStringLiteral("multi-evidence-pack"));
+    const auto catalog_directory = QDir(temporary.path()).filePath(QStringLiteral("catalog"));
+    const auto trace_set_path = QDir(temporary.path()).filePath(QStringLiteral("trace-set.json"));
+    requireSuccess(runPackCli({QStringLiteral("template"), pack_directory}),
+                   QStringLiteral("template"));
+
+    const auto pristine = appellate::packs::PackReader::readDirectory(pack_directory);
+    QVERIFY(pristine.has_value());
+    const auto all_traces = executedTraces(*pristine, 257);
+    QVERIFY(all_traces.has_value());
+    QCOMPARE(all_traces->size(), 257);
+    const auto trace_zero = all_traces->at(0).toObject();
+    const auto trace_one = all_traces->at(1).toObject();
+
+    const QJsonObject dimensions{
+        {QStringLiteral("procedural_law"), 2},     {QStringLiteral("deadlines_authority"), 2},
+        {QStringLiteral("record_consistency"), 2}, {QStringLiteral("consequences"), 2},
+        {QStringLiteral("oral_argument"), 2},      {QStringLiteral("bench_differentiation"), 2},
+        {QStringLiteral("provenance"), 2},
+    };
+    const QJsonObject scaffold{
+        {QStringLiteral("schema_version"), 2},
+        {QStringLiteral("resource_kind"), QStringLiteral("realism_review")},
+        {QStringLiteral("resource_id"), QStringLiteral("example.review.cli-realism-multi")},
+        {QStringLiteral("case_id"), QStringLiteral("example.case.fictional")},
+        {QStringLiteral("review_state"), QStringLiteral("independent_review_pending")},
+        {QStringLiteral("reviewed_on"), QStringLiteral("2026-08-12")},
+        {QStringLiteral("reviewer_reference"), QStringLiteral("Multi-trace authoring test")},
+        {QStringLiteral("reviewer"),
+         QJsonObject{
+             {QStringLiteral("reviewer_id"), QStringLiteral("example.reviewer.author")},
+             {QStringLiteral("display_name"), QStringLiteral("Example Author")},
+             {QStringLiteral("qualification"), QStringLiteral("Repository fixture author")},
+             {QStringLiteral("affiliation"), QStringLiteral("Example fixture project")},
+         }},
+        {QStringLiteral("dimensions"), dimensions},
+        {QStringLiteral("known_uncertainty"),
+         QJsonArray{QJsonObject{
+             {QStringLiteral("uncertainty_id"),
+              QStringLiteral("example.uncertainty.cli-realism-multi")},
+             {QStringLiteral("summary"), QStringLiteral("Synthetic multi-trace evidence")},
+             {QStringLiteral("blocking"), false},
+         }}},
+    };
+    QVERIFY(attachRealismScaffold(pack_directory, scaffold));
+
+    const auto profile = QString::fromLatin1(
+        appellate::packs::realism_evidence_multi_trace_authoring_engine_revision.data(),
+        static_cast<qsizetype>(
+            appellate::packs::realism_evidence_multi_trace_authoring_engine_revision.size()));
+    const auto traceBundle = [&](QJsonArray traces) {
+        return QJsonObject{
+            {QStringLiteral("profile"), profile},
+            {QStringLiteral("traces"), std::move(traces)},
+        };
+    };
+
+    const auto review_path =
+        QDir(pack_directory).filePath(QStringLiteral("resources/realism-review.json"));
+    const auto manifest_path = QDir(pack_directory).filePath(QStringLiteral("manifest.json"));
+    const auto transaction_path =
+        QDir(temporary.path())
+            .filePath(QStringLiteral(".multi-evidence-pack.author-realism-evidence.transaction"));
+    const auto command = QStringLiteral("author-realism-evidence-multi");
+    const auto review_id = QStringLiteral("example.review.cli-realism-multi");
+    const auto scaffold_review_bytes = readAll(review_path);
+    const auto scaffold_manifest_bytes = readAll(manifest_path);
+
+    QVERIFY(
+        overwriteAll(trace_set_path, jsonBytes(traceBundle(QJsonArray{trace_zero, trace_one}))));
+    const auto legacy_bundle =
+        runPackCli({QStringLiteral("author-realism-evidence"), pack_directory, catalog_directory,
+                    review_id, trace_set_path});
+    QCOMPARE(legacy_bundle.exit_code, static_cast<int>(ExitCode::InvalidPack));
+    QVERIFY(legacy_bundle.standard_output.isEmpty());
+    QCOMPARE(readAll(review_path), scaffold_review_bytes);
+    QCOMPARE(readAll(manifest_path), scaffold_manifest_bytes);
+
+    QVERIFY(overwriteAll(trace_set_path, jsonBytes(traceBundle(QJsonArray{}))));
+    const auto empty =
+        runPackCli({command, pack_directory, catalog_directory, review_id, trace_set_path});
+    QCOMPARE(empty.exit_code, static_cast<int>(ExitCode::InvalidPack));
+    QVERIFY(empty.standard_output.isEmpty());
+    QCOMPARE(readAll(review_path), scaffold_review_bytes);
+    QCOMPARE(readAll(manifest_path), scaffold_manifest_bytes);
+    QVERIFY(!QFileInfo::exists(transaction_path));
+
+    QVERIFY(overwriteAll(trace_set_path, jsonBytes(traceBundle(QJsonArray{trace_zero}))));
+    const auto single =
+        runPackCli({command, pack_directory, catalog_directory, review_id, trace_set_path});
+    requireSuccess(single, command);
+    const auto single_response = responseObject(single.standard_output);
+    QCOMPARE(single_response.value(QStringLiteral("updated")).toBool(), true);
+    QCOMPARE(single_response.value(QStringLiteral("evidence_counts"))
+                 .toObject()
+                 .value(QStringLiteral("traces"))
+                 .toInt(),
+             1);
+    const auto single_review = responseObject(readAll(review_path));
+    QCOMPARE(single_review.value(QStringLiteral("dimensions"))
+                 .toObject()
+                 .value(QStringLiteral("procedural_law"))
+                 .toInt(),
+             2);
+    QCOMPARE(single_review.value(QStringLiteral("evidence"))
+                 .toObject()
+                 .value(QStringLiteral("traces"))
+                 .toArray()
+                 .size(),
+             1);
+    requireSuccess(runPackCli({QStringLiteral("validate"), pack_directory}),
+                   QStringLiteral("validate"));
+
+    QJsonArray reverse_traces;
+    for (qsizetype index = 255; index >= 0; --index) {
+        reverse_traces.push_back(all_traces->at(index));
+    }
+    QVERIFY(overwriteAll(trace_set_path, jsonBytes(traceBundle(reverse_traces))));
+    const auto authored =
+        runPackCli({command, pack_directory, catalog_directory, review_id, trace_set_path});
+    requireSuccess(authored, command);
+    const auto authored_response = responseObject(authored.standard_output);
+    QCOMPARE(authored_response.value(QStringLiteral("updated")).toBool(), true);
+    QCOMPARE(authored_response.value(QStringLiteral("evidence_counts"))
+                 .toObject()
+                 .value(QStringLiteral("traces"))
+                 .toInt(),
+             256);
+
+    const auto authored_review_bytes = readAll(review_path);
+    const auto authored_manifest_bytes = readAll(manifest_path);
+    const auto evidence =
+        responseObject(authored_review_bytes).value(QStringLiteral("evidence")).toObject();
+    const auto traces = evidence.value(QStringLiteral("traces")).toArray();
+    QCOMPARE(traces.size(), 256);
+    for (const auto& value : traces) {
+        QCOMPARE(value.toObject().value(QStringLiteral("engine_revision")).toString(), profile);
+    }
+    const auto dimension_evidence = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+    for (const auto& dimension :
+         {QStringLiteral("procedural_law"), QStringLiteral("deadlines_authority"),
+          QStringLiteral("consequences")}) {
+        const auto references = dimension_evidence.value(dimension).toArray();
+        QVERIFY(references.size() > 256);
+        QVERIFY(references.size() <= 512);
+        QVERIFY(references.contains(trace_zero.value(QStringLiteral("evidence_id"))));
+        QVERIFY(references.contains(
+            all_traces->at(255).toObject().value(QStringLiteral("evidence_id"))));
+    }
+    requireSuccess(runPackCli({QStringLiteral("validate"), pack_directory}),
+                   QStringLiteral("validate"));
+
+    QJsonArray forward_traces;
+    for (qsizetype index = 0; index < 256; ++index) {
+        forward_traces.push_back(all_traces->at(index));
+    }
+    QVERIFY(overwriteAll(trace_set_path, jsonBytes(traceBundle(forward_traces))));
+    const auto repeated =
+        runPackCli({command, pack_directory, catalog_directory, review_id, trace_set_path});
+    requireSuccess(repeated, command);
+    QCOMPARE(responseObject(repeated.standard_output).value(QStringLiteral("updated")).toBool(),
+             false);
+    QCOMPARE(readAll(review_path), authored_review_bytes);
+    QCOMPARE(readAll(manifest_path), authored_manifest_bytes);
+
+    auto duplicate_evidence_trace = trace_one;
+    duplicate_evidence_trace.insert(QStringLiteral("evidence_id"),
+                                    trace_zero.value(QStringLiteral("evidence_id")));
+    QVERIFY(overwriteAll(trace_set_path,
+                         jsonBytes(traceBundle(QJsonArray{trace_zero, duplicate_evidence_trace}))));
+    const auto duplicate_evidence =
+        runPackCli({command, pack_directory, catalog_directory, review_id, trace_set_path});
+    QCOMPARE(duplicate_evidence.exit_code, static_cast<int>(ExitCode::InvalidPack));
+    QVERIFY(duplicate_evidence.standard_output.isEmpty());
+    QCOMPARE(readAll(review_path), authored_review_bytes);
+    QCOMPARE(readAll(manifest_path), authored_manifest_bytes);
+    QVERIFY(!QFileInfo::exists(transaction_path));
+
+    auto duplicate_id_trace = trace_one;
+    duplicate_id_trace.insert(QStringLiteral("trace_id"),
+                              trace_zero.value(QStringLiteral("trace_id")));
+    QVERIFY(overwriteAll(trace_set_path,
+                         jsonBytes(traceBundle(QJsonArray{trace_zero, duplicate_id_trace}))));
+    const auto duplicate_id =
+        runPackCli({command, pack_directory, catalog_directory, review_id, trace_set_path});
+    QCOMPARE(duplicate_id.exit_code, static_cast<int>(ExitCode::InvalidPack));
+    QVERIFY(duplicate_id.standard_output.isEmpty());
+    QCOMPARE(readAll(review_path), authored_review_bytes);
+    QCOMPARE(readAll(manifest_path), authored_manifest_bytes);
+    QVERIFY(!QFileInfo::exists(transaction_path));
+
+    auto tampered_trace = trace_one;
+    tampered_trace.insert(QStringLiteral("command_count"), 99);
+    QVERIFY(overwriteAll(trace_set_path,
+                         jsonBytes(traceBundle(QJsonArray{trace_zero, tampered_trace}))));
+    const auto tampered =
+        runPackCli({command, pack_directory, catalog_directory, review_id, trace_set_path});
+    QCOMPARE(tampered.exit_code, static_cast<int>(ExitCode::InvalidPack));
+    QVERIFY(tampered.standard_output.isEmpty());
+    QCOMPARE(readAll(review_path), authored_review_bytes);
+    QCOMPARE(readAll(manifest_path), authored_manifest_bytes);
+    QVERIFY(!QFileInfo::exists(transaction_path));
+
+    QVERIFY(overwriteAll(trace_set_path, jsonBytes(traceBundle(*all_traces))));
+    const auto excessive =
+        runPackCli({command, pack_directory, catalog_directory, review_id, trace_set_path});
+    QCOMPARE(excessive.exit_code, static_cast<int>(ExitCode::InvalidPack));
+    QVERIFY(excessive.standard_output.isEmpty());
+    QCOMPARE(readAll(review_path), authored_review_bytes);
+    QCOMPARE(readAll(manifest_path), authored_manifest_bytes);
+    QVERIFY(!QFileInfo::exists(transaction_path));
 }
 
 void PackCliTest::rejectsInvalidArgumentsAndExistingTemplateDestination() {

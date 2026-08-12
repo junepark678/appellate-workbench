@@ -3,6 +3,7 @@
 #include "appellate/model/pack_id.hpp"
 
 #include <QByteArray>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QString>
 
@@ -23,6 +24,8 @@ enum class RealismEvidenceAuthoringErrorCode {
 
 inline constexpr std::string_view realism_evidence_authoring_engine_revision{
     "appellate.realism-evidence.codec-replay.v1"};
+inline constexpr std::string_view realism_evidence_multi_trace_authoring_engine_revision{
+    "appellate.realism-evidence.codec-replay-multi.v1"};
 
 struct RealismEvidenceAuthoringError final {
     RealismEvidenceAuthoringErrorCode code{};
@@ -36,6 +39,21 @@ struct RealismEvidenceAuthoringInput final {
     QString root_directory;
     QString review_resource_id;
     QJsonObject trace;
+};
+
+enum class RealismEvidenceTraceSetProfile {
+    SingleTraceHelperV1,
+    MultiTraceProductionV1,
+};
+
+// The trace-set API is explicit so existing single-trace callers retain the original helper
+// profile and its level-1 boundary. MultiTraceProductionV1 accepts one to 256 traces and assigns
+// the separate multi-trace engine revision before exact replay and normalization.
+struct RealismEvidenceTraceSetAuthoringInput final {
+    QString root_directory;
+    QString review_resource_id;
+    QJsonArray traces;
+    RealismEvidenceTraceSetProfile profile{RealismEvidenceTraceSetProfile::MultiTraceProductionV1};
 };
 
 struct RealismEvidenceCounts final {
@@ -69,6 +87,10 @@ struct AuthoredRealismEvidence final {
 
 [[nodiscard]] auto authorRealismEvidence(const PackCatalog& catalog,
                                          const RealismEvidenceAuthoringInput& input)
+    -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
+
+[[nodiscard]] auto authorRealismEvidence(const PackCatalog& catalog,
+                                         const RealismEvidenceTraceSetAuthoringInput& input)
     -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
 
 } // namespace appellate::packs

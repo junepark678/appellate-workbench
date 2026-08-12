@@ -201,7 +201,7 @@
     },
     "evidence_refs": {
       "type": "array",
-      "maxItems": 256,
+      "maxItems": 512,
       "uniqueItems": true,
       "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
     },
