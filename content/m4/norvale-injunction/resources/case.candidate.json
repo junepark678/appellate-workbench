@@ -1,0 +1,107 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4m4.case.norvale-injunction",
+  "title": "Piedmont Booksellers Guild v. City of Norvale",
+  "procedure_profile_id": "ca4m4.norvale.procedure.civil-appeal",
+  "record_id": "ca4m4.norvale.record",
+  "actors": [
+    {"actor_id":"ca4m4.norvale.actor.city","role_id":"us.ca4.role.initiating-party","display_name":"City of Norvale (fictional)","synthetic":true},
+    {"actor_id":"ca4m4.norvale.actor.guild","role_id":"us.ca4.role.responding-party","display_name":"Piedmont Booksellers Guild (fictional)","synthetic":true},
+    {"actor_id":"ca4m4.norvale.actor.dsc-court","role_id":"ca4m4.norvale.role.originating-court","display_name":"Fictional United States District Court for the District of South Carolina","synthetic":true},
+    {"actor_id":"ca4m4.norvale.actor.ca4-clerk","role_id":"us.ca4.role.court","display_name":"Fictional Fourth Circuit exercise clerk","synthetic":true},
+    {"actor_id":"ca4m4.norvale.actor.composite-panel","role_id":"us.ca4.role.court","display_name":"Fictional composite Fourth Circuit panel","synthetic":true}
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4m4.norvale.issue.interlocutory-jurisdiction",
+      "title": "Whether 28 U.S.C. § 1292(a)(1) permits interlocutory review and whether the City's appellate-stay request satisfies district-first Rule 8 practice",
+      "target_ids": ["ca4m4.norvale.target.exercise-section1292-jurisdiction"],
+      "authority_ids": [
+        "ca4m4.norvale.authority.usc-1292a1",
+        "ca4m4.norvale.authority.local-rule-8-district-first",
+        "ca4m4.norvale.authority.nken-stay-factors"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja124","ca4m4.norvale.anchor.ja125","ca4m4.norvale.anchor.ja130",
+        "ca4m4.norvale.anchor.ja139","ca4m4.norvale.anchor.ja143","ca4m4.norvale.anchor.ja144",
+        "ca4m4.norvale.anchor.pa9","ca4m4.norvale.anchor.pa18","ca4m4.norvale.anchor.pa31","ca4m4.norvale.anchor.pa33",
+        "ca4m4.norvale.anchor.pa136","ca4m4.norvale.anchor.pa143","ca4m4.norvale.anchor.pa144","ca4m4.norvale.anchor.pa146",
+        "ca4m4.norvale.anchor.pa147","ca4m4.norvale.anchor.pa155","ca4m4.norvale.anchor.pa163","ca4m4.norvale.anchor.pa166","ca4m4.norvale.anchor.pa168"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.norvale.issue.recurring-events-mootness",
+      "title": "Whether expiration of one scheduled book fair moots a challenge to an operative permit regime governing the Guild's recurring events",
+      "target_ids": ["ca4m4.norvale.target.city-mootness-request"],
+      "authority_ids": ["ca4m4.norvale.authority.robinson-recurring-mootness"],
+      "record_anchor_ids": [
+        "ca4m4.norvale.anchor.ja34","ca4m4.norvale.anchor.ja38","ca4m4.norvale.anchor.ja44","ca4m4.norvale.anchor.ja48",
+        "ca4m4.norvale.anchor.ja58","ca4m4.norvale.anchor.ja64","ca4m4.norvale.anchor.ja88","ca4m4.norvale.anchor.ja92",
+        "ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja124","ca4m4.norvale.anchor.pa96","ca4m4.norvale.anchor.pa100",
+        "ca4m4.norvale.anchor.pa101","ca4m4.norvale.anchor.pa105","ca4m4.norvale.anchor.pa106","ca4m4.norvale.anchor.pa108",
+        "ca4m4.norvale.anchor.pa172","ca4m4.norvale.anchor.pa173","ca4m4.norvale.anchor.pa174","ca4m4.norvale.anchor.pa189"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.norvale.issue.preliminary-injunction-entitlement",
+      "title": "Whether the Guild established entitlement to preliminary protection from the paid-speaker permit regime under the First Amendment and the Winter factors",
+      "target_ids": ["ca4m4.norvale.target.preliminary-injunction-order"],
+      "authority_ids": [
+        "ca4m4.norvale.authority.billups-protected-paid-speech",
+        "ca4m4.norvale.authority.billups-narrow-tailoring",
+        "ca4m4.norvale.authority.pashby-winter-review"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.norvale.anchor.ja15","ca4m4.norvale.anchor.ja22","ca4m4.norvale.anchor.ja23","ca4m4.norvale.anchor.ja29",
+        "ca4m4.norvale.anchor.ja30","ca4m4.norvale.anchor.ja33","ca4m4.norvale.anchor.ja34","ca4m4.norvale.anchor.ja38",
+        "ca4m4.norvale.anchor.ja39","ca4m4.norvale.anchor.ja43","ca4m4.norvale.anchor.ja49","ca4m4.norvale.anchor.ja53",
+        "ca4m4.norvale.anchor.ja54","ca4m4.norvale.anchor.ja57","ca4m4.norvale.anchor.ja58","ca4m4.norvale.anchor.ja64",
+        "ca4m4.norvale.anchor.ja65","ca4m4.norvale.anchor.ja73","ca4m4.norvale.anchor.ja74","ca4m4.norvale.anchor.ja82",
+        "ca4m4.norvale.anchor.ja83","ca4m4.norvale.anchor.ja87","ca4m4.norvale.anchor.ja88","ca4m4.norvale.anchor.ja92",
+        "ca4m4.norvale.anchor.ja93","ca4m4.norvale.anchor.ja114","ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja124",
+        "ca4m4.norvale.anchor.ja139","ca4m4.norvale.anchor.ja143",
+        "ca4m4.norvale.anchor.pa174","ca4m4.norvale.anchor.pa180","ca4m4.norvale.anchor.pa189"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.norvale.issue.rule65-cd-remedy",
+      "title": "Whether any Rule 65(c) or Rule 65(d) defect calls for a limited corrective remand while interim protection remains in place until a superseding compliant order",
+      "target_ids": ["ca4m4.norvale.target.limited-rule65-corrective-remand"],
+      "authority_ids": ["ca4m4.norvale.authority.pashby-rule65-cd-remand"],
+      "record_anchor_ids": [
+        "ca4m4.norvale.anchor.ja65","ca4m4.norvale.anchor.ja73","ca4m4.norvale.anchor.ja93","ca4m4.norvale.anchor.ja114",
+        "ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja116","ca4m4.norvale.anchor.ja120","ca4m4.norvale.anchor.ja121",
+        "ca4m4.norvale.anchor.ja122","ca4m4.norvale.anchor.ja123","ca4m4.norvale.anchor.ja124",
+        "ca4m4.norvale.anchor.pa113","ca4m4.norvale.anchor.pa129","ca4m4.norvale.anchor.pa130",
+        "ca4m4.norvale.anchor.pa174","ca4m4.norvale.anchor.pa189","ca4m4.norvale.anchor.pa190","ca4m4.norvale.anchor.pa191"
+      ]
+    }
+  ],
+  "disposition_plans": [
+    {
+      "plan_id": "ca4m4.norvale.disposition.authored-limited-remand",
+      "finality": "final",
+      "digest": "70e9bdfaef15b305171d89e9d4263fe90ae3b75b65757152e6c4ca8d3652d742",
+      "components": [
+        {"issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","target_id":"ca4m4.norvale.target.exercise-section1292-jurisdiction","scope":"whole","action":"grant","remand":false,"authority_ids":["ca4m4.norvale.authority.usc-1292a1"],"record_anchor_ids":["ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja124","ca4m4.norvale.anchor.ja144"]},
+        {"issue_id":"ca4m4.norvale.issue.recurring-events-mootness","target_id":"ca4m4.norvale.target.city-mootness-request","scope":"whole","action":"deny","remand":false,"authority_ids":["ca4m4.norvale.authority.robinson-recurring-mootness"],"record_anchor_ids":["ca4m4.norvale.anchor.ja44","ca4m4.norvale.anchor.ja58","ca4m4.norvale.anchor.ja64","ca4m4.norvale.anchor.pa101","ca4m4.norvale.anchor.pa105","ca4m4.norvale.anchor.pa106"]},
+        {"issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","target_id":"ca4m4.norvale.target.preliminary-injunction-order","scope":"whole","action":"affirm","remand":false,"authority_ids":["ca4m4.norvale.authority.billups-protected-paid-speech","ca4m4.norvale.authority.billups-narrow-tailoring","ca4m4.norvale.authority.pashby-winter-review"],"record_anchor_ids":["ca4m4.norvale.anchor.ja15","ca4m4.norvale.anchor.ja22","ca4m4.norvale.anchor.ja34","ca4m4.norvale.anchor.ja43","ca4m4.norvale.anchor.ja58","ca4m4.norvale.anchor.ja64","ca4m4.norvale.anchor.ja88","ca4m4.norvale.anchor.ja92","ca4m4.norvale.anchor.ja93","ca4m4.norvale.anchor.ja114","ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja124"]},
+        {"issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","target_id":"ca4m4.norvale.target.limited-rule65-corrective-remand","scope":"part","action":"grant","remand":true,"authority_ids":["ca4m4.norvale.authority.pashby-rule65-cd-remand"],"record_anchor_ids":["ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja120","ca4m4.norvale.anchor.ja121","ca4m4.norvale.anchor.ja124","ca4m4.norvale.anchor.pa129","ca4m4.norvale.anchor.pa130"]}
+      ]
+    },
+    {
+      "plan_id": "ca4m4.norvale.disposition.counterfactual-reversal",
+      "finality": "final",
+      "digest": "8491c217c8eaf7bf66a28f8cda49b6d23e93fcdd6e266cc9844d1ce360facac5",
+      "components": [
+        {"issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","target_id":"ca4m4.norvale.target.exercise-section1292-jurisdiction","scope":"whole","action":"grant","remand":false,"authority_ids":["ca4m4.norvale.authority.usc-1292a1"],"record_anchor_ids":["ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja124","ca4m4.norvale.anchor.ja144"]},
+        {"issue_id":"ca4m4.norvale.issue.recurring-events-mootness","target_id":"ca4m4.norvale.target.city-mootness-request","scope":"whole","action":"deny","remand":false,"authority_ids":["ca4m4.norvale.authority.robinson-recurring-mootness"],"record_anchor_ids":["ca4m4.norvale.anchor.ja44","ca4m4.norvale.anchor.ja58","ca4m4.norvale.anchor.ja64"]},
+        {"issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","target_id":"ca4m4.norvale.target.preliminary-injunction-order","scope":"whole","action":"reverse","remand":true,"authority_ids":["ca4m4.norvale.authority.billups-protected-paid-speech","ca4m4.norvale.authority.billups-narrow-tailoring","ca4m4.norvale.authority.pashby-winter-review"],"record_anchor_ids":["ca4m4.norvale.anchor.ja23","ca4m4.norvale.anchor.ja29","ca4m4.norvale.anchor.ja49","ca4m4.norvale.anchor.ja53","ca4m4.norvale.anchor.ja54","ca4m4.norvale.anchor.ja57","ca4m4.norvale.anchor.ja74","ca4m4.norvale.anchor.ja82","ca4m4.norvale.anchor.ja93","ca4m4.norvale.anchor.ja114","ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja124"]},
+        {"issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","target_id":"ca4m4.norvale.target.limited-rule65-corrective-remand","scope":"part","action":"deny","remand":false,"authority_ids":["ca4m4.norvale.authority.pashby-rule65-cd-remand"],"record_anchor_ids":["ca4m4.norvale.anchor.ja115","ca4m4.norvale.anchor.ja120","ca4m4.norvale.anchor.ja121","ca4m4.norvale.anchor.ja124"]}
+      ]
+    }
+  ],
+  "authored_disposition_plan_id": "ca4m4.norvale.disposition.authored-limited-remand",
+  "authored_disposition_id": "ca4m4.norvale.operation.issue-actual-judgment"
+}

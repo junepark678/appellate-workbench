@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "resource_kind": "realism_review",
+  "resource_id": "ca4m4.norvale.review.authoring-2026-08-12",
+  "case_id": "ca4m4.case.norvale-injunction",
+  "review_state": "independent_review_pending",
+  "reviewed_on": "2026-08-12",
+  "dimensions": {
+    "procedural_law": 0,
+    "deadlines_authority": 0,
+    "record_consistency": 0,
+    "consequences": 0,
+    "oral_argument": 0,
+    "bench_differentiation": 0,
+    "provenance": 0
+  },
+  "known_uncertainty": [
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.qualified-review-pending",
+      "summary": "The scaffold records level 0 in every dimension because document authoring, deterministic rendering, workflow replay, and independent review by a qualified First Amendment and appellate practitioner remain incomplete; no level-2 or level-3 claim is made by these candidate bytes.",
+      "blocking": true
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.no-structured-non-vacatur-field",
+      "summary": "The structured-disposition schema encodes a limited Rule 65 corrective remand but has no independent field for non-vacatur or protection-remains-until-superseded. Those legally material limits must be stated consistently in the authored opinion, judgment, fact canon, and evidence narrative.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.serialized-emergency-clocks",
+      "summary": "The workflow serializes district and appellate stay practice before merits briefing. It does not model concurrent emergency-motion and merits clocks, and its exact authored ordering must not be generalized to a live appeal with overlapping schedules.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.authored-mootness-conclusion",
+      "summary": "Recurring-event mootness is an authored legal and factual branch supported by fixed documents and the cited Robinson proposition. The engine does not infer recurrence, ongoing exposure, cessation, or mootness from arbitrary records.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.role-level-court-authorization",
+      "summary": "A custom originating-court role separates district operations from Fourth Circuit operations, but Fourth Circuit clerk and panel actors share the generic court role. Operation authorization therefore cannot enforce clerk-versus-panel identity beyond exact authored command and document bindings.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.counterfactual-docket-isolation",
+      "summary": "PA136–PA234 are never-filed counterfactual branch artifacts on a distinct synthetic docket. Actual-history and actual-record argument questions must exclude those pages even though the complete training record can resolve their anchors.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.pending-render-and-grounding-provenance",
+      "summary": "The 73 source rows are planned but not accepted renders. No PDF digest is asserted, and record-dependent oral-argument grounding digests cannot be finalized until reviewed PDFs, record entries, citation labels, and page anchors are frozen from actual bytes.",
+      "blocking": true
+    }
+  ]
+}

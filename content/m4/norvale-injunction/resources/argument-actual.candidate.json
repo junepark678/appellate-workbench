@@ -1,0 +1,141 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.norvale.argument.actual-record",
+  "case_id": "ca4m4.case.norvale-injunction",
+  "bench_configuration_id": "ca4m4.norvale.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.norvale.issue.interlocutory-jurisdiction",
+    "ca4m4.norvale.issue.recurring-events-mootness",
+    "ca4m4.norvale.issue.preliminary-injunction-entitlement",
+    "ca4m4.norvale.issue.rule65-cd-remedy"
+  ],
+  "grounded_question_bank": {
+    "mode": "actual_record",
+    "grounding_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "issue_topic_bindings": [
+      {"issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_ids":["workbench.topic.jurisdiction","workbench.topic.governing-authority","workbench.topic.record-support","workbench.topic.practical-consequences"]},
+      {"issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_ids":["workbench.topic.jurisdiction","workbench.topic.governing-authority","workbench.topic.record-support","workbench.topic.practical-consequences"]},
+      {"issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_ids":["workbench.topic.standard-of-review","workbench.topic.governing-authority","workbench.topic.merits","workbench.topic.record-support"]},
+      {"issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_ids":["workbench.topic.preservation","workbench.topic.governing-authority","workbench.topic.remedy","workbench.topic.practical-consequences"]}
+    ],
+    "questions": [
+      {
+        "question_id":"ca4m4.norvale.question.actual-jurisdiction-statute","issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_id":"workbench.topic.jurisdiction","prompt":"Which part of the January 23 order supplies interlocutory jurisdiction under 28 U.S.C. § 1292(a)(1), and what remains outside that limited jurisdictional grant?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-statute-authority","kind":"authority","authority_id":"ca4m4.norvale.authority.usc-1292a1"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-statute-ja115","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja115"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-statute-ja124","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja124"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-jurisdiction-rule8","issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_id":"workbench.topic.governing-authority","prompt":"What does Rule 8 require after the City first sought a district-court stay, and which materials permit the panel to evaluate the renewed request?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-rule8-authority","kind":"authority","authority_id":"ca4m4.norvale.authority.local-rule-8-district-first"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-rule8-ja125","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja125"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-rule8-ja139","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja139"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-jurisdiction-stay-record","issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_id":"workbench.topic.record-support","prompt":"Which actual motion and denial pages establish the asserted irreparable municipal injury and the panel's reason for refusing a stay?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-stay-record-nken","kind":"authority","authority_id":"ca4m4.norvale.authority.nken-stay-factors"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-stay-record-pa9","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa9"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-stay-record-pa31","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa31"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-jurisdiction-practical","issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_id":"workbench.topic.practical-consequences","prompt":"How should the court distinguish appealability of the injunction from entitlement to a discretionary stay without treating the notice of appeal as an automatic suspension?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-practical-rule8","kind":"authority","authority_id":"ca4m4.norvale.authority.local-rule-8-district-first"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-practical-ja144","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja144"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-jurisdiction-practical-pa33","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa33"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-mootness-jurisdiction","issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_id":"workbench.topic.jurisdiction","prompt":"Why does completion of one fair not eliminate a live dispute over the permit regime's application to the same Guild's recurring events?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-jurisdiction-robinson","kind":"authority","authority_id":"ca4m4.norvale.authority.robinson-recurring-mootness"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-jurisdiction-ja44","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja44"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-jurisdiction-ja64","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja64"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-mootness-authority","issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_id":"workbench.topic.governing-authority","prompt":"Which recurrence and continuing-rule facts matter under Robinson, and which facts would merely show that a single calendar date passed?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-authority-robinson","kind":"authority","authority_id":"ca4m4.norvale.authority.robinson-recurring-mootness"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-authority-ja34","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja34"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-authority-ja58","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja58"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-mootness-record","issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_id":"workbench.topic.record-support","prompt":"Where does the actual record rebut the City's one-date premise with future reservations and the Guild's stated plans?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-record-robinson","kind":"authority","authority_id":"ca4m4.norvale.authority.robinson-recurring-mootness"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-record-ja64","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja64"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-record-pa101","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa101"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-record-pa105","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa105"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-mootness-practical","issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_id":"workbench.topic.practical-consequences","prompt":"What limiting language can reject the authored mootness motion without deciding how recurrence would apply to a different organizer or a repealed ordinance?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-practical-robinson","kind":"authority","authority_id":"ca4m4.norvale.authority.robinson-recurring-mootness"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-practical-pa96","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa96"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-mootness-practical-pa106","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa106"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-pi-standard","issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_id":"workbench.topic.standard-of-review","prompt":"Which findings receive clear-error review, which legal conclusions receive de novo review, and how does abuse-of-discretion review apply to the ultimate injunction?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-standard-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-winter-review"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-standard-ja115","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja115"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-pi-authority","issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_id":"workbench.topic.governing-authority","prompt":"Why does compensating an author not remove the literary presentation from First Amendment protection under Billups?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-authority-billups","kind":"authority","authority_id":"ca4m4.norvale.authority.billups-protected-paid-speech"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-authority-ja15","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja15"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-authority-ja39","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja39"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-pi-merits","issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_id":"workbench.topic.merits","prompt":"What evidence connects the paid-speaker trigger to added congestion or safety burdens, and why are the stipulated coordination alternatives insufficient or sufficient?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-merits-billups","kind":"authority","authority_id":"ca4m4.norvale.authority.billups-narrow-tailoring"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-merits-ja23","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja23"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-merits-ja49","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja49"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-merits-ja88","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja88"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-pi-record","issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_id":"workbench.topic.record-support","prompt":"Which hearing and order pages support the district court's findings on likely success, irreparable harm, equities, and public interest?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-record-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-winter-review"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-record-ja93","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja93"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-record-ja114","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja114"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-pi-record-ja124","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja124"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-rule65-preservation","issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_id":"workbench.topic.preservation","prompt":"Did the City preserve distinct objections to security and specificity, and where does the injunction state its operative obligations?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-preservation-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-rule65-cd-remand"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-preservation-ja115","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja115"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-preservation-ja120","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja120"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-rule65-authority","issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_id":"workbench.topic.governing-authority","prompt":"What separate findings do Rules 65(c) and 65(d) require, and why does Pashby permit a limited corrective remand?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-authority-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-rule65-cd-remand"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-authority-ja120","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja120"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-authority-ja121","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja121"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-rule65-remedy","issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_id":"workbench.topic.remedy","prompt":"How should the mandate direct a compliant security determination and more specific terms without reopening the affirmed entitlement analysis?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-remedy-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-rule65-cd-remand"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-remedy-ja121","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja121"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-remedy-pa129","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa129"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.actual-rule65-practical","issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_id":"workbench.topic.practical-consequences","prompt":"What wording makes unmistakable that interim protection remains in force only until a superseding Rule 65-compliant order is entered?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-practical-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-rule65-cd-remand"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-practical-ja124","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja124"},
+          {"grounding_id":"ca4m4.norvale.grounding.actual-rule65-practical-pa130","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa130"}
+        ]
+      }
+    ]
+  }
+}
