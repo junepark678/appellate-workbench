@@ -675,7 +675,7 @@ void MainWindowLocalSessionsTest::asterglenWorkflowActionPersistsAndReopensThrou
     QVERIFY2(reopened_provider.has_value(),
              reopened_provider ? "" : qPrintable(reopened_provider.error()));
     ui::MainWindow reopened(archive, catalog, nullptr, *reopened_provider, {}, {},
-                            *reopened_provider);
+                            *reopened_provider, cross_midnight_legal_clock);
     reopened.workflowCourtDateEditor()->setText(QStringLiteral("2026-08-11"));
     QVERIFY(reopened.openSelectedWorkflow().has_value());
     QVERIFY(reopened.workflowSessionController() != nullptr);
@@ -683,8 +683,10 @@ void MainWindowLocalSessionsTest::asterglenWorkflowActionPersistsAndReopensThrou
     QCOMPARE(reopened.workflowSessionController()->state().current_stage_id.value,
              std::string("ca4r54b.stage.docketed"));
     QVERIFY(reopened.workflowStatusLabel()->text().contains(
-        QStringLiteral("No currently eligible authored AdvanceStage")));
-    QVERIFY(!reopened.advanceWorkflowAction()->isEnabled());
+        QStringLiteral("ca4r54b.operation.advance-initial-requirements")));
+    QVERIFY(
+        reopened.workflowStatusLabel()->text().contains(QStringLiteral("ca4r54b.actor.ca4-clerk")));
+    QVERIFY(reopened.advanceWorkflowAction()->isEnabled());
     QVERIFY(reopened.loadSource(fixture(u"full-resource-pack-v2")).has_value());
     QCOMPARE(reopened.workflowSessionController(), nullptr);
     QVERIFY(!reopened.openWorkflowAction()->isEnabled());
@@ -750,8 +752,7 @@ void MainWindowLocalSessionsTest::
     auto legal_clock_mode = LegalClockMode::Eligible;
     int legal_clock_samples = 0;
     int alternating_clock_samples = 0;
-    const ui::WorkflowLegalClock legal_clock = [&legal_clock_samples,
-                                                &alternating_clock_samples,
+    const ui::WorkflowLegalClock legal_clock = [&legal_clock_samples, &alternating_clock_samples,
                                                 &legal_clock_mode](const QDate& selected_court_date)
         -> std::expected<ui::WorkflowLegalClockReading, QString> {
         ++legal_clock_samples;
