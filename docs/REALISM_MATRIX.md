@@ -17,7 +17,7 @@ designation and does not satisfy the level-3 gate.
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | Employment retaliation | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable successor level-2 evidence; qualified independent review pending |
-| Preliminary injunction / stay | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
+| Preliminary injunction / stay | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Source/render/record evidence frozen; workflow, traces, review, root, archive, and tests pending |
 | Section 1983 qualified immunity | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Post-trial JMOL | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Sealed FOIA | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
@@ -58,3 +58,15 @@ evidence closes four packs, 44 non-review resources, 67 blobs, seven production-
 two record checks, and 28 authorities, with 148 unique non-pack evidence IDs. Its review remains
 `independent_review_pending`; replay and author review do not substitute for qualified independent
 employment/appellate review or change Asterglen's designation as the civil gold candidate.
+
+The Norvale injunction `1.2.0` authoring candidate remains level 0 in this release matrix even
+though its source/render/record slice is frozen. That accepted slice contains 24 lower-record
+PDFs/149 JA pages, 23 actual appellate PDFs/135 PA pages, and 26 separately docketed,
+never-filed PDFs/99 PA pages, for 73 PDFs/383 anchors. Its provisional executable envelope is
+16 stages, 93 operations, 13 filing routes, 24 exact bindings, 12 deadline definitions, nine
+planned traces, and 16 capabilities. Those workflow and trace counts are targets, not replay or
+release evidence. `PENDING_WORKFLOW_SHA256`, `PENDING_TRACE_PINS`,
+`PENDING_MANIFEST_SHA256`, `PENDING_REVIEW_SHA256`, `PENDING_ROOT_REVISION`,
+`PENDING_ARCHIVE_SHA256`, and `PENDING_TEST_PINS` must be replaced from exact accepted bytes
+before the row may claim level 2. Automated record checks do not substitute for qualified
+independent First Amendment/appellate review or make Norvale a gold candidate.

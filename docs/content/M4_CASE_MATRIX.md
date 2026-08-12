@@ -14,14 +14,14 @@ agency-record PDFs** linked by 283 docket-to-asset relationships:
 | --- | --- | ---: | ---: | --- |
 | Benton retaliation | Civil appeal | 37 | 260 | No |
 | Asterglen Rule 54(b) | Civil appeal | 37 | 230 | Civil |
-| Norvale injunction | Civil appeal | 24 | 140 | No |
+| Norvale injunction | Civil appeal | 24 | 149 | No |
 | Ellison immunity | Civil appeal | 37 | 275 | No |
 | Blue Ember JMOL | Civil appeal | 42 | 430 | No |
 | Open Grid FOIA | Civil appeal | 37 | 250 | No |
 | Serrano waiver | Criminal appeal | 28 | 260 | Criminal |
 | A.R.M. CAT | Agency review | 18 | 220 | Agency |
 | Cinder Lake privilege | Original writ | 23 | 180 | Writ |
-| **Total** | **Four profiles** | **283** | **2,245** | **Four** |
+| **Total** | **Four profiles** | **283** | **2,254** | **Four** |
 
 Reusable forms, shared authorities, generated appellate filings, counterfactual training
 documents, and optional audio/video blobs do not count toward 283. Blank or padding pages do not
@@ -46,6 +46,13 @@ remains 37 PDFs/262 JA pages, satisfying the 37-PDF/260-page floor, while its co
 67 PDFs/389 pages after adding 13 actual appellate PDFs/70 PA pages and 17 separately docketed,
 counterfactual PDFs/57 PA pages. The PA71–PA127 documents never occurred on the actual appeal and
 do not change the frozen 283-PDF lower-tribunal/certified-agency breadth total.
+
+The frozen Norvale source/render/record bytes likewise refine only its page floor, not the
+283-PDF breadth total. Its lower-court record is 24 PDFs/149 JA pages, while its complete record
+is 73 PDFs/383 pages after adding 23 actual appellate PDFs/135 PA pages and 26 separately
+docketed, never-filed branch PDFs/99 PA pages. PA136–PA234 never occurred on the actual appeal.
+Workflow, traces, manifest, review, root, archive, and focused-test evidence remain explicit
+`PENDING_*` pins; this is not yet an installable or level-2 claim.
 
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
@@ -124,8 +131,16 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
   8 motion. Recurring events prevent an artificial one-date mootness premise.
 - **Disposition:** deny appellate stay; affirm entitlement to interim relief; remand only for a
   corrected Rule 65(c)/(d) order without dissolving protection.
-- **Limits:** a serialized stay-before-merits trace fits. Concurrent clocks and inferred
-  mootness require a later trusted capability.
+- **Evidence status:** the accepted record contains 24 lower PDFs/149 JA pages, 23 actual
+  appellate PDFs/135 PA pages, and 26 never-filed branch PDFs/99 PA pages, for 73 PDFs/383
+  anchors. The provisional workflow target is 16 stages, 93 operations, 13 filing routes,
+  24 exact bindings, and 12 deadline definitions; nine traces and 16 required capabilities are
+  planned. Final workflow, trace, manifest, review, root, archive, and test pins are pending.
+- **Limits:** stay practice is serialized before merits briefing. The model does not infer
+  concurrent clocks, impracticability, mootness, or the legal meaning of arbitrary filings;
+  shared court-role authorization cannot itself distinguish clerk from panel. The structured
+  disposition also has no separate non-vacatur/continued-protection field, so that limitation
+  remains an exact narrative contract.
 
 ### 4. Ellison immunity — `ca4m4.case.ellison-immunity`
 
@@ -296,7 +311,7 @@ parallel without shared-file overlap:
 
 - Benton + Asterglen + A.R.M.: 92 lower-tribunal/certified-record PDFs / 710 floor pages.
 - Ellison + Open Grid + Cinder Lake: 97 lower-tribunal/certified-record PDFs / 705 floor pages.
-- Norvale + Blue Ember + Serrano: 94 lower-tribunal/certified-record PDFs / 830 floor pages.
+- Norvale + Blue Ember + Serrano: 94 lower-tribunal/certified-record PDFs / 839 floor pages.
 
 Per-case commit boundaries are source/schema skeleton, record batch 1, record batch 2,
 workflow/adverse traces, disposition/argument/bench, and level-2 evidence. Only the integrator
