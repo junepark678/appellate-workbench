@@ -1,15 +1,24 @@
 # Benton retaliation authoring pack
 
-This new tree authors the incomplete, pre-release schema-v2 root
-`us.ca4.m4.benton-retaliation@1.0.0` for the fictional exercise *Leora Benton v. Blue
-Cedar Compliance, Inc.* (`SYN-EDVA-25-CV-0412`; `SYN-CA4-26-CV-4101`). It is an
-authoring checkpoint, not a releasable pack and not legal advice.
+This tree authors the schema-v2 record-complete successor
+`us.ca4.m4.benton-retaliation@1.1.0` for the fictional exercise *Leora Benton v. Blue
+Cedar Compliance, Inc.* (`SYN-EDVA-25-CV-0412`; `SYN-CA4-26-CV-4101`). It is a
+record-complete authoring checkpoint, not legal advice and not a level-two realism claim.
 
-The current boundary contains source/schema infrastructure, record batch 1, and two grounded
-argument configurations: 19 unique substantive searchable PDFs totaling 125 pages, continuously
-labeled JA1–JA125. Batch 2 will add the remaining 18 PDFs and JA126–JA262. Until that boundary
-lands, the pack must not be published, reviewed for realism, or represented as satisfying the M4
-record floor.
+The successor contains 37 unique substantive searchable PDFs totaling 262 pages, continuously
+labeled JA1–JA262. It preserves the immutable 1.0.0 batch-1 boundary—19 PDFs and JA1–JA125—and
+adds one accepted batch-2 render of 18 PDFs and JA126–JA262. Structured disposition, executed
+appellate workflow traces, and realism evidence remain deferred to a later successor.
+
+The frozen 1.1.0 root revision is
+`eaf5f52940d968f33a3b3501e20414081f7f3573d90ba1abb7c3b2f33636ad4e`. Its deterministic
+archive is 1,508,306 bytes with SHA-256
+`867b45b117b51f08419d1ee2993dd5cd3af27b94367124a9c3ba531d9fb27bda`. The manifest has
+8 required capabilities, 8 resource descriptors, and 37 PDF blobs. The retained predecessor
+evidence is root `8abbd49d2b8d3cbf477520fb617b67366808e772dfdde15d99171de520c69805`
+and archive `7f46dabaa492682b78873b2b42cd2cefd8bc115eb8c9b20c21cf6cfa3aec7878`
+(728,808 bytes). A fresh-catalog acceptance run installed and resolved both 1.0.0 and 1.1.0
+together; the original 19 PDF identities remained shared while 1.1.0 added 18 new blobs.
 
 All people, companies, addresses, communications, dates, dockets, testimony, and record facts
 are fictional. The real courts and EEOC appear only as institutional procedural actors. The
@@ -68,19 +77,20 @@ complete no-petition trace must reach the still-open deadline with no rehearing 
 dependent mandate calculation; a denial trace must instead preserve the timely petition and exact
 denial-order provenance.
 
-Both grounded argument configurations cover both current issues. The second issue is only a
-batch-1 disclosure-boundary hypothetical: it asks what Rules 26(e)(1) and 37(c)(1) would require if
-a party later learned a materially different witness subject. This boundary authors no such later
-event, witness statement, use ruling, or outcome. Every declared issue/topic pair has an authored
-question grounded only in that issue's exact current JA anchors and authorities; the topic union
-intersects the positive focus vocabulary of Rowan, Alder, and Fen. The counterfactual changes only
-Pike's pretermination knowledge and does not add a record fact or predict an engine answer.
+Both grounded argument configurations cover both current issues. The second issue concerns the
+actual, narrow exclusion of the late Wynn declaration at JA194–JA195 after the motion, response,
+timing proffer, and order at JA223–JA235. The court applies Rules 26 and 37 and *Benjamin v.
+Sparks*, preserves Wynn's timely disclosed comparator testimony, and expressly does not rely on a
+sham-affidavit rule. Every declared issue/topic pair has an authored question grounded only in that
+issue's exact JA anchors and authorities; the topic union intersects the positive focus vocabulary
+of Rowan, Alder, and Fen. The counterfactual changes only Pike's pretermination knowledge and does
+not change the disclosure chronology or exclusion ruling.
 
 ## Deferred resources
 
-The structured disposition and realism review remain deliberately deferred until every cited
-batch-2 page exists. No planned witness-use fact or ruling is a current pack resource. The reserved
-disposition and review IDs are:
+The structured disposition and realism review remain deliberately deferred until a later
+successor has real appellate workflow documents and executed traces. The reserved disposition and
+review IDs are:
 
 - `ca4m4.benton.disposition.authored`
 - `ca4m4.benton.realism.review`
@@ -91,7 +101,7 @@ questions, and disposition have frozen.
 
 ## Render boundary
 
-The Markdown sources were rendered once with the checked-in `appellate-render` utility into a
-fresh directory. The emitted PDFs are pinned by exact bytes in the manifest and are not expected
-to reproduce byte-for-byte on a later render. `metadata/render-inventory-batch-1.json` records
-the one render invocation's semantic inventory.
+Each batch of Markdown sources was rendered once with the checked-in `appellate-render` utility
+into a fresh directory. The emitted PDFs are pinned by exact bytes in the manifest and are not
+expected to reproduce byte-for-byte on a later render. The two render inventories record the two
+accepted invocations; batch 1 was never rerendered for this successor.

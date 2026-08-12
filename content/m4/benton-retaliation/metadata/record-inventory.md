@@ -1,7 +1,14 @@
 # Benton record inventory
 
-The final record contract is exactly 37 unique PDFs and 262 substantive searchable pages.
-Continuous JA labels are printed into the pinned PDFs. Batch 1 is present; batch 2 is reserved.
+The final record contains exactly 37 unique PDFs and 262 substantive searchable pages.
+Continuous JA labels are printed into the pinned PDFs. Batch 1 remains byte-exact and batch 2
+was accepted from one renderer invocation after independent source and PDF review.
+
+Batch 2 contains 18 PDFs and 137 pages (JA126–JA262). Its accepted render inventory SHA-256 is
+`2396666a07d95f5e4a2470cf2c769d1595774bb81c93980b5c8c06899f38939b`; the ordered raw PDF
+bytes SHA-256 is `fee51103e56db3e248d43344b7393df92796ef19e4c97af9857e953c17eb0b91`
+(723,877 bytes). The immutable batch-1 render inventory remains
+`990b875bb2be78e6860753a93a25aff67d67137b4323cea89070b9a2288c5964`.
 
 | No. | Batch | Category | Record document | Pages | JA range |
 | ---: | ---: | --- | --- | ---: | --- |

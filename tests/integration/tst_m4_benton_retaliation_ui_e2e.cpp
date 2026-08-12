@@ -59,11 +59,11 @@ namespace packs = appellate::packs;
 namespace storage = appellate::storage;
 namespace ui = appellate::ui;
 
-constexpr auto root_digest = "8abbd49d2b8d3cbf477520fb617b67366808e772dfdde15d99171de520c69805";
+constexpr auto root_digest = "eaf5f52940d968f33a3b3501e20414081f7f3573d90ba1abb7c3b2f33636ad4e";
 constexpr auto federal_digest = "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9";
 constexpr auto ca4_digest = "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262";
 constexpr auto bench_digest = "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d";
-constexpr auto disclosure_issue = "ca4m4.benton.issue.disclosure-boundary-hypothetical";
+constexpr auto exclusion_issue = "ca4m4.benton.issue.late-comparator-declaration-exclusion";
 constexpr auto actual_session_id = "ca4m4.benton.session.oral.actual";
 constexpr auto counterfactual_session_id = "ca4m4.benton.session.oral.counterfactual";
 constexpr auto oral_engine_revision = "engine.oral.benton-e2e.1";
@@ -345,7 +345,7 @@ class M4BentonRetaliationUiE2eTest final : public QObject {
 };
 
 void M4BentonRetaliationUiE2eTest::installsClosureAndExposesRecordArgumentsAndWorkflowBranches() {
-    const model::PackRevision expected_root{model::PackId{"us.ca4.m4.benton-retaliation"}, "1.0.0",
+    const model::PackRevision expected_root{model::PackId{"us.ca4.m4.benton-retaliation"}, "1.1.0",
                                             root_digest};
     const model::PackRevision expected_federal{model::PackId{"foundation.us-federal"}, "2025.12.01",
                                                federal_digest};
@@ -527,17 +527,21 @@ void M4BentonRetaliationUiE2eTest::installsClosureAndExposesRecordArgumentsAndWo
             for (const auto& question : configuration.grounded_question_bank->questions) {
                 runtime_question_text +=
                     QString::fromStdString(question.prompt) + QLatin1Char('\n');
-                if (question.issue_id == disclosure_issue) {
-                    QVERIFY(QString::fromStdString(question.prompt)
-                                .contains(QStringLiteral("hypothet"), Qt::CaseInsensitive));
+                if (question.issue_id == exclusion_issue) {
+                    QVERIFY(!QString::fromStdString(question.prompt)
+                                 .contains(QStringLiteral("hypothet"), Qt::CaseInsensitive));
                 }
             }
         }
+        QVERIFY(runtime_question_text.contains(QStringLiteral("October 15"), Qt::CaseInsensitive));
+        QVERIFY(runtime_question_text.contains(QStringLiteral("Benjamin"), Qt::CaseInsensitive));
+        QVERIFY(runtime_question_text.contains(QStringLiteral("narrow exclusion"),
+                                               Qt::CaseInsensitive));
         for (const auto& forbidden : {
-                 QStringLiteral("late Wynn declaration"),
                  QStringLiteral("instruction-to-conceal"),
                  QStringLiteral("directed concealment"),
                  QStringLiteral("affirm exclusion"),
+                 QStringLiteral("vacate summary judgment"),
              }) {
             QVERIFY2(!runtime_question_text.contains(forbidden, Qt::CaseInsensitive),
                      qPrintable(forbidden));
@@ -582,9 +586,9 @@ void M4BentonRetaliationUiE2eTest::installsClosureAndExposesRecordArgumentsAndWo
         QVERIFY2(opened_record.has_value(), opened_record ? "" : qPrintable(opened_record.error()));
         auto* workspace = window.recordWorkspace();
         QVERIFY(workspace != nullptr);
-        QCOMPARE(workspace->visibleDocketCount(), qsizetype{19});
+        QCOMPARE(workspace->visibleDocketCount(), qsizetype{37});
         workspace->setDocketFilter(QStringLiteral("ca4m4.benton.docket.district"));
-        QCOMPARE(workspace->visibleDocketCount(), qsizetype{19});
+        QCOMPARE(workspace->visibleDocketCount(), qsizetype{37});
         workspace->setDocketFilter(QStringLiteral("ca4m4.benton.docket.appellate"));
         QCOMPARE(workspace->visibleDocketCount(), qsizetype{0});
         workspace->setDocketFilter({});
@@ -626,6 +630,58 @@ void M4BentonRetaliationUiE2eTest::installsClosureAndExposesRecordArgumentsAndWo
                  QStringLiteral("ca4m4.benton.record.entry.pike-deposition"));
         QCOMPARE(workspace->currentPageIndex(), 5);
         workspace->setDocumentSearch(QStringLiteral("No additional subject"));
+        QTRY_VERIFY_WITH_TIMEOUT(workspace->documentSearchResultCount() > 0, 10'000);
+
+        const auto declaration_anchor = workspace->navigateToCitation(QStringLiteral("JA194"));
+        QVERIFY2(declaration_anchor.has_value(),
+                 declaration_anchor ? "" : qPrintable(declaration_anchor.error().message));
+        QCOMPARE(workspace->currentDocumentId(),
+                 QStringLiteral("ca4m4.benton.record.entry.benton-summary-judgment-opposition"));
+        QCOMPARE(workspace->loadedPageCount(), 10);
+        QCOMPARE(workspace->currentPageIndex(), 8);
+        workspace->setDocumentSearch(QStringLiteral("Leora has made this an HR and EEOC problem"));
+        QTRY_VERIFY_WITH_TIMEOUT(workspace->documentSearchResultCount() > 0, 10'000);
+
+        const auto exclusion_order_anchor = workspace->navigateToCitation(QStringLiteral("JA235"));
+        QVERIFY2(exclusion_order_anchor.has_value(),
+                 exclusion_order_anchor ? "" : qPrintable(exclusion_order_anchor.error().message));
+        QCOMPARE(workspace->currentDocumentId(),
+                 QStringLiteral("ca4m4.benton.record.entry.order-excluding-wynn-declaration"));
+        QCOMPARE(workspace->loadedPageCount(), 4);
+        QCOMPARE(workspace->currentPageIndex(), 3);
+        workspace->setDocumentSearch(
+            QStringLiteral("does not hold that the declaration is a sham"));
+        QTRY_VERIFY_WITH_TIMEOUT(workspace->documentSearchResultCount() > 0, 10'000);
+
+        const auto opinion_anchor = workspace->navigateToCitation(QStringLiteral("JA247"));
+        QVERIFY2(opinion_anchor.has_value(),
+                 opinion_anchor ? "" : qPrintable(opinion_anchor.error().message));
+        QCOMPARE(workspace->currentDocumentId(),
+                 QStringLiteral("ca4m4.benton.record.entry.summary-judgment-opinion"));
+        QCOMPARE(workspace->loadedPageCount(), 12);
+        QCOMPARE(workspace->currentPageIndex(), 11);
+        workspace->setDocumentSearch(QStringLiteral("ultimate causal finding required by Foster"));
+        QTRY_VERIFY_WITH_TIMEOUT(workspace->documentSearchResultCount() > 0, 10'000);
+
+        const auto notice_anchor = workspace->navigateToCitation(QStringLiteral("JA250"));
+        QVERIFY2(notice_anchor.has_value(),
+                 notice_anchor ? "" : qPrintable(notice_anchor.error().message));
+        QCOMPARE(workspace->currentDocumentId(),
+                 QStringLiteral("ca4m4.benton.record.entry.notice-of-appeal"));
+        QCOMPARE(workspace->loadedPageCount(), 3);
+        QCOMPARE(workspace->currentPageIndex(), 0);
+        workspace->setDocumentSearch(QStringLiteral("Benton is the only appellant"));
+        QTRY_VERIFY_WITH_TIMEOUT(workspace->documentSearchResultCount() > 0, 10'000);
+
+        const auto certificate_anchor = workspace->navigateToCitation(QStringLiteral("JA262"));
+        QVERIFY2(certificate_anchor.has_value(),
+                 certificate_anchor ? "" : qPrintable(certificate_anchor.error().message));
+        QCOMPARE(workspace->currentDocumentId(),
+                 QStringLiteral("ca4m4.benton.record.entry.certified-docket-record-certificate"));
+        QCOMPARE(workspace->loadedPageCount(), 10);
+        QCOMPARE(workspace->currentPageIndex(), 9);
+        workspace->setDocumentSearch(
+            QStringLiteral("thirty-seven documents, 262 substantive pages"));
         QTRY_VERIFY_WITH_TIMEOUT(workspace->documentSearchResultCount() > 0, 10'000);
     }
 

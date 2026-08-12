@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {"source_path": "documents/batch-2/20-solis-deposition.md", "output_path": "objects/20-solis-deposition.pdf", "page_label_prefix": "JA", "page_label_start": 126, "title": "Synthetic Deposition of Mira Solis"},
+    {"source_path": "documents/batch-2/21-wynn-deposition.md", "output_path": "objects/21-wynn-deposition.pdf", "page_label_prefix": "JA", "page_label_start": 136, "title": "Synthetic Deposition of Tessa Wynn"},
+    {"source_path": "documents/batch-2/22-ibarra-deposition.md", "output_path": "objects/22-ibarra-deposition.pdf", "page_label_prefix": "JA", "page_label_start": 146, "title": "Synthetic Deposition of Omar Ibarra"},
+    {"source_path": "documents/batch-2/23-voss-deposition.md", "output_path": "objects/23-voss-deposition.pdf", "page_label_prefix": "JA", "page_label_start": 156, "title": "Synthetic Deposition of Naomi Voss"},
+    {"source_path": "documents/batch-2/24-blue-cedar-30b6-deposition.md", "output_path": "objects/24-blue-cedar-30b6-deposition.pdf", "page_label_prefix": "JA", "page_label_start": 166, "title": "Synthetic Rule 30(b)(6) Deposition of Blue Cedar"},
+    {"source_path": "documents/batch-2/25-blue-cedar-summary-judgment.md", "output_path": "objects/25-blue-cedar-summary-judgment.pdf", "page_label_prefix": "JA", "page_label_start": 176, "title": "Synthetic Blue Cedar Summary-Judgment Memorandum"},
+    {"source_path": "documents/batch-2/26-benton-summary-judgment-opposition.md", "output_path": "objects/26-benton-summary-judgment-opposition.pdf", "page_label_prefix": "JA", "page_label_start": 186, "title": "Synthetic Benton Summary-Judgment Opposition"},
+    {"source_path": "documents/batch-2/27-blue-cedar-summary-judgment-reply.md", "output_path": "objects/27-blue-cedar-summary-judgment-reply.pdf", "page_label_prefix": "JA", "page_label_start": 196, "title": "Synthetic Blue Cedar Summary-Judgment Reply"},
+    {"source_path": "documents/batch-2/28-benton-disputed-facts.md", "output_path": "objects/28-benton-disputed-facts.pdf", "page_label_prefix": "JA", "page_label_start": 202, "title": "Synthetic Benton Statement of Disputed Facts"},
+    {"source_path": "documents/batch-2/29-blue-cedar-undisputed-facts.md", "output_path": "objects/29-blue-cedar-undisputed-facts.pdf", "page_label_prefix": "JA", "page_label_start": 210, "title": "Synthetic Blue Cedar Statement of Undisputed Facts"},
+    {"source_path": "documents/batch-2/30-joint-causation-chart.md", "output_path": "objects/30-joint-causation-chart.pdf", "page_label_prefix": "JA", "page_label_start": 217, "title": "Synthetic Joint Causation and Record-Citation Chart"},
+    {"source_path": "documents/batch-2/31-motion-to-exclude-wynn-declaration.md", "output_path": "objects/31-motion-to-exclude-wynn-declaration.pdf", "page_label_prefix": "JA", "page_label_start": 223, "title": "Synthetic Motion to Exclude Late Wynn Declaration"},
+    {"source_path": "documents/batch-2/32-opposition-wynn-declaration-proffer.md", "output_path": "objects/32-opposition-wynn-declaration-proffer.pdf", "page_label_prefix": "JA", "page_label_start": 227, "title": "Synthetic Opposition to Exclusion and Timing Proffer"},
+    {"source_path": "documents/batch-2/33-order-excluding-wynn-declaration.md", "output_path": "objects/33-order-excluding-wynn-declaration.pdf", "page_label_prefix": "JA", "page_label_start": 232, "title": "Synthetic Order Excluding Late Wynn Declaration"},
+    {"source_path": "documents/batch-2/34-summary-judgment-opinion.md", "output_path": "objects/34-summary-judgment-opinion.pdf", "page_label_prefix": "JA", "page_label_start": 236, "title": "Synthetic Summary-Judgment Memorandum Opinion"},
+    {"source_path": "documents/batch-2/35-final-judgment.md", "output_path": "objects/35-final-judgment.pdf", "page_label_prefix": "JA", "page_label_start": 248, "title": "Synthetic Final Judgment"},
+    {"source_path": "documents/batch-2/36-notice-of-appeal.md", "output_path": "objects/36-notice-of-appeal.pdf", "page_label_prefix": "JA", "page_label_start": 250, "title": "Synthetic Notice of Appeal"},
+    {"source_path": "documents/batch-2/37-certified-docket-record-certificate.md", "output_path": "objects/37-certified-docket-record-certificate.pdf", "page_label_prefix": "JA", "page_label_start": 253, "title": "Synthetic Certified Docket and Record-Complete Certificate"}
+  ]
+}

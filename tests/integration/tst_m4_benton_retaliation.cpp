@@ -57,18 +57,18 @@ using packs::PackReader;
 using packs::PackValidationScope;
 using packs::ValidatedResource;
 
-constexpr auto root_digest = "8abbd49d2b8d3cbf477520fb617b67366808e772dfdde15d99171de520c69805";
+constexpr auto root_digest = "eaf5f52940d968f33a3b3501e20414081f7f3573d90ba1abb7c3b2f33636ad4e";
 constexpr auto federal_digest = "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9";
 constexpr auto ca4_digest = "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262";
 constexpr auto bench_digest = "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d";
-constexpr auto archive_digest = "7f46dabaa492682b78873b2b42cd2cefd8bc115eb8c9b20c21cf6cfa3aec7878";
+constexpr auto archive_digest = "867b45b117b51f08419d1ee2993dd5cd3af27b94367124a9c3ba531d9fb27bda";
 constexpr auto actual_bank_digest =
-    "11f8725c1ad1f8aab1eecade698f3592c7ee5fa1e021a2b4a0b71171f0b7332d";
+    "161431c279887ac0914029a8912515fa271a9c3a6d1957ab507f3b6facbf6ff6";
 constexpr auto counterfactual_bank_digest =
-    "d8b71e1520e02c50aea5590a61405ea24207c20d9b518faa7bb8ac691c984eda";
+    "ab366be43b263bff2f3951b6c793cbe10543358779820bda83e855cbf2765758";
 
 constexpr auto retaliation_issue = "ca4m4.benton.issue.retaliation-summary-judgment";
-constexpr auto disclosure_issue = "ca4m4.benton.issue.disclosure-boundary-hypothetical";
+constexpr auto exclusion_issue = "ca4m4.benton.issue.late-comparator-declaration-exclusion";
 constexpr auto appellant_actor = "ca4m4.benton.actor.leora-benton";
 constexpr auto appellee_actor = "ca4m4.benton.actor.blue-cedar";
 constexpr auto clerk_actor = "ca4m4.benton.actor.ca4-clerk";
@@ -169,9 +169,93 @@ constexpr std::array expected_render{
                    "Synthetic Deposition of Draven Pike", 116, 10, 39023,
                    "b4b7be0ac4d60e237f15f962eb44ce78c79146bffa87af6b24b93bfc9601ede6",
                    "26c56da8a9098722e1932f816604f690330d48d9ae1936fac75af5025d6ce4df"},
+    RenderExpected{"documents/batch-2/20-solis-deposition.md", "objects/20-solis-deposition.pdf",
+                   "Synthetic Deposition of Mira Solis", 126, 10, 44500,
+                   "519c7b564dd2d6e044e3065b98430442fdc09782e558da023957899141f50d33",
+                   "5d12e3166d1f71ed770cbf3b55f165383dabfa2ab0424f0627131f7ff073c3fa"},
+    RenderExpected{"documents/batch-2/21-wynn-deposition.md", "objects/21-wynn-deposition.pdf",
+                   "Synthetic Deposition of Tessa Wynn", 136, 10, 42826,
+                   "7bea95bff80ddc650d9627b5df654e678030a021d3070bc259e1b6b5a56b3dd1",
+                   "085b7707ace592d949fa2f978151a1283eb644b829820e944f7709a724b7dce2"},
+    RenderExpected{"documents/batch-2/22-ibarra-deposition.md", "objects/22-ibarra-deposition.pdf",
+                   "Synthetic Deposition of Omar Ibarra", 146, 10, 42660,
+                   "8ded036f0fb1121878153ad8123ad615542963b834843598ba8ad1f945f035fb",
+                   "d0dc18408639a7322902ee19abefc666d19912284de50284f46f91543695bba1"},
+    RenderExpected{"documents/batch-2/23-voss-deposition.md", "objects/23-voss-deposition.pdf",
+                   "Synthetic Deposition of Naomi Voss", 156, 10, 43445,
+                   "a5af68d7dcc5ff20f392de74c87b30cff2e01dba0710333c0e0ddd071dba6a98",
+                   "feb915d99c9a0d4261d76f34f3defeef8a331f701f4bc243f4aabcd3c735d489"},
+    RenderExpected{"documents/batch-2/24-blue-cedar-30b6-deposition.md",
+                   "objects/24-blue-cedar-30b6-deposition.pdf",
+                   "Synthetic Rule 30(b)(6) Deposition of Blue Cedar", 166, 10, 44824,
+                   "d5ea69da87817c15e858b594a1becc667cb5782809f40b0be62cf1847359e180",
+                   "ca2157694d54aeca2d2501712a90dd740c32cee4fd6ac2398ef6d6962707fb57"},
+    RenderExpected{"documents/batch-2/25-blue-cedar-summary-judgment.md",
+                   "objects/25-blue-cedar-summary-judgment.pdf",
+                   "Synthetic Blue Cedar Summary-Judgment Memorandum", 176, 10, 47728,
+                   "c0caaca4052565aedb712e0538e1582737c80af4d578924ad052a3aca24ebe02",
+                   "059fadabb8a7a3be2a76a4fd96bb589fd972fc3389baa68a7ac8c2039a6a59ee"},
+    RenderExpected{"documents/batch-2/26-benton-summary-judgment-opposition.md",
+                   "objects/26-benton-summary-judgment-opposition.pdf",
+                   "Synthetic Benton Summary-Judgment Opposition", 186, 10, 48182,
+                   "b68b66e8cd2ea29a3100d57c7cc0d9a15b6f360e66e0947e25fea726e692e7ad",
+                   "707f8be1e84180e606a6e25b786c069b4b37097b1b0a71ade11b86cb9ced4e7e"},
+    RenderExpected{"documents/batch-2/27-blue-cedar-summary-judgment-reply.md",
+                   "objects/27-blue-cedar-summary-judgment-reply.pdf",
+                   "Synthetic Blue Cedar Summary-Judgment Reply", 196, 6, 36135,
+                   "3d40e9c5788e03eca2e0dd983119db1a9cc12c5020cbc9ba87598db8301450ec",
+                   "f2185ee3ba44aafefcce5407386ae4c2b7e0e39500ac713831df4d25122e0c9b"},
+    RenderExpected{"documents/batch-2/28-benton-disputed-facts.md",
+                   "objects/28-benton-disputed-facts.pdf",
+                   "Synthetic Benton Statement of Disputed Facts", 202, 8, 41699,
+                   "fbad4c022cc4bdb7bfe000d195c24d557e2b1e56c6b3678155f819f50ce18f5e",
+                   "164060451f39e010b66b2e2dd658ffc2db2150cd08a319125365a70b6a65391e"},
+    RenderExpected{"documents/batch-2/29-blue-cedar-undisputed-facts.md",
+                   "objects/29-blue-cedar-undisputed-facts.pdf",
+                   "Synthetic Blue Cedar Statement of Undisputed Facts", 210, 7, 38450,
+                   "7c4c15f276d42d1a7c0c74c4ec67e24ede5dc801abbb52f2b7e8214855b720aa",
+                   "7e4f4ac7d06f48f50ac64809f263e7a51e9afc32be727d9896bfca392ce28db2"},
+    RenderExpected{"documents/batch-2/30-joint-causation-chart.md",
+                   "objects/30-joint-causation-chart.pdf",
+                   "Synthetic Joint Causation and Record-Citation Chart", 217, 6, 41336,
+                   "871109b57e81906cac229abc442d0e629ed89921abc9d5d38848ff08363a135e",
+                   "224f1bafa8a7f6681169b5d25310acf2fecbcd8962a9ed32006ba1dd85f5089f"},
+    RenderExpected{"documents/batch-2/31-motion-to-exclude-wynn-declaration.md",
+                   "objects/31-motion-to-exclude-wynn-declaration.pdf",
+                   "Synthetic Motion to Exclude Late Wynn Declaration", 223, 4, 34090,
+                   "c8442a3bde5087246967251582045483b2dbccd6bb11a684bf000fcbd5f8345c",
+                   "76f33baa79c46d0623708251a247ac808cf6cbe34aecd6470e48ac8391104e19"},
+    RenderExpected{"documents/batch-2/32-opposition-wynn-declaration-proffer.md",
+                   "objects/32-opposition-wynn-declaration-proffer.pdf",
+                   "Synthetic Opposition to Exclusion and Timing Proffer", 227, 5, 31411,
+                   "8806568534b3d4f72f9d72cd8bea56631a043031c1b192b5a5d8ab81fafb612c",
+                   "9ae1b0df5a8f838d9978fa619f4af9157ebc4f015098e5e50fbd3dd130eaf81e"},
+    RenderExpected{"documents/batch-2/33-order-excluding-wynn-declaration.md",
+                   "objects/33-order-excluding-wynn-declaration.pdf",
+                   "Synthetic Order Excluding Late Wynn Declaration", 232, 4, 33165,
+                   "aa5d902b8a8384f1f20743c91be0b6d55392477780aae4cae42f88456f4fd435",
+                   "c78e9a751044faf8dacbf677e0a5410949745f632e0a3c4b42decf65407e929d"},
+    RenderExpected{"documents/batch-2/34-summary-judgment-opinion.md",
+                   "objects/34-summary-judgment-opinion.pdf",
+                   "Synthetic Summary-Judgment Memorandum Opinion", 236, 12, 56721,
+                   "8010e746f906f8d33400e41ae2314db7fc1daef09e34dc8da7f015eeafacfe0c",
+                   "7839f0b00618f1f6c2ad26317ee8f1bd0886da8e5d5651624cc1e085f74da35d"},
+    RenderExpected{"documents/batch-2/35-final-judgment.md", "objects/35-final-judgment.pdf",
+                   "Synthetic Final Judgment", 248, 2, 21540,
+                   "63db2aa8a87e332bc0cbabda1bf9100eea433d71d4944a5e34a46025526ae84a",
+                   "8477dc5f05ab8be5c13f8b3dd0c55392ccee7a53a29ea974b58732b42534d171"},
+    RenderExpected{"documents/batch-2/36-notice-of-appeal.md", "objects/36-notice-of-appeal.pdf",
+                   "Synthetic Notice of Appeal", 250, 3, 24387,
+                   "0be8aade5803015370e92fa417b9e4e930c603128f71e522ae03b95763d79575",
+                   "3e75e87fd04fd52e35865085dbd2f13c48c0f92e92354c34eb8ba30c09432012"},
+    RenderExpected{"documents/batch-2/37-certified-docket-record-certificate.md",
+                   "objects/37-certified-docket-record-certificate.pdf",
+                   "Synthetic Certified Docket and Record-Complete Certificate", 253, 10, 50778,
+                   "c389e5c28c00f040c2f8639778ca87749bdfdc02cccddaf4b1e907f256be8c84",
+                   "9b2ffb64c9501150c71f2bf5ef5fef5ca303ddc271339c23bcc43559ea612e78"},
 };
 
-constexpr std::array<std::string_view, 34> retaliation_anchors{
+constexpr std::array<std::string_view, 65> retaliation_anchors{
     "ca4m4.benton.anchor.ja3",   "ca4m4.benton.anchor.ja4",   "ca4m4.benton.anchor.ja5",
     "ca4m4.benton.anchor.ja6",   "ca4m4.benton.anchor.ja7",   "ca4m4.benton.anchor.ja42",
     "ca4m4.benton.anchor.ja43",  "ca4m4.benton.anchor.ja44",  "ca4m4.benton.anchor.ja47",
@@ -183,13 +267,30 @@ constexpr std::array<std::string_view, 34> retaliation_anchors{
     "ca4m4.benton.anchor.ja110", "ca4m4.benton.anchor.ja111", "ca4m4.benton.anchor.ja112",
     "ca4m4.benton.anchor.ja113", "ca4m4.benton.anchor.ja118", "ca4m4.benton.anchor.ja120",
     "ca4m4.benton.anchor.ja121", "ca4m4.benton.anchor.ja122", "ca4m4.benton.anchor.ja124",
-    "ca4m4.benton.anchor.ja125",
+    "ca4m4.benton.anchor.ja125", "ca4m4.benton.anchor.ja126", "ca4m4.benton.anchor.ja132",
+    "ca4m4.benton.anchor.ja136", "ca4m4.benton.anchor.ja140", "ca4m4.benton.anchor.ja146",
+    "ca4m4.benton.anchor.ja156", "ca4m4.benton.anchor.ja166", "ca4m4.benton.anchor.ja188",
+    "ca4m4.benton.anchor.ja189", "ca4m4.benton.anchor.ja190", "ca4m4.benton.anchor.ja191",
+    "ca4m4.benton.anchor.ja192", "ca4m4.benton.anchor.ja193", "ca4m4.benton.anchor.ja217",
+    "ca4m4.benton.anchor.ja218", "ca4m4.benton.anchor.ja219", "ca4m4.benton.anchor.ja220",
+    "ca4m4.benton.anchor.ja221", "ca4m4.benton.anchor.ja222", "ca4m4.benton.anchor.ja236",
+    "ca4m4.benton.anchor.ja237", "ca4m4.benton.anchor.ja238", "ca4m4.benton.anchor.ja239",
+    "ca4m4.benton.anchor.ja240", "ca4m4.benton.anchor.ja241", "ca4m4.benton.anchor.ja242",
+    "ca4m4.benton.anchor.ja243", "ca4m4.benton.anchor.ja244", "ca4m4.benton.anchor.ja245",
+    "ca4m4.benton.anchor.ja246", "ca4m4.benton.anchor.ja247",
 };
 
-constexpr std::array<std::string_view, 9> disclosure_anchors{
-    "ca4m4.benton.anchor.ja21", "ca4m4.benton.anchor.ja23",  "ca4m4.benton.anchor.ja24",
-    "ca4m4.benton.anchor.ja28", "ca4m4.benton.anchor.ja29",  "ca4m4.benton.anchor.ja30",
-    "ca4m4.benton.anchor.ja34", "ca4m4.benton.anchor.ja114", "ca4m4.benton.anchor.ja121",
+constexpr std::array<std::string_view, 29> exclusion_anchors{
+    "ca4m4.benton.anchor.ja21",  "ca4m4.benton.anchor.ja23",  "ca4m4.benton.anchor.ja24",
+    "ca4m4.benton.anchor.ja28",  "ca4m4.benton.anchor.ja29",  "ca4m4.benton.anchor.ja30",
+    "ca4m4.benton.anchor.ja34",  "ca4m4.benton.anchor.ja114", "ca4m4.benton.anchor.ja121",
+    "ca4m4.benton.anchor.ja136", "ca4m4.benton.anchor.ja140", "ca4m4.benton.anchor.ja145",
+    "ca4m4.benton.anchor.ja194", "ca4m4.benton.anchor.ja195", "ca4m4.benton.anchor.ja222",
+    "ca4m4.benton.anchor.ja223", "ca4m4.benton.anchor.ja224", "ca4m4.benton.anchor.ja225",
+    "ca4m4.benton.anchor.ja226", "ca4m4.benton.anchor.ja227", "ca4m4.benton.anchor.ja228",
+    "ca4m4.benton.anchor.ja229", "ca4m4.benton.anchor.ja230", "ca4m4.benton.anchor.ja231",
+    "ca4m4.benton.anchor.ja232", "ca4m4.benton.anchor.ja233", "ca4m4.benton.anchor.ja234",
+    "ca4m4.benton.anchor.ja235", "ca4m4.benton.anchor.ja237",
 };
 
 [[nodiscard]] QByteArray readAll(const QString& file_name) {
@@ -354,7 +455,7 @@ principalBrief(std::string session_id, std::string command_id, std::string filin
         std::string(64, 'b'),
         {field("us.ca4.field.brief.issues", "Two preserved issues"),
          field("us.ca4.field.brief.argument", "Record-grounded merits argument"),
-         field("us.ca4.field.brief.record-citations", "JA3-JA125 curated citations"),
+         field("us.ca4.field.brief.record-citations", "JA3-JA262 curated citations"),
          field("us.ca4.field.brief.authority-citations", "Title VII, Foster, Rules 26, 37, 56")},
         {model::ActorId{std::move(served_actor_id)}},
         std::nullopt};
@@ -398,7 +499,7 @@ int main(int argc, char* argv[]) {
     const auto pack_root = authoring_root.filePath(QStringLiteral("pack"));
     const auto foundations_root = QDir(QStringLiteral(APPELLATE_M4_FOUNDATIONS));
 
-    const PackRevision expected_root{PackId{"us.ca4.m4.benton-retaliation"}, "1.0.0", root_digest};
+    const PackRevision expected_root{PackId{"us.ca4.m4.benton-retaliation"}, "1.1.0", root_digest};
     const PackRevision expected_federal{PackId{"foundation.us-federal"}, "2025.12.01",
                                         federal_digest};
     const PackRevision expected_ca4{PackId{"foundation.us-ca4"}, "2026.03.23", ca4_digest};
@@ -413,21 +514,27 @@ int main(int argc, char* argv[]) {
         source->graph_state != PackGraphState::DeferredReferences ||
         source->dependencies.size() != std::size_t{3} ||
         source->required_capabilities.size() != std::size_t{8} ||
-        source->resources.size() != std::size_t{8} || source->blobs.size() != std::size_t{19}) {
+        source->resources.size() != std::size_t{8} || source->blobs.size() != std::size_t{37}) {
         return fail(QStringLiteral("source pack revision/count contract mismatch"));
     }
 
     const auto readme =
-        QString::fromUtf8(readAll(authoring_root.filePath(QStringLiteral("README.md"))));
-    if (!readme.contains(QStringLiteral("incomplete, pre-release")) ||
-        !readme.contains(QStringLiteral("not a releasable pack")) ||
+        QString::fromUtf8(readAll(authoring_root.filePath(QStringLiteral("README.md"))))
+            .simplified();
+    if (!readme.contains(QStringLiteral("record-complete successor")) ||
+        !readme.contains(QStringLiteral("record-complete authoring checkpoint")) ||
         !readme.contains(
-            QStringLiteral("19 unique substantive searchable PDFs totaling 125 pages")) ||
+            QStringLiteral("37 unique substantive searchable PDFs totaling 262 pages")) ||
+        !readme.contains(QStringLiteral("19 PDFs and JA1–JA125")) ||
+        !readme.contains(QStringLiteral("18 PDFs and JA126–JA262")) ||
         !readme.contains(QStringLiteral("filing presence does not prove that both an")) ||
         !readme.contains(QStringLiteral("opening and response brief exist")) ||
-        !readme.contains(QStringLiteral("structured disposition and realism review remain")) ||
+        !readme.contains(
+            QStringLiteral("Structured disposition, executed appellate workflow traces")) ||
+        !readme.contains(QStringLiteral("actual, narrow exclusion of the late Wynn declaration")) ||
+        !readme.contains(QStringLiteral("expressly does not rely on a sham-affidavit rule")) ||
         !readme.contains(QStringLiteral("court records `ca4m4.benton.deadline.rehearing`"))) {
-        return fail(QStringLiteral("README does not preserve the incomplete-authoring contract"));
+        return fail(QStringLiteral("README does not preserve the 1.1 record-complete contract"));
     }
 
     const std::array expected_dependencies{expected_federal, expected_ca4, expected_bench};
@@ -521,12 +628,12 @@ int main(int argc, char* argv[]) {
     if (case_resource->document.contains(QStringLiteral("disposition_plans")) ||
         case_resource->document.contains(QStringLiteral("authored_disposition_plan_id")) ||
         case_resource->document.contains(QStringLiteral("authored_disposition_operation_id"))) {
-        return fail(QStringLiteral("batch 1 must not contain a structured disposition"));
+        return fail(QStringLiteral("Benton 1.1 must not contain a structured disposition"));
     }
     for (const auto& issue_value :
          case_resource->document.value(QStringLiteral("issues")).toArray()) {
         if (issue_value.toObject().contains(QStringLiteral("target_ids"))) {
-            return fail(QStringLiteral("batch-2 disposition target leaked into batch 1"));
+            return fail(QStringLiteral("future disposition target leaked into Benton 1.1"));
         }
     }
     for (const auto& actor_value :
@@ -542,41 +649,42 @@ int main(int argc, char* argv[]) {
     }
     const auto retaliation =
         objectById(case_issues, QStringLiteral("issue_id"), QString::fromLatin1(retaliation_issue));
-    const auto disclosure =
-        objectById(case_issues, QStringLiteral("issue_id"), QString::fromLatin1(disclosure_issue));
+    const auto exclusion =
+        objectById(case_issues, QStringLiteral("issue_id"), QString::fromLatin1(exclusion_issue));
     const QJsonArray retaliation_authorities{
         QStringLiteral("ca4m4.benton.authority.title-vii-retaliation"),
         QStringLiteral("ca4m4.benton.authority.foster-framework"),
         QStringLiteral("ca4m4.benton.authority.foster-pretext"),
         QStringLiteral("ca4m4.benton.authority.frcp-56-summary-judgment"),
     };
-    const QJsonArray disclosure_authorities{
+    const QJsonArray exclusion_authorities{
         QStringLiteral("ca4m4.benton.authority.frcp-26e-supplementation"),
         QStringLiteral("ca4m4.benton.authority.frcp-37c1-nondisclosure"),
+        QStringLiteral("ca4m4.benton.authority.benjamin-disclosure-sanction"),
     };
-    if (retaliation.isEmpty() || disclosure.isEmpty() ||
-        !disclosure.value(QStringLiteral("title"))
+    if (retaliation.isEmpty() || exclusion.isEmpty() ||
+        !exclusion.value(QStringLiteral("title"))
              .toString()
-             .contains(QStringLiteral("would require if a party later learned")) ||
+             .contains(QStringLiteral("narrowly excluding the late Wynn declaration")) ||
         retaliation.value(QStringLiteral("record_anchor_ids")).toArray() !=
             jsonArray(retaliation_anchors) ||
-        disclosure.value(QStringLiteral("record_anchor_ids")).toArray() !=
-            jsonArray(disclosure_anchors) ||
+        exclusion.value(QStringLiteral("record_anchor_ids")).toArray() !=
+            jsonArray(exclusion_anchors) ||
         retaliation.value(QStringLiteral("authority_ids")).toArray() != retaliation_authorities ||
-        disclosure.value(QStringLiteral("authority_ids")).toArray() != disclosure_authorities) {
+        exclusion.value(QStringLiteral("authority_ids")).toArray() != exclusion_authorities) {
         return fail(QStringLiteral("curated issue anchor/authority contract mismatch"));
     }
 
     const QHash<QString, QSet<QString>> issue_anchors{
         {QString::fromLatin1(retaliation_issue), stringSet(retaliation_anchors)},
-        {QString::fromLatin1(disclosure_issue), stringSet(disclosure_anchors)},
+        {QString::fromLatin1(exclusion_issue), stringSet(exclusion_anchors)},
     };
     const QHash<QString, QSet<QString>> issue_authorities{
         {QString::fromLatin1(retaliation_issue), strings(retaliation_authorities)},
-        {QString::fromLatin1(disclosure_issue), strings(disclosure_authorities)},
+        {QString::fromLatin1(exclusion_issue), strings(exclusion_authorities)},
     };
     const QSet<QString> expected_issue_ids{QString::fromLatin1(retaliation_issue),
-                                           QString::fromLatin1(disclosure_issue)};
+                                           QString::fromLatin1(exclusion_issue)};
 
     const auto check_argument_bank = [&](const ValidatedResource& resource,
                                          const QString& expected_id, const QString& expected_mode,
@@ -640,11 +748,11 @@ int main(int argc, char* argv[]) {
                 return QStringLiteral("argument-bank question coverage mismatch: %1")
                     .arg(expected_id);
             }
-            if (issue_id == QString::fromLatin1(disclosure_issue) &&
-                !question.value(QStringLiteral("prompt"))
-                     .toString()
-                     .contains(QStringLiteral("hypothet"), Qt::CaseInsensitive)) {
-                return QStringLiteral("disclosure question asserts an ungrounded later event: %1")
+            if (issue_id == QString::fromLatin1(exclusion_issue) &&
+                question.value(QStringLiteral("prompt"))
+                    .toString()
+                    .contains(QStringLiteral("hypothet"), Qt::CaseInsensitive)) {
+                return QStringLiteral("exclusion question retained obsolete hypothetical: %1")
                     .arg(expected_id);
             }
             question_pairs.insert(pair);
@@ -673,15 +781,21 @@ int main(int argc, char* argv[]) {
             }
         }
         if (question_pairs != binding_pairs ||
-            used_anchors.value(QString::fromLatin1(retaliation_issue)) !=
-                issue_anchors.value(QString::fromLatin1(retaliation_issue)) ||
-            used_anchors.value(QString::fromLatin1(disclosure_issue)) !=
-                issue_anchors.value(QString::fromLatin1(disclosure_issue)) ||
+            used_anchors.value(QString::fromLatin1(retaliation_issue)).isEmpty() ||
+            used_anchors.value(QString::fromLatin1(exclusion_issue)).isEmpty() ||
+            !used_anchors.value(QString::fromLatin1(exclusion_issue))
+                 .contains(QStringLiteral("ca4m4.benton.anchor.ja194")) ||
+            !used_anchors.value(QString::fromLatin1(exclusion_issue))
+                 .contains(QStringLiteral("ca4m4.benton.anchor.ja195")) ||
+            !used_anchors.value(QString::fromLatin1(exclusion_issue))
+                 .contains(QStringLiteral("ca4m4.benton.anchor.ja232")) ||
+            !used_anchors.value(QString::fromLatin1(exclusion_issue))
+                 .contains(QStringLiteral("ca4m4.benton.anchor.ja235")) ||
             used_authorities.value(QString::fromLatin1(retaliation_issue)) !=
                 issue_authorities.value(QString::fromLatin1(retaliation_issue)) ||
-            used_authorities.value(QString::fromLatin1(disclosure_issue)) !=
-                issue_authorities.value(QString::fromLatin1(disclosure_issue))) {
-            return QStringLiteral("argument bank does not use every curated anchor/authority: %1")
+            used_authorities.value(QString::fromLatin1(exclusion_issue)) !=
+                issue_authorities.value(QString::fromLatin1(exclusion_issue))) {
+            return QStringLiteral("argument bank grounding/authority coverage mismatch: %1")
                 .arg(expected_id);
         }
 
@@ -764,10 +878,13 @@ int main(int argc, char* argv[]) {
             "https://www.uscourts.gov/sites/default/files/document/"
             "federal-rules-of-civil-procedure.pdf"},
         AuthorityExpected{
-            "ca4m4.benton.authority.frcp-26e-supplementation", "2025-12-01", "Rule 26(e)(1)",
-            "A party must timely supplement or correct a materially incomplete or incorrect "
-            "disclosure or response when the additional information has not otherwise been made "
-            "known during discovery or in writing.",
+            "ca4m4.benton.authority.frcp-26e-supplementation", "2025-12-01",
+            "Rule 26(a)(1)(A)(i) and (e)(1)",
+            "Initial disclosures must identify each person likely to have discoverable "
+            "information and the subjects of that information; a party must timely supplement "
+            "or correct a materially incomplete or incorrect disclosure or response when the "
+            "additional information has not otherwise been made known during discovery or in "
+            "writing.",
             "https://www.uscourts.gov/sites/default/files/document/"
             "federal-rules-of-civil-procedure.pdf"},
         AuthorityExpected{
@@ -777,11 +894,20 @@ int main(int argc, char* argv[]) {
             "hearing, or at trial, in addition to other listed sanctions.",
             "https://www.uscourts.gov/sites/default/files/document/"
             "federal-rules-of-civil-procedure.pdf"},
+        AuthorityExpected{
+            "ca4m4.benton.authority.benjamin-disclosure-sanction", "2021-01-19",
+            "No. 19-2041, official opinion lines 197-200 and 259-300",
+            "Disclosure-violation and Rule 37(c)(1) exclusion rulings are reviewed for abuse of "
+            "discretion. Surprise, ability to cure, disruption, importance, and explanation "
+            "guide substantial justification and harmlessness; the first four principally "
+            "address harmlessness, the fifth justification, and the nondisclosing party bears "
+            "the burden.",
+            "https://www.ca4.uscourts.gov/opinions/192041.P.pdf"},
     };
     const auto authorities =
         authority_resource->document.value(QStringLiteral("authorities")).toArray();
     if (authorities.size() != static_cast<qsizetype>(expected_authorities.size())) {
-        return fail(QStringLiteral("case-specific authority count is not six"));
+        return fail(QStringLiteral("case-specific authority count is not seven"));
     }
     for (const auto& expected : expected_authorities) {
         const auto authority =
@@ -790,7 +916,10 @@ int main(int argc, char* argv[]) {
             authority.value(QStringLiteral("source_version")).toString() !=
                 QString::fromUtf8(expected.version) ||
             authority.value(QStringLiteral("checked_on")).toString() !=
-                QStringLiteral("2026-08-11") ||
+                (QString::fromUtf8(expected.id).contains(QStringLiteral("frcp-26e")) ||
+                         QString::fromUtf8(expected.id).contains(QStringLiteral("benjamin"))
+                     ? QStringLiteral("2026-08-12")
+                     : QStringLiteral("2026-08-11")) ||
             authority.value(QStringLiteral("locator")).toString() !=
                 QString::fromUtf8(expected.locator) ||
             authority.value(QStringLiteral("proposition")).toString() !=
@@ -813,8 +942,12 @@ int main(int argc, char* argv[]) {
         !source_ledger.contains(QStringLiteral("Fictional-name collision review")) ||
         !source_ledger.contains(QStringLiteral("no match for the full fictional caption")) ||
         !source_ledger.contains(QStringLiteral("not represented as globally unique")) ||
-        !fact_canon.contains(QStringLiteral("authors no later witness statement")) ||
-        !fact_canon.contains(QStringLiteral("No such later event or outcome is a present fact")) ||
+        !source_ledger.contains(QStringLiteral("benjamin-disclosure-sanction")) ||
+        !source_ledger.contains(QStringLiteral("The late Wynn declaration remains")) ||
+        !fact_canon.contains(QStringLiteral("Counsel knows the new subject on October 15")) ||
+        !fact_canon.contains(QStringLiteral("excludes only the new subject")) ||
+        !fact_canon.contains(QStringLiteral("No appellate disposition is authored")) ||
+        !fact_canon.contains(QStringLiteral("does not invoke the sham-affidavit rule")) ||
         !fact_canon.contains(QStringLiteral("23 = 21 + 2")) ||
         !fact_canon.contains(QStringLiteral("16 = 21 - 5")) ||
         !fact_canon.contains(QStringLiteral("16 = 23 - 5 - 2"))) {
@@ -835,22 +968,33 @@ int main(int argc, char* argv[]) {
         QString::fromUtf8(
             QJsonDocument(counterfactual_argument->document).toJson(QJsonDocument::Compact)) +
         fact_canon + source_ledger + record_source_semantics;
-    const QStringList premature_batch_2_claims{
-        QStringLiteral("late Wynn declaration"),
-        QStringLiteral("late declaration"),
+    const QStringList premature_appellate_claims{
         QStringLiteral("instruction-to-conceal"),
         QStringLiteral("instruction to conceal"),
         QStringLiteral("instructed Wynn"),
         QStringLiteral("directed concealment"),
         QStringLiteral("concealment account"),
-        QStringLiteral("late account"),
         QStringLiteral("affirm exclusion"),
+        QStringLiteral("vacate summary judgment"),
+        QStringLiteral("reversed and remanded"),
         QStringLiteral("2025-12-12"),
         QStringLiteral("planned disposition target"),
     };
-    for (const auto& claim : premature_batch_2_claims) {
+    for (const auto& claim : premature_appellate_claims) {
         if (current_semantics.contains(claim, Qt::CaseInsensitive)) {
-            return fail(QStringLiteral("batch-2 exclusion fact/outcome leaked: %1").arg(claim));
+            return fail(QStringLiteral("future appellate fact/outcome leaked: %1").arg(claim));
+        }
+    }
+    for (const auto& required : {
+             QStringLiteral("late Wynn declaration"),
+             QStringLiteral("October 15"),
+             QStringLiteral("October 17"),
+             QStringLiteral("November 4"),
+             QStringLiteral("Rules 26 and 37"),
+             QStringLiteral("sham-affidavit"),
+         }) {
+        if (!current_semantics.contains(required, Qt::CaseInsensitive)) {
+            return fail(QStringLiteral("actual exclusion record missing: %1").arg(required));
         }
     }
 
@@ -858,7 +1002,7 @@ int main(int argc, char* argv[]) {
         record_resource->document.value(QStringLiteral("docket_entries")).toArray();
     const auto anchors = record_resource->document.value(QStringLiteral("page_anchors")).toArray();
     if (record_resource->document.value(QStringLiteral("dockets")).toArray().size() != 2 ||
-        record_entries.size() != 19 || anchors.size() != 125) {
+        record_entries.size() != 37 || anchors.size() != 262) {
         return fail(QStringLiteral("record count contract mismatch"));
     }
     const std::array composite_dates{
@@ -987,40 +1131,82 @@ int main(int argc, char* argv[]) {
         return fail(QStringLiteral("23-position/21-filled/5-termination invariant failed"));
     }
 
-    const auto render_plan =
+    const auto render_plan_batch_1 =
         QJsonDocument::fromJson(
             readAll(authoring_root.filePath(QStringLiteral("render-plan-batch-1.json"))))
             .object();
-    const auto plan_entries = render_plan.value(QStringLiteral("entries")).toArray();
-    const auto render_inventory =
+    const auto render_plan_batch_2 =
+        QJsonDocument::fromJson(
+            readAll(authoring_root.filePath(QStringLiteral("render-plan-batch-2.json"))))
+            .object();
+    const auto plan_entries_batch_1 =
+        render_plan_batch_1.value(QStringLiteral("entries")).toArray();
+    const auto plan_entries_batch_2 =
+        render_plan_batch_2.value(QStringLiteral("entries")).toArray();
+    const auto render_inventory_batch_1 =
         QJsonDocument::fromJson(readAll(authoring_root.filePath(
                                     QStringLiteral("metadata/render-inventory-batch-1.json"))))
             .object();
-    const auto rendered_entries = render_inventory.value(QStringLiteral("entries")).toArray();
-    if (render_plan.value(QStringLiteral("schema_version")).toInt() != 1 ||
-        plan_entries.size() != static_cast<qsizetype>(expected_render.size()) ||
-        rendered_entries.size() != static_cast<qsizetype>(expected_render.size()) ||
-        render_inventory.value(QStringLiteral("pdf_byte_deterministic")).toBool(true) ||
-        render_inventory.value(QStringLiteral("renderer_contract")).toString() !=
+    const auto render_inventory_batch_2 =
+        QJsonDocument::fromJson(readAll(authoring_root.filePath(
+                                    QStringLiteral("metadata/render-inventory-batch-2.json"))))
+            .object();
+    const auto rendered_entries_batch_1 =
+        render_inventory_batch_1.value(QStringLiteral("entries")).toArray();
+    const auto rendered_entries_batch_2 =
+        render_inventory_batch_2.value(QStringLiteral("entries")).toArray();
+    if (sha256(readAll(authoring_root.filePath(QStringLiteral("render-plan-batch-1.json")))) !=
+            QByteArrayLiteral("ccb5802d6e6938daa6f2ae9a7349b0d0dd271741ccd06b9a4ddbcce889c488a0") ||
+        sha256(readAll(authoring_root.filePath(QStringLiteral("render-plan-batch-2.json")))) !=
+            QByteArrayLiteral("fc959667fe8f9229d3c1d8e06398822f2e21a87518339dc540fe4519352d3a81") ||
+        sha256(readAll(
+            authoring_root.filePath(QStringLiteral("metadata/render-inventory-batch-1.json")))) !=
+            QByteArrayLiteral("990b875bb2be78e6860753a93a25aff67d67137b4323cea89070b9a2288c5964") ||
+        sha256(readAll(
+            authoring_root.filePath(QStringLiteral("metadata/render-inventory-batch-2.json")))) !=
+            QByteArrayLiteral("2396666a07d95f5e4a2470cf2c769d1595774bb81c93980b5c8c06899f38939b") ||
+        render_plan_batch_1.value(QStringLiteral("schema_version")).toInt() != 1 ||
+        render_plan_batch_2.value(QStringLiteral("schema_version")).toInt() != 1 ||
+        plan_entries_batch_1.size() != 19 || plan_entries_batch_2.size() != 18 ||
+        rendered_entries_batch_1.size() != 19 || rendered_entries_batch_2.size() != 18 ||
+        render_inventory_batch_1.value(QStringLiteral("plan_sha256")).toString() !=
+            QStringLiteral("ccb5802d6e6938daa6f2ae9a7349b0d0dd271741ccd06b9a4ddbcce889c488a0") ||
+        render_inventory_batch_2.value(QStringLiteral("plan_sha256")).toString() !=
+            QStringLiteral("fc959667fe8f9229d3c1d8e06398822f2e21a87518339dc540fe4519352d3a81") ||
+        render_inventory_batch_1.value(QStringLiteral("pdf_byte_deterministic")).toBool(true) ||
+        render_inventory_batch_2.value(QStringLiteral("pdf_byte_deterministic")).toBool(true) ||
+        render_inventory_batch_1.value(QStringLiteral("renderer_contract")).toString() !=
+            QStringLiteral("appellate.markdown-pdf.semantic-layout.v2") ||
+        render_inventory_batch_2.value(QStringLiteral("renderer_contract")).toString() !=
             QStringLiteral("appellate.markdown-pdf.semantic-layout.v2")) {
-        return fail(QStringLiteral("single-render plan/inventory envelope mismatch"));
+        return fail(QStringLiteral("two-render plan/inventory envelope mismatch"));
+    }
+    auto plan_entries = plan_entries_batch_1;
+    for (const auto& entry : plan_entries_batch_2) {
+        plan_entries.push_back(entry);
+    }
+    auto rendered_entries = rendered_entries_batch_1;
+    for (const auto& entry : rendered_entries_batch_2) {
+        rendered_entries.push_back(entry);
+    }
+    if (plan_entries.size() != static_cast<qsizetype>(expected_render.size()) ||
+        rendered_entries.size() != static_cast<qsizetype>(expected_render.size())) {
+        return fail(QStringLiteral("combined render closure mismatch"));
     }
 
     const QString banner =
         QStringLiteral("> **FICTIONAL TRAINING ARTIFACT — NOT FILED — NOT LEGAL ADVICE**");
     const QStringList forbidden_source_phrases{
-        QStringLiteral("batch 2"),
-        QStringLiteral("future declaration"),
-        QStringLiteral("later declaration"),
-        QStringLiteral("late Wynn declaration"),
-        QStringLiteral("authored disposition"),
-        QStringLiteral("planned outcome"),
-        QStringLiteral("record anchor"),
-        QStringLiteral("workbench"),
-        QStringLiteral("renderer"),
-        QStringLiteral("placeholder"),
-        QStringLiteral("padding"),
+        QStringLiteral("batch 2"),           QStringLiteral("future declaration"),
+        QStringLiteral("later declaration"), QStringLiteral("authored disposition"),
+        QStringLiteral("planned outcome"),   QStringLiteral("record anchor"),
+        QStringLiteral("workbench"),         QStringLiteral("renderer"),
+        QStringLiteral("placeholder"),       QStringLiteral("padding"),
         QStringLiteral("2025-12-12"),
+    };
+    const QStringList forbidden_batch_1_phrases{
+        QStringLiteral("late Wynn declaration"),
+        QStringLiteral("late declaration"),
         QStringLiteral("2025-12-19"),
         QStringLiteral("2026-01-16"),
     };
@@ -1084,9 +1270,14 @@ int main(int argc, char* argv[]) {
             pdf_bytes.size() != static_cast<qsizetype>(expected.byte_size) ||
             blob == source->blobs.end() || blob->sha256 != expected.pdf_sha256 ||
             blob->byte_size != expected.byte_size ||
+            record_entry.value(QStringLiteral("entry_number")).toInt() !=
+                static_cast<int>(index + 1) ||
             record_entry.value(QStringLiteral("asset_path")).toString() != output_path ||
+            record_entry.value(QStringLiteral("asset_sha256")).toString() !=
+                QString::fromLatin1(expected.pdf_sha256) ||
             record_entry.value(QStringLiteral("page_count")).toInt() !=
-                static_cast<int>(expected.page_count)) {
+                static_cast<int>(expected.page_count) ||
+            record_entry.value(QStringLiteral("sealed")).toBool(true)) {
             return fail(
                 QStringLiteral("render/source/blob/record pin mismatch: %1").arg(output_path));
         }
@@ -1100,6 +1291,15 @@ int main(int argc, char* argv[]) {
             if (lower_source.contains(phrase.toLower())) {
                 return fail(
                     QStringLiteral("temporal/meta source leak in %1: %2").arg(source_path, phrase));
+            }
+        }
+        if (index < 19) {
+            for (const auto& phrase : forbidden_batch_1_phrases) {
+                if (lower_source.contains(phrase.toLower())) {
+                    return fail(
+                        QStringLiteral("successor fact leaked into immutable batch 1 %1: %2")
+                            .arg(source_path, phrase));
+                }
             }
         }
         const auto source_pages =
@@ -1137,9 +1337,9 @@ int main(int argc, char* argv[]) {
                 return fail(QStringLiteral("thin/unlabeled searchable page %1 in %2")
                                 .arg(expected_label, output_path));
             }
-            for (const auto& claim : premature_batch_2_claims) {
+            for (const auto& claim : premature_appellate_claims) {
                 if (page_text.contains(claim, Qt::CaseInsensitive)) {
-                    return fail(QStringLiteral("batch-2 fact/outcome leaked into rendered %1: %2")
+                    return fail(QStringLiteral("appellate outcome leaked into rendered %1: %2")
                                     .arg(expected_label, claim));
                 }
             }
@@ -1147,6 +1347,15 @@ int main(int argc, char* argv[]) {
                 if (page_text.contains(phrase, Qt::CaseInsensitive)) {
                     return fail(QStringLiteral("temporal/meta leak in rendered %1: %2")
                                     .arg(expected_label, phrase));
+                }
+            }
+            if (index < 19) {
+                for (const auto& phrase : forbidden_batch_1_phrases) {
+                    if (page_text.contains(phrase, Qt::CaseInsensitive)) {
+                        return fail(
+                            QStringLiteral("successor fact leaked into immutable PDF %1: %2")
+                                .arg(expected_label, phrase));
+                    }
                 }
             }
             page_text.remove(any_page_label);
@@ -1169,8 +1378,8 @@ int main(int argc, char* argv[]) {
             ++expected_ja;
         }
     }
-    if (expected_ja != 126 || distinct_source_pages.size() != 125 ||
-        distinct_pdf_pages.size() != 125) {
+    if (expected_ja != 263 || distinct_source_pages.size() != 262 ||
+        distinct_pdf_pages.size() != 262) {
         return fail(QStringLiteral("JA/source/PDF substantive-page closure mismatch"));
     }
 
@@ -2034,8 +2243,8 @@ int main(int argc, char* argv[]) {
         return fail(QStringLiteral("positive submitted-on-briefs trace did not reach judgment"));
     }
 
-    std::cout << "Benton integration contract passed: 19 PDFs, 125 unique searchable pages, "
-                 "two grounded banks, guarded dual submission paths and mandate, four exact "
-                 "revisions.\n";
+    std::cout << "Benton 1.1 integration contract passed: 37 PDFs, 262 unique searchable pages, "
+                 "two accepted render inventories, two actual-exclusion grounded banks, guarded "
+                 "dual submission paths and mandate, four exact revisions.\n";
     return 0;
 }
