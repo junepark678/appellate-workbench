@@ -1,0 +1,119 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.ellison.argument.actual-record",
+  "case_id": "ca4m4.case.ellison-immunity",
+  "bench_configuration_id": "ca4m4.ellison.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.ellison.issue.collateral-order-boundary",
+    "ca4m4.ellison.issue.assumed-facts-fourth-amendment",
+    "ca4m4.ellison.issue.clearly-established-qualified-immunity"
+  ],
+  "grounded_question_bank": {
+    "mode": "actual_record",
+    "grounding_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "issue_topic_bindings": [
+      {"issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_ids":["workbench.topic.jurisdiction","workbench.topic.governing-authority","workbench.topic.record-support","workbench.topic.practical-consequences"]},
+      {"issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_ids":["workbench.topic.standard-of-review","workbench.topic.governing-authority","workbench.topic.merits","workbench.topic.record-support"]},
+      {"issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_ids":["workbench.topic.governing-authority","workbench.topic.standard-of-review","workbench.topic.preservation","workbench.topic.remedy"]}
+    ],
+    "questions": [
+      {
+        "question_id":"ca4m4.ellison.question.actual-boundary-jurisdiction","issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_id":"workbench.topic.jurisdiction","prompt":"Why must the panel dismiss Rusk's challenge to the sufficiency of Ellison's proof while retaining jurisdiction over the legal immunity question on the district court's stated assumptions?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-jurisdiction-johnson","kind":"authority","authority_id":"ca4m4.ellison.authority.johnson-evidence-sufficiency"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-jurisdiction-ja247","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja247"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-jurisdiction-ja252","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja252"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-boundary-authority","issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_id":"workbench.topic.governing-authority","prompt":"How does Barricks require the Court to separate an unreviewable request to reweigh obstructed evidence from a reviewable challenge to the legal consequences of plaintiff-favorable facts?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-authority-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-collateral-boundary"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-authority-ja246","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja246"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-authority-pa75","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa75"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-boundary-record","issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_id":"workbench.topic.record-support","prompt":"Which transcript, frame, and joint-chart pages show that neither recording continuously depicts the alleged forearm strike or movement toward Rusk's duty belt?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-record-johnson","kind":"authority","authority_id":"ca4m4.ellison.authority.johnson-evidence-sufficiency"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-record-ja77","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja77"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-record-ja90","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja90"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-record-ja240","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja240"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-boundary-practical","issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_id":"workbench.topic.practical-consequences","prompt":"After a mixed disposition dismissing the factual target and affirming the assumed-facts legal denial, what remains for trial and what historical findings has the appellate court expressly not made?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-practical-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-collateral-boundary"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-practical-ja253","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja253"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-practical-pa84","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa84"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-boundary-practical-pa85","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa85"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-fourth-standard","issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_id":"workbench.topic.standard-of-review","prompt":"Which facts must be assumed for de novo legal review, and how does Graham's totality inquiry avoid both hindsight and movant-favorable resolution of the hidden movements?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-standard-graham","kind":"authority","authority_id":"ca4m4.ellison.authority.graham-force-totality"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-standard-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-assumed-facts-law"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-standard-ja248","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja248"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-standard-ja249","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja249"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-fourth-authority","issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_id":"workbench.topic.governing-authority","prompt":"Why does Armstrong treat resistance and immediate danger as distinct, and which differences in cycle count and movement matter without erasing that proportionality rule?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-authority-armstrong","kind":"authority","authority_id":"ca4m4.ellison.authority.armstrong-proportional-danger"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-authority-ja179","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja179"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-authority-ja248","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja248"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-fourth-merits","issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_id":"workbench.topic.merits","prompt":"On Ellison's assumed account, how do the protective purpose, absence of immediate danger, degree of pulling, one drive-stun cycle, takedown, and available officer assistance balance under Graham?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-merits-graham","kind":"authority","authority_id":"ca4m4.ellison.authority.graham-force-totality"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-merits-armstrong","kind":"authority","authority_id":"ca4m4.ellison.authority.armstrong-proportional-danger"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-merits-ja32","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja32"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-merits-ja107","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja107"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-merits-ja249","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja249"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-fourth-record","issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_id":"workbench.topic.record-support","prompt":"What does the synchronized record establish about device mode, duration, cessation, injuries, and obstruction, and which threat facts remain matters of witness credibility?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-record-meyers","kind":"authority","authority_id":"ca4m4.ellison.authority.meyers-changing-threat"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-record-ja69","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja69"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-record-ja97","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja97"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-record-ja151","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja151"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-fourth-record-ja170","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja170"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-immunity-authority","issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_id":"workbench.topic.governing-authority","prompt":"Which pre-incident holdings supply notice, and why may Barricks and Zorn guide the 2026 analysis without becoming law that was clearly established on February 3, 2025?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-authority-armstrong","kind":"authority","authority_id":"ca4m4.ellison.authority.armstrong-prospective-notice"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-authority-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-assumed-facts-law"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-authority-zorn","kind":"authority","authority_id":"ca4m4.ellison.authority.zorn-specificity-warning"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-authority-ja250","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja250"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-immunity-standard","issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_id":"workbench.topic.standard-of-review","prompt":"At what level of specificity should the right be defined, and why does Zorn's warned routine wristlock not control the distinct electrical-force facts even as its method applies?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-standard-zorn","kind":"authority","authority_id":"ca4m4.ellison.authority.zorn-specificity-warning"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-standard-smith","kind":"authority","authority_id":"ca4m4.ellison.authority.smith-modest-movement-force"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-standard-ja251","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja251"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-immunity-preservation","issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_id":"workbench.topic.preservation","prompt":"Where did Rusk preserve the alternative legal argument that he receives immunity even accepting the district court's assumptions, distinct from his media-based factual submission?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-preservation-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-collateral-boundary"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-preservation-ja194","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja194"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-preservation-ja233","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja233"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-preservation-pa31","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa31"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.actual-immunity-remedy","issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_id":"workbench.topic.remedy","prompt":"What judgment language affirms denial of qualified immunity only on the assumed facts, preserves Rusk's trial account, and avoids converting an interlocutory legal holding into factual preclusion?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-remedy-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-assumed-facts-law"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-remedy-ja252","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja252"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-remedy-ja253","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja253"},
+          {"grounding_id":"ca4m4.ellison.grounding.actual-immunity-remedy-pa84","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa84"}
+        ]
+      }
+    ]
+  }
+}
