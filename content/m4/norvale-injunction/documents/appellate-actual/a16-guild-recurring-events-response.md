@@ -22,6 +22,8 @@ The record is sufficiently concrete without a new appendix. It fixes the six dat
 
 Current circuit authority confirms that recurring-season disputes do not become moot merely because a particular date or contest passes while the governing policy remains operative. *Robinson v. National Collegiate Athletic Association* evaluates the continuing relationship and practical recurrence rather than treating one expired event as the whole controversy. Here the recurrence is especially direct: the same organizer, public site, ordinance, City, calendar year, and injunction remain before the Court.
 
+The live dispute therefore concerns the continuing legal relationship, not a request for retrospective advice about an isolated afternoon.
+
 The City's suggestion that district litigation alone eliminates the appellate controversy is incompatible with its own appeal. The City invokes 28 U.S.C. § 1292(a)(1) because the preliminary order has present consequences before final judgment. Those consequences run both ways. If the order burdens the City enough to warrant interlocutory reversal, it protects the Guild enough to present a live defense. The unresolved merits do not make review advisory.
 
 <!-- PAGE BREAK -->

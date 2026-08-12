@@ -12,6 +12,8 @@ The City moves to dismiss this interlocutory appeal as moot because the February
 
 A live controversy persists. The preliminary injunction expressly covers the Guild's announced 2026 Cedar Commons fairs, not one event alone. The record identifies the June 13, August 8, October 10, and December 12 dates and describes recurring program decisions made before each event. The Paid-Speaker Permit Ordinance remains in force, the City continues to challenge the injunction, and the Guild continues to claim protection from the same lead-time, disclosure, fee, and conditioning provisions.
 
+The requested appellate relief would immediately alter administration of those remaining events.
+
 <!-- PAGE BREAK -->
 
 The passage of February and April does not eliminate the parties' concrete adversity. The City's requested appellate relief would alter the regime governing the remaining dates. The Guild's injury theory concerns invitations, budgets, and approval uncertainty that arise before a program is final, not merely a completed denial on an event day. Those features are documented in the preliminary record and repeat within the same calendar series.

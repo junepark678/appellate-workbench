@@ -28,6 +28,8 @@ The parties created an unusually focused preliminary record: verified pleadings,
 
 Under *Pashby v. Delia*, legal conclusions are reviewed de novo, factual findings for clear error, and the ultimate grant for abuse of discretion. The movant must clearly establish likely success, irreparable harm, a favorable equity balance, and the public interest. The City repeatedly asks this Court to choose different inferences from a balanced record. Unless a finding is clearly erroneous or rests on legal error, that request does not justify reversal.
 
+The court's detailed explanation readily permits review under those distinct standards.
+
 <!-- PAGE BREAK -->
 
 ## Statement of facts: expression and planning
@@ -35,6 +37,8 @@ Under *Pashby v. Delia*, legal conclusions are reviewed de novo, factual finding
 The Guild's fairs combine book sales with free readings, discussions, and questions. They have occurred at Cedar Commons since 2019, generally with eighteen to twenty-eight sellers and four to seven compensated writers. JA1–8, JA34–48. Compensation helps regional and lesser-known authors participate; it does not make their speech less protected. Members decide whether to sponsor authors from limited event and shop budgets.
 
 The history includes no violence. Two minor medical calls and routine loading or walkway congestion occurred. JA30–33, JA44–64. The Guild does not minimize them. Its organizer maintains emergency routes, loading windows, aisle space, and communication with City staff. A scheduled time, format, location, equipment need, and expected audience can affect that work. An author's payment or literary topic does not tell the organizer whether another officer, barrier, medic, or sanitation service is needed.
+
+The same direct variables remain available under the injunction.
 
 <!-- PAGE BREAK -->
 
@@ -60,6 +64,8 @@ That limited finding leaves ordinary event-cost recovery available on a supporte
 
 Norvale agrees in principle, but its proposed deference would dilute the protection. An objective trigger still burdens expression if the trigger lacks adequate relation to the interest invoked. The court did not hold that compensation is always irrelevant or that every permit for a public site is suspect. It evaluated this record, this series, and this combined deadline, disclosure, and fee structure. That is the concrete inquiry *Billups* requires.
 
+Protected status therefore frames, rather than predetermines, the tailoring analysis.
+
 <!-- PAGE BREAK -->
 
 ## II. Neutrality does not establish tailoring
@@ -68,7 +74,7 @@ The Guild has not accused staff of suppressing a viewpoint. The ordinance applie
 
 Content-neutral restrictions still must avoid burdening substantially more protected speech than necessary. The government bears the evidentiary burden. *Billups* examines the record connecting means and ends and considers substantially less restrictive alternatives without demanding the single least restrictive rule. The City therefore cannot prevail merely by showing a legitimate interest and an administrable category. It must show why the category and burdens promote the interest with an acceptable fit.
 
-The district court applied precisely that intermediate-scrutiny inquiry to this record.
+The district court applied precisely that intermediate-scrutiny inquiry to this record, including the City's evidence and alternatives.
 
 <!-- PAGE BREAK -->
 
@@ -78,7 +84,7 @@ Norvale's operational concerns depend on audience concentration, timing, format,
 
 The City reframes payment as proof of organizer control. But a schedule identifies organizer control more directly. Norvale may require the Guild to list planned presentations and operational characteristics without charging only paid authors or demanding a final subject roster before it stabilizes. An easy-to-administer proxy is not automatically narrowly tailored when the record identifies direct information and the proxy predictably burdens protected invitations.
 
-Neutrality alone cannot substitute for the missing evidentiary connection.
+Neutrality alone cannot substitute for the missing evidentiary connection between the trigger and the expressive burden actually imposed here.
 
 <!-- PAGE BREAK -->
 
@@ -96,6 +102,8 @@ The Guild accepts an early site filing. Its objection is to making a complete pa
 
 The amendment practice is neither binding nor bounded. Staff “may” consider a substitution, without an enacted decision deadline or standard distinguishing operational change from identity change. JA30–38. The City offered a three-business-day litigation proposal during stay proceedings, after the order was entered. JA125–130. That offer may inform a revised system; it cannot retroactively supply the ordinance's missing assurance while the Guild forms its program.
 
+The uncertainty is thus fixed in the governing process, not invented by speculation.
+
 <!-- PAGE BREAK -->
 
 The City's alternatives do not provide adequate channels for the lost appearance. An unpaid invitation excludes writers unable to donate time and travel. A bookstore event differs from an established free public fair. Another site may lack the audience and accessibility of Cedar Commons. Waiting for a future date cannot recreate a release-season opportunity or a visiting author's itinerary. The First Amendment does not require total suppression before a channel is inadequate.
@@ -112,6 +120,8 @@ Norvale may recover lawful administrative costs. The district court did not dema
 
 The City's reliance on averaging cannot cure the absent evidence. A fixed schedule may average legitimate costs, but the government must identify those costs and show the charge is not a speech tax untethered to administration. No record shows that a sixth author requires another review unit, traffic post, or written decision when the overall schedule and site remain unchanged. The court's preliminary skepticism was evidence based, not hostility to all permit fees.
 
+Norvale remains free to develop stronger cost proof during the merits proceedings.
+
 <!-- PAGE BREAK -->
 
 ## VI. Irreparable harm is present now
@@ -119,6 +129,8 @@ The City's reliance on averaging cannot cure the absent evidence. A fixed schedu
 The Guild's injury occurs during planning. It must decide whether to invite, sponsor, advertise, and commit funds before the event. JA34–48. A denial after an author's travel window closes or a choice not to invite because approval is uncertain cannot be repaired with damages. The loss of protected expression for a particular date is irreparable even if another fair later occurs.
 
 No completed viewpoint denial is required. The deadline and charges apply by their own terms; the uncertain amendment process governs every late confirmation. The Guild identified six real dates and an established pattern, not a hypothetical aspiration. Although February and April have passed under the injunction, June, August, October, and December remain. The recent *Robinson* decision reinforces that recurring, short-duration opportunities should not be erased one at a time while a continuing rule controls them.
+
+Each remaining date has an active planning period that cannot later be restored.
 
 <!-- PAGE BREAK -->
 
@@ -128,7 +140,7 @@ The City's asserted injury is limited by the relief's design. It may collect and
 
 The Guild faces lost speech and participation; the City faces adjustment to which proxy and fee it may use. Preventive safety does not require waiting for violence, but the injunction does not impose that requirement. It preserves direct risk regulation. The public benefits when free literary programs coexist with clear operational measures. On this record, the district court's balance was within the range of permissible judgment.
 
-The City identifies no concrete safety measure that the order actually prevents.
+The City identifies no concrete safety measure that the order actually prevents, and it may seek modification for changed facts.
 
 <!-- PAGE BREAK -->
 

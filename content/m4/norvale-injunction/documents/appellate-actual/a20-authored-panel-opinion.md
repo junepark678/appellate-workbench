@@ -130,6 +130,8 @@ Entitlement does not excuse an imprecise injunction. Rule 65(d) requires an orde
 
 The operative paragraph restrains “enforcing the Paid-Speaker Permit Ordinance” and then preserves broad categories of neutral rules. That language leaves material uncertainty. The combined enactment includes application timing, logistical submissions, names, topics, fees, written reasons, and conditioning powers. Staff cannot tell from the operative text which requests remain permissible when a paid speaker is involved or how a material change differs from a restrained identity change. The explanatory opinion supplies context but does not replace the detailed command Rule 65(d) requires.
 
+The superseding order must place that operative guidance within its own terms.
+
 <!-- PAGE BREAK -->
 
 ## X. Rule 65(c) and remedy

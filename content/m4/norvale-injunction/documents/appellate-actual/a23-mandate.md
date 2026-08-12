@@ -12,6 +12,8 @@ The judgment of this Court entered June 18, 2026, is now effective through issua
 
 The district court shall conduct proceedings consistent with the opinion. The January 23 preliminary injunction remains effective until a superseding compliant order is entered. This mandate does not dissolve interim protection, resolve the complaint finally, or restrict the district court's authority to address materially changed circumstances on a proper record. Each side shall bear its own appellate costs.
 
+The corrective remand is limited to the Rule 65 matters stated in the judgment.
+
 <!-- PAGE BREAK -->
 
 The Clerk of this Court certifies that the time for an ordinary rehearing petition expired without a filing, no mandate-stay motion is pending, and the mandate was released for issuance on July 9, 2026. The certified judgment, opinion, and cost direction are transmitted to the Clerk of the United States District Court for the District of South Carolina for filing in case No. SYN-DSC-26-CV-0107.

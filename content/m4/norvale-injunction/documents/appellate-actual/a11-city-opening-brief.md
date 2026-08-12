@@ -94,6 +94,8 @@ The name, general topic, and time requirements are modest. A name identifies the
 
 The ordinance's failure to guarantee every substitution does not create unbridled discretion. Conditions and denials must rest on documented crowd, traffic, or resource risks and be explained. A change with the same operational features should be easy to approve; one expected to attract a different audience or use equipment may require review. The Guild had not tested that boundary through a concrete disputed request. Preliminary invalidation based on uncertain future administration was premature.
 
+The written-reasons safeguard also permits prompt review of any concrete adverse decision.
+
 <!-- PAGE BREAK -->
 
 The forty-five-day period likewise reflects the recurring calendar and municipal allocation cycle. Personnel, adjacent reservations, and traffic arrangements cannot always be changed at the last moment. The City may consider later amendments, but an organizer should supply known planned details early. The Guild can submit its core program and adjust as necessary. Its evidence shows inconvenience and negotiation risk, not that forty-five days eliminates a meaningful channel for literary expression.

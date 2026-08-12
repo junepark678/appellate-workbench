@@ -20,6 +20,8 @@ The parties agree that paid literary presentations are protected and that no off
 
 The Guild answers that direct operational questions could replace the compensation trigger. But the ordinance already uses direct questions. Payment identifies the planned category; the remaining fields describe its effect. An unpaid spontaneous conversation is different administratively from an appearance the organizer booked and advertised, even if either could attract listeners. A clear, objective category reduces discretionary line drawing and tells organizers when a complete recurring-event submission is required.
 
+That predictability benefits applicants as well as municipal reviewers.
+
 <!-- PAGE BREAK -->
 
 ## II. Less burdensome possibilities do not prove constitutional excess
@@ -28,6 +30,8 @@ The alternatives chart identifies schedules, formats, attendance thresholds, mat
 
 The response says the district court merely considered alternatives as evidence. Yet its reasoning effectively treats direct-variable regulation as constitutionally required. JA119–121. That is least-restrictive-means analysis by another name. A content-neutral rule is narrowly tailored if it promotes the significant interest without burdening substantially more speech than necessary, not only if no judge can imagine a closer proxy.
 
+Norvale's combined fields should be assessed as one process.
+
 <!-- PAGE BREAK -->
 
 ## III. Amendment review remains a meaningful protection
@@ -35,6 +39,8 @@ The response says the district court merely considered alternatives as evidence.
 The Guild describes every late confirmation as dependent on “unspecified grace.” The record is more concrete. Staff advised that substitutions could be requested and would be evaluated for timing and operational effect. Denials or conditions require documented risk and written reasons. JA15–38. During stay proceedings, the City offered a three-business-day review condition and neutral topic descriptions. JA125–130. Those safeguards constrain administration and permit prompt judicial review.
 
 The absence of a guaranteed approval is not constitutional uncertainty. A replacement that changes only identity may be straightforward; one that changes format, equipment, or audience may not be. The organizer often knows those effects better than staff. Requiring a request allows the City to distinguish them. The injunction instead presumes the distinction can always be made without the ordinance while giving employees no precise operative boundary.
+
+Written reasons make any unfavorable distinction reviewable.
 
 <!-- PAGE BREAK -->
 
@@ -64,7 +70,7 @@ The Guild effectively concedes that the operative terms may lack specificity and
 
 *Pashby* permits correction, but remedy depends on context. Here the order's scope is the source of immediate employee uncertainty. This Court should vacate and direct a prompt new order. If it determines a transition is necessary, it may specify a short period or narrow restraint. It should not affirm the present language and allow it to continue for an undefined remand interval.
 
-That distinction matters to fair notice and orderly compliance.
+That distinction matters to fair notice, contempt boundaries, orderly compliance, and consistent treatment among applicants.
 
 <!-- PAGE BREAK -->
 
@@ -74,7 +80,7 @@ The Guild invokes *Robinson v. National Collegiate Athletic Association*, decide
 
 If later events alter the concrete dispute, the district court can address them. This Court should review the January order on its certified record and avoid treating the announced calendar as proof that every future application repeats the same injury. *Robinson* concerns mootness and recurrence, not a rule that recurring plaintiffs automatically satisfy narrow tailoring or irreparable harm.
 
-The merits still require the ordinary factor-by-factor analysis.
+The merits still require the ordinary factor-by-factor analysis on the complete certified January record before this Court.
 
 <!-- PAGE BREAK -->
 
@@ -84,7 +90,7 @@ Reversal is warranted because the Guild did not clearly establish likely constit
 
 If the Court disagrees, it should vacate for Rule 65 correction. A remand should direct the district court to list the restrained provisions, define permissible operational requests and conditions, and make an express security determination. It should preserve authority to consider current facts and narrower relief. It should not encode a “without vacatur” outcome that leaves officials bound by terms the Court has declared insufficient.
 
-That corrective process can proceed promptly before later events.
+That corrective process can proceed promptly before later events without deciding permanent relief.
 
 <!-- PAGE BREAK -->
 

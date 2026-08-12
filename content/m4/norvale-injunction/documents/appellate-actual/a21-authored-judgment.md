@@ -12,6 +12,8 @@ In accordance with the opinion filed this date, the Court exercises interlocutor
 
 The matter is remanded in part for the limited purpose of entering a superseding preliminary-injunction order that states the restrained acts with the specificity required by Federal Rule of Civil Procedure 65(d) and makes an express, record-supported determination under Rule 65(c) concerning security. The remand does not reopen the panel's affirmance of interim entitlement and does not direct a final merits judgment.
 
+The existing January 23 protection remains effective during that limited corrective proceeding and until the superseding compliant order is entered. The City retains its neutral authority to address documented site, traffic, capacity, emergency, sanitation, reservation, and materially changed operational conditions throughout the remand.
+
 <!-- PAGE BREAK -->
 
 The January 23 preliminary injunction remains effective until the district court enters a superseding compliant order. Neither the limited remand nor issuance of the mandate dissolves the existing protection by itself. The district court retains authority to manage proceedings consistent with the opinion and to respond to materially changed circumstances on an appropriate record.
