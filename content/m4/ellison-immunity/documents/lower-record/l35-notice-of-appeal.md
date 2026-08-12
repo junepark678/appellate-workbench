@@ -1,9 +1,9 @@
 > **SYNTHETIC COURT DOCUMENT — FICTIONAL CASE — NOT AN ACTUAL FILING**
 
+Record class: jurisdiction-invoking district notice.
+
 UNITED STATES DISTRICT COURT FOR THE WESTERN DISTRICT OF VIRGINIA  
 Civil Action No. SYN-WDVA-25-CV-0733
-
-Record class: defendant's collateral-order initiating notice.
 
 # Officer Rusk's Notice of Interlocutory Appeal
 
