@@ -20,7 +20,7 @@ Rusk moved to stay the mandate on July 15. After Mara Ellison responded, the pan
 
 This Court has not determined whether Ellison struck Rusk's forearm, moved toward duty equipment, or merely pulled from a painful wrist restraint. The district court's supported assumptions governed the legal appeal, and a factfinder may resolve the historical conflict if necessary. The accompanying opinion states the controlling scope.
 
-Appellee Mara Ellison shall recover allowable appellate costs as fixed through ordinary procedure.
+Consistent with the costs direction in the June 30 judgment, Ellison and Rusk must each bear their own appellate costs. This mandate awards costs to neither side.
 
 <!-- PAGE BREAK -->
 

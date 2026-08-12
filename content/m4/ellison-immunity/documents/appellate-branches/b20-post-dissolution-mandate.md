@@ -20,7 +20,7 @@ Mandate issuance was stayed on July 20 while Rusk evaluated a petition for certi
 
 The mandate does not establish whether Ellison struck Rusk, reached toward his belt, or merely pulled because wrist control hurt. Those historical alternatives were excluded from collateral fact review. The legal holding applies to the assumed account and leaves appropriate factual proceedings to the district court.
 
-Appellee Mara Ellison may recover taxable appellate costs in the amount fixed by the Clerk.
+The June 30 judgment's costs allocation remains undisturbed: each side bears its own appellate costs, and neither receives an award through this mandate.
 
 <!-- PAGE BREAK -->
 

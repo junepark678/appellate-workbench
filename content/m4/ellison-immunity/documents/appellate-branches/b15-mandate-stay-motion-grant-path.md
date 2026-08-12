@@ -96,7 +96,7 @@ Rusk submits that explicit use of the plaintiff-favorable account distinguishes 
 
 ## Conclusion and Certification
 
-The Court should stay its mandate through August 10, 2026. The motion identifies a substantial question about the interaction of *Zorn*'s specificity requirement with *Armstrong*'s prospective notice, and the completed trial record creates good cause to preserve immunity from immediate pretrial burdens during a short petition-review period.
+The Court should stay its mandate through August 10, 2026. The motion identifies a substantial question about the interaction of *Zorn*'s specificity requirement with *Armstrong*'s prospective notice, and the completed summary-judgment record creates good cause to preserve immunity from immediate pretrial burdens during a short petition-review period.
 
 If relief is granted, Rusk will submit a written status notice upon filing, extension, or abandonment and in all events by the deadline fixed in the order. He consents to prompt dissolution if no petition or extension supports continuation. He asks that the Court require no security and retain authority to modify the stay for changed circumstances.
 
