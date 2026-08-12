@@ -1,0 +1,421 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4r54b.argument.counterfactual",
+  "case_id": "ca4r54b.case.asterglen",
+  "bench_configuration_id": "ca4r54b.bench.composite-three",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4r54b.issue.rule54b-finality",
+    "ca4r54b.issue.notice-timeliness",
+    "ca4r54b.issue.contract-notice-and-cure-merits"
+  ],
+  "grounded_question_bank": {
+    "mode": "counterfactual_training",
+    "grounding_digest": "88477e0fb4db65b1a73c8357a4c1556a9baf6562f2c4f0ed492673cef5336468",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4r54b.issue.rule54b-finality",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.record-support",
+          "workbench.topic.standard-of-review",
+          "workbench.topic.merits",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4r54b.issue.notice-timeliness",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.governing-authority",
+          "workbench.topic.record-support",
+          "workbench.topic.merits",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4r54b.issue.contract-notice-and-cure-merits",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.record-support",
+          "workbench.topic.merits",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4r54b.question.counterfactual-supported-jurisdiction",
+        "issue_id": "ca4r54b.issue.rule54b-finality",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Assume the district court entered the supported certification order: which express finding supplies the Rule 54(b) jurisdictional gate?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-jurisdiction-authority",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frcp-54b-partial-judgment"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-jurisdiction-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja198"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-jurisdiction-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa75"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-supported-record",
+        "issue_id": "ca4r54b.issue.rule54b-finality",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Assume the counterclaim was resolved and Count II narrowed: which changed facts reduce overlap, setoff risk, and repeat-review concerns?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-record-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.kinsale"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-record-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja205"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-record-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa71"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-supported-standard",
+        "issue_id": "ca4r54b.issue.rule54b-finality",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "Assume concrete findings support certification: how does Kinsale's abuse-of-discretion framework apply without treating formulaic words as sufficient?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-standard-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.kinsale"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-standard-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja212"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-standard-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa76"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-supported-merits-gate",
+        "issue_id": "ca4r54b.issue.rule54b-finality",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Assume both Rule 54(b) gates are satisfied: why may the panel reach Count I without implying that the actual bare order was final?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-merits-gate-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.usc-1291"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-merits-gate-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja216"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-merits-gate-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa81"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-supported-remedy",
+        "issue_id": "ca4r54b.issue.rule54b-finality",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Assume certification was valid and Count I affirmed: what judgment should issue on the jurisdictional and merits targets?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-remedy-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.kinsale"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-remedy-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja220"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-remedy-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa82"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-supported-consequences",
+        "issue_id": "ca4r54b.issue.rule54b-finality",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "Assume the narrowed district posture: what concrete findings distinguish this branch from the actual overlapping unresolved claims?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-consequences-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.kinsale"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-consequences-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja234"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-supported-consequences-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa74"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-late-jurisdiction",
+        "issue_id": "ca4r54b.issue.notice-timeliness",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Assume a genuinely final February 4 judgment and a March 9 notice: why is the notice outside section 2107(a)?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-late-jurisdiction-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.usc-2107a"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-late-jurisdiction-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja220"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-late-jurisdiction-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa98"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-late-rule",
+        "issue_id": "ca4r54b.issue.notice-timeliness",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Assume no tolling, extension, or reopening event: why does Rule 4(a) require dismissal of the March 9 notice?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-late-rule-authority",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-4-civil-time"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-late-rule-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja222"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-late-rule-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa101"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-late-equity",
+        "issue_id": "ca4r54b.issue.notice-timeliness",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Assume the appellant filed on the first business day after March 6: why may the court not create an equitable grace period?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-late-equity-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.bowles"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-late-equity-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja223"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-late-equity-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa103"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-missing-document",
+        "issue_id": "ca4r54b.issue.notice-timeliness",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Assume no separate judgment was entered: how do Rule 58's 150-day rule and the weekend adjustment move entry to July 6?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-missing-document-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.frcp-58-entry"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-missing-document-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja216"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-missing-document-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa109"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-missing-document-consequence",
+        "issue_id": "ca4r54b.issue.notice-timeliness",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "Assume entry occurred July 6 under Rule 58: why is August 5 the conditional 30-day notice deadline?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-missing-document-consequence-authority",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-26-calendar"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-missing-document-consequence-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja224"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-missing-document-consequence-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa112"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-merits-authority",
+        "issue_id": "ca4r54b.issue.contract-notice-and-cure-merits",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Assume valid supported certification: how does Primov guide enforcement of the Pilot License's written-notice and cure condition?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-authority-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.primov-condition-precedent"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-authority-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja51"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-authority-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa81"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-merits-record",
+        "issue_id": "ca4r54b.issue.contract-notice-and-cure-merits",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Assume jurisdiction: which record evidence bears on whether Asterglen supplied written conditions and whether Copper could cure promptly?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-record-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.primov-condition-precedent"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-record-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja91"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-record-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa86"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-merits-resolution",
+        "issue_id": "ca4r54b.issue.contract-notice-and-cure-merits",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Assume the supported branch record: why does the panel affirm Count I despite the notice-and-cure dispute?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-resolution-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.primov-condition-precedent"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-resolution-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja137"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-resolution-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa90"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-merits-remedy",
+        "issue_id": "ca4r54b.issue.contract-notice-and-cure-merits",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Assume the supported certification and merits judgment: what part of the district judgment is affirmed and what remains below?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-remedy-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.primov-condition-precedent"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-remedy-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja192"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-remedy-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa93"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4r54b.question.counterfactual-merits-consequences",
+        "issue_id": "ca4r54b.issue.contract-notice-and-cure-merits",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "Assume the counterclaim resolution and narrowed Count II: how do those changes limit the practical consequences of immediate Count I review?",
+        "grounding": [
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-consequences-authority",
+            "kind": "authority",
+            "authority_id": "ca4r54b.authority.primov-condition-precedent"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-consequences-ja",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.ja180"
+          },
+          {
+            "grounding_id": "ca4r54b.grounding.counterfactual-merits-consequences-pa",
+            "kind": "record_page",
+            "anchor_id": "ca4r54b.record.anchor.pa94"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,3782 @@
+{
+  "schema_version": 2,
+  "resource_kind": "record",
+  "resource_id": "ca4r54b.record.asterglen",
+  "caption": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC",
+  "dockets": [
+    {
+      "docket_id": "ca4r54b.docket.ndwv",
+      "docket_type": "district",
+      "court_ref": "United States District Court for the Northern District of West Virginia",
+      "public_docket_number": "SYN-NDWV-25-CV-0618",
+      "caption": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC"
+    },
+    {
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit",
+      "public_docket_number": "SYN-CA4-26-CV-4102",
+      "caption": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC"
+    },
+    {
+      "docket_id": "ca4r54b.docket.counterfactual-district",
+      "docket_type": "district",
+      "court_ref": "United States District Court for the Northern District of West Virginia — counterfactual branch bank",
+      "public_docket_number": "SYN-NDWV-25-CV-0618-CF-NEVER-OCCURRED",
+      "caption": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC — counterfactual events that never occurred on the actual district docket"
+    },
+    {
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit — counterfactual branch bank",
+      "public_docket_number": "SYN-CA4-26-CV-4102-CF-NEVER-OCCURRED",
+      "caption": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC — counterfactual events that never occurred on the actual appellate docket"
+    }
+  ],
+  "docket_entries": [
+    {
+      "entry_id": "ca4r54b.record.entry.l01",
+      "entry_number": 1,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 1",
+      "filed_on": "2025-03-03",
+      "title": "Complaint",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L01: Complaint.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l01-complaint.pdf",
+      "asset_sha256": "3c45207a7cf09feacbc431880413c4f26e20e09ad05443daf0977673b3122412",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l02",
+      "entry_number": 2,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 8",
+      "filed_on": "2025-04-07",
+      "title": "Copper Answer, Affirmative Defenses, and Counterclaim",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L02: Copper Answer, Affirmative Defenses, and Counterclaim.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l02-copper-answer-counterclaim.pdf",
+      "asset_sha256": "77745fa8e49160d28281bfac5efc6f7f0bdc04d7b50866d3a170baa631a7f402",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l03",
+      "entry_number": 3,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 9",
+      "filed_on": "2025-04-07",
+      "title": "Meridian Answer and Affirmative Defenses",
+      "actor": "Meridian Silt Holdings, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L03: Meridian Answer and Affirmative Defenses.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l03-meridian-answer.pdf",
+      "asset_sha256": "4b35501eb7d57e4626c3803e2480dc65428baffc4245a6f2b7a2782564886ccc",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l04",
+      "entry_number": 4,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 10",
+      "filed_on": "2025-04-21",
+      "title": "Asterglen Answer to Copper Counterclaim",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L04: Asterglen Answer to Copper Counterclaim.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l04-asterglen-answer-counterclaim.pdf",
+      "asset_sha256": "fcd8f78d016de0f76e1428ee00bcb89152d8b0a37ebc2d59efe1e661c55b67d6",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l05",
+      "entry_number": 5,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 14",
+      "filed_on": "2025-05-12",
+      "title": "Copper First Amended Counterclaim",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L05: Copper First Amended Counterclaim.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l05-copper-amended-counterclaim.pdf",
+      "asset_sha256": "91ea7586d7d0421f603cc09f55c4d0f3f63bbc5fa130c52fc8b398e9de8a5b39",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l06",
+      "entry_number": 6,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 17",
+      "filed_on": "2025-05-27",
+      "title": "Asterglen Answer to First Amended Counterclaim",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L06: Asterglen Answer to First Amended Counterclaim.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l06-asterglen-answer-amended-counterclaim.pdf",
+      "asset_sha256": "a67f1d015ae1269ee02932a69e7d80360a96392da7bf7740544390fa8d964158",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l07",
+      "entry_number": 7,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 1-1",
+      "filed_on": "2025-03-03",
+      "title": "Pilot License and Schedules",
+      "actor": "Asterglen Freight Software, Inc. and Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L07: Pilot License and Schedules.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l07-pilot-license-schedules.pdf",
+      "asset_sha256": "2419b243663adc45b11bb5b543cf702c531c9ed385d4f4a1d6253be1b3fd9888",
+      "page_count": 13,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l01",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l08",
+      "entry_number": 8,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 8-1",
+      "filed_on": "2025-04-07",
+      "title": "Proposed Change Order—29 Additional Terminals",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L08: Proposed Change Order—29 Additional Terminals.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l08-proposed-change-order-29-terminals.pdf",
+      "asset_sha256": "03c0faa90456db052bb64086eea7f19a1f55042799fcdf3b3f818159e9a08cf3",
+      "page_count": 5,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l02",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l09",
+      "entry_number": 9,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 8-2",
+      "filed_on": "2025-04-07",
+      "title": "June 10 Load-Test Response and Written Conditions",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L09: June 10 Load-Test Response and Written Conditions.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l09-june10-load-test-response.pdf",
+      "asset_sha256": "febdabd4b30c3405e61b79de0d1ec9c989e65a1575e35582a5701a236f34659e",
+      "page_count": 5,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l02",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l10",
+      "entry_number": 10,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 9-1",
+      "filed_on": "2025-04-07",
+      "title": "Meridian Integration SOW and Milestone Table",
+      "actor": "Meridian Silt Holdings, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L10: Meridian Integration SOW and Milestone Table.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l10-meridian-integration-sow.pdf",
+      "asset_sha256": "e42dc28b56b2f7405273e5f88ba079201b51896da892d6752dd252f72ce4691b",
+      "page_count": 7,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l03",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l11",
+      "entry_number": 11,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 43-1",
+      "filed_on": "2025-11-03",
+      "title": "BeaconRoute Provisioning Ledger Through July 1",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L11: BeaconRoute Provisioning Ledger Through July 1.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l11-beaconroute-provisioning-ledger.pdf",
+      "asset_sha256": "fc72bbdf8d2f7cdb86390b0f4fb374db7d3522ed5900eadb41e7897e1ed944af",
+      "page_count": 7,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l23",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l12",
+      "entry_number": 12,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 43-2",
+      "filed_on": "2025-11-03",
+      "title": "July 8 Call Notes and Follow-Up Email Chain",
+      "actor": "Asterglen Freight Software, Inc. and Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L12: July 8 Call Notes and Follow-Up Email Chain.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l12-july8-call-email-chain.pdf",
+      "asset_sha256": "1394fba295c88b2ebc5c0d88f454b14a708780bcc4c984a178e78b0a9fd3e88d",
+      "page_count": 6,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l23",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l13",
+      "entry_number": 13,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 43-3",
+      "filed_on": "2025-11-03",
+      "title": "July 18 Compliance Audit",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L13: July 18 Compliance Audit.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l13-july18-compliance-audit.pdf",
+      "asset_sha256": "2c67b5a0513409e75a4864a20324d28827e1f494b272b95ff374023aa459914d",
+      "page_count": 6,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l23",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l14",
+      "entry_number": 14,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 43-4",
+      "filed_on": "2025-11-03",
+      "title": "July 22 Termination/Demand and July 22–25 Cure-Status Chain",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L14: July 22 Termination/Demand and July 22–25 Cure-Status Chain.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l14-july22-termination-cure-chain.pdf",
+      "asset_sha256": "f51228ddefad2bb99bd9d49d36ef2125b5330c4892194e4d5c6b045f2d4b31b5",
+      "page_count": 7,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l23",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l15",
+      "entry_number": 15,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 22",
+      "filed_on": "2025-06-16",
+      "title": "Joint Rule 26(f) Report and Discovery Plan",
+      "actor": "The parties (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L15: Joint Rule 26(f) Report and Discovery Plan.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l15-rule26f-report.pdf",
+      "asset_sha256": "89459baf3cc1510e63c17c49d383f963896c101eaca34a33bd47d6fed8e861a6",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l16",
+      "entry_number": 16,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 49-1",
+      "filed_on": "2025-11-24",
+      "title": "Copper Authenticated Interrogatory and RFA Responses",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L16: Copper Authenticated Interrogatory and RFA Responses.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l16-copper-interrogatory-rfa-responses.pdf",
+      "asset_sha256": "6e5bf9f5dee85db2f3b781f93c1e1671ebeaad62c1b31152f34784ee5c6eeb13",
+      "page_count": 7,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l25",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l17",
+      "entry_number": 17,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 43-5",
+      "filed_on": "2025-11-03",
+      "title": "Asterglen Rule 30(b)(6) Deposition Excerpts",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L17: Asterglen Rule 30(b)(6) Deposition Excerpts.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l17-asterglen-30b6-deposition-excerpts.pdf",
+      "asset_sha256": "0abf61c6d1b11fe81828ca3779b20095be99f0867b2ced19ca602b7a9ace6b18",
+      "page_count": 10,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l23",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l18",
+      "entry_number": 18,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 49-2",
+      "filed_on": "2025-11-24",
+      "title": "Copper Operations Deposition Excerpts",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L18: Copper Operations Deposition Excerpts.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l18-copper-operations-deposition-excerpts.pdf",
+      "asset_sha256": "9439f22fb2b89abd7bce185ed809ada63d4fa8a1e871cf021cb351489ebd0b5c",
+      "page_count": 9,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l25",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l19",
+      "entry_number": 19,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 49-3",
+      "filed_on": "2025-11-24",
+      "title": "Meridian Engineer Deposition Excerpts",
+      "actor": "Meridian Silt Holdings, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L19: Meridian Engineer Deposition Excerpts.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l19-meridian-engineer-deposition-excerpts.pdf",
+      "asset_sha256": "1c16420313790a52aae66d5fe1cf288b92e1bdd7dc0d3b50653b514b1d7cdbba",
+      "page_count": 8,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l25",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l20",
+      "entry_number": 20,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 49-4",
+      "filed_on": "2025-11-24",
+      "title": "Cure-Feasibility Declaration and Test Results",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L20: Cure-Feasibility Declaration and Test Results.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l20-cure-feasibility-declaration.pdf",
+      "asset_sha256": "ac1200a1077e75c8146491122506adf32f803adb453e37505c064b40ebe0e7e8",
+      "page_count": 8,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l25",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l21",
+      "entry_number": 21,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 49-5",
+      "filed_on": "2025-11-24",
+      "title": "Damages/Offset Declaration and Ledger",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L21: Damages/Offset Declaration and Ledger.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l21-damages-offset-declaration.pdf",
+      "asset_sha256": "80d09211c1e166ea3012fc0d8adacda715c3e8ee1794a3bd1157a26481883b1b",
+      "page_count": 6,
+      "sealed": false,
+      "parent_entry_id": "ca4r54b.record.entry.l25",
+      "relationship": "attachment"
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l22",
+      "entry_number": 22,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 42",
+      "filed_on": "2025-11-03",
+      "title": "Copper Motion for Partial Summary Judgment",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L22: Copper Motion for Partial Summary Judgment.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l22-copper-partial-summary-judgment-motion.pdf",
+      "asset_sha256": "72223910e3af6a2b9216b7781cdd69e42f164609a914782a247a0afd36653878",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l23",
+      "entry_number": 23,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 43",
+      "filed_on": "2025-11-03",
+      "title": "Copper Memorandum Supporting Partial Summary Judgment",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L23: Copper Memorandum Supporting Partial Summary Judgment.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l23-copper-summary-judgment-memorandum.pdf",
+      "asset_sha256": "213561a6668255e1b927e9c4c3d87181e6e1ad9b73727188c367d423b6557aac",
+      "page_count": 9,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l24",
+      "entry_number": 24,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 44",
+      "filed_on": "2025-11-03",
+      "title": "Copper Statement of Undisputed Material Facts",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L24: Copper Statement of Undisputed Material Facts.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l24-copper-undisputed-facts.pdf",
+      "asset_sha256": "ce0148513527f8aa234acd691c4d0150edba6a8fc5086ecc586e269409e44a91",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l25",
+      "entry_number": 25,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 49",
+      "filed_on": "2025-11-24",
+      "title": "Asterglen Opposition to Partial Summary Judgment",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L25: Asterglen Opposition to Partial Summary Judgment.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l25-asterglen-summary-judgment-opposition.pdf",
+      "asset_sha256": "1260085183a111e09ea162413e1cb7d1c5e7ef634d72cb7c3f6727cbb03659c6",
+      "page_count": 9,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l26",
+      "entry_number": 26,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 50",
+      "filed_on": "2025-11-24",
+      "title": "Meridian Response Regarding Shared Record and Count II",
+      "actor": "Meridian Silt Holdings, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L26: Meridian Response Regarding Shared Record and Count II.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l26-meridian-overlap-response.pdf",
+      "asset_sha256": "b998f8b1cfecf9d3ac5042ba4a588b9ee214df1efe625e36adac68ffe6b28eae",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l27",
+      "entry_number": 27,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 52",
+      "filed_on": "2025-12-05",
+      "title": "Copper Reply Supporting Partial Summary Judgment",
+      "actor": "Copper Kestrel Logistics, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L27: Copper Reply Supporting Partial Summary Judgment.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l27-copper-summary-judgment-reply.pdf",
+      "asset_sha256": "959beb9dbb5d86eb40ea6baf99e8e6cc7f5d8bd6d494ad1461fa8225d57906b5",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l28",
+      "entry_number": 28,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 55",
+      "filed_on": "2026-01-12",
+      "title": "Memorandum Opinion and Order Granting Copper Summary Judgment on Count I Only",
+      "actor": "United States District Court for the Northern District of West Virginia",
+      "description": "Lower-tribunal synthetic record artifact L28: Memorandum Opinion and Order Granting Copper Summary Judgment on Count I Only.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/l28-partial-summary-judgment-order.pdf",
+      "asset_sha256": "f3cc6a8eae5775f29b95c950da6b74156fa47efcafd6b69cd2dba1aafff62dc8",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l29",
+      "entry_number": 29,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 57",
+      "filed_on": "2026-01-20",
+      "title": "Asterglen Rule 54(b) Motion and Memorandum",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L29: Asterglen Rule 54(b) Motion and Memorandum.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l29-rule54b-motion-memorandum.pdf",
+      "asset_sha256": "266ef6533719d7842e5bbc55642c8ee5aaf37676036b37dc37ad72a5b463648c",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l30",
+      "entry_number": 30,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 58",
+      "filed_on": "2026-01-30",
+      "title": "Defendants’ Opposition to Rule 54(b) Motion",
+      "actor": "Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L30: Defendants’ Opposition to Rule 54(b) Motion.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l30-rule54b-opposition.pdf",
+      "asset_sha256": "cdc6aae040fa55f761d71c0aa02f71358b35f56a8820fbda7243f04d5ef9c3cd",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l31",
+      "entry_number": 31,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 59",
+      "filed_on": "2026-02-02",
+      "title": "Asterglen Reply Supporting Rule 54(b) Motion",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L31: Asterglen Reply Supporting Rule 54(b) Motion.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l31-rule54b-reply.pdf",
+      "asset_sha256": "049780a334ee62ba7dc053cb46fff2c876216bf61ffd97c8689fc2c6458ee9c0",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l32",
+      "entry_number": 32,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 60",
+      "filed_on": "2026-02-04",
+      "title": "Order Granting Rule 54(b) Motion",
+      "actor": "United States District Court for the Northern District of West Virginia",
+      "description": "Lower-tribunal synthetic record artifact L32: Order Granting Rule 54(b) Motion.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/l32-bare-rule54b-order.pdf",
+      "asset_sha256": "c49b27f7810944feb2f78c3b147d9a84a93ecc70c28c25549693e01619885b36",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l33",
+      "entry_number": 33,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 2",
+      "filed_on": "2025-03-03",
+      "title": "Case Assignment and Initial Scheduling Order",
+      "actor": "Clerk of the United States District Court for the Northern District of West Virginia",
+      "description": "Lower-tribunal synthetic record artifact L33: Case Assignment and Initial Scheduling Order.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/l33-case-assignment-initial-order.pdf",
+      "asset_sha256": "7ee0102bcd623564ca49dc05df6f9e47e06cf6ed9497164195bddd3365dc7376",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l34",
+      "entry_number": 34,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 61",
+      "filed_on": "2026-02-04",
+      "title": "Partial Judgment as to Count I",
+      "actor": "Clerk of the United States District Court for the Northern District of West Virginia",
+      "description": "Lower-tribunal synthetic record artifact L34: Partial Judgment as to Count I.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/l34-partial-judgment.pdf",
+      "asset_sha256": "8146b9d6c595bf1dacd830da8423e82cd2ee987c31647318ffb7f84baaa28496",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l35",
+      "entry_number": 35,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 62",
+      "filed_on": "2026-03-03",
+      "title": "Notice of Appeal",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L35: Notice of Appeal.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l35-notice-of-appeal.pdf",
+      "asset_sha256": "c861886102ec416a24419da14bcb04e0ff80e06e7a178a2294940e44b6f54f7e",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l36",
+      "entry_number": 36,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 64",
+      "filed_on": "2026-03-16",
+      "title": "No-Transcript Statement and Record Designation",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Lower-tribunal synthetic record artifact L36: No-Transcript Statement and Record Designation.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/l36-no-transcript-record-designation.pdf",
+      "asset_sha256": "96c0c8475db34ed823f94412d730d88066770aaf375305d003d6df01782c9ea0",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.l37",
+      "entry_number": 37,
+      "docket_id": "ca4r54b.docket.ndwv",
+      "entry_label": "District ECF No. 65",
+      "filed_on": "2026-03-20",
+      "title": "Certified District-Court Docket",
+      "actor": "Clerk of the United States District Court for the Northern District of West Virginia",
+      "description": "Lower-tribunal synthetic record artifact L37: Certified District-Court Docket.",
+      "tags": [
+        "lower_tribunal_record",
+        "district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/l37-certified-district-docket.pdf",
+      "asset_sha256": "fdae1ba14ac37db31a9a9f43eb8029e24ec01f81aa84afdf16c2a18f6d007d1b",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a01",
+      "entry_number": 38,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 1",
+      "filed_on": "2026-03-05",
+      "title": "Docketing Notice",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact A01: Docketing Notice.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a01-docketing-notice.pdf",
+      "asset_sha256": "fcbfc1714c59750108022b1742ede499e940e8304a112bd5b0ac667a421aa196",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a02",
+      "entry_number": 39,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 2",
+      "filed_on": "2026-03-16",
+      "title": "Appellant Docketing Statement",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Appellate synthetic record artifact A02: Appellant Docketing Statement.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a02-appellant-docketing-statement.pdf",
+      "asset_sha256": "fb9c6ae5a7ed47bc28ab8b5d0eff5a6dd09253b27fea14c7f95e4908e16082c2",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a03",
+      "entry_number": 40,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 3",
+      "filed_on": "2026-03-16",
+      "title": "Combined Counsel Appearances and Corporate Disclosures",
+      "actor": "Asterglen Freight Software, Inc., Copper Kestrel Logistics, LLC, and Meridian Silt Holdings, LLC (fictional)",
+      "description": "Appellate synthetic record artifact A03: Combined Counsel Appearances and Corporate Disclosures.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a03-appearances-disclosures.pdf",
+      "asset_sha256": "0f68b94e58f741807f47684e10859295b3bbdc035d036d00deaeca2856e0d905",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a04",
+      "entry_number": 41,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 4",
+      "filed_on": "2026-03-20",
+      "title": "Record-Complete and Briefing Order",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact A04: Record-Complete and Briefing Order.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a04-record-complete-briefing-order.pdf",
+      "asset_sha256": "eb98c346b78983add78d8ea90ca7fb93f0f3b0c548178d9aa1c7363ea5c389c5",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a05",
+      "entry_number": 42,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 5",
+      "filed_on": "2026-04-29",
+      "title": "Opening Brief of Appellant Asterglen Freight Software, Inc.",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Appellate synthetic record artifact A05: Opening Brief of Appellant Asterglen Freight Software, Inc..",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a05-asterglen-opening-brief.pdf",
+      "asset_sha256": "02fbdd60401d9eaebf52b308167ce9566ecd5611da98e3df26a2d7e5e7d204c3",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a06",
+      "entry_number": 43,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 6",
+      "filed_on": "2026-05-08",
+      "title": "Response Brief of Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC",
+      "actor": "Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC (fictional)",
+      "description": "Appellate synthetic record artifact A06: Response Brief of Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a06-appellees-response-brief.pdf",
+      "asset_sha256": "3799c3f9d87fe26348583548d6bc6225d85e4241ac9a3157f2a7c0632cef9d5c",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a07",
+      "entry_number": 44,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 7",
+      "filed_on": "2026-05-29",
+      "title": "Notice That No Reply Brief Will Be Filed",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Appellate synthetic record artifact A07: Notice That No Reply Brief Will Be Filed.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a07-no-reply-notice.pdf",
+      "asset_sha256": "4026ec39150490d7f9d247e521942c68b0966926a8538cb50d7350d07f27cb9e",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a08",
+      "entry_number": 45,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 8",
+      "filed_on": "2026-06-03",
+      "title": "Order Submitting Appeal on the Briefs",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Appellate synthetic record artifact A08: Order Submitting Appeal on the Briefs.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a08-submission-on-briefs-order.pdf",
+      "asset_sha256": "b744d08e2b0be38c0ca6c0928bc84dc1abafbe512497f313ff54e3a31d67638b",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a09",
+      "entry_number": 46,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 9",
+      "filed_on": "2026-06-05",
+      "title": "Supplemental District Status Certification",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Appellate synthetic record artifact A09: Supplemental District Status Certification.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/a09-district-status-certification.pdf",
+      "asset_sha256": "0d5b17e477d9cc1d5b0c5ec0336e41f7e5a6b253a628f983bc4aff6a1053bee6",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a10",
+      "entry_number": 47,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 10",
+      "filed_on": "2026-06-08",
+      "title": "Panel Opinion Dismissing Appeal and Remanding",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Appellate synthetic record artifact A10: Panel Opinion Dismissing Appeal and Remanding.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a10-panel-opinion.pdf",
+      "asset_sha256": "346d851e5c7eca6ccbd921c31eaed1fcbaf7c6aa19b624e5a4dd9d6760b764c7",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a11",
+      "entry_number": 48,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 11",
+      "filed_on": "2026-06-08",
+      "title": "Judgment",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact A11: Judgment.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a11-judgment.pdf",
+      "asset_sha256": "d7f4b146485cb7ccb890e505c643bd5b2fe7912a94ca333c223b89d4ccd3cac8",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a12",
+      "entry_number": 49,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 12",
+      "filed_on": "2026-06-29",
+      "title": "Clerk Order Releasing Ordinary Mandate",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact A12: Clerk Order Releasing Ordinary Mandate.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a12-mandate-release-order.pdf",
+      "asset_sha256": "6f59e8839082d69e248fd8a0c41cce20c9c1b40ebe19274df2ef1cd2f99a2f1b",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.a13",
+      "entry_number": 50,
+      "docket_id": "ca4r54b.docket.ca4-v2",
+      "entry_label": "Appellate ECF No. 13",
+      "filed_on": "2026-06-29",
+      "title": "Mandate",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact A13: Mandate.",
+      "tags": [
+        "actual_appellate_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/a13-mandate.pdf",
+      "asset_sha256": "aacb64b7da46957fa6aef7d2f49ae74d83917668725f6eabc74d9fd5a5392733",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b01",
+      "entry_number": 51,
+      "docket_id": "ca4r54b.docket.counterfactual-district",
+      "entry_label": "Counterfactual Branch B01 — Never Occurred",
+      "filed_on": "2026-01-28",
+      "title": "Counterfactual Stipulation Resolving the Counterclaim and Narrowing Count II",
+      "actor": "The parties (fictional)",
+      "description": "Appellate synthetic record artifact B01: Counterfactual Stipulation Resolving the Counterclaim and Narrowing Count II.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/b01-stipulation-narrowing-remaining-matters.pdf",
+      "asset_sha256": "da7c7da42d7d45558c0f5a5ac26fd80eff541d77f1283fcc6a66c4a268f852db",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b02",
+      "entry_number": 52,
+      "docket_id": "ca4r54b.docket.counterfactual-district",
+      "entry_label": "Counterfactual Branch B02 — Never Occurred",
+      "filed_on": "2026-02-04",
+      "title": "Counterfactual Supported Rule 54(b) Order",
+      "actor": "United States District Court for the Northern District of West Virginia",
+      "description": "Appellate synthetic record artifact B02: Counterfactual Supported Rule 54(b) Order.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b02-supported-rule54b-order.pdf",
+      "asset_sha256": "f2b9f8ffb67a628721fb36bc7ea813bac83277403c4aac51114c9fdff78d207d",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b03",
+      "entry_number": 53,
+      "docket_id": "ca4r54b.docket.counterfactual-district",
+      "entry_label": "Counterfactual Branch B03 — Never Occurred",
+      "filed_on": "2026-02-04",
+      "title": "Counterfactual Partial Judgment Under Supported Certification",
+      "actor": "Clerk of the United States District Court for the Northern District of West Virginia",
+      "description": "Appellate synthetic record artifact B03: Counterfactual Partial Judgment Under Supported Certification.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b03-supported-partial-judgment.pdf",
+      "asset_sha256": "aa4977faf4bc8917684c069fd8ee9dbc8a014d14eaedad9d275b993e41a5c603",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b04",
+      "entry_number": 54,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B04 — Never Occurred",
+      "filed_on": "2026-06-08",
+      "title": "Counterfactual Opinion Exercising Jurisdiction and Affirming Count I Summary Judgment",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Appellate synthetic record artifact B04: Counterfactual Opinion Exercising Jurisdiction and Affirming Count I Summary Judgment.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b04-supported-certification-merits-opinion.pdf",
+      "asset_sha256": "9618e992bde2ff3e2685a0562c92f074f712709a6b1a5c50d657c7696b62b66f",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b05",
+      "entry_number": 55,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B05 — Never Occurred",
+      "filed_on": "2026-06-08",
+      "title": "Counterfactual Merits Judgment",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B05: Counterfactual Merits Judgment.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b05-supported-certification-merits-judgment.pdf",
+      "asset_sha256": "abdbeffce3fea78c728bb5de72cd2500e7158fb178f795c52b252546ffd747a8",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b06",
+      "entry_number": 56,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B06 — Never Occurred",
+      "filed_on": "2026-06-29",
+      "title": "Counterfactual Clerk Order Releasing Mandate After Merits Judgment",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B06: Counterfactual Clerk Order Releasing Mandate After Merits Judgment.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b06-supported-certification-release-order.pdf",
+      "asset_sha256": "ad17b804c81b20e51c445a2249457bceb09648e16b27805b320acaa8d6517ba4",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b07",
+      "entry_number": 57,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B07 — Never Occurred",
+      "filed_on": "2026-06-29",
+      "title": "Counterfactual Mandate After Merits Judgment",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B07: Counterfactual Mandate After Merits Judgment.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b07-supported-certification-mandate.pdf",
+      "asset_sha256": "584aaddb0fe793878c8aa4f70878b58a42a360a793cf5d7e13b7453a398e4528",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b08",
+      "entry_number": 58,
+      "docket_id": "ca4r54b.docket.counterfactual-district",
+      "entry_label": "Counterfactual Branch B08 — Never Occurred",
+      "filed_on": "2026-03-09",
+      "title": "Counterfactual First-Business-Day-Late Notice of Appeal",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Appellate synthetic record artifact B08: Counterfactual First-Business-Day-Late Notice of Appeal.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/b08-first-business-day-late-notice.pdf",
+      "asset_sha256": "7fb133c09635021c0215973fa4fc87e137aa0a1ed7551b9d7abbf8ca8aacfce8",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b09",
+      "entry_number": 59,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B09 — Never Occurred",
+      "filed_on": "2026-03-11",
+      "title": "Counterfactual Order Dismissing Appeal for Untimely Notice",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Appellate synthetic record artifact B09: Counterfactual Order Dismissing Appeal for Untimely Notice.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b09-untimely-notice-dismissal-order.pdf",
+      "asset_sha256": "5d93d65bace64082297a1af8507436c23271a1a3e952b39c7ddea1830cac2231",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b10",
+      "entry_number": 60,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B10 — Never Occurred",
+      "filed_on": "2026-03-11",
+      "title": "Counterfactual Untimely-Notice Judgment",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B10: Counterfactual Untimely-Notice Judgment.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b10-untimely-notice-judgment.pdf",
+      "asset_sha256": "dffc6a10fde8bd88e38be5a0192bf09f1f29ed33ab6eebcb3cccfc9ed7ef1722",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b11",
+      "entry_number": 61,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B11 — Never Occurred",
+      "filed_on": "2026-04-01",
+      "title": "Counterfactual Clerk Order Releasing Mandate After Untimely Dismissal",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B11: Counterfactual Clerk Order Releasing Mandate After Untimely Dismissal.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b11-untimely-notice-release-order.pdf",
+      "asset_sha256": "5a3c0bbfccac3831799d595ca5b752840e1abd256ec22eff3ebaf52f82504b09",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b12",
+      "entry_number": 62,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B12 — Never Occurred",
+      "filed_on": "2026-04-01",
+      "title": "Counterfactual Mandate After Untimely Dismissal",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B12: Counterfactual Mandate After Untimely Dismissal.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b12-untimely-notice-mandate.pdf",
+      "asset_sha256": "29eb1cb4ccfa29135f48aee81931bb9d23c2fd72963feb0f6a6fec8c0474da51",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b13",
+      "entry_number": 63,
+      "docket_id": "ca4r54b.docket.counterfactual-district",
+      "entry_label": "Counterfactual Branch B13 — Never Occurred",
+      "filed_on": "2026-07-06",
+      "title": "Counterfactual District Status Certificate Showing No Separate Judgment",
+      "actor": "Clerk of the United States District Court for the Northern District of West Virginia",
+      "description": "Appellate synthetic record artifact B13: Counterfactual District Status Certificate Showing No Separate Judgment.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b13-missing-separate-document-status.pdf",
+      "asset_sha256": "ed1e903af7299dd5b6fc8c9d4d6adb97a047108de6c1430d17cafd7a32a2df8e",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b14",
+      "entry_number": 64,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B14 — Never Occurred",
+      "filed_on": "2026-07-10",
+      "title": "Counterfactual Appellate Order Applying the Separate-Document Timing Rule",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Appellate synthetic record artifact B14: Counterfactual Appellate Order Applying the Separate-Document Timing Rule.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b14-missing-separate-document-timing-order.pdf",
+      "asset_sha256": "0ce991f7d0ad5af85cc3f1ff6c7020aebfa13a6b1eeb8d0bf12987d90ba57f1c",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b15",
+      "entry_number": 65,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B15 — Never Occurred",
+      "filed_on": "2026-06-22",
+      "title": "Counterfactual Timely Petition for Panel and En Banc Rehearing",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Appellate synthetic record artifact B15: Counterfactual Timely Petition for Panel and En Banc Rehearing.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/b15-timely-rehearing-petition.pdf",
+      "asset_sha256": "8e048651f8e4eee1c0bed37cbe4a10751d01c2f6132f4f4f953f33969be8167f",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b16",
+      "entry_number": 66,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B16 — Never Occurred",
+      "filed_on": "2026-07-01",
+      "title": "Counterfactual Order Denying Rehearing",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Appellate synthetic record artifact B16: Counterfactual Order Denying Rehearing.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b16-rehearing-denial.pdf",
+      "asset_sha256": "d39f59c0e003a5c6490928bce1baa12823ae49e5592da5f609cdb8dd7cef05b9",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b17",
+      "entry_number": 67,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B17 — Never Occurred",
+      "filed_on": "2026-07-08",
+      "title": "Counterfactual Clerk Order Releasing Mandate After Rehearing Denial",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B17: Counterfactual Clerk Order Releasing Mandate After Rehearing Denial.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b17-post-rehearing-release-order.pdf",
+      "asset_sha256": "b37959296f5a5336a166ca0f72b3d19c22414d69c04142e0f7abbf30101cd3f0",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b18",
+      "entry_number": 68,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B18 — Never Occurred",
+      "filed_on": "2026-07-08",
+      "title": "Counterfactual Mandate After Rehearing Denial",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B18: Counterfactual Mandate After Rehearing Denial.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b18-post-rehearing-mandate.pdf",
+      "asset_sha256": "f8cc9a2c3efd9dfa33badd462209148208f6cb76d3d9dd0adf6103f7de249a82",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b19",
+      "entry_number": 69,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B19 — Never Occurred",
+      "filed_on": "2026-06-26",
+      "title": "Counterfactual Motion to Stay Mandate Pending Certiorari",
+      "actor": "Asterglen Freight Software, Inc. (fictional)",
+      "description": "Appellate synthetic record artifact B19: Counterfactual Motion to Stay Mandate Pending Certiorari.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "party_filing"
+      ],
+      "asset_path": "objects/b19-motion-stay-mandate.pdf",
+      "asset_sha256": "d42765c08cffa068733a94f8604f1b52e50b13ec35f676027f83a0e22399afcf",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b20",
+      "entry_number": 70,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B20 — Never Occurred",
+      "filed_on": "2026-07-10",
+      "title": "Counterfactual Order Denying Stay of Mandate",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Appellate synthetic record artifact B20: Counterfactual Order Denying Stay of Mandate.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b20-stay-denial.pdf",
+      "asset_sha256": "f564f7f3006b2bbbad50cc39ea7ebcb45b107d9e6fc7c052dc7589405f13f395",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b21",
+      "entry_number": 71,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B21 — Never Occurred",
+      "filed_on": "2026-07-17",
+      "title": "Counterfactual Clerk Order Releasing Mandate After Stay Denial",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B21: Counterfactual Clerk Order Releasing Mandate After Stay Denial.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b21-stay-denial-release-order.pdf",
+      "asset_sha256": "7d45a8c7fbfb70ac7437dc1bcf9f74d1cd04cfbeea2f420c45d402e0a8898f4a",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b22",
+      "entry_number": 72,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B22 — Never Occurred",
+      "filed_on": "2026-07-17",
+      "title": "Counterfactual Mandate After Stay Denial",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B22: Counterfactual Mandate After Stay Denial.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b22-stay-denial-mandate.pdf",
+      "asset_sha256": "4698390ac28c17e7dc382e1d9a03cdfbb3b4ae59df5b2e944f3e31a20e3e1126",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b23",
+      "entry_number": 73,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B23 — Never Occurred",
+      "filed_on": "2026-07-10",
+      "title": "Counterfactual Order Granting Stay of Mandate",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Appellate synthetic record artifact B23: Counterfactual Order Granting Stay of Mandate.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b23-stay-grant.pdf",
+      "asset_sha256": "f5ada13fb9a8c3f9022999ec748f9899e244c093e502d7e174344f35939a3df0",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b24",
+      "entry_number": 74,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B24 — Never Occurred",
+      "filed_on": "2026-09-15",
+      "title": "Counterfactual Order Dissolving Stay and Releasing Mandate",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Appellate synthetic record artifact B24: Counterfactual Order Dissolving Stay and Releasing Mandate.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b24-stay-dissolution-release.pdf",
+      "asset_sha256": "842b862eee072f6a335fa8342c97d12b66b0342973d388810a9f6efe0459ff12",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4r54b.record.entry.b25",
+      "entry_number": 75,
+      "docket_id": "ca4r54b.docket.counterfactual-appellate",
+      "entry_label": "Counterfactual Branch B25 — Never Occurred",
+      "filed_on": "2026-09-15",
+      "title": "Counterfactual Mandate After Stay Dissolution",
+      "actor": "Fictional Fourth Circuit clerk",
+      "description": "Appellate synthetic record artifact B25: Counterfactual Mandate After Stay Dissolution.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_occurred_on_actual_docket",
+        "not_district_record",
+        "court_document"
+      ],
+      "asset_path": "objects/b25-post-stay-mandate.pdf",
+      "asset_sha256": "f5a3cfcaec2d6adf1a3576f695f607d2305b5837533848a432b2c2122e53f171",
+      "page_count": 2,
+      "sealed": false
+    }
+  ],
+  "page_anchors": [
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja1",
+      "entry_id": "ca4r54b.record.entry.l01",
+      "page_number": 1,
+      "citation_label": "JA1"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja2",
+      "entry_id": "ca4r54b.record.entry.l01",
+      "page_number": 2,
+      "citation_label": "JA2"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja3",
+      "entry_id": "ca4r54b.record.entry.l01",
+      "page_number": 3,
+      "citation_label": "JA3"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja4",
+      "entry_id": "ca4r54b.record.entry.l01",
+      "page_number": 4,
+      "citation_label": "JA4"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja5",
+      "entry_id": "ca4r54b.record.entry.l01",
+      "page_number": 5,
+      "citation_label": "JA5"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja6",
+      "entry_id": "ca4r54b.record.entry.l01",
+      "page_number": 6,
+      "citation_label": "JA6"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja7",
+      "entry_id": "ca4r54b.record.entry.l01",
+      "page_number": 7,
+      "citation_label": "JA7"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja8",
+      "entry_id": "ca4r54b.record.entry.l01",
+      "page_number": 8,
+      "citation_label": "JA8"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja9",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 1,
+      "citation_label": "JA9"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja10",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 2,
+      "citation_label": "JA10"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja11",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 3,
+      "citation_label": "JA11"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja12",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 4,
+      "citation_label": "JA12"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja13",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 5,
+      "citation_label": "JA13"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja14",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 6,
+      "citation_label": "JA14"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja15",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 7,
+      "citation_label": "JA15"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja16",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 8,
+      "citation_label": "JA16"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja17",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 9,
+      "citation_label": "JA17"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja18",
+      "entry_id": "ca4r54b.record.entry.l02",
+      "page_number": 10,
+      "citation_label": "JA18"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja19",
+      "entry_id": "ca4r54b.record.entry.l03",
+      "page_number": 1,
+      "citation_label": "JA19"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja20",
+      "entry_id": "ca4r54b.record.entry.l03",
+      "page_number": 2,
+      "citation_label": "JA20"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja21",
+      "entry_id": "ca4r54b.record.entry.l03",
+      "page_number": 3,
+      "citation_label": "JA21"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja22",
+      "entry_id": "ca4r54b.record.entry.l03",
+      "page_number": 4,
+      "citation_label": "JA22"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja23",
+      "entry_id": "ca4r54b.record.entry.l03",
+      "page_number": 5,
+      "citation_label": "JA23"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja24",
+      "entry_id": "ca4r54b.record.entry.l03",
+      "page_number": 6,
+      "citation_label": "JA24"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja25",
+      "entry_id": "ca4r54b.record.entry.l04",
+      "page_number": 1,
+      "citation_label": "JA25"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja26",
+      "entry_id": "ca4r54b.record.entry.l04",
+      "page_number": 2,
+      "citation_label": "JA26"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja27",
+      "entry_id": "ca4r54b.record.entry.l04",
+      "page_number": 3,
+      "citation_label": "JA27"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja28",
+      "entry_id": "ca4r54b.record.entry.l04",
+      "page_number": 4,
+      "citation_label": "JA28"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja29",
+      "entry_id": "ca4r54b.record.entry.l04",
+      "page_number": 5,
+      "citation_label": "JA29"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja30",
+      "entry_id": "ca4r54b.record.entry.l04",
+      "page_number": 6,
+      "citation_label": "JA30"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja31",
+      "entry_id": "ca4r54b.record.entry.l05",
+      "page_number": 1,
+      "citation_label": "JA31"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja32",
+      "entry_id": "ca4r54b.record.entry.l05",
+      "page_number": 2,
+      "citation_label": "JA32"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja33",
+      "entry_id": "ca4r54b.record.entry.l05",
+      "page_number": 3,
+      "citation_label": "JA33"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja34",
+      "entry_id": "ca4r54b.record.entry.l05",
+      "page_number": 4,
+      "citation_label": "JA34"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja35",
+      "entry_id": "ca4r54b.record.entry.l05",
+      "page_number": 5,
+      "citation_label": "JA35"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja36",
+      "entry_id": "ca4r54b.record.entry.l05",
+      "page_number": 6,
+      "citation_label": "JA36"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja37",
+      "entry_id": "ca4r54b.record.entry.l06",
+      "page_number": 1,
+      "citation_label": "JA37"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja38",
+      "entry_id": "ca4r54b.record.entry.l06",
+      "page_number": 2,
+      "citation_label": "JA38"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja39",
+      "entry_id": "ca4r54b.record.entry.l06",
+      "page_number": 3,
+      "citation_label": "JA39"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja40",
+      "entry_id": "ca4r54b.record.entry.l06",
+      "page_number": 4,
+      "citation_label": "JA40"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja41",
+      "entry_id": "ca4r54b.record.entry.l06",
+      "page_number": 5,
+      "citation_label": "JA41"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja42",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 1,
+      "citation_label": "JA42"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja43",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 2,
+      "citation_label": "JA43"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja44",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 3,
+      "citation_label": "JA44"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja45",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 4,
+      "citation_label": "JA45"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja46",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 5,
+      "citation_label": "JA46"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja47",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 6,
+      "citation_label": "JA47"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja48",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 7,
+      "citation_label": "JA48"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja49",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 8,
+      "citation_label": "JA49"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja50",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 9,
+      "citation_label": "JA50"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja51",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 10,
+      "citation_label": "JA51"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja52",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 11,
+      "citation_label": "JA52"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja53",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 12,
+      "citation_label": "JA53"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja54",
+      "entry_id": "ca4r54b.record.entry.l07",
+      "page_number": 13,
+      "citation_label": "JA54"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja55",
+      "entry_id": "ca4r54b.record.entry.l08",
+      "page_number": 1,
+      "citation_label": "JA55"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja56",
+      "entry_id": "ca4r54b.record.entry.l08",
+      "page_number": 2,
+      "citation_label": "JA56"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja57",
+      "entry_id": "ca4r54b.record.entry.l08",
+      "page_number": 3,
+      "citation_label": "JA57"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja58",
+      "entry_id": "ca4r54b.record.entry.l08",
+      "page_number": 4,
+      "citation_label": "JA58"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja59",
+      "entry_id": "ca4r54b.record.entry.l08",
+      "page_number": 5,
+      "citation_label": "JA59"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja60",
+      "entry_id": "ca4r54b.record.entry.l09",
+      "page_number": 1,
+      "citation_label": "JA60"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja61",
+      "entry_id": "ca4r54b.record.entry.l09",
+      "page_number": 2,
+      "citation_label": "JA61"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja62",
+      "entry_id": "ca4r54b.record.entry.l09",
+      "page_number": 3,
+      "citation_label": "JA62"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja63",
+      "entry_id": "ca4r54b.record.entry.l09",
+      "page_number": 4,
+      "citation_label": "JA63"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja64",
+      "entry_id": "ca4r54b.record.entry.l09",
+      "page_number": 5,
+      "citation_label": "JA64"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja65",
+      "entry_id": "ca4r54b.record.entry.l10",
+      "page_number": 1,
+      "citation_label": "JA65"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja66",
+      "entry_id": "ca4r54b.record.entry.l10",
+      "page_number": 2,
+      "citation_label": "JA66"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja67",
+      "entry_id": "ca4r54b.record.entry.l10",
+      "page_number": 3,
+      "citation_label": "JA67"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja68",
+      "entry_id": "ca4r54b.record.entry.l10",
+      "page_number": 4,
+      "citation_label": "JA68"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja69",
+      "entry_id": "ca4r54b.record.entry.l10",
+      "page_number": 5,
+      "citation_label": "JA69"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja70",
+      "entry_id": "ca4r54b.record.entry.l10",
+      "page_number": 6,
+      "citation_label": "JA70"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja71",
+      "entry_id": "ca4r54b.record.entry.l10",
+      "page_number": 7,
+      "citation_label": "JA71"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja72",
+      "entry_id": "ca4r54b.record.entry.l11",
+      "page_number": 1,
+      "citation_label": "JA72"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja73",
+      "entry_id": "ca4r54b.record.entry.l11",
+      "page_number": 2,
+      "citation_label": "JA73"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja74",
+      "entry_id": "ca4r54b.record.entry.l11",
+      "page_number": 3,
+      "citation_label": "JA74"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja75",
+      "entry_id": "ca4r54b.record.entry.l11",
+      "page_number": 4,
+      "citation_label": "JA75"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja76",
+      "entry_id": "ca4r54b.record.entry.l11",
+      "page_number": 5,
+      "citation_label": "JA76"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja77",
+      "entry_id": "ca4r54b.record.entry.l11",
+      "page_number": 6,
+      "citation_label": "JA77"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja78",
+      "entry_id": "ca4r54b.record.entry.l11",
+      "page_number": 7,
+      "citation_label": "JA78"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja79",
+      "entry_id": "ca4r54b.record.entry.l12",
+      "page_number": 1,
+      "citation_label": "JA79"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja80",
+      "entry_id": "ca4r54b.record.entry.l12",
+      "page_number": 2,
+      "citation_label": "JA80"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja81",
+      "entry_id": "ca4r54b.record.entry.l12",
+      "page_number": 3,
+      "citation_label": "JA81"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja82",
+      "entry_id": "ca4r54b.record.entry.l12",
+      "page_number": 4,
+      "citation_label": "JA82"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja83",
+      "entry_id": "ca4r54b.record.entry.l12",
+      "page_number": 5,
+      "citation_label": "JA83"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja84",
+      "entry_id": "ca4r54b.record.entry.l12",
+      "page_number": 6,
+      "citation_label": "JA84"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja85",
+      "entry_id": "ca4r54b.record.entry.l13",
+      "page_number": 1,
+      "citation_label": "JA85"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja86",
+      "entry_id": "ca4r54b.record.entry.l13",
+      "page_number": 2,
+      "citation_label": "JA86"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja87",
+      "entry_id": "ca4r54b.record.entry.l13",
+      "page_number": 3,
+      "citation_label": "JA87"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja88",
+      "entry_id": "ca4r54b.record.entry.l13",
+      "page_number": 4,
+      "citation_label": "JA88"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja89",
+      "entry_id": "ca4r54b.record.entry.l13",
+      "page_number": 5,
+      "citation_label": "JA89"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja90",
+      "entry_id": "ca4r54b.record.entry.l13",
+      "page_number": 6,
+      "citation_label": "JA90"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja91",
+      "entry_id": "ca4r54b.record.entry.l14",
+      "page_number": 1,
+      "citation_label": "JA91"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja92",
+      "entry_id": "ca4r54b.record.entry.l14",
+      "page_number": 2,
+      "citation_label": "JA92"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja93",
+      "entry_id": "ca4r54b.record.entry.l14",
+      "page_number": 3,
+      "citation_label": "JA93"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja94",
+      "entry_id": "ca4r54b.record.entry.l14",
+      "page_number": 4,
+      "citation_label": "JA94"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja95",
+      "entry_id": "ca4r54b.record.entry.l14",
+      "page_number": 5,
+      "citation_label": "JA95"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja96",
+      "entry_id": "ca4r54b.record.entry.l14",
+      "page_number": 6,
+      "citation_label": "JA96"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja97",
+      "entry_id": "ca4r54b.record.entry.l14",
+      "page_number": 7,
+      "citation_label": "JA97"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja98",
+      "entry_id": "ca4r54b.record.entry.l15",
+      "page_number": 1,
+      "citation_label": "JA98"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja99",
+      "entry_id": "ca4r54b.record.entry.l15",
+      "page_number": 2,
+      "citation_label": "JA99"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja100",
+      "entry_id": "ca4r54b.record.entry.l15",
+      "page_number": 3,
+      "citation_label": "JA100"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja101",
+      "entry_id": "ca4r54b.record.entry.l15",
+      "page_number": 4,
+      "citation_label": "JA101"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja102",
+      "entry_id": "ca4r54b.record.entry.l15",
+      "page_number": 5,
+      "citation_label": "JA102"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja103",
+      "entry_id": "ca4r54b.record.entry.l16",
+      "page_number": 1,
+      "citation_label": "JA103"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja104",
+      "entry_id": "ca4r54b.record.entry.l16",
+      "page_number": 2,
+      "citation_label": "JA104"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja105",
+      "entry_id": "ca4r54b.record.entry.l16",
+      "page_number": 3,
+      "citation_label": "JA105"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja106",
+      "entry_id": "ca4r54b.record.entry.l16",
+      "page_number": 4,
+      "citation_label": "JA106"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja107",
+      "entry_id": "ca4r54b.record.entry.l16",
+      "page_number": 5,
+      "citation_label": "JA107"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja108",
+      "entry_id": "ca4r54b.record.entry.l16",
+      "page_number": 6,
+      "citation_label": "JA108"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja109",
+      "entry_id": "ca4r54b.record.entry.l16",
+      "page_number": 7,
+      "citation_label": "JA109"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja110",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 1,
+      "citation_label": "JA110"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja111",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 2,
+      "citation_label": "JA111"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja112",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 3,
+      "citation_label": "JA112"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja113",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 4,
+      "citation_label": "JA113"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja114",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 5,
+      "citation_label": "JA114"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja115",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 6,
+      "citation_label": "JA115"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja116",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 7,
+      "citation_label": "JA116"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja117",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 8,
+      "citation_label": "JA117"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja118",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 9,
+      "citation_label": "JA118"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja119",
+      "entry_id": "ca4r54b.record.entry.l17",
+      "page_number": 10,
+      "citation_label": "JA119"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja120",
+      "entry_id": "ca4r54b.record.entry.l18",
+      "page_number": 1,
+      "citation_label": "JA120"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja121",
+      "entry_id": "ca4r54b.record.entry.l18",
+      "page_number": 2,
+      "citation_label": "JA121"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja122",
+      "entry_id": "ca4r54b.record.entry.l18",
+      "page_number": 3,
+      "citation_label": "JA122"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja123",
+      "entry_id": "ca4r54b.record.entry.l18",
+      "page_number": 4,
+      "citation_label": "JA123"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja124",
+      "entry_id": "ca4r54b.record.entry.l18",
+      "page_number": 5,
+      "citation_label": "JA124"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja125",
+      "entry_id": "ca4r54b.record.entry.l18",
+      "page_number": 6,
+      "citation_label": "JA125"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja126",
+      "entry_id": "ca4r54b.record.entry.l18",
+      "page_number": 7,
+      "citation_label": "JA126"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja127",
+      "entry_id": "ca4r54b.record.entry.l18",
+      "page_number": 8,
+      "citation_label": "JA127"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja128",
+      "entry_id": "ca4r54b.record.entry.l18",
+      "page_number": 9,
+      "citation_label": "JA128"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja129",
+      "entry_id": "ca4r54b.record.entry.l19",
+      "page_number": 1,
+      "citation_label": "JA129"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja130",
+      "entry_id": "ca4r54b.record.entry.l19",
+      "page_number": 2,
+      "citation_label": "JA130"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja131",
+      "entry_id": "ca4r54b.record.entry.l19",
+      "page_number": 3,
+      "citation_label": "JA131"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja132",
+      "entry_id": "ca4r54b.record.entry.l19",
+      "page_number": 4,
+      "citation_label": "JA132"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja133",
+      "entry_id": "ca4r54b.record.entry.l19",
+      "page_number": 5,
+      "citation_label": "JA133"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja134",
+      "entry_id": "ca4r54b.record.entry.l19",
+      "page_number": 6,
+      "citation_label": "JA134"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja135",
+      "entry_id": "ca4r54b.record.entry.l19",
+      "page_number": 7,
+      "citation_label": "JA135"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja136",
+      "entry_id": "ca4r54b.record.entry.l19",
+      "page_number": 8,
+      "citation_label": "JA136"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja137",
+      "entry_id": "ca4r54b.record.entry.l20",
+      "page_number": 1,
+      "citation_label": "JA137"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja138",
+      "entry_id": "ca4r54b.record.entry.l20",
+      "page_number": 2,
+      "citation_label": "JA138"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja139",
+      "entry_id": "ca4r54b.record.entry.l20",
+      "page_number": 3,
+      "citation_label": "JA139"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja140",
+      "entry_id": "ca4r54b.record.entry.l20",
+      "page_number": 4,
+      "citation_label": "JA140"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja141",
+      "entry_id": "ca4r54b.record.entry.l20",
+      "page_number": 5,
+      "citation_label": "JA141"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja142",
+      "entry_id": "ca4r54b.record.entry.l20",
+      "page_number": 6,
+      "citation_label": "JA142"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja143",
+      "entry_id": "ca4r54b.record.entry.l20",
+      "page_number": 7,
+      "citation_label": "JA143"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja144",
+      "entry_id": "ca4r54b.record.entry.l20",
+      "page_number": 8,
+      "citation_label": "JA144"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja145",
+      "entry_id": "ca4r54b.record.entry.l21",
+      "page_number": 1,
+      "citation_label": "JA145"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja146",
+      "entry_id": "ca4r54b.record.entry.l21",
+      "page_number": 2,
+      "citation_label": "JA146"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja147",
+      "entry_id": "ca4r54b.record.entry.l21",
+      "page_number": 3,
+      "citation_label": "JA147"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja148",
+      "entry_id": "ca4r54b.record.entry.l21",
+      "page_number": 4,
+      "citation_label": "JA148"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja149",
+      "entry_id": "ca4r54b.record.entry.l21",
+      "page_number": 5,
+      "citation_label": "JA149"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja150",
+      "entry_id": "ca4r54b.record.entry.l21",
+      "page_number": 6,
+      "citation_label": "JA150"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja151",
+      "entry_id": "ca4r54b.record.entry.l22",
+      "page_number": 1,
+      "citation_label": "JA151"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja152",
+      "entry_id": "ca4r54b.record.entry.l22",
+      "page_number": 2,
+      "citation_label": "JA152"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja153",
+      "entry_id": "ca4r54b.record.entry.l22",
+      "page_number": 3,
+      "citation_label": "JA153"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja154",
+      "entry_id": "ca4r54b.record.entry.l22",
+      "page_number": 4,
+      "citation_label": "JA154"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja155",
+      "entry_id": "ca4r54b.record.entry.l23",
+      "page_number": 1,
+      "citation_label": "JA155"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja156",
+      "entry_id": "ca4r54b.record.entry.l23",
+      "page_number": 2,
+      "citation_label": "JA156"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja157",
+      "entry_id": "ca4r54b.record.entry.l23",
+      "page_number": 3,
+      "citation_label": "JA157"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja158",
+      "entry_id": "ca4r54b.record.entry.l23",
+      "page_number": 4,
+      "citation_label": "JA158"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja159",
+      "entry_id": "ca4r54b.record.entry.l23",
+      "page_number": 5,
+      "citation_label": "JA159"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja160",
+      "entry_id": "ca4r54b.record.entry.l23",
+      "page_number": 6,
+      "citation_label": "JA160"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja161",
+      "entry_id": "ca4r54b.record.entry.l23",
+      "page_number": 7,
+      "citation_label": "JA161"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja162",
+      "entry_id": "ca4r54b.record.entry.l23",
+      "page_number": 8,
+      "citation_label": "JA162"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja163",
+      "entry_id": "ca4r54b.record.entry.l23",
+      "page_number": 9,
+      "citation_label": "JA163"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja164",
+      "entry_id": "ca4r54b.record.entry.l24",
+      "page_number": 1,
+      "citation_label": "JA164"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja165",
+      "entry_id": "ca4r54b.record.entry.l24",
+      "page_number": 2,
+      "citation_label": "JA165"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja166",
+      "entry_id": "ca4r54b.record.entry.l24",
+      "page_number": 3,
+      "citation_label": "JA166"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja167",
+      "entry_id": "ca4r54b.record.entry.l24",
+      "page_number": 4,
+      "citation_label": "JA167"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja168",
+      "entry_id": "ca4r54b.record.entry.l24",
+      "page_number": 5,
+      "citation_label": "JA168"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja169",
+      "entry_id": "ca4r54b.record.entry.l24",
+      "page_number": 6,
+      "citation_label": "JA169"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja170",
+      "entry_id": "ca4r54b.record.entry.l24",
+      "page_number": 7,
+      "citation_label": "JA170"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja171",
+      "entry_id": "ca4r54b.record.entry.l25",
+      "page_number": 1,
+      "citation_label": "JA171"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja172",
+      "entry_id": "ca4r54b.record.entry.l25",
+      "page_number": 2,
+      "citation_label": "JA172"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja173",
+      "entry_id": "ca4r54b.record.entry.l25",
+      "page_number": 3,
+      "citation_label": "JA173"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja174",
+      "entry_id": "ca4r54b.record.entry.l25",
+      "page_number": 4,
+      "citation_label": "JA174"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja175",
+      "entry_id": "ca4r54b.record.entry.l25",
+      "page_number": 5,
+      "citation_label": "JA175"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja176",
+      "entry_id": "ca4r54b.record.entry.l25",
+      "page_number": 6,
+      "citation_label": "JA176"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja177",
+      "entry_id": "ca4r54b.record.entry.l25",
+      "page_number": 7,
+      "citation_label": "JA177"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja178",
+      "entry_id": "ca4r54b.record.entry.l25",
+      "page_number": 8,
+      "citation_label": "JA178"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja179",
+      "entry_id": "ca4r54b.record.entry.l25",
+      "page_number": 9,
+      "citation_label": "JA179"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja180",
+      "entry_id": "ca4r54b.record.entry.l26",
+      "page_number": 1,
+      "citation_label": "JA180"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja181",
+      "entry_id": "ca4r54b.record.entry.l26",
+      "page_number": 2,
+      "citation_label": "JA181"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja182",
+      "entry_id": "ca4r54b.record.entry.l26",
+      "page_number": 3,
+      "citation_label": "JA182"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja183",
+      "entry_id": "ca4r54b.record.entry.l26",
+      "page_number": 4,
+      "citation_label": "JA183"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja184",
+      "entry_id": "ca4r54b.record.entry.l26",
+      "page_number": 5,
+      "citation_label": "JA184"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja185",
+      "entry_id": "ca4r54b.record.entry.l26",
+      "page_number": 6,
+      "citation_label": "JA185"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja186",
+      "entry_id": "ca4r54b.record.entry.l27",
+      "page_number": 1,
+      "citation_label": "JA186"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja187",
+      "entry_id": "ca4r54b.record.entry.l27",
+      "page_number": 2,
+      "citation_label": "JA187"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja188",
+      "entry_id": "ca4r54b.record.entry.l27",
+      "page_number": 3,
+      "citation_label": "JA188"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja189",
+      "entry_id": "ca4r54b.record.entry.l27",
+      "page_number": 4,
+      "citation_label": "JA189"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja190",
+      "entry_id": "ca4r54b.record.entry.l27",
+      "page_number": 5,
+      "citation_label": "JA190"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja191",
+      "entry_id": "ca4r54b.record.entry.l27",
+      "page_number": 6,
+      "citation_label": "JA191"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja192",
+      "entry_id": "ca4r54b.record.entry.l28",
+      "page_number": 1,
+      "citation_label": "JA192"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja193",
+      "entry_id": "ca4r54b.record.entry.l28",
+      "page_number": 2,
+      "citation_label": "JA193"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja194",
+      "entry_id": "ca4r54b.record.entry.l28",
+      "page_number": 3,
+      "citation_label": "JA194"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja195",
+      "entry_id": "ca4r54b.record.entry.l28",
+      "page_number": 4,
+      "citation_label": "JA195"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja196",
+      "entry_id": "ca4r54b.record.entry.l28",
+      "page_number": 5,
+      "citation_label": "JA196"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja197",
+      "entry_id": "ca4r54b.record.entry.l28",
+      "page_number": 6,
+      "citation_label": "JA197"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja198",
+      "entry_id": "ca4r54b.record.entry.l28",
+      "page_number": 7,
+      "citation_label": "JA198"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja199",
+      "entry_id": "ca4r54b.record.entry.l29",
+      "page_number": 1,
+      "citation_label": "JA199"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja200",
+      "entry_id": "ca4r54b.record.entry.l29",
+      "page_number": 2,
+      "citation_label": "JA200"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja201",
+      "entry_id": "ca4r54b.record.entry.l29",
+      "page_number": 3,
+      "citation_label": "JA201"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja202",
+      "entry_id": "ca4r54b.record.entry.l29",
+      "page_number": 4,
+      "citation_label": "JA202"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja203",
+      "entry_id": "ca4r54b.record.entry.l29",
+      "page_number": 5,
+      "citation_label": "JA203"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja204",
+      "entry_id": "ca4r54b.record.entry.l29",
+      "page_number": 6,
+      "citation_label": "JA204"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja205",
+      "entry_id": "ca4r54b.record.entry.l30",
+      "page_number": 1,
+      "citation_label": "JA205"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja206",
+      "entry_id": "ca4r54b.record.entry.l30",
+      "page_number": 2,
+      "citation_label": "JA206"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja207",
+      "entry_id": "ca4r54b.record.entry.l30",
+      "page_number": 3,
+      "citation_label": "JA207"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja208",
+      "entry_id": "ca4r54b.record.entry.l30",
+      "page_number": 4,
+      "citation_label": "JA208"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja209",
+      "entry_id": "ca4r54b.record.entry.l30",
+      "page_number": 5,
+      "citation_label": "JA209"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja210",
+      "entry_id": "ca4r54b.record.entry.l30",
+      "page_number": 6,
+      "citation_label": "JA210"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja211",
+      "entry_id": "ca4r54b.record.entry.l30",
+      "page_number": 7,
+      "citation_label": "JA211"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja212",
+      "entry_id": "ca4r54b.record.entry.l31",
+      "page_number": 1,
+      "citation_label": "JA212"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja213",
+      "entry_id": "ca4r54b.record.entry.l31",
+      "page_number": 2,
+      "citation_label": "JA213"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja214",
+      "entry_id": "ca4r54b.record.entry.l31",
+      "page_number": 3,
+      "citation_label": "JA214"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja215",
+      "entry_id": "ca4r54b.record.entry.l31",
+      "page_number": 4,
+      "citation_label": "JA215"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja216",
+      "entry_id": "ca4r54b.record.entry.l32",
+      "page_number": 1,
+      "citation_label": "JA216"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja217",
+      "entry_id": "ca4r54b.record.entry.l33",
+      "page_number": 1,
+      "citation_label": "JA217"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja218",
+      "entry_id": "ca4r54b.record.entry.l33",
+      "page_number": 2,
+      "citation_label": "JA218"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja219",
+      "entry_id": "ca4r54b.record.entry.l33",
+      "page_number": 3,
+      "citation_label": "JA219"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja220",
+      "entry_id": "ca4r54b.record.entry.l34",
+      "page_number": 1,
+      "citation_label": "JA220"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja221",
+      "entry_id": "ca4r54b.record.entry.l34",
+      "page_number": 2,
+      "citation_label": "JA221"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja222",
+      "entry_id": "ca4r54b.record.entry.l35",
+      "page_number": 1,
+      "citation_label": "JA222"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja223",
+      "entry_id": "ca4r54b.record.entry.l35",
+      "page_number": 2,
+      "citation_label": "JA223"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja224",
+      "entry_id": "ca4r54b.record.entry.l35",
+      "page_number": 3,
+      "citation_label": "JA224"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja225",
+      "entry_id": "ca4r54b.record.entry.l36",
+      "page_number": 1,
+      "citation_label": "JA225"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja226",
+      "entry_id": "ca4r54b.record.entry.l36",
+      "page_number": 2,
+      "citation_label": "JA226"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja227",
+      "entry_id": "ca4r54b.record.entry.l36",
+      "page_number": 3,
+      "citation_label": "JA227"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja228",
+      "entry_id": "ca4r54b.record.entry.l37",
+      "page_number": 1,
+      "citation_label": "JA228"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja229",
+      "entry_id": "ca4r54b.record.entry.l37",
+      "page_number": 2,
+      "citation_label": "JA229"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja230",
+      "entry_id": "ca4r54b.record.entry.l37",
+      "page_number": 3,
+      "citation_label": "JA230"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja231",
+      "entry_id": "ca4r54b.record.entry.l37",
+      "page_number": 4,
+      "citation_label": "JA231"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja232",
+      "entry_id": "ca4r54b.record.entry.l37",
+      "page_number": 5,
+      "citation_label": "JA232"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja233",
+      "entry_id": "ca4r54b.record.entry.l37",
+      "page_number": 6,
+      "citation_label": "JA233"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.ja234",
+      "entry_id": "ca4r54b.record.entry.l37",
+      "page_number": 7,
+      "citation_label": "JA234"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa1",
+      "entry_id": "ca4r54b.record.entry.a01",
+      "page_number": 1,
+      "citation_label": "PA1"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa2",
+      "entry_id": "ca4r54b.record.entry.a01",
+      "page_number": 2,
+      "citation_label": "PA2"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa3",
+      "entry_id": "ca4r54b.record.entry.a02",
+      "page_number": 1,
+      "citation_label": "PA3"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa4",
+      "entry_id": "ca4r54b.record.entry.a02",
+      "page_number": 2,
+      "citation_label": "PA4"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa5",
+      "entry_id": "ca4r54b.record.entry.a02",
+      "page_number": 3,
+      "citation_label": "PA5"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa6",
+      "entry_id": "ca4r54b.record.entry.a02",
+      "page_number": 4,
+      "citation_label": "PA6"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa7",
+      "entry_id": "ca4r54b.record.entry.a03",
+      "page_number": 1,
+      "citation_label": "PA7"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa8",
+      "entry_id": "ca4r54b.record.entry.a03",
+      "page_number": 2,
+      "citation_label": "PA8"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa9",
+      "entry_id": "ca4r54b.record.entry.a03",
+      "page_number": 3,
+      "citation_label": "PA9"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa10",
+      "entry_id": "ca4r54b.record.entry.a04",
+      "page_number": 1,
+      "citation_label": "PA10"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa11",
+      "entry_id": "ca4r54b.record.entry.a04",
+      "page_number": 2,
+      "citation_label": "PA11"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa12",
+      "entry_id": "ca4r54b.record.entry.a04",
+      "page_number": 3,
+      "citation_label": "PA12"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa13",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 1,
+      "citation_label": "PA13"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa14",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 2,
+      "citation_label": "PA14"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa15",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 3,
+      "citation_label": "PA15"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa16",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 4,
+      "citation_label": "PA16"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa17",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 5,
+      "citation_label": "PA17"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa18",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 6,
+      "citation_label": "PA18"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa19",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 7,
+      "citation_label": "PA19"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa20",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 8,
+      "citation_label": "PA20"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa21",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 9,
+      "citation_label": "PA21"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa22",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 10,
+      "citation_label": "PA22"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa23",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 11,
+      "citation_label": "PA23"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa24",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 12,
+      "citation_label": "PA24"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa25",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 13,
+      "citation_label": "PA25"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa26",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 14,
+      "citation_label": "PA26"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa27",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 15,
+      "citation_label": "PA27"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa28",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 16,
+      "citation_label": "PA28"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa29",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 17,
+      "citation_label": "PA29"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa30",
+      "entry_id": "ca4r54b.record.entry.a05",
+      "page_number": 18,
+      "citation_label": "PA30"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa31",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 1,
+      "citation_label": "PA31"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa32",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 2,
+      "citation_label": "PA32"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa33",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 3,
+      "citation_label": "PA33"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa34",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 4,
+      "citation_label": "PA34"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa35",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 5,
+      "citation_label": "PA35"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa36",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 6,
+      "citation_label": "PA36"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa37",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 7,
+      "citation_label": "PA37"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa38",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 8,
+      "citation_label": "PA38"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa39",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 9,
+      "citation_label": "PA39"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa40",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 10,
+      "citation_label": "PA40"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa41",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 11,
+      "citation_label": "PA41"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa42",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 12,
+      "citation_label": "PA42"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa43",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 13,
+      "citation_label": "PA43"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa44",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 14,
+      "citation_label": "PA44"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa45",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 15,
+      "citation_label": "PA45"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa46",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 16,
+      "citation_label": "PA46"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa47",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 17,
+      "citation_label": "PA47"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa48",
+      "entry_id": "ca4r54b.record.entry.a06",
+      "page_number": 18,
+      "citation_label": "PA48"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa49",
+      "entry_id": "ca4r54b.record.entry.a07",
+      "page_number": 1,
+      "citation_label": "PA49"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa50",
+      "entry_id": "ca4r54b.record.entry.a08",
+      "page_number": 1,
+      "citation_label": "PA50"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa51",
+      "entry_id": "ca4r54b.record.entry.a08",
+      "page_number": 2,
+      "citation_label": "PA51"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa52",
+      "entry_id": "ca4r54b.record.entry.a09",
+      "page_number": 1,
+      "citation_label": "PA52"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa53",
+      "entry_id": "ca4r54b.record.entry.a09",
+      "page_number": 2,
+      "citation_label": "PA53"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa54",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 1,
+      "citation_label": "PA54"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa55",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 2,
+      "citation_label": "PA55"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa56",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 3,
+      "citation_label": "PA56"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa57",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 4,
+      "citation_label": "PA57"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa58",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 5,
+      "citation_label": "PA58"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa59",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 6,
+      "citation_label": "PA59"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa60",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 7,
+      "citation_label": "PA60"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa61",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 8,
+      "citation_label": "PA61"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa62",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 9,
+      "citation_label": "PA62"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa63",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 10,
+      "citation_label": "PA63"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa64",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 11,
+      "citation_label": "PA64"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa65",
+      "entry_id": "ca4r54b.record.entry.a10",
+      "page_number": 12,
+      "citation_label": "PA65"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa66",
+      "entry_id": "ca4r54b.record.entry.a11",
+      "page_number": 1,
+      "citation_label": "PA66"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa67",
+      "entry_id": "ca4r54b.record.entry.a11",
+      "page_number": 2,
+      "citation_label": "PA67"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa68",
+      "entry_id": "ca4r54b.record.entry.a12",
+      "page_number": 1,
+      "citation_label": "PA68"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa69",
+      "entry_id": "ca4r54b.record.entry.a13",
+      "page_number": 1,
+      "citation_label": "PA69"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa70",
+      "entry_id": "ca4r54b.record.entry.a13",
+      "page_number": 2,
+      "citation_label": "PA70"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa71",
+      "entry_id": "ca4r54b.record.entry.b01",
+      "page_number": 1,
+      "citation_label": "PA71"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa72",
+      "entry_id": "ca4r54b.record.entry.b01",
+      "page_number": 2,
+      "citation_label": "PA72"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa73",
+      "entry_id": "ca4r54b.record.entry.b01",
+      "page_number": 3,
+      "citation_label": "PA73"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa74",
+      "entry_id": "ca4r54b.record.entry.b01",
+      "page_number": 4,
+      "citation_label": "PA74"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa75",
+      "entry_id": "ca4r54b.record.entry.b02",
+      "page_number": 1,
+      "citation_label": "PA75"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa76",
+      "entry_id": "ca4r54b.record.entry.b02",
+      "page_number": 2,
+      "citation_label": "PA76"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa77",
+      "entry_id": "ca4r54b.record.entry.b02",
+      "page_number": 3,
+      "citation_label": "PA77"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa78",
+      "entry_id": "ca4r54b.record.entry.b02",
+      "page_number": 4,
+      "citation_label": "PA78"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa79",
+      "entry_id": "ca4r54b.record.entry.b03",
+      "page_number": 1,
+      "citation_label": "PA79"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa80",
+      "entry_id": "ca4r54b.record.entry.b03",
+      "page_number": 2,
+      "citation_label": "PA80"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa81",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 1,
+      "citation_label": "PA81"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa82",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 2,
+      "citation_label": "PA82"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa83",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 3,
+      "citation_label": "PA83"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa84",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 4,
+      "citation_label": "PA84"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa85",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 5,
+      "citation_label": "PA85"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa86",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 6,
+      "citation_label": "PA86"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa87",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 7,
+      "citation_label": "PA87"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa88",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 8,
+      "citation_label": "PA88"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa89",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 9,
+      "citation_label": "PA89"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa90",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 10,
+      "citation_label": "PA90"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa91",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 11,
+      "citation_label": "PA91"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa92",
+      "entry_id": "ca4r54b.record.entry.b04",
+      "page_number": 12,
+      "citation_label": "PA92"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa93",
+      "entry_id": "ca4r54b.record.entry.b05",
+      "page_number": 1,
+      "citation_label": "PA93"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa94",
+      "entry_id": "ca4r54b.record.entry.b05",
+      "page_number": 2,
+      "citation_label": "PA94"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa95",
+      "entry_id": "ca4r54b.record.entry.b06",
+      "page_number": 1,
+      "citation_label": "PA95"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa96",
+      "entry_id": "ca4r54b.record.entry.b07",
+      "page_number": 1,
+      "citation_label": "PA96"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa97",
+      "entry_id": "ca4r54b.record.entry.b07",
+      "page_number": 2,
+      "citation_label": "PA97"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa98",
+      "entry_id": "ca4r54b.record.entry.b08",
+      "page_number": 1,
+      "citation_label": "PA98"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa99",
+      "entry_id": "ca4r54b.record.entry.b08",
+      "page_number": 2,
+      "citation_label": "PA99"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa100",
+      "entry_id": "ca4r54b.record.entry.b08",
+      "page_number": 3,
+      "citation_label": "PA100"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa101",
+      "entry_id": "ca4r54b.record.entry.b09",
+      "page_number": 1,
+      "citation_label": "PA101"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa102",
+      "entry_id": "ca4r54b.record.entry.b09",
+      "page_number": 2,
+      "citation_label": "PA102"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa103",
+      "entry_id": "ca4r54b.record.entry.b09",
+      "page_number": 3,
+      "citation_label": "PA103"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa104",
+      "entry_id": "ca4r54b.record.entry.b10",
+      "page_number": 1,
+      "citation_label": "PA104"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa105",
+      "entry_id": "ca4r54b.record.entry.b10",
+      "page_number": 2,
+      "citation_label": "PA105"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa106",
+      "entry_id": "ca4r54b.record.entry.b11",
+      "page_number": 1,
+      "citation_label": "PA106"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa107",
+      "entry_id": "ca4r54b.record.entry.b12",
+      "page_number": 1,
+      "citation_label": "PA107"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa108",
+      "entry_id": "ca4r54b.record.entry.b12",
+      "page_number": 2,
+      "citation_label": "PA108"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa109",
+      "entry_id": "ca4r54b.record.entry.b13",
+      "page_number": 1,
+      "citation_label": "PA109"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa110",
+      "entry_id": "ca4r54b.record.entry.b13",
+      "page_number": 2,
+      "citation_label": "PA110"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa111",
+      "entry_id": "ca4r54b.record.entry.b13",
+      "page_number": 3,
+      "citation_label": "PA111"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa112",
+      "entry_id": "ca4r54b.record.entry.b14",
+      "page_number": 1,
+      "citation_label": "PA112"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa113",
+      "entry_id": "ca4r54b.record.entry.b14",
+      "page_number": 2,
+      "citation_label": "PA113"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa114",
+      "entry_id": "ca4r54b.record.entry.b14",
+      "page_number": 3,
+      "citation_label": "PA114"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa115",
+      "entry_id": "ca4r54b.record.entry.b15",
+      "page_number": 1,
+      "citation_label": "PA115"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa116",
+      "entry_id": "ca4r54b.record.entry.b15",
+      "page_number": 2,
+      "citation_label": "PA116"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa117",
+      "entry_id": "ca4r54b.record.entry.b15",
+      "page_number": 3,
+      "citation_label": "PA117"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa118",
+      "entry_id": "ca4r54b.record.entry.b15",
+      "page_number": 4,
+      "citation_label": "PA118"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa119",
+      "entry_id": "ca4r54b.record.entry.b15",
+      "page_number": 5,
+      "citation_label": "PA119"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa120",
+      "entry_id": "ca4r54b.record.entry.b15",
+      "page_number": 6,
+      "citation_label": "PA120"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa121",
+      "entry_id": "ca4r54b.record.entry.b15",
+      "page_number": 7,
+      "citation_label": "PA121"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa122",
+      "entry_id": "ca4r54b.record.entry.b15",
+      "page_number": 8,
+      "citation_label": "PA122"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa123",
+      "entry_id": "ca4r54b.record.entry.b16",
+      "page_number": 1,
+      "citation_label": "PA123"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa124",
+      "entry_id": "ca4r54b.record.entry.b16",
+      "page_number": 2,
+      "citation_label": "PA124"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa125",
+      "entry_id": "ca4r54b.record.entry.b17",
+      "page_number": 1,
+      "citation_label": "PA125"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa126",
+      "entry_id": "ca4r54b.record.entry.b18",
+      "page_number": 1,
+      "citation_label": "PA126"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa127",
+      "entry_id": "ca4r54b.record.entry.b18",
+      "page_number": 2,
+      "citation_label": "PA127"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa128",
+      "entry_id": "ca4r54b.record.entry.b19",
+      "page_number": 1,
+      "citation_label": "PA128"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa129",
+      "entry_id": "ca4r54b.record.entry.b19",
+      "page_number": 2,
+      "citation_label": "PA129"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa130",
+      "entry_id": "ca4r54b.record.entry.b19",
+      "page_number": 3,
+      "citation_label": "PA130"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa131",
+      "entry_id": "ca4r54b.record.entry.b19",
+      "page_number": 4,
+      "citation_label": "PA131"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa132",
+      "entry_id": "ca4r54b.record.entry.b19",
+      "page_number": 5,
+      "citation_label": "PA132"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa133",
+      "entry_id": "ca4r54b.record.entry.b20",
+      "page_number": 1,
+      "citation_label": "PA133"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa134",
+      "entry_id": "ca4r54b.record.entry.b20",
+      "page_number": 2,
+      "citation_label": "PA134"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa135",
+      "entry_id": "ca4r54b.record.entry.b21",
+      "page_number": 1,
+      "citation_label": "PA135"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa136",
+      "entry_id": "ca4r54b.record.entry.b22",
+      "page_number": 1,
+      "citation_label": "PA136"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa137",
+      "entry_id": "ca4r54b.record.entry.b22",
+      "page_number": 2,
+      "citation_label": "PA137"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa138",
+      "entry_id": "ca4r54b.record.entry.b23",
+      "page_number": 1,
+      "citation_label": "PA138"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa139",
+      "entry_id": "ca4r54b.record.entry.b23",
+      "page_number": 2,
+      "citation_label": "PA139"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa140",
+      "entry_id": "ca4r54b.record.entry.b24",
+      "page_number": 1,
+      "citation_label": "PA140"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa141",
+      "entry_id": "ca4r54b.record.entry.b24",
+      "page_number": 2,
+      "citation_label": "PA141"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa142",
+      "entry_id": "ca4r54b.record.entry.b25",
+      "page_number": 1,
+      "citation_label": "PA142"
+    },
+    {
+      "anchor_id": "ca4r54b.record.anchor.pa143",
+      "entry_id": "ca4r54b.record.entry.b25",
+      "page_number": 2,
+      "citation_label": "PA143"
+    }
+  ]
+}

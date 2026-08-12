@@ -614,4 +614,58 @@ set_tests_properties(
         LABELS "e2e;ui;local;offscreen"
 )
 
+qt_add_executable(
+    tst_asterglen_rule54b_v02
+    integration/tst_asterglen_rule54b_v02.cpp
+)
+target_link_libraries(
+    tst_asterglen_rule54b_v02
+    PRIVATE
+        appellate::engine
+        appellate::packs
+        appellate::storage
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Pdf
+)
+target_compile_definitions(
+    tst_asterglen_rule54b_v02
+    PRIVATE
+        APPELLATE_CA4_RULE54B_ROOT="${PROJECT_SOURCE_DIR}/content/ca4-rule54b"
+        APPELLATE_M4_FOUNDATIONS="${PROJECT_SOURCE_DIR}/content/foundations"
+)
+target_compile_features(tst_asterglen_rule54b_v02 PRIVATE cxx_std_26)
+add_test(NAME asterglen_rule54b_v02 COMMAND tst_asterglen_rule54b_v02)
+set_tests_properties(
+    asterglen_rule54b_v02
+    PROPERTIES LABELS "content;integration;local"
+)
+
+qt_add_executable(
+    tst_asterglen_rule54b_v02_ui_e2e
+    integration/tst_asterglen_rule54b_v02_ui_e2e.cpp
+)
+target_link_libraries(
+    tst_asterglen_rule54b_v02_ui_e2e
+    PRIVATE
+        appellate::desktop_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_asterglen_rule54b_v02_ui_e2e
+    PRIVATE
+        APPELLATE_CA4_RULE54B_ROOT="${PROJECT_SOURCE_DIR}/content/ca4-rule54b"
+        APPELLATE_M4_FOUNDATIONS="${PROJECT_SOURCE_DIR}/content/foundations"
+)
+target_compile_features(tst_asterglen_rule54b_v02_ui_e2e PRIVATE cxx_std_26)
+add_test(NAME asterglen_rule54b_v02_ui_e2e COMMAND tst_asterglen_rule54b_v02_ui_e2e)
+set_tests_properties(
+    asterglen_rule54b_v02_ui_e2e
+    PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        LABELS "content;integration;local;e2e;ui;offscreen"
+)
+
 add_subdirectory(content)

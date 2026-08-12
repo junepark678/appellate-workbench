@@ -16,7 +16,7 @@ designation and does not satisfy the level-3 gate.
 | Case family | Procedure | Law | Deadlines / authority | Record | Consequences | Argument | Bench differentiation | Provenance | Review state |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | Employment retaliation | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
-| Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Author self-reviewed; independent review pending |
+| Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable successor level-2 evidence; qualified independent review pending |
 | Preliminary injunction / stay | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Section 1983 qualified immunity | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Post-trial JMOL | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
@@ -34,10 +34,18 @@ candidates use the capability-gated exact evidence contract in `docs/spec/PACKS.
 descriptors, replay journal data, record-check data, authority IDs, pack metadata, or dependency
 topology invalidate that evidence.
 
-The checked-in Asterglen `0.1.0` pack predates the schema-version-2 contract. Its bytes
-and revision digest remain frozen and its author review remains honestly level 2. A future level-3
-claim must be a detached review pack that pins that exact reviewed revision and supplies qualified
-independent reviewer metadata; the original pack is not rewritten to manufacture level 3.
+The checked-in Asterglen `0.1.0` pack predates the schema-version-2 contract. Its EDVA
+`SYN-25-0117` / appellate `SYN-26-1427` bytes and revision digest remain frozen. The new `0.2.0`
+candidate instead owns an independent NDWV `SYN-NDWV-25-CV-0618` / appellate
+`SYN-CA4-26-CV-4102` record: 37 lower-court PDFs/234 JA pages, 13 actual appellate PDFs/70 PA
+pages, and 25 isolated branch PDFs/73 PA pages, for 75 PDFs/377 anchors. It contains nine resources,
+16 capabilities, three disposition plans, and eight production traces. Its authoring review is
+level 2 throughout and `independent_review_pending`; final root
+`7e77bc0fbe02dc9e108681df73852859d6d0f577acdcb65fcfb7678eac78b728` and closure
+`445c3f11dcc8046eedfc233407699cbbb3ea4e39425d22c976808959350ca62c` are installable. A future
+level-3 claim must be a detached review pack that exact-pins the finalized successor and supplies
+qualified independent reviewer metadata; neither immutable root is rewritten to manufacture
+level 3.
 
 The A.R.M. `1.2.0` root is the agency gold candidate, not the agency gold pack. Its exact
 level-2 evidence closes four packs, 44 non-review resources, 54 blobs, seven production-engine

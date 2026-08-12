@@ -26,8 +26,14 @@ agency-record PDFs** linked by 283 docket-to-asset relationships:
 Reusable forms, shared authorities, generated appellate filings, counterfactual training
 documents, and optional audio/video blobs do not count toward 283. Blank or padding pages do not
 count toward the page floor. A root may therefore contain more total blobs than its row without
-changing this breadth floor. The existing Asterglen v1 `0.1.0` pack remains immutable; its
-expanded v2 successor is a new `0.2.0` revision.
+changing this breadth floor. The existing Asterglen v1 `0.1.0` pack remains immutable on its EDVA
+`SYN-25-0117` and appellate `SYN-26-1427` identities. Its expanded schema-v2 successor is a new
+`0.2.0` revision with no reused or relabeled predecessor PDF. The successor's independent NDWV
+record is 37 PDFs/234 JA pages, satisfying the 37-PDF/230-page floor; its complete root
+adds 13 actual appellate PDFs/70 PA pages and 25 isolated branch PDFs/73 PA pages, for 75 PDFs/377
+anchors. The final root is
+`7e77bc0fbe02dc9e108681df73852859d6d0f577acdcb65fcfb7678eac78b728`; its evidence closure is
+`445c3f11dcc8046eedfc233407699cbbb3ea4e39425d22c976808959350ca62c`.
 
 The finalized A.R.M. `1.2.0` candidate demonstrates that distinction: its certified agency
 record is 18 PDFs/238 AR pages, satisfying the 18-PDF/220-page floor, while its complete root is
@@ -95,8 +101,15 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
   7 partial-summary-judgment items, 4 Rule 54 items, and 5 judgment/docket/initiation items.
 - **Argument:** claim scope, overlap, the missing express determination, fragmentation, and why
   section 1292 is no substitute. Counterfactual: supported express findings.
-- **Disposition:** dismiss for lack of appellate jurisdiction and remand; do not reach merits.
-- **Migration:** preserve the audited v1 pack and author the 37-PDF v2 record as `0.2.0`.
+- **Disposition:** dismiss for lack of appellate jurisdiction and remand; do not reach the
+  contract merits, do not vacate the January 12 partial-summary-judgment order, and expressly
+  direct each side to bear its own appellate costs.
+- **Migration:** preserve the audited EDVA/appellate v1 pack byte-for-byte and author the new NDWV
+  37-PDF/234-page lower record as `0.2.0`; add 13 actual PA PDFs and 25 never-occurred branch PDFs
+  without counting either class toward the frozen lower-tribunal breadth total.
+- **Evidence status:** nine resources, 16 capabilities, three structured dispositions, and eight
+  production traces form the installable successor. Authoring review is level 2 throughout and
+  `independent_review_pending`; the exact render, resolved install, and evidence closure pass.
 
 ### 3. Norvale injunction — `ca4m4.case.norvale-injunction`
 
@@ -233,7 +246,7 @@ Case-specific primary sources:
 | Case | Authorities |
 | --- | --- |
 | Benton | [42 U.S.C. § 2000e-3](https://uscode.house.gov/view.xhtml?req=%28title%3A42+section%3A2000e-3+edition%3Aprelim%29); [Foster v. UMES](https://www.ca4.uscourts.gov/opinions/published/141073.p.pdf) (published, 2015-05-21) |
-| Asterglen | [28 U.S.C. § 1291](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1291); FRCP 54(b); [Kinsale Insurance](https://www.ca4.uscourts.gov/opinions/211754.P.pdf) (published, 2022-04-20) |
+| Asterglen | [28 U.S.C. § 1291](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1291); [28 U.S.C. § 2107](https://uscode.house.gov/view.xhtml?edition=prelim&req=granuleid%3AUSC-prelim-title28-section2107); FRCP 54(b) and 58; [Kinsale Insurance](https://www.ca4.uscourts.gov/opinions/211754.P.pdf) (published, 2022-04-20); [McPherson](https://www.ca4.uscourts.gov/opinions/231938.U.pdf) (unpublished, 2024-10-15); [Bowles](https://www.govinfo.gov/content/pkg/USREPORTS-551/pdf/USREPORTS-551-205.pdf); [Primov](https://www.courts.state.va.us/static/opinions/opnscvwp/1171381.pdf) |
 | Norvale | [28 U.S.C. § 1292(a)(1)](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1292%28a%29%281%29); FRCP 65; [Billups](https://www.ca4.uscourts.gov/opinions/191044.P.pdf); [Pashby](https://www.ca4.uscourts.gov/opinions/Published/112363.p.pdf) |
 | Ellison | [42 U.S.C. § 1983](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title42-section1983); [Barricks](https://www.ca4.uscourts.gov/opinions/251250.P.pdf); [Armstrong](https://www.ca4.uscourts.gov/opinions/published/151191.p.pdf) |
 | Blue Ember | FRCP 50 and 59; [Unitherm](https://www.govinfo.gov/app/details/USREPORTS-546/USREPORTS-546-394); [Wiener](https://www.ca4.uscourts.gov/opinions/241316.P.pdf); [Boley](https://www.ca4.uscourts.gov/opinions/231493.u.pdf) (nonprecedential) |
@@ -262,6 +275,16 @@ packs, 44 non-review resources, 67 blobs, seven traces, two record checks, and 2
 Its 148 unique non-pack evidence IDs remain bound to an `independent_review_pending` root review.
 Benton is therefore an installable non-gold civil authoring candidate; Asterglen retains the civil
 gold-candidate designation.
+
+The Asterglen `0.2.0` successor currently records authoring level 2 in every dimension with
+`independent_review_pending`. It contains nine resources, 16 capabilities, 75 PDFs/377 anchors,
+three structured dispositions, and eight production traces. Exact root
+`7e77bc0fbe02dc9e108681df73852859d6d0f577acdcb65fcfb7678eac78b728`, review
+`e16caac5226fdb26fb8acead14ef0a0bfd4d569af5ba84b9da65389e5fb0c905`, and closure
+`445c3f11dcc8046eedfc233407699cbbb3ea4e39425d22c976808959350ca62c` bind the accepted render and
+final replay. It therefore remains the installable civil gold candidate rather than a civil gold
+pack. The v0.1.0 predecessor
+stays immutable and is not silently upgraded into schema v2 or level 3.
 
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and
