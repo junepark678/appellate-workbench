@@ -43,7 +43,9 @@ class CapabilityRegistry final {
         bool uses_route_role_subsets = false, bool uses_workflow_instance_preconditions = false,
         bool uses_static_deficiency_deadlines = false,
         bool uses_operation_document_bindings = false,
-        bool uses_operation_disposition_bindings = false);
+        bool uses_operation_disposition_bindings = false, bool uses_route_filing_bindings = false,
+        bool uses_alternative_event_date_deadlines = false,
+        bool uses_operation_legal_time_guards = false);
 };
 
 } // namespace appellate::packs

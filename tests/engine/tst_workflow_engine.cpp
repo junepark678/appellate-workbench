@@ -632,6 +632,8 @@ class WorkflowEngineTest final : public QObject {
     void enforcesExactFilingAndOrderInstancePreconditions();
     void enforcesStaticDeficiencyDeadlineIdentityAndReplay();
     void enforcesOperationDocumentAndArgumentBindings();
+    void enforcesExactRouteBindingsAndLegalTimes();
+    void usesAlternativeExactOrderEventDates();
     void rejectsMalformedAndOversizedDispositionInventories();
 };
 
@@ -1336,7 +1338,9 @@ void WorkflowEngineTest::usesExactEventDatesAndArgumentDateBoundary() {
     const auto selector_rejected =
         engine::decideWorkflow(wrong_selector, case_definition, run.state, delayed_order_clock);
     QVERIFY(!selector_rejected.has_value());
-    QCOMPARE(selector_rejected.error().code, engine::WorkflowErrorCode::UnmetPrecondition);
+    // Relabeling the exact source also makes the persisted source order an invalid
+    // claim on the now-reserved logical order identifier.
+    QCOMPARE(selector_rejected.error().code, engine::WorkflowErrorCode::InvalidState);
 
     QVERIFY(execute(definition, case_definition, run, delayed_order_clock).has_value());
     const auto& order_deadline = run.state.deadlines.back();
@@ -2477,6 +2481,22 @@ void WorkflowEngineTest::enforcesStaticDeficiencyDeadlineIdentityAndReplay() {
     changed.header.occurred_at = at(date(2026, 8, 15));
     expect_trigger_mismatch(changed);
 
+    auto stolen_definition = definition;
+    auto& stolen_route = routeByType(stolen_definition, "test.filing.extension");
+    stolen_route.stage_id = model::WorkflowStageId{appellant_stage};
+    stolen_route.authorized_roles = {model::ActorRoleId{appellant_role}};
+    operationById(stolen_definition, "test.op.extension.accept").stage_id =
+        model::WorkflowStageId{appellant_stage};
+    operationById(stolen_definition, "test.op.extension.reject").stage_id =
+        model::WorkflowStageId{appellant_stage};
+    auto stolen = trigger;
+    stolen.header.command_id = model::WorkflowCommandId{"command.static-stolen"};
+    stolen.filing_type = model::FilingTypeId{"test.filing.extension"};
+    const auto stolen_result =
+        engine::decideWorkflow(stolen_definition, case_definition, initialState(), stolen);
+    QVERIFY(!stolen_result.has_value());
+    QCOMPARE(stolen_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
     auto independently_gated = definition;
     routeByType(independently_gated, "test.filing.opening").satisfies_deadline_id =
         model::WorkflowDeadlineId{response_deadline};
@@ -2591,6 +2611,20 @@ void WorkflowEngineTest::enforcesStaticDeficiencyDeadlineIdentityAndReplay() {
     forged = *pending;
     forged.deadlines.front().due_date = date(2026, 8, 19);
     state_result = engine::decideWorkflow(definition, case_definition, forged, probe);
+    QVERIFY(!state_result.has_value());
+    QCOMPARE(state_result.error().code, engine::WorkflowErrorCode::InvalidState);
+    forged = initialState();
+    forged.next_event_sequence = 2;
+    forged.decided_commands = {model::WorkflowCommandId{"command.static-stolen-snapshot"}};
+    forged.legal_time_cursor = at(date(2026, 8, 14));
+    forged.accepted_filings.push_back({model::WorkflowFilingId{"filing.static-trigger"},
+                                       model::FilingTypeId{"test.filing.extension"},
+                                       model::ActorId{"test.actor.appellant"},
+                                       std::string(64, 'a'),
+                                       at(date(2026, 8, 14)),
+                                       {model::ActorId{"test.actor.appellee"}},
+                                       model::WorkflowOperationId{"test.op.extension.accept"}});
+    state_result = engine::decideWorkflow(stolen_definition, case_definition, forged, probe);
     QVERIFY(!state_result.has_value());
     QCOMPARE(state_result.error().code, engine::WorkflowErrorCode::InvalidState);
     forged = *pending;
@@ -2821,11 +2855,318 @@ void WorkflowEngineTest::enforcesOperationDocumentAndArgumentBindings() {
     auto mandate = model::IssueWorkflowMandate{
         header("command.binding-mandate", "test.actor.court", date(2026, 12, 1)),
         model::WorkflowOperationId{"test.op.issue-mandate"}, std::string(64, 'd')};
+    auto missing_judgment_time = adjudication_run.state;
+    missing_judgment_time.judgment_issued_at.reset();
+    adjudication_result =
+        engine::decideWorkflow(adjudication, case_definition, missing_judgment_time, mandate);
+    QVERIFY(!adjudication_result.has_value());
+    QCOMPARE(adjudication_result.error().code, engine::WorkflowErrorCode::InvalidState);
+    auto mismatched_judgment_instance = adjudication_run.state;
+    mismatched_judgment_instance.judgment_sha256 = std::string(64, 'e');
+    adjudication_result = engine::decideWorkflow(adjudication, case_definition,
+                                                 mismatched_judgment_instance, mandate);
+    QVERIFY(!adjudication_result.has_value());
+    QCOMPARE(adjudication_result.error().code, engine::WorkflowErrorCode::InvalidState);
     adjudication_result =
         engine::decideWorkflow(adjudication, case_definition, adjudication_run.state, mandate);
     QVERIFY(!adjudication_result.has_value());
     mandate.header.occurred_at = at(date(2026, 12, 2));
     QVERIFY(execute(adjudication, case_definition, adjudication_run, mandate).has_value());
+}
+
+void WorkflowEngineTest::enforcesExactRouteBindingsAndLegalTimes() {
+    auto definition = canonicalWorkflow();
+    const auto exact_time = at(date(2026, 8, 13));
+    for (auto& candidate : definition.operations) {
+        candidate.allowed_legal_times = {exact_time};
+    }
+    auto& route = routeByType(definition, "test.filing.opening");
+    route.deficiency_operation_id.reset();
+    route.deficiency_deadline.reset();
+    route.filing_bindings = {model::WorkflowFilingRoute::FilingBinding{
+        model::WorkflowFilingId{"test.filing.bound-opening"},
+        model::ActorId{"test.actor.appellant"},
+        "test.record.bound-opening",
+        std::string(64, 'a'),
+        exact_time,
+        {model::WorkflowJudgmentPrecondition{false}}}};
+
+    const auto case_definition = caseDefinition();
+    const auto initial = initialState();
+    auto exact =
+        filing("command.bound-opening", "test.filing.bound-opening", "test.actor.appellant",
+               "test.filing.opening", date(2026, 8, 13), {model::ActorId{"test.actor.appellee"}});
+    const auto accepted = engine::decideWorkflow(definition, case_definition, initial, exact);
+    QVERIFY2(accepted.has_value(), accepted ? "" : accepted.error().message.c_str());
+    QVERIFY(!accepted->empty());
+    const auto* accepted_event = std::get_if<model::WorkflowFilingAccepted>(&accepted->front());
+    QVERIFY(accepted_event != nullptr);
+    QCOMPARE(accepted_event->header.preconditions, route.filing_bindings.front().preconditions);
+
+    for (int variant = 0; variant < 5; ++variant) {
+        auto mismatch = exact;
+        mismatch.header.command_id.value += "." + std::to_string(variant);
+        if (variant == 0) {
+            mismatch.filing_id = model::WorkflowFilingId{"test.filing.arbitrary"};
+        } else if (variant == 1) {
+            mismatch.header.actor_id = model::ActorId{"test.actor.appellee"};
+        } else if (variant == 2) {
+            mismatch.document_sha256 = std::string(64, 'b');
+        } else if (variant == 3) {
+            mismatch.header.occurred_at.court_date = date(2026, 8, 14);
+        } else {
+            mismatch.header.occurred_at.instant += 1s;
+        }
+        const auto rejected =
+            engine::decideWorkflow(definition, case_definition, initial, mismatch);
+        QVERIFY(!rejected.has_value());
+        QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidCommand);
+    }
+
+    auto unknown_actor = exact;
+    unknown_actor.header.command_id = model::WorkflowCommandId{"command.bound-unknown-actor"};
+    unknown_actor.header.actor_id = model::ActorId{"test.actor.unknown"};
+    const auto unknown_result =
+        engine::decideWorkflow(definition, case_definition, initial, unknown_actor);
+    QVERIFY(!unknown_result.has_value());
+    QCOMPARE(unknown_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    auto nonconforming = exact;
+    nonconforming.header.command_id = model::WorkflowCommandId{"command.bound-nonconforming"};
+    nonconforming.fields.clear();
+    const auto rejected =
+        engine::decideWorkflow(definition, case_definition, initial, nonconforming);
+    QVERIFY(rejected.has_value());
+    QCOMPARE(rejected->size(), std::size_t{1});
+    const auto* rejected_event = std::get_if<model::WorkflowFilingRejected>(&rejected->front());
+    QVERIFY(rejected_event != nullptr);
+    QCOMPARE(rejected_event->reason, model::WorkflowFilingRejectionReason::NonconformingFiling);
+
+    auto deadline_gated = definition;
+    routeByType(deadline_gated, "test.filing.opening").satisfies_deadline_id =
+        model::WorkflowDeadlineId{"test.deadline.reply"};
+    const auto deadline_gated_rejection =
+        engine::decideWorkflow(deadline_gated, case_definition, initial, nonconforming);
+    QVERIFY2(deadline_gated_rejection.has_value(),
+             deadline_gated_rejection ? "" : deadline_gated_rejection.error().message.c_str());
+    const auto* deadline_gated_event =
+        std::get_if<model::WorkflowFilingRejected>(&deadline_gated_rejection->front());
+    QVERIFY(deadline_gated_event != nullptr);
+    QCOMPARE(deadline_gated_event->reason,
+             model::WorkflowFilingRejectionReason::NonconformingFiling);
+    const std::vector first_journal{
+        model::WorkflowJournalEntry{model::WorkflowCommand{nonconforming}, *rejected}};
+    const auto after_rejection =
+        engine::replayWorkflow(definition, case_definition, initial, first_journal);
+    QVERIFY(after_rejection.has_value());
+    QVERIFY(after_rejection->accepted_filings.empty());
+
+    exact.header.command_id = model::WorkflowCommandId{"command.bound-recovery"};
+    const auto recovery =
+        engine::decideWorkflow(definition, case_definition, *after_rejection, exact);
+    QVERIFY2(recovery.has_value(), recovery ? "" : recovery.error().message.c_str());
+    auto recovery_journal = first_journal;
+    recovery_journal.push_back(
+        model::WorkflowJournalEntry{model::WorkflowCommand{exact}, *recovery});
+    const auto recovered =
+        engine::replayWorkflow(definition, case_definition, initial, recovery_journal);
+    QVERIFY(recovered.has_value());
+    QCOMPARE(recovered->accepted_filings.size(), std::size_t{1});
+
+    for (int variant = 0; variant < 4; ++variant) {
+        auto forged = first_journal;
+        auto& event = std::get<model::WorkflowFilingRejected>(forged.front().events.front());
+        if (variant == 0) {
+            event.header.operation_id = model::WorkflowOperationId{"test.op.response.reject"};
+        } else if (variant == 1) {
+            event.filing_id = model::WorkflowFilingId{"test.filing.arbitrary"};
+        } else if (variant == 2) {
+            event.actor_id = model::ActorId{"test.actor.appellee"};
+        } else {
+            event.header.occurred_at.instant += 1s;
+        }
+        const auto replayed = engine::replayWorkflow(definition, case_definition, initial, forged);
+        QVERIFY(!replayed.has_value());
+    }
+
+    auto tampered =
+        std::vector{model::WorkflowJournalEntry{model::WorkflowCommand{exact}, *accepted}};
+    std::get<model::WorkflowFilingAccepted>(tampered.front().events.front())
+        .header.preconditions.clear();
+    QVERIFY(!engine::replayWorkflow(definition, case_definition, initial, tampered).has_value());
+    tampered.front().events = *accepted;
+    std::get<model::WorkflowFilingAccepted>(tampered.front().events.front())
+        .header.occurred_at.instant += 1s;
+    QVERIFY(!engine::replayWorkflow(definition, case_definition, initial, tampered).has_value());
+
+    auto dirty = *recovered;
+    dirty.accepted_filings.front().accepted_at.instant += 1s;
+    auto probe =
+        filing("command.dirty-bound-snapshot", "test.filing.probe", "test.actor.appellee",
+               "test.filing.response", date(2026, 8, 13), {model::ActorId{"test.actor.appellant"}});
+    const auto dirty_result = engine::decideWorkflow(definition, case_definition, dirty, probe);
+    QVERIFY(!dirty_result.has_value());
+    QCOMPARE(dirty_result.error().code, engine::WorkflowErrorCode::InvalidState);
+
+    auto cross_route = definition;
+    auto& unbound_route = routeByType(cross_route, "test.filing.extension");
+    unbound_route.stage_id = model::WorkflowStageId{appellant_stage};
+    unbound_route.authorized_roles = {model::ActorRoleId{appellant_role}};
+    operationById(cross_route, "test.op.extension.accept").stage_id =
+        model::WorkflowStageId{appellant_stage};
+    operationById(cross_route, "test.op.extension.reject").stage_id =
+        model::WorkflowStageId{appellant_stage};
+    auto poisoned = exact;
+    poisoned.header.command_id = model::WorkflowCommandId{"command.bound-wrong-route"};
+    poisoned.filing_type = model::FilingTypeId{"test.filing.extension"};
+    const auto poisoned_result =
+        engine::decideWorkflow(cross_route, case_definition, initial, poisoned);
+    QVERIFY(!poisoned_result.has_value());
+    QCOMPARE(poisoned_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    auto cross_route_snapshot = *recovered;
+    auto& accepted_snapshot = cross_route_snapshot.accepted_filings.front();
+    accepted_snapshot.filing_type = model::FilingTypeId{"test.filing.extension"};
+    accepted_snapshot.accept_operation_id = model::WorkflowOperationId{"test.op.extension.accept"};
+    const auto snapshot_result =
+        engine::decideWorkflow(cross_route, case_definition, cross_route_snapshot, probe);
+    QVERIFY(!snapshot_result.has_value());
+    QCOMPARE(snapshot_result.error().code, engine::WorkflowErrorCode::InvalidState);
+
+    auto invalid = definition;
+    routeByType(invalid, "test.filing.opening").deficiency_operation_id =
+        model::WorkflowOperationId{"test.op.opening.deficiency"};
+    QVERIFY(!engine::decideWorkflow(invalid, case_definition, initial, exact).has_value());
+    invalid = definition;
+    operationById(invalid, "test.op.opening.accept").allowed_legal_times.clear();
+    QVERIFY(!engine::decideWorkflow(invalid, case_definition, initial, exact).has_value());
+    invalid = definition;
+    operationById(invalid, "test.op.opening.accept").allowed_legal_times.front().instant += 1s;
+    QVERIFY(!engine::decideWorkflow(invalid, case_definition, initial, exact).has_value());
+}
+
+void WorkflowEngineTest::usesAlternativeExactOrderEventDates() {
+    auto definition = canonicalWorkflow();
+    auto first =
+        operation("test.op.enter-source-one", appellant_stage, model::WorkflowOpcode::EnterOrder,
+                  std::nullopt, std::nullopt, std::nullopt, {court_role});
+    first.authority.primary.provenance = provenance();
+    first.document_binding = model::WorkflowOperation::DocumentBinding{
+        "test.record.source-one", std::string(64, 'b'), date(2026, 8, 13),
+        model::WorkflowOrderId{"test.order.shared-source"}, model::WorkflowOrderDisposition::Other};
+    auto second = first;
+    second.id = model::WorkflowOperationId{"test.op.enter-source-two"};
+    second.authority = authority(second.id.value);
+    second.authority.primary.provenance = provenance();
+    second.document_binding->record_entry_id = "test.record.source-two";
+    second.document_binding->document_sha256 = std::string(64, 'c');
+    auto calculation = operation("test.op.calculate-alternative", appellant_stage,
+                                 model::WorkflowOpcode::CalculateDeadline, std::nullopt, 3,
+                                 model::DeadlineCounting::CalendarDays, {court_role});
+    calculation.authority.primary.provenance = provenance();
+    calculation.produced_deadline_id = model::WorkflowDeadlineId{"test.deadline.alternative"};
+    calculation.deadline_event_base = model::WorkflowOrderOccurredOneOfDeadlineBase{
+        model::WorkflowOrderId{"test.order.shared-source"}, {first.id, second.id}};
+    auto thief =
+        operation("test.op.enter-unbound-thief", appellant_stage, model::WorkflowOpcode::EnterOrder,
+                  std::nullopt, std::nullopt, std::nullopt, {court_role});
+    thief.authority.primary.provenance = provenance();
+    definition.operations.push_back(first);
+    definition.operations.push_back(second);
+    definition.operations.push_back(calculation);
+    definition.operations.push_back(thief);
+
+    const auto case_definition = caseDefinition();
+    auto run = emptyRun();
+    const model::WorkflowCommand theft = model::EnterWorkflowOrder{
+        header("command.enter-thief", "test.actor.court", date(2026, 8, 13)),
+        thief.id,
+        model::WorkflowOrderId{"test.order.shared-source"},
+        model::WorkflowOrderDisposition::Other,
+        std::string(64, 'd'),
+        std::nullopt};
+    const auto theft_result = engine::decideWorkflow(definition, case_definition, run.state, theft);
+    QVERIFY(!theft_result.has_value());
+    QCOMPARE(theft_result.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    auto stolen_state = run.state;
+    stolen_state.next_event_sequence = 2;
+    stolen_state.decided_commands = {model::WorkflowCommandId{"command.enter-thief"}};
+    stolen_state.legal_time_cursor = at(date(2026, 8, 13));
+    stolen_state.orders.push_back({model::WorkflowOrderId{"test.order.shared-source"},
+                                   model::WorkflowOrderDisposition::Other, std::string(64, 'd'),
+                                   thief.id, at(date(2026, 8, 13))});
+    const model::WorkflowCommand stolen_calculation = model::CalculateWorkflowDeadline{
+        header("command.calculate-stolen", "test.actor.court", date(2026, 8, 14)), calculation.id,
+        *calculation.produced_deadline_id};
+    const auto stolen_state_result =
+        engine::decideWorkflow(definition, case_definition, stolen_state, stolen_calculation);
+    QVERIFY(!stolen_state_result.has_value());
+    QCOMPARE(stolen_state_result.error().code, engine::WorkflowErrorCode::InvalidState);
+    stolen_state.orders.front().operation_id.reset();
+    stolen_state.orders.front().entered_at.reset();
+    const auto provenance_free_result =
+        engine::decideWorkflow(definition, case_definition, stolen_state, stolen_calculation);
+    QVERIFY(!provenance_free_result.has_value());
+    QCOMPARE(provenance_free_result.error().code, engine::WorkflowErrorCode::InvalidState);
+
+    auto unlisted_bound_owner = definition;
+    auto bound_thief = first;
+    bound_thief.id = model::WorkflowOperationId{"test.op.enter-bound-unlisted-thief"};
+    bound_thief.authority = authority(bound_thief.id.value);
+    bound_thief.authority.primary.provenance = provenance();
+    bound_thief.document_binding->record_entry_id = "test.record.bound-unlisted-thief";
+    bound_thief.document_binding->document_sha256 = std::string(64, 'd');
+    unlisted_bound_owner.operations.push_back(bound_thief);
+    const auto unlisted_owner_result =
+        engine::decideWorkflow(unlisted_bound_owner, case_definition, run.state, theft);
+    QVERIFY(!unlisted_owner_result.has_value());
+    QCOMPARE(unlisted_owner_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    const model::WorkflowCommand source = model::EnterWorkflowOrder{
+        header("command.enter-source", "test.actor.court", date(2026, 8, 13)),
+        first.id,
+        model::WorkflowOrderId{"test.order.shared-source"},
+        model::WorkflowOrderDisposition::Other,
+        std::string(64, 'b'),
+        std::nullopt};
+    QVERIFY(execute(definition, case_definition, run, source).has_value());
+    const model::WorkflowCommand calculate = model::CalculateWorkflowDeadline{
+        header("command.calculate-alternative", "test.actor.court", date(2026, 8, 14)),
+        calculation.id, *calculation.produced_deadline_id};
+    const auto decision = engine::decideWorkflow(definition, case_definition, run.state, calculate);
+    QVERIFY(decision.has_value());
+    const auto* event = std::get_if<model::WorkflowDeadlineCalculated>(&decision->front());
+    QVERIFY(event != nullptr);
+    QCOMPARE(event->base_date, date(2026, 8, 13));
+    QCOMPARE(event->deadline_event_base, calculation.deadline_event_base);
+
+    auto excluded = definition;
+    std::get<model::WorkflowOrderOccurredOneOfDeadlineBase>(
+        *operationById(excluded, "test.op.calculate-alternative").deadline_event_base)
+        .operation_ids = {second.id};
+    const auto excluded_result =
+        engine::decideWorkflow(excluded, case_definition, run.state, calculate);
+    QVERIFY(!excluded_result.has_value());
+    // Removing the only owning source from the selector leaves a bound EnterOrder
+    // outside the workflow-wide owner union, so the definition itself is invalid.
+    QCOMPARE(excluded_result.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    auto invalid = definition;
+    auto& base = std::get<model::WorkflowOrderOccurredOneOfDeadlineBase>(
+        *operationById(invalid, "test.op.calculate-alternative").deadline_event_base);
+    base.operation_ids.push_back(first.id);
+    const auto duplicate = engine::decideWorkflow(invalid, case_definition, run.state, calculate);
+    QVERIFY(!duplicate.has_value());
+    QCOMPARE(duplicate.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+    invalid = definition;
+    std::get<model::WorkflowOrderOccurredOneOfDeadlineBase>(
+        *operationById(invalid, "test.op.calculate-alternative").deadline_event_base)
+        .operation_ids = {model::WorkflowOperationId{"test.op.opening.accept"}};
+    const auto wrong_opcode =
+        engine::decideWorkflow(invalid, case_definition, run.state, calculate);
+    QVERIFY(!wrong_opcode.has_value());
+    QCOMPARE(wrong_opcode.error().code, engine::WorkflowErrorCode::InvalidDefinition);
 }
 
 void WorkflowEngineTest::rejectsMalformedAndOversizedDispositionInventories() {

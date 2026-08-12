@@ -161,8 +161,17 @@ struct WorkflowOrderOccurredDeadlineBase final {
                            const WorkflowOrderOccurredDeadlineBase&) = default;
 };
 
+struct WorkflowOrderOccurredOneOfDeadlineBase final {
+    WorkflowOrderId order_id;
+    std::vector<WorkflowOperationId> operation_ids;
+
+    friend bool operator==(const WorkflowOrderOccurredOneOfDeadlineBase&,
+                           const WorkflowOrderOccurredOneOfDeadlineBase&) = default;
+};
+
 using WorkflowDeadlineEventBase =
-    std::variant<WorkflowJudgmentOccurredDeadlineBase, WorkflowOrderOccurredDeadlineBase>;
+    std::variant<WorkflowJudgmentOccurredDeadlineBase, WorkflowOrderOccurredDeadlineBase,
+                 WorkflowOrderOccurredOneOfDeadlineBase>;
 
 enum class WorkflowOpcode {
     AcceptFiling,
@@ -207,6 +216,7 @@ struct WorkflowOperation final {
     // structured disposition plan. Absence preserves the legacy authored
     // operation/plan contract.
     std::optional<DispositionPlanId> disposition_plan_id{};
+    std::vector<LegalTime> allowed_legal_times{};
 
     friend bool operator==(const WorkflowOperation&, const WorkflowOperation&) = default;
 };
@@ -238,6 +248,17 @@ enum class WorkflowAuthorizedRoleScope {
 };
 
 struct WorkflowFilingRoute final {
+    struct FilingBinding final {
+        WorkflowFilingId filing_id;
+        ActorId actor_id;
+        std::string record_entry_id;
+        std::string document_sha256;
+        LegalTime expected_legal_time;
+        std::vector<WorkflowPrecondition> preconditions{};
+
+        friend bool operator==(const FilingBinding&, const FilingBinding&) = default;
+    };
+
     FilingTypeId filing_type;
     WorkflowStageId stage_id;
     std::vector<ActorRoleId> authorized_roles;
@@ -252,6 +273,7 @@ struct WorkflowFilingRoute final {
     std::optional<WorkflowDeadlineId> satisfies_deadline_id;
     bool reject_after_deadline{true};
     WorkflowAuthorizedRoleScope authorized_role_scope{WorkflowAuthorizedRoleScope::CatalogExact};
+    std::vector<FilingBinding> filing_bindings{};
 
     friend bool operator==(const WorkflowFilingRoute&, const WorkflowFilingRoute&) = default;
 };

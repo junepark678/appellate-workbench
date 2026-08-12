@@ -560,9 +560,17 @@ deadlineIdReservedForDirectCalculation(const model::WorkflowDefinition& workflow
                 return state.judgment_issued_at.has_value()
                            ? std::optional{state.judgment_issued_at->court_date}
                            : std::nullopt;
-            } else {
+            } else if constexpr (std::same_as<Base, model::WorkflowOrderOccurredDeadlineBase>) {
                 const auto* order = orderFor(state, concrete.order_id);
                 return order != nullptr && order->operation_id == concrete.operation_id &&
+                               order->entered_at.has_value()
+                           ? std::optional{order->entered_at->court_date}
+                           : std::nullopt;
+            } else {
+                const auto* order = orderFor(state, concrete.order_id);
+                return order != nullptr && order->operation_id.has_value() &&
+                               std::ranges::find(concrete.operation_ids, *order->operation_id) !=
+                                   concrete.operation_ids.end() &&
                                order->entered_at.has_value()
                            ? std::optional{order->entered_at->court_date}
                            : std::nullopt;
@@ -747,10 +755,102 @@ staticDeficiencyTriggerMatches(const model::WorkflowDeadlinePlan::StaticDeficien
             if constexpr (std::same_as<Base, model::WorkflowOrderOccurredDeadlineBase>) {
                 return validNamespacedId(concrete.order_id.value) &&
                        validNamespacedId(concrete.operation_id.value);
+            } else if constexpr (std::same_as<Base,
+                                              model::WorkflowOrderOccurredOneOfDeadlineBase>) {
+                return validNamespacedId(concrete.order_id.value) &&
+                       !concrete.operation_ids.empty() && concrete.operation_ids.size() <= 64 &&
+                       !hasDuplicates(concrete.operation_ids,
+                                      [](const auto& operation) { return operation.value; }) &&
+                       std::ranges::all_of(concrete.operation_ids, [](const auto& operation) {
+                           return validNamespacedId(operation.value);
+                       });
             }
             return true;
         },
         base);
+}
+
+[[nodiscard]] bool operationAllowsLegalTime(const model::WorkflowOperation& operation,
+                                            const model::LegalTime& legal_time) {
+    return operation.allowed_legal_times.empty() ||
+           std::ranges::find(operation.allowed_legal_times, legal_time) !=
+               operation.allowed_legal_times.end();
+}
+
+[[nodiscard]] bool operationAllowsCourtDate(const model::WorkflowOperation& operation,
+                                            model::LegalDate court_date) {
+    return operation.allowed_legal_times.empty() ||
+           std::ranges::any_of(operation.allowed_legal_times, [&](const auto& legal_time) {
+               return legal_time.court_date == court_date;
+           });
+}
+
+[[nodiscard]] auto filingBindingFor(const model::WorkflowFilingRoute& route,
+                                    const model::WorkflowFilingId& filing_id)
+    -> const model::WorkflowFilingRoute::FilingBinding* {
+    const auto found = std::ranges::find(route.filing_bindings, filing_id,
+                                         &model::WorkflowFilingRoute::FilingBinding::filing_id);
+    return found == route.filing_bindings.end() ? nullptr : &*found;
+}
+
+[[nodiscard]] auto staticTriggerRouteFor(const model::WorkflowDefinition& workflow,
+                                         const model::WorkflowFilingId& filing_id)
+    -> const model::WorkflowFilingRoute* {
+    const auto found = std::ranges::find_if(workflow.filing_routes, [&](const auto& route) {
+        return route.deficiency_deadline.has_value() &&
+               route.deficiency_deadline->static_trigger.has_value() &&
+               route.deficiency_deadline->static_trigger->filing_id == filing_id;
+    });
+    return found == workflow.filing_routes.end() ? nullptr : &*found;
+}
+
+[[nodiscard]] bool exactOrderSourceReserved(const model::WorkflowDefinition& workflow,
+                                            const model::WorkflowOrderId& order_id) {
+    return std::ranges::any_of(workflow.operations, [&](const auto& operation) {
+        if (!operation.deadline_event_base.has_value()) {
+            return false;
+        }
+        const auto* base = std::get_if<model::WorkflowOrderOccurredOneOfDeadlineBase>(
+            &*operation.deadline_event_base);
+        if (base != nullptr) {
+            return base->order_id == order_id;
+        }
+        const auto* legacy =
+            std::get_if<model::WorkflowOrderOccurredDeadlineBase>(&*operation.deadline_event_base);
+        return legacy != nullptr && legacy->order_id == order_id;
+    });
+}
+
+[[nodiscard]] bool exactOrderSourceAllowed(const model::WorkflowDefinition& workflow,
+                                           const model::WorkflowOrderId& order_id,
+                                           const model::WorkflowOperationId& operation_id) {
+    return std::ranges::any_of(workflow.operations, [&](const auto& candidate) {
+        if (!candidate.deadline_event_base.has_value()) {
+            return false;
+        }
+        return std::visit(
+            [&](const auto& base) {
+                using Base = std::remove_cvref_t<decltype(base)>;
+                if constexpr (std::same_as<Base, model::WorkflowOrderOccurredDeadlineBase>) {
+                    return base.order_id == order_id && base.operation_id == operation_id;
+                } else if constexpr (std::same_as<Base,
+                                                  model::WorkflowOrderOccurredOneOfDeadlineBase>) {
+                    return base.order_id == order_id &&
+                           std::ranges::find(base.operation_ids, operation_id) !=
+                               base.operation_ids.end();
+                }
+                return false;
+            },
+            *candidate.deadline_event_base);
+    });
+}
+
+[[nodiscard]] bool bindingMatches(const model::WorkflowFilingRoute::FilingBinding& binding,
+                                  const model::WorkflowFilingId& filing_id,
+                                  const model::ActorId& actor_id, std::string_view digest,
+                                  const model::LegalTime& legal_time) {
+    return binding.filing_id == filing_id && binding.actor_id == actor_id &&
+           binding.document_sha256 == digest && binding.expected_legal_time == legal_time;
 }
 
 [[nodiscard]] bool validDocumentBinding(const model::WorkflowOperation& operation) {
@@ -1044,6 +1144,10 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
 
     const auto uses_canonical_authority =
         workflow.operations.front().authority.primary.provenance.has_value();
+    const auto uses_operation_legal_time_guards =
+        std::ranges::any_of(workflow.operations, [](const auto& operation) {
+            return !operation.allowed_legal_times.empty();
+        });
     const auto uses_schema3_contract =
         !case_definition.disposition_targets.empty() ||
         !case_definition.disposition_plans.empty() ||
@@ -1056,11 +1160,13 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
                                        operation.deadline_event_base.has_value() ||
                                        operation.document_binding.has_value() ||
                                        operation.expected_argument_date.has_value() ||
-                                       operation.disposition_plan_id.has_value();
+                                       operation.disposition_plan_id.has_value() ||
+                                       !operation.allowed_legal_times.empty();
                             }) ||
         std::ranges::any_of(workflow.filing_routes, [](const auto& route) {
             return route.authorized_role_scope ==
                        model::WorkflowAuthorizedRoleScope::CatalogSubset ||
+                   !route.filing_bindings.empty() ||
                    (route.deficiency_deadline.has_value() &&
                     route.deficiency_deadline->static_trigger.has_value());
         });
@@ -1078,13 +1184,30 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
                  workflow.stages.end()) ||
             operation.authorized_roles.size() > max_route_items ||
             !preconditionsAreConsistent(operation.preconditions) ||
-            !validDocumentBinding(operation) ||
+            !validDocumentBinding(operation) || operation.allowed_legal_times.size() > 64 ||
+            (uses_operation_legal_time_guards && operation.allowed_legal_times.empty()) ||
+            hasDuplicates(operation.allowed_legal_times,
+                          [](const auto& legal_time) {
+                              const auto days = std::chrono::sys_days{legal_time.court_date.value}
+                                                    .time_since_epoch()
+                                                    .count();
+                              return std::to_string(legal_time.instant.time_since_epoch().count()) +
+                                     ":" + std::to_string(days);
+                          }) ||
+            std::ranges::any_of(
+                operation.allowed_legal_times,
+                [](const auto& legal_time) { return !validLegalDate(legal_time.court_date); }) ||
             (operation.disposition_plan_id.has_value() &&
              (operation.opcode != model::WorkflowOpcode::IssueJudgment ||
               !validNamespacedId(operation.disposition_plan_id->value))) ||
             (operation.expected_argument_date.has_value() &&
              (operation.opcode != model::WorkflowOpcode::ScheduleArgument ||
               !validLegalDate(*operation.expected_argument_date))) ||
+            (uses_operation_legal_time_guards && operation.document_binding.has_value() &&
+             !operationAllowsCourtDate(operation,
+                                       operation.document_binding->expected_court_date)) ||
+            (uses_operation_legal_time_guards && operation.expected_argument_date.has_value() &&
+             !operationAllowsCourtDate(operation, *operation.expected_argument_date)) ||
             hasDuplicates(operation.authorized_roles,
                           [](const auto& role) { return role.value; }) ||
             std::ranges::any_of(operation.authorized_roles,
@@ -1159,16 +1282,46 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
         if (!operation.deadline_event_base.has_value()) {
             continue;
         }
-        const auto* order_base =
-            std::get_if<model::WorkflowOrderOccurredDeadlineBase>(&*operation.deadline_event_base);
-        if (order_base == nullptr) {
+        auto source_operations_are_valid = true;
+        std::visit(
+            [&](const auto& base) {
+                using Base = std::remove_cvref_t<decltype(base)>;
+                if constexpr (std::same_as<Base, model::WorkflowOrderOccurredDeadlineBase>) {
+                    const auto* source = operationFor(workflow, base.operation_id);
+                    if (source == nullptr || source->opcode != model::WorkflowOpcode::EnterOrder) {
+                        source_operations_are_valid = false;
+                    }
+                } else if constexpr (std::same_as<Base,
+                                                  model::WorkflowOrderOccurredOneOfDeadlineBase>) {
+                    for (const auto& operation_id : base.operation_ids) {
+                        const auto* source = operationFor(workflow, operation_id);
+                        if (source == nullptr ||
+                            source->opcode != model::WorkflowOpcode::EnterOrder ||
+                            !source->document_binding.has_value() ||
+                            source->document_binding->order_id != std::optional{base.order_id}) {
+                            source_operations_are_valid = false;
+                        }
+                    }
+                }
+            },
+            *operation.deadline_event_base);
+        if (!source_operations_are_valid) {
+            return fail(WorkflowErrorCode::InvalidDefinition,
+                        "order-occurrence deadline base is not bound to its exact EnterOrder "
+                        "source");
+        }
+    }
+    for (const auto& operation : workflow.operations) {
+        if (operation.opcode != model::WorkflowOpcode::EnterOrder ||
+            !operation.document_binding.has_value() ||
+            !operation.document_binding->order_id.has_value()) {
             continue;
         }
-        const auto* source_operation = operationFor(workflow, order_base->operation_id);
-        if (source_operation == nullptr ||
-            source_operation->opcode != model::WorkflowOpcode::EnterOrder) {
+        if (exactOrderSourceReserved(workflow, *operation.document_binding->order_id) &&
+            !exactOrderSourceAllowed(workflow, *operation.document_binding->order_id,
+                                     operation.id)) {
             return fail(WorkflowErrorCode::InvalidDefinition,
-                        "order-occurrence deadline base does not name an EnterOrder operation");
+                        "a reserved exact order identifier has a non-source EnterOrder owner");
         }
     }
     if (case_definition.authored_disposition_operation_id.has_value()) {
@@ -1185,6 +1338,21 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
             return route.stage_id.value + "\n" + route.filing_type.value;
         })) {
         return fail(WorkflowErrorCode::InvalidDefinition, "duplicate filing route");
+    }
+    std::unordered_set<std::string> bound_filing_ids;
+    std::unordered_set<std::string> bound_record_entry_ids;
+    std::unordered_set<std::string> static_trigger_filing_ids;
+    std::unordered_set<std::string> static_trigger_record_entry_ids;
+    for (const auto& route : workflow.filing_routes) {
+        if (route.deficiency_deadline.has_value() &&
+            route.deficiency_deadline->static_trigger.has_value()) {
+            const auto& trigger = *route.deficiency_deadline->static_trigger;
+            if (!static_trigger_filing_ids.emplace(trigger.filing_id.value).second ||
+                !static_trigger_record_entry_ids.emplace(trigger.record_entry_id).second) {
+                return fail(WorkflowErrorCode::InvalidDefinition,
+                            "exact static deficiency triggers must be globally unique");
+            }
+        }
     }
     auto declared_deadline_ids = named_deadline_ids;
     auto produced_deadline_ids = named_deadline_ids;
@@ -1206,7 +1374,59 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
         const auto* advance = route.advance_operation_id
                                   ? operationFor(workflow, *route.advance_operation_id)
                                   : nullptr;
-        if (!validNamespacedId(route.filing_type.value) ||
+        const auto binding_dates_are_allowed =
+            std::ranges::all_of(route.filing_bindings, [&](const auto& binding) {
+                const std::array emitted{accept, reject, accepted_deadline, advance};
+                return std::ranges::all_of(emitted, [&](const auto* operation) {
+                    return operation == nullptr ||
+                           (operationAllowsLegalTime(*operation, binding.expected_legal_time) &&
+                            !operation->allowed_legal_times.empty());
+                });
+            });
+        const auto combined_binding_preconditions_are_valid =
+            std::ranges::all_of(route.filing_bindings, [&](const auto& binding) {
+                for (const auto* operation : {accept, reject}) {
+                    if (operation == nullptr ||
+                        operation->preconditions.size() + binding.preconditions.size() >
+                            max_preconditions) {
+                        return false;
+                    }
+                    auto combined = operation->preconditions;
+                    combined.insert(combined.end(), binding.preconditions.begin(),
+                                    binding.preconditions.end());
+                    if (!preconditionsAreConsistent(combined)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+        const auto binding_ids_are_globally_unique =
+            std::ranges::all_of(route.filing_bindings, [&](const auto& binding) {
+                return !static_trigger_filing_ids.contains(binding.filing_id.value) &&
+                       !static_trigger_record_entry_ids.contains(binding.record_entry_id) &&
+                       bound_filing_ids.emplace(binding.filing_id.value).second &&
+                       bound_record_entry_ids.emplace(binding.record_entry_id).second;
+            });
+        if (!validNamespacedId(route.filing_type.value) || route.filing_bindings.size() > 64 ||
+            hasDuplicates(route.filing_bindings,
+                          [](const auto& binding) { return binding.filing_id.value; }) ||
+            hasDuplicates(route.filing_bindings,
+                          [](const auto& binding) { return binding.record_entry_id; }) ||
+            std::ranges::any_of(route.filing_bindings,
+                                [](const auto& binding) {
+                                    return !validNamespacedId(binding.filing_id.value) ||
+                                           !validNamespacedId(binding.actor_id.value) ||
+                                           !validNamespacedId(binding.record_entry_id) ||
+                                           !validDigest(binding.document_sha256) ||
+                                           !validLegalDate(
+                                               binding.expected_legal_time.court_date) ||
+                                           binding.preconditions.size() > max_preconditions ||
+                                           !preconditionsAreConsistent(binding.preconditions);
+                                }) ||
+            (!route.filing_bindings.empty() && (route.deficiency_operation_id.has_value() ||
+                                                route.deficiency_deadline.has_value())) ||
+            !binding_dates_are_allowed || !binding_ids_are_globally_unique ||
+            !combined_binding_preconditions_are_valid ||
             std::ranges::find(workflow.stages, route.stage_id) == workflow.stages.end() ||
             (route.authorized_role_scope != model::WorkflowAuthorizedRoleScope::CatalogExact &&
              route.authorized_role_scope != model::WorkflowAuthorizedRoleScope::CatalogSubset) ||
@@ -1315,24 +1535,22 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
                         "filing route references an unproduced deadline");
         }
     }
-    for (const auto& operation : workflow.operations) {
-        if (std::ranges::any_of(operation.preconditions, [&](const auto& precondition) {
+    const auto preconditionsResolve = [&](const auto& preconditions) {
+        if (std::ranges::any_of(preconditions, [&](const auto& precondition) {
                 const auto* filing = std::get_if<model::WorkflowFilingPrecondition>(&precondition);
                 return filing != nullptr && !filing_types.contains(filing->filing_type.value);
             })) {
-            return fail(WorkflowErrorCode::InvalidDefinition,
-                        "filing precondition references an unknown filing type");
+            return false;
         }
-        if (std::ranges::any_of(operation.preconditions, [&](const auto& precondition) {
+        if (std::ranges::any_of(preconditions, [&](const auto& precondition) {
                 const auto* deadline =
                     std::get_if<model::WorkflowDeadlinePrecondition>(&precondition);
                 return deadline != nullptr &&
                        !produced_deadline_ids.contains(deadline->deadline_id.value);
             })) {
-            return fail(WorkflowErrorCode::InvalidDefinition,
-                        "deadline precondition references an unproduced exact deadline");
+            return false;
         }
-        for (const auto& precondition : operation.preconditions) {
+        for (const auto& precondition : preconditions) {
             if (const auto* filing =
                     std::get_if<model::WorkflowFilingInstancePrecondition>(&precondition)) {
                 const auto* accept = operationFor(workflow, filing->accept_operation_id);
@@ -1342,8 +1560,7 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
                 });
                 if (accept == nullptr || accept->opcode != model::WorkflowOpcode::AcceptFiling ||
                     route == workflow.filing_routes.end()) {
-                    return fail(WorkflowErrorCode::InvalidDefinition,
-                                "filing-instance precondition has no compatible accept route");
+                    return false;
                 }
             } else if (const auto* order =
                            std::get_if<model::WorkflowOrderInstancePrecondition>(&precondition)) {
@@ -1356,10 +1573,24 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
                      source->document_binding->disposition == std::optional{order->disposition});
                 if (source == nullptr || source->opcode != model::WorkflowOpcode::EnterOrder ||
                     !binding_matches) {
-                    return fail(WorkflowErrorCode::InvalidDefinition,
-                                "order-instance precondition has no entering operation");
+                    return false;
                 }
             }
+        }
+        return true;
+    };
+    for (const auto& operation : workflow.operations) {
+        if (!preconditionsResolve(operation.preconditions)) {
+            return fail(WorkflowErrorCode::InvalidDefinition,
+                        "operation preconditions do not resolve exactly");
+        }
+    }
+    for (const auto& route : workflow.filing_routes) {
+        if (std::ranges::any_of(route.filing_bindings, [&](const auto& binding) {
+                return !preconditionsResolve(binding.preconditions);
+            })) {
+            return fail(WorkflowErrorCode::InvalidDefinition,
+                        "filing-binding preconditions do not resolve exactly");
         }
     }
 
@@ -1400,23 +1631,47 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
                         "static deficiency trigger actor is not eligible for its route");
         }
     }
-    for (const auto& operation : workflow.operations) {
-        for (const auto& precondition : operation.preconditions) {
-            const auto* filing =
-                std::get_if<model::WorkflowFilingInstancePrecondition>(&precondition);
-            if (filing == nullptr) {
-                continue;
-            }
-            const auto* actor = actorFor(case_definition, filing->actor_id);
-            const auto route = std::ranges::find_if(workflow.filing_routes, [&](const auto& r) {
-                return r.filing_type == filing->filing_type &&
-                       r.accept_operation_id == filing->accept_operation_id;
-            });
-            if (actor == nullptr || route == workflow.filing_routes.end() ||
-                !roleAllowed(route->authorized_roles, actor->role)) {
+    for (const auto& route : workflow.filing_routes) {
+        for (const auto& binding : route.filing_bindings) {
+            const auto* actor = actorFor(case_definition, binding.actor_id);
+            if (actor == nullptr || !roleAllowed(route.authorized_roles, actor->role)) {
                 return fail(WorkflowErrorCode::InvalidCase,
-                            "filing-instance selector actor is not eligible for its route");
+                            "filing binding actor is not eligible for its route");
             }
+        }
+    }
+    const auto filing_instance_actors_are_valid =
+        [&](const std::vector<model::WorkflowPrecondition>& preconditions) {
+            for (const auto& precondition : preconditions) {
+                const auto* filing =
+                    std::get_if<model::WorkflowFilingInstancePrecondition>(&precondition);
+                if (filing == nullptr) {
+                    continue;
+                }
+                const auto* actor = actorFor(case_definition, filing->actor_id);
+                const auto route = std::ranges::find_if(workflow.filing_routes, [&](const auto& r) {
+                    return r.filing_type == filing->filing_type &&
+                           r.accept_operation_id == filing->accept_operation_id;
+                });
+                if (actor == nullptr || route == workflow.filing_routes.end() ||
+                    !roleAllowed(route->authorized_roles, actor->role)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    for (const auto& operation : workflow.operations) {
+        if (!filing_instance_actors_are_valid(operation.preconditions)) {
+            return fail(WorkflowErrorCode::InvalidCase,
+                        "filing-instance selector actor is not eligible for its route");
+        }
+    }
+    for (const auto& route : workflow.filing_routes) {
+        if (std::ranges::any_of(route.filing_bindings, [&](const auto& binding) {
+                return !filing_instance_actors_are_valid(binding.preconditions);
+            })) {
+            return fail(WorkflowErrorCode::InvalidCase,
+                        "filing-binding selector actor is not eligible for its route");
         }
     }
     const auto histories_are_bounded = state.decided_commands.size() <= max_state_items &&
@@ -1453,12 +1708,17 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
     const auto minimum_event_count = state.decided_commands.size() + pending_event_count;
     const auto maximum_event_count =
         state.decided_commands.size() * max_events_per_command + pending_event_count;
+    const auto cursor_is_authored =
+        !uses_operation_legal_time_guards || !state.legal_time_cursor.has_value() ||
+        std::ranges::any_of(workflow.operations, [&](const auto& operation) {
+            return operationAllowsLegalTime(operation, *state.legal_time_cursor);
+        });
     if (!valid_pending || applied_event_count < minimum_event_count ||
         applied_event_count > maximum_event_count ||
         (applied_event_count == 0) != !state.legal_time_cursor.has_value() ||
         (state.legal_time_cursor.has_value() &&
          !validLegalDate(state.legal_time_cursor->court_date)) ||
-        std::ranges::any_of(state.decided_commands, [](const auto& command) {
+        !cursor_is_authored || std::ranges::any_of(state.decided_commands, [](const auto& command) {
             return !validNamespacedId(command.value);
         })) {
         return fail(WorkflowErrorCode::InvalidState, "invalid workflow event-history snapshot");
@@ -1472,6 +1732,11 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
     std::unordered_set<std::string> submission_filing_ids;
     submission_filing_ids.reserve(state.accepted_filings.size() + state.deficiencies.size());
     for (const auto& filing : state.accepted_filings) {
+        const auto globally_bound_route =
+            std::ranges::find_if(workflow.filing_routes, [&](const auto& route) {
+                return filingBindingFor(route, filing.filing_id) != nullptr;
+            });
+        const auto* globally_static_route = staticTriggerRouteFor(workflow, filing.filing_id);
         const auto* filing_actor = actorFor(case_definition, filing.actor_id);
         const auto* accept_operation = filing.accept_operation_id.has_value()
                                            ? operationFor(workflow, *filing.accept_operation_id)
@@ -1485,17 +1750,40 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
                                                       *filing.accept_operation_id;
                                        })
                 : workflow.filing_routes.end();
+        const auto* filing_binding =
+            accept_route == workflow.filing_routes.end() || accept_route->filing_bindings.empty()
+                ? nullptr
+                : filingBindingFor(*accept_route, filing.filing_id);
+        const auto static_binding_matches =
+            globally_static_route == nullptr ||
+            (accept_route != workflow.filing_routes.end() &&
+             &*accept_route == globally_static_route && [&] {
+                 const auto& trigger = *globally_static_route->deficiency_deadline->static_trigger;
+                 return trigger.actor_id == filing.actor_id &&
+                        trigger.document_sha256 == filing.document_sha256 &&
+                        trigger.expected_court_date == filing.accepted_at.court_date;
+             }());
         if (!submission_filing_ids.emplace(filing.filing_id.value).second ||
             !validNamespacedId(filing.filing_id.value) ||
             !validNamespacedId(filing.filing_type.value) ||
             !actor_ids.contains(filing.actor_id.value) || !validDigest(filing.document_sha256) ||
             !validLegalDate(filing.accepted_at.court_date) ||
+            (globally_bound_route != workflow.filing_routes.end() &&
+             (!filing.accept_operation_id.has_value() ||
+              accept_route == workflow.filing_routes.end() ||
+              &*accept_route != &*globally_bound_route)) ||
+            !static_binding_matches ||
             (filing.accept_operation_id.has_value() &&
              (!validNamespacedId(filing.accept_operation_id->value) ||
               accept_operation == nullptr ||
               accept_operation->opcode != model::WorkflowOpcode::AcceptFiling ||
+              !operationAllowsLegalTime(*accept_operation, filing.accepted_at) ||
               accept_route == workflow.filing_routes.end() || filing_actor == nullptr ||
-              !roleAllowed(accept_route->authorized_roles, filing_actor->role))) ||
+              !roleAllowed(accept_route->authorized_roles, filing_actor->role) ||
+              (!accept_route->filing_bindings.empty() &&
+               (filing_binding == nullptr ||
+                !bindingMatches(*filing_binding, filing.filing_id, filing.actor_id,
+                                filing.document_sha256, filing.accepted_at))))) ||
             filing.served_actors.size() > max_case_actors ||
             hasDuplicates(filing.served_actors, [](const auto& actor) { return actor.value; }) ||
             std::ranges::any_of(filing.served_actors,
@@ -1522,10 +1810,22 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
     std::unordered_set<std::string> claimed_cure_deadline_ids;
     claimed_cure_deadline_ids.reserve(state.deficiencies.size());
     for (const auto& deficiency : state.deficiencies) {
+        const auto globally_bound_route =
+            std::ranges::find_if(workflow.filing_routes, [&](const auto& route) {
+                return filingBindingFor(route, deficiency.filing_id) != nullptr;
+            });
+        const auto* globally_static_route = staticTriggerRouteFor(workflow, deficiency.filing_id);
         const auto deadline = deficiency.cure_deadline_id
                                   ? deadlines.find(deficiency.cure_deadline_id->value)
                                   : deadlines.end();
         if (!submission_filing_ids.emplace(deficiency.filing_id.value).second ||
+            globally_bound_route != workflow.filing_routes.end() ||
+            (globally_static_route != nullptr &&
+             (deficiency.filing_type != globally_static_route->filing_type ||
+              !globally_static_route->deficiency_deadline.has_value() ||
+              !globally_static_route->deficiency_deadline->static_trigger.has_value() ||
+              deficiency.actor_id !=
+                  globally_static_route->deficiency_deadline->static_trigger->actor_id)) ||
             (deficiency.cure_deadline_id.has_value() &&
              !claimed_cure_deadline_ids.emplace(deficiency.cure_deadline_id->value).second) ||
             !validNamespacedId(deficiency.deficiency_id.value) ||
@@ -1587,10 +1887,15 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
             order.operation_id.has_value() ? operationFor(workflow, *order.operation_id) : nullptr;
         const auto invalid_source =
             order.operation_id.has_value() != order.entered_at.has_value() ||
+            (exactOrderSourceReserved(workflow, order.order_id) &&
+             (!order.operation_id.has_value() || !order.entered_at.has_value())) ||
             (order.operation_id.has_value() &&
              (!validNamespacedId(order.operation_id->value) || source_operation == nullptr ||
               source_operation->opcode != model::WorkflowOpcode::EnterOrder ||
               !validLegalDate(order.entered_at->court_date) ||
+              !operationAllowsLegalTime(*source_operation, *order.entered_at) ||
+              (exactOrderSourceReserved(workflow, order.order_id) &&
+               !exactOrderSourceAllowed(workflow, order.order_id, *order.operation_id)) ||
               (state.legal_time_cursor.has_value() &&
                (order.entered_at->instant > state.legal_time_cursor->instant ||
                 isLater(order.entered_at->court_date, state.legal_time_cursor->court_date)))));
@@ -1607,9 +1912,25 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
             return fail(WorkflowErrorCode::InvalidState, "invalid order snapshot");
         }
     }
+    const auto judgment_instance_is_authored =
+        !state.judgment_sha256.has_value() ||
+        (state.judgment_issued_at.has_value() && state.judgment_disposition.has_value() &&
+         std::ranges::any_of(workflow.operations, [&](const auto& operation) {
+             if (operation.opcode != model::WorkflowOpcode::IssueJudgment ||
+                 !operationAllowsLegalTime(operation, *state.judgment_issued_at) ||
+                 !validJudgmentDispositionForOperation(case_definition, operation,
+                                                       *state.judgment_disposition)) {
+                 return false;
+             }
+             return !operation.document_binding.has_value() ||
+                    (operation.document_binding->document_sha256 == *state.judgment_sha256 &&
+                     operation.document_binding->expected_court_date ==
+                         state.judgment_issued_at->court_date);
+         }));
     if ((state.argument_date.has_value() && !validLegalDate(*state.argument_date)) ||
         (state.judgment_sha256.has_value() && !validDigest(*state.judgment_sha256)) ||
         (state.judgment_sha256.has_value() != state.judgment_disposition.has_value()) ||
+        (state.judgment_sha256.has_value() != state.judgment_issued_at.has_value()) ||
         (state.judgment_issued_at.has_value() &&
          (!state.judgment_sha256.has_value() ||
           !validLegalDate(state.judgment_issued_at->court_date) ||
@@ -1617,6 +1938,7 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
            (state.judgment_issued_at->instant > state.legal_time_cursor->instant ||
             isLater(state.judgment_issued_at->court_date,
                     state.legal_time_cursor->court_date))))) ||
+        !judgment_instance_is_authored ||
         (state.judgment_disposition.has_value() &&
          !validStateJudgmentDisposition(workflow, case_definition, *state.judgment_disposition)) ||
         (state.mandate_sha256.has_value() && !validDigest(*state.mandate_sha256)) ||
@@ -1646,11 +1968,15 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
     return std::ranges::find(state.decided_commands, id) != state.decided_commands.end();
 }
 
-[[nodiscard]] auto makeHeader(const model::WorkflowDefinition& workflow,
-                              const model::WorkflowState& state,
-                              const model::WorkflowCommandHeader& command,
-                              const model::WorkflowOperation& operation, std::uint32_t index,
-                              std::uint32_t count) -> model::WorkflowEventHeader {
+[[nodiscard]] auto
+makeHeader(const model::WorkflowDefinition& workflow, const model::WorkflowState& state,
+           const model::WorkflowCommandHeader& command, const model::WorkflowOperation& operation,
+           std::uint32_t index, std::uint32_t count,
+           std::span<const model::WorkflowPrecondition> extra_preconditions = {})
+    -> model::WorkflowEventHeader {
+    auto preconditions = operation.preconditions;
+    preconditions.insert(preconditions.end(), extra_preconditions.begin(),
+                         extra_preconditions.end());
     return model::WorkflowEventHeader{state.session_id,
                                       workflow.id,
                                       command.command_id,
@@ -1660,7 +1986,7 @@ validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
                                       count,
                                       command.occurred_at,
                                       operation.authority,
-                                      operation.preconditions};
+                                      std::move(preconditions)};
 }
 
 [[nodiscard]] auto
@@ -1673,9 +1999,13 @@ rejectFiling(const model::WorkflowDefinition& workflow, const model::WorkflowSta
         return fail(WorkflowErrorCode::InvalidDefinition,
                     "filing route has no compatible rejection operation");
     }
+    const auto* binding = filingBindingFor(route, command.filing_id);
     return std::vector<model::WorkflowEvent>{model::WorkflowFilingRejected{
-        makeHeader(workflow, state, command.header, *operation, 0, 1), command.filing_id,
-        command.filing_type, command.header.actor_id, reason}};
+        makeHeader(workflow, state, command.header, *operation, 0, 1,
+                   binding == nullptr
+                       ? std::span<const model::WorkflowPrecondition>{}
+                       : std::span<const model::WorkflowPrecondition>{binding->preconditions}),
+        command.filing_id, command.filing_type, command.header.actor_id, reason}};
 }
 
 [[nodiscard]] auto requiredServiceActors(const model::WorkflowFilingRoute& route,
@@ -1746,18 +2076,60 @@ rejectFiling(const model::WorkflowDefinition& workflow, const model::WorkflowSta
             command.served_actors.end()) {
         return fail(WorkflowErrorCode::InvalidCommand, "invalid filing command");
     }
-    const auto* actor = actorFor(case_definition, command.header.actor_id);
-    if (actor == nullptr) {
-        return fail(WorkflowErrorCode::UnknownActor, "filing actor is not part of the case");
-    }
     const auto* route = routeFor(workflow, state.current_stage_id, command.filing_type);
     if (route == nullptr) {
         return fail(WorkflowErrorCode::InvalidCommand,
                     "filing type has no executable route in the current stage");
     }
+    const auto globally_bound_route =
+        std::ranges::find_if(workflow.filing_routes, [&](const auto& candidate) {
+            return filingBindingFor(candidate, command.filing_id) != nullptr;
+        });
+    const auto* globally_static_route = staticTriggerRouteFor(workflow, command.filing_id);
+    if (globally_bound_route != workflow.filing_routes.end() && &*globally_bound_route != route) {
+        return fail(WorkflowErrorCode::InvalidCommand,
+                    "filing identifier belongs to a different exact route binding");
+    }
+    if (globally_static_route != nullptr && globally_static_route != route) {
+        return fail(WorkflowErrorCode::InvalidCommand,
+                    "filing identifier belongs to a different exact deficiency trigger");
+    }
+    const auto* binding =
+        route->filing_bindings.empty() ? nullptr : filingBindingFor(*route, command.filing_id);
+    if (!route->filing_bindings.empty() &&
+        (binding == nullptr ||
+         !bindingMatches(*binding, command.filing_id, command.header.actor_id,
+                         command.document_sha256, command.header.occurred_at))) {
+        return fail(WorkflowErrorCode::InvalidCommand,
+                    "filing does not match an exact route binding");
+    }
+    if (globally_static_route != nullptr &&
+        (!route->deficiency_deadline.has_value() ||
+         !route->deficiency_deadline->static_trigger.has_value() ||
+         !staticDeficiencyTriggerMatches(*route->deficiency_deadline->static_trigger, command))) {
+        return fail(WorkflowErrorCode::InvalidCommand,
+                    "filing does not match its exact deficiency trigger");
+    }
+    if (binding != nullptr && !preconditionsSatisfied(binding->preconditions, state,
+                                                      command.header.occurred_at.court_date)) {
+        return fail(WorkflowErrorCode::UnmetPrecondition,
+                    "filing binding preconditions are not satisfied");
+    }
+    const auto* actor = actorFor(case_definition, command.header.actor_id);
+    if (actor == nullptr) {
+        return route->filing_bindings.empty()
+                   ? fail(WorkflowErrorCode::UnknownActor, "filing actor is not part of the case")
+                   : fail(WorkflowErrorCode::InvalidCommand,
+                          "filing does not match an exact route binding");
+    }
     if (!roleAllowed(route->authorized_roles, actor->role)) {
         return rejectFiling(workflow, state, *route, command,
                             model::WorkflowFilingRejectionReason::UnauthorizedActor);
+    }
+    auto missing = missingRequirements(*route, case_definition, command);
+    if (binding != nullptr && !missing.empty()) {
+        return rejectFiling(workflow, state, *route, command,
+                            model::WorkflowFilingRejectionReason::NonconformingFiling);
     }
 
     if (command.cures_deficiency_id.has_value()) {
@@ -1777,7 +2149,6 @@ rejectFiling(const model::WorkflowDefinition& workflow, const model::WorkflowSta
             }
         }
     }
-    auto missing = missingRequirements(*route, case_definition, command);
     const auto enters_static_deficiency = !missing.empty() &&
                                           route->deficiency_deadline.has_value() &&
                                           route->deficiency_deadline->static_trigger.has_value();
@@ -1880,9 +2251,12 @@ rejectFiling(const model::WorkflowDefinition& workflow, const model::WorkflowSta
     std::vector<model::WorkflowEvent> events;
     events.reserve(count);
     events.emplace_back(model::WorkflowFilingAccepted{
-        makeHeader(workflow, state, command.header, *accept, 0, count), command.filing_id,
-        command.filing_type, command.header.actor_id, command.document_sha256, std::move(served),
-        command.cures_deficiency_id, route->satisfies_deadline_id});
+        makeHeader(workflow, state, command.header, *accept, 0, count,
+                   binding == nullptr
+                       ? std::span<const model::WorkflowPrecondition>{}
+                       : std::span<const model::WorkflowPrecondition>{binding->preconditions}),
+        command.filing_id, command.filing_type, command.header.actor_id, command.document_sha256,
+        std::move(served), command.cures_deficiency_id, route->satisfies_deadline_id});
     std::uint32_t index = 1;
     if (route->accepted_deadline.has_value()) {
         const auto* calculation = operationFor(workflow, route->accepted_deadline->operation_id);
@@ -1950,6 +2324,11 @@ decideOrder(const model::WorkflowDefinition& workflow, const model::CaseDefiniti
         std::ranges::find(state.orders, command.order_id, &model::WorkflowOrderRecord::order_id) !=
             state.orders.end()) {
         return fail(WorkflowErrorCode::InvalidCommand, "invalid or duplicate court order");
+    }
+    if (exactOrderSourceReserved(workflow, command.order_id) &&
+        !exactOrderSourceAllowed(workflow, command.order_id, command.operation_id)) {
+        return fail(WorkflowErrorCode::InvalidCommand,
+                    "court order identifier is reserved for exact source operations");
     }
     if ((**operation).document_binding.has_value()) {
         const auto& binding = *(**operation).document_binding;
@@ -2113,6 +2492,25 @@ template <typename Event>
     -> std::expected<const model::WorkflowOperation*, WorkflowError> {
     const auto& header = eventHeader(event);
     const auto* operation = operationFor(workflow, header.operation_id);
+    auto expected_preconditions = operation == nullptr ? std::vector<model::WorkflowPrecondition>{}
+                                                       : operation->preconditions;
+    std::visit(
+        [&](const auto& concrete) {
+            using Event = std::remove_cvref_t<decltype(concrete)>;
+            if constexpr (std::same_as<Event, model::WorkflowFilingAccepted> ||
+                          std::same_as<Event, model::WorkflowFilingRejected>) {
+                const auto* route =
+                    routeFor(workflow, state.current_stage_id, concrete.filing_type);
+                const auto* binding =
+                    route == nullptr ? nullptr : filingBindingFor(*route, concrete.filing_id);
+                if (binding != nullptr) {
+                    expected_preconditions.insert(expected_preconditions.end(),
+                                                  binding->preconditions.begin(),
+                                                  binding->preconditions.end());
+                }
+            }
+        },
+        event);
     if (!validNamespacedId(header.session_id) || !validNamespacedId(header.command_id.value) ||
         !validNamespacedId(header.operation_id.value) || header.session_id != state.session_id ||
         header.workflow_id != workflow.id || header.sequence != state.next_event_sequence ||
@@ -2123,7 +2521,8 @@ template <typename Event>
         operation->opcode != expectedOpcode(event) ||
         operation->stage_id != state.current_stage_id || !validAuthority(header.authority) ||
         header.authority != operation->authority ||
-        header.preconditions != operation->preconditions) {
+        header.preconditions != expected_preconditions ||
+        !operationAllowsLegalTime(*operation, header.occurred_at)) {
         return fail(WorkflowErrorCode::InvalidEvent, "event envelope is inconsistent");
     }
     if (state.legal_time_cursor.has_value() &&
@@ -2286,10 +2685,12 @@ decideWorkflowImpl(const model::WorkflowDefinition& workflow,
     for (const auto& event : *result) {
         const auto& event_header = eventHeader(event);
         const auto* operation = operationFor(workflow, event_header.operation_id);
-        if (operation == nullptr || !preconditionsSatisfied(operation->preconditions, state,
-                                                            event_header.occurred_at.court_date)) {
+        if (operation == nullptr ||
+            !operationAllowsLegalTime(*operation, event_header.occurred_at) ||
+            !preconditionsSatisfied(operation->preconditions, state,
+                                    event_header.occurred_at.court_date)) {
             return fail(WorkflowErrorCode::UnmetPrecondition,
-                        "operation preconditions are not satisfied");
+                        "operation preconditions or legal-time guard are not satisfied");
         }
     }
     if (result->empty() || result->size() > max_events_per_command ||
@@ -2322,13 +2723,41 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
             if constexpr (std::same_as<Event, model::WorkflowFilingAccepted>) {
                 const auto* route =
                     routeFor(workflow, state.current_stage_id, concrete.filing_type);
+                const auto globally_bound_route =
+                    std::ranges::find_if(workflow.filing_routes, [&](const auto& candidate) {
+                        return filingBindingFor(candidate, concrete.filing_id) != nullptr;
+                    });
+                const auto* globally_static_route =
+                    staticTriggerRouteFor(workflow, concrete.filing_id);
                 const auto* actor = actorFor(case_definition, concrete.actor_id);
-                if (route == nullptr || actor == nullptr ||
+                const auto* binding = route == nullptr || route->filing_bindings.empty()
+                                          ? nullptr
+                                          : filingBindingFor(*route, concrete.filing_id);
+                const auto static_binding_matches =
+                    globally_static_route == nullptr ||
+                    (globally_static_route == route &&
+                     globally_static_route->deficiency_deadline.has_value() &&
+                     globally_static_route->deficiency_deadline->static_trigger.has_value() &&
+                     globally_static_route->deficiency_deadline->static_trigger->actor_id ==
+                         concrete.actor_id &&
+                     globally_static_route->deficiency_deadline->static_trigger->document_sha256 ==
+                         concrete.document_sha256 &&
+                     globally_static_route->deficiency_deadline->static_trigger
+                             ->expected_court_date == concrete.header.occurred_at.court_date);
+                if (route == nullptr || actor == nullptr || !static_binding_matches ||
+                    (globally_bound_route != workflow.filing_routes.end() &&
+                     &*globally_bound_route != route) ||
                     route->accept_operation_id != concrete.header.operation_id ||
                     !roleAllowed(route->authorized_roles, actor->role) ||
                     !validNamespacedId(concrete.filing_id.value) ||
                     state.accepted_filings.size() == max_state_items ||
                     !validDigest(concrete.document_sha256) ||
+                    (!route->filing_bindings.empty() &&
+                     (binding == nullptr ||
+                      !bindingMatches(*binding, concrete.filing_id, concrete.actor_id,
+                                      concrete.document_sha256, concrete.header.occurred_at) ||
+                      !preconditionsSatisfied(binding->preconditions, state,
+                                              concrete.header.occurred_at.court_date))) ||
                     std::ranges::find(state.accepted_filings, concrete.filing_id,
                                       &model::WorkflowFilingRecord::filing_id) !=
                         state.accepted_filings.end()) {
@@ -2389,12 +2818,40 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                     concrete.document_sha256, concrete.header.occurred_at, concrete.served_actors,
                     concrete.header.operation_id});
             } else if constexpr (std::same_as<Event, model::WorkflowFilingRejected>) {
-                if ((**operation).opcode != model::WorkflowOpcode::RejectFiling) {
+                const auto* route =
+                    routeFor(workflow, state.current_stage_id, concrete.filing_type);
+                const auto globally_bound_route =
+                    std::ranges::find_if(workflow.filing_routes, [&](const auto& candidate) {
+                        return filingBindingFor(candidate, concrete.filing_id) != nullptr;
+                    });
+                const auto* globally_static_route =
+                    staticTriggerRouteFor(workflow, concrete.filing_id);
+                const auto* binding = route == nullptr || route->filing_bindings.empty()
+                                          ? nullptr
+                                          : filingBindingFor(*route, concrete.filing_id);
+                if (route == nullptr ||
+                    (globally_bound_route != workflow.filing_routes.end() &&
+                     &*globally_bound_route != route) ||
+                    (globally_static_route != nullptr &&
+                     (globally_static_route != route ||
+                      globally_static_route->deficiency_deadline->static_trigger->actor_id !=
+                          concrete.actor_id ||
+                      globally_static_route->deficiency_deadline->static_trigger
+                              ->expected_court_date != concrete.header.occurred_at.court_date)) ||
+                    (**operation).opcode != model::WorkflowOpcode::RejectFiling ||
+                    route->reject_operation_id != concrete.header.operation_id ||
+                    (!route->filing_bindings.empty() &&
+                     (binding == nullptr || binding->actor_id != concrete.actor_id ||
+                      binding->expected_legal_time != concrete.header.occurred_at ||
+                      !preconditionsSatisfied(binding->preconditions, state,
+                                              concrete.header.occurred_at.court_date)))) {
                     return fail(WorkflowErrorCode::InvalidTransition, "invalid filing rejection");
                 }
             } else if constexpr (std::same_as<Event, model::WorkflowDeficiencyIssued>) {
                 const auto* route =
                     routeFor(workflow, state.current_stage_id, concrete.filing_type);
+                const auto* globally_static_route =
+                    staticTriggerRouteFor(workflow, concrete.filing_id);
                 const auto expected_deficiency_id = deficiencyIdFor(concrete.header.command_id);
                 const auto expected_deadline_id =
                     route != nullptr && route->deficiency_deadline.has_value()
@@ -2413,7 +2870,9 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                     !route->deficiency_deadline->static_trigger.has_value() ||
                     (concrete.header.command_event_index == 0 &&
                      concrete.header.command_event_count == 2);
-                if (route == nullptr || state.deficiencies.size() == max_state_items ||
+                if (route == nullptr ||
+                    (globally_static_route != nullptr && globally_static_route != route) ||
+                    state.deficiencies.size() == max_state_items ||
                     !route->deficiency_operation_id.has_value() ||
                     *route->deficiency_operation_id != concrete.header.operation_id ||
                     concrete.deficiency_id != expected_deficiency_id ||
@@ -2501,7 +2960,11 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                      (**operation).document_binding->document_sha256 != concrete.document_sha256 ||
                      (**operation).document_binding->expected_court_date !=
                          concrete.header.occurred_at.court_date);
-                if (binding_mismatch || !validNamespacedId(concrete.order_id.value) ||
+                if (binding_mismatch ||
+                    (exactOrderSourceReserved(workflow, concrete.order_id) &&
+                     !exactOrderSourceAllowed(workflow, concrete.order_id,
+                                              concrete.header.operation_id)) ||
+                    !validNamespacedId(concrete.order_id.value) ||
                     !validOrderDisposition(concrete.disposition) ||
                     state.orders.size() == max_state_items ||
                     !validDigest(concrete.document_sha256) ||

@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <cmath>
 #include <cstdint>
 #include <initializer_list>
@@ -146,6 +147,41 @@ constexpr std::array v2_kind_registry{
     }
     return std::ranges::all_of(
         expected, [&object](const char* key) { return object.contains(QLatin1StringView(key)); });
+}
+
+[[nodiscard]] std::optional<QString> canonicalLegalTimeKey(const QJsonValue& value) {
+    if (!value.isObject()) {
+        return std::nullopt;
+    }
+    const auto object = value.toObject();
+    if (!hasExactKeys(object, {"court_date", "instant_unix_seconds"})) {
+        return std::nullopt;
+    }
+    const auto date_text = object.value(QStringLiteral("court_date")).toString();
+    const auto date = QDate::fromString(date_text, Qt::ISODate);
+    const auto seconds_value = object.value(QStringLiteral("instant_unix_seconds"));
+    if (!date.isValid() || date.toString(Qt::ISODate) != date_text || !seconds_value.isString()) {
+        return std::nullopt;
+    }
+    const auto seconds_text = seconds_value.toString().toStdString();
+    const auto canonical = !seconds_text.empty() && seconds_text != "-0" &&
+                           seconds_text.front() != '+' &&
+                           !(seconds_text.size() > 1 && seconds_text.front() == '0') &&
+                           !(seconds_text.size() > 2 && seconds_text.starts_with("-0"));
+    std::int64_t seconds{};
+    const auto [end, error] =
+        std::from_chars(seconds_text.data(), seconds_text.data() + seconds_text.size(), seconds);
+    if (!canonical || error != std::errc{} || end != seconds_text.data() + seconds_text.size()) {
+        return std::nullopt;
+    }
+    return date_text + QLatin1Char('\n') + QString::fromStdString(std::to_string(seconds));
+}
+
+[[nodiscard]] bool legalTimesContainCourtDate(const QJsonArray& legal_times,
+                                              const QString& court_date) {
+    return std::ranges::any_of(legal_times, [&](const QJsonValue& value) {
+        return value.toObject().value(QStringLiteral("court_date")).toString() == court_date;
+    });
 }
 
 [[nodiscard]] auto readFile(const QString& path, qint64 maximum_bytes)
@@ -967,13 +1003,27 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
         if (resource.descriptor.kind != model::ResourceKind::Workflow) {
             return false;
         }
-        return std::ranges::any_of(resource.document.value(QStringLiteral("operations")).toArray(),
-                                   [](const QJsonValue& operation) {
-                                       return !operation.toObject()
-                                                   .value(QStringLiteral("preconditions"))
-                                                   .toArray()
-                                                   .isEmpty();
-                                   });
+        const auto operation_preconditions =
+            std::ranges::any_of(resource.document.value(QStringLiteral("operations")).toArray(),
+                                [](const QJsonValue& operation) {
+                                    return !operation.toObject()
+                                                .value(QStringLiteral("preconditions"))
+                                                .toArray()
+                                                .isEmpty();
+                                });
+        return operation_preconditions ||
+               std::ranges::any_of(
+                   resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                   [](const QJsonValue& route) {
+                       return std::ranges::any_of(
+                           route.toObject().value(QStringLiteral("filing_bindings")).toArray(),
+                           [](const QJsonValue& binding) {
+                               return !binding.toObject()
+                                           .value(QStringLiteral("preconditions"))
+                                           .toArray()
+                                           .isEmpty();
+                           });
+                   });
     });
 }
 
@@ -982,23 +1032,37 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
         if (resource.descriptor.kind != model::ResourceKind::Workflow) {
             return false;
         }
-        return std::ranges::any_of(
+        const auto is_reached = [](const QJsonValue& precondition_value) {
+            const auto precondition = precondition_value.toObject();
+            return precondition.value(QStringLiteral("kind")).toString() ==
+                       QStringLiteral("deadline_status") &&
+                   precondition.value(QStringLiteral("status")).toString() ==
+                       QStringLiteral("reached");
+        };
+        const auto operation_feature = std::ranges::any_of(
             resource.document.value(QStringLiteral("operations")).toArray(),
-            [](const QJsonValue& operation_value) {
+            [&](const QJsonValue& operation_value) {
                 const auto operation = operation_value.toObject();
                 if (operation.contains(QStringLiteral("deadline_base_id"))) {
                     return true;
                 }
                 return std::ranges::any_of(
-                    operation.value(QStringLiteral("preconditions")).toArray(),
-                    [](const QJsonValue& precondition_value) {
-                        const auto precondition = precondition_value.toObject();
-                        return precondition.value(QStringLiteral("kind")).toString() ==
-                                   QStringLiteral("deadline_status") &&
-                               precondition.value(QStringLiteral("status")).toString() ==
-                                   QStringLiteral("reached");
-                    });
+                    operation.value(QStringLiteral("preconditions")).toArray(), is_reached);
             });
+        return operation_feature ||
+               std::ranges::any_of(
+                   resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                   [&](const QJsonValue& route) {
+                       return std::ranges::any_of(
+                           route.toObject().value(QStringLiteral("filing_bindings")).toArray(),
+                           [&](const QJsonValue& binding) {
+                               return std::ranges::any_of(
+                                   binding.toObject()
+                                       .value(QStringLiteral("preconditions"))
+                                       .toArray(),
+                                   is_reached);
+                           });
+                   });
     });
 }
 
@@ -1033,17 +1097,31 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
         if (resource.descriptor.kind != model::ResourceKind::Workflow) {
             return false;
         }
-        return std::ranges::any_of(
+        const auto is_argument_date = [](const QJsonValue& precondition_value) {
+            return precondition_value.toObject().value(QStringLiteral("kind")).toString() ==
+                   QStringLiteral("argument_date_status");
+        };
+        const auto operation_feature = std::ranges::any_of(
             resource.document.value(QStringLiteral("operations")).toArray(),
-            [](const QJsonValue& operation_value) {
+            [&](const QJsonValue& operation_value) {
                 return std::ranges::any_of(
                     operation_value.toObject().value(QStringLiteral("preconditions")).toArray(),
-                    [](const QJsonValue& precondition_value) {
-                        return precondition_value.toObject()
-                                   .value(QStringLiteral("kind"))
-                                   .toString() == QStringLiteral("argument_date_status");
-                    });
+                    is_argument_date);
             });
+        return operation_feature ||
+               std::ranges::any_of(
+                   resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                   [&](const QJsonValue& route) {
+                       return std::ranges::any_of(
+                           route.toObject().value(QStringLiteral("filing_bindings")).toArray(),
+                           [&](const QJsonValue& binding) {
+                               return std::ranges::any_of(
+                                   binding.toObject()
+                                       .value(QStringLiteral("preconditions"))
+                                       .toArray(),
+                                   is_argument_date);
+                           });
+                   });
     });
 }
 
@@ -1103,19 +1181,34 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
 
 [[nodiscard]] bool usesWorkflowInstancePreconditions(std::span<const ValidatedResource> resources) {
     return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
-        return resource.descriptor.kind == model::ResourceKind::Workflow &&
-               std::ranges::any_of(
-                   resource.document.value(QStringLiteral("operations")).toArray(),
-                   [](const QJsonValue& operation) {
-                       return std::ranges::any_of(
-                           operation.toObject().value(QStringLiteral("preconditions")).toArray(),
-                           [](const QJsonValue& value) {
-                               const auto kind =
-                                   value.toObject().value(QStringLiteral("kind")).toString();
-                               return kind == QStringLiteral("filing_instance") ||
-                                      kind == QStringLiteral("order_instance");
-                           });
-                   });
+        if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+            return false;
+        }
+        const auto has_instance = [](const QJsonArray& preconditions) {
+            return std::ranges::any_of(preconditions, [](const QJsonValue& value) {
+                const auto kind = value.toObject().value(QStringLiteral("kind")).toString();
+                return kind == QStringLiteral("filing_instance") ||
+                       kind == QStringLiteral("order_instance");
+            });
+        };
+        if (std::ranges::any_of(
+                resource.document.value(QStringLiteral("operations")).toArray(),
+                [&](const QJsonValue& operation) {
+                    return has_instance(
+                        operation.toObject().value(QStringLiteral("preconditions")).toArray());
+                })) {
+            return true;
+        }
+        return std::ranges::any_of(
+            resource.document.value(QStringLiteral("filing_routes")).toArray(),
+            [&](const QJsonValue& route) {
+                return std::ranges::any_of(
+                    route.toObject().value(QStringLiteral("filing_bindings")).toArray(),
+                    [&](const QJsonValue& binding) {
+                        return has_instance(
+                            binding.toObject().value(QStringLiteral("preconditions")).toArray());
+                    });
+            });
     });
 }
 
@@ -1154,6 +1247,43 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                                    [](const QJsonValue& operation_value) {
                                        return operation_value.toObject().contains(
                                            QStringLiteral("disposition_plan_id"));
+                                   });
+    });
+}
+
+[[nodiscard]] bool usesRouteFilingBindings(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::Workflow &&
+               std::ranges::any_of(
+                   resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                   [](const QJsonValue& route) {
+                       return route.toObject().contains(QStringLiteral("filing_bindings"));
+                   });
+    });
+}
+
+[[nodiscard]] bool usesAlternativeEventDateDeadlines(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::Workflow &&
+               std::ranges::any_of(resource.document.value(QStringLiteral("operations")).toArray(),
+                                   [](const QJsonValue& operation) {
+                                       return operation.toObject()
+                                                  .value(QStringLiteral("deadline_event_base"))
+                                                  .toObject()
+                                                  .value(QStringLiteral("kind"))
+                                                  .toString() ==
+                                              QStringLiteral("order_occurred_one_of");
+                                   });
+    });
+}
+
+[[nodiscard]] bool usesOperationLegalTimeGuards(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::Workflow &&
+               std::ranges::any_of(resource.document.value(QStringLiteral("operations")).toArray(),
+                                   [](const QJsonValue& operation) {
+                                       return operation.toObject().contains(
+                                           QStringLiteral("allowed_legal_times"));
                                    });
     });
 }
@@ -1339,6 +1469,12 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
             QSet<QString> deadline_base_ids;
             QSet<QString> precondition_deadline_ids;
             QVector<QPair<QString, QString>> order_event_bases;
+            QSet<QString> exact_order_event_base_pairs;
+            const auto workflow_uses_operation_legal_time_guards = std::ranges::any_of(
+                document.value(QStringLiteral("operations")).toArray(),
+                [](const QJsonValue& operation) {
+                    return operation.toObject().contains(QStringLiteral("allowed_legal_times"));
+                });
             for (const auto& value : document.value(QStringLiteral("operations")).toArray()) {
                 const auto operation = value.toObject();
                 const auto operation_id =
@@ -1422,6 +1558,32 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     operation.contains(QStringLiteral("document_binding"));
                 const auto has_expected_argument_date =
                     operation.contains(QStringLiteral("expected_argument_date"));
+                const auto allowed_legal_times =
+                    operation.value(QStringLiteral("allowed_legal_times")).toArray();
+                QSet<QString> allowed_legal_time_keys;
+                auto legal_times_are_valid = true;
+                for (const auto& legal_time_value : allowed_legal_times) {
+                    const auto key = canonicalLegalTimeKey(legal_time_value);
+                    if (!key.has_value() || allowed_legal_time_keys.contains(*key)) {
+                        legal_times_are_valid = false;
+                        break;
+                    }
+                    allowed_legal_time_keys.insert(*key);
+                }
+                if (operation.contains(QStringLiteral("allowed_legal_times")) &&
+                    (resource.descriptor.schema_version != 2 || allowed_legal_times.isEmpty() ||
+                     allowed_legal_times.size() > 64 || !legal_times_are_valid)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/allowed_legal_times"),
+                        QStringLiteral("operation legal-time guards must be unique bounded exact "
+                                       "LegalTime pairs in schema 2"));
+                }
+                if (workflow_uses_operation_legal_time_guards && allowed_legal_times.isEmpty()) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/allowed_legal_times"),
+                        QStringLiteral("an operation-legal-time-guarded workflow must close every "
+                                       "operation over a nonempty exact-time set"));
+                }
                 if (has_document_binding) {
                     const auto binding_value = operation.value(QStringLiteral("document_binding"));
                     const auto binding = binding_value.toObject();
@@ -1453,6 +1615,15 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                             QStringLiteral("document bindings must use the closed form for their "
                                            "document-bearing opcode"));
                     }
+                    if (!allowed_legal_times.isEmpty() &&
+                        !legalTimesContainCourtDate(
+                            allowed_legal_times,
+                            binding.value(QStringLiteral("expected_court_date")).toString())) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("operations/allowed_legal_times"),
+                            QStringLiteral("a document binding date must be allowed by its "
+                                           "operation"));
+                    }
                 }
                 if (has_expected_argument_date &&
                     (resource.descriptor.schema_version != 2 ||
@@ -1462,6 +1633,15 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     return crossReferenceFailure(
                         resource, QStringLiteral("operations/expected_argument_date"),
                         QStringLiteral("only ScheduleArgument can bind an exact argument date"));
+                }
+                if (has_expected_argument_date && !allowed_legal_times.isEmpty() &&
+                    !legalTimesContainCourtDate(
+                        allowed_legal_times,
+                        operation.value(QStringLiteral("expected_argument_date")).toString())) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/allowed_legal_times"),
+                        QStringLiteral("an expected argument date must be allowed by its "
+                                       "operation"));
                 }
                 if (opcode == QStringLiteral("calculate_deadline") && !has_days) {
                     return crossReferenceFailure(
@@ -1507,7 +1687,8 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         opcode != QStringLiteral("calculate_deadline") || !has_produced ||
                         has_base ||
                         (kind != QStringLiteral("judgment_occurred") &&
-                         kind != QStringLiteral("order_occurred"))) {
+                         kind != QStringLiteral("order_occurred") &&
+                         kind != QStringLiteral("order_occurred_one_of"))) {
                         return crossReferenceFailure(
                             resource, QStringLiteral("operations/deadline_event_base"),
                             QStringLiteral("event-date bases require a named schema-2 deadline "
@@ -1517,6 +1698,27 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         order_event_bases.push_back(
                             {event_base.value(QStringLiteral("order_id")).toString(),
                              event_base.value(QStringLiteral("operation_id")).toString()});
+                    } else if (kind == QStringLiteral("order_occurred_one_of")) {
+                        const auto operation_ids =
+                            event_base.value(QStringLiteral("operation_ids")).toArray();
+                        if (!hasExactKeys(event_base, {"kind", "order_id", "operation_ids"}) ||
+                            !isNamespacedId(
+                                event_base.value(QStringLiteral("order_id")).toString()) ||
+                            operation_ids.isEmpty() || operation_ids.size() > 64 ||
+                            stringSet(operation_ids).size() != operation_ids.size()) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("operations/deadline_event_base"),
+                                QStringLiteral("alternative order bases require a canonical "
+                                               "order and unique nonempty source operations"));
+                        }
+                        for (const auto& candidate_operation_id : operation_ids) {
+                            order_event_bases.push_back(
+                                {event_base.value(QStringLiteral("order_id")).toString(),
+                                 candidate_operation_id.toString()});
+                            exact_order_event_base_pairs.insert(
+                                event_base.value(QStringLiteral("order_id")).toString() + u'\n' +
+                                candidate_operation_id.toString());
+                        }
                     }
                 }
                 if (opcode == QStringLiteral("calculate_deadline") &&
@@ -1747,11 +1949,40 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 const auto operation = operation_documents.constFind(operation_id);
                 if (!isNamespacedId(order_id) || operation == operation_documents.constEnd() ||
                     operation->value(QStringLiteral("opcode")).toString() !=
-                        QStringLiteral("enter_order")) {
+                        QStringLiteral("enter_order") ||
+                    (exact_order_event_base_pairs.contains(order_id + u'\n' + operation_id) &&
+                     operation->value(QStringLiteral("document_binding"))
+                             .toObject()
+                             .value(QStringLiteral("order_id"))
+                             .toString() != order_id)) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("operations/deadline_event_base"),
                         QStringLiteral("order-occurrence bases must identify a canonical order and "
                                        "an EnterOrder operation"));
+                }
+            }
+
+            QSet<QString> reserved_order_event_ids;
+            QSet<QString> allowed_order_event_sources;
+            for (const auto& [order_id, operation_id] : order_event_bases) {
+                reserved_order_event_ids.insert(order_id);
+                allowed_order_event_sources.insert(order_id + u'\n' + operation_id);
+            }
+            for (auto operation = operation_documents.constBegin();
+                 operation != operation_documents.constEnd(); ++operation) {
+                if (operation->value(QStringLiteral("opcode")).toString() !=
+                    QStringLiteral("enter_order")) {
+                    continue;
+                }
+                const auto binding =
+                    operation->value(QStringLiteral("document_binding")).toObject();
+                const auto order_id = binding.value(QStringLiteral("order_id")).toString();
+                if (!order_id.isEmpty() && reserved_order_event_ids.contains(order_id) &&
+                    !allowed_order_event_sources.contains(order_id + u'\n' + operation.key())) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/document_binding/order_id"),
+                        QStringLiteral("a reserved order identifier is bound to an EnterOrder "
+                                       "operation outside the workflow-wide event-source set"));
                 }
             }
 
@@ -1765,6 +1996,8 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
             };
             QSet<QString> route_keys;
             QSet<QString> declared_filing_type_ids;
+            QSet<QString> bound_filing_ids;
+            QSet<QString> bound_record_entry_ids;
             QSet<QString> declared_deadline_ids = named_deadline_ids;
             QSet<QString> exact_deadline_ids = named_deadline_ids;
             QSet<QString> deficiency_deadline_prefixes;
@@ -1774,6 +2007,214 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     resource, QStringLiteral("filing_routes"),
                     QStringLiteral("a runnable workflow requires an executable filing route"));
             }
+            QSet<QString> static_trigger_filing_ids;
+            QSet<QString> static_trigger_record_entry_ids;
+            for (const auto& route_value : filing_routes) {
+                const auto trigger = route_value.toObject()
+                                         .value(QStringLiteral("deficiency_deadline"))
+                                         .toObject()
+                                         .value(QStringLiteral("trigger_filing"))
+                                         .toObject();
+                if (trigger.isEmpty()) {
+                    continue;
+                }
+                const auto filing_id = trigger.value(QStringLiteral("filing_id")).toString();
+                const auto record_entry_id =
+                    trigger.value(QStringLiteral("record_entry_id")).toString();
+                if (static_trigger_filing_ids.contains(filing_id) ||
+                    static_trigger_record_entry_ids.contains(record_entry_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("filing_routes/deficiency_deadline"),
+                        QStringLiteral("exact static deficiency trigger identities must be "
+                                       "globally unique"));
+                }
+                static_trigger_filing_ids.insert(filing_id);
+                static_trigger_record_entry_ids.insert(record_entry_id);
+            }
+            const auto validateBindingPreconditions =
+                [&](const QJsonArray& values, const QString& path) -> std::expected<void, Error> {
+                if (values.size() > maximum_workflow_preconditions) {
+                    return crossReferenceFailure(
+                        resource, path,
+                        QStringLiteral("combined filing-binding preconditions exceed the bound"));
+                }
+                QSet<QString> subjects;
+                QSet<QString> absent_filing_types;
+                QSet<QString> present_instance_filing_types;
+                for (const auto& value : values) {
+                    if (!value.isObject()) {
+                        return crossReferenceFailure(
+                            resource, path,
+                            QStringLiteral("filing-binding preconditions must be objects"));
+                    }
+                    const auto precondition = value.toObject();
+                    const auto kind = precondition.value(QStringLiteral("kind")).toString();
+                    QString subject;
+                    QStringList contradictions;
+                    if (kind == QStringLiteral("filing_presence") &&
+                        hasExactKeys(precondition, {"kind", "filing_type_id", "present"}) &&
+                        precondition.value(QStringLiteral("present")).isBool()) {
+                        const auto filing_type =
+                            precondition.value(QStringLiteral("filing_type_id")).toString();
+                        if (!isNamespacedId(filing_type)) {
+                            return crossReferenceFailure(
+                                resource, path, QStringLiteral("noncanonical filing selector"));
+                        }
+                        precondition_filing_ids.insert(filing_type);
+                        subject = QStringLiteral("filing-type:") + filing_type;
+                        if (!precondition.value(QStringLiteral("present")).toBool()) {
+                            if (present_instance_filing_types.contains(filing_type)) {
+                                return crossReferenceFailure(
+                                    resource, path,
+                                    QStringLiteral("filing absence contradicts an exact instance"));
+                            }
+                            absent_filing_types.insert(filing_type);
+                        }
+                    } else if (kind == QStringLiteral("filing_instance") &&
+                               hasExactKeys(precondition,
+                                            {"kind", "filing_type_id", "present", "actor_id",
+                                             "filing_id", "accept_operation_id", "record_entry_id",
+                                             "document_sha256"}) &&
+                               precondition.value(QStringLiteral("present")).isBool()) {
+                        const auto filing_type =
+                            precondition.value(QStringLiteral("filing_type_id")).toString();
+                        const auto filing_id =
+                            precondition.value(QStringLiteral("filing_id")).toString();
+                        const auto accept_operation =
+                            precondition.value(QStringLiteral("accept_operation_id")).toString();
+                        if (!isNamespacedId(filing_type) || !isNamespacedId(filing_id) ||
+                            !isNamespacedId(
+                                precondition.value(QStringLiteral("actor_id")).toString()) ||
+                            !isNamespacedId(accept_operation) ||
+                            !isNamespacedId(
+                                precondition.value(QStringLiteral("record_entry_id")).toString()) ||
+                            !isSha256(
+                                precondition.value(QStringLiteral("document_sha256")).toString())) {
+                            return crossReferenceFailure(
+                                resource, path, QStringLiteral("noncanonical filing instance"));
+                        }
+                        const auto source = operation_documents.constFind(accept_operation);
+                        if (source == operation_documents.constEnd() ||
+                            source->value(QStringLiteral("opcode")).toString() !=
+                                QStringLiteral("accept_filing")) {
+                            return crossReferenceFailure(
+                                resource, path,
+                                QStringLiteral("filing instance has no AcceptFiling source"));
+                        }
+                        precondition_filing_ids.insert(filing_type);
+                        subject = QStringLiteral("filing-instance:") + filing_id;
+                        if (precondition.value(QStringLiteral("present")).toBool()) {
+                            if (absent_filing_types.contains(filing_type)) {
+                                return crossReferenceFailure(
+                                    resource, path,
+                                    QStringLiteral("exact instance contradicts filing absence"));
+                            }
+                            present_instance_filing_types.insert(filing_type);
+                        }
+                    } else if (kind == QStringLiteral("order_disposition") &&
+                               hasExactKeys(precondition, {"kind", "order_id", "disposition"}) &&
+                               QSet<QString>{QStringLiteral("granted"), QStringLiteral("denied"),
+                                             QStringLiteral("other")}
+                                   .contains(precondition.value(QStringLiteral("disposition"))
+                                                 .toString()) &&
+                               isNamespacedId(
+                                   precondition.value(QStringLiteral("order_id")).toString())) {
+                        subject = QStringLiteral("order:") +
+                                  precondition.value(QStringLiteral("order_id")).toString();
+                    } else if (kind == QStringLiteral("order_instance") &&
+                               hasExactKeys(precondition,
+                                            {"kind", "order_id", "disposition", "operation_id",
+                                             "record_entry_id", "document_sha256"}) &&
+                               QSet<QString>{QStringLiteral("granted"), QStringLiteral("denied"),
+                                             QStringLiteral("other")}
+                                   .contains(precondition.value(QStringLiteral("disposition"))
+                                                 .toString()) &&
+                               isNamespacedId(
+                                   precondition.value(QStringLiteral("order_id")).toString()) &&
+                               isNamespacedId(
+                                   precondition.value(QStringLiteral("operation_id")).toString()) &&
+                               isNamespacedId(precondition.value(QStringLiteral("record_entry_id"))
+                                                  .toString()) &&
+                               isSha256(precondition.value(QStringLiteral("document_sha256"))
+                                            .toString())) {
+                        const auto source = operation_documents.constFind(
+                            precondition.value(QStringLiteral("operation_id")).toString());
+                        if (source == operation_documents.constEnd() ||
+                            source->value(QStringLiteral("opcode")).toString() !=
+                                QStringLiteral("enter_order")) {
+                            return crossReferenceFailure(
+                                resource, path,
+                                QStringLiteral("order instance has no EnterOrder source"));
+                        }
+                        subject = QStringLiteral("order:") +
+                                  precondition.value(QStringLiteral("order_id")).toString();
+                    } else if (kind == QStringLiteral("deadline_status") &&
+                               hasExactKeys(precondition, {"kind", "deadline_id", "status"}) &&
+                               QSet<QString>{QStringLiteral("open"), QStringLiteral("satisfied"),
+                                             QStringLiteral("reached"), QStringLiteral("elapsed"),
+                                             QStringLiteral("not_elapsed")}
+                                   .contains(
+                                       precondition.value(QStringLiteral("status")).toString()) &&
+                               isNamespacedId(
+                                   precondition.value(QStringLiteral("deadline_id")).toString())) {
+                        const auto deadline =
+                            precondition.value(QStringLiteral("deadline_id")).toString();
+                        const auto status = precondition.value(QStringLiteral("status")).toString();
+                        precondition_deadline_ids.insert(deadline);
+                        subject = kind + u':' + deadline + u':' + status;
+                        if (status == QStringLiteral("open")) {
+                            contradictions.push_back(kind + u':' + deadline + u':' +
+                                                     QStringLiteral("satisfied"));
+                        } else if (status == QStringLiteral("satisfied")) {
+                            contradictions.push_back(kind + u':' + deadline + u':' +
+                                                     QStringLiteral("open"));
+                        } else if (status == QStringLiteral("elapsed")) {
+                            contradictions.push_back(kind + u':' + deadline + u':' +
+                                                     QStringLiteral("not_elapsed"));
+                        } else if (status == QStringLiteral("not_elapsed")) {
+                            contradictions.push_back(kind + u':' + deadline + u':' +
+                                                     QStringLiteral("elapsed"));
+                        }
+                    } else if (kind == QStringLiteral("argument_scheduled") &&
+                               hasExactKeys(precondition, {"kind", "scheduled"}) &&
+                               precondition.value(QStringLiteral("scheduled")).isBool()) {
+                        const auto scheduled =
+                            precondition.value(QStringLiteral("scheduled")).toBool();
+                        subject = kind + u':' + (scheduled ? u"true" : u"false");
+                        contradictions.push_back(kind + u':' + (scheduled ? u"false" : u"true"));
+                        if (!scheduled) {
+                            contradictions.push_back(
+                                QStringLiteral("argument_date_status:reached"));
+                        }
+                    } else if (kind == QStringLiteral("argument_date_status") &&
+                               hasExactKeys(precondition, {"kind", "status"}) &&
+                               precondition.value(QStringLiteral("status")).toString() ==
+                                   QStringLiteral("reached")) {
+                        subject = QStringLiteral("argument_date_status:reached");
+                        contradictions.push_back(QStringLiteral("argument_scheduled:false"));
+                    } else if (kind == QStringLiteral("judgment_issued") &&
+                               hasExactKeys(precondition, {"kind", "issued"}) &&
+                               precondition.value(QStringLiteral("issued")).isBool()) {
+                        const auto issued = precondition.value(QStringLiteral("issued")).toBool();
+                        subject = kind + u':' + (issued ? u"true" : u"false");
+                        contradictions.push_back(kind + u':' + (issued ? u"false" : u"true"));
+                    } else {
+                        return crossReferenceFailure(
+                            resource, path,
+                            QStringLiteral("malformed filing-binding precondition"));
+                    }
+                    if (subjects.contains(subject) ||
+                        std::ranges::any_of(contradictions, [&](const QString& contradiction) {
+                            return subjects.contains(contradiction);
+                        })) {
+                        return crossReferenceFailure(
+                            resource, path,
+                            QStringLiteral("filing-binding preconditions repeat or contradict"));
+                    }
+                    subjects.insert(subject);
+                }
+                return {};
+            };
             for (const auto& value : filing_routes) {
                 const auto route = value.toObject();
                 const auto stage_id = route.value(QStringLiteral("stage_id")).toString();
@@ -1788,6 +2229,104 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 }
                 route_keys.insert(route_key);
                 declared_filing_type_ids.insert(filing_type_id);
+                if (route.contains(QStringLiteral("filing_bindings"))) {
+                    const auto bindings = route.value(QStringLiteral("filing_bindings")).toArray();
+                    if (resource.descriptor.schema_version != 2 || bindings.isEmpty() ||
+                        bindings.size() > 64 ||
+                        route.contains(QStringLiteral("deficiency_operation_id")) ||
+                        route.contains(QStringLiteral("deficiency_deadline"))) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("filing_routes/filing_bindings"),
+                            QStringLiteral("exact filing bindings require schema 2 and are "
+                                           "incompatible with deficiencies"));
+                    }
+                    const auto accept = operation_documents.value(
+                        route.value(QStringLiteral("accept_operation_id")).toString());
+                    const auto reject = operation_documents.value(
+                        route.value(QStringLiteral("reject_operation_id")).toString());
+                    const auto deadline =
+                        operation_documents.value(route.value(QStringLiteral("accepted_deadline"))
+                                                      .toObject()
+                                                      .value(QStringLiteral("operation_id"))
+                                                      .toString());
+                    const auto advance = operation_documents.value(
+                        route.value(QStringLiteral("advance_operation_id")).toString());
+                    for (const auto& binding_value : bindings) {
+                        const auto binding = binding_value.toObject();
+                        const auto exact_keys =
+                            hasExactKeys(binding, {"filing_id", "actor_id", "record_entry_id",
+                                                   "document_sha256", "expected_legal_time"}) ||
+                            hasExactKeys(binding, {"filing_id", "actor_id", "record_entry_id",
+                                                   "document_sha256", "expected_legal_time",
+                                                   "preconditions"});
+                        const auto filing_id =
+                            binding.value(QStringLiteral("filing_id")).toString();
+                        const auto record_entry_id =
+                            binding.value(QStringLiteral("record_entry_id")).toString();
+                        const auto expected_legal_time =
+                            binding.value(QStringLiteral("expected_legal_time"));
+                        const auto expected_legal_time_key =
+                            canonicalLegalTimeKey(expected_legal_time);
+                        const auto emitted_time_is_allowed = [&](const QJsonObject& operation) {
+                            if (operation.isEmpty()) {
+                                return true;
+                            }
+                            const auto allowed =
+                                operation.value(QStringLiteral("allowed_legal_times")).toArray();
+                            return operation.isEmpty() ||
+                                   (expected_legal_time_key.has_value() &&
+                                    std::ranges::any_of(
+                                        allowed, [&](const QJsonValue& allowed_time_value) {
+                                            return canonicalLegalTimeKey(allowed_time_value) ==
+                                                   expected_legal_time_key;
+                                        }));
+                        };
+                        if (!binding_value.isObject() || !exact_keys ||
+                            !isNamespacedId(filing_id) ||
+                            !isNamespacedId(binding.value(QStringLiteral("actor_id")).toString()) ||
+                            !isNamespacedId(record_entry_id) ||
+                            !isSha256(
+                                binding.value(QStringLiteral("document_sha256")).toString()) ||
+                            !expected_legal_time_key.has_value() ||
+                            bound_filing_ids.contains(filing_id) ||
+                            bound_record_entry_ids.contains(record_entry_id) ||
+                            static_trigger_filing_ids.contains(filing_id) ||
+                            static_trigger_record_entry_ids.contains(record_entry_id) ||
+                            !emitted_time_is_allowed(accept) || !emitted_time_is_allowed(reject) ||
+                            !emitted_time_is_allowed(deadline) ||
+                            !emitted_time_is_allowed(advance)) {
+                            return crossReferenceFailure(
+                                resource, QStringLiteral("filing_routes/filing_bindings"),
+                                QStringLiteral("filing bindings must use globally unique exact "
+                                               "tuples whose emitted operations allow their "
+                                               "court date"));
+                        }
+                        const auto binding_preconditions =
+                            binding.value(QStringLiteral("preconditions")).toArray();
+                        if (const auto validated = validateBindingPreconditions(
+                                binding_preconditions,
+                                QStringLiteral("filing_routes/filing_bindings/preconditions"));
+                            !validated) {
+                            return validated;
+                        }
+                        for (const auto& emitted : {accept, reject}) {
+                            auto combined =
+                                emitted.value(QStringLiteral("preconditions")).toArray();
+                            for (const auto& precondition : binding_preconditions) {
+                                combined.push_back(precondition);
+                            }
+                            if (const auto validated = validateBindingPreconditions(
+                                    combined,
+                                    QStringLiteral(
+                                        "filing_routes/filing_bindings/combined-preconditions"));
+                                !validated) {
+                                return validated;
+                            }
+                        }
+                        bound_filing_ids.insert(filing_id);
+                        bound_record_entry_ids.insert(record_entry_id);
+                    }
+                }
                 if (route.contains(QStringLiteral("authorized_role_scope")) &&
                     (resource.descriptor.schema_version != 2 ||
                      route.value(QStringLiteral("authorized_role_scope")).toString() !=
@@ -2814,6 +3353,98 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
             }
             for (const auto& route_value : workflow_filing_routes) {
                 const auto route = route_value.toObject();
+                for (const auto& binding_value :
+                     route.value(QStringLiteral("filing_bindings")).toArray()) {
+                    const auto binding = binding_value.toObject();
+                    const auto actor_id = binding.value(QStringLiteral("actor_id")).toString();
+                    const auto actor_role = case_actor_roles.value(actor_id);
+                    if (!case_actor_roles.contains(actor_id) ||
+                        !stringSet(route.value(QStringLiteral("authorized_role_ids")).toArray())
+                             .contains(actor_role) ||
+                        !validEntry(binding.value(QStringLiteral("record_entry_id")).toString(),
+                                    binding.value(QStringLiteral("document_sha256")).toString(),
+                                    binding.value(QStringLiteral("expected_legal_time"))
+                                        .toObject()
+                                        .value(QStringLiteral("court_date"))
+                                        .toString())) {
+                        return crossReferenceFailure(
+                            resource, QStringLiteral("workflow/filing_bindings"),
+                            QStringLiteral("binding must resolve to an eligible case actor and "
+                                           "the case's exact unsealed record filing/date"));
+                    }
+                    for (const auto& precondition_value :
+                         binding.value(QStringLiteral("preconditions")).toArray()) {
+                        const auto precondition = precondition_value.toObject();
+                        const auto kind = precondition.value(QStringLiteral("kind")).toString();
+                        if (kind == QStringLiteral("filing_instance")) {
+                            const auto selector_actor_id =
+                                precondition.value(QStringLiteral("actor_id")).toString();
+                            const auto selector_actor_role =
+                                case_actor_roles.value(selector_actor_id);
+                            const auto filing_type_id =
+                                precondition.value(QStringLiteral("filing_type_id")).toString();
+                            const auto accept_operation_id =
+                                precondition.value(QStringLiteral("accept_operation_id"))
+                                    .toString();
+                            const auto accept = operations_by_id.constFind(accept_operation_id);
+                            const auto source_route = std::ranges::find_if(
+                                workflow_filing_routes, [&](const QJsonValue& candidate_value) {
+                                    const auto candidate = candidate_value.toObject();
+                                    return candidate.value(QStringLiteral("filing_type_id"))
+                                                   .toString() == filing_type_id &&
+                                           candidate.value(QStringLiteral("accept_operation_id"))
+                                                   .toString() == accept_operation_id;
+                                });
+                            if (!case_actor_roles.contains(selector_actor_id) ||
+                                accept == operations_by_id.constEnd() ||
+                                accept->value(QStringLiteral("opcode")).toString() !=
+                                    QStringLiteral("accept_filing") ||
+                                source_route == workflow_filing_routes.end() ||
+                                !stringSet(source_route->toObject()
+                                               .value(QStringLiteral("authorized_role_ids"))
+                                               .toArray())
+                                     .contains(selector_actor_role) ||
+                                !validEntry(precondition.value(QStringLiteral("record_entry_id"))
+                                                .toString(),
+                                            precondition.value(QStringLiteral("document_sha256"))
+                                                .toString())) {
+                                return crossReferenceFailure(
+                                    resource,
+                                    QStringLiteral("workflow/filing_bindings/preconditions"),
+                                    QStringLiteral("filing selector must resolve within the case, "
+                                                   "route, and exact unsealed record"));
+                            }
+                        } else if (kind == QStringLiteral("order_instance")) {
+                            const auto source = operations_by_id.constFind(
+                                precondition.value(QStringLiteral("operation_id")).toString());
+                            const auto document_binding =
+                                source == operations_by_id.constEnd()
+                                    ? QJsonObject{}
+                                    : source->value(QStringLiteral("document_binding")).toObject();
+                            if (source == operations_by_id.constEnd() ||
+                                source->value(QStringLiteral("opcode")).toString() !=
+                                    QStringLiteral("enter_order") ||
+                                document_binding.value(QStringLiteral("record_entry_id")) !=
+                                    precondition.value(QStringLiteral("record_entry_id")) ||
+                                document_binding.value(QStringLiteral("document_sha256")) !=
+                                    precondition.value(QStringLiteral("document_sha256")) ||
+                                document_binding.value(QStringLiteral("order_id")) !=
+                                    precondition.value(QStringLiteral("order_id")) ||
+                                document_binding.value(QStringLiteral("disposition")) !=
+                                    precondition.value(QStringLiteral("disposition")) ||
+                                !validEntry(precondition.value(QStringLiteral("record_entry_id"))
+                                                .toString(),
+                                            precondition.value(QStringLiteral("document_sha256"))
+                                                .toString())) {
+                                return crossReferenceFailure(
+                                    resource,
+                                    QStringLiteral("workflow/filing_bindings/preconditions"),
+                                    QStringLiteral("order selector must resolve to its exact "
+                                                   "bound EnterOrder and record"));
+                            }
+                        }
+                    }
+                }
                 const auto deadline = route.value(QStringLiteral("deficiency_deadline")).toObject();
                 if (deadline.value(QStringLiteral("id_mode")).toString() !=
                     QStringLiteral("exact")) {
@@ -3733,7 +4364,9 @@ readDirectoryImpl(const QString& directory, PackValidationScope scope,
         usesGroundedQuestions(resources), usesRealismEvidence(resources),
         usesSealedRecordTwins(resources), usesRouteRoleSubsets(resources),
         usesWorkflowInstancePreconditions(resources), usesStaticDeficiencyDeadlines(resources),
-        usesOperationDocumentBindings(resources), usesOperationDispositionBindings(resources));
+        usesOperationDocumentBindings(resources), usesOperationDispositionBindings(resources),
+        usesRouteFilingBindings(resources), usesAlternativeEventDateDeadlines(resources),
+        usesOperationLegalTimeGuards(resources));
     if (!content_capability_coverage) {
         return std::unexpected(content_capability_coverage.error());
     }
@@ -3828,7 +4461,10 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
             usesWorkflowInstancePreconditions(pack.resources),
             usesStaticDeficiencyDeadlines(pack.resources),
             usesOperationDocumentBindings(pack.resources),
-            usesOperationDispositionBindings(pack.resources));
+            usesOperationDispositionBindings(pack.resources),
+            usesRouteFilingBindings(pack.resources),
+            usesAlternativeEventDateDeadlines(pack.resources),
+            usesOperationLegalTimeGuards(pack.resources));
     };
     const auto root_capabilities = validate_capabilities(root);
     if (!root_capabilities) {

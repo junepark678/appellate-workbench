@@ -397,6 +397,22 @@ originating `operation_id`. The engine uses the replay-derived occurrence date, 
 calculation command is entered later. An order selector must name an `enter_order` operation and
 must match the operation and time stored with that exact order record.
 
+`workbench.pack.alternative-event-date-deadlines` version 1 adds the
+`order_occurred_one_of` closed form. It contains exactly `kind`, `order_id`, and a nonempty list of
+one through 64 unique `operation_ids`. Every listed operation must be an `enter_order` operation
+whose document binding names that same exact order ID. The base resolves only when the stored
+order was created by one of those operations; the engine then uses the order's recorded court
+date. For each logical reserved order ID, the allowed owner set is the union of source operation
+IDs named by all order-occurrence bases for that ID. Every `enter_order` operation whose document
+binding names the reserved ID must belong to that workflow-wide union; an owner outside it makes
+the definition invalid. Each individual base still resolves only from its own listed source or
+sources, so intentionally divergent selectors remain independent. An absent order, an unbound
+source, or an originating operation outside that base's list leaves that base unmet rather than
+falling back to the calculation date. This form requires both the
+alternative-event-date and event-date-deadline capabilities. Its operation-ID vector is retained
+in authored order in the schema-4 event snapshot and canonical persistence bytes; empty,
+duplicate, missing, extra-key, unknown-kind, and schema-downgrade forms fail closed.
+
 Argument-date guards are owned by `workbench.pack.argument-date-guards` version 1. The
 schema-version-2 `argument_date_status: reached` precondition requires a scheduled argument and is
 true only when the command court date is on or after that scheduled date. It conflicts with an
@@ -425,6 +441,41 @@ indistinguishable after load. The complete selector, including `record_entry_id`
 snapshotted in event persistence and compared exactly to the pinned definition during replay.
 Accepted-filing state records learn `accept_operation_id` from the accepted event header; it is
 not a new legacy event-payload field, so existing event bytes remain unchanged.
+
+`workbench.pack.route-filing-bindings` version 1 adds an optional nonempty `filing_bindings` list
+to a schema-version-2 route. Each closed binding contains an exact `filing_id`, `actor_id`,
+unsealed `record_entry_id`, `document_sha256`, and `expected_legal_time`, plus optional workflow
+`preconditions`. `expected_legal_time` is the closed pair of an ISO `court_date` and a decimal
+`instant_unix_seconds` string of at most 20 characters; it is not a date-only match. The record
+entry must belong to the owning case, its asset must match the digest, and its filed date must
+equal the bound court date.
+The actor must exist and hold a role authorized by that route. Filing IDs and record-entry IDs are
+globally unique across the workflow's bindings. A bound route cannot declare a deficiency
+operation or deficiency deadline.
+
+Submission first resolves the current stage and filing-type route and then the exact binding by
+filing ID. The route identity and binding's actor, document digest, complete legal-time pair, and
+binding preconditions are checked before any event is emitted. An unknown binding or a mismatch
+is an invalid command; an unmet binding precondition is an unmet-precondition error. Neither case
+emits an event, advances the legal-time cursor, or reserves the filing ID. Once that complete
+identity matches, ordinary route validation applies. Missing required fields or service then
+produces the ordinary `NonconformingFiling` rejection, not a deficiency event. Rejection does not
+reserve the filing ID, so a new command may immediately retry that exact ID and binding at the
+same legal time with the missing material supplied.
+
+Accepted and rejected events snapshot the binding preconditions together with the selected
+operation's preconditions. Application of a standalone `WorkflowFilingRejected` can recheck the
+route, filing ID, actor, expected legal time, and preconditions, but cannot independently recheck
+the complete rejection decision. Its payload has no document digest, submitted fields, service
+set, or cure target, and the rejection reason cannot in general be derived without those command
+inputs. Exact journal replay does retain the full guarantee: it redecides the persisted
+`SubmitWorkflowFiling`, which carries all of those inputs, and requires the resulting event bytes
+to equal the persisted event exactly. An accepted event carries its digest and service set, and
+standalone application checks the digest and every state-visible binding field: filing ID, actor,
+document digest, and exact legal time. As described above, the record-entry ID is an authoring-time
+provenance anchor rather than an event field. The event does not carry submitted field values, and
+standalone application does not independently rederive required-field or service conformance;
+exact replay redecides both from the command.
 
 `workbench.pack.static-deficiency-deadlines` version 1 adds
 `id_mode: "exact"` to a route's `deficiency_deadline`. Its `trigger_filing` binds the filing ID,
@@ -464,6 +515,30 @@ revalidate accepted filings, entered orders, and static exact deficiencies, but 
 does not add source-operation fields for scheduled arguments, judgments, or mandates; those
 bindings are enforced at command decision and exact journal replay.
 
+`workbench.pack.operation-legal-time-guards` version 1 adds `allowed_legal_times` to
+schema-version-2 operations. Each entry is a closed `LegalTime` object containing exactly
+`court_date` and `instant_unix_seconds`; a list contains one through 64 unique exact pairs. If any
+operation in a workflow declares this feature, every operation must declare a nonempty list. An
+explicit command or automatically emitted filing event must use a pair listed by its exact
+operation. Comparing the complete pair prevents an allowed court date combined with an arbitrary
+future instant from advancing the monotonic legal-time cursor and stranding the authored history.
+
+A document-bound operation must include at least one allowed pair whose court date equals its
+`expected_court_date`, and a schedule-argument operation must do the same for its
+`expected_argument_date`. Every accept, reject, accepted-deadline, or advance operation that a
+bound route can emit must list every binding's exact `expected_legal_time`. These are definition
+checks as well as decision/application checks, so a partially guarded workflow or a route whose
+automatic event group cannot share its bound pair fails before execution.
+
+Engine callers supply materialized `WorkflowState` as trusted, replay-derived state. Its legal-time
+cursor is structurally checked for a valid authored pair and monotonic compatibility with the
+state fields that carry occurrence times; this is not proof that an arbitrary caller-constructed
+snapshot was produced by the claimed last operation. Session persistence does not trust stored
+materialized state for that provenance: it reconstructs state from the canonical command/event
+journal, redecides each command, compares every event exactly, and advances the cursor only while
+applying that journal. Exact operation/time provenance therefore belongs to journal replay, not
+to union-membership validation of an independently supplied state snapshot.
+
 `workbench.pack.operation-disposition-bindings` version 1 adds an optional
 `disposition_plan_id` to a schema-version-2 `issue_judgment` operation. The identifier must name a
 structured disposition plan declared by every case that owns the workflow through its procedure
@@ -498,6 +573,13 @@ Replay compares all three fields to the pinned operation definition and verifies
 base occurrence. Schema-4 non-deadline events carry no deadline-binding keys. Schema 3 rejects the
 new guard forms, and relabeling between schema 3 and 4 fails closed. Existing schema-1, schema-2,
 and schema-3 bytes and behavior remain unchanged.
+
+The one-of order event base uses that existing schema-4 deadline snapshot; it does not introduce
+a new persistence version. Operation legal-time guards and exact route bindings likewise add no
+new command or event time field because command and event headers already persist the complete
+`LegalTime`. Replay uses the pinned workflow definition and redecides the canonical command/event
+journal. Definitions that omit these new fields therefore retain their existing schema selection,
+canonical bytes, and frozen hashes.
 
 Persistence schema version 5 is selected if and only if an event header snapshots at least one
 `filing_instance` or `order_instance` guard, including when schema-4 deadline or reached-date
@@ -541,7 +623,11 @@ version-1 capability described above. Role subsets, exact workflow-instance guar
 deficiency deadlines, operation document/date bindings, and operation disposition bindings
 likewise require their independently negotiated version-1 capabilities and schema-version-2
 resources. Operation disposition bindings additionally require the structured-disposition
-capability. Authored grounded questions and exact realism evidence likewise require
+capability. Alternative order event-date bases, exact filing-route bindings, and operation
+legal-time guards require `workbench.pack.alternative-event-date-deadlines`,
+`workbench.pack.route-filing-bindings`, and `workbench.pack.operation-legal-time-guards` version 1,
+respectively; the alternative base additionally requires `workbench.pack.event-date-deadlines`
+version 1. Authored grounded questions and exact realism evidence likewise require
 `workbench.pack.grounded-questions` version 1 and `workbench.pack.realism-evidence` version 1,
 respectively. An empty list, an unrelated-only declaration, or a declaration missing any required
 capability fails at pack read, resolved-catalog load, and independent runtime projection. Unknown

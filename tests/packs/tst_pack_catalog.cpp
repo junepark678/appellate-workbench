@@ -41,7 +41,8 @@ class PackCatalogTest final : public QObject {
     void refusesInstallOverCorruptBlobObject();
     void detectsTamperedBlobDescriptor();
     void migratesV1BlobDescriptors();
-    void resolvesCatalogPackWithExtendedDeadlineCapabilities();
+    void negotiatesNewWorkflowCapabilityDeclarations();
+    void resolvesCatalogPackWithExtendedWorkflowCapabilities();
 };
 
 [[nodiscard]] QByteArray sha256(const QByteArray& bytes) {
@@ -675,7 +676,70 @@ void PackCatalogTest::migratesV1BlobDescriptors() {
     QCOMPARE(opened.readAll(), testPdf());
 }
 
-void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
+void PackCatalogTest::negotiatesNewWorkflowCapabilityDeclarations() {
+    const std::vector<std::string> feature_ids{
+        "workbench.pack.route-filing-bindings",
+        "workbench.pack.alternative-event-date-deadlines",
+        "workbench.pack.operation-legal-time-guards",
+    };
+    const auto supported = appellate::packs::CapabilityRegistry::supported();
+    for (const auto& feature_id : feature_ids) {
+        const auto capability = std::ranges::find_if(supported, [&](const auto& candidate) {
+            return candidate.id == feature_id && candidate.version == 1;
+        });
+        QVERIFY(capability != supported.end());
+        QCOMPARE(capability->minimum_manifest_schema_version, std::uint32_t{2});
+        QCOMPARE(capability->maximum_manifest_schema_version, std::uint32_t{2});
+
+        const std::vector declaration{appellate::model::RequiredCapability{feature_id, 1}};
+        QVERIFY(
+            appellate::packs::CapabilityRegistry::validateDeclarations(2, declaration).has_value());
+        QVERIFY(!appellate::packs::CapabilityRegistry::validateDeclarations(1, declaration)
+                     .has_value());
+        QVERIFY(!appellate::packs::CapabilityRegistry::validateDeclarations(3, declaration)
+                     .has_value());
+    }
+
+    const std::vector declarations{
+        appellate::model::RequiredCapability{"workbench.pack.declarative-resources", 2},
+        appellate::model::RequiredCapability{"workbench.pack.event-date-deadlines", 1},
+        appellate::model::RequiredCapability{"workbench.pack.route-filing-bindings", 1},
+        appellate::model::RequiredCapability{"workbench.pack.alternative-event-date-deadlines", 1},
+        appellate::model::RequiredCapability{"workbench.pack.operation-legal-time-guards", 1},
+    };
+    const auto validate_coverage = [](const auto& declared) {
+        return appellate::packs::CapabilityRegistry::validateCoverage(
+            2, declared, std::span<const appellate::model::ResourceKind>{},
+            false, // workflow preconditions
+            false, // dependent deadlines
+            false, // named deadlines
+            true,  // event-date deadlines
+            false, // argument-date guards
+            false, // structured disposition
+            false, // grounded questions
+            false, // realism evidence
+            false, // sealed record twins
+            false, // route-role subsets
+            false, // workflow-instance preconditions
+            false, // static deficiency deadlines
+            false, // operation document bindings
+            false, // operation disposition bindings
+            true,  // route filing bindings
+            true,  // alternative event-date deadlines
+            true); // operation legal-time guards
+    };
+    QVERIFY(validate_coverage(declarations).has_value());
+    for (const auto& omitted_id : feature_ids) {
+        auto incomplete = declarations;
+        std::erase_if(incomplete,
+                      [&](const auto& capability) { return capability.id == omitted_id; });
+        const auto rejected = validate_coverage(incomplete);
+        QVERIFY(!rejected.has_value());
+        QVERIFY(rejected.error().message.contains(QString::fromStdString(omitted_id)));
+    }
+}
+
+void PackCatalogTest::resolvesCatalogPackWithExtendedWorkflowCapabilities() {
     const auto supported = appellate::packs::CapabilityRegistry::supported();
     const auto disposition_binding_capability =
         std::ranges::find_if(supported, [](const auto& capability) {
@@ -725,6 +789,82 @@ void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
     event_based.insert(QStringLiteral("authorized_role_ids"),
                        QJsonArray{QStringLiteral("example.role.court")});
     operations.push_back(event_based);
+
+    const auto court_authority = QJsonObject{
+        {QStringLiteral("primary_authority_id"), QStringLiteral("example.authority.rule-one")},
+        {QStringLiteral("supporting_authority_ids"), QJsonArray{}},
+    };
+    const auto document_sha256 =
+        QStringLiteral("bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366");
+    const auto first_legal_time = QJsonObject{
+        {QStringLiteral("court_date"), QStringLiteral("2026-01-02")},
+        {QStringLiteral("instant_unix_seconds"), QStringLiteral("1767312000")},
+    };
+    const auto second_legal_time = QJsonObject{
+        {QStringLiteral("court_date"), QStringLiteral("2026-01-03")},
+        {QStringLiteral("instant_unix_seconds"), QStringLiteral("1767398400")},
+    };
+    const auto allowed_legal_times = QJsonArray{first_legal_time, second_legal_time};
+    const auto alternative_order_id = QStringLiteral("example.order.alternative");
+    const auto first_order_operation_id = QStringLiteral("example.operation.enter-alternative-one");
+    const auto second_order_operation_id =
+        QStringLiteral("example.operation.enter-alternative-two");
+    operations.push_back(QJsonObject{
+        {QStringLiteral("operation_id"), first_order_operation_id},
+        {QStringLiteral("stage_id"), QStringLiteral("example.stage.opened")},
+        {QStringLiteral("opcode"), QStringLiteral("enter_order")},
+        {QStringLiteral("authority"), court_authority},
+        {QStringLiteral("authorized_role_ids"), QJsonArray{QStringLiteral("example.role.court")}},
+        {QStringLiteral("document_binding"),
+         QJsonObject{
+             {QStringLiteral("record_entry_id"), QStringLiteral("example.record.entry-one")},
+             {QStringLiteral("document_sha256"), document_sha256},
+             {QStringLiteral("expected_court_date"), QStringLiteral("2026-01-02")},
+             {QStringLiteral("order_id"), alternative_order_id},
+             {QStringLiteral("disposition"), QStringLiteral("other")},
+         }},
+    });
+    operations.push_back(QJsonObject{
+        {QStringLiteral("operation_id"), second_order_operation_id},
+        {QStringLiteral("stage_id"), QStringLiteral("example.stage.submitted")},
+        {QStringLiteral("opcode"), QStringLiteral("enter_order")},
+        {QStringLiteral("authority"), court_authority},
+        {QStringLiteral("authorized_role_ids"), QJsonArray{QStringLiteral("example.role.court")}},
+        {QStringLiteral("document_binding"),
+         QJsonObject{
+             {QStringLiteral("record_entry_id"), QStringLiteral("example.record.brief-opening")},
+             {QStringLiteral("document_sha256"), document_sha256},
+             {QStringLiteral("expected_court_date"), QStringLiteral("2026-01-03")},
+             {QStringLiteral("order_id"), alternative_order_id},
+             {QStringLiteral("disposition"), QStringLiteral("other")},
+         }},
+    });
+    auto alternative_event_based = calculation;
+    alternative_event_based.insert(
+        QStringLiteral("operation_id"),
+        QStringLiteral("example.operation.calculate-from-alternative-order"));
+    alternative_event_based.insert(QStringLiteral("stage_id"),
+                                   QStringLiteral("example.stage.submitted"));
+    alternative_event_based.insert(QStringLiteral("produced_deadline_id"),
+                                   QStringLiteral("example.deadline.from-alternative-order"));
+    alternative_event_based.insert(
+        QStringLiteral("deadline_event_base"),
+        QJsonObject{
+            {QStringLiteral("kind"), QStringLiteral("order_occurred_one_of")},
+            {QStringLiteral("order_id"), alternative_order_id},
+            {QStringLiteral("operation_ids"),
+             QJsonArray{first_order_operation_id, second_order_operation_id}},
+        });
+    alternative_event_based.insert(QStringLiteral("authorized_role_ids"),
+                                   QJsonArray{QStringLiteral("example.role.court")});
+    operations.push_back(alternative_event_based);
+    operations.push_back(QJsonObject{
+        {QStringLiteral("operation_id"), QStringLiteral("example.operation.accept-bound-notice")},
+        {QStringLiteral("stage_id"), QStringLiteral("example.stage.submitted")},
+        {QStringLiteral("opcode"), QStringLiteral("accept_filing")},
+        {QStringLiteral("authority"), court_authority},
+        {QStringLiteral("authorized_role_ids"), QJsonArray{}},
+    });
     for (qsizetype index = 0; index < operations.size(); ++index) {
         auto operation = operations.at(index).toObject();
         if (operation.value(QStringLiteral("operation_id")).toString() !=
@@ -768,6 +908,11 @@ void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
         operations.replace(index, operation);
         break;
     }
+    for (qsizetype index = 0; index < operations.size(); ++index) {
+        auto operation = operations.at(index).toObject();
+        operation.insert(QStringLiteral("allowed_legal_times"), allowed_legal_times);
+        operations.replace(index, operation);
+    }
     workflow.insert(QStringLiteral("operations"), operations);
     auto routes = workflow.value(QStringLiteral("filing_routes")).toArray();
     auto route = routes.at(0).toObject();
@@ -782,15 +927,45 @@ void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
              QJsonObject{
                  {QStringLiteral("filing_id"), QStringLiteral("example.filing.notice-deficient")},
                  {QStringLiteral("actor_id"), QStringLiteral("example.actor.appellant")},
-                 {QStringLiteral("record_entry_id"),
-                  QStringLiteral("example.record.brief-opening")},
+                 {QStringLiteral("record_entry_id"), QStringLiteral("example.record.entry-one")},
                  {QStringLiteral("document_sha256"),
                   QStringLiteral(
                       "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366")},
-                 {QStringLiteral("expected_court_date"), QStringLiteral("2026-01-03")},
+                 {QStringLiteral("expected_court_date"), QStringLiteral("2026-01-02")},
              }},
         });
     routes.replace(0, route);
+    routes.push_back(QJsonObject{
+        {QStringLiteral("filing_type_id"), QStringLiteral("example.filing.notice")},
+        {QStringLiteral("stage_id"), QStringLiteral("example.stage.submitted")},
+        {QStringLiteral("authorized_role_ids"),
+         QJsonArray{QStringLiteral("example.role.appellant")}},
+        {QStringLiteral("required_field_ids"), QJsonArray{QStringLiteral("example.field.caption")}},
+        {QStringLiteral("required_service_role_ids"),
+         QJsonArray{QStringLiteral("example.role.appellee")}},
+        {QStringLiteral("accept_operation_id"),
+         QStringLiteral("example.operation.accept-bound-notice")},
+        {QStringLiteral("reject_operation_id"),
+         QStringLiteral("example.operation.reject-submitted")},
+        {QStringLiteral("filing_bindings"),
+         QJsonArray{QJsonObject{
+             {QStringLiteral("filing_id"), QStringLiteral("example.filing.bound-notice")},
+             {QStringLiteral("actor_id"), QStringLiteral("example.actor.appellant")},
+             {QStringLiteral("record_entry_id"), QStringLiteral("example.record.brief-opening")},
+             {QStringLiteral("document_sha256"), document_sha256},
+             {QStringLiteral("expected_legal_time"), second_legal_time},
+             {QStringLiteral("preconditions"),
+              QJsonArray{QJsonObject{
+                  {QStringLiteral("kind"), QStringLiteral("order_instance")},
+                  {QStringLiteral("order_id"), alternative_order_id},
+                  {QStringLiteral("disposition"), QStringLiteral("other")},
+                  {QStringLiteral("operation_id"), first_order_operation_id},
+                  {QStringLiteral("record_entry_id"), QStringLiteral("example.record.entry-one")},
+                  {QStringLiteral("document_sha256"), document_sha256},
+              }}},
+         }}},
+        {QStringLiteral("reject_after_deadline"), true},
+    });
     workflow.insert(QStringLiteral("filing_routes"), routes);
     const auto workflow_bytes = QJsonDocument(workflow).toJson(QJsonDocument::Indented);
     QVERIFY(replaceAll(workflow_path, workflow_bytes));
@@ -807,7 +982,9 @@ void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
           "workbench.pack.route-role-subsets", "workbench.pack.workflow-instance-preconditions",
           "workbench.pack.static-deficiency-deadlines",
           "workbench.pack.operation-document-bindings",
-          "workbench.pack.operation-disposition-bindings"}) {
+          "workbench.pack.operation-disposition-bindings", "workbench.pack.route-filing-bindings",
+          "workbench.pack.alternative-event-date-deadlines",
+          "workbench.pack.operation-legal-time-guards"}) {
         capabilities.push_back(QJsonObject{{QStringLiteral("id"), QString::fromLatin1(capability)},
                                            {QStringLiteral("version"), 1}});
     }

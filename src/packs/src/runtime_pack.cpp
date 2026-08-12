@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -492,6 +493,45 @@ void addDispositionFrame(QCryptographicHash& hash, const std::string& value) {
     return dateValue(object.value(QLatin1StringView(key)), path + "." + key);
 }
 
+[[nodiscard]] Result<model::LegalTime> legalTimeValue(const QJsonValue& value,
+                                                      const std::string& path) {
+    if (!value.isObject()) {
+        return fail(RuntimePackErrorCode::InvalidResource, path + " must be a legal-time object");
+    }
+    const auto object = value.toObject();
+    if (!hasExactKeys(object, {"court_date", "instant_unix_seconds"})) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + " must contain only court_date and instant_unix_seconds");
+    }
+    const auto court_date = requiredDate(object, "court_date", path);
+    const auto seconds_value = object.value(QStringLiteral("instant_unix_seconds"));
+    if (!court_date || !seconds_value.isString()) {
+        if (!court_date) {
+            return std::unexpected(court_date.error());
+        }
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + ".instant_unix_seconds must be a canonical signed int64 string");
+    }
+    const auto seconds_text = seconds_value.toString().toStdString();
+    const auto canonical = !seconds_text.empty() && seconds_text != "-0" &&
+                           seconds_text.front() != '+' &&
+                           !(seconds_text.size() > 1 && seconds_text.front() == '0') &&
+                           !(seconds_text.size() > 2 && seconds_text.starts_with("-0"));
+    std::int64_t seconds{};
+    const auto [end, error] =
+        std::from_chars(seconds_text.data(), seconds_text.data() + seconds_text.size(), seconds);
+    if (!canonical || error != std::errc{} || end != seconds_text.data() + seconds_text.size()) {
+        return fail(RuntimePackErrorCode::InvalidResource,
+                    path + ".instant_unix_seconds must be a canonical signed int64 string");
+    }
+    return model::LegalTime{std::chrono::sys_seconds{std::chrono::seconds{seconds}}, *court_date};
+}
+
+[[nodiscard]] Result<model::LegalTime> requiredLegalTime(const QJsonObject& object, const char* key,
+                                                         const std::string& path) {
+    return legalTimeValue(object.value(QLatin1StringView(key)), path + "." + key);
+}
+
 [[nodiscard]] Result<std::optional<std::string>>
 optionalId(const QJsonObject& object, const char* key, const std::string& path) {
     if (!object.contains(QLatin1StringView(key))) {
@@ -856,38 +896,69 @@ struct ResourceIndex final {
                                [](const auto& resource) { return resource.descriptor.kind; });
         const auto uses_workflow_preconditions =
             std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
-                return resource.descriptor.kind == model::ResourceKind::Workflow &&
-                       std::ranges::any_of(
-                           resource.document.value(QStringLiteral("operations")).toArray(),
-                           [](const QJsonValue& operation) {
-                               return !operation.toObject()
-                                           .value(QStringLiteral("preconditions"))
-                                           .toArray()
-                                           .isEmpty();
-                           });
+                if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+                    return false;
+                }
+                if (std::ranges::any_of(
+                        resource.document.value(QStringLiteral("operations")).toArray(),
+                        [](const QJsonValue& operation) {
+                            return !operation.toObject()
+                                        .value(QStringLiteral("preconditions"))
+                                        .toArray()
+                                        .isEmpty();
+                        })) {
+                    return true;
+                }
+                return std::ranges::any_of(
+                    resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                    [](const QJsonValue& route) {
+                        return std::ranges::any_of(
+                            route.toObject().value(QStringLiteral("filing_bindings")).toArray(),
+                            [](const QJsonValue& binding) {
+                                return !binding.toObject()
+                                            .value(QStringLiteral("preconditions"))
+                                            .toArray()
+                                            .isEmpty();
+                            });
+                    });
             });
         const auto uses_dependent_deadlines =
             std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
                 if (resource.descriptor.kind != model::ResourceKind::Workflow) {
                     return false;
                 }
-                return std::ranges::any_of(
+                const auto is_reached = [](const QJsonValue& precondition_value) {
+                    const auto precondition = precondition_value.toObject();
+                    return precondition.value(QStringLiteral("kind")).toString() ==
+                               QStringLiteral("deadline_status") &&
+                           precondition.value(QStringLiteral("status")).toString() ==
+                               QStringLiteral("reached");
+                };
+                const auto operation_feature = std::ranges::any_of(
                     resource.document.value(QStringLiteral("operations")).toArray(),
-                    [](const QJsonValue& operation_value) {
+                    [&](const QJsonValue& operation_value) {
                         const auto operation = operation_value.toObject();
-                        if (operation.contains(QStringLiteral("deadline_base_id"))) {
-                            return true;
-                        }
-                        return std::ranges::any_of(
-                            operation.value(QStringLiteral("preconditions")).toArray(),
-                            [](const QJsonValue& precondition_value) {
-                                const auto precondition = precondition_value.toObject();
-                                return precondition.value(QStringLiteral("kind")).toString() ==
-                                           QStringLiteral("deadline_status") &&
-                                       precondition.value(QStringLiteral("status")).toString() ==
-                                           QStringLiteral("reached");
-                            });
+                        return operation.contains(QStringLiteral("deadline_base_id")) ||
+                               std::ranges::any_of(
+                                   operation.value(QStringLiteral("preconditions")).toArray(),
+                                   is_reached);
                     });
+                return operation_feature ||
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [&](const QJsonValue& route) {
+                               return std::ranges::any_of(
+                                   route.toObject()
+                                       .value(QStringLiteral("filing_bindings"))
+                                       .toArray(),
+                                   [&](const QJsonValue& binding) {
+                                       return std::ranges::any_of(
+                                           binding.toObject()
+                                               .value(QStringLiteral("preconditions"))
+                                               .toArray(),
+                                           is_reached);
+                                   });
+                           });
             });
         const auto uses_named_deadlines =
             std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
@@ -918,19 +989,34 @@ struct ResourceIndex final {
                 if (resource.descriptor.kind != model::ResourceKind::Workflow) {
                     return false;
                 }
-                return std::ranges::any_of(
+                const auto is_argument_date = [](const QJsonValue& precondition_value) {
+                    return precondition_value.toObject().value(QStringLiteral("kind")).toString() ==
+                           QStringLiteral("argument_date_status");
+                };
+                const auto operation_feature = std::ranges::any_of(
                     resource.document.value(QStringLiteral("operations")).toArray(),
-                    [](const QJsonValue& operation_value) {
-                        return std::ranges::any_of(
-                            operation_value.toObject()
-                                .value(QStringLiteral("preconditions"))
-                                .toArray(),
-                            [](const QJsonValue& precondition_value) {
-                                return precondition_value.toObject()
-                                           .value(QStringLiteral("kind"))
-                                           .toString() == QStringLiteral("argument_date_status");
-                            });
+                    [&](const QJsonValue& operation_value) {
+                        return std::ranges::any_of(operation_value.toObject()
+                                                       .value(QStringLiteral("preconditions"))
+                                                       .toArray(),
+                                                   is_argument_date);
                     });
+                return operation_feature ||
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [&](const QJsonValue& route) {
+                               return std::ranges::any_of(
+                                   route.toObject()
+                                       .value(QStringLiteral("filing_bindings"))
+                                       .toArray(),
+                                   [&](const QJsonValue& binding) {
+                                       return std::ranges::any_of(
+                                           binding.toObject()
+                                               .value(QStringLiteral("preconditions"))
+                                               .toArray(),
+                                           is_argument_date);
+                                   });
+                           });
             });
         const auto uses_structured_disposition =
             std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
@@ -979,20 +1065,34 @@ struct ResourceIndex final {
             });
         const auto uses_workflow_instance_preconditions =
             std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
-                return resource.descriptor.kind == model::ResourceKind::Workflow &&
-                       std::ranges::any_of(
+                if (resource.descriptor.kind != model::ResourceKind::Workflow)
+                    return false;
+                const auto has_instance = [](const QJsonArray& preconditions) {
+                    return std::ranges::any_of(preconditions, [](const QJsonValue& value) {
+                        const auto kind = value.toObject().value(QStringLiteral("kind")).toString();
+                        return kind == QStringLiteral("filing_instance") ||
+                               kind == QStringLiteral("order_instance");
+                    });
+                };
+                return std::ranges::any_of(
                            resource.document.value(QStringLiteral("operations")).toArray(),
-                           [](const QJsonValue& operation) {
+                           [&](const QJsonValue& operation) {
+                               return has_instance(operation.toObject()
+                                                       .value(QStringLiteral("preconditions"))
+                                                       .toArray());
+                           }) ||
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [&](const QJsonValue& route) {
                                return std::ranges::any_of(
-                                   operation.toObject()
-                                       .value(QStringLiteral("preconditions"))
+                                   route.toObject()
+                                       .value(QStringLiteral("filing_bindings"))
                                        .toArray(),
-                                   [](const QJsonValue& value) {
-                                       const auto kind = value.toObject()
-                                                             .value(QStringLiteral("kind"))
-                                                             .toString();
-                                       return kind == QStringLiteral("filing_instance") ||
-                                              kind == QStringLiteral("order_instance");
+                                   [&](const QJsonValue& binding) {
+                                       return has_instance(
+                                           binding.toObject()
+                                               .value(QStringLiteral("preconditions"))
+                                               .toArray());
                                    });
                            });
             });
@@ -1030,6 +1130,38 @@ struct ResourceIndex final {
                                    QStringLiteral("disposition_plan_id"));
                            });
             });
+        const auto uses_route_filing_bindings =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [](const QJsonValue& route) {
+                               return route.toObject().contains(QStringLiteral("filing_bindings"));
+                           });
+            });
+        const auto uses_alternative_event_date_deadlines =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation) {
+                               return operation.toObject()
+                                          .value(QStringLiteral("deadline_event_base"))
+                                          .toObject()
+                                          .value(QStringLiteral("kind"))
+                                          .toString() == QStringLiteral("order_occurred_one_of");
+                           });
+            });
+        const auto uses_operation_legal_time_guards =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation) {
+                               return operation.toObject().contains(
+                                   QStringLiteral("allowed_legal_times"));
+                           });
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             pack->manifest_schema_version, pack->required_capabilities, resource_kinds,
             uses_workflow_preconditions, uses_dependent_deadlines, uses_named_deadlines,
@@ -1037,7 +1169,8 @@ struct ResourceIndex final {
             uses_grounded_questions, uses_realism_evidence, uses_sealed_record_twins,
             uses_route_role_subsets, uses_workflow_instance_preconditions,
             uses_static_deficiency_deadlines, uses_operation_document_bindings,
-            uses_operation_disposition_bindings);
+            uses_operation_disposition_bindings, uses_route_filing_bindings,
+            uses_alternative_event_date_deadlines, uses_operation_legal_time_guards);
         if (!capabilities) {
             return fail(RuntimePackErrorCode::InvalidPack,
                         capabilities.error().message.toStdString());
@@ -1688,6 +1821,100 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
     return result;
 }
 
+[[nodiscard]] bool
+workflowPreconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preconditions) {
+    if (preconditions.size() > static_cast<std::size_t>(maximum_workflow_preconditions)) {
+        return false;
+    }
+    for (std::size_t left_index = 0; left_index < preconditions.size(); ++left_index) {
+        for (std::size_t right_index = left_index + 1; right_index < preconditions.size();
+             ++right_index) {
+            const auto& left = preconditions[left_index];
+            const auto& right = preconditions[right_index];
+            if (left == right) {
+                return false;
+            }
+            const auto orderSubject =
+                [](const model::WorkflowPrecondition& value) -> const model::WorkflowOrderId* {
+                if (const auto* generic = std::get_if<model::WorkflowOrderPrecondition>(&value)) {
+                    return &generic->order_id;
+                }
+                if (const auto* exact =
+                        std::get_if<model::WorkflowOrderInstancePrecondition>(&value)) {
+                    return &exact->order_id;
+                }
+                return nullptr;
+            };
+            const auto* left_order = orderSubject(left);
+            const auto* right_order = orderSubject(right);
+            if (left_order != nullptr && right_order != nullptr && *left_order == *right_order) {
+                return false;
+            }
+            const auto* left_instance =
+                std::get_if<model::WorkflowFilingInstancePrecondition>(&left);
+            const auto* right_instance =
+                std::get_if<model::WorkflowFilingInstancePrecondition>(&right);
+            if (left_instance != nullptr && right_instance != nullptr &&
+                left_instance->filing_id == right_instance->filing_id) {
+                return false;
+            }
+            const auto absenceConflicts = [](const auto* generic, const auto* exact) {
+                return generic != nullptr && exact != nullptr && !generic->present &&
+                       exact->present && generic->filing_type == exact->filing_type;
+            };
+            if (absenceConflicts(std::get_if<model::WorkflowFilingPrecondition>(&left),
+                                 right_instance) ||
+                absenceConflicts(std::get_if<model::WorkflowFilingPrecondition>(&right),
+                                 left_instance)) {
+                return false;
+            }
+            if (const auto* left_filing = std::get_if<model::WorkflowFilingPrecondition>(&left)) {
+                const auto* right_filing = std::get_if<model::WorkflowFilingPrecondition>(&right);
+                if (right_filing != nullptr &&
+                    left_filing->filing_type == right_filing->filing_type) {
+                    return false;
+                }
+            } else if (const auto* left_deadline =
+                           std::get_if<model::WorkflowDeadlinePrecondition>(&left)) {
+                const auto* right_deadline =
+                    std::get_if<model::WorkflowDeadlinePrecondition>(&right);
+                if (right_deadline != nullptr &&
+                    left_deadline->deadline_id == right_deadline->deadline_id &&
+                    ((left_deadline->condition == model::WorkflowDeadlineCondition::Open &&
+                      right_deadline->condition == model::WorkflowDeadlineCondition::Satisfied) ||
+                     (left_deadline->condition == model::WorkflowDeadlineCondition::Satisfied &&
+                      right_deadline->condition == model::WorkflowDeadlineCondition::Open) ||
+                     (left_deadline->condition == model::WorkflowDeadlineCondition::Elapsed &&
+                      right_deadline->condition == model::WorkflowDeadlineCondition::NotElapsed) ||
+                     (left_deadline->condition == model::WorkflowDeadlineCondition::NotElapsed &&
+                      right_deadline->condition == model::WorkflowDeadlineCondition::Elapsed))) {
+                    return false;
+                }
+            } else if (std::holds_alternative<model::WorkflowArgumentPrecondition>(left) &&
+                       std::holds_alternative<model::WorkflowArgumentPrecondition>(right)) {
+                return false;
+            } else if (const auto* argument =
+                           std::get_if<model::WorkflowArgumentPrecondition>(&left)) {
+                if (!argument->scheduled &&
+                    std::holds_alternative<model::WorkflowArgumentDatePrecondition>(right)) {
+                    return false;
+                }
+            } else if (std::holds_alternative<model::WorkflowArgumentDatePrecondition>(left)) {
+                const auto* right_argument =
+                    std::get_if<model::WorkflowArgumentPrecondition>(&right);
+                if (std::holds_alternative<model::WorkflowArgumentDatePrecondition>(right) ||
+                    (right_argument != nullptr && !right_argument->scheduled)) {
+                    return false;
+                }
+            } else if (std::holds_alternative<model::WorkflowJudgmentPrecondition>(left) &&
+                       std::holds_alternative<model::WorkflowJudgmentPrecondition>(right)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 [[nodiscard]] Result<model::WorkflowDefinition> parseWorkflow(const ValidatedResource& resource,
                                                               const ResourceIndex& resource_index,
                                                               std::uint32_t schema_version) {
@@ -1841,6 +2068,23 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
                 }
                 event_base = model::WorkflowOrderOccurredDeadlineBase{
                     model::WorkflowOrderId{*order_id}, model::WorkflowOperationId{*operation_id}};
+            } else if (*kind == "order_occurred_one_of" &&
+                       hasExactKeys(*object, {"kind", "order_id", "operation_ids"})) {
+                const auto order_id =
+                    requiredId(*object, "order_id", operation_path + ".deadline_event_base");
+                const auto operation_ids = idArray(*object, "operation_ids",
+                                                   operation_path + ".deadline_event_base", 1, 64);
+                if (!order_id || !operation_ids) {
+                    return std::unexpected(!order_id ? order_id.error() : operation_ids.error());
+                }
+                std::vector<model::WorkflowOperationId> parsed_operation_ids;
+                parsed_operation_ids.reserve(operation_ids->size());
+                for (auto& operation_id : *operation_ids) {
+                    parsed_operation_ids.push_back(
+                        model::WorkflowOperationId{std::move(operation_id)});
+                }
+                event_base = model::WorkflowOrderOccurredOneOfDeadlineBase{
+                    model::WorkflowOrderId{*order_id}, std::move(parsed_operation_ids)};
             } else {
                 return fail(RuntimePackErrorCode::InvalidResource,
                             operation_path + ".deadline_event_base has an unsupported form");
@@ -1926,11 +2170,38 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
             }
             disposition_plan_id = model::DispositionPlanId{std::move(*parsed)};
         }
+        std::vector<model::LegalTime> allowed_legal_times;
+        if (operation.contains(QStringLiteral("allowed_legal_times"))) {
+            if (schema_version != 2) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            operation_path + ".allowed_legal_times requires schema 2");
+            }
+            const auto values =
+                requiredArray(operation, "allowed_legal_times", operation_path, 1, 64);
+            if (!values) {
+                return std::unexpected(values.error());
+            }
+            allowed_legal_times.reserve(static_cast<std::size_t>(values->size()));
+            for (qsizetype time_index = 0; time_index < values->size(); ++time_index) {
+                auto parsed = legalTimeValue(values->at(time_index),
+                                             operation_path + ".allowed_legal_times[" +
+                                                 std::to_string(time_index) + "]");
+                if (!parsed) {
+                    return std::unexpected(parsed.error());
+                }
+                if (std::ranges::find(allowed_legal_times, *parsed) != allowed_legal_times.end()) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                operation_path + ".allowed_legal_times repeats an exact pair");
+                }
+                allowed_legal_times.push_back(*parsed);
+            }
+        }
         operations.push_back(model::WorkflowOperation{
             model::WorkflowOperationId{*id}, model::WorkflowStageId{*stage}, *opcode,
             std::move(*authority), std::move(next), *days, *counting, std::move(authorized_roles),
             std::move(*preconditions), std::move(base), std::move(produced), std::move(event_base),
-            std::move(document_binding), expected_argument_date, std::move(disposition_plan_id)});
+            std::move(document_binding), expected_argument_date, std::move(disposition_plan_id),
+            std::move(allowed_legal_times)});
     }
 
     std::vector<model::WorkflowFilingRoute> routes;
@@ -2061,12 +2332,85 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
             }
             role_scope = model::WorkflowAuthorizedRoleScope::CatalogSubset;
         }
+        std::vector<model::WorkflowFilingRoute::FilingBinding> filing_bindings;
+        if (route.contains(QStringLiteral("filing_bindings"))) {
+            if (schema_version != 2 || deficiency->has_value() || deficiency_plan.has_value()) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            route_path +
+                                ".filing_bindings requires schema 2 and forbids deficiencies");
+            }
+            const auto binding_values = requiredArray(route, "filing_bindings", route_path, 1, 64);
+            if (!binding_values) {
+                return std::unexpected(binding_values.error());
+            }
+            std::unordered_set<std::string> filing_ids;
+            std::unordered_set<std::string> tuples;
+            filing_bindings.reserve(static_cast<std::size_t>(binding_values->size()));
+            for (qsizetype binding_index = 0; binding_index < binding_values->size();
+                 ++binding_index) {
+                if (!binding_values->at(binding_index).isObject()) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                route_path + ".filing_bindings must contain objects");
+                }
+                const auto binding = binding_values->at(binding_index).toObject();
+                const auto binding_path =
+                    route_path + ".filing_bindings[" + std::to_string(binding_index) + "]";
+                const auto binding_keys_are_exact =
+                    hasExactKeys(binding, {"filing_id", "actor_id", "record_entry_id",
+                                           "document_sha256", "expected_legal_time"}) ||
+                    hasExactKeys(binding,
+                                 {"filing_id", "actor_id", "record_entry_id", "document_sha256",
+                                  "expected_legal_time", "preconditions"});
+                if (!binding_keys_are_exact) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                binding_path + " has an invalid closed form");
+                }
+                const auto binding_id = requiredId(binding, "filing_id", binding_path);
+                const auto actor_id = requiredId(binding, "actor_id", binding_path);
+                const auto record_entry_id = requiredId(binding, "record_entry_id", binding_path);
+                const auto digest = requiredSha256(binding, "document_sha256", binding_path);
+                const auto expected_legal_time =
+                    requiredLegalTime(binding, "expected_legal_time", binding_path);
+                const auto binding_preconditions =
+                    parseWorkflowPreconditions(binding, binding_path, schema_version);
+                if (!binding_id || !actor_id || !record_entry_id || !digest ||
+                    !expected_legal_time || !binding_preconditions) {
+                    if (!binding_id)
+                        return std::unexpected(binding_id.error());
+                    if (!actor_id)
+                        return std::unexpected(actor_id.error());
+                    if (!record_entry_id)
+                        return std::unexpected(record_entry_id.error());
+                    if (!digest)
+                        return std::unexpected(digest.error());
+                    if (!expected_legal_time)
+                        return std::unexpected(expected_legal_time.error());
+                    return std::unexpected(binding_preconditions.error());
+                }
+                const auto tuple =
+                    *binding_id + "\n" + *actor_id + "\n" + *record_entry_id + "\n" + *digest +
+                    "\n" + std::to_string(expected_legal_time->instant.time_since_epoch().count()) +
+                    "\n" +
+                    std::to_string(std::chrono::sys_days{expected_legal_time->court_date.value}
+                                       .time_since_epoch()
+                                       .count());
+                if (!filing_ids.emplace(*binding_id).second || !tuples.emplace(tuple).second) {
+                    return fail(RuntimePackErrorCode::InvalidResource,
+                                route_path + ".filing_bindings repeats an id or exact tuple");
+                }
+                filing_bindings.push_back(model::WorkflowFilingRoute::FilingBinding{
+                    model::WorkflowFilingId{*binding_id}, model::ActorId{*actor_id},
+                    *record_entry_id, *digest, *expected_legal_time,
+                    std::move(*binding_preconditions)});
+            }
+        }
         routes.push_back(model::WorkflowFilingRoute{
             model::FilingTypeId{*filing_type}, model::WorkflowStageId{*stage},
             std::move(authorized_roles), std::move(required_fields), std::move(service_roles),
             model::WorkflowOperationId{*accept}, model::WorkflowOperationId{*reject},
             std::move(deficiency_id), std::move(deficiency_plan), std::move(accepted_plan),
-            std::move(advance_id), std::move(satisfies_id), *reject_after_deadline, role_scope});
+            std::move(advance_id), std::move(satisfies_id), *reject_after_deadline, role_scope,
+            std::move(filing_bindings)});
     }
 
     const auto holiday_values =
@@ -2104,6 +2448,17 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
     std::unordered_set<std::string> named_deadline_ids;
     std::unordered_set<std::string> deadline_base_ids;
     operations_by_id.reserve(definition.operations.size());
+    const auto uses_operation_legal_time_guards =
+        std::ranges::any_of(definition.operations, [](const auto& operation) {
+            return !operation.allowed_legal_times.empty();
+        });
+    const auto operation_allows_court_date = [](const model::WorkflowOperation& operation,
+                                                const model::LegalDate& court_date) {
+        return std::ranges::any_of(operation.allowed_legal_times,
+                                   [&](const model::LegalTime& legal_time) {
+                                       return legal_time.court_date == court_date;
+                                   });
+    };
     for (const auto& operation : definition.operations) {
         if (!operations_by_id.emplace(operation.id.value, &operation).second ||
             !declared_stages.contains(operation.stage_id.value) ||
@@ -2129,6 +2484,13 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
              (operation.opcode != model::WorkflowOpcode::CalculateDeadline ||
               !operation.produced_deadline_id.has_value() ||
               operation.deadline_base_id.has_value())) ||
+            operation.allowed_legal_times.size() > 64 ||
+            (uses_operation_legal_time_guards && operation.allowed_legal_times.empty()) ||
+            (uses_operation_legal_time_guards && operation.document_binding.has_value() &&
+             !operation_allows_court_date(operation,
+                                          operation.document_binding->expected_court_date)) ||
+            (uses_operation_legal_time_guards && operation.expected_argument_date.has_value() &&
+             !operation_allows_court_date(operation, *operation.expected_argument_date)) ||
             (operation.opcode == model::WorkflowOpcode::CalculateDeadline &&
              std::ranges::any_of(
                  operation.preconditions,
@@ -2156,17 +2518,84 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
         if (!operation.deadline_event_base.has_value()) {
             continue;
         }
-        const auto* order_base =
-            std::get_if<model::WorkflowOrderOccurredDeadlineBase>(&*operation.deadline_event_base);
-        if (order_base == nullptr) {
-            continue;
-        }
-        const auto source_operation = operations_by_id.find(order_base->operation_id.value);
-        if (source_operation == operations_by_id.end() ||
-            source_operation->second->opcode != model::WorkflowOpcode::EnterOrder) {
+        auto sources_are_valid = true;
+        std::visit(
+            [&](const auto& base) {
+                using Base = std::remove_cvref_t<decltype(base)>;
+                if constexpr (std::same_as<Base, model::WorkflowOrderOccurredDeadlineBase>) {
+                    const auto source = operations_by_id.find(base.operation_id.value);
+                    sources_are_valid = source != operations_by_id.end() &&
+                                        source->second->opcode == model::WorkflowOpcode::EnterOrder;
+                } else if constexpr (std::same_as<Base,
+                                                  model::WorkflowOrderOccurredOneOfDeadlineBase>) {
+                    sources_are_valid =
+                        std::ranges::all_of(base.operation_ids, [&](const auto& operation_id) {
+                            const auto source = operations_by_id.find(operation_id.value);
+                            return source != operations_by_id.end() &&
+                                   source->second->opcode == model::WorkflowOpcode::EnterOrder &&
+                                   source->second->document_binding.has_value() &&
+                                   source->second->document_binding->order_id ==
+                                       std::optional{base.order_id};
+                        });
+                }
+            },
+            *operation.deadline_event_base);
+        if (!sources_are_valid) {
             return fail(RuntimePackErrorCode::CrossReferenceFailure,
-                        path + " has an order-occurrence base outside an EnterOrder operation");
+                        path + " has an order-occurrence base outside its exact bound EnterOrder "
+                               "source");
         }
+    }
+    const auto order_source_is_reserved = [&](const model::WorkflowOrderId& order_id) {
+        return std::ranges::any_of(definition.operations, [&](const auto& operation) {
+            if (!operation.deadline_event_base.has_value()) {
+                return false;
+            }
+            return std::visit(
+                [&](const auto& base) {
+                    using Base = std::remove_cvref_t<decltype(base)>;
+                    if constexpr (std::same_as<Base, model::WorkflowOrderOccurredDeadlineBase> ||
+                                  std::same_as<Base,
+                                               model::WorkflowOrderOccurredOneOfDeadlineBase>) {
+                        return base.order_id == order_id;
+                    }
+                    return false;
+                },
+                *operation.deadline_event_base);
+        });
+    };
+    const auto operation_is_order_source = [&](const model::WorkflowOrderId& order_id,
+                                               const model::WorkflowOperationId& operation_id) {
+        return std::ranges::any_of(definition.operations, [&](const auto& operation) {
+            if (!operation.deadline_event_base.has_value()) {
+                return false;
+            }
+            return std::visit(
+                [&](const auto& base) {
+                    using Base = std::remove_cvref_t<decltype(base)>;
+                    if constexpr (std::same_as<Base, model::WorkflowOrderOccurredDeadlineBase>) {
+                        return base.order_id == order_id && base.operation_id == operation_id;
+                    } else if constexpr (std::same_as<
+                                             Base, model::WorkflowOrderOccurredOneOfDeadlineBase>) {
+                        return base.order_id == order_id &&
+                               std::ranges::find(base.operation_ids, operation_id) !=
+                                   base.operation_ids.end();
+                    }
+                    return false;
+                },
+                *operation.deadline_event_base);
+        });
+    };
+    if (std::ranges::any_of(definition.operations, [&](const auto& operation) {
+            return operation.opcode == model::WorkflowOpcode::EnterOrder &&
+                   operation.document_binding.has_value() &&
+                   operation.document_binding->order_id.has_value() &&
+                   order_source_is_reserved(*operation.document_binding->order_id) &&
+                   !operation_is_order_source(*operation.document_binding->order_id, operation.id);
+        })) {
+        return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                    path + " has a reserved order identifier bound outside the workflow-wide "
+                           "event-source set");
     }
     const auto operationForRoute = [&operations_by_id](const model::WorkflowOperationId& id,
                                                        model::WorkflowOpcode opcode,
@@ -2188,12 +2617,83 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
 
     std::unordered_set<std::string> route_keys;
     std::unordered_set<std::string> declared_filing_types;
+    std::unordered_set<std::string> bound_filing_ids;
+    std::unordered_set<std::string> bound_record_entry_ids;
+    std::unordered_set<std::string> static_trigger_filing_ids;
+    std::unordered_set<std::string> static_trigger_record_entry_ids;
+    for (const auto& route : definition.filing_routes) {
+        if (route.deficiency_deadline.has_value() &&
+            route.deficiency_deadline->static_trigger.has_value()) {
+            const auto& trigger = *route.deficiency_deadline->static_trigger;
+            if (!static_trigger_filing_ids.emplace(trigger.filing_id.value).second ||
+                !static_trigger_record_entry_ids.emplace(trigger.record_entry_id).second) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            path + " has duplicate exact static deficiency trigger identities");
+            }
+        }
+    }
     auto deadline_ids = named_deadline_ids;
     auto exact_deadline_ids = named_deadline_ids;
     std::unordered_set<std::string> deficiency_deadline_prefixes;
     for (const auto& route : definition.filing_routes) {
+        const auto operation_pointer = [&](const model::WorkflowOperationId& id) {
+            const auto found = operations_by_id.find(id.value);
+            return found == operations_by_id.end() ? nullptr : found->second;
+        };
+        const auto* accept_operation = operation_pointer(route.accept_operation_id);
+        const auto* reject_operation = operation_pointer(route.reject_operation_id);
+        const auto* accepted_deadline_operation =
+            route.accepted_deadline.has_value()
+                ? operation_pointer(route.accepted_deadline->operation_id)
+                : nullptr;
+        const auto* advance_operation = route.advance_operation_id.has_value()
+                                            ? operation_pointer(*route.advance_operation_id)
+                                            : nullptr;
+        const auto binding_dates_are_allowed =
+            std::ranges::all_of(route.filing_bindings, [&](const auto& binding) {
+                const std::array emitted_operations{accept_operation, reject_operation,
+                                                    accepted_deadline_operation, advance_operation};
+                return std::ranges::all_of(emitted_operations, [&](const auto* operation) {
+                    return operation == nullptr ||
+                           (!operation->allowed_legal_times.empty() &&
+                            std::ranges::find(operation->allowed_legal_times,
+                                              binding.expected_legal_time) !=
+                                operation->allowed_legal_times.end());
+                });
+            });
+        const auto combined_binding_preconditions_are_valid =
+            std::ranges::all_of(route.filing_bindings, [&](const auto& binding) {
+                if (!workflowPreconditionsAreConsistent(binding.preconditions)) {
+                    return false;
+                }
+                for (const auto* operation : {accept_operation, reject_operation}) {
+                    if (operation == nullptr ||
+                        operation->preconditions.size() + binding.preconditions.size() >
+                            static_cast<std::size_t>(maximum_workflow_preconditions)) {
+                        return false;
+                    }
+                    auto combined = operation->preconditions;
+                    combined.insert(combined.end(), binding.preconditions.begin(),
+                                    binding.preconditions.end());
+                    if (!workflowPreconditionsAreConsistent(combined)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+        const auto binding_ids_are_globally_unique =
+            std::ranges::all_of(route.filing_bindings, [&](const auto& binding) {
+                return !static_trigger_filing_ids.contains(binding.filing_id.value) &&
+                       !static_trigger_record_entry_ids.contains(binding.record_entry_id) &&
+                       bound_filing_ids.emplace(binding.filing_id.value).second &&
+                       bound_record_entry_ids.emplace(binding.record_entry_id).second;
+            });
         if (!route_keys.emplace(route.stage_id.value + "\n" + route.filing_type.value).second ||
             !declared_stages.contains(route.stage_id.value) ||
+            (!route.filing_bindings.empty() && (route.deficiency_operation_id.has_value() ||
+                                                route.deficiency_deadline.has_value())) ||
+            !binding_dates_are_allowed || !combined_binding_preconditions_are_valid ||
+            !binding_ids_are_globally_unique ||
             !operationForRoute(route.accept_operation_id, model::WorkflowOpcode::AcceptFiling,
                                route.stage_id) ||
             !operationForRoute(route.reject_operation_id, model::WorkflowOpcode::RejectFiling,
@@ -2264,18 +2764,64 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
         return fail(RuntimePackErrorCode::CrossReferenceFailure,
                     path + " has a dependent deadline without an exact produced base");
     }
-    for (const auto& operation : definition.operations) {
-        for (const auto& precondition : operation.preconditions) {
+    const auto preconditionsResolve = [&](const std::vector<model::WorkflowPrecondition>&
+                                              preconditions) {
+        for (const auto& precondition : preconditions) {
             const auto* filing = std::get_if<model::WorkflowFilingPrecondition>(&precondition);
             if (filing != nullptr && !declared_filing_types.contains(filing->filing_type.value)) {
-                return fail(RuntimePackErrorCode::CrossReferenceFailure,
-                            path + " has a filing precondition outside its filing routes");
+                return false;
+            }
+            if (const auto* instance =
+                    std::get_if<model::WorkflowFilingInstancePrecondition>(&precondition)) {
+                const auto accept = operations_by_id.find(instance->accept_operation_id.value);
+                const auto route =
+                    std::ranges::find_if(definition.filing_routes, [&](const auto& candidate) {
+                        return candidate.filing_type == instance->filing_type &&
+                               candidate.accept_operation_id == instance->accept_operation_id;
+                    });
+                if (!declared_filing_types.contains(instance->filing_type.value) ||
+                    accept == operations_by_id.end() ||
+                    accept->second->opcode != model::WorkflowOpcode::AcceptFiling ||
+                    route == definition.filing_routes.end()) {
+                    return false;
+                }
+            }
+            if (const auto* order =
+                    std::get_if<model::WorkflowOrderInstancePrecondition>(&precondition)) {
+                const auto source = operations_by_id.find(order->operation_id.value);
+                const auto binding_matches =
+                    source == operations_by_id.end() ||
+                    !source->second->document_binding.has_value() ||
+                    (source->second->document_binding->record_entry_id == order->record_entry_id &&
+                     source->second->document_binding->document_sha256 == order->document_sha256 &&
+                     source->second->document_binding->order_id == std::optional{order->order_id} &&
+                     source->second->document_binding->disposition ==
+                         std::optional{order->disposition});
+                if (source == operations_by_id.end() ||
+                    source->second->opcode != model::WorkflowOpcode::EnterOrder ||
+                    !binding_matches) {
+                    return false;
+                }
             }
             const auto* deadline = std::get_if<model::WorkflowDeadlinePrecondition>(&precondition);
             if (deadline != nullptr && !exact_deadline_ids.contains(deadline->deadline_id.value)) {
-                return fail(RuntimePackErrorCode::CrossReferenceFailure,
-                            path + " has a deadline precondition without an exact producer");
+                return false;
             }
+        }
+        return true;
+    };
+    for (const auto& operation : definition.operations) {
+        if (!preconditionsResolve(operation.preconditions)) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " has an unresolved operation precondition");
+        }
+    }
+    for (const auto& route : definition.filing_routes) {
+        if (std::ranges::any_of(route.filing_bindings, [&](const auto& binding) {
+                return !preconditionsResolve(binding.preconditions);
+            })) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        path + " has an unresolved filing-binding precondition");
         }
     }
     return definition;
@@ -4129,6 +4675,56 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         }
     }
     for (const auto& route : workflow->filing_routes) {
+        for (const auto& binding : route.filing_bindings) {
+            const auto* actor = caseActorFor(binding.actor_id);
+            if (actor == nullptr ||
+                std::ranges::find(route.authorized_roles, actor->role) ==
+                    route.authorized_roles.end() ||
+                !validProvenanceEntry(binding.record_entry_id, binding.document_sha256,
+                                      binding.expected_legal_time.court_date)) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            "workflow " + workflow->id.value +
+                                " has an invalid exact filing-route binding");
+            }
+            for (const auto& precondition : binding.preconditions) {
+                if (const auto* filing =
+                        std::get_if<model::WorkflowFilingInstancePrecondition>(&precondition)) {
+                    const auto* selector_actor = caseActorFor(filing->actor_id);
+                    const auto* accept = operationForId(filing->accept_operation_id);
+                    const auto source_route =
+                        std::ranges::find_if(workflow->filing_routes, [&](const auto& candidate) {
+                            return candidate.filing_type == filing->filing_type &&
+                                   candidate.accept_operation_id == filing->accept_operation_id;
+                        });
+                    if (selector_actor == nullptr || accept == nullptr ||
+                        accept->opcode != model::WorkflowOpcode::AcceptFiling ||
+                        source_route == workflow->filing_routes.end() ||
+                        std::ranges::find(source_route->authorized_roles, selector_actor->role) ==
+                            source_route->authorized_roles.end() ||
+                        !validProvenanceEntry(filing->record_entry_id, filing->document_sha256)) {
+                        return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                    "workflow " + workflow->id.value +
+                                        " has invalid filing-binding filing provenance");
+                    }
+                } else if (const auto* order =
+                               std::get_if<model::WorkflowOrderInstancePrecondition>(
+                                   &precondition)) {
+                    const auto* source = operationForId(order->operation_id);
+                    if (source == nullptr || source->opcode != model::WorkflowOpcode::EnterOrder ||
+                        !source->document_binding.has_value() ||
+                        source->document_binding->record_entry_id != order->record_entry_id ||
+                        source->document_binding->document_sha256 != order->document_sha256 ||
+                        source->document_binding->order_id != std::optional{order->order_id} ||
+                        source->document_binding->disposition !=
+                            std::optional{order->disposition} ||
+                        !validProvenanceEntry(order->record_entry_id, order->document_sha256)) {
+                        return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                    "workflow " + workflow->id.value +
+                                        " has invalid filing-binding order provenance");
+                    }
+                }
+            }
+        }
         if (!route.deficiency_deadline.has_value() ||
             !route.deficiency_deadline->static_trigger.has_value()) {
             continue;

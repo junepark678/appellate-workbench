@@ -1260,38 +1260,69 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
         }
         const auto uses_workflow_preconditions =
             std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
-                return resource.descriptor.kind == model::ResourceKind::Workflow &&
-                       std::ranges::any_of(
-                           resource.document.value(QStringLiteral("operations")).toArray(),
-                           [](const QJsonValue& operation) {
-                               return !operation.toObject()
-                                           .value(QStringLiteral("preconditions"))
-                                           .toArray()
-                                           .isEmpty();
-                           });
+                if (resource.descriptor.kind != model::ResourceKind::Workflow) {
+                    return false;
+                }
+                if (std::ranges::any_of(
+                        resource.document.value(QStringLiteral("operations")).toArray(),
+                        [](const QJsonValue& operation) {
+                            return !operation.toObject()
+                                        .value(QStringLiteral("preconditions"))
+                                        .toArray()
+                                        .isEmpty();
+                        })) {
+                    return true;
+                }
+                return std::ranges::any_of(
+                    resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                    [](const QJsonValue& route) {
+                        return std::ranges::any_of(
+                            route.toObject().value(QStringLiteral("filing_bindings")).toArray(),
+                            [](const QJsonValue& binding) {
+                                return !binding.toObject()
+                                            .value(QStringLiteral("preconditions"))
+                                            .toArray()
+                                            .isEmpty();
+                            });
+                    });
             });
         const auto uses_dependent_deadlines =
             std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
                 if (resource.descriptor.kind != model::ResourceKind::Workflow) {
                     return false;
                 }
-                return std::ranges::any_of(
+                const auto is_reached = [](const QJsonValue& precondition_value) {
+                    const auto precondition = precondition_value.toObject();
+                    return precondition.value(QStringLiteral("kind")).toString() ==
+                               QStringLiteral("deadline_status") &&
+                           precondition.value(QStringLiteral("status")).toString() ==
+                               QStringLiteral("reached");
+                };
+                const auto operation_feature = std::ranges::any_of(
                     resource.document.value(QStringLiteral("operations")).toArray(),
-                    [](const QJsonValue& operation_value) {
+                    [&](const QJsonValue& operation_value) {
                         const auto operation = operation_value.toObject();
-                        if (operation.contains(QStringLiteral("deadline_base_id"))) {
-                            return true;
-                        }
-                        return std::ranges::any_of(
-                            operation.value(QStringLiteral("preconditions")).toArray(),
-                            [](const QJsonValue& precondition_value) {
-                                const auto precondition = precondition_value.toObject();
-                                return precondition.value(QStringLiteral("kind")).toString() ==
-                                           QStringLiteral("deadline_status") &&
-                                       precondition.value(QStringLiteral("status")).toString() ==
-                                           QStringLiteral("reached");
-                            });
+                        return operation.contains(QStringLiteral("deadline_base_id")) ||
+                               std::ranges::any_of(
+                                   operation.value(QStringLiteral("preconditions")).toArray(),
+                                   is_reached);
                     });
+                return operation_feature ||
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [&](const QJsonValue& route) {
+                               return std::ranges::any_of(
+                                   route.toObject()
+                                       .value(QStringLiteral("filing_bindings"))
+                                       .toArray(),
+                                   [&](const QJsonValue& binding) {
+                                       return std::ranges::any_of(
+                                           binding.toObject()
+                                               .value(QStringLiteral("preconditions"))
+                                               .toArray(),
+                                           is_reached);
+                                   });
+                           });
             });
         const auto uses_named_deadlines =
             std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
@@ -1322,19 +1353,34 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
                 if (resource.descriptor.kind != model::ResourceKind::Workflow) {
                     return false;
                 }
-                return std::ranges::any_of(
+                const auto is_argument_date = [](const QJsonValue& precondition_value) {
+                    return precondition_value.toObject().value(QStringLiteral("kind")).toString() ==
+                           QStringLiteral("argument_date_status");
+                };
+                const auto operation_feature = std::ranges::any_of(
                     resource.document.value(QStringLiteral("operations")).toArray(),
-                    [](const QJsonValue& operation_value) {
-                        return std::ranges::any_of(
-                            operation_value.toObject()
-                                .value(QStringLiteral("preconditions"))
-                                .toArray(),
-                            [](const QJsonValue& precondition_value) {
-                                return precondition_value.toObject()
-                                           .value(QStringLiteral("kind"))
-                                           .toString() == QStringLiteral("argument_date_status");
-                            });
+                    [&](const QJsonValue& operation_value) {
+                        return std::ranges::any_of(operation_value.toObject()
+                                                       .value(QStringLiteral("preconditions"))
+                                                       .toArray(),
+                                                   is_argument_date);
                     });
+                return operation_feature ||
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [&](const QJsonValue& route) {
+                               return std::ranges::any_of(
+                                   route.toObject()
+                                       .value(QStringLiteral("filing_bindings"))
+                                       .toArray(),
+                                   [&](const QJsonValue& binding) {
+                                       return std::ranges::any_of(
+                                           binding.toObject()
+                                               .value(QStringLiteral("preconditions"))
+                                               .toArray(),
+                                           is_argument_date);
+                                   });
+                           });
             });
         const auto uses_structured_disposition =
             std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
@@ -1383,20 +1429,34 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
             });
         const auto uses_workflow_instance_preconditions =
             std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
-                return resource.descriptor.kind == model::ResourceKind::Workflow &&
-                       std::ranges::any_of(
+                if (resource.descriptor.kind != model::ResourceKind::Workflow)
+                    return false;
+                const auto has_instance = [](const QJsonArray& preconditions) {
+                    return std::ranges::any_of(preconditions, [](const QJsonValue& value) {
+                        const auto kind = value.toObject().value(QStringLiteral("kind")).toString();
+                        return kind == QStringLiteral("filing_instance") ||
+                               kind == QStringLiteral("order_instance");
+                    });
+                };
+                return std::ranges::any_of(
                            resource.document.value(QStringLiteral("operations")).toArray(),
-                           [](const QJsonValue& operation) {
+                           [&](const QJsonValue& operation) {
+                               return has_instance(operation.toObject()
+                                                       .value(QStringLiteral("preconditions"))
+                                                       .toArray());
+                           }) ||
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [&](const QJsonValue& route) {
                                return std::ranges::any_of(
-                                   operation.toObject()
-                                       .value(QStringLiteral("preconditions"))
+                                   route.toObject()
+                                       .value(QStringLiteral("filing_bindings"))
                                        .toArray(),
-                                   [](const QJsonValue& value) {
-                                       const auto kind = value.toObject()
-                                                             .value(QStringLiteral("kind"))
-                                                             .toString();
-                                       return kind == QStringLiteral("filing_instance") ||
-                                              kind == QStringLiteral("order_instance");
+                                   [&](const QJsonValue& binding) {
+                                       return has_instance(
+                                           binding.toObject()
+                                               .value(QStringLiteral("preconditions"))
+                                               .toArray());
                                    });
                            });
             });
@@ -1434,6 +1494,38 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
                                    QStringLiteral("disposition_plan_id"));
                            });
             });
+        const auto uses_route_filing_bindings =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("filing_routes")).toArray(),
+                           [](const QJsonValue& route) {
+                               return route.toObject().contains(QStringLiteral("filing_bindings"));
+                           });
+            });
+        const auto uses_alternative_event_date_deadlines =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation) {
+                               return operation.toObject()
+                                          .value(QStringLiteral("deadline_event_base"))
+                                          .toObject()
+                                          .value(QStringLiteral("kind"))
+                                          .toString() == QStringLiteral("order_occurred_one_of");
+                           });
+            });
+        const auto uses_operation_legal_time_guards =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation) {
+                               return operation.toObject().contains(
+                                   QStringLiteral("allowed_legal_times"));
+                           });
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds,
             uses_workflow_preconditions, uses_dependent_deadlines, uses_named_deadlines,
@@ -1441,7 +1533,8 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
             uses_grounded_questions, uses_realism_evidence, uses_sealed_record_twins,
             uses_route_role_subsets, uses_workflow_instance_preconditions,
             uses_static_deficiency_deadlines, uses_operation_document_bindings,
-            uses_operation_disposition_bindings);
+            uses_operation_disposition_bindings, uses_route_filing_bindings,
+            uses_alternative_event_date_deadlines, uses_operation_legal_time_guards);
         if (!capabilities) {
             return fail(CatalogErrorCode::UnsupportedCapability,
                         QStringLiteral("Pack %1 requires an unsupported capability: %2")

@@ -64,6 +64,7 @@ class SchemaDispatchTest final : public QObject {
     void enforcesDetachedIndependentReviewOwnership();
     void rejectsUnsupportedKindVersions();
     void rejectsV1V2CrossInterpretation();
+    void validatesSharedWorkflowCapabilitySchemas();
 };
 
 [[nodiscard]] QString fixture(const QString& name) {
@@ -4612,6 +4613,333 @@ void SchemaDispatchTest::rejectsV1V2CrossInterpretation() {
     result = PackReader::readDirectory(payload_mix.path());
     QVERIFY(!result.has_value());
     QCOMPARE(result.error().code, ErrorCode::SchemaViolation);
+}
+
+void SchemaDispatchTest::validatesSharedWorkflowCapabilitySchemas() {
+    const auto schema_rejects = [&](const QString& fixture_name, auto mutation) {
+        QTemporaryDir pack;
+        if (!pack.isValid() || !copyTree(fixture(fixture_name), pack.path()) ||
+            !mutateResource(pack.path(), QStringLiteral("resources/workflow.json"), mutation)) {
+            return false;
+        }
+        const auto rejected = PackReader::readDirectory(pack.path());
+        return !rejected.has_value() && rejected.error().code == ErrorCode::SchemaViolation;
+    };
+    const auto mutate_operation = [](QJsonObject& workflow, const QString& operation_id,
+                                     auto mutation) {
+        auto operations = workflow.value(QStringLiteral("operations")).toArray();
+        for (qsizetype index = 0; index < operations.size(); ++index) {
+            auto operation = operations.at(index).toObject();
+            if (operation.value(QStringLiteral("operation_id")).toString() != operation_id) {
+                continue;
+            }
+            mutation(operation);
+            operations.replace(index, operation);
+            workflow.insert(QStringLiteral("operations"), operations);
+            return true;
+        }
+        return false;
+    };
+
+    for (int variant = 0; variant < 7; ++variant) {
+        QVERIFY(schema_rejects(QStringLiteral("full-resource-pack-v2"), [&](QJsonObject& workflow) {
+            return mutate_operation(
+                workflow, QStringLiteral("example.operation.reject-opened"),
+                [&](QJsonObject& operation) {
+                    QJsonObject time{
+                        {QStringLiteral("court_date"), QStringLiteral("2026-01-02")},
+                        {QStringLiteral("instant_unix_seconds"), QStringLiteral("0")},
+                    };
+                    QJsonArray times{time};
+                    if (variant == 0) {
+                        times = {};
+                    } else if (variant == 1) {
+                        times.push_back(time);
+                    } else if (variant == 2) {
+                        time.insert(QStringLiteral("unexpected"), true);
+                        times = {time};
+                    } else if (variant == 3) {
+                        time.remove(QStringLiteral("court_date"));
+                        times = {time};
+                    } else if (variant == 4) {
+                        time.insert(QStringLiteral("instant_unix_seconds"), 0);
+                        times = {time};
+                    } else if (variant == 5) {
+                        time.insert(QStringLiteral("instant_unix_seconds"), QStringLiteral("+1"));
+                        times = {time};
+                    } else {
+                        time.insert(QStringLiteral("instant_unix_seconds"),
+                                    QStringLiteral("-10000000000000000000"));
+                        times = {time};
+                    }
+                    operation.insert(QStringLiteral("allowed_legal_times"), times);
+                });
+        }));
+    }
+
+    for (int variant = 0; variant < 6; ++variant) {
+        QVERIFY(schema_rejects(QStringLiteral("full-resource-pack-v2"), [&](QJsonObject& workflow) {
+            return mutate_operation(
+                workflow, QStringLiteral("example.operation.calculate-cure"),
+                [&](QJsonObject& operation) {
+                    QJsonObject base{
+                        {QStringLiteral("kind"), QStringLiteral("order_occurred_one_of")},
+                        {QStringLiteral("order_id"), QStringLiteral("example.order.bound")},
+                        {QStringLiteral("operation_ids"),
+                         QJsonArray{QStringLiteral("example.operation.enter-order")}},
+                    };
+                    if (variant == 0) {
+                        base.insert(QStringLiteral("operation_ids"), QJsonArray{});
+                    } else if (variant == 1) {
+                        base.insert(QStringLiteral("operation_ids"),
+                                    QJsonArray{QStringLiteral("example.operation.enter-order"),
+                                               QStringLiteral("example.operation.enter-order")});
+                    } else if (variant == 2) {
+                        base.insert(QStringLiteral("unexpected"), true);
+                    } else if (variant == 3) {
+                        base.remove(QStringLiteral("order_id"));
+                    } else if (variant == 4) {
+                        base.insert(QStringLiteral("kind"), QStringLiteral("order_occurred_any"));
+                    } else {
+                        base.remove(QStringLiteral("operation_ids"));
+                    }
+                    operation.insert(QStringLiteral("deadline_event_base"), base);
+                });
+        }));
+    }
+
+    QVERIFY(schema_rejects(QStringLiteral("full-resource-pack-v2"), [](QJsonObject& workflow) {
+        auto routes = workflow.value(QStringLiteral("filing_routes")).toArray();
+        auto route = routes.first().toObject();
+        route.insert(
+            QStringLiteral("filing_bindings"),
+            QJsonArray{QJsonObject{
+                {QStringLiteral("filing_id"), QStringLiteral("example.filing.bound")},
+                {QStringLiteral("actor_id"), QStringLiteral("example.actor.appellant")},
+                {QStringLiteral("record_entry_id"), QStringLiteral("example.record.entry-one")},
+                {QStringLiteral("document_sha256"),
+                 QStringLiteral(
+                     "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366")},
+                {QStringLiteral("expected_legal_time"),
+                 QJsonObject{
+                     {QStringLiteral("court_date"), QStringLiteral("2026-01-02")},
+                     {QStringLiteral("instant_unix_seconds"), QStringLiteral("0")},
+                 }},
+            }});
+        routes.replace(0, route);
+        workflow.insert(QStringLiteral("filing_routes"), routes);
+    }));
+
+    for (int variant = 0; variant < 3; ++variant) {
+        QVERIFY(schema_rejects(QStringLiteral("full-resource-pack"), [&](QJsonObject& workflow) {
+            if (variant < 2) {
+                auto operations = workflow.value(QStringLiteral("operations")).toArray();
+                auto operation = operations.first().toObject();
+                if (variant == 0) {
+                    operation.insert(
+                        QStringLiteral("allowed_legal_times"),
+                        QJsonArray{QJsonObject{
+                            {QStringLiteral("court_date"), QStringLiteral("2026-01-02")},
+                            {QStringLiteral("instant_unix_seconds"), QStringLiteral("0")},
+                        }});
+                } else {
+                    operation.insert(
+                        QStringLiteral("deadline_event_base"),
+                        QJsonObject{
+                            {QStringLiteral("kind"), QStringLiteral("order_occurred_one_of")},
+                            {QStringLiteral("order_id"), QStringLiteral("example.order.bound")},
+                            {QStringLiteral("operation_ids"),
+                             QJsonArray{QStringLiteral("example.operation.enter-order")}},
+                        });
+                }
+                operations.replace(0, operation);
+                workflow.insert(QStringLiteral("operations"), operations);
+            } else {
+                auto routes = workflow.value(QStringLiteral("filing_routes")).toArray();
+                auto route = routes.first().toObject();
+                route.insert(QStringLiteral("filing_bindings"), QJsonArray{});
+                routes.replace(0, route);
+                workflow.insert(QStringLiteral("filing_routes"), routes);
+            }
+        }));
+    }
+
+    for (const auto& capability_id :
+         {QStringLiteral("workbench.pack.route-filing-bindings"),
+          QStringLiteral("workbench.pack.alternative-event-date-deadlines"),
+          QStringLiteral("workbench.pack.operation-legal-time-guards")}) {
+        QTemporaryDir legacy;
+        QVERIFY(legacy.isValid());
+        QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), legacy.path()));
+        QVERIFY(mutateManifest(legacy.path(), [&](QJsonObject& manifest) {
+            auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+            capabilities.push_back(
+                QJsonObject{{QStringLiteral("id"), capability_id}, {QStringLiteral("version"), 1}});
+            manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+        }));
+        const auto rejected = PackReader::readDirectory(legacy.path());
+        QVERIFY(!rejected.has_value());
+        QCOMPARE(rejected.error().code, ErrorCode::UnsupportedCapability);
+    }
+
+    QTemporaryDir divergent_union;
+    QVERIFY(divergent_union.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), divergent_union.path()));
+    QVERIFY(mutateManifest(divergent_union.path(), [](QJsonObject& manifest) {
+        auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
+        for (const auto& id : {QStringLiteral("workbench.pack.named-deadlines"),
+                               QStringLiteral("workbench.pack.event-date-deadlines"),
+                               QStringLiteral("workbench.pack.alternative-event-date-deadlines"),
+                               QStringLiteral("workbench.pack.operation-document-bindings")}) {
+            capabilities.push_back(
+                QJsonObject{{QStringLiteral("id"), id}, {QStringLiteral("version"), 1}});
+        }
+        manifest.insert(QStringLiteral("required_capabilities"), capabilities);
+    }));
+    QVERIFY(mutateResource(
+        divergent_union.path(), QStringLiteral("resources/workflow.json"),
+        [](QJsonObject& workflow) {
+            auto operations = workflow.value(QStringLiteral("operations")).toArray();
+            QJsonObject court_template;
+            QJsonObject deadline_template;
+            for (const auto& value : operations) {
+                const auto operation = value.toObject();
+                const auto id = operation.value(QStringLiteral("operation_id")).toString();
+                if (id == QStringLiteral("example.operation.issue-judgment")) {
+                    court_template = operation;
+                } else if (id == QStringLiteral("example.operation.calculate-cure")) {
+                    deadline_template = operation;
+                }
+            }
+            if (court_template.isEmpty() || deadline_template.isEmpty()) {
+                return false;
+            }
+            constexpr auto digest =
+                "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366";
+            const auto make_order = [&](const QString& operation_id, const QString& record_id,
+                                        const QString& date) {
+                auto order = court_template;
+                order.insert(QStringLiteral("operation_id"), operation_id);
+                order.insert(QStringLiteral("stage_id"), QStringLiteral("example.stage.opened"));
+                order.insert(QStringLiteral("opcode"), QStringLiteral("enter_order"));
+                order.remove(QStringLiteral("preconditions"));
+                order.insert(
+                    QStringLiteral("document_binding"),
+                    QJsonObject{
+                        {QStringLiteral("record_entry_id"), record_id},
+                        {QStringLiteral("document_sha256"), QString::fromLatin1(digest)},
+                        {QStringLiteral("expected_court_date"), date},
+                        {QStringLiteral("order_id"), QStringLiteral("example.order.union")},
+                        {QStringLiteral("disposition"), QStringLiteral("granted")},
+                    });
+                return order;
+            };
+            const auto first_source = QStringLiteral("example.operation.enter-order-union-first");
+            const auto second_source = QStringLiteral("example.operation.enter-order-union-second");
+            operations.push_back(make_order(first_source,
+                                            QStringLiteral("example.record.entry-one"),
+                                            QStringLiteral("2026-01-02")));
+            operations.push_back(make_order(second_source,
+                                            QStringLiteral("example.record.brief-opening"),
+                                            QStringLiteral("2026-01-03")));
+            const auto make_clock = [&](const QString& operation_id, const QString& deadline_id,
+                                        const QString& source_id) {
+                auto clock = deadline_template;
+                clock.insert(QStringLiteral("operation_id"), operation_id);
+                clock.insert(QStringLiteral("produced_deadline_id"), deadline_id);
+                clock.insert(QStringLiteral("authorized_role_ids"),
+                             QJsonArray{QStringLiteral("example.role.court")});
+                clock.insert(
+                    QStringLiteral("deadline_event_base"),
+                    QJsonObject{
+                        {QStringLiteral("kind"), QStringLiteral("order_occurred_one_of")},
+                        {QStringLiteral("order_id"), QStringLiteral("example.order.union")},
+                        {QStringLiteral("operation_ids"), QJsonArray{source_id}},
+                    });
+                return clock;
+            };
+            operations.push_back(
+                make_clock(QStringLiteral("example.operation.calculate-union-first"),
+                           QStringLiteral("example.deadline.union-first"), first_source));
+            operations.push_back(
+                make_clock(QStringLiteral("example.operation.calculate-union-second"),
+                           QStringLiteral("example.deadline.union-second"), second_source));
+            workflow.insert(QStringLiteral("operations"), operations);
+            return true;
+        }));
+    const auto union_loaded = PackReader::readDirectory(divergent_union.path());
+    QVERIFY2(union_loaded.has_value(),
+             union_loaded ? "" : qPrintable(union_loaded.error().message));
+    const auto union_runtime = appellate::packs::loadRuntimePack(*union_loaded);
+    QVERIFY2(union_runtime.has_value(),
+             union_runtime ? ""
+                           : qPrintable(QString::fromStdString(union_runtime.error().message)));
+    const auto& runtime_case = union_runtime->cases.front();
+    const auto date = [](int day) {
+        return appellate::model::LegalDate{std::chrono::year{2026} / std::chrono::month{1} /
+                                           std::chrono::day{static_cast<unsigned>(day)}};
+    };
+    const auto at = [&](int day) {
+        const auto court_date = date(day);
+        return appellate::model::LegalTime{
+            std::chrono::sys_seconds{std::chrono::sys_days{court_date.value}}, court_date};
+    };
+    const appellate::model::WorkflowState initial_state{"example.session.union",
+                                                        runtime_case.workflow.id,
+                                                        runtime_case.workflow.initial_stage_id,
+                                                        std::uint64_t{1},
+                                                        std::nullopt,
+                                                        {},
+                                                        {},
+                                                        {},
+                                                        {},
+                                                        {},
+                                                        false,
+                                                        std::nullopt,
+                                                        std::nullopt,
+                                                        std::nullopt,
+                                                        std::nullopt,
+                                                        std::nullopt,
+                                                        std::nullopt};
+    const appellate::model::WorkflowCommand enter_first = appellate::model::EnterWorkflowOrder{
+        appellate::model::WorkflowCommandHeader{
+            initial_state.session_id,
+            appellate::model::WorkflowCommandId{"example.command.enter-union-first"},
+            appellate::model::ActorId{"example.actor.court"}, at(2)},
+        appellate::model::WorkflowOperationId{"example.operation.enter-order-union-first"},
+        appellate::model::WorkflowOrderId{"example.order.union"},
+        appellate::model::WorkflowOrderDisposition::Granted,
+        "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366",
+        std::nullopt};
+    const auto order_events = appellate::engine::decideWorkflow(
+        runtime_case.workflow, runtime_case.definition, initial_state, enter_first);
+    QVERIFY(order_events.has_value());
+    const std::vector journal{appellate::model::WorkflowJournalEntry{enter_first, *order_events}};
+    const auto after_order = appellate::engine::replayWorkflow(
+        runtime_case.workflow, runtime_case.definition, initial_state, journal);
+    QVERIFY(after_order.has_value());
+
+    const auto calculate = [&](const std::string& command_id, const std::string& operation_id,
+                               const std::string& deadline_id) {
+        return appellate::model::WorkflowCommand{appellate::model::CalculateWorkflowDeadline{
+            appellate::model::WorkflowCommandHeader{
+                initial_state.session_id, appellate::model::WorkflowCommandId{command_id},
+                appellate::model::ActorId{"example.actor.court"}, at(3)},
+            appellate::model::WorkflowOperationId{operation_id},
+            appellate::model::WorkflowDeadlineId{deadline_id}}};
+    };
+    const auto nonmatching_clock = appellate::engine::decideWorkflow(
+        runtime_case.workflow, runtime_case.definition, *after_order,
+        calculate("example.command.calculate-union-second",
+                  "example.operation.calculate-union-second", "example.deadline.union-second"));
+    QVERIFY(!nonmatching_clock.has_value());
+    QCOMPARE(nonmatching_clock.error().code,
+             appellate::engine::WorkflowErrorCode::UnmetPrecondition);
+    const auto matching_clock = appellate::engine::decideWorkflow(
+        runtime_case.workflow, runtime_case.definition, *after_order,
+        calculate("example.command.calculate-union-first",
+                  "example.operation.calculate-union-first", "example.deadline.union-first"));
+    QVERIFY(matching_clock.has_value());
 }
 
 } // namespace

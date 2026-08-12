@@ -240,6 +240,7 @@ class WorkflowCodecTest final : public QObject {
     void roundTripsMaximumStructuredPayload();
     void roundTripsPreconditionSnapshotsSchemaThree();
     void roundTripsAndFencesExtendedSchemaFour();
+    void roundTripsAndFencesAlternativeEventDateBase();
     void roundTripsAndFencesInstanceSchemaFive();
     void rejectsStructuredVersionConfusionAndTampering();
     void rejectsAuthoritySchemaDowngradesAndMixedForms();
@@ -710,6 +711,106 @@ void WorkflowCodecTest::roundTripsAndFencesExtendedSchemaFour() {
         storage::encodeWorkflowEvent(model::WorkflowEvent{unnamed_reached});
     QVERIFY(!unnamed_encoding.has_value());
     QCOMPARE(unnamed_encoding.error().code, WorkflowCodecErrorCode::InvalidField);
+}
+
+void WorkflowCodecTest::roundTripsAndFencesAlternativeEventDateBase() {
+    auto event = std::get<model::WorkflowDeadlineCalculated>(events().at(3));
+    event.header.authority = authority(true);
+    event.produced_deadline_id = event.deadline_id;
+    event.deadline_event_base = model::WorkflowOrderOccurredOneOfDeadlineBase{
+        model::WorkflowOrderId{"test.order.separate-document"},
+        {model::WorkflowOperationId{"test.operation.enter-actual-judgment"},
+         model::WorkflowOperationId{"test.operation.enter-supported-judgment"}}};
+
+    const auto encoded = storage::encodeWorkflowEvent(model::WorkflowEvent{event});
+    QVERIFY(encoded.has_value());
+    QCOMPARE(QCryptographicHash::hash(*encoded, QCryptographicHash::Sha256).toHex(),
+             QByteArray("2d1e6a3997c37b003fef83f7ee7d3989b660c9966e870648639f956159fa87fa"));
+    const auto envelope = QJsonDocument::fromJson(*encoded).object();
+    QCOMPARE(envelope.value(QStringLiteral("schema_version")).toInt(), 4);
+    const auto event_base = envelope.value(QStringLiteral("payload"))
+                                .toObject()
+                                .value(QStringLiteral("deadline_event_base"))
+                                .toObject();
+    QCOMPARE(event_base.value(QStringLiteral("kind")).toString(),
+             QStringLiteral("order_occurred_one_of"));
+    QCOMPARE(event_base.value(QStringLiteral("order_id")).toString(),
+             QStringLiteral("test.order.separate-document"));
+    QCOMPARE(event_base.value(QStringLiteral("operation_ids")).toArray(),
+             QJsonArray({QStringLiteral("test.operation.enter-actual-judgment"),
+                         QStringLiteral("test.operation.enter-supported-judgment")}));
+    const auto decoded = storage::decodeWorkflowEvent(*encoded);
+    QVERIFY(decoded.has_value());
+    QVERIFY(*decoded == model::WorkflowEvent{event});
+    const auto reencoded = storage::encodeWorkflowEvent(*decoded);
+    QVERIFY(reencoded.has_value());
+    QCOMPARE(*reencoded, *encoded);
+
+    auto invalid_model = event;
+    auto& invalid_base =
+        std::get<model::WorkflowOrderOccurredOneOfDeadlineBase>(*invalid_model.deadline_event_base);
+    invalid_base.operation_ids.clear();
+    auto rejected_encoding = storage::encodeWorkflowEvent(model::WorkflowEvent{invalid_model});
+    QVERIFY(!rejected_encoding.has_value());
+    QCOMPARE(rejected_encoding.error().code, WorkflowCodecErrorCode::OutOfRange);
+
+    invalid_base.operation_ids = {
+        model::WorkflowOperationId{"test.operation.enter-actual-judgment"},
+        model::WorkflowOperationId{"test.operation.enter-actual-judgment"}};
+    rejected_encoding = storage::encodeWorkflowEvent(model::WorkflowEvent{invalid_model});
+    QVERIFY(!rejected_encoding.has_value());
+    QCOMPARE(rejected_encoding.error().code, WorkflowCodecErrorCode::InvalidField);
+
+    const auto reject_base = [&](QJsonObject base, WorkflowCodecErrorCode expected_code) {
+        auto mutated = envelope;
+        auto payload = mutated.value(QStringLiteral("payload")).toObject();
+        payload.insert(QStringLiteral("deadline_event_base"), base);
+        mutated.insert(QStringLiteral("payload"), payload);
+        const auto result = storage::decodeWorkflowEvent(compact(mutated));
+        QVERIFY(!result.has_value());
+        QCOMPARE(result.error().code, expected_code);
+    };
+
+    auto empty = event_base;
+    empty.insert(QStringLiteral("operation_ids"), QJsonArray{});
+    reject_base(empty, WorkflowCodecErrorCode::OutOfRange);
+
+    auto duplicate = event_base;
+    duplicate.insert(QStringLiteral("operation_ids"),
+                     QJsonArray({QStringLiteral("test.operation.enter-actual-judgment"),
+                                 QStringLiteral("test.operation.enter-actual-judgment")}));
+    reject_base(duplicate, WorkflowCodecErrorCode::InvalidField);
+
+    auto extra = event_base;
+    extra.insert(QStringLiteral("operation_id"),
+                 QStringLiteral("test.operation.enter-actual-judgment"));
+    reject_base(extra, WorkflowCodecErrorCode::UnexpectedField);
+
+    auto missing_order = event_base;
+    missing_order.remove(QStringLiteral("order_id"));
+    reject_base(missing_order, WorkflowCodecErrorCode::MissingField);
+
+    auto missing_operations = event_base;
+    missing_operations.remove(QStringLiteral("operation_ids"));
+    reject_base(missing_operations, WorkflowCodecErrorCode::MissingField);
+
+    auto unknown = event_base;
+    unknown.insert(QStringLiteral("kind"), QStringLiteral("order_occurred_any"));
+    reject_base(unknown, WorkflowCodecErrorCode::InvalidField);
+
+    auto missing_base = envelope;
+    auto missing_base_payload = missing_base.value(QStringLiteral("payload")).toObject();
+    missing_base_payload.remove(QStringLiteral("deadline_event_base"));
+    missing_base.insert(QStringLiteral("payload"), missing_base_payload);
+    const auto missing_base_result = storage::decodeWorkflowEvent(compact(missing_base));
+    QVERIFY(!missing_base_result.has_value());
+    QCOMPARE(missing_base_result.error().code, WorkflowCodecErrorCode::MissingField);
+
+    auto downgraded = envelope;
+    downgraded.insert(QStringLiteral("schema_version"), 3);
+    const auto downgraded_result = storage::decodeWorkflowEvent(compact(downgraded));
+    QVERIFY(!downgraded_result.has_value());
+    QCOMPARE(downgraded_result.error().code, WorkflowCodecErrorCode::UnexpectedField);
 }
 
 void WorkflowCodecTest::roundTripsAndFencesInstanceSchemaFive() {

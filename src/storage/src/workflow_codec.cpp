@@ -990,6 +990,16 @@ template <typename Id>
     return QJsonValue{*encoded};
 }
 
+template <typename Id>
+[[nodiscard]] auto encodeIdArray(const std::vector<Id>& values, qsizetype maximum,
+                                 bool require_non_empty, QStringView context)
+    -> std::expected<QJsonArray, WorkflowCodecError>;
+
+template <typename Id>
+[[nodiscard]] auto decodeIdArray(const QJsonValue& value, qsizetype maximum, bool require_non_empty,
+                                 QStringView context)
+    -> std::expected<std::vector<Id>, WorkflowCodecError>;
+
 [[nodiscard]] auto
 encodeDeadlineEventBase(const std::optional<model::WorkflowDeadlineEventBase>& base)
     -> std::expected<QJsonValue, WorkflowCodecError> {
@@ -1001,7 +1011,7 @@ encodeDeadlineEventBase(const std::optional<model::WorkflowDeadlineEventBase>& b
             using Base = std::remove_cvref_t<decltype(concrete)>;
             if constexpr (std::same_as<Base, model::WorkflowJudgmentOccurredDeadlineBase>) {
                 return QJsonObject{{QStringLiteral("kind"), QStringLiteral("judgment_occurred")}};
-            } else {
+            } else if constexpr (std::same_as<Base, model::WorkflowOrderOccurredDeadlineBase>) {
                 const auto order_id =
                     checkedId(concrete.order_id.value, u"payload.deadline_event_base.order_id");
                 const auto operation_id = checkedId(concrete.operation_id.value,
@@ -1015,6 +1025,21 @@ encodeDeadlineEventBase(const std::optional<model::WorkflowDeadlineEventBase>& b
                 return QJsonObject{{QStringLiteral("kind"), QStringLiteral("order_occurred")},
                                    {QStringLiteral("operation_id"), *operation_id},
                                    {QStringLiteral("order_id"), *order_id}};
+            } else {
+                const auto order_id =
+                    checkedId(concrete.order_id.value, u"payload.deadline_event_base.order_id");
+                const auto operation_ids = encodeIdArray(
+                    concrete.operation_ids, 64, true, u"payload.deadline_event_base.operation_ids");
+                if (!order_id) {
+                    return std::unexpected(order_id.error());
+                }
+                if (!operation_ids) {
+                    return std::unexpected(operation_ids.error());
+                }
+                return QJsonObject{
+                    {QStringLiteral("kind"), QStringLiteral("order_occurred_one_of")},
+                    {QStringLiteral("operation_ids"), *operation_ids},
+                    {QStringLiteral("order_id"), *order_id}};
             }
         },
         *base);
@@ -1059,6 +1084,25 @@ encodeDeadlineEventBase(const std::optional<model::WorkflowDeadlineEventBase>& b
         }
         return model::WorkflowDeadlineEventBase{
             model::WorkflowOrderOccurredDeadlineBase{*order_id, *operation_id}};
+    }
+    if (*kind == u"order_occurred_one_of") {
+        if (const auto keys = exactKeys(object, {u"kind", u"operation_ids", u"order_id"},
+                                        u"payload.deadline_event_base");
+            !keys) {
+            return std::unexpected(keys.error());
+        }
+        const auto order_id =
+            decodeId<model::WorkflowOrderId>(object, u"order_id", u"payload.deadline_event_base");
+        const auto operation_ids = decodeIdArray<model::WorkflowOperationId>(
+            object.value(u"operation_ids"), 64, true, u"payload.deadline_event_base.operation_ids");
+        if (!order_id) {
+            return std::unexpected(order_id.error());
+        }
+        if (!operation_ids) {
+            return std::unexpected(operation_ids.error());
+        }
+        return model::WorkflowDeadlineEventBase{
+            model::WorkflowOrderOccurredOneOfDeadlineBase{*order_id, std::move(*operation_ids)}};
     }
     return fail(WorkflowCodecErrorCode::InvalidField,
                 QStringLiteral("payload.deadline_event_base.kind is unknown"));

@@ -31,6 +31,9 @@ constexpr std::array supported_capabilities{
     SupportedCapability{"workbench.pack.static-deficiency-deadlines", 1, 2, 2},
     SupportedCapability{"workbench.pack.operation-document-bindings", 1, 2, 2},
     SupportedCapability{"workbench.pack.operation-disposition-bindings", 1, 2, 2},
+    SupportedCapability{"workbench.pack.route-filing-bindings", 1, 2, 2},
+    SupportedCapability{"workbench.pack.alternative-event-date-deadlines", 1, 2, 2},
+    SupportedCapability{"workbench.pack.operation-legal-time-guards", 1, 2, 2},
 };
 
 [[nodiscard]] auto fail(QString message) -> std::unexpected<Error> {
@@ -83,7 +86,9 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
     bool uses_argument_date_guards, bool uses_structured_disposition, bool uses_grounded_questions,
     bool uses_realism_evidence, bool uses_sealed_record_twins, bool uses_route_role_subsets,
     bool uses_workflow_instance_preconditions, bool uses_static_deficiency_deadlines,
-    bool uses_operation_document_bindings, bool uses_operation_disposition_bindings) {
+    bool uses_operation_document_bindings, bool uses_operation_disposition_bindings,
+    bool uses_route_filing_bindings, bool uses_alternative_event_date_deadlines,
+    bool uses_operation_legal_time_guards) {
     const auto declarations = validateDeclarations(manifest_schema_version, required_capabilities);
     if (!declarations) {
         return declarations;
@@ -207,6 +212,27 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
         !hasCapability(required_capabilities, "workbench.pack.structured-disposition", 1)) {
         return fail(QStringLiteral("Schema-2 operation disposition bindings require "
                                    "workbench.pack.structured-disposition version 1"));
+    }
+    if (uses_route_filing_bindings &&
+        !hasCapability(required_capabilities, "workbench.pack.route-filing-bindings", 1)) {
+        return fail(QStringLiteral("Schema-2 exact filing-route bindings require "
+                                   "workbench.pack.route-filing-bindings version 1"));
+    }
+    if (uses_alternative_event_date_deadlines &&
+        !hasCapability(required_capabilities, "workbench.pack.alternative-event-date-deadlines",
+                       1)) {
+        return fail(QStringLiteral("Schema-2 alternative order event-date deadlines require "
+                                   "workbench.pack.alternative-event-date-deadlines version 1"));
+    }
+    if (uses_alternative_event_date_deadlines &&
+        !hasCapability(required_capabilities, "workbench.pack.event-date-deadlines", 1)) {
+        return fail(QStringLiteral("Schema-2 alternative order event-date deadlines also require "
+                                   "workbench.pack.event-date-deadlines version 1"));
+    }
+    if (uses_operation_legal_time_guards &&
+        !hasCapability(required_capabilities, "workbench.pack.operation-legal-time-guards", 1)) {
+        return fail(QStringLiteral("Schema-2 operation legal-time guards require "
+                                   "workbench.pack.operation-legal-time-guards version 1"));
     }
     return {};
 }
