@@ -55,7 +55,7 @@ the root procedure profile; the record; and actual/counterfactual argument banks
 grounding digests are `a7b9d3f45093cd389d57fea1522b1c2ae80fac29bf5705dd5b24033694c6f4ea`
 and `5b5559db07537e94046dffc733b8f3f104f09533ff9ffede190f4e1758260ecb`.
 Exact resource-byte hashes are listed in [VALIDATION.md](VALIDATION.md); their presence
-does not imply that the pending workflow or release closure passes.
+does not imply that the pending trace or release closure passes.
 
 The successor plan has `source_review_clear` on all 73 rows and at top level, and its
 top-level render status is `rendered_accepted`. The source ledger's pre-render planning
@@ -83,24 +83,40 @@ continued protection; those limits therefore remain textually aligned in the opi
 judgment, case plan, and evidence narrative. The adverse reversal is a counterfactual
 plan only.
 
-The workflow is intended to serialize district-first and appellate stay practice before
+The workflow serializes district-first and appellate stay practice before
 merits briefing. It does not claim concurrent emergency/merits clocks, infer
 impracticability or mootness from arbitrary text, classify novel filings, or enforce a
 clerk-versus-panel distinction beyond role authorization and exact authored bindings.
 These are explicit limitations, not latent engine capabilities.
 
-## Provisional workflow and evidence targets
+The three early Rule 8 counterfactuals are deliberately scoped endpoints. The threshold
+denial (B02), impracticability denial (B05), and grant/dissolution sequence (B06–B07)
+remain in the appellate-stay stage and do not ingest the actual notice, docketing,
+record, briefing, or merits documents. The workflow abstracts the counterfactual notice
+and docket setup needed to present those exercises; it does not claim a complete alternate
+appellate docket for them.
 
-The planned workflow envelope is 16 stages, 93 operations, 13 filing routes, 24 exact
-document/disposition bindings, and 12 named or dependent deadline definitions. Nine
-production traces are planned. The root plans exactly 16 required capabilities and three
-exact-pinned foundation dependencies. These counts are targets until the corresponding
-resources, journals, replay, and manifest are frozen; they are not release claims.
+## Frozen workflow and pending evidence
+
+The frozen workflow SHA-256 is
+`1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`.
+It contains 16 stages, 90 operations, 13 filing routes, 24 exact filing bindings,
+31 document bindings, two structured-disposition bindings, and 14 concrete deadline IDs
+representing 12 logical deadline concepts. All 90 operations are reachable across the nine
+planned paths. Schema validation, four-revision resolved validation, nine-path replay, and an
+independent hostile audit passed; the audit rejected 2,212 replay mutations across 316 journal
+entries. Canonical checked-in production traces and release closure are still pending.
+
+The root plans exactly 16 required capabilities and three exact-pinned foundation dependencies.
+These workflow counts are frozen evidence, but they are not by themselves an installable or
+release claim.
 
 Current unresolved evidence pins are intentionally explicit:
 
-- workflow resource SHA-256: `PENDING_WORKFLOW_SHA256`;
-- workflow structural/replay audit: `PENDING_WORKFLOW_AUDIT`;
+- workflow resource SHA-256:
+  `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`;
+- workflow structural/replay audit: exact 90/90 operation reachability and 2,212/2,212
+  hostile replay mutations rejected;
 - nine trace paths and SHA-256 values: `PENDING_TRACE_PINS`;
 - manifest SHA-256: `PENDING_MANIFEST_SHA256`;
 - realism-review SHA-256 and evidence closure: `PENDING_REVIEW_SHA256` and

@@ -17,7 +17,7 @@ designation and does not satisfy the level-3 gate.
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | Employment retaliation | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable successor level-2 evidence; qualified independent review pending |
-| Preliminary injunction / stay | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Source/render/record evidence frozen; workflow, traces, review, root, archive, and tests pending |
+| Preliminary injunction / stay | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Source/render/record and workflow evidence frozen; traces, review, root, archive, and tests pending |
 | Section 1983 qualified immunity | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Post-trial JMOL | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Sealed FOIA | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
@@ -62,10 +62,12 @@ employment/appellate review or change Asterglen's designation as the civil gold 
 The Norvale injunction `1.2.0` authoring candidate remains level 0 in this release matrix even
 though its source/render/record slice is frozen. That accepted slice contains 24 lower-record
 PDFs/149 JA pages, 23 actual appellate PDFs/135 PA pages, and 26 separately docketed,
-never-filed PDFs/99 PA pages, for 73 PDFs/383 anchors. Its provisional executable envelope is
-16 stages, 93 operations, 13 filing routes, 24 exact bindings, 12 deadline definitions, nine
-planned traces, and 16 capabilities. Those workflow and trace counts are targets, not replay or
-release evidence. `PENDING_WORKFLOW_SHA256`, `PENDING_TRACE_PINS`,
+never-filed PDFs/99 PA pages, for 73 PDFs/383 anchors. Its frozen workflow SHA-256 is
+`1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`, with
+16 stages, 90 operations, 13 filing routes, 24 exact filing bindings, 31 document bindings,
+two structured dispositions, and 14 concrete deadline IDs representing 12 logical concepts.
+All 90 operations are reachable across nine planned paths, but the checked-in canonical trace
+and release evidence remain pending. `PENDING_TRACE_PINS`,
 `PENDING_MANIFEST_SHA256`, `PENDING_REVIEW_SHA256`, `PENDING_ROOT_REVISION`,
 `PENDING_ARCHIVE_SHA256`, and `PENDING_TEST_PINS` must be replaced from exact accepted bytes
 before the row may claim level 2. Automated record checks do not substitute for qualified

@@ -51,8 +51,9 @@ The frozen Norvale source/render/record bytes likewise refine only its page floo
 283-PDF breadth total. Its lower-court record is 24 PDFs/149 JA pages, while its complete record
 is 73 PDFs/383 pages after adding 23 actual appellate PDFs/135 PA pages and 26 separately
 docketed, never-filed branch PDFs/99 PA pages. PA136–PA234 never occurred on the actual appeal.
-Workflow, traces, manifest, review, root, archive, and focused-test evidence remain explicit
-`PENDING_*` pins; this is not yet an installable or level-2 claim.
+The workflow is frozen and independently hostile-reviewed; traces, manifest, review, root,
+archive, and focused-test evidence remain explicit `PENDING_*` pins. This is not yet an
+installable or level-2 claim.
 
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
@@ -133,14 +134,19 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
   corrected Rule 65(c)/(d) order without dissolving protection.
 - **Evidence status:** the accepted record contains 24 lower PDFs/149 JA pages, 23 actual
   appellate PDFs/135 PA pages, and 26 never-filed branch PDFs/99 PA pages, for 73 PDFs/383
-  anchors. The provisional workflow target is 16 stages, 93 operations, 13 filing routes,
-  24 exact bindings, and 12 deadline definitions; nine traces and 16 required capabilities are
-  planned. Final workflow, trace, manifest, review, root, archive, and test pins are pending.
+  anchors. The frozen workflow SHA-256 is
+  `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`:
+  16 stages, 90 operations, 13 filing routes, 24 exact filing bindings, 31 document bindings,
+  two disposition bindings, and 14 concrete deadline IDs representing 12 logical concepts.
+  Nine canonical traces and 16 required capabilities are planned. Trace, manifest, review,
+  root, archive, and test pins remain pending.
 - **Limits:** stay practice is serialized before merits briefing. The model does not infer
   concurrent clocks, impracticability, mootness, or the legal meaning of arbitrary filings;
   shared court-role authorization cannot itself distinguish clerk from panel. The structured
   disposition also has no separate non-vacatur/continued-protection field, so that limitation
-  remains an exact narrative contract.
+  remains an exact narrative contract. The B02, B05, and B07 Rule 8 exercises are scoped
+  appellate-stay endpoints; no complete alternate notice, record, merits, or mandate docket is
+  claimed for them.
 
 ### 4. Ellison immunity — `ca4m4.case.ellison-immunity`
 

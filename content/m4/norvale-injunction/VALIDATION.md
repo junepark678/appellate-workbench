@@ -2,10 +2,10 @@
 
 Evidence status as of **2026-08-12**: all 73 synthetic sources are frozen; the fresh
 production render and schema-v2 record are accepted; seven non-workflow core resources
-have been copied byte-for-byte into the pack candidate. Workflow, trace, manifest,
-realism-review, root, archive, resolved-validation, replay, and focused-test evidence are
-not final here. This document deliberately records placeholders instead of projecting a
-release result.
+have been copied byte-for-byte into the pack candidate; and the workflow is frozen after
+schema, resolved, reachability, replay, and hostile review. Canonical trace, manifest,
+realism-review, root, archive, and focused-test evidence are not final here. This document
+deliberately records placeholders instead of projecting a release result.
 
 ## Evidence pins
 
@@ -29,7 +29,8 @@ release result.
 | Procedure-profile resource SHA-256 | `4bb5fee6613a9a1e300d12d9a4d30248ee8478d1076d9f712e2f768bb852bdee` | Frozen core resource |
 | Actual question-bank grounding digest | `a7b9d3f45093cd389d57fea1522b1c2ae80fac29bf5705dd5b24033694c6f4ea` | Recomputed from frozen authority/record bytes |
 | Counterfactual question-bank grounding digest | `5b5559db07537e94046dffc733b8f3f104f09533ff9ffede190f4e1758260ecb` | Recomputed from frozen authority/record bytes |
-| Workflow resource SHA-256 | `PENDING_WORKFLOW_SHA256` | Target: 16 stages / 93 operations / 13 routes / 24 bindings / 12 deadlines |
+| Workflow resource SHA-256 | `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a` | Frozen: 16 stages / 90 operations / 13 routes / 24 filing bindings / 31 document bindings / 2 dispositions / 14 concrete deadline IDs (12 logical concepts) |
+| Workflow hostile audit | `056370216e48f8cd04e0f078e31706b18d17c228e2df9ec1b7abc176fd7d4ea2` | Clear: 90/90 operations reachable; 2,212/2,212 replay mutations rejected |
 | Canonical trace pins | `PENDING_TRACE_PINS` | Nine traces planned; paths, hashes, command/event counts, coverage, and replay pending |
 | Manifest SHA-256 | `PENDING_MANIFEST_SHA256` | Not yet supplied |
 | Realism-review SHA-256 | `PENDING_REVIEW_SHA256` | Not yet supplied; independent review remains pending |
@@ -67,18 +68,20 @@ The following claims are confined to the frozen source/render/record bytes:
 6. Actual and counterfactual grounded-question digests independently recompute from the
    exact authority propositions/provenance and record asset/anchor bytes.
 
-These gates establish provenance and internal consistency. They do not establish legal
-correctness, accessibility conformance, workflow replay, installability, deterministic
+These gates establish provenance and internal consistency. The separately frozen workflow
+establishes its stated schema, reachability, replay, and branch-isolation properties. Neither
+slice establishes legal correctness, accessibility conformance, installability, deterministic
 export, or independent professional review.
 
-## Pending workflow and release gates
+## Completed workflow gates and pending release gates
 
 Before any final release statement, replace every `PENDING_*` value only from the exact
 accepted artifacts and verify all of the following:
 
-1. the workflow actually contains 16 stages, 93 operations, 13 filing routes, 24 exact
-   bindings, and 12 deadline definitions under the agreed counting contract;
-2. each of the nine named journals is frozen, complete, and replays through the production
+1. the frozen workflow contains exactly 16 stages, 90 operations, 13 filing routes, 24 exact
+   filing bindings, 31 document bindings, two structured-disposition bindings, and 14 concrete
+   deadline IDs representing 12 logical concepts; all 90 operations are runtime-reachable;
+2. each of the nine named canonical journals is frozen, complete, and replays through the production
    engine, with branch coverage and command/event totals recorded rather than inferred;
 3. actual-history operations, actual disposition, and actual-record questions cannot use
    PA136–PA234, while counterfactual operations remain on their separate docket;
@@ -110,6 +113,10 @@ Final validation must preserve these authored boundaries:
 - The actual Rule 8 motion follows district-court stay practice. B01–B07 are mutually
   exclusive threshold, impracticability, grant, and dissolution alternatives; none
   occurred on the actual docket.
+- B02, B05, and B07 are intentionally scoped nonterminal endpoints in the appellate-stay
+  stage. They cannot enter the actual A08/A10/A20 record and merits lineage; the workflow
+  does not claim complete counterfactual notice, docketing, briefing, or mandate histories
+  for those three teaching exercises.
 - The actual appellate result preserves preliminary-relief entitlement and remands only
   for Rule 65(c)/(d) correction. The structured plan cannot independently encode
   non-vacatur or continued protection, so narrative documents and evidence must remain
@@ -127,7 +134,7 @@ generic successful test for the missing case-specific evidence.
 jq empty content/m4/norvale-injunction/metadata/render-inventory-successor.json
 jq empty content/m4/norvale-injunction/pack-candidate/resources/record.json
 
-# PENDING_WORKFLOW_AUDIT
+# Frozen workflow audit: 1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a
 # PENDING_TRACE_REPLAY_COMMANDS
 # PENDING_MANIFEST_VALIDATION_COMMANDS
 # PENDING_RESOLVED_VALIDATION_COMMANDS

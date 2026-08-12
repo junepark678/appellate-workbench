@@ -72,9 +72,9 @@ match the corrected matrix floor of 24 PDFs/149 substantive pages.
 These 23 PDFs and PA1–PA135 form the actual appellate history. A20 explains the
 authored result; the structured judgment operation is intended to bind A21 to
 `ca4m4.norvale.disposition.authored-limited-remand`. A22 and A23 remain separate
-release and mandate artifacts. Workflow binding and replay are
-`PENDING_WORKFLOW_AUDIT` and `PENDING_TRACE_PINS`, not completed claims in this
-inventory.
+release and mandate artifacts. The frozen workflow binds them under SHA-256
+`1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`;
+canonical trace pins remain `PENDING_TRACE_PINS`, not a completed claim in this inventory.
 
 ## Counterfactual appellate bank — never filed
 
@@ -130,7 +130,8 @@ and framed SHA-256 is
 
 The record SHA-256 is
 `a25bb89f96b78bbf7b084b50c4327953ed0af602359e49460dd1e10ef48306c3`.
-Manifest, root, archive, review, trace, workflow, and test pins remain
+Manifest, root, archive, review, trace, and test pins remain
 `PENDING_MANIFEST_SHA256`, `PENDING_ROOT_REVISION`, `PENDING_ARCHIVE_SHA256`,
-`PENDING_REVIEW_SHA256`, `PENDING_TRACE_PINS`, `PENDING_WORKFLOW_SHA256`, and
-`PENDING_TEST_PINS` until supplied from final accepted artifacts.
+`PENDING_REVIEW_SHA256`, `PENDING_TRACE_PINS`, and `PENDING_TEST_PINS` until supplied
+from final accepted artifacts. The workflow SHA-256 is frozen as
+`1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`.
