@@ -1147,6 +1147,17 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
     });
 }
 
+[[nodiscard]] bool usesOperationDispositionBindings(std::span<const ValidatedResource> resources) {
+    return std::ranges::any_of(resources, [](const ValidatedResource& resource) {
+        return resource.descriptor.kind == model::ResourceKind::Workflow &&
+               std::ranges::any_of(resource.document.value(QStringLiteral("operations")).toArray(),
+                                   [](const QJsonValue& operation_value) {
+                                       return operation_value.toObject().contains(
+                                           QStringLiteral("disposition_plan_id"));
+                                   });
+    });
+}
+
 [[nodiscard]] auto validateResourceGraph(const std::vector<ValidatedResource>& resources,
                                          const std::vector<model::BlobDescriptor>& blobs)
     -> std::expected<void, Error> {
@@ -1204,6 +1215,7 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
     QHash<QString, QHash<QString, QSet<QString>>> case_issue_authorities;
     QHash<QString, QHash<QString, QSet<QString>>> case_issue_record_anchors;
     QHash<QString, QSet<QString>> catalog_roles;
+    QHash<QString, QSet<QString>> workflow_case_owners;
 
     // Authority references may appear before their authority-set resource in
     // manifest order, so index identities before validating resource bodies.
@@ -1388,6 +1400,16 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         QStringLiteral("deadline_days and deadline_counting must appear together"));
                 }
                 const auto opcode = operation.value(QStringLiteral("opcode")).toString();
+                if (operation.contains(QStringLiteral("disposition_plan_id")) &&
+                    (resource.descriptor.schema_version != 2 ||
+                     opcode != QStringLiteral("issue_judgment") ||
+                     !isNamespacedId(
+                         operation.value(QStringLiteral("disposition_plan_id")).toString()))) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("operations/disposition_plan_id"),
+                        QStringLiteral("only a schema-2 judgment operation can bind a canonical "
+                                       "disposition plan"));
+                }
                 const auto is_exact_iso_date = [](const QJsonValue& date_value) {
                     if (!date_value.isString()) {
                         return false;
@@ -2673,6 +2695,8 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
             }
             const auto workflow_id =
                 (*procedure)->document.value(QStringLiteral("workflow_id")).toString();
+            workflow_case_owners[workflow_id].insert(
+                QString::fromStdString(resource.descriptor.id));
             const auto case_workflow =
                 requireKind(resource, QStringLiteral("procedure_profile_id/workflow_id"),
                             workflow_id, model::ResourceKind::Workflow);
@@ -2876,9 +2900,11 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 document.contains(QStringLiteral("disposition_plans")) ||
                 document.contains(QStringLiteral("authored_disposition_plan_id")) ||
                 !issue_targets.isEmpty();
+            QSet<QString> disposition_plan_ids;
+            QString authored_plan_id;
             if (has_structured_plan) {
                 const auto plan_value = document.value(QStringLiteral("disposition_plans"));
-                const auto authored_plan_id =
+                authored_plan_id =
                     document.value(QStringLiteral("authored_disposition_plan_id")).toString();
                 if (issue_targets.size() !=
                         document.value(QStringLiteral("issues")).toArray().size() ||
@@ -2890,7 +2916,6 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         QStringLiteral("structured disposition fields must form one complete "
                                        "capability-gated contract"));
                 }
-                QSet<QString> plan_ids;
                 for (const auto& plan_value_item : plan_value.toArray()) {
                     if (!plan_value_item.isObject()) {
                         return crossReferenceFailure(
@@ -2903,7 +2928,7 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                     const auto digest = plan.value(QStringLiteral("digest")).toString();
                     const auto components = plan.value(QStringLiteral("components")).toArray();
                     if (!hasExactKeys(plan, {"plan_id", "finality", "digest", "components"}) ||
-                        !isNamespacedId(plan_id) || plan_ids.contains(plan_id) ||
+                        !isNamespacedId(plan_id) || disposition_plan_ids.contains(plan_id) ||
                         !plan.value(QStringLiteral("components")).isArray() ||
                         components.isEmpty() ||
                         components.size() > maximum_disposition_components || !isSha256(digest) ||
@@ -2917,7 +2942,7 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                             QStringLiteral("plan ids, finality, components, and canonical digest "
                                            "must be valid"));
                     }
-                    plan_ids.insert(plan_id);
+                    disposition_plan_ids.insert(plan_id);
                     QSet<QString> covered_targets;
                     for (const auto& component_value : components) {
                         if (!component_value.isObject()) {
@@ -3005,7 +3030,7 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                         }
                     }
                 }
-                if (!plan_ids.contains(authored_plan_id)) {
+                if (!disposition_plan_ids.contains(authored_plan_id)) {
                     return crossReferenceFailure(
                         resource, QStringLiteral("authored_disposition_plan_id"),
                         QStringLiteral("authored plan is not declared by the case"));
@@ -3026,6 +3051,28 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
                 return crossReferenceFailure(
                     resource, QStringLiteral("authored_disposition_id"),
                     QStringLiteral("operation is not a judgment in the case workflow"));
+            }
+            for (const auto& operation_value : operation_values) {
+                const auto operation = operation_value.toObject();
+                if (!operation.contains(QStringLiteral("disposition_plan_id"))) {
+                    continue;
+                }
+                const auto operation_id =
+                    operation.value(QStringLiteral("operation_id")).toString();
+                const auto bound_plan_id =
+                    operation.value(QStringLiteral("disposition_plan_id")).toString();
+                if (!has_structured_plan || !disposition_plan_ids.contains(bound_plan_id)) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("workflow/operations/disposition_plan_id"),
+                        QStringLiteral("judgment binding does not resolve to a disposition plan "
+                                       "in this case"));
+                }
+                if (operation_id == disposition && bound_plan_id != authored_plan_id) {
+                    return crossReferenceFailure(
+                        resource, QStringLiteral("authored_disposition_id"),
+                        QStringLiteral("the authored judgment operation cannot bind a different "
+                                       "disposition plan"));
+                }
             }
             break;
         }
@@ -3336,6 +3383,22 @@ canonicalQuestionBankDigest(const QString& case_id, const QString& argument_conf
         }
         default:
             break;
+        }
+    }
+    for (const auto& resource : resources) {
+        if (resource.descriptor.kind != model::ResourceKind::Workflow ||
+            !std::ranges::any_of(resource.document.value(QStringLiteral("operations")).toArray(),
+                                 [](const QJsonValue& operation) {
+                                     return operation.toObject().contains(
+                                         QStringLiteral("disposition_plan_id"));
+                                 })) {
+            continue;
+        }
+        const auto workflow_id = QString::fromStdString(resource.descriptor.id);
+        if (workflow_case_owners.value(workflow_id).isEmpty()) {
+            return crossReferenceFailure(
+                resource, QStringLiteral("operations/disposition_plan_id"),
+                QStringLiteral("a disposition-bound workflow must be owned by at least one case"));
         }
     }
     for (const auto& blob : blobs) {
@@ -3670,7 +3733,7 @@ readDirectoryImpl(const QString& directory, PackValidationScope scope,
         usesGroundedQuestions(resources), usesRealismEvidence(resources),
         usesSealedRecordTwins(resources), usesRouteRoleSubsets(resources),
         usesWorkflowInstancePreconditions(resources), usesStaticDeficiencyDeadlines(resources),
-        usesOperationDocumentBindings(resources));
+        usesOperationDocumentBindings(resources), usesOperationDispositionBindings(resources));
     if (!content_capability_coverage) {
         return std::unexpected(content_capability_coverage.error());
     }
@@ -3764,7 +3827,8 @@ std::expected<void, Error> PackReader::validateResolvedGraph(
             usesSealedRecordTwins(pack.resources), usesRouteRoleSubsets(pack.resources),
             usesWorkflowInstancePreconditions(pack.resources),
             usesStaticDeficiencyDeadlines(pack.resources),
-            usesOperationDocumentBindings(pack.resources));
+            usesOperationDocumentBindings(pack.resources),
+            usesOperationDispositionBindings(pack.resources));
     };
     const auto root_capabilities = validate_capabilities(root);
     if (!root_capabilities) {

@@ -691,6 +691,140 @@ struct ResourceIndex final {
     }
 };
 
+[[nodiscard]] Result<void> validateOperationDispositionBindings(const ResourceIndex& index) {
+    const auto has_binding = std::ranges::any_of(index.resources, [](const auto& entry) {
+        const auto* resource = entry.second;
+        return resource->descriptor.kind == model::ResourceKind::Workflow &&
+               std::ranges::any_of(resource->document.value(QStringLiteral("operations")).toArray(),
+                                   [](const QJsonValue& operation) {
+                                       return operation.toObject().contains(
+                                           QStringLiteral("disposition_plan_id"));
+                                   });
+    });
+    if (!has_binding) {
+        return {};
+    }
+
+    std::unordered_map<std::string, std::vector<const ValidatedResource*>> cases_by_workflow;
+    for (const auto& [resource_id, resource] : index.resources) {
+        static_cast<void>(resource_id);
+        if (resource->descriptor.kind != model::ResourceKind::Case) {
+            continue;
+        }
+        const auto case_path = "case " + resource->descriptor.id;
+        const auto procedure_id = requiredId(resource->document, "procedure_profile_id", case_path);
+        if (!procedure_id) {
+            return std::unexpected(procedure_id.error());
+        }
+        const auto procedure =
+            index.require(*procedure_id, model::ResourceKind::ProcedureProfile, case_path);
+        if (!procedure) {
+            return std::unexpected(procedure.error());
+        }
+        const auto workflow_id = requiredId((*procedure)->document, "workflow_id",
+                                            "procedure " + (*procedure)->descriptor.id);
+        if (!workflow_id) {
+            return std::unexpected(workflow_id.error());
+        }
+        cases_by_workflow[*workflow_id].push_back(resource);
+    }
+
+    for (const auto& [resource_id, resource] : index.resources) {
+        static_cast<void>(resource_id);
+        if (resource->descriptor.kind != model::ResourceKind::Workflow) {
+            continue;
+        }
+        const auto workflow_path = "workflow " + resource->descriptor.id;
+        const auto operation_values =
+            requiredArray(resource->document, "operations", workflow_path, 1, maximum_operations);
+        if (!operation_values) {
+            return std::unexpected(operation_values.error());
+        }
+        std::vector<std::pair<std::string, std::string>> bindings;
+        for (qsizetype operation_index = 0; operation_index < operation_values->size();
+             ++operation_index) {
+            const auto operation = operation_values->at(operation_index).toObject();
+            if (!operation.contains(QStringLiteral("disposition_plan_id"))) {
+                continue;
+            }
+            const auto operation_path =
+                workflow_path + ".operations[" + std::to_string(operation_index) + "]";
+            const auto operation_id = requiredId(operation, "operation_id", operation_path);
+            const auto plan_id = requiredId(operation, "disposition_plan_id", operation_path);
+            if (resource->descriptor.schema_version != 2 ||
+                operation.value(QStringLiteral("opcode")).toString() !=
+                    QStringLiteral("issue_judgment") ||
+                !operation_id || !plan_id) {
+                if (!operation_id) {
+                    return std::unexpected(operation_id.error());
+                }
+                if (!plan_id) {
+                    return std::unexpected(plan_id.error());
+                }
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            operation_path +
+                                ".disposition_plan_id is restricted to schema-2 issue_judgment");
+            }
+            bindings.emplace_back(*operation_id, *plan_id);
+        }
+        if (bindings.empty()) {
+            continue;
+        }
+
+        const auto owners = cases_by_workflow.find(resource->descriptor.id);
+        if (owners == cases_by_workflow.end() || owners->second.empty()) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        workflow_path + " has disposition bindings but is not owned by any case");
+        }
+        for (const auto* owner : owners->second) {
+            const auto case_path = "case " + owner->descriptor.id;
+            if (!owner->document.contains(QStringLiteral("disposition_plans")) ||
+                !owner->document.contains(QStringLiteral("authored_disposition_plan_id"))) {
+                return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                            workflow_path + " binds a disposition plan outside " + case_path);
+            }
+            const auto plan_values = requiredArray(owner->document, "disposition_plans", case_path,
+                                                   1, maximum_disposition_plans);
+            const auto authored_plan =
+                requiredId(owner->document, "authored_disposition_plan_id", case_path);
+            const auto authored_operation =
+                requiredId(owner->document, "authored_disposition_id", case_path);
+            if (!plan_values || !authored_plan || !authored_operation) {
+                if (!plan_values) {
+                    return std::unexpected(plan_values.error());
+                }
+                if (!authored_plan) {
+                    return std::unexpected(authored_plan.error());
+                }
+                return std::unexpected(authored_operation.error());
+            }
+            std::unordered_set<std::string> plan_ids;
+            for (qsizetype plan_index = 0; plan_index < plan_values->size(); ++plan_index) {
+                const auto plan_id = requiredId(plan_values->at(plan_index).toObject(), "plan_id",
+                                                case_path + ".disposition_plans[" +
+                                                    std::to_string(plan_index) + "]");
+                if (!plan_id) {
+                    return std::unexpected(plan_id.error());
+                }
+                plan_ids.insert(*plan_id);
+            }
+            for (const auto& [operation_id, plan_id] : bindings) {
+                if (!plan_ids.contains(plan_id)) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                workflow_path + " binds disposition plan " + plan_id + " outside " +
+                                    case_path);
+                }
+                if (operation_id == *authored_operation && plan_id != *authored_plan) {
+                    return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                                case_path +
+                                    " authored judgment operation binds a non-authored plan");
+                }
+            }
+        }
+    }
+    return {};
+}
+
 [[nodiscard]] Result<model::AuthorityRef> parseAuthorityReference(const QJsonObject& object,
                                                                   const std::string& path,
                                                                   std::uint32_t schema_version);
@@ -886,13 +1020,24 @@ struct ResourceIndex final {
                                       operation.contains(QStringLiteral("expected_argument_date"));
                            });
             });
+        const auto uses_operation_disposition_bindings =
+            std::ranges::any_of(pack->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation_value) {
+                               return operation_value.toObject().contains(
+                                   QStringLiteral("disposition_plan_id"));
+                           });
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             pack->manifest_schema_version, pack->required_capabilities, resource_kinds,
             uses_workflow_preconditions, uses_dependent_deadlines, uses_named_deadlines,
             uses_event_date_deadlines, uses_argument_date_guards, uses_structured_disposition,
             uses_grounded_questions, uses_realism_evidence, uses_sealed_record_twins,
             uses_route_role_subsets, uses_workflow_instance_preconditions,
-            uses_static_deficiency_deadlines, uses_operation_document_bindings);
+            uses_static_deficiency_deadlines, uses_operation_document_bindings,
+            uses_operation_disposition_bindings);
         if (!capabilities) {
             return fail(RuntimePackErrorCode::InvalidPack,
                         capabilities.error().message.toStdString());
@@ -1025,6 +1170,10 @@ struct ResourceIndex final {
                 }
             }
         }
+    }
+    const auto disposition_bindings = validateOperationDispositionBindings(index);
+    if (!disposition_bindings) {
+        return std::unexpected(disposition_bindings.error());
     }
     return index;
 }
@@ -1764,11 +1913,24 @@ parseWorkflowPreconditions(const QJsonObject& operation, const std::string& path
             }
             expected_argument_date = *parsed;
         }
+        std::optional<model::DispositionPlanId> disposition_plan_id;
+        if (operation.contains(QStringLiteral("disposition_plan_id"))) {
+            if (schema_version != 2 || *opcode != model::WorkflowOpcode::IssueJudgment) {
+                return fail(RuntimePackErrorCode::InvalidResource,
+                            operation_path +
+                                ".disposition_plan_id is restricted to schema-2 issue_judgment");
+            }
+            auto parsed = requiredId(operation, "disposition_plan_id", operation_path);
+            if (!parsed) {
+                return std::unexpected(parsed.error());
+            }
+            disposition_plan_id = model::DispositionPlanId{std::move(*parsed)};
+        }
         operations.push_back(model::WorkflowOperation{
             model::WorkflowOperationId{*id}, model::WorkflowStageId{*stage}, *opcode,
             std::move(*authority), std::move(next), *days, *counting, std::move(authorized_roles),
             std::move(*preconditions), std::move(base), std::move(produced), std::move(event_base),
-            std::move(document_binding), expected_argument_date});
+            std::move(document_binding), expected_argument_date, std::move(disposition_plan_id)});
     }
 
     std::vector<model::WorkflowFilingRoute> routes;
@@ -4030,6 +4192,28 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         return fail(RuntimePackErrorCode::CrossReferenceFailure,
                     "case " + parsed_case->definition.id.value +
                         " has no authored judgment operation");
+    }
+    for (const auto& operation : workflow->operations) {
+        if (!operation.disposition_plan_id.has_value()) {
+            continue;
+        }
+        const auto bound_plan =
+            std::ranges::find(parsed_case->definition.disposition_plans,
+                              *operation.disposition_plan_id, &model::DispositionPlan::id);
+        if (!parsed_case->definition.authored_disposition_plan_id.has_value() ||
+            bound_plan == parsed_case->definition.disposition_plans.end()) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        "workflow " + workflow->id.value + " judgment operation " +
+                            operation.id.value + " binds a disposition plan outside case " +
+                            parsed_case->definition.id.value);
+        }
+        if (operation.id == parsed_case->authored_disposition_id &&
+            *operation.disposition_plan_id !=
+                *parsed_case->definition.authored_disposition_plan_id) {
+            return fail(RuntimePackErrorCode::CrossReferenceFailure,
+                        "case " + parsed_case->definition.id.value +
+                            " authored judgment operation binds a non-authored plan");
+        }
     }
     if (arguments.empty()) {
         return fail(RuntimePackErrorCode::MissingArgumentConfiguration,

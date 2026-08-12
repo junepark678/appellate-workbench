@@ -35,6 +35,11 @@ constexpr auto structured_judgment_operation = "example.operation.issue-judgment
 constexpr auto structured_plan_id = "example.disposition.fictional";
 constexpr auto structured_plan_digest =
     "d9c97181a59eb4a0fd79aa3fcad32bd9cd5e4128aad8a49a68384900a1eb5121";
+constexpr auto counterfactual_judgment_operation =
+    "example.operation.issue-counterfactual-judgment";
+constexpr auto counterfactual_plan_id = "example.disposition.counterfactual";
+constexpr auto counterfactual_plan_digest =
+    "fad5c3a7c86b3c640031a1d229b062a86482dc914902b58c12a0c793c31c87b5";
 
 static_assert(static_cast<int>(model::WorkflowDeadlineCondition::Open) == 0);
 static_assert(static_cast<int>(model::WorkflowDeadlineCondition::Satisfied) == 1);
@@ -622,6 +627,7 @@ class WorkflowEngineTest final : public QObject {
     void rejectsMalformedRouteOutcomeCombinations();
     void replayRejectsTamperedTrace();
     void usesStructuredDispositionPlanAndCanonicalDigest();
+    void enforcesOperationDispositionBindings();
     void enforcesBoundedAllOfPreconditionsAndReplaySnapshots();
     void enforcesExactFilingAndOrderInstancePreconditions();
     void enforcesStaticDeficiencyDeadlineIdentityAndReplay();
@@ -1849,6 +1855,130 @@ void WorkflowEngineTest::usesStructuredDispositionPlanAndCanonicalDigest() {
                                                  before_judgment.initial_state, tampered_journal);
     QVERIFY(!tampered.has_value());
     QCOMPARE(tampered.error().code, engine::WorkflowErrorCode::InvalidEvent);
+}
+
+void WorkflowEngineTest::enforcesOperationDispositionBindings() {
+    auto definition = structuredWorkflow();
+    auto case_definition = structuredCaseDefinition();
+    auto authored = std::ranges::find(definition.operations,
+                                      model::WorkflowOperationId{structured_judgment_operation},
+                                      &model::WorkflowOperation::id);
+    QVERIFY(authored != definition.operations.end());
+    authored->disposition_plan_id = model::DispositionPlanId{structured_plan_id};
+
+    auto counterfactual_operation = *authored;
+    counterfactual_operation.id = model::WorkflowOperationId{counterfactual_judgment_operation};
+    counterfactual_operation.disposition_plan_id = model::DispositionPlanId{counterfactual_plan_id};
+    definition.operations.push_back(counterfactual_operation);
+
+    auto counterfactual_plan = case_definition.disposition_plans.front();
+    counterfactual_plan.id = model::DispositionPlanId{counterfactual_plan_id};
+    counterfactual_plan.canonical_sha256 = counterfactual_plan_digest;
+    counterfactual_plan.components.front().action = model::DispositionAction::Affirm;
+    counterfactual_plan.components.front().remand = false;
+    case_definition.disposition_plans.push_back(counterfactual_plan);
+
+    auto ready = structuredReadyRun();
+    QVERIFY2(ready.has_value(), ready ? "" : ready.error().c_str());
+    const auto counterfactual_command = model::IssueWorkflowJudgment{
+        header("command.counterfactual-judgment", "test.actor.court", date(2026, 11, 10)),
+        model::WorkflowOperationId{counterfactual_judgment_operation}, std::string(64, '6'),
+        model::DispositionPlanId{counterfactual_plan_id}};
+    const auto decision =
+        engine::decideWorkflow(definition, case_definition, ready->state, counterfactual_command);
+    QVERIFY2(decision.has_value(), decision ? "" : decision.error().message.c_str());
+    const auto* issued = std::get_if<model::WorkflowJudgmentIssued>(&decision->front());
+    QVERIFY(issued != nullptr);
+    QCOMPARE(std::get<model::DispositionPlan>(issued->disposition), counterfactual_plan);
+
+    auto completed = *ready;
+    const auto executed = execute(definition, case_definition, completed, counterfactual_command);
+    QVERIFY2(executed.has_value(), executed ? "" : executed.error().c_str());
+    const auto valid_replay = engine::replayWorkflow(definition, case_definition,
+                                                     completed.initial_state, completed.journal);
+    QVERIFY2(valid_replay.has_value(), valid_replay ? "" : valid_replay.error().message.c_str());
+    QVERIFY(*valid_replay == completed.state);
+    const auto mandate = model::IssueWorkflowMandate{
+        header("command.counterfactual-mandate", "test.actor.court", date(2026, 11, 11)),
+        model::WorkflowOperationId{"test.op.issue-mandate"}, std::string(64, '7')};
+    const auto mandate_decision =
+        engine::decideWorkflow(definition, case_definition, completed.state, mandate);
+    QVERIFY2(mandate_decision.has_value(),
+             mandate_decision ? "" : mandate_decision.error().message.c_str());
+
+    auto unreachable_state_definition = definition;
+    operationById(unreachable_state_definition, counterfactual_judgment_operation)
+        .disposition_plan_id.reset();
+    auto rejected_state = engine::decideWorkflow(unreachable_state_definition, case_definition,
+                                                 completed.state, mandate);
+    QVERIFY(!rejected_state.has_value());
+    QCOMPARE(rejected_state.error().code, engine::WorkflowErrorCode::InvalidState);
+
+    auto wrong_plan = counterfactual_command;
+    wrong_plan.header.command_id = model::WorkflowCommandId{"command.bound-wrong-plan"};
+    wrong_plan.disposition = model::DispositionPlanId{structured_plan_id};
+    auto rejected = engine::decideWorkflow(definition, case_definition, ready->state, wrong_plan);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    auto unbound_authored = definition;
+    operationById(unbound_authored, structured_judgment_operation).disposition_plan_id.reset();
+    auto wrong_authored_plan = counterfactual_command;
+    wrong_authored_plan.header.command_id =
+        model::WorkflowCommandId{"command.unbound-authored-wrong-plan"};
+    wrong_authored_plan.operation_id = model::WorkflowOperationId{structured_judgment_operation};
+    rejected = engine::decideWorkflow(unbound_authored, case_definition, ready->state,
+                                      wrong_authored_plan);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidCommand);
+
+    auto malformed_opcode = definition;
+    auto& mandate_operation = operationById(malformed_opcode, "test.op.issue-mandate");
+    mandate_operation.disposition_plan_id = model::DispositionPlanId{structured_plan_id};
+    rejected = engine::decideWorkflow(malformed_opcode, case_definition, ready->state,
+                                      counterfactual_command);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidDefinition);
+
+    auto unresolved = definition;
+    operationById(unresolved, counterfactual_judgment_operation).disposition_plan_id =
+        model::DispositionPlanId{"example.disposition.missing"};
+    rejected =
+        engine::decideWorkflow(unresolved, case_definition, ready->state, counterfactual_command);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidCase);
+
+    auto mismatched_authored = definition;
+    operationById(mismatched_authored, structured_judgment_operation).disposition_plan_id =
+        model::DispositionPlanId{counterfactual_plan_id};
+    rejected = engine::decideWorkflow(mismatched_authored, case_definition, ready->state,
+                                      counterfactual_command);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidCase);
+
+    auto legacy_definition = canonicalWorkflow();
+    operationById(legacy_definition, "test.op.issue-judgment").disposition_plan_id =
+        model::DispositionPlanId{structured_plan_id};
+    const auto legacy_command = model::IssueWorkflowJudgment{
+        header("command.legacy-bound", "test.actor.court", date(2026, 11, 10)),
+        model::WorkflowOperationId{"test.op.issue-judgment"}, std::string(64, '8'),
+        std::string{"affirmed"}};
+    rejected =
+        engine::decideWorkflow(legacy_definition, caseDefinition(), ready->state, legacy_command);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, engine::WorkflowErrorCode::InvalidCase);
+
+    auto tampered_journal = completed.journal;
+    auto& tampered_command =
+        std::get<model::IssueWorkflowJudgment>(tampered_journal.back().command);
+    tampered_command.operation_id = model::WorkflowOperationId{structured_judgment_operation};
+    auto& tampered_event =
+        std::get<model::WorkflowJudgmentIssued>(tampered_journal.back().events.front());
+    tampered_event.header.operation_id = model::WorkflowOperationId{structured_judgment_operation};
+    const auto replayed = engine::replayWorkflow(definition, case_definition,
+                                                 completed.initial_state, tampered_journal);
+    QVERIFY(!replayed.has_value());
+    QCOMPARE(replayed.error().code, engine::WorkflowErrorCode::InvalidEvent);
 }
 
 void WorkflowEngineTest::enforcesBoundedAllOfPreconditionsAndReplaySnapshots() {

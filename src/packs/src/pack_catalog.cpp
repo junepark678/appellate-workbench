@@ -1424,13 +1424,24 @@ PackCatalog::resolveClosure(const model::PackRevision& exact_root,
                                       operation.contains(QStringLiteral("expected_argument_date"));
                            });
             });
+        const auto uses_operation_disposition_bindings =
+            std::ranges::any_of(loaded->resources, [](const ValidatedResource& resource) {
+                return resource.descriptor.kind == model::ResourceKind::Workflow &&
+                       std::ranges::any_of(
+                           resource.document.value(QStringLiteral("operations")).toArray(),
+                           [](const QJsonValue& operation_value) {
+                               return operation_value.toObject().contains(
+                                   QStringLiteral("disposition_plan_id"));
+                           });
+            });
         const auto capabilities = CapabilityRegistry::validateCoverage(
             loaded->manifest_schema_version, loaded->required_capabilities, resource_kinds,
             uses_workflow_preconditions, uses_dependent_deadlines, uses_named_deadlines,
             uses_event_date_deadlines, uses_argument_date_guards, uses_structured_disposition,
             uses_grounded_questions, uses_realism_evidence, uses_sealed_record_twins,
             uses_route_role_subsets, uses_workflow_instance_preconditions,
-            uses_static_deficiency_deadlines, uses_operation_document_bindings);
+            uses_static_deficiency_deadlines, uses_operation_document_bindings,
+            uses_operation_disposition_bindings);
         if (!capabilities) {
             return fail(CatalogErrorCode::UnsupportedCapability,
                         QStringLiteral("Pack %1 requires an unsupported capability: %2")

@@ -30,6 +30,7 @@ constexpr std::array supported_capabilities{
     SupportedCapability{"workbench.pack.workflow-instance-preconditions", 1, 2, 2},
     SupportedCapability{"workbench.pack.static-deficiency-deadlines", 1, 2, 2},
     SupportedCapability{"workbench.pack.operation-document-bindings", 1, 2, 2},
+    SupportedCapability{"workbench.pack.operation-disposition-bindings", 1, 2, 2},
 };
 
 [[nodiscard]] auto fail(QString message) -> std::unexpected<Error> {
@@ -82,7 +83,7 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
     bool uses_argument_date_guards, bool uses_structured_disposition, bool uses_grounded_questions,
     bool uses_realism_evidence, bool uses_sealed_record_twins, bool uses_route_role_subsets,
     bool uses_workflow_instance_preconditions, bool uses_static_deficiency_deadlines,
-    bool uses_operation_document_bindings) {
+    bool uses_operation_document_bindings, bool uses_operation_disposition_bindings) {
     const auto declarations = validateDeclarations(manifest_schema_version, required_capabilities);
     if (!declarations) {
         return declarations;
@@ -196,6 +197,16 @@ std::expected<void, Error> CapabilityRegistry::validateCoverage(
         !hasCapability(required_capabilities, "workbench.pack.operation-document-bindings", 1)) {
         return fail(QStringLiteral("Schema-2 operation document bindings require "
                                    "workbench.pack.operation-document-bindings version 1"));
+    }
+    if (uses_operation_disposition_bindings &&
+        !hasCapability(required_capabilities, "workbench.pack.operation-disposition-bindings", 1)) {
+        return fail(QStringLiteral("Schema-2 operation disposition bindings require "
+                                   "workbench.pack.operation-disposition-bindings version 1"));
+    }
+    if (uses_operation_disposition_bindings &&
+        !hasCapability(required_capabilities, "workbench.pack.structured-disposition", 1)) {
+        return fail(QStringLiteral("Schema-2 operation disposition bindings require "
+                                   "workbench.pack.structured-disposition version 1"));
     }
     return {};
 }

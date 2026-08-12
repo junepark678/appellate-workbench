@@ -1,3 +1,4 @@
+#include "appellate/packs/capability_registry.hpp"
 #include "appellate/packs/pack_archive.hpp"
 #include "appellate/packs/pack_catalog.hpp"
 
@@ -15,6 +16,7 @@
 #include <QTest>
 #include <QUuid>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -674,6 +676,16 @@ void PackCatalogTest::migratesV1BlobDescriptors() {
 }
 
 void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
+    const auto supported = appellate::packs::CapabilityRegistry::supported();
+    const auto disposition_binding_capability =
+        std::ranges::find_if(supported, [](const auto& capability) {
+            return capability.id == "workbench.pack.operation-disposition-bindings" &&
+                   capability.version == 1;
+        });
+    QVERIFY(disposition_binding_capability != supported.end());
+    QCOMPARE(disposition_binding_capability->minimum_manifest_schema_version, std::uint32_t{2});
+    QCOMPARE(disposition_binding_capability->maximum_manifest_schema_version, std::uint32_t{2});
+
     QTemporaryDir temporary;
     QVERIFY(temporary.isValid());
     const auto fixture_root = QFINDTESTDATA("../fixtures/full-resource-pack-v2");
@@ -751,6 +763,8 @@ void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
                      "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366")},
                 {QStringLiteral("expected_court_date"), QStringLiteral("2026-01-03")},
             });
+        operation.insert(QStringLiteral("disposition_plan_id"),
+                         QStringLiteral("example.disposition.fictional"));
         operations.replace(index, operation);
         break;
     }
@@ -792,7 +806,8 @@ void PackCatalogTest::resolvesCatalogPackWithExtendedDeadlineCapabilities() {
           "workbench.pack.event-date-deadlines", "workbench.pack.argument-date-guards",
           "workbench.pack.route-role-subsets", "workbench.pack.workflow-instance-preconditions",
           "workbench.pack.static-deficiency-deadlines",
-          "workbench.pack.operation-document-bindings"}) {
+          "workbench.pack.operation-document-bindings",
+          "workbench.pack.operation-disposition-bindings"}) {
         capabilities.push_back(QJsonObject{{QStringLiteral("id"), QString::fromLatin1(capability)},
                                            {QStringLiteral("version"), 1}});
     }

@@ -203,6 +203,10 @@ struct WorkflowOperation final {
 
     std::optional<DocumentBinding> document_binding{};
     std::optional<LegalDate> expected_argument_date{};
+    // Optional schema-v2 binding from this exact judgment operation to one
+    // structured disposition plan. Absence preserves the legacy authored
+    // operation/plan contract.
+    std::optional<DispositionPlanId> disposition_plan_id{};
 
     friend bool operator==(const WorkflowOperation&, const WorkflowOperation&) = default;
 };

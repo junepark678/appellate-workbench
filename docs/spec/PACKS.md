@@ -464,6 +464,23 @@ revalidate accepted filings, entered orders, and static exact deficiencies, but 
 does not add source-operation fields for scheduled arguments, judgments, or mandates; those
 bindings are enforced at command decision and exact journal replay.
 
+`workbench.pack.operation-disposition-bindings` version 1 adds an optional
+`disposition_plan_id` to a schema-version-2 `issue_judgment` operation. The identifier must name a
+structured disposition plan declared by every case that owns the workflow through its procedure
+profile. A workflow containing such a binding must have at least one owning case; an orphan
+workflow, an unresolved plan, or a shared workflow whose binding is incompatible with any owner
+fails at pack reading, resolved-catalog load, and independent runtime projection. If the case's
+authored judgment operation carries a binding, it must name that case's authored plan.
+
+At decision time, a bound operation accepts only its exact plan. An unbound operation retains the
+existing contract: only the case's authored judgment operation may select the authored plan. Event
+application couples the event header's operation ID to the event's canonical plan, and replay
+redecides that same operation/plan pair before applying it. The capability depends on
+`workbench.pack.structured-disposition` version 1. It is definition-only: judgment commands already
+carry a plan identifier, judgment events already carry the canonical plan, and event headers
+already carry the operation identifier, so all existing command/event persistence schemas and
+byte encodings are unchanged.
+
 Persistence schema version 3 is reserved for a structured judgment command/event or an event
 with a nonempty precondition snapshot. Schema-3 events require canonical authority provenance and
 always carry the precondition array, including an empty array on a structured judgment with no
@@ -521,15 +538,16 @@ must additionally declare `workbench.pack.judge-profile` version 2 and
 their version-1 feature capabilities described above. Named deadlines, dependent deadlines,
 event-date deadline bases, and argument-date guards each require their independently negotiated
 version-1 capability described above. Role subsets, exact workflow-instance guards, static exact
-deficiency deadlines, and operation document/date bindings likewise require their independently
-negotiated version-1 capabilities and schema-version-2 resources. Authored grounded questions and
-exact realism evidence likewise require `workbench.pack.grounded-questions` version 1 and
-`workbench.pack.realism-evidence` version 1, respectively. An empty list, an unrelated-only
-declaration, or a declaration missing any required capability fails at pack read,
-resolved-catalog load, and independent runtime projection. Unknown IDs, unsupported versions,
-and capabilities declared for the wrong manifest generation fail before runtime projection.
-Unknown resource kinds, unsupported kind/version pairs, operation codes, schema versions, and
-mixed-version manifest/resource sets also fail closed.
+deficiency deadlines, operation document/date bindings, and operation disposition bindings
+likewise require their independently negotiated version-1 capabilities and schema-version-2
+resources. Operation disposition bindings additionally require the structured-disposition
+capability. Authored grounded questions and exact realism evidence likewise require
+`workbench.pack.grounded-questions` version 1 and `workbench.pack.realism-evidence` version 1,
+respectively. An empty list, an unrelated-only declaration, or a declaration missing any required
+capability fails at pack read, resolved-catalog load, and independent runtime projection. Unknown
+IDs, unsupported versions, and capabilities declared for the wrong manifest generation fail
+before runtime projection. Unknown resource kinds, unsupported kind/version pairs, operation
+codes, schema versions, and mixed-version manifest/resource sets also fail closed.
 
 Schema and resource-kind registries are separate per manifest generation even where their current
 file names match. Adding a version-2-only schema or kind therefore cannot make the version-1

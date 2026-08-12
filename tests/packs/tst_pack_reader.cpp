@@ -265,6 +265,8 @@ class PackReaderTest final : public QObject {
             {QStringLiteral("record_entry_id"), QStringLiteral("example.record.brief-opening")},
             {QStringLiteral("document_sha256"), QString::fromLatin1(record_sha)},
             {QStringLiteral("expected_court_date"), QStringLiteral("2026-01-03")}});
+    judgment.insert(QStringLiteral("disposition_plan_id"),
+                    QStringLiteral("example.disposition.fictional"));
     operations.replace(judgment_index, judgment);
     workflow.insert(QStringLiteral("operations"), operations);
 
@@ -298,7 +300,8 @@ class PackReaderTest final : public QObject {
     for (const auto* capability_id :
          {"workbench.pack.route-role-subsets", "workbench.pack.workflow-instance-preconditions",
           "workbench.pack.static-deficiency-deadlines",
-          "workbench.pack.operation-document-bindings"}) {
+          "workbench.pack.operation-document-bindings",
+          "workbench.pack.operation-disposition-bindings"}) {
         if (!setCapability(root, QString::fromLatin1(capability_id), 1)) {
             return false;
         }
@@ -1574,6 +1577,13 @@ void PackReaderTest::loadsWorkflowCapabilitySliceAndFencesCoverage() {
     QVERIFY(std::ranges::any_of(workflow.operations, [](const auto& operation) {
         return operation.document_binding.has_value();
     }));
+    const auto bound_judgment =
+        std::ranges::find(workflow.operations,
+                          appellate::model::WorkflowOperationId{"example.operation.issue-judgment"},
+                          &appellate::model::WorkflowOperation::id);
+    QVERIFY(bound_judgment != workflow.operations.end());
+    QCOMPARE(bound_judgment->disposition_plan_id,
+             std::optional{appellate::model::DispositionPlanId{"example.disposition.fictional"}});
     QVERIFY(std::ranges::any_of(workflow.operations, [](const auto& operation) {
         return std::ranges::any_of(operation.preconditions, [](const auto& precondition) {
             return std::holds_alternative<appellate::model::WorkflowFilingInstancePrecondition>(
@@ -1584,10 +1594,12 @@ void PackReaderTest::loadsWorkflowCapabilitySliceAndFencesCoverage() {
     }));
 
     const QStringList capability_ids{
+        QStringLiteral("workbench.pack.structured-disposition"),
         QStringLiteral("workbench.pack.route-role-subsets"),
         QStringLiteral("workbench.pack.workflow-instance-preconditions"),
         QStringLiteral("workbench.pack.static-deficiency-deadlines"),
-        QStringLiteral("workbench.pack.operation-document-bindings")};
+        QStringLiteral("workbench.pack.operation-document-bindings"),
+        QStringLiteral("workbench.pack.operation-disposition-bindings")};
     for (const auto& capability_id : capability_ids) {
         QTemporaryDir missing;
         QVERIFY(missing.isValid());
@@ -1650,6 +1662,111 @@ void PackReaderTest::loadsWorkflowCapabilitySliceAndFencesCoverage() {
     const auto rejected_exact = appellate::packs::PackReader::readDirectory(subset.path());
     QVERIFY(!rejected_exact.has_value());
     QCOMPARE(rejected_exact.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
+
+    QTemporaryDir legacy;
+    QVERIFY(legacy.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), legacy.path()));
+    const auto legacy_workflow_path = QStringLiteral("resources/workflow.json");
+    QFile legacy_workflow_file(QDir(legacy.path()).filePath(legacy_workflow_path));
+    QVERIFY(legacy_workflow_file.open(QIODevice::ReadOnly));
+    auto legacy_workflow = QJsonDocument::fromJson(legacy_workflow_file.readAll()).object();
+    legacy_workflow_file.close();
+    auto legacy_operations = legacy_workflow.value(QStringLiteral("operations")).toArray();
+    auto legacy_judgment = legacy_operations.at(legacy_operations.size() - 1).toObject();
+    legacy_judgment.insert(QStringLiteral("disposition_plan_id"),
+                           QStringLiteral("example.disposition.fictional"));
+    legacy_operations.replace(legacy_operations.size() - 1, legacy_judgment);
+    legacy_workflow.insert(QStringLiteral("operations"), legacy_operations);
+    QVERIFY(replaceResourceDocument(legacy.path(), legacy_workflow_path, legacy_workflow));
+    const auto rejected_legacy = appellate::packs::PackReader::readDirectory(legacy.path());
+    QVERIFY(!rejected_legacy.has_value());
+    QCOMPARE(rejected_legacy.error().code, appellate::packs::ErrorCode::SchemaViolation);
+
+    QTemporaryDir legacy_declaration;
+    QVERIFY(legacy_declaration.isValid());
+    QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack")), legacy_declaration.path()));
+    QVERIFY(setCapability(legacy_declaration.path(),
+                          QStringLiteral("workbench.pack.operation-disposition-bindings"), 1));
+    const auto rejected_legacy_declaration =
+        appellate::packs::PackReader::readDirectory(legacy_declaration.path());
+    QVERIFY(!rejected_legacy_declaration.has_value());
+    QCOMPARE(rejected_legacy_declaration.error().code,
+             appellate::packs::ErrorCode::UnsupportedCapability);
+
+    QTemporaryDir malformed_binding;
+    QVERIFY(malformed_binding.isValid());
+    QVERIFY(copyTree(pack.path(), malformed_binding.path()));
+    QFile malformed_workflow_file(QDir(malformed_binding.path()).filePath(workflow_path));
+    QVERIFY(malformed_workflow_file.open(QIODevice::ReadOnly));
+    auto malformed_workflow = QJsonDocument::fromJson(malformed_workflow_file.readAll()).object();
+    malformed_workflow_file.close();
+    auto malformed_operations = malformed_workflow.value(QStringLiteral("operations")).toArray();
+    for (qsizetype index = 0; index < malformed_operations.size(); ++index) {
+        auto operation = malformed_operations.at(index).toObject();
+        if (operation.value(QStringLiteral("operation_id")).toString() !=
+            QStringLiteral("example.operation.issue-judgment")) {
+            continue;
+        }
+        operation.insert(QStringLiteral("disposition_plan_id"), 7);
+        malformed_operations.replace(index, operation);
+    }
+    malformed_workflow.insert(QStringLiteral("operations"), malformed_operations);
+    QVERIFY(replaceResourceDocument(malformed_binding.path(), workflow_path, malformed_workflow));
+    const auto rejected_malformed =
+        appellate::packs::PackReader::readDirectory(malformed_binding.path());
+    QVERIFY(!rejected_malformed.has_value());
+    QCOMPARE(rejected_malformed.error().code, appellate::packs::ErrorCode::SchemaViolation);
+
+    QTemporaryDir wrong_opcode_binding;
+    QVERIFY(wrong_opcode_binding.isValid());
+    QVERIFY(copyTree(pack.path(), wrong_opcode_binding.path()));
+    QFile wrong_opcode_file(QDir(wrong_opcode_binding.path()).filePath(workflow_path));
+    QVERIFY(wrong_opcode_file.open(QIODevice::ReadOnly));
+    auto wrong_opcode_workflow = QJsonDocument::fromJson(wrong_opcode_file.readAll()).object();
+    wrong_opcode_file.close();
+    auto wrong_opcode_operations =
+        wrong_opcode_workflow.value(QStringLiteral("operations")).toArray();
+    auto wrong_opcode_operation = wrong_opcode_operations.at(0).toObject();
+    wrong_opcode_operation.insert(QStringLiteral("disposition_plan_id"),
+                                  QStringLiteral("example.disposition.fictional"));
+    wrong_opcode_operations.replace(0, wrong_opcode_operation);
+    wrong_opcode_workflow.insert(QStringLiteral("operations"), wrong_opcode_operations);
+    QVERIFY(
+        replaceResourceDocument(wrong_opcode_binding.path(), workflow_path, wrong_opcode_workflow));
+    const auto rejected_wrong_opcode =
+        appellate::packs::PackReader::readDirectory(wrong_opcode_binding.path());
+    QVERIFY(!rejected_wrong_opcode.has_value());
+    QCOMPARE(rejected_wrong_opcode.error().code,
+             appellate::packs::ErrorCode::CrossReferenceFailure);
+
+    QTemporaryDir orphan_binding;
+    QVERIFY(orphan_binding.isValid());
+    QVERIFY(copyTree(pack.path(), orphan_binding.path()));
+    QFile orphan_source(QDir(orphan_binding.path()).filePath(workflow_path));
+    QVERIFY(orphan_source.open(QIODevice::ReadOnly));
+    auto orphan_workflow = QJsonDocument::fromJson(orphan_source.readAll()).object();
+    orphan_source.close();
+    const auto orphan_id = QStringLiteral("example.workflow.orphan-bound");
+    const auto orphan_path = QStringLiteral("resources/workflow-orphan-bound.json");
+    orphan_workflow.insert(QStringLiteral("resource_id"), orphan_id);
+    const auto orphan_bytes = jsonBytes(orphan_workflow);
+    QVERIFY(writeBytes(orphan_binding.path(), orphan_path, orphan_bytes));
+    QFile orphan_manifest_file(
+        QDir(orphan_binding.path()).filePath(QStringLiteral("manifest.json")));
+    QVERIFY(orphan_manifest_file.open(QIODevice::ReadOnly));
+    auto orphan_manifest = QJsonDocument::fromJson(orphan_manifest_file.readAll()).object();
+    orphan_manifest_file.close();
+    auto orphan_contents = orphan_manifest.value(QStringLiteral("contents")).toArray();
+    orphan_contents.push_back(QJsonObject{{QStringLiteral("id"), orphan_id},
+                                          {QStringLiteral("kind"), QStringLiteral("workflow")},
+                                          {QStringLiteral("schema_version"), 2},
+                                          {QStringLiteral("path"), orphan_path},
+                                          {QStringLiteral("sha256"), sha256(orphan_bytes)}});
+    orphan_manifest.insert(QStringLiteral("contents"), orphan_contents);
+    QVERIFY(writeJson(orphan_binding.path(), QStringLiteral("manifest.json"), orphan_manifest));
+    const auto rejected_orphan = appellate::packs::PackReader::readDirectory(orphan_binding.path());
+    QVERIFY(!rejected_orphan.has_value());
+    QCOMPARE(rejected_orphan.error().code, appellate::packs::ErrorCode::CrossReferenceFailure);
 }
 
 void PackReaderTest::rejectsForgedWorkflowCapabilityGraphs() {
@@ -1682,6 +1799,54 @@ void PackReaderTest::rejectsForgedWorkflowCapabilityGraphs() {
         Q_ASSERT(found != forged.resources.end());
         return *found;
     };
+    const auto case_resource = [](auto& forged) -> auto& {
+        const auto found = std::ranges::find_if(forged.resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Case;
+        });
+        Q_ASSERT(found != forged.resources.end());
+        return *found;
+    };
+    const auto add_orphan_bound_workflow = [&](auto& forged) {
+        auto orphan = workflow_resource(forged);
+        orphan.descriptor.id = "example.workflow.orphan-bound";
+        orphan.descriptor.path = "resources/workflow-orphan-bound.json";
+        orphan.document.insert(QStringLiteral("resource_id"),
+                               QStringLiteral("example.workflow.orphan-bound"));
+        forged.resources.push_back(std::move(orphan));
+    };
+    QVERIFY(graph_rejects(add_orphan_bound_workflow));
+    auto orphan_bound_workflow = *loaded;
+    add_orphan_bound_workflow(orphan_bound_workflow);
+    const auto orphan_runtime = appellate::packs::loadRuntimePack(orphan_bound_workflow);
+    QVERIFY(!orphan_runtime.has_value());
+    QCOMPARE(orphan_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+
+    const auto add_incompatible_workflow_owner = [&](auto& forged) {
+        auto second_case = case_resource(forged);
+        second_case.descriptor.id = "example.case.incompatible-owner";
+        second_case.descriptor.path = "resources/case-incompatible-owner.json";
+        second_case.document.insert(QStringLiteral("resource_id"),
+                                    QStringLiteral("example.case.incompatible-owner"));
+        auto issues = second_case.document.value(QStringLiteral("issues")).toArray();
+        for (qsizetype index = 0; index < issues.size(); ++index) {
+            auto issue = issues.at(index).toObject();
+            issue.remove(QStringLiteral("target_ids"));
+            issues.replace(index, issue);
+        }
+        second_case.document.insert(QStringLiteral("issues"), issues);
+        second_case.document.remove(QStringLiteral("disposition_plans"));
+        second_case.document.remove(QStringLiteral("authored_disposition_plan_id"));
+        forged.resources.push_back(std::move(second_case));
+    };
+    QVERIFY(graph_rejects(add_incompatible_workflow_owner));
+    auto incompatible_workflow_owner = *loaded;
+    add_incompatible_workflow_owner(incompatible_workflow_owner);
+    const auto incompatible_owner_runtime =
+        appellate::packs::loadRuntimePack(incompatible_workflow_owner);
+    QVERIFY(!incompatible_owner_runtime.has_value());
+    QCOMPARE(incompatible_owner_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
     const auto filing_guard_rejects = [&](const QString& key, const QJsonValue& value) {
         return graph_rejects([&](auto& forged) {
             auto& resource = workflow_resource(forged);
@@ -1854,6 +2019,66 @@ void PackReaderTest::rejectsForgedWorkflowCapabilityGraphs() {
         operations.replace(0, operation);
         resource.document.insert(QStringLiteral("operations"), operations);
     }));
+    const auto set_judgment_plan_binding = [&](auto& forged, const QString& plan_id) {
+        auto& resource = workflow_resource(forged);
+        auto operations = resource.document.value(QStringLiteral("operations")).toArray();
+        for (qsizetype index = 0; index < operations.size(); ++index) {
+            auto operation = operations.at(index).toObject();
+            if (operation.value(QStringLiteral("operation_id")).toString() !=
+                QStringLiteral("example.operation.issue-judgment")) {
+                continue;
+            }
+            operation.insert(QStringLiteral("disposition_plan_id"), plan_id);
+            operations.replace(index, operation);
+        }
+        resource.document.insert(QStringLiteral("operations"), operations);
+    };
+    QVERIFY(graph_rejects([&](auto& forged) {
+        set_judgment_plan_binding(forged, QStringLiteral("example.disposition.missing"));
+    }));
+    auto unresolved_binding = *loaded;
+    set_judgment_plan_binding(unresolved_binding, QStringLiteral("example.disposition.missing"));
+    const auto unresolved_runtime = appellate::packs::loadRuntimePack(unresolved_binding);
+    QVERIFY(!unresolved_runtime.has_value());
+    QCOMPARE(unresolved_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+    const auto bind_authored_to_alternate = [&](auto& forged) {
+        auto& resource = case_resource(forged);
+        auto plans = resource.document.value(QStringLiteral("disposition_plans")).toArray();
+        auto alternate = plans.at(0).toObject();
+        alternate.insert(QStringLiteral("plan_id"),
+                         QStringLiteral("example.disposition.alternate"));
+        alternate.insert(
+            QStringLiteral("digest"),
+            QStringLiteral("30769212c7337535a2e84582a13b5385f88e9a7b38a013308fdde5499f904e1e"));
+        plans.push_back(alternate);
+        resource.document.insert(QStringLiteral("disposition_plans"), plans);
+        set_judgment_plan_binding(forged, QStringLiteral("example.disposition.alternate"));
+    };
+    QVERIFY(graph_rejects(bind_authored_to_alternate));
+    auto mismatched_authored_binding = *loaded;
+    bind_authored_to_alternate(mismatched_authored_binding);
+    const auto mismatched_authored_runtime =
+        appellate::packs::loadRuntimePack(mismatched_authored_binding);
+    QVERIFY(!mismatched_authored_runtime.has_value());
+    QCOMPARE(mismatched_authored_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::CrossReferenceFailure);
+    const auto bind_nonjudgment = [&](auto& forged) {
+        auto& resource = workflow_resource(forged);
+        auto operations = resource.document.value(QStringLiteral("operations")).toArray();
+        auto operation = operations.at(0).toObject();
+        operation.insert(QStringLiteral("disposition_plan_id"),
+                         QStringLiteral("example.disposition.fictional"));
+        operations.replace(0, operation);
+        resource.document.insert(QStringLiteral("operations"), operations);
+    };
+    QVERIFY(graph_rejects(bind_nonjudgment));
+    auto nonjudgment_binding = *loaded;
+    bind_nonjudgment(nonjudgment_binding);
+    const auto nonjudgment_runtime = appellate::packs::loadRuntimePack(nonjudgment_binding);
+    QVERIFY(!nonjudgment_runtime.has_value());
+    QCOMPARE(nonjudgment_runtime.error().code,
+             appellate::packs::RuntimePackErrorCode::InvalidResource);
     QVERIFY(graph_rejects([&](auto& forged) {
         auto& resource = workflow_resource(forged);
         auto operations = resource.document.value(QStringLiteral("operations")).toArray();
@@ -1908,7 +2133,7 @@ void PackReaderTest::rejectsForgedWorkflowCapabilityGraphs() {
     const auto legacy =
         appellate::packs::PackReader::readDirectory(fixture(QStringLiteral("full-resource-pack")));
     QVERIFY2(legacy.has_value(), legacy ? "" : qPrintable(legacy.error().message));
-    for (int variant = 0; variant < 4; ++variant) {
+    for (int variant = 0; variant < 5; ++variant) {
         auto forged = *legacy;
         auto& resource = workflow_resource(forged);
         auto operations = resource.document.value(QStringLiteral("operations")).toArray();
@@ -1947,7 +2172,7 @@ void PackReaderTest::rejectsForgedWorkflowCapabilityGraphs() {
                     {QStringLiteral("expected_court_date"), QStringLiteral("2026-01-02")}});
             operations.replace(operations.size() - 1, operation);
             resource.document.insert(QStringLiteral("operations"), operations);
-        } else {
+        } else if (variant == 3) {
             auto operation = operations.at(operations.size() - 1).toObject();
             operation.insert(QStringLiteral("operation_id"),
                              QStringLiteral("example.operation.legacy-schedule"));
@@ -1956,6 +2181,12 @@ void PackReaderTest::rejectsForgedWorkflowCapabilityGraphs() {
             operation.insert(QStringLiteral("expected_argument_date"),
                              QStringLiteral("2026-10-10"));
             operations.push_back(operation);
+            resource.document.insert(QStringLiteral("operations"), operations);
+        } else {
+            auto operation = operations.at(operations.size() - 1).toObject();
+            operation.insert(QStringLiteral("disposition_plan_id"),
+                             QStringLiteral("example.disposition.fictional"));
+            operations.replace(operations.size() - 1, operation);
             resource.document.insert(QStringLiteral("operations"), operations);
         }
         const auto graph = appellate::packs::PackReader::validateResolvedGraph(

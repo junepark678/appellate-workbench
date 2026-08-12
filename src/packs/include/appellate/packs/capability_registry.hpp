@@ -42,7 +42,8 @@ class CapabilityRegistry final {
         bool uses_grounded_questions, bool uses_realism_evidence, bool uses_sealed_record_twins,
         bool uses_route_role_subsets = false, bool uses_workflow_instance_preconditions = false,
         bool uses_static_deficiency_deadlines = false,
-        bool uses_operation_document_bindings = false);
+        bool uses_operation_document_bindings = false,
+        bool uses_operation_disposition_bindings = false);
 };
 
 } // namespace appellate::packs

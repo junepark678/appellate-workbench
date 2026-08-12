@@ -119,6 +119,7 @@
           },
           "document_binding": { "$ref": "#/$defs/document_binding" },
           "expected_argument_date": { "type": "string", "format": "date" },
+          "disposition_plan_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
           "authorized_role_ids": {
             "type": "array",
             "maxItems": 64,

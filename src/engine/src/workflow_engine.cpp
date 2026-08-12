@@ -975,17 +975,46 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
     return case_definition.authored_disposition_plan_id.has_value();
 }
 
-[[nodiscard]] bool validJudgmentDisposition(const model::CaseDefinition& case_definition,
-                                            const model::WorkflowJudgmentDisposition& disposition) {
+[[nodiscard]] bool operationSelectsDispositionPlan(const model::CaseDefinition& case_definition,
+                                                   const model::WorkflowOperation& operation,
+                                                   const model::DispositionPlanId& selected) {
+    if (operation.disposition_plan_id.has_value()) {
+        return selected == *operation.disposition_plan_id;
+    }
+    return case_definition.authored_disposition_plan_id.has_value() &&
+           case_definition.authored_disposition_operation_id.has_value() &&
+           selected == *case_definition.authored_disposition_plan_id &&
+           operation.id == *case_definition.authored_disposition_operation_id;
+}
+
+[[nodiscard]] bool
+validJudgmentDispositionForOperation(const model::CaseDefinition& case_definition,
+                                     const model::WorkflowOperation& operation,
+                                     const model::WorkflowJudgmentDisposition& disposition) {
+    if (const auto* legacy = std::get_if<std::string>(&disposition)) {
+        return !usesStructuredDisposition(case_definition) &&
+               !operation.disposition_plan_id.has_value() && validText(*legacy, 4096);
+    }
+    const auto& plan = std::get<model::DispositionPlan>(disposition);
+    const auto* declared = dispositionPlanFor(case_definition, plan.id);
+    return declared != nullptr && plan == *declared &&
+           operationSelectsDispositionPlan(case_definition, operation, plan.id);
+}
+
+[[nodiscard]] bool
+validStateJudgmentDisposition(const model::WorkflowDefinition& workflow,
+                              const model::CaseDefinition& case_definition,
+                              const model::WorkflowJudgmentDisposition& disposition) {
     if (const auto* legacy = std::get_if<std::string>(&disposition)) {
         return !usesStructuredDisposition(case_definition) && validText(*legacy, 4096);
     }
     const auto& plan = std::get<model::DispositionPlan>(disposition);
-    const auto* authored =
-        case_definition.authored_disposition_plan_id.has_value()
-            ? dispositionPlanFor(case_definition, *case_definition.authored_disposition_plan_id)
-            : nullptr;
-    return authored != nullptr && plan == *authored;
+    const auto* declared = dispositionPlanFor(case_definition, plan.id);
+    return declared != nullptr && plan == *declared &&
+           std::ranges::any_of(workflow.operations, [&](const auto& operation) {
+               return operation.opcode == model::WorkflowOpcode::IssueJudgment &&
+                      operationSelectsDispositionPlan(case_definition, operation, plan.id);
+           });
 }
 
 [[nodiscard]] auto validateDefinition(const model::WorkflowDefinition& workflow,
@@ -1026,7 +1055,8 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
                                        operation.produced_deadline_id.has_value() ||
                                        operation.deadline_event_base.has_value() ||
                                        operation.document_binding.has_value() ||
-                                       operation.expected_argument_date.has_value();
+                                       operation.expected_argument_date.has_value() ||
+                                       operation.disposition_plan_id.has_value();
                             }) ||
         std::ranges::any_of(workflow.filing_routes, [](const auto& route) {
             return route.authorized_role_scope ==
@@ -1049,6 +1079,9 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
             operation.authorized_roles.size() > max_route_items ||
             !preconditionsAreConsistent(operation.preconditions) ||
             !validDocumentBinding(operation) ||
+            (operation.disposition_plan_id.has_value() &&
+             (operation.opcode != model::WorkflowOpcode::IssueJudgment ||
+              !validNamespacedId(operation.disposition_plan_id->value))) ||
             (operation.expected_argument_date.has_value() &&
              (operation.opcode != model::WorkflowOpcode::ScheduleArgument ||
               !validLegalDate(*operation.expected_argument_date))) ||
@@ -1340,6 +1373,21 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
         })) {
         return fail(WorkflowErrorCode::InvalidCase, "invalid case actors");
     }
+    for (const auto& operation : workflow.operations) {
+        if (!operation.disposition_plan_id.has_value()) {
+            continue;
+        }
+        if (!usesStructuredDisposition(case_definition) ||
+            dispositionPlanFor(case_definition, *operation.disposition_plan_id) == nullptr) {
+            return fail(WorkflowErrorCode::InvalidCase,
+                        "judgment operation binds an undeclared disposition plan");
+        }
+        if (operation.id == *case_definition.authored_disposition_operation_id &&
+            *operation.disposition_plan_id != *case_definition.authored_disposition_plan_id) {
+            return fail(WorkflowErrorCode::InvalidCase,
+                        "authored judgment operation binds a non-authored disposition plan");
+        }
+    }
     for (const auto& route : workflow.filing_routes) {
         if (!route.deficiency_deadline.has_value() ||
             !route.deficiency_deadline->static_trigger.has_value()) {
@@ -1570,7 +1618,7 @@ preconditionsAreConsistent(const std::vector<model::WorkflowPrecondition>& preco
             isLater(state.judgment_issued_at->court_date,
                     state.legal_time_cursor->court_date))))) ||
         (state.judgment_disposition.has_value() &&
-         !validJudgmentDisposition(case_definition, *state.judgment_disposition)) ||
+         !validStateJudgmentDisposition(workflow, case_definition, *state.judgment_disposition)) ||
         (state.mandate_sha256.has_value() && !validDigest(*state.mandate_sha256)) ||
         (state.mandate_sha256.has_value() && !state.judgment_sha256.has_value()) ||
         (state.next_event_sequence == 1 &&
@@ -2197,11 +2245,12 @@ decideWorkflowImpl(const model::WorkflowDefinition& workflow,
                     const auto& selected = std::get<model::DispositionPlanId>(concrete.disposition);
                     const auto* plan = dispositionPlanFor(case_definition, selected);
                     if (!usesStructuredDisposition(case_definition) || plan == nullptr ||
-                        selected != *case_definition.authored_disposition_plan_id ||
-                        concrete.operation_id !=
-                            *case_definition.authored_disposition_operation_id) {
-                        return fail(WorkflowErrorCode::InvalidCommand,
-                                    "judgment does not select the authored disposition plan");
+                        !operationSelectsDispositionPlan(case_definition, **operation, selected)) {
+                        return fail(
+                            WorkflowErrorCode::InvalidCommand,
+                            (**operation).disposition_plan_id.has_value()
+                                ? "judgment does not select the operation-bound disposition plan"
+                                : "judgment does not select the authored disposition plan");
                     }
                     disposition = *plan;
                 }
@@ -2505,7 +2554,8 @@ applyWorkflowEvent(const model::WorkflowDefinition& workflow,
                      (**operation).document_binding->expected_court_date !=
                          concrete.header.occurred_at.court_date);
                 if (binding_mismatch || !validDigest(concrete.document_sha256) ||
-                    !validJudgmentDisposition(case_definition, concrete.disposition) ||
+                    !validJudgmentDispositionForOperation(case_definition, **operation,
+                                                          concrete.disposition) ||
                     state.judgment_sha256.has_value() ||
                     concrete.next_stage_id != (**operation).next_stage_id) {
                     return fail(WorkflowErrorCode::InvalidTransition, "invalid judgment");

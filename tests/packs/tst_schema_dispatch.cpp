@@ -1335,6 +1335,7 @@ void SchemaDispatchTest::loadsV2AndProjectsRuntime() {
                           appellate::model::WorkflowOperationId{"example.operation.issue-judgment"},
                           &appellate::model::WorkflowOperation::id);
     QVERIFY(judgment != runtime->cases.front().workflow.operations.end());
+    QVERIFY(!judgment->disposition_plan_id.has_value());
     QCOMPARE(judgment->preconditions.size(), std::size_t{1});
     const auto* filing_precondition =
         std::get_if<appellate::model::WorkflowFilingPrecondition>(&judgment->preconditions.front());
