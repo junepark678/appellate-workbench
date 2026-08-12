@@ -1,0 +1,516 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "source_path": "documents/lower-record/l01-complaint.md",
+      "output_path": "objects/l01-complaint.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 1,
+      "title": "Verified Complaint and Association Allegations"
+    },
+    {
+      "source_path": "documents/lower-record/l02-city-answer.md",
+      "output_path": "objects/l02-city-answer.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 9,
+      "title": "City Answer and Defenses"
+    },
+    {
+      "source_path": "documents/lower-record/l03-paid-speaker-permit-ordinance.md",
+      "output_path": "objects/l03-paid-speaker-permit-ordinance.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 15,
+      "title": "Paid-Speaker Permit Ordinance, Application, and Fee Schedule"
+    },
+    {
+      "source_path": "documents/lower-record/l04-legislative-history.md",
+      "output_path": "objects/l04-legislative-history.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 23,
+      "title": "Council Staff Report, Minutes, and Legislative History"
+    },
+    {
+      "source_path": "documents/lower-record/l05-permit-enforcement-history.md",
+      "output_path": "objects/l05-permit-enforcement-history.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 30,
+      "title": "Pilot Permit and Enforcement History"
+    },
+    {
+      "source_path": "documents/lower-record/l06-guild-director-declaration.md",
+      "output_path": "objects/l06-guild-director-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 34,
+      "title": "Guild Executive-Director Declaration"
+    },
+    {
+      "source_path": "documents/lower-record/l07-bookseller-declaration.md",
+      "output_path": "objects/l07-bookseller-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 39,
+      "title": "Member Bookseller Declaration"
+    },
+    {
+      "source_path": "documents/lower-record/l08-fair-organizer-declaration.md",
+      "output_path": "objects/l08-fair-organizer-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 44,
+      "title": "Fair Organizer Declaration"
+    },
+    {
+      "source_path": "documents/lower-record/l09-city-parks-events-director-declaration.md",
+      "output_path": "objects/l09-city-parks-events-director-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 49,
+      "title": "City Parks and Events Director Declaration"
+    },
+    {
+      "source_path": "documents/lower-record/l10-police-logistics-declaration.md",
+      "output_path": "objects/l10-police-logistics-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 54,
+      "title": "Police Logistics Declaration"
+    },
+    {
+      "source_path": "documents/lower-record/l11-site-photos-maps-calendar-reservations.md",
+      "output_path": "objects/l11-site-photos-maps-calendar-reservations.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 58,
+      "title": "Site Photographs, Maps, Recurring Calendar, and Reservations"
+    },
+    {
+      "source_path": "documents/lower-record/l12-preliminary-injunction-motion-memorandum.md",
+      "output_path": "objects/l12-preliminary-injunction-motion-memorandum.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 65,
+      "title": "Guild Preliminary-Injunction Motion and Memorandum"
+    },
+    {
+      "source_path": "documents/lower-record/l13-city-pi-opposition.md",
+      "output_path": "objects/l13-city-pi-opposition.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 74,
+      "title": "City Opposition to Preliminary Injunction"
+    },
+    {
+      "source_path": "documents/lower-record/l14-guild-pi-reply.md",
+      "output_path": "objects/l14-guild-pi-reply.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 83,
+      "title": "Guild Preliminary-Injunction Reply"
+    },
+    {
+      "source_path": "documents/lower-record/l15-stipulated-facts-alternatives-chart.md",
+      "output_path": "objects/l15-stipulated-facts-alternatives-chart.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 88,
+      "title": "Stipulated Facts and Less-Restrictive-Alternatives Chart"
+    },
+    {
+      "source_path": "documents/lower-record/l16-pi-hearing-transcript.md",
+      "output_path": "objects/l16-pi-hearing-transcript.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 93,
+      "title": "Preliminary-Injunction Hearing Transcript"
+    },
+    {
+      "source_path": "documents/lower-record/l17-preliminary-injunction-order.md",
+      "output_path": "objects/l17-preliminary-injunction-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 115,
+      "title": "Preliminary-Injunction Order"
+    },
+    {
+      "source_path": "documents/lower-record/l18-city-district-stay-motion.md",
+      "output_path": "objects/l18-city-district-stay-motion.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 125,
+      "title": "City District-Court Stay Motion"
+    },
+    {
+      "source_path": "documents/lower-record/l19-guild-district-stay-opposition.md",
+      "output_path": "objects/l19-guild-district-stay-opposition.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 131,
+      "title": "Guild Opposition to District Stay"
+    },
+    {
+      "source_path": "documents/lower-record/l20-city-district-stay-reply.md",
+      "output_path": "objects/l20-city-district-stay-reply.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 136,
+      "title": "City District-Stay Reply"
+    },
+    {
+      "source_path": "documents/lower-record/l21-district-stay-denial.md",
+      "output_path": "objects/l21-district-stay-denial.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 139,
+      "title": "Order Denying District Stay"
+    },
+    {
+      "source_path": "documents/lower-record/l22-notice-of-appeal.md",
+      "output_path": "objects/l22-notice-of-appeal.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 144,
+      "title": "Notice of Appeal"
+    },
+    {
+      "source_path": "documents/lower-record/l23-certified-district-docket.md",
+      "output_path": "objects/l23-certified-district-docket.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 145,
+      "title": "Certified District Docket"
+    },
+    {
+      "source_path": "documents/lower-record/l24-record-certificate-index.md",
+      "output_path": "objects/l24-record-certificate-index.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 147,
+      "title": "Record Certificate and Index"
+    },
+    {
+      "source_path": "documents/appellate-actual/a01-appellate-docketing-notice.md",
+      "output_path": "objects/a01-appellate-docketing-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 1,
+      "title": "Appellate Docketing Notice"
+    },
+    {
+      "source_path": "documents/appellate-actual/a02-city-appearance-disclosure.md",
+      "output_path": "objects/a02-city-appearance-disclosure.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 3,
+      "title": "City Appearance and Disclosure"
+    },
+    {
+      "source_path": "documents/appellate-actual/a03-guild-appearance-disclosure.md",
+      "output_path": "objects/a03-guild-appearance-disclosure.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 6,
+      "title": "Guild Appearance and Disclosure"
+    },
+    {
+      "source_path": "documents/appellate-actual/a04-city-rule8-stay-motion.md",
+      "output_path": "objects/a04-city-rule8-stay-motion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 9,
+      "title": "City Rule 8 Stay Motion"
+    },
+    {
+      "source_path": "documents/appellate-actual/a05-guild-stay-response.md",
+      "output_path": "objects/a05-guild-stay-response.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 19,
+      "title": "Guild Stay Response"
+    },
+    {
+      "source_path": "documents/appellate-actual/a06-city-stay-reply.md",
+      "output_path": "objects/a06-city-stay-reply.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 27,
+      "title": "City Stay Reply"
+    },
+    {
+      "source_path": "documents/appellate-actual/a07-appellate-stay-denial.md",
+      "output_path": "objects/a07-appellate-stay-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 31,
+      "title": "Order Denying Appellate Stay"
+    },
+    {
+      "source_path": "documents/appellate-actual/a08-city-docketing-statement.md",
+      "output_path": "objects/a08-city-docketing-statement.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 34,
+      "title": "City Docketing Statement"
+    },
+    {
+      "source_path": "documents/appellate-actual/a09-no-additional-transcript-certificate.md",
+      "output_path": "objects/a09-no-additional-transcript-certificate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 39,
+      "title": "No-Additional-Transcript Certificate"
+    },
+    {
+      "source_path": "documents/appellate-actual/a10-record-complete-briefing-order.md",
+      "output_path": "objects/a10-record-complete-briefing-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 41,
+      "title": "Record-Complete and Briefing Order"
+    },
+    {
+      "source_path": "documents/appellate-actual/a11-city-opening-brief.md",
+      "output_path": "objects/a11-city-opening-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 44,
+      "title": "City Opening Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a12-joint-appendix-cover-index-certification.md",
+      "output_path": "objects/a12-joint-appendix-cover-index-certification.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 62,
+      "title": "Joint Appendix Cover, Index, and Certification"
+    },
+    {
+      "source_path": "documents/appellate-actual/a13-guild-response-brief.md",
+      "output_path": "objects/a13-guild-response-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 68,
+      "title": "Guild Response Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a14-city-reply-brief.md",
+      "output_path": "objects/a14-city-reply-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 86,
+      "title": "City Reply Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a15-city-one-date-mootness-motion.md",
+      "output_path": "objects/a15-city-one-date-mootness-motion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 96,
+      "title": "City One-Date Mootness Motion"
+    },
+    {
+      "source_path": "documents/appellate-actual/a16-guild-recurring-events-response.md",
+      "output_path": "objects/a16-guild-recurring-events-response.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 101,
+      "title": "Guild Recurring-Events Response"
+    },
+    {
+      "source_path": "documents/appellate-actual/a17-mootness-denial.md",
+      "output_path": "objects/a17-mootness-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 106,
+      "title": "Order Denying Mootness Motion"
+    },
+    {
+      "source_path": "documents/appellate-actual/a18-oral-argument-calendar-notice.md",
+      "output_path": "objects/a18-oral-argument-calendar-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 109,
+      "title": "Oral-Argument Calendar Notice"
+    },
+    {
+      "source_path": "documents/appellate-actual/a19-argument-held-order-minute-sheet.md",
+      "output_path": "objects/a19-argument-held-order-minute-sheet.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 111,
+      "title": "Argument-Held Order and Minute Sheet"
+    },
+    {
+      "source_path": "documents/appellate-actual/a20-authored-panel-opinion.md",
+      "output_path": "objects/a20-authored-panel-opinion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 113,
+      "title": "Authored Panel Opinion"
+    },
+    {
+      "source_path": "documents/appellate-actual/a21-authored-judgment.md",
+      "output_path": "objects/a21-authored-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 131,
+      "title": "Authored Judgment"
+    },
+    {
+      "source_path": "documents/appellate-actual/a22-ordinary-mandate-release-order.md",
+      "output_path": "objects/a22-ordinary-mandate-release-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 133,
+      "title": "Ordinary Mandate-Release Order"
+    },
+    {
+      "source_path": "documents/appellate-actual/a23-mandate.md",
+      "output_path": "objects/a23-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 134,
+      "title": "Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b01-rule8-motion-omitting-district-relief.md",
+      "output_path": "objects/b01-rule8-motion-omitting-district-relief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 136,
+      "title": "Rule 8 Motion Omitting District Relief and Impracticability"
+    },
+    {
+      "source_path": "documents/appellate-branches/b02-rule8-threshold-denial.md",
+      "output_path": "objects/b02-rule8-threshold-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 144,
+      "title": "Threshold Denial Under Rule 8"
+    },
+    {
+      "source_path": "documents/appellate-branches/b03-rule8-impracticability-motion.md",
+      "output_path": "objects/b03-rule8-impracticability-motion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 147,
+      "title": "Rule 8 Motion with Specific Impracticability Showing"
+    },
+    {
+      "source_path": "documents/appellate-branches/b04-guild-impracticability-response.md",
+      "output_path": "objects/b04-guild-impracticability-response.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 156,
+      "title": "Guild Response to Impracticability Motion"
+    },
+    {
+      "source_path": "documents/appellate-branches/b05-impracticability-stay-denial.md",
+      "output_path": "objects/b05-impracticability-stay-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 163,
+      "title": "Merits Denial of Impracticability-Path Stay"
+    },
+    {
+      "source_path": "documents/appellate-branches/b06-appellate-stay-grant.md",
+      "output_path": "objects/b06-appellate-stay-grant.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 166,
+      "title": "Appellate Stay Grant"
+    },
+    {
+      "source_path": "documents/appellate-branches/b07-stay-dissolution-order.md",
+      "output_path": "objects/b07-stay-dissolution-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 169,
+      "title": "Stay-Dissolution Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b08-submission-on-briefs-order.md",
+      "output_path": "objects/b08-submission-on-briefs-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 172,
+      "title": "Submission-on-Briefs Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b09-adverse-opinion.md",
+      "output_path": "objects/b09-adverse-opinion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 174,
+      "title": "Adverse Opinion Reversing Preliminary Relief"
+    },
+    {
+      "source_path": "documents/appellate-branches/b10-adverse-judgment.md",
+      "output_path": "objects/b10-adverse-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 190,
+      "title": "Adverse Judgment"
+    },
+    {
+      "source_path": "documents/appellate-branches/b11-timely-rehearing-petition.md",
+      "output_path": "objects/b11-timely-rehearing-petition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 192,
+      "title": "Timely Rehearing Petition"
+    },
+    {
+      "source_path": "documents/appellate-branches/b12-rehearing-denial.md",
+      "output_path": "objects/b12-rehearing-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 200,
+      "title": "Rehearing Denial"
+    },
+    {
+      "source_path": "documents/appellate-branches/b13-post-rehearing-release-order.md",
+      "output_path": "objects/b13-post-rehearing-release-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 202,
+      "title": "Post-Rehearing Release Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b14-post-rehearing-mandate.md",
+      "output_path": "objects/b14-post-rehearing-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 203,
+      "title": "Post-Rehearing Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b15-mandate-stay-motion-denial-path.md",
+      "output_path": "objects/b15-mandate-stay-motion-denial-path.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 205,
+      "title": "Motion to Stay Mandate — Denial Path"
+    },
+    {
+      "source_path": "documents/appellate-branches/b16-mandate-stay-denial.md",
+      "output_path": "objects/b16-mandate-stay-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 210,
+      "title": "Mandate-Stay Denial"
+    },
+    {
+      "source_path": "documents/appellate-branches/b17-post-stay-denial-release-order.md",
+      "output_path": "objects/b17-post-stay-denial-release-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 212,
+      "title": "Post-Stay-Denial Release Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b18-post-stay-denial-mandate.md",
+      "output_path": "objects/b18-post-stay-denial-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 213,
+      "title": "Post-Stay-Denial Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b19-mandate-stay-motion-grant-path.md",
+      "output_path": "objects/b19-mandate-stay-motion-grant-path.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 215,
+      "title": "Motion to Stay Mandate — Grant Path"
+    },
+    {
+      "source_path": "documents/appellate-branches/b20-mandate-stay-grant.md",
+      "output_path": "objects/b20-mandate-stay-grant.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 220,
+      "title": "Mandate-Stay Grant"
+    },
+    {
+      "source_path": "documents/appellate-branches/b21-stay-dissolution-release-order.md",
+      "output_path": "objects/b21-stay-dissolution-release-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 222,
+      "title": "Stay-Dissolution and Release Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b22-post-stay-mandate.md",
+      "output_path": "objects/b22-post-stay-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 224,
+      "title": "Post-Stay Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b23-expedition-submission-motion.md",
+      "output_path": "objects/b23-expedition-submission-motion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 226,
+      "title": "Motion to Expedite and Request Submission"
+    },
+    {
+      "source_path": "documents/appellate-branches/b24-expedition-grant.md",
+      "output_path": "objects/b24-expedition-grant.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 230,
+      "title": "Order Granting Expedition"
+    },
+    {
+      "source_path": "documents/appellate-branches/b25-adverse-ordinary-release-order.md",
+      "output_path": "objects/b25-adverse-ordinary-release-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 232,
+      "title": "Adverse Ordinary Release Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b26-adverse-mandate.md",
+      "output_path": "objects/b26-adverse-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 233,
+      "title": "Adverse Mandate"
+    }
+  ]
+}

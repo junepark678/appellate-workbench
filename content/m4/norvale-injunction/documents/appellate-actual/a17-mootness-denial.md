@@ -14,6 +14,8 @@ A live controversy persists. The preliminary injunction expressly covers the Gui
 
 The requested appellate relief would immediately alter administration of those remaining events.
 
+That prospective effect supplies concrete stakes for both parties throughout appellate review.
+
 <!-- PAGE BREAK -->
 
 The passage of February and April does not eliminate the parties' concrete adversity. The City's requested appellate relief would alter the regime governing the remaining dates. The Guild's injury theory concerns invitations, budgets, and approval uncertainty that arise before a program is final, not merely a completed denial on an event day. Those features are documented in the preliminary record and repeat within the same calendar series.

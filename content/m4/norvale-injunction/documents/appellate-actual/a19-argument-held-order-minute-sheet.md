@@ -12,6 +12,8 @@ Oral argument was held on June 10, 2026, before a three-judge composite panel. J
 
 The panel questioned counsel about the source and scope of jurisdiction under 28 U.S.C. § 1292(a)(1); whether the remaining announced book fairs preserve a live controversy; the relationship between compensation and operational burdens; the distinction between presentation logistics and a speaker's identity or topic; the evidentiary support for the fee schedule; the four preliminary-injunction factors; and the precision and security requirements of Federal Rule of Civil Procedure 65.
 
+Each side received a full opportunity to address the panel's questions within the allotted session.
+
 <!-- PAGE BREAK -->
 
 City counsel requested reversal of the preliminary injunction or, alternatively, vacatur and remand for a more precise order. Guild counsel requested affirmance and stated that any Rule 65 correction should be made without dissolving interim protection. The panel asked both counsel whether a limited remand could preserve the existing restraint until the district court enters a superseding compliant order. Their answers are preserved in the audio record of argument and do not themselves constitute findings or a disposition.
