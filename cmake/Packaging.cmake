@@ -93,14 +93,102 @@ if(APPELLATE_GLIBC_FLOOR STREQUAL "")
 endif()
 
 set(
-    _appellate_gold_archive
+    _appellate_asterglen_v2_archive
+    "${PROJECT_SOURCE_DIR}/content/ca4-rule54b/us-ca4-rule54b-asterglen-0.2.0.awpack"
+)
+set(
+    _appellate_federal_archive
+    "${PROJECT_SOURCE_DIR}/content/foundations/us-federal/foundation-us-federal-2025.12.01.awpack"
+)
+set(
+    _appellate_ca4_archive
+    "${PROJECT_SOURCE_DIR}/content/foundations/us-ca4/foundation-us-ca4-2026.03.23.awpack"
+)
+set(
+    _appellate_bench_archive
+    "${PROJECT_SOURCE_DIR}/content/foundations/us-ca4-fictional-bench/foundation-us-ca4-fictional-bench-1.0.0.awpack"
+)
+set(
+    _appellate_asterglen_v1_archive
     "${PROJECT_SOURCE_DIR}/content/ca4-rule54b/us-ca4-rule54b-asterglen-0.1.0.awpack"
 )
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_appellate_gold_archive}")
-file(SHA256 "${_appellate_gold_archive}" APPELLATE_GOLD_ARCHIVE_SHA256)
-set(
-    APPELLATE_GOLD_PACK_REVISION
-    "ff7a2e1195f9bd006e7df46c19675a3e07a4bd8975b1643a01adbc9cc4fd3424"
+
+set(APPELLATE_ASTERGLEN_V2_ARCHIVE_SHA256
+    "10739c149a3bf2617d8af6dd131caee7ea6639a9d97e26cdf2974fa176c82819")
+set(APPELLATE_ASTERGLEN_V2_ARCHIVE_SIZE 3974147)
+set(APPELLATE_ASTERGLEN_V2_PACK_REVISION
+    "7e77bc0fbe02dc9e108681df73852859d6d0f577acdcb65fcfb7678eac78b728")
+set(APPELLATE_FEDERAL_ARCHIVE_SHA256
+    "69736648f78376a6d85cde32148337edbf5af2a289de6070734c5454cc6b411b")
+set(APPELLATE_FEDERAL_ARCHIVE_SIZE 21002)
+set(APPELLATE_FEDERAL_PACK_REVISION
+    "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9")
+set(APPELLATE_CA4_ARCHIVE_SHA256
+    "5c9098d76012891ab2cb1f04c48bdcb3101c64253fdaab1608de789d0f5aa6ef")
+set(APPELLATE_CA4_ARCHIVE_SIZE 66512)
+set(APPELLATE_CA4_PACK_REVISION
+    "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262")
+set(APPELLATE_BENCH_ARCHIVE_SHA256
+    "e2758217f5ba9b987cc9e9920af65f762263f420e1698b12732d4f02b0121137")
+set(APPELLATE_BENCH_ARCHIVE_SIZE 14131)
+set(APPELLATE_BENCH_PACK_REVISION
+    "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d")
+set(APPELLATE_ASTERGLEN_V1_ARCHIVE_SHA256
+    "ce0ebffb92942e85e02658d11846af70ebb5fdc287f99a4c683a48f381e39227")
+set(APPELLATE_ASTERGLEN_V1_ARCHIVE_SIZE 729511)
+set(APPELLATE_ASTERGLEN_V1_PACK_REVISION
+    "ff7a2e1195f9bd006e7df46c19675a3e07a4bd8975b1643a01adbc9cc4fd3424")
+
+function(_appellate_assert_release_archive archive expected_sha256 expected_size)
+    if(NOT EXISTS "${archive}")
+        message(FATAL_ERROR "Required release archive is missing: ${archive}")
+    endif()
+    file(SHA256 "${archive}" _actual_sha256)
+    file(SIZE "${archive}" _actual_size)
+    if(NOT _actual_sha256 STREQUAL expected_sha256 OR NOT _actual_size EQUAL expected_size)
+        message(
+            FATAL_ERROR
+            "Pinned release archive changed: ${archive}\n"
+            "expected SHA-256/size: ${expected_sha256}/${expected_size}\n"
+            "actual SHA-256/size:   ${_actual_sha256}/${_actual_size}"
+        )
+    endif()
+endfunction()
+
+set(_appellate_release_pack_archives
+    "${_appellate_asterglen_v2_archive}"
+    "${_appellate_federal_archive}"
+    "${_appellate_ca4_archive}"
+    "${_appellate_bench_archive}"
+    "${_appellate_asterglen_v1_archive}"
+)
+set_property(
+    DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${_appellate_release_pack_archives}
+)
+_appellate_assert_release_archive(
+    "${_appellate_asterglen_v2_archive}"
+    "${APPELLATE_ASTERGLEN_V2_ARCHIVE_SHA256}"
+    "${APPELLATE_ASTERGLEN_V2_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_federal_archive}"
+    "${APPELLATE_FEDERAL_ARCHIVE_SHA256}"
+    "${APPELLATE_FEDERAL_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_ca4_archive}"
+    "${APPELLATE_CA4_ARCHIVE_SHA256}"
+    "${APPELLATE_CA4_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_bench_archive}"
+    "${APPELLATE_BENCH_ARCHIVE_SHA256}"
+    "${APPELLATE_BENCH_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_asterglen_v1_archive}"
+    "${APPELLATE_ASTERGLEN_V1_ARCHIVE_SHA256}"
+    "${APPELLATE_ASTERGLEN_V1_ARCHIVE_SIZE}"
 )
 
 set(_appellate_release_generated "${PROJECT_BINARY_DIR}/release")
@@ -127,7 +215,7 @@ install(
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 install(
-    FILES "${_appellate_gold_archive}"
+    FILES ${_appellate_release_pack_archives}
     DESTINATION "${CMAKE_INSTALL_DATADIR}/appellate-workbench/packs"
 )
 install(

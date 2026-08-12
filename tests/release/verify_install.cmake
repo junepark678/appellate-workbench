@@ -111,13 +111,53 @@ endif()
 
 set(_desktop "${_prefix}/bin/Appellate Workbench")
 set(_pack_cli "${_prefix}/bin/appellate-pack")
-set(_gold "${_prefix}/share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack")
+set(_packs_root "${_prefix}/share/appellate-workbench/packs")
+set(_asterglen_v2 "${_packs_root}/us-ca4-rule54b-asterglen-0.2.0.awpack")
+set(_federal "${_packs_root}/foundation-us-federal-2025.12.01.awpack")
+set(_ca4 "${_packs_root}/foundation-us-ca4-2026.03.23.awpack")
+set(_bench "${_packs_root}/foundation-us-ca4-fictional-bench-1.0.0.awpack")
+set(_asterglen_v1 "${_packs_root}/us-ca4-rule54b-asterglen-0.1.0.awpack")
 set(_compatibility "${_prefix}/share/appellate-workbench/compatibility.json")
-foreach(_required IN ITEMS "${_desktop}" "${_pack_cli}" "${_gold}" "${_compatibility}")
+foreach(_required IN ITEMS
+        "${_desktop}"
+        "${_pack_cli}"
+        "${_asterglen_v2}"
+        "${_federal}"
+        "${_ca4}"
+        "${_bench}"
+        "${_asterglen_v1}"
+        "${_compatibility}"
+)
     if(NOT EXISTS "${_required}")
         message(FATAL_ERROR "Installed bundle is missing ${_required}")
     endif()
 endforeach()
+
+set(_expected_v2_pack_id "us.ca4.rule54b.asterglen")
+set(_expected_v2_version "0.2.0")
+set(_expected_v2_revision "7e77bc0fbe02dc9e108681df73852859d6d0f577acdcb65fcfb7678eac78b728")
+set(_expected_v2_archive_sha "10739c149a3bf2617d8af6dd131caee7ea6639a9d97e26cdf2974fa176c82819")
+set(_expected_v2_archive_size 3974147)
+set(_expected_federal_pack_id "foundation.us-federal")
+set(_expected_federal_version "2025.12.01")
+set(_expected_federal_revision "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9")
+set(_expected_federal_archive_sha "69736648f78376a6d85cde32148337edbf5af2a289de6070734c5454cc6b411b")
+set(_expected_federal_archive_size 21002)
+set(_expected_ca4_pack_id "foundation.us-ca4")
+set(_expected_ca4_version "2026.03.23")
+set(_expected_ca4_revision "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262")
+set(_expected_ca4_archive_sha "5c9098d76012891ab2cb1f04c48bdcb3101c64253fdaab1608de789d0f5aa6ef")
+set(_expected_ca4_archive_size 66512)
+set(_expected_bench_pack_id "foundation.us-ca4-fictional-bench")
+set(_expected_bench_version "1.0.0")
+set(_expected_bench_revision "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d")
+set(_expected_bench_archive_sha "e2758217f5ba9b987cc9e9920af65f762263f420e1698b12732d4f02b0121137")
+set(_expected_bench_archive_size 14131)
+set(_expected_v1_pack_id "us.ca4.rule54b.asterglen")
+set(_expected_v1_version "0.1.0")
+set(_expected_v1_revision "ff7a2e1195f9bd006e7df46c19675a3e07a4bd8975b1643a01adbc9cc4fd3424")
+set(_expected_v1_archive_sha "ce0ebffb92942e85e02658d11846af70ebb5fdc287f99a4c683a48f381e39227")
+set(_expected_v1_archive_size 729511)
 
 file(
     GLOB_RECURSE _installed_pack_archives
@@ -128,8 +168,13 @@ file(
 list(SORT _installed_pack_archives)
 set(
     _expected_installed_pack_archives
+    "share/appellate-workbench/packs/foundation-us-ca4-2026.03.23.awpack"
+    "share/appellate-workbench/packs/foundation-us-ca4-fictional-bench-1.0.0.awpack"
+    "share/appellate-workbench/packs/foundation-us-federal-2025.12.01.awpack"
     "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
+    "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.2.0.awpack"
 )
+list(SORT _expected_installed_pack_archives)
 if(NOT _installed_pack_archives STREQUAL _expected_installed_pack_archives)
     message(
         FATAL_ERROR
@@ -143,36 +188,228 @@ string(JSON _compatibility_schema GET "${_compatibility_json}" schema_version)
 string(JSON _compatibility_os GET "${_compatibility_json}" platform operating_system)
 string(JSON _compatibility_arch GET "${_compatibility_json}" platform architecture)
 string(JSON _declared_glibc_floor GET "${_compatibility_json}" platform glibc_floor)
-string(JSON _declared_archive_sha GET "${_compatibility_json}" bundled_packs 0 archive_sha256)
-string(JSON _declared_revision_sha GET "${_compatibility_json}" bundled_packs 0 revision_sha256)
-string(JSON _declared_pack_id GET "${_compatibility_json}" bundled_packs 0 pack_id)
-string(JSON _declared_pack_version GET "${_compatibility_json}" bundled_packs 0 version)
-file(SHA256 "${_gold}" _actual_archive_sha)
+string(JSON _declared_pack_count LENGTH "${_compatibility_json}" bundled_packs)
 if(NOT _compatibility_schema EQUAL 1 OR NOT _compatibility_os STREQUAL "linux" OR
-   NOT _compatibility_arch STREQUAL "x86_64" OR
-   NOT _declared_archive_sha STREQUAL _actual_archive_sha)
+   NOT _compatibility_arch STREQUAL "x86_64" OR NOT _declared_pack_count EQUAL 5)
     message(FATAL_ERROR "The installed compatibility manifest does not match the bundle")
 endif()
 
-execute_process(
-    COMMAND "${_pack_cli}" validate "${_gold}"
-    RESULT_VARIABLE _validate_result
-    OUTPUT_VARIABLE _validate_output
-    ERROR_VARIABLE _validate_error
+function(_appellate_assert_bundled_pack index archive expected_id expected_version
+         expected_revision expected_archive_sha expected_archive_size expected_path)
+    string(JSON _declared_id GET "${_compatibility_json}" bundled_packs ${index} pack_id)
+    string(JSON _declared_version GET "${_compatibility_json}" bundled_packs ${index} version)
+    string(JSON _declared_revision GET "${_compatibility_json}" bundled_packs ${index} revision_sha256)
+    string(JSON _declared_archive_sha GET "${_compatibility_json}" bundled_packs ${index} archive_sha256)
+    string(JSON _declared_archive_size GET "${_compatibility_json}" bundled_packs ${index} archive_byte_size)
+    string(JSON _declared_path GET "${_compatibility_json}" bundled_packs ${index} path)
+    file(SHA256 "${archive}" _actual_archive_sha)
+    file(SIZE "${archive}" _actual_archive_size)
+    if(NOT _declared_id STREQUAL expected_id OR
+       NOT _declared_version STREQUAL expected_version OR
+       NOT _declared_revision STREQUAL expected_revision OR
+       NOT _declared_archive_sha STREQUAL expected_archive_sha OR
+       NOT _declared_archive_size EQUAL expected_archive_size OR
+       NOT _declared_path STREQUAL expected_path OR
+       NOT _actual_archive_sha STREQUAL expected_archive_sha OR
+       NOT _actual_archive_size EQUAL expected_archive_size)
+        message(FATAL_ERROR "Bundled pack ${index} identity, bytes, or path differs")
+    endif()
+endfunction()
+
+_appellate_assert_bundled_pack(
+    0 "${_asterglen_v2}"
+    "${_expected_v2_pack_id}" "${_expected_v2_version}" "${_expected_v2_revision}"
+    "${_expected_v2_archive_sha}" "${_expected_v2_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.2.0.awpack"
 )
-if(NOT _validate_result EQUAL 0)
-    message(FATAL_ERROR "Bundled pack validation failed:\n${_validate_output}\n${_validate_error}")
+_appellate_assert_bundled_pack(
+    1 "${_federal}"
+    "${_expected_federal_pack_id}" "${_expected_federal_version}"
+    "${_expected_federal_revision}" "${_expected_federal_archive_sha}"
+    "${_expected_federal_archive_size}"
+    "share/appellate-workbench/packs/foundation-us-federal-2025.12.01.awpack"
+)
+_appellate_assert_bundled_pack(
+    2 "${_ca4}"
+    "${_expected_ca4_pack_id}" "${_expected_ca4_version}" "${_expected_ca4_revision}"
+    "${_expected_ca4_archive_sha}" "${_expected_ca4_archive_size}"
+    "share/appellate-workbench/packs/foundation-us-ca4-2026.03.23.awpack"
+)
+_appellate_assert_bundled_pack(
+    3 "${_bench}"
+    "${_expected_bench_pack_id}" "${_expected_bench_version}" "${_expected_bench_revision}"
+    "${_expected_bench_archive_sha}" "${_expected_bench_archive_size}"
+    "share/appellate-workbench/packs/foundation-us-ca4-fictional-bench-1.0.0.awpack"
+)
+_appellate_assert_bundled_pack(
+    4 "${_asterglen_v1}"
+    "${_expected_v1_pack_id}" "${_expected_v1_version}" "${_expected_v1_revision}"
+    "${_expected_v1_archive_sha}" "${_expected_v1_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
+)
+
+execute_process(
+    COMMAND "${_pack_cli}" validate "${_asterglen_v1}"
+    RESULT_VARIABLE _v1_validate_result
+    OUTPUT_VARIABLE _v1_validate_output
+    ERROR_VARIABLE _v1_validate_error
+)
+if(NOT _v1_validate_result EQUAL 0)
+    message(
+        FATAL_ERROR
+        "Immutable Asterglen v0.1 validation failed:\n"
+        "${_v1_validate_output}\n${_v1_validate_error}"
+    )
 endif()
-string(JSON _validated_status GET "${_validate_output}" status)
-string(JSON _validated_revision GET "${_validate_output}" digest)
-string(JSON _validated_pack_id GET "${_validate_output}" pack_id)
-string(JSON _validated_pack_version GET "${_validate_output}" version)
-if(NOT _validated_status STREQUAL "ok" OR
-   NOT _validated_revision STREQUAL _declared_revision_sha OR
-   NOT _validated_pack_id STREQUAL _declared_pack_id OR
-   NOT _validated_pack_version STREQUAL _declared_pack_version)
-    message(FATAL_ERROR "Bundled pack identity differs from the compatibility manifest")
+string(JSON _v1_validated_status GET "${_v1_validate_output}" status)
+string(JSON _v1_validated_revision GET "${_v1_validate_output}" digest)
+string(JSON _v1_validated_pack_id GET "${_v1_validate_output}" pack_id)
+string(JSON _v1_validated_pack_version GET "${_v1_validate_output}" version)
+if(NOT _v1_validated_status STREQUAL "ok" OR
+   NOT _v1_validated_revision STREQUAL _expected_v1_revision OR
+   NOT _v1_validated_pack_id STREQUAL _expected_v1_pack_id OR
+   NOT _v1_validated_pack_version STREQUAL _expected_v1_version)
+    message(FATAL_ERROR "Immutable Asterglen v0.1 identity differs")
 endif()
+
+function(_appellate_assert_revision_json json label expected_id expected_version expected_revision)
+    string(JSON _actual_id GET "${json}" pack_id)
+    string(JSON _actual_version GET "${json}" version)
+    string(JSON _actual_revision GET "${json}" digest)
+    if(NOT _actual_id STREQUAL expected_id OR
+       NOT _actual_version STREQUAL expected_version OR
+       NOT _actual_revision STREQUAL expected_revision)
+        message(FATAL_ERROR "${label} revision identity differs")
+    endif()
+endfunction()
+
+function(_appellate_install_exact_archive pack_cli archive catalog installed_at expected_id
+         expected_version expected_revision expected_archive_sha)
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            --unset=LD_LIBRARY_PATH
+            --unset=LD_PRELOAD
+            --unset=QT_PLUGIN_PATH
+            --unset=QT_QPA_PLATFORM_PLUGIN_PATH
+            "${pack_cli}" install "${archive}" "${catalog}"
+            --installed-at "${installed_at}"
+        RESULT_VARIABLE _install_result
+        OUTPUT_VARIABLE _install_output
+        ERROR_VARIABLE _install_error
+        TIMEOUT 60
+    )
+    if(NOT _install_result EQUAL 0)
+        message(
+            FATAL_ERROR
+            "Exact bundled pack installation failed for ${archive}:\n"
+            "${_install_output}\n${_install_error}"
+        )
+    endif()
+    string(JSON _install_status GET "${_install_output}" status)
+    string(JSON _install_command GET "${_install_output}" command)
+    string(JSON _install_archive_sha GET "${_install_output}" archive_sha256)
+    string(JSON _installed_at GET "${_install_output}" installed_at_utc)
+    if(NOT _install_status STREQUAL "ok" OR NOT _install_command STREQUAL "install" OR
+       NOT _install_archive_sha STREQUAL expected_archive_sha OR
+       NOT _installed_at STREQUAL installed_at)
+        message(FATAL_ERROR "Exact bundled pack installation evidence differs for ${archive}")
+    endif()
+    _appellate_assert_revision_json(
+        "${_install_output}" "Installed ${archive}"
+        "${expected_id}" "${expected_version}" "${expected_revision}"
+    )
+endfunction()
+
+function(_appellate_prepare_v2_catalog pack_cli federal ca4 bench asterglen_v2 catalog)
+    if(EXISTS "${catalog}")
+        message(FATAL_ERROR "Release smoke catalog unexpectedly already exists: ${catalog}")
+    endif()
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${federal}" "${catalog}" "2026-08-12T00:00:00Z"
+        "${_expected_federal_pack_id}" "${_expected_federal_version}"
+        "${_expected_federal_revision}" "${_expected_federal_archive_sha}"
+    )
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${ca4}" "${catalog}" "2026-08-12T00:00:01Z"
+        "${_expected_ca4_pack_id}" "${_expected_ca4_version}"
+        "${_expected_ca4_revision}" "${_expected_ca4_archive_sha}"
+    )
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${bench}" "${catalog}" "2026-08-12T00:00:02Z"
+        "${_expected_bench_pack_id}" "${_expected_bench_version}"
+        "${_expected_bench_revision}" "${_expected_bench_archive_sha}"
+    )
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${asterglen_v2}" "${catalog}" "2026-08-12T00:00:03Z"
+        "${_expected_v2_pack_id}" "${_expected_v2_version}"
+        "${_expected_v2_revision}" "${_expected_v2_archive_sha}"
+    )
+
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            --unset=LD_LIBRARY_PATH
+            --unset=LD_PRELOAD
+            --unset=QT_PLUGIN_PATH
+            --unset=QT_QPA_PLATFORM_PLUGIN_PATH
+            "${pack_cli}" validate-resolved "${catalog}"
+            "${_expected_v2_pack_id}" "${_expected_v2_version}" "${_expected_v2_revision}"
+        RESULT_VARIABLE _resolved_result
+        OUTPUT_VARIABLE _resolved_output
+        ERROR_VARIABLE _resolved_error
+        TIMEOUT 60
+    )
+    if(NOT _resolved_result EQUAL 0)
+        message(
+            FATAL_ERROR
+            "Exact bundled Asterglen v0.2 closure validation failed:\n"
+            "${_resolved_output}\n${_resolved_error}"
+        )
+    endif()
+    string(JSON _resolved_status GET "${_resolved_output}" status)
+    string(JSON _resolved_scope GET "${_resolved_output}" validation_scope)
+    string(JSON _resolved_count GET "${_resolved_output}" resolved_revision_count)
+    string(JSON _pin_count LENGTH "${_resolved_output}" revision_pins)
+    if(NOT _resolved_status STREQUAL "ok" OR
+       NOT _resolved_scope STREQUAL "catalog_resolved" OR
+       NOT _resolved_count EQUAL 4 OR NOT _pin_count EQUAL 4)
+        message(FATAL_ERROR "Asterglen v0.2 resolved-closure evidence is incomplete")
+    endif()
+    _appellate_assert_revision_json(
+        "${_resolved_output}" "Resolved Asterglen v0.2 root"
+        "${_expected_v2_pack_id}" "${_expected_v2_version}" "${_expected_v2_revision}"
+    )
+
+    set(_expected_pin_ids
+        "${_expected_ca4_pack_id}"
+        "${_expected_bench_pack_id}"
+        "${_expected_federal_pack_id}"
+        "${_expected_v2_pack_id}"
+    )
+    set(_expected_pin_versions
+        "${_expected_ca4_version}"
+        "${_expected_bench_version}"
+        "${_expected_federal_version}"
+        "${_expected_v2_version}"
+    )
+    set(_expected_pin_revisions
+        "${_expected_ca4_revision}"
+        "${_expected_bench_revision}"
+        "${_expected_federal_revision}"
+        "${_expected_v2_revision}"
+    )
+    foreach(_pin_index RANGE 0 3)
+        string(JSON _pin GET "${_resolved_output}" revision_pins ${_pin_index})
+        list(GET _expected_pin_ids ${_pin_index} _expected_pin_id)
+        list(GET _expected_pin_versions ${_pin_index} _expected_pin_version)
+        list(GET _expected_pin_revisions ${_pin_index} _expected_pin_revision)
+        _appellate_assert_revision_json(
+            "${_pin}" "Resolved Asterglen v0.2 pin ${_pin_index}"
+            "${_expected_pin_id}" "${_expected_pin_version}" "${_expected_pin_revision}"
+        )
+    endforeach()
+endfunction()
 
 set(_expected_starter_pack_id "example.full.fictional")
 set(_expected_starter_pack_version "2.0.0")
@@ -362,9 +599,9 @@ function(_appellate_run_offline_e2e desktop workflow_pack grounded_pack state_na
        NOT _offline_status STREQUAL "ok" OR
        NOT _offline_network STREQUAL "required-from-caller" OR
        NOT _bundled_revision_field_count EQUAL 3 OR
-       NOT _bundled_revision_id STREQUAL _declared_pack_id OR
-       NOT _bundled_revision_version STREQUAL _declared_pack_version OR
-       NOT _bundled_revision_digest STREQUAL _declared_revision_sha OR
+       NOT _bundled_revision_id STREQUAL _expected_v1_pack_id OR
+       NOT _bundled_revision_version STREQUAL _expected_v1_version OR
+       NOT _bundled_revision_digest STREQUAL _expected_v1_revision OR
        NOT _imported_revision_field_count EQUAL 3 OR
        NOT _actual_imported_id STREQUAL _expected_starter_pack_id OR
        NOT _actual_imported_version STREQUAL _expected_starter_pack_version OR
@@ -390,6 +627,14 @@ function(_appellate_run_offline_e2e desktop workflow_pack grounded_pack state_na
     endif()
 endfunction()
 
+_appellate_prepare_v2_catalog(
+    "${_pack_cli}"
+    "${_federal}"
+    "${_ca4}"
+    "${_bench}"
+    "${_asterglen_v2}"
+    "${_catalog}"
+)
 execute_process(
     COMMAND "${CMAKE_COMMAND}" -E env
         --unset=LD_LIBRARY_PATH
@@ -401,7 +646,7 @@ execute_process(
         "XDG_CONFIG_HOME=${_root}/config"
         "XDG_DATA_HOME=${_root}/data"
         "XDG_CACHE_HOME=${_root}/cache"
-        "${_desktop}" --smoke-test --catalog "${_catalog}" "${_gold}"
+        "${_desktop}" --smoke-test --catalog "${_catalog}" "${_asterglen_v2}"
     RESULT_VARIABLE _desktop_result
     OUTPUT_VARIABLE _desktop_output
     ERROR_VARIABLE _desktop_error
@@ -417,7 +662,7 @@ _appellate_export_embedded_starter(
 )
 _appellate_run_offline_e2e(
     "${_desktop}"
-    "${_gold}"
+    "${_asterglen_v1}"
     "${_installed_starter_archive}"
     "installed-offline-e2e"
 )
@@ -427,9 +672,17 @@ set(_relocated_desktop "${_relocated}/bin/Appellate Workbench")
 set(_relocated_pack_cli "${_relocated}/bin/appellate-pack")
 set(_relocated_renderer "${_relocated}/bin/appellate-render")
 set(_relocated_library_root "${_relocated}/${APPELLATE_INSTALL_LIBDIR}")
-set(_relocated_gold
-    "${_relocated}/share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
-)
+set(_relocated_packs_root "${_relocated}/share/appellate-workbench/packs")
+set(_relocated_asterglen_v2
+    "${_relocated_packs_root}/us-ca4-rule54b-asterglen-0.2.0.awpack")
+set(_relocated_federal
+    "${_relocated_packs_root}/foundation-us-federal-2025.12.01.awpack")
+set(_relocated_ca4
+    "${_relocated_packs_root}/foundation-us-ca4-2026.03.23.awpack")
+set(_relocated_bench
+    "${_relocated_packs_root}/foundation-us-ca4-fictional-bench-1.0.0.awpack")
+set(_relocated_asterglen_v1
+    "${_relocated_packs_root}/us-ca4-rule54b-asterglen-0.1.0.awpack")
 foreach(_binary IN ITEMS
         "${_relocated_desktop}"
         "${_relocated_pack_cli}"
@@ -469,7 +722,7 @@ execute_process(
         --unset=LD_PRELOAD
         --unset=QT_PLUGIN_PATH
         --unset=QT_QPA_PLATFORM_PLUGIN_PATH
-        "${_relocated_pack_cli}" validate "${_relocated_gold}"
+        "${_relocated_pack_cli}" validate "${_relocated_asterglen_v1}"
     RESULT_VARIABLE _relocated_validate_result
     OUTPUT_VARIABLE _relocated_validate_output
     ERROR_VARIABLE _relocated_validate_error
@@ -482,6 +735,19 @@ if(NOT _relocated_validate_result EQUAL 0 OR
         "${_relocated_validate_output}\n${_relocated_validate_error}"
     )
 endif()
+_appellate_assert_revision_json(
+    "${_relocated_validate_output}" "Relocated immutable Asterglen v0.1"
+    "${_expected_v1_pack_id}" "${_expected_v1_version}" "${_expected_v1_revision}"
+)
+
+_appellate_prepare_v2_catalog(
+    "${_relocated_pack_cli}"
+    "${_relocated_federal}"
+    "${_relocated_ca4}"
+    "${_relocated_bench}"
+    "${_relocated_asterglen_v2}"
+    "${_root}/relocated-catalog"
+)
 
 execute_process(
     COMMAND "${CMAKE_COMMAND}" -E env
@@ -497,7 +763,7 @@ execute_process(
         "XDG_CACHE_HOME=${_root}/relocated-cache"
         "${_relocated_desktop}" --smoke-test
         --catalog "${_root}/relocated-catalog"
-        "${_relocated_gold}"
+        "${_relocated_asterglen_v2}"
     RESULT_VARIABLE _relocated_result
     OUTPUT_VARIABLE _relocated_output
     ERROR_VARIABLE _relocated_error
@@ -512,7 +778,7 @@ _appellate_export_embedded_starter(
 )
 _appellate_run_offline_e2e(
     "${_relocated_desktop}"
-    "${_relocated_gold}"
+    "${_relocated_asterglen_v1}"
     "${_relocated_starter_archive}"
     "relocated-offline-e2e"
 )

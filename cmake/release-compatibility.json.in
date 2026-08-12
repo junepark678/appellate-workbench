@@ -29,9 +29,42 @@
   "bundled_packs": [
     {
       "pack_id": "us.ca4.rule54b.asterglen",
+      "version": "0.2.0",
+      "revision_sha256": "@APPELLATE_ASTERGLEN_V2_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_ASTERGLEN_V2_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_ASTERGLEN_V2_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.2.0.awpack"
+    },
+    {
+      "pack_id": "foundation.us-federal",
+      "version": "2025.12.01",
+      "revision_sha256": "@APPELLATE_FEDERAL_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_FEDERAL_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_FEDERAL_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/foundation-us-federal-2025.12.01.awpack"
+    },
+    {
+      "pack_id": "foundation.us-ca4",
+      "version": "2026.03.23",
+      "revision_sha256": "@APPELLATE_CA4_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_CA4_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_CA4_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/foundation-us-ca4-2026.03.23.awpack"
+    },
+    {
+      "pack_id": "foundation.us-ca4-fictional-bench",
+      "version": "1.0.0",
+      "revision_sha256": "@APPELLATE_BENCH_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_BENCH_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_BENCH_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/foundation-us-ca4-fictional-bench-1.0.0.awpack"
+    },
+    {
+      "pack_id": "us.ca4.rule54b.asterglen",
       "version": "0.1.0",
-      "revision_sha256": "@APPELLATE_GOLD_PACK_REVISION@",
-      "archive_sha256": "@APPELLATE_GOLD_ARCHIVE_SHA256@",
+      "revision_sha256": "@APPELLATE_ASTERGLEN_V1_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_ASTERGLEN_V1_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_ASTERGLEN_V1_ARCHIVE_SIZE@,
       "path": "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
     }
   ]

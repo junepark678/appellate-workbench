@@ -53,8 +53,13 @@ file(
 list(SORT _archive_pack_entries)
 set(
     _expected_archive_pack_entries
+    "share/appellate-workbench/packs/foundation-us-ca4-2026.03.23.awpack"
+    "share/appellate-workbench/packs/foundation-us-ca4-fictional-bench-1.0.0.awpack"
+    "share/appellate-workbench/packs/foundation-us-federal-2025.12.01.awpack"
     "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
+    "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.2.0.awpack"
 )
+list(SORT _expected_archive_pack_entries)
 if(NOT _archive_pack_entries STREQUAL _expected_archive_pack_entries)
     message(
         FATAL_ERROR
