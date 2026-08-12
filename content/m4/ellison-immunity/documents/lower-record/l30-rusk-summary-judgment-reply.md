@@ -3,6 +3,8 @@
 UNITED STATES DISTRICT COURT FOR THE WESTERN DISTRICT OF VIRGINIA  
 Civil Action No. SYN-WDVA-25-CV-0733
 
+Record class: defendant's limited immunity reply.
+
 # Officer Rusk's Summary-Judgment Reply
 
 Filed December 23, 2025.
