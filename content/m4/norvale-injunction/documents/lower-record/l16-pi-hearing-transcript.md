@@ -622,13 +622,13 @@ Compensation is an objective line, but objectivity is not fit. It excludes an un
 
 **GUILD COUNSEL:** The present deadline, fee, and uncertain process govern invitations now. First Amendment loss occurs when the organizer forgoes or delays protected programming; it need not await an ideologically motivated rejection.
 
-<!-- PAGE BREAK -->
-
 ## City's Merits and Winter Argument
 
-**CITY COUNSEL:** The ordinance regulates an event structure, not a message. A compensated scheduled appearance is a reasonable objective sign that the recurring-event organizer has deliberately assembled an audience program. Once that category applies, written decisions turn on physical evidence. Pilot administration and the Guild's own history show measured conditions, not censorship.
+**CITY COUNSEL:** The ordinance regulates event structure, not message. A compensated scheduled appearance objectively identifies a program assembled by the organizer. Written decisions then turn on physical evidence. Pilot administration and the Guild's history show measured conditions, not censorship.
 
-The City has proved more than conjecture. Cedar Commons has a constrained service approach, fountain-side narrowing, Market Lane loading, and nearby transit. Presentations create known transition times. Forty-five days represents a considered compromise among departments. The fee schedule reflects averaged work and cannot vary with controversy. Narrow tailoring tolerates imperfect classifications and does not require the Council to adopt every alternative counsel can propose.
+Norvale has proved more than conjecture. Cedar Commons has a constrained service approach, fountain-side narrowing, Market Lane loading, and nearby transit. Presentations create known transition times. Forty-five days is an interdepartmental compromise. The averaged fee does not vary with controversy. Narrow tailoring permits imperfect classifications and does not demand every alternative counsel proposes.
+
+<!-- PAGE BREAK -->
 
 **THE COURT:** What evidence connects the author's name or topic with staffing?
 

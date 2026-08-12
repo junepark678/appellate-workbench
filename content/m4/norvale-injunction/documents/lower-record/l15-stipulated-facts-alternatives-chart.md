@@ -67,16 +67,13 @@ For purposes of the pending preliminary-injunction motion only, Piedmont Booksel
 
 The parties identify the following disputes so that an agreed fact is not mistaken for an agreed inference.
 
-| Disputed proposition | Guild's position | City's position |
-|---|---|---|
-| Operational significance of paid status | Payment does not alter layout, attendance, or resource need and is an unnecessary speech trigger. | Payment objectively identifies an organized presentation under the recurring-event sponsor's control. |
-| Value of speaker identity | A numbered program slot would permit accurate communication without fixing an author early. | A name provides a stable, verifiable reference for initial review and later amendments. |
-| Value of a topic entry | Format and equipment fields provide the operational information without subject disclosure. | A brief neutral label helps distinguish the represented activity and is not ideological review. |
-| Justification for forty-five days | Stable site facts can be filed early while author details are updated closer to the fair. | A uniform period permits completeness, circulation, organizer response, and staffing across dates of varying complexity. |
-| Amendment protection | No deadline or materiality standard protects a same-slot late literary opportunity. | Section 7 allows case-specific approval and written reasons while preserving review of genuine changes. |
-| Fee fit | The record does not connect the $240 trigger or each $45 increment to expenses caused by paid speech. | Blended estimates reasonably recover common processing and marginal schedule-review work through a uniform rule. |
-| Meaning of event history | Peaceful operations and routinely corrected conditions show that direct measures are sufficient. | The same record shows recurring access and traffic tasks that government should address prospectively. |
-| Adequacy of other channels | Unpaid appearances, fewer authors, and other sites do not reproduce the same program or audience. | Those options, early planning, and amendment requests remain relevant to the practical burden. |
+**Paid status and identity.** The Guild says payment changes neither layout nor resource need and that a numbered slot permits accurate communication without fixing an author early. The City says payment objectively identifies an organized presentation and a name supplies a stable reference for review and amendments.
+
+**Topic and timing.** The Guild says format and equipment convey operational facts without subject disclosure, and stable site facts can be filed early while author details follow. The City says a brief neutral label distinguishes the represented activity and a uniform forty-five-day period permits completeness, circulation, response, and staffing.
+
+**Amendments and fees.** The Guild says no deadline or materiality rule protects a same-slot late opportunity and no evidence ties the $240 trigger or $45 increments to paid-speech costs. The City relies on section 7's case-specific written decisions and blended estimates for common processing and marginal schedule review.
+
+**History and channels.** The Guild says peaceful events and corrected conditions support direct measures, while unpaid appearances, fewer authors, or other sites do not reproduce the program. The City says recurring access tasks warrant prospective regulation and that those options, early planning, and amendments inform the practical burden.
 
 Neither party stipulates whether Cedar Commons' forum classification controls all applications of the ordinance, whether the regulation is narrowly tailored, whether the fees are valid, whether a facial claim is ripe, or whether any *Winter* factor is satisfied. Those are questions for the Court on the evidence and governing law.
 
@@ -84,13 +81,10 @@ Neither party stipulates whether Cedar Commons' forum classification controls al
 
 ## Part V — Less-Burdensome Alternatives Considered
 
-| Alternative | Operation | Guild's assessment | City's reservation |
-|---|---|---|---|
-| Direct presentation schedule | Request time, duration, format, location, equipment, and expected listeners for every scheduled audience program without regard to compensation. | Reaches temporary crowd movement directly and avoids a paid-speech classification. | Could sweep uncompensated civic activity into added administration and requires a workable definition of “scheduled.” |
-| Attendance or site threshold | Trigger enhanced review only above a stated attendance, seating, structure, or location threshold. | Connects coverage to crowd and physical effects. | Attendance estimates may be uncertain and do not reveal when people concentrate. |
-| Stable-plan filing with updates | Accept date, hours, footprint, loading, access, contact, and attendance forty-five days ahead; permit later program updates. | Preserves early site planning while accommodating ordinary author confirmation. | A late change could still affect completed staffing, traffic, or conflict decisions. |
-| Same-slot expedited substitution | Approve a replacement through a short notice when time, duration, place, format, equipment, and expected audience remain unchanged. | Protects identity-only changes with a clear, prompt standard. | Staff must verify that the listed facts truly remain unchanged and need a response rule for incomplete notices. |
-| Documented-service charges | Use a neutral event fee or charge only for identified personnel, equipment, barricades, or extraordinary services actually required. | Avoids increasing cost solely with the number of compensated speakers. | Individualized accounting can itself consume staff time and may make organizer costs less predictable. |
-| Presumptive layout conditions | Use marked unloading periods, a fixed emergency corridor, chair placement, directional signs, and separated signing lines for the recurring footprint. | Addresses the conditions shown by the historical record. | A presumption must remain adjustable for construction, competing use, weather, or materially changed attendance. |
+**Direct schedules and thresholds.** One model requests time, duration, format, location, equipment, and expected listeners for every scheduled program without regard to compensation. The Guild says this reaches crowd movement directly; the City says it could sweep in uncompensated civic activity and needs a workable definition of “scheduled.” Another model triggers enhanced review at an attendance, seating, structure, or location threshold. The Guild sees a direct physical fit; the City notes uncertain estimates and concentration times.
+
+**Early plans and substitutions.** A stable-plan model takes date, hours, footprint, loading, access, contact, and attendance forty-five days ahead, with later program updates. The Guild says it preserves early planning; the City notes that late changes can affect completed assignments. A same-slot expedited notice would cover replacements whose time, place, format, equipment, and audience remain unchanged. The Guild favors a prompt standard; the City requires verification and a response rule for incomplete notices.
+
+**Charges and layouts.** A neutral event fee or documented charge for personnel, equipment, barricades, or extraordinary services avoids costs keyed solely to compensated-speaker count, but the City says individualized accounting consumes time and reduces predictability. Presumptive unloading periods, emergency corridors, chair placement, signs, and separated signing lines address historical conditions, but the City says any presumption must adjust for construction, competing use, weather, or materially changed attendance.
 
 The parties agree that these options are understandable administrative models and that several could operate together. The Guild contends their availability demonstrates that the challenged provisions burden substantially more speech than necessary. The City contends the Constitution does not require the least restrictive option and that the enacted safeguards already channel discretion. Counsel for both parties approve this statement solely for the preliminary-injunction record and certify electronic filing on January 16, 2026.
