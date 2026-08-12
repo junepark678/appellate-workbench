@@ -6,19 +6,29 @@
   "review_state": "independent_review_pending",
   "reviewed_on": "2026-08-12",
   "dimensions": {
-    "procedural_law": 0,
-    "deadlines_authority": 0,
-    "record_consistency": 0,
-    "consequences": 0,
-    "oral_argument": 0,
-    "bench_differentiation": 0,
-    "provenance": 0
+    "procedural_law": 2,
+    "deadlines_authority": 2,
+    "record_consistency": 2,
+    "consequences": 2,
+    "oral_argument": 2,
+    "bench_differentiation": 2,
+    "provenance": 2
   },
   "known_uncertainty": [
     {
       "uncertainty_id": "ca4m4.norvale.uncertainty.qualified-review-pending",
-      "summary": "The scaffold records level 0 in every dimension because document authoring, deterministic rendering, workflow replay, and independent review by a qualified First Amendment and appellate practitioner remain incomplete; no level-2 or level-3 claim is made by these candidate bytes.",
-      "blocking": true
+      "summary": "Review by a qualified First Amendment and appellate practitioner remains pending; no independent review is recorded and no level-3 claim is made.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.automated-legal-realism-limit",
+      "summary": "Automated schema, citation, deadline, and replay checks do not establish the legal accuracy, completeness, currency, or practical realism of the cited authorities or authored analysis.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.exact-document-classification-scope",
+      "summary": "Operation bindings, record tags, and classifications are authored for the exact identified documents and do not generalize to novel filings, altered bytes, or unreviewed procedural circumstances.",
+      "blocking": false
     },
     {
       "uncertainty_id": "ca4m4.norvale.uncertainty.no-structured-non-vacatur-field",
@@ -46,9 +56,19 @@
       "blocking": false
     },
     {
-      "uncertainty_id": "ca4m4.norvale.uncertainty.pending-render-and-grounding-provenance",
-      "summary": "The 73 source rows are planned but not accepted renders. No PDF digest is asserted, and record-dependent oral-argument grounding digests cannot be finalized until reviewed PDFs, record entries, citation labels, and page anchors are frozen from actual bytes.",
-      "blocking": true
+      "uncertainty_id": "ca4m4.norvale.uncertainty.early-rule8-docket-abstracted",
+      "summary": "The B02 threshold denial, B05 impracticability denial, and B06–B07 grant/dissolution exercises stop as scoped appellate-stay endpoints. They abstract a neutral counterfactual notice and docket setup and do not claim complete alternate record, briefing, merits, or mandate dockets.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.synthetic-bench-oral-limit",
+      "summary": "The bench profiles and oral-argument behavior are synthetic training constructs; differentiation and deterministic replay do not model any real judge or predict actual advocacy, questioning, or outcomes.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.norvale.uncertainty.generated-pdf-provenance-limit",
+      "summary": "The PDFs are generated training artifacts. Source-to-PDF checks, accepted render inventories, and pinned hashes document repository provenance but cannot establish external authenticity, cross-render byte determinism, or complete accessibility and typography quality.",
+      "blocking": false
     }
   ]
 }
