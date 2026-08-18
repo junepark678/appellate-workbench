@@ -108,6 +108,8 @@ The operational decision trees connect authentic predicates to an ordered review
 
 DOE treats guideline values separately. The corrected worksheet states how an authentic value could allow anticipation of a classification change and thereby risk circumvention. It does not repeat that prediction for a technique as an unnecessary additional element.
 
+The separate withholding rule in 5 U.S.C. § 552(a)(8)(A) also applies. The unchanged declarations reasonably connect disclosure of authentic predicates, ordering, and implementation relations to reconstruction or anticipation of concealed operations, with resulting circumvention or reduced effectiveness. That prediction concerns the underlying relations, not the inert markers, and satisfies the foreseeable-harm requirement.
+
 The page-linked review distinguishes administrative proximity. It releases title blocks, approval facts, ownership, neutral captions, version information, revision descriptions, and documentary closure where those items stand alone. In fully withheld trees, it explains why a proposed fragment either communicates the relation through location or has no useful meaning after deletion.
 
 Open Grid accepts protection of genuine trigger order but asks us to articulate the boundary. We do so. We affirm only the operational-decision-tree target defined by the premise: nonpublic predicates, ordering and implementation relationships, and supported guideline values. We do not approve withholding of general administration by association.
