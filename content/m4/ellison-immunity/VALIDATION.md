@@ -25,8 +25,8 @@ remain pending.
 | Counterfactual argument resource SHA-256 | `5baff068b6b38dd1dace80f47e518aa3cda5f64ae534ca838afd4fffa9fdb550` | Frozen: 12 grounded questions |
 | Authority-set resource SHA-256 | `9acda100f645562809f050bc338dbba04d81d8bfaa88da6820d3ef4a5d818591` | Frozen: 11 authority entries |
 | Bench-configuration resource SHA-256 | `829c7e0ae4721bbd246dbb12987f014ddbc836b7be0e32a825d204a396b155a6` | Frozen: three seats |
-| Case resource SHA-256 | `7380711a3a1bb853697d77bebde5f18834c1ac1036f3134260e129a2af438cce` | Frozen: three issues / two asymmetric disposition plans |
-| Procedure-profile resource SHA-256 | `3ec51ced22ce06ed5a8b92a73f53773eceffdd1981b183f332bdf78e8ef56b3c` | Frozen core resource |
+| Case resource SHA-256 | `e29d11e570d49b058a6dc57c020e433dc4210638fbd3434d3aacb40467f91822` | Frozen: three issues / two asymmetric disposition plans; former district defendant has a distinct non-service role |
+| Procedure-profile resource SHA-256 | `050d5fe439316267c79eeecff9528ede7f6abf7272c8004e51682baa608190ba` | Frozen core resource; declares the former-district-defendant role separately from the active appellee |
 | Actual question-bank grounding digest | `5b5d06119598daa1ff883de75642f3476aff4d5b47b56c5d562a2e3f2314152e` | Independently recomputed from frozen authority/record bytes |
 | Counterfactual question-bank grounding digest | `cf7097c563a40f40feac132943f3f231efa6c1fb1ade0e3b7e433e12f1a38849` | Independently recomputed from frozen authority/record bytes |
 | Actual disposition digest | `d98cbd88077bb3415931f324c5fdca0e714a62bb3894279e8e5b269ccd66823c` | Independently recomputed from the three-component actual plan |

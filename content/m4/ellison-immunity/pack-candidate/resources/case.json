@@ -8,7 +8,7 @@
   "actors": [
     {"actor_id":"ca4m4.ellison.actor.rusk","role_id":"us.ca4.role.initiating-party","display_name":"Officer Nolan Rusk (fictional)","synthetic":true},
     {"actor_id":"ca4m4.ellison.actor.ellison","role_id":"us.ca4.role.responding-party","display_name":"Mara Ellison (fictional)","synthetic":true},
-    {"actor_id":"ca4m4.ellison.actor.alder-creek","role_id":"us.ca4.role.responding-party","display_name":"City of Alder Creek (fictional former district-court defendant)","synthetic":true},
+    {"actor_id":"ca4m4.ellison.actor.alder-creek","role_id":"ca4m4.ellison.role.former-district-defendant","display_name":"City of Alder Creek (fictional former district-court defendant)","synthetic":true},
     {"actor_id":"ca4m4.ellison.actor.district-court","role_id":"ca4m4.ellison.role.originating-court","display_name":"Fictional United States District Court for the Western District of Virginia","synthetic":true},
     {"actor_id":"ca4m4.ellison.actor.ca4-clerk","role_id":"us.ca4.role.court","display_name":"Fictional Fourth Circuit exercise clerk","synthetic":true},
     {"actor_id":"ca4m4.ellison.actor.composite-panel","role_id":"us.ca4.role.court","display_name":"Fictional composite Fourth Circuit panel","synthetic":true}
