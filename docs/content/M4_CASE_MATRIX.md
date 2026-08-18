@@ -73,6 +73,16 @@ runtime audit now form an installable authoring candidate. Frozen focused integr
 also pass normally and under UTC with zero skips. Synthetic PA109–PA226 remain excluded from
 actual-history, actual-disposition, and actual-record question grounding.
 
+The frozen Open Grid source/render/record/core slice also leaves the 283-PDF breadth total
+unchanged. Its lower-court record is 37 PDFs/290 JA pages, while its complete record is
+84 PDFs/654 pages after adding 19 actual appellate PDFs/155 PA pages and 28 separately docketed,
+never-filed counterfactual PDFs/209 PA pages. PA156–PA364 never occurred on the actual appeal.
+Seventeen public/sealed disclosure pairs close through 172 bijective page mappings, including
+22 named stable-anchor subjects, and the exact record capability gate covers public-default
+projection, disclosure-specific session grant, revocation, exact-closure binding, and deferred
+per-open CAS verification. Workflow, traces, realism evidence, manifest, root, archive, resolved
+install, and tests remain pending; the level-2 scaffold is not authored evidence.
+
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
 records are fictional. Simulated docket numbers begin `SYN-`. Real courts, sovereigns, and
@@ -259,15 +269,34 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
   public/sealed filings concerning cyber-response playbooks.
 - **Record:** 5 request-chain, 2 pleading, 4 search-declaration, 4 public/sealed Vaughn,
   6 public/sealed sample-record, 6 cross-summary-judgment, 5 seal/in-camera, and 5
-  judgment/docket/initiation PDFs.
+  judgment/docket/initiation PDFs: 37 lower-record PDFs/290 JA pages. The complete PDF-only
+  corpus adds 19 actual appellate PDFs/155 PA pages and 28 separately docketed, never-filed
+  counterfactual PDFs/209 PA pages, for 84 PDFs/654 anchors.
 - **Argument:** law-enforcement purpose, technique versus guideline/risk, Vaughn detail,
-  segregability, 7(F), and least-restrictive sealing.
-- **Disposition:** affirm 7(E) for operational decision trees; vacate categorical 7(F),
-  segregability, and overbroad-sealing rulings; remand.
-- **Confidentiality boundary:** public/sealed twins, per-document session grants, revocation,
-  stable-anchor projection, deferred CAS verification, and seal-motion deficiencies are now
-  implemented by `workbench.pack.sealed-record-twins@1`. Open Grid still must author and replay
-  those exact policies before it can claim level-2 confidentiality evidence.
+  segregability, 7(F), foreseeable harm, and least-restrictive sealing. The actual bank excludes
+  PA156–PA364; the counterfactual bank uses only the isolated corrected premise and docket.
+- **Disposition:** actual—affirm 7(E) only for the operational decision-tree target; vacate the
+  categorical 7(F), segregability, and overbroad-sealing targets; remand. Counterfactual—hold the
+  operational 7(E) showing constant, assume item-specific 7(F), documented line review, and
+  narrow sealing findings, and affirm all four targets.
+- **Confidentiality boundary:** the schema-v2 record closes 17 equal-page public/sealed pairs
+  through 172 bijective mappings, including 22 named stable-anchor subjects. Public-default
+  projection, exact-disclosure session grant, revocation, exact-closure binding, and deferred
+  per-open path/size/digest/readability/page-count verification implement
+  `workbench.pack.sealed-record-twins@1` for the exact synthetic bytes. No controlled copy
+  contains actionable real cyber-response information.
+- **Frozen closure:** source
+  `ec7ab1ce6ff02b2005f672f1da03c75fb51aac5eb3b95b97ac3ddeeeab6fb1c1`; PDF
+  `ab5dcc9df062758bc9d58eddb24657fbdeea71dc7afe47a1a04ef1a29072a9fe`; record
+  `4fb13f25af4e06234cfa0ffbb0c0f77b7476ad7c65ed9365cc9642cb38f27f5a`; seven-resource core
+  `8d245455f20b896d9333e414db5a6d30520c948166bb9797c99cd916fd1ebb4f`.
+- **Workflow/release status:** source chronology supports five preflight labels only—actual
+  ordinary; counterfactual rehearing denial; counterfactual mandate-stay denial after rehearing
+  denial; counterfactual rehearing grant ending at mandate-stayed; and rehearing grant through
+  supplemental merits, revised judgment, and mandate. The sources do not support a sixth
+  execution. Workflow, traces, realism evidence, manifest, root, archive, resolved install, and
+  tests remain **PENDING**; the schema-valid level-2 scaffold has no `evidence` field and makes no
+  installability, level-3, or gold claim.
 
 ### 7. Serrano waiver — `ca4m4.case.serrano-waiver`
 
@@ -405,10 +434,20 @@ Actual Rule 50(a) preservation remains causation-only; B01's express-mitigation 
 solely on the separate never-filed docket. The PDF-only corpus contains no MP4 or raw instrument
 data, and synthetic PA109–PA226 cannot ground actual-history claims.
 
+The Open Grid `1.2.0` authoring scaffold records level 2 in every dimension with
+`independent_review_pending` but no `evidence` field. Its frozen source/render/record/core slice
+contains 84 PDFs/654 anchors across the 37/290 lower, 19/155 actual, and 28/209 isolated
+counterfactual allocations. The record's 17 disclosures, 172 bijective stable mappings, and
+22 named mapped subjects pass the exact public/grant/revoke/closure/CAS capability boundary.
+Source chronology supports five workflow preflight labels, not a standard six-path contract.
+Workflow promotion, traces, realism evidence, manifest, root, archive, resolved install, and
+tests remain pending. The scaffold is therefore a documentation checkpoint, not installable
+level-2 evidence, level 3, or gold; synthetic PA156–PA364 cannot ground actual-history claims.
+
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and
-appellate-privilege/writ reviewer. Open Grid additionally blocks on sealed/public document access
-behavior.
+appellate-privilege/writ reviewer. Open Grid's exact sealed/public record behavior is now frozen,
+but its workflow/release evidence and qualified independent FOIA/appellate review remain pending.
 
 After #23–#28 and the three shared foundations freeze, isolated root authoring may proceed in
 parallel without shared-file overlap:

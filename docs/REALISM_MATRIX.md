@@ -20,7 +20,7 @@ designation and does not satisfy the level-3 gate.
 | Preliminary injunction / stay | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Post-trial JMOL | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Sealed FOIA | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
+| Sealed FOIA | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Frozen level-2 scaffold; workflow/release evidence and qualified independent review pending |
 | Criminal sentencing / waiver | Criminal (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Immigration agency review | Agency (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Privileged-discovery mandamus | Writ (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
@@ -120,3 +120,22 @@ commit `1d497aecd9e9fdf2ab5ffa4f47ad994052cd304f` passed normal and UTC integrat
 zero skips. This is installable level-2 evidence, not level 3 or gold. The generated PDF-only
 corpus contains no MP4 or raw instrument-data file; automated checks do not substitute for
 qualified independent civil-trial, posttrial-motions, and appellate review.
+
+The Open Grid FOIA `1.2.0` authoring scaffold records level 2 in every dimension with
+`independent_review_pending`, but deliberately has no authored `evidence` envelope. Its frozen
+corpus contains 37 lower-record PDFs/290 JA pages, 19 actual appellate PDFs/155 PA pages, and
+28 separately docketed, never-filed counterfactual PDFs/209 PA pages, for 84 PDFs/654 anchors.
+The record closes 17 public/sealed disclosure pairs through 172 bijective page mappings,
+including 22 named stable-anchor subjects, with public-default projection, exact-disclosure
+session grant, revocation, exact-closure binding, and deferred per-open CAS verification. Frozen
+source, PDF, record, and seven-resource core closures are
+`ec7ab1ce6ff02b2005f672f1da03c75fb51aac5eb3b95b97ac3ddeeeab6fb1c1`,
+`ab5dcc9df062758bc9d58eddb24657fbdeea71dc7afe47a1a04ef1a29072a9fe`,
+`4fb13f25af4e06234cfa0ffbb0c0f77b7476ad7c65ed9365cc9642cb38f27f5a`, and
+`8d245455f20b896d9333e414db5a6d30520c948166bb9797c99cd916fd1ebb4f`.
+Source chronology supports five preflight labels only: actual ordinary; counterfactual rehearing
+denial; counterfactual mandate-stay denial after rehearing denial; counterfactual rehearing grant
+ending at mandate-stayed; and rehearing grant through supplemental merits, revised judgment, and
+mandate. Workflow, traces, realism evidence, manifest, root, archive, resolved install, and tests
+remain **PENDING**; no sixth execution, workflow hash/count, replay result, installability claim,
+level-3 claim, or gold claim is reserved in advance.
