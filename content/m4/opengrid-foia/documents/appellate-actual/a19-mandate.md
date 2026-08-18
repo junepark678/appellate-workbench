@@ -8,6 +8,8 @@
 
 The judgment entered July 17, 2026, is now placed in effect as the mandate of this fictional Court. The matter is returned to the district court for proceedings consistent with the published opinion and judgment.
 
+Because DOE is a United States agency, Rule 40(d)(1) ordinarily provides forty-five days to seek rehearing. The July 17 opinion and judgment specifically shortened that period to fourteen days, ending July 31. No timely petition or later timing order intervened. Seven days have now elapsed under Rule 41(b), making August 7 the expressly calculated mandate date.
+
 On remand, the limited 7(E) affirmance remains controlling for adequately supported nonpublic trigger relationships, response ordering, escalation structure, and implementation details within the operational decision trees. The district court shall not direct disclosure of that protected information.
 
 The returned matters are categorical 7(F), segregability, and the breadth of judicial-record restrictions. DOE may make a narrower safety showing tied to expected danger to an individual and must conduct a renewed segregation review accounting for RLS-OG-002. Any renewed access restriction requires an analysis directed to the particular judicial record, public notice, consideration of alternatives, and supported duration. This mandate expresses no predetermined outcome for those inquiries.

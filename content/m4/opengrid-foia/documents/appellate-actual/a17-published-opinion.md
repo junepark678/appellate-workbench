@@ -230,4 +230,6 @@ We affirm the judgment only insofar as it sustains withholding under Exemption 7
 
 We vacate the categorical Exemption 7(F) ruling because DOE did not establish the required individual-safety connection for every functional category. We vacate the segregability ruling because the current explanation does not adequately account for the passage-level correction in RLS-OG-002. We vacate the district court’s overbroad sealing order because it lacks the required material-specific access analysis. We remand those three matters for proceedings consistent with this opinion.
 
+Because DOE is a United States agency, Federal Rule of Appellate Procedure 40(d)(1) would ordinarily allow forty-five days after today’s judgment for a rehearing petition. By specific order in this case, we shorten that period to fourteen days. The rehearing deadline is therefore July 31, 2026. If no timely petition or later timing order intervenes, Rule 41(b) places mandate seven days after that deadline, on August 7, 2026.
+
 The judgment is therefore AFFIRMED IN PART, VACATED IN PART, AND REMANDED. Presiding Judge Vale and Judge Reed join this opinion. Every name, institution, system, identifier, and event described here is fictional, and no part of the opinion supplies actionable cyber information.

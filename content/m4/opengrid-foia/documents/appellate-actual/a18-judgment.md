@@ -30,4 +30,6 @@ The appeal is resolved by partial affirmance, partial vacatur, and remand. The d
 
 The fictional panel reaches no conclusion about whether DOE will establish a narrower safety claim, whether further nonexempt passages will be released, or whether a particular lower-court record will qualify for renewed restriction. Those questions depend on the separate analyses required on remand. The mandate will issue according to the governing appellate schedule unless lawfully altered by a subsequent order.
 
+DOE’s status as a United States agency ordinarily supplies a forty-five-day rehearing period. The Court instead orders under Federal Rule of Appellate Procedure 40(d)(1) that any panel or en banc rehearing petition be filed within fourteen days of this judgment, by July 31, 2026. If that date passes without a timely petition or another order, Rule 41(b)’s seven-day interval ends on August 7, 2026, when mandate shall issue.
+
 Entered at the direction of Presiding Judge Vale, Judge Quill, and Judge Reed on July 17, 2026. Copies were served on Tamsin Roe, Leo Marr, and Corin Pell through the synthetic appellate docket. This judgment contains no controlled label or authentic operational information and authorizes none to be added to the record.
