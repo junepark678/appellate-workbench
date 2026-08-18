@@ -1,0 +1,24 @@
+{
+  "schema_version": 2,
+  "resource_kind": "bench_configuration",
+  "resource_id": "ca4m4.blueember.bench.three-judge",
+  "court_id": "us.ca4.court.appeals",
+  "presiding_seat_id": "ca4m4.blueember.seat.march",
+  "seats": [
+    {
+      "seat_id": "ca4m4.blueember.seat.march",
+      "profile_id": "us.ca4.bench-profile.march",
+      "court_role": "appellate"
+    },
+    {
+      "seat_id": "ca4m4.blueember.seat.rowan",
+      "profile_id": "us.ca4.bench-profile.rowan",
+      "court_role": "appellate"
+    },
+    {
+      "seat_id": "ca4m4.blueember.seat.slate",
+      "profile_id": "us.ca4.bench-profile.slate",
+      "court_role": "appellate"
+    }
+  ]
+}
