@@ -9,7 +9,7 @@ Submitted January 16, 2026
 
 Eli Mercer and Tara Webb of Mercer Webb PLLC enter their appearances for appellee Granite Heron Logistics, Inc. Eli Mercer is designated lead counsel for notices and any oral argument. Tara Webb is additional counsel of record. Each attorney represented Granite Heron during the trial and posttrial proceedings in the fictional Western District of North Carolina and is familiar with the certified record now being assembled for appellate review.
 
-Both attorneys are registered electronic filers and accept service through the addresses associated with their accounts. They will keep the clerk and opposing counsel informed of any substitution, withdrawal, or contact change. Their appearance is limited to Granite Heron; neither attorney appears for Blue Ember, Cobalt Finch Manufacturing, the district court, or an individual witness.
+Both attorneys are registered electronic filers and accept service through the addresses associated with their accounts. They will keep the clerk and opposing counsel informed of any substitution, withdrawal, or contact change. Their appearance is limited to Granite Heron; neither attorney appears for Blue Ember, Cobalt Finch Bioprocessing, the district court, or an individual witness.
 
 Granite Heron understands that the case caption and party designations are administrative. Its status as appellee does not narrow its right to defend the December 15 amended judgment and conditional new-trial ruling on any properly available ground, nor does this appearance resolve whether a separate notice would be needed for affirmative alteration of that judgment.
 
@@ -19,7 +19,7 @@ Granite Heron understands that the case caption and party designations are admin
 
 Granite Heron Logistics, Inc. states that it has no parent corporation and that no publicly held corporation owns ten percent or more of its stock. It identifies no publicly traded entity that possesses a direct financial interest requiring additional disclosure in this appeal. The statement reflects counsel’s inquiry as of January 16, 2026, and Granite Heron undertakes to supplement it if reportable ownership or control changes before the mandate issues.
 
-The company’s contracts and operational dealings with Blue Ember are described in the district record, but an ordinary commercial counterparty is not a corporate parent or equity owner for this disclosure. Likewise, references to Cobalt Finch Manufacturing in evidence about an alternate production slot do not establish a corporate affiliation with Granite Heron. This statement exists for judicial conflict review and supplies no proof on the amount of avoidable loss.
+The company’s contracts and operational dealings with Blue Ember are described in the district record, but an ordinary commercial counterparty is not a corporate parent or equity owner for this disclosure. Likewise, references to Cobalt Finch Bioprocessing in evidence about an alternate production slot do not establish a corporate affiliation with Granite Heron. This statement exists for judicial conflict review and supplies no proof on the amount of avoidable loss.
 
 Granite Heron does not ask the clerk to infer from the absence of a reportable parent that the company alone bears every economic consequence of the judgment. Nor does it use this form to restate its Rule 50(b) or Rule 59 arguments. The preservation of a mitigation ground, the independent new-trial standard, and the separation of damages from liability remain merits questions for later briefing under the record-completion order.
 

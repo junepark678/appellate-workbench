@@ -17,7 +17,7 @@ The alternative Rule 59 ruling is different. It was timely, rested on an indepen
 
 ## Party disclosure, related matters, and argument request
 
-Blue Ember is a privately held limited liability company with no parent corporation and no publicly held corporation owning ten percent or more of an equity interest. Its separate disclosure statement remains accurate as of this filing. Cobalt Finch Manufacturing appears only as a nonparty commercial actor in evidence about possible alternate production; it has no ownership relationship with Blue Ember identified in this appeal.
+Blue Ember is a privately held limited liability company whose sole member and corporate parent is Blue Ember Holdings, Inc., a privately held Delaware corporation based in Asheville. No publicly held corporation owns ten percent or more of Blue Ember or its parent. The separate disclosure statement remains accurate as of this filing. Cobalt Finch Bioprocessing appears only as a nonparty commercial actor in evidence about possible alternate production; it has no ownership relationship with Blue Ember identified in this appeal.
 
 Counsel know of no related appellate proceeding arising from the validation lot, the September 2024 custody event, or the December 15, 2025 amended judgment. No other case is expected to affect this court’s jurisdiction or require coordination. The district matter remains available solely for action consistent with the eventual mandate.
 
@@ -145,7 +145,7 @@ Finally, the court limited the conditional trial to gross damages and mitigation
 
 Rule 50(a)(2) required Granite Heron to identify the judgment sought and the supporting law and facts before the case went to the jury. *Unitherm* treats the pre-verdict and renewed stages as linked. *Price v. City of Charlotte* requires the reason advanced under Rule 50(b) to have been raised under Rule 50(a). Granite Heron not only omitted mitigation; it expressly excluded that affirmative defense twice. The postverdict fixed-deduction request was therefore not a renewal.
 
-The court’s practical-notice theory does not save the ruling. *Wiener v. AXA Equitable Life Insurance Co.* tolerates imperfect alignment when every motion addresses the same damages issue and the opponent receives notice. Here causation and mitigation had different burdens, temporal focus, instructions, and verdict questions. The trial of an issue does not notify a party that its opponent seeks judgment as a matter of law on it.
+The court’s practical-notice theory does not save the ruling. *Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), holds that a distinct basis first raised under Rule 50(b) is unavailable even though the general sufficiency issue actually raised under Rule 50(a) remains reviewable. Here causation remains reviewable, but mitigation was a different ground with a different burden, temporal focus, instruction, and verdict question.
 
 Rule 59 supplies independent relief. The district court timely and conditionally found the financial verdict against the clear weight of evidence. Under *Atlas Food Systems* and *Rice v. Community Health Association*, damages are separable from settled liability and causation on this record. Rule 50(c)(2) consequently calls for the conditional trial to proceed after JMOL is reversed, with the amended judgment vacated and the matter remanded.
 
@@ -201,23 +201,25 @@ This structure also prevents premature collection. The original judgment does no
 
 <!-- PAGE BREAK -->
 
-## *Unitherm* and *Price* enforce continuity of grounds
+## *Unitherm*, *Price*, and *Plyler* enforce continuity of grounds
 
 *Unitherm Food Systems, Inc. v. Swift-Eckrich, Inc.*, 546 U.S. 394, explains why the two Rule 50 stages operate together. The trial judge must receive a proper renewed request to assess the verdict and the consequences of possible new-trial relief. The linkage would be defeated if a party could use postverdict practice to select a legal insufficiency it deliberately excluded before submission.
 
 This court’s published decision in *Price v. City of Charlotte*, 93 F.3d 1241, is more specific: the reason offered for judgment must be raised in the Rule 50(a) motion and reasserted under Rule 50(b). That requirement apprises both court and opponent while correction remains possible. Granite Heron did the reverse. It raised causation at both pre-verdict opportunities, then offered mitigation as a JMOL reason only after learning the deduction.
 
+*Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), supplies the exact distinction. A movant that challenged sufficiency generally under Rule 50(a) could retain that general issue, but a defendant-specific basis first advanced under Rule 50(b) was unavailable. Granite Heron’s causal challenge likewise remains reviewable; the separately burdened mitigation theory first advanced after verdict does not.
+
 These authorities do not require ritual phrasing. They require substantive continuity. Had Granite Heron asserted that the Cobalt Finch proof could not legally support less than a fixed reduction, Blue Ember and the court could have addressed that claim before deliberations. Because Granite Heron affirmatively left the decision to jurors, the later motion cannot be characterized as the renewal that Rule 50(b) authorizes.
 
 <!-- PAGE BREAK -->
 
-## *Wiener* does not merge two distinct issues
+## *Wiener* governs appellate theory after Rule 50(b) preservation
 
-In *Wiener v. AXA Equitable Life Insurance Co.*, this court permitted imperfectly aligned arguments when the pre-verdict motion, renewed motion, and appeal all addressed the same damages issue and supplied adequate notice. That practical approach does not help Granite Heron. Its pre-verdict papers said one issue was not part of the requested judgment. Treating express exclusion as imperfect wording would eliminate the specification requirement altogether.
+*Wiener v. AXA Equitable Life Insurance Co.*, 153 F.4th 413, 422 (4th Cir. 2025), considered whether appellate reasoning varied impermissibly from a sufficiency issue already raised in Rule 50(b). It allowed slightly different appellate arguments supporting that preserved damages issue. It did not permit a party to move from one Rule 50(a) ground to a distinct Rule 50(b) ground.
 
 The differences are substantive. Causation asks whether the breach produced the claimed loss; mitigation assumes an injury and asks whether reasonable later conduct would have reduced it. Blue Ember carried the former burden, Granite Heron the latter. The jury instructions and verdict form separated them. Granite Heron’s new model also sought a definite arithmetic remedy absent from its earlier requests.
 
-The unpublished opinions in *Boley v. Armor Correctional Health Services, Inc.* do not supply a contrary rule. The majority discussed notice, cure, fairness, and a possible fundamental-error concept, but that discussion is nonprecedential and cannot overcome *Unitherm*, *Price*, or the written motions here. The concurrence read *Unitherm* strictly. Blue Ember does not depend on either unpublished view; ordinary preservation doctrine resolves this actual record.
+The unpublished opinions in *Boley v. Armor Correctional Health Services, Inc.* do not supply a contrary rule. The majority discussed notice, cure, fairness, and a possible fundamental-error concept, but that discussion is nonprecedential and cannot overcome *Unitherm*, *Price*, *Plyler*, or the written motions here. The concurrence read *Unitherm* strictly. Blue Ember does not depend on either unpublished view; ordinary preservation doctrine resolves this actual record.
 
 <!-- PAGE BREAK -->
 
@@ -227,4 +229,4 @@ Granite Heron timely joined an alternative Rule 59 motion within twenty-eight da
 
 The December 15 order identified concrete reasons: a held Cobalt Finch slot, relevant capability, staged diligence, a schedule comparison, and expert estimates that the court believed jurors underweighted. It also acknowledged uncertainty and did not convert that assessment into an incontestable damages figure for purposes of Rule 59. Under *Atlas Food Systems*, that reasoned weight determination falls within the district court’s discretion.
 
-Rule 50(c)(2) completes the analysis. When an appellate court reverses granted JMOL and sustains the conditional new-trial ruling, the new trial proceeds unless the appellate court directs otherwise. There is no basis to cancel it here. The court should reverse mitigation JMOL, affirm the conditional damages new trial, affirm its damages-only scope, vacate the amended judgment, and remand. Respectfully submitted March 9, 2026 by Maya Holt and Jonas Bell, Holt Bell PLLC, with electronic service on Eli Mercer and Tara Webb.
+Rule 50(c)(2) completes the analysis. When an appellate court reverses granted JMOL and sustains the conditional new-trial ruling, the new trial proceeds unless the appellate court directs otherwise. There is no basis to cancel it here. Under *Plyler*, causation remains reviewable on the general ground actually raised, but the later distinct mitigation basis cannot support JMOL. The court should reverse mitigation JMOL, affirm the conditional damages new trial, affirm its damages-only scope, vacate the amended judgment, and remand. Respectfully submitted March 9, 2026 by Maya Holt and Jonas Bell, Holt Bell PLLC, with electronic service on Eli Mercer and Tara Webb.

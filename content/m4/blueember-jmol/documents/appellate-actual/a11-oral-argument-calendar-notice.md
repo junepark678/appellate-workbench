@@ -17,7 +17,7 @@ Maya Holt is expected to argue for Blue Ember. Eli Mercer is expected to argue f
 
 ## Preparation and issues for argument
 
-Counsel should be prepared to address the exact language and requested relief in Granite Heron’s October 10 and October 14 Rule 50(a) motions; the relationship among *Unitherm*, *Price*, and *Wiener*; and why evidence tried to a jury does or does not preserve a distinct request for judgment. The court is particularly interested in the consequence of the motions’ causation-only wording and their statements that mitigation remained for jurors.
+Counsel should be prepared to address the exact language and requested relief in Granite Heron’s October 10 and October 14 Rule 50(a) motions. Argument should apply *Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), which makes a distinct basis first raised under Rule 50(b) unavailable while retaining review of the general sufficiency issue raised under Rule 50(a). Counsel also should explain why *Wiener v. AXA Equitable Life Insurance Co.*, 153 F.4th 413, 422 (4th Cir. 2025), concerns variation between a preserved Rule 50(b) issue and appellate theory, not permission to add a new postverdict basis.
 
 The parties should also address the district court’s independent Rule 59 analysis, the abuse-of-discretion standard, and the division between settled liability and causation and retriable gross damages and mitigation. Counsel must explain the operation of Rule 50(c)(2) if JMOL is reversed, including why neither the $3,900,000 original judgment nor the $2,700,000 amended judgment would then be immediately payable as the final recovery.
 

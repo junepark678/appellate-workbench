@@ -46,7 +46,9 @@ At the close of Blue Ember’s evidence, the assumed motion identified the mitig
 
 The assumed renewal after all evidence repeated the same theory and relief. Blue Ember was given an opportunity to answer, point to contrary proof, request clarification, or seek a limited reopening before the verdict. It relied on Solis, Calder, Brooks, and the qualification records rather than claiming surprise.
 
-Those facts satisfy the continuity requirement of Rules 50(a)(2) and 50(b). *Price v. City of Charlotte* and *Wiener v. AXA Equitable Life Insurance Co.* prevent a post-verdict ground from appearing without a fair pre-verdict presentation. Here, by explicit hypothesis, the ground and requested judgment were presented twice.
+Those facts satisfy the continuity requirement of Rules 50(a)(2) and 50(b). *Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), makes a distinct basis first raised under Rule 50(b) unavailable even while the general sufficiency issue actually raised under Rule 50(a) remains reviewable. Here, by explicit hypothesis, the distinct mitigation ground and requested judgment were presented twice before verdict.
+
+*Wiener v. AXA Equitable Life Insurance Co.*, 153 F.4th 413, 422 (4th Cir. 2025), addresses variation between an issue preserved in Rule 50(b) and the appellate theory supporting it. Granite Heron does not use that later-stage rule to invent pre-verdict preservation; the branch order supplies exact preservation independently.
 
 Granite Heron does not ask this Court to infer preservation from a general objection or to dilute *Unitherm Food Systems, Inc. v. Swift-Eckrich, Inc.* The branch removes that dispute entirely. The panel may reach sufficiency while leaving the causation-only wording of the actual motions untouched.
 

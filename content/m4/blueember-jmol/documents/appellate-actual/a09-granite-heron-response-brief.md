@@ -9,7 +9,7 @@ Filed April 8, 2026
 
 The actual Rule 50(a) motions said causation only, expressly left mitigation to the jury, and did not ask for a directed $1,500,000 deduction. Granite Heron does not contend otherwise. It defends the district court’s conclusion that, in this particular damages record, the postverdict request more specifically addressed the same recoverable-delay boundary and that Blue Ember had full notice and opportunity to meet the Cobalt Finch proof.
 
-That defense rests on *Wiener v. AXA Equitable Life Insurance Co.*, not on imaginary language. *Wiener* rejects a demand for perfect verbal identity where the same damages issue was presented throughout. The gross-delay and avoidable-delay calculations here used common inputs, experts, and evidence. The district court permissibly found the trial presentation adequate despite the motions’ narrow wording.
+That defense rests on the general-sufficiency branch of *Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), not on imaginary motion language. *Plyler* leaves review available for the general sufficiency issue actually raised under Rule 50(a), while barring a distinct basis first asserted after verdict. Granite Heron argues that recoverable delay remained the general issue; it recognizes that an express mitigation exclusion may make the later basis distinct.
 
 If this court holds the express exclusion controlling under *Unitherm* and *Price*, it should still affirm the conditional Rule 59 ruling and its damages-only scope. The district judge independently weighed a concrete alternate-production opportunity and explained why the $300,000 deduction was against the clear weight. Rule 50(c)(2) then calls for that retrial to proceed. Either way, Blue Ember is not entitled to collect the original $3,900,000 judgment immediately.
 
@@ -17,11 +17,11 @@ If this court holds the express exclusion controlling under *Unitherm* and *Pric
 
 ## Corporate disclosure and counsel
 
-Granite Heron Logistics, Inc. has no parent corporation, and no publicly held corporation owns ten percent or more of its stock. The separate disclosure statement filed January 16, 2026 remains accurate. Cobalt Finch Manufacturing is not an affiliate or owner of Granite Heron; its appearance in the record concerns a proposed alternate manufacturing slot and associated qualification work.
+Granite Heron Logistics, Inc. has no parent corporation, and no publicly held corporation owns ten percent or more of its stock. The separate disclosure statement filed January 16, 2026 remains accurate. Cobalt Finch Bioprocessing is not an affiliate or owner of Granite Heron; its appearance in the record concerns a proposed alternate manufacturing slot and associated qualification work.
 
 Eli Mercer is lead counsel for Granite Heron, and Tara Webb is additional counsel. Both practice with Mercer Webb PLLC and represented the company during trial and posttrial proceedings. Counsel know of no related appeal or outside proceeding that would alter this court’s jurisdiction, require consolidation, or create a conflict beyond those already disclosed.
 
-Granite Heron supports oral argument. The panel would benefit from focused discussion of how *Wiener*’s same-issue and adequate-notice principles interact with the express limitation in the two motions. Argument would also permit the parties to distinguish the legal-sufficiency remedy from the conditional weight-of-evidence remedy and to explain why the financial retrial includes gross damages along with mitigation while retaining liability and causation.
+Granite Heron supports oral argument. The panel would benefit from focused discussion of how *Plyler* separates a retained general sufficiency issue from an unavailable later distinct basis, and how the express limitation in the two motions bears on that boundary. Argument would also permit the parties to distinguish the legal-sufficiency remedy from the conditional weight-of-evidence remedy and to explain why the financial retrial includes gross damages along with mitigation while retaining liability and causation.
 
 This brief uses the actual filings and does not assert that Granite Heron moved before verdict for judgment on the affirmative defense. Its position is that the district court reasonably treated the later mitigation calculation as a refined measure of the challenged recoverable delay, not that the earlier words were different.
 
@@ -73,7 +73,7 @@ The monitor recorded fifty-four minutes above the contractual threshold and a ma
 
 Evidence about intact seals, recovered refrigeration, limited sample activity, and alternate uses supported Granite Heron’s causal challenge but did not prevail. Both Rule 50(a) motions focused on whether the excursion legally produced all claimed lot, replacement, and delay consequences. The district judge found enough contrary proof to submit those issues.
 
-Mitigation began after the injury and asked what Blue Ember reasonably could have done. Granite Heron agrees that this temporal distinction matters. Its preservation argument is narrower: where the later response changes how much delay is recoverable and the parties fully tried that common financial boundary, the district court could regard the postverdict model as a more exact version of the contested damages amount under *Wiener*.
+Mitigation began after the injury and asked what Blue Ember reasonably could have done. Granite Heron agrees that this temporal distinction matters. Its preservation argument is narrower: the general causation challenge already disputed how much delay was recoverable, and the parties fully tried the same financial inputs. Granite Heron therefore invokes *Plyler*’s retained-general-issue principle while acknowledging that the express disclaimer may place mitigation on the unavailable-distinct-basis side of the line.
 
 If the panel instead treats the two inquiries as categorically distinct for Rule 50, the causal findings remain useful. They demonstrate why a conditional financial retrial need not reopen the source of liability or require witnesses to reconstruct the Fletcher event.
 
@@ -153,9 +153,9 @@ Accordingly, even if the panel reverses JMOL because the pre-verdict motions wer
 
 ## Summary of argument
 
-The district court should be affirmed primarily because *Wiener* permits practical continuity where every phase concerns the same damages issue and adequate notice exists. Granite Heron’s causal challenge placed the recoverable delay at issue, the Cobalt Finch proof was fully tried, and Blue Ember answered it through witnesses, experts, documents, instructions, and closing. The postverdict calculation refined that contested boundary.
+The district court should be affirmed, Granite Heron submits, because *Plyler* preserves review of a general sufficiency issue actually raised under Rule 50(a). Granite Heron’s causal challenge placed recoverable delay at issue, the Cobalt Finch proof was fully tried, and Blue Ember answered it through witnesses, experts, documents, instructions, and closing. On that view, the postverdict calculation refined the retained general issue rather than adding a distinct basis.
 
-Granite Heron recognizes the obstacle created by its express limitation. *Unitherm* links Rule 50’s stages, and *Price* requires the same reason before and after verdict. If those authorities make the written exclusion dispositive, the JMOL component must be reversed without evaluating whether the evidence could compel $1,500,000.
+Granite Heron recognizes the obstacle created by its express limitation. *Unitherm* links Rule 50’s stages, *Price* requires the same reason before and after verdict, and *Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), makes a distinct basis first raised in Rule 50(b) unavailable. If mitigation is distinct from the causal sufficiency issue, the JMOL component must be reversed without evaluating whether the evidence could compel $1,500,000.
 
 The remainder of the district order should still stand. The conditional Rule 59 determination was timely, independent, reasoned, and entitled to abuse-of-discretion review. The financial issues are separable from breach and causation under *Atlas Food Systems* and *Rice v. Community Health Association*. If reversal occurs, the proper relief is not immediate restoration of the original award; it is affirmance of the conditional ruling and its limited scope, vacatur of the amended judgment, and remand for the damages retrial contemplated by Rule 50(c)(2).
 
@@ -173,13 +173,15 @@ Finally, interpretation of Rule 50(c)(2) and the effect of the appellate disposi
 
 <!-- PAGE BREAK -->
 
-## *Wiener* permits functional alignment, but the record sets its limit
+## *Plyler* preserves a general issue but bars a late distinct basis
 
-*Wiener v. AXA Equitable Life Insurance Co.*, decided in 2025, explains that Rule 50 does not demand perfectly identical argument at each stage. A pre-verdict challenge may preserve a refined postverdict contention when both concern the same damages issue and the opponent had adequate notice of the alleged deficiency. Granite Heron relies on that functional rule.
+*Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), draws the controlling line. A defendant-specific physical-proximity basis first raised under Rule 50(b) was unavailable, even though the movant’s general sufficiency challenge under Rule 50(a) remained reviewable. Granite Heron relies on that retained-general-issue principle, not on permission to introduce a new postverdict ground.
 
 The evidence here was not a postverdict surprise. Cobalt Finch’s offer, qualification file, capacity testimony, and both experts’ schedule analyses were presented at trial. Blue Ember challenged feasibility and expected value, requested mitigation instructions, and obtained a favorable deduction. The district court therefore found no practical inability to cure or answer the point.
 
-Yet *Wiener* cannot make words irrelevant. Granite Heron’s motions expressly distinguished causation from mitigation and assigned the second issue to jurors. If this court concludes that those statements define different legal grounds despite shared damages inputs, *Wiener* does not authorize JMOL. Granite Heron offers the functional-alignment argument because the district court accepted it, not because the company claims a broader motion than the certified record contains.
+Yet the motion text sets the limit. Granite Heron expressly distinguished causation from mitigation and assigned the second issue to jurors. If this court concludes that those statements make mitigation a distinct basis despite shared damages inputs, *Plyler* requires rejection of mitigation JMOL. Granite Heron offers its general-issue argument because the district court accepted it, not because the company claims a broader motion than the certified record contains.
+
+*Wiener v. AXA Equitable Life Insurance Co.*, 153 F.4th 413, 422 (4th Cir. 2025), does not resolve the Rule 50(a)-to-Rule 50(b) transition. It permits some variation between a sufficiency issue preserved in Rule 50(b) and the appellate theory supporting that issue. Granite Heron may refine its appellate explanation only if the mitigation issue was preserved under *Plyler* and *Price* in the first place.
 
 That candid boundary preserves the alternative disposition and avoids reliance on any premise outside the actual docket.
 
@@ -247,7 +249,7 @@ On remand, liability and causation remain fixed. A new jury evaluates the gross 
 
 ## Responses to Blue Ember’s principal objections
 
-Blue Ember is right that causation and mitigation have different burdens and temporal focus. Granite Heron relies on their overlap only for *Wiener*’s functional preservation analysis, not to shift the North Carolina burden. The district court understood the distinction and nevertheless found the common recoverable-delay boundary sufficient.
+Blue Ember is right that causation and mitigation have different burdens and temporal focus. Granite Heron relies on their overlap only to place the posttrial request within *Plyler*’s retained general sufficiency issue, not to shift the North Carolina burden. The district court understood the distinction and nevertheless found the common recoverable-delay boundary sufficient.
 
 Blue Ember is also right that trial of mitigation alone cannot automatically preserve JMOL. Granite Heron points to more: its contemporaneous challenge to recoverable delay, the shared expert inputs, complete adversarial presentation, and absence of a lost opportunity to answer evidence. Whether the express disclaimer outweighs those considerations is the central legal question.
 
@@ -259,7 +261,7 @@ Finally, Blue Ember’s requested limited remand is substantially correct if it 
 
 ## Conclusion and service
 
-Granite Heron respectfully asks the court to affirm the December 15, 2025 amended judgment. The district court viewed the postverdict mitigation request as a refined challenge to the same recoverable-delay issue, found the trial presentation supplied adequate notice, and concluded the evidence compelled a $1,500,000 net reduction. *Wiener* provides the strongest basis for sustaining that functional determination despite the motions’ express limitation.
+Granite Heron respectfully asks the court to affirm the December 15, 2025 amended judgment. The district court viewed the postverdict mitigation request as a refined challenge to the same recoverable-delay issue, found the trial presentation supplied adequate notice, and concluded the evidence compelled a $1,500,000 net reduction. Granite Heron invokes *Plyler*’s continued review of a general sufficiency issue, while recognizing that *Plyler* requires reversal if the motions’ express limitation makes mitigation a distinct basis.
 
 Alternatively, if *Unitherm* and *Price* require reversal because the Rule 50(a) ground was causation only, the court should preserve the balance of the district order. It should affirm the conditional Rule 59 determination and its damages-only scope, vacate the amended judgment, and remand for a retrial of gross damages and mitigation under settled liability and causation. It should not direct immediate enforcement of the original judgment.
 

@@ -20,7 +20,9 @@ Blue Ember therefore renews its request to reverse mitigation JMOL and vacate th
 
 The assumed initial motion identified Cobalt Finch and the requested $1,500,000 deduction; the assumed renewal repeated the ground after all proof. Blue Ember also received a hypothetical chance to answer. Those facts eliminate continuity and surprise disputes under Rules 50(a)(2) and 50(b).
 
-Nothing in *Unitherm*, *Price*, or *Wiener* says that specificity converts a movant’s evidence into fact. The cases regulate when a court may consider renewed judgment and which grounds remain available. Once that threshold is crossed, the court still must credit evidence and reasonable inferences supporting the verdict.
+*Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), regulates access to renewed judgment: a distinct basis first raised under Rule 50(b) is unavailable, although the general sufficiency issue raised under Rule 50(a) remains reviewable. The assumed motions place this distinct mitigation basis on the preserved side of that line. Specificity still does not convert Granite Heron’s evidence into fact.
+
+*Wiener v. AXA Equitable Life Insurance Co.*, 153 F.4th 413, 422 (4th Cir. 2025), permits variation between a sufficiency issue preserved in Rule 50(b) and appellate theory. It does not relax the Rule 50(a)-to-Rule 50(b) boundary. Once the branch’s express-preservation threshold is crossed, the court still must credit evidence and reasonable inferences supporting the verdict.
 
 Granite Heron’s response repeatedly moves from “preserved” to “compelled” without performing that second inquiry. The jury heard why Cobalt Finch was capable, why the opportunity mattered, and why a sponsor could discount the most optimistic schedule. Its partial deduction reconciles those facts rather than ignoring them.
 

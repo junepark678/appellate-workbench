@@ -18,7 +18,7 @@ Blue Ember asks the Court to reverse the counterfactually preserved JMOL and vac
 
 ## Disclosure, counsel, and related proceedings
 
-Blue Ember is a privately owned limited liability company. No publicly traded corporation owns ten percent or more of its equity, and no parent corporation must be disclosed. Maya Holt and Jonas Bell of Holt Bell PLLC appear for Blue Ember in this fictional branch. The company’s prior disclosure statement remains accurate for the date of this submission.
+Blue Ember Biologics, LLC remains privately owned. Its parent and only member, Blue Ember Holdings, Inc., is a privately held Delaware corporation based in Asheville. No public corporation holds a ten-percent-or-greater interest in either entity. Maya Holt and Jonas Bell of Holt Bell PLLC appear for Blue Ember in this fictional branch. The ownership disclosure remains accurate for the date of this submission.
 
 Granite Heron is the appellee and judgment debtor under the amended district judgment. Cobalt Finch Bioprocessing is a nonparty whose Durham capacity proposal supplies mitigation evidence; it has no disclosed ownership interest in either litigant. Aurora Quay Manufacturing Center, Solstice Gate Analytics, and the named experts likewise appear only through the synthetic record.
 
@@ -70,7 +70,9 @@ The February 2 variation directs the Court to assume that Granite Heron identifi
 
 Blue Ember also is deemed to have received an opportunity to answer, clarify the record, or seek a limited reopening before jury submission. It relied on the qualification file, Calder’s testimony, Solis’s decision evidence, and Brooks’s analysis. The assumed district court denied both motions and allowed the separated verdict questions to proceed.
 
-For this appeal, Blue Ember therefore does not argue that Rule 50(b) introduced an unmentioned ground. The continuity requirement described in Rule 50, *Price v. City of Charlotte*, and *Wiener v. AXA Equitable Life Insurance Co.* is satisfied by hypothesis. The merits standard nonetheless remains exacting and independent from preservation.
+For this appeal, Blue Ember therefore does not argue that Rule 50(b) introduced an unmentioned ground. *Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), makes a distinct basis first raised after verdict unavailable while retaining the general sufficiency issue raised under Rule 50(a). The branch avoids that defect by assuming that the precise mitigation basis and relief were presented twice before verdict.
+
+*Wiener v. AXA Equitable Life Insurance Co.*, 153 F.4th 413, 422 (4th Cir. 2025), concerns variation between a sufficiency issue preserved in Rule 50(b) and the appellate theory supporting it. It does not supply the assumed Rule 50(a) preservation here. The merits standard remains exacting and independent from preservation.
 
 That concession is tightly bounded. It does not rewrite the actual causation-only motions, turn the premise into a district filing, or establish that Granite Heron carried its affirmative-defense burden. Treating an issue as timely raised tells the Court which issue it may review; it does not dictate the evidentiary outcome of that review.
 

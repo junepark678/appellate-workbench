@@ -58,7 +58,9 @@ The February 2 order directs us to assume that Granite Heron moved when Blue Emb
 
 We also assume an after-all-evidence renewal on the same ground. Before submission, the district judge invited Blue Ember to answer, clarify existing proof, or seek limited reopening. Blue Ember relied on Solis, Calder, Brooks, the offer correspondence, the qualification file, and the financial models.
 
-Those assumed events satisfy Rule 50(a)(2)’s specification requirement and preserve continuity under Rule 50(b). *Unitherm Food Systems, Inc. v. Swift-Eckrich, Inc.*, *Price v. City of Charlotte*, and *Wiener v. AXA Equitable Life Insurance Co.* do not bar merits review when the precise issue and relief were twice presented before verdict.
+Those assumed events satisfy Rule 50(a)(2)’s specification requirement and preserve continuity under Rule 50(b). *Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), makes a distinct basis first raised after verdict unavailable while retaining a general sufficiency issue actually raised before verdict. The branch’s precise mitigation basis and relief were instead presented twice before verdict.
+
+*Wiener v. AXA Equitable Life Insurance Co.*, 153 F.4th 413, 422 (4th Cir. 2025), permits some variation between a sufficiency issue preserved in Rule 50(b) and the appellate theory supporting it. It does not authorize movement from one Rule 50(a) ground to another Rule 50(b) basis and does not create this branch’s preservation.
 
 The premise has no broader effect. The actual Rule 50(a) documents remain causation-only. We do not edit them, infer omitted language, or treat the hypothetical exchange as transcript history. It is a segregated assumption that enables a different legal analysis on this docket alone.
 

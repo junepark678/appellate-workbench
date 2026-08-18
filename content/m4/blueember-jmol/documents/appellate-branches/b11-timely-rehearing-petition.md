@@ -84,7 +84,7 @@ Maya Holt signs for Blue Ember with Jonas Bell’s authorization. Counsel certif
 
 This source does not assert that rehearing was sought in an actual appeal. It bears both warnings and the never-occurred docket. The actual Rule 50(a) motions remain causation-only; nothing in this petition changes their text, creates historical notice, or affects the separate actual appellate disposition.
 
-The petition also belongs to one mutually exclusive mandate route. The ordinary July 30 release cannot occur if this timely filing is pending. If rehearing is denied on August 6, the branch mandate period will run from that denial according to Rule 41. No earlier release event can be carried into that sequence.
+The petition also belongs to one mutually exclusive mandate route. The ordinary July 30 release cannot occur if this timely filing is pending. If rehearing is later denied, the mandate period will run from entry of the denial under Rule 41. No earlier release event can be carried into that sequence.
 
 <!-- PAGE BREAK -->
 

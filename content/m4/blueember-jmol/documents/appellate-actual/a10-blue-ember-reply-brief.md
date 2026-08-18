@@ -11,7 +11,7 @@ Granite Heron candidly accepts the decisive record facts: both Rule 50(a) motion
 
 The difference is not formal wording. Causation asked whether Granite Heron’s breach produced gross loss, with Blue Ember carrying the burden. Mitigation assumed caused loss and asked whether Blue Ember’s later conduct unreasonably failed to reduce it, with Granite Heron carrying the burden. Separate proof, instructions, and verdict questions reflected that division. A shared effect on net recovery cannot make the grounds the same.
 
-*Wiener* permits refinement within one adequately noticed damages issue. It does not override a motion that tells the court and opponent the second issue is reserved for jurors. *Unitherm* and *Price* require continuity at the asserted legal insufficiency. The court should reverse JMOL while leaving the independent Rule 59 ruling intact. The exact relief remains fourfold: reverse mitigation JMOL, affirm the conditional damages new trial, affirm its financial scope, and vacate the amended judgment with remand.
+*Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), controls the boundary. A distinct basis first raised under Rule 50(b) is unavailable, although the general sufficiency issue actually raised under Rule 50(a) remains reviewable. Granite Heron preserved causation, not mitigation. The court should reverse JMOL while leaving the independent Rule 59 ruling intact. The exact relief remains fourfold: reverse mitigation JMOL, affirm the conditional damages new trial, affirm its financial scope, and vacate the amended judgment with remand.
 
 <!-- PAGE BREAK -->
 
@@ -39,11 +39,11 @@ If any two defenses affecting damages could be united under the phrase “recove
 
 <!-- PAGE BREAK -->
 
-## *Unitherm* and *Price* resolve the renewal boundary
+## *Unitherm*, *Price*, and *Plyler* resolve the renewal boundary
 
 *Unitherm Food Systems, Inc. v. Swift-Eckrich, Inc.* treats the pre-verdict motion and postverdict renewal as connected procedural stages. That structure permits the trial judge to confront a claimed evidentiary gap before the jury is discharged and then assess the verdict, along with possible new-trial consequences, on the same properly presented basis.
 
-*Price v. City of Charlotte* states the circuit rule directly: the reason advanced under Rule 50(b) must have been raised under Rule 50(a) and reasserted after verdict. This requirement gives the court and adversary notice while correction remains possible. Granite Heron raised causal insufficiency before verdict and mitigation insufficiency after it. The reasons were not continuous.
+*Price v. City of Charlotte* states that the reason advanced under Rule 50(b) must have been raised under Rule 50(a) and reasserted after verdict. *Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), then illustrates the exact boundary: a late defendant-specific basis was unavailable, while the general sufficiency challenge actually made before verdict remained reviewable. Granite Heron raised causal insufficiency before verdict and mitigation insufficiency afterward.
 
 Granite Heron says Blue Ember already possessed and answered all mitigation evidence. That misses the procedural notice. Trial proof told Blue Ember that jurors would evaluate the defense. A Rule 50(a) motion would have told Blue Ember that Granite Heron asserted no reasonable jury could reject its $1,500,000 model, allowing a request to reopen, sharpen the legal response, or seek a ruling before deliberations.
 
@@ -51,15 +51,15 @@ The company’s express disclaimer made that notice impossible. Ordinary applica
 
 <!-- PAGE BREAK -->
 
-## *Wiener* protects substance, not contradiction
+## *Wiener* concerns appellate theory after Rule 50(b)
 
-*Wiener v. AXA Equitable Life Insurance Co.* rejected a rigid demand for word-for-word identity where the Rule 50(a) motion, Rule 50(b) motion, and appeal all concerned the same damages issue and the opponent understood the asserted deficiency. Its same-issue rule prevents technical forfeiture when substance remains continuous.
+*Wiener v. AXA Equitable Life Insurance Co.*, 153 F.4th 413, 422 (4th Cir. 2025), addressed variation between a sufficiency issue preserved in Rule 50(b) and the appellate theory supporting that issue. It rejected perfect alignment between those two presentations. It did not authorize movement from one Rule 50(a) ground to a distinct Rule 50(b) basis.
 
-This case presents the opposite problem. Granite Heron did not state the mitigation ground imperfectly; it stated that mitigation was not a ground. It did not merely omit a model detail; it assigned reasonableness and deduction to the jury. Treating that contradiction as adequate notice would extend *Wiener* beyond refinement and erase the boundary it assumes.
+This case presents the antecedent problem governed by *Plyler*. Granite Heron did not state the mitigation ground imperfectly; it stated that mitigation was not a ground. It did not merely omit a model detail; it assigned reasonableness and deduction to the jury. The later basis was distinct even though the preserved general causal challenge remains reviewable.
 
-The district court emphasized full litigation of Cobalt Finch evidence. But *Wiener* did not equate trial of evidence with a request for judgment. Rule 50(a) requires a movant to specify the judgment sought and the supporting facts and law. Evidence may support multiple issues, and a party can deliberately present a jury defense without seeking its judicial resolution.
+The district court emphasized full litigation of Cobalt Finch evidence. But neither *Plyler* nor *Wiener* equates trial of evidence with a request for judgment. Rule 50(a) requires a movant to specify the judgment sought and the supporting facts and law. Evidence may support multiple issues, and a party can deliberately present a jury defense without seeking its judicial resolution.
 
-Granite Heron’s candid brief confirms that the court need not debate what happened. The legal question is whether an express exclusion can preserve the excluded ground. Neither *Wiener* nor the rule permits that result.
+Granite Heron’s candid brief confirms that the court need not debate what happened. The legal question is whether an express exclusion can preserve the excluded ground. *Plyler* answers no; *Wiener* never reached that Rule 50(a)-to-Rule 50(b) question.
 
 <!-- PAGE BREAK -->
 
@@ -67,7 +67,7 @@ Granite Heron’s candid brief confirms that the court need not debate what happ
 
 The unpublished majority in *Boley v. Armor Correctional Health Services, Inc.* discussed Rule 50’s notice, cure, fairness, and Seventh Amendment functions. Those considerations reinforce Blue Ember’s position: Granite Heron selected a causation-only request and gave no pre-verdict notice that mitigation proof was legally insufficient.
 
-The majority’s separate treatment of possible fundamental error is nonprecedential. Granite Heron appropriately does not invoke it as a controlling bypass. The concurrence read *Unitherm* to foreclose appellate review when an issue was not properly presented through both stages. Neither opinion supplies binding authority beyond *Unitherm*, *Price*, and *Wiener*.
+The majority’s separate treatment of possible fundamental error is nonprecedential. Granite Heron appropriately does not invoke it as a controlling bypass. The concurrence read *Unitherm* to foreclose appellate review when an issue was not properly presented through both stages. Neither opinion supplies binding authority beyond *Unitherm*, *Price*, *Plyler*, and the correctly confined appellate-theory rule in *Wiener*.
 
 There is also no need for an exceptional-error theory. Blue Ember does not ask this court to review an unpreserved issue; it asks the court to reverse a district judge’s grant of unpreserved JMOL. Granite Heron retains its properly filed alternative Rule 59 request and will have a new chance to prove mitigation if the conditional ruling is affirmed.
 
@@ -137,8 +137,8 @@ Granite Heron’s alternative position agrees with that structure. There is ther
 
 ## Conclusion and certification
 
-The actual record contains no pre-verdict request for mitigation judgment. Both Rule 50(a) motions challenged causation only, expressly excluded the affirmative defense, and left the amount to jurors. *Unitherm* and *Price* require the later reason to have been presented at that stage. *Wiener* permits imperfect alignment within the same issue, not conversion of an excluded issue into a preserved one.
+The actual record contains no pre-verdict request for mitigation judgment. Both Rule 50(a) motions challenged causation only, expressly excluded the affirmative defense, and left the amount to jurors. Under *Plyler*, that distinct postverdict basis is unavailable even though the preserved general causation challenge remains reviewable. *Wiener* permits variation between a preserved Rule 50(b) issue and appellate theory; it does not cure the missing Rule 50(a) basis.
 
 The court should therefore reverse mitigation JMOL. It should separately affirm the district judge’s independently reasoned conditional Rule 59 new trial and affirm the limitation of that trial to gross damages and mitigation. It should vacate the amended judgment and remand for the financial proceeding required by Rule 50(c)(2). Liability and causation remain fixed; neither existing net amount is immediately payable as the final recovery.
 
-Maya Holt and Jonas Bell of Holt Bell PLLC submit this reply for Blue Ember Biologics, LLC. Counsel certify electronic filing on April 20, 2026 under docket SYN-CA4-26-CV-4105 and service through the court system on Eli Mercer and Tara Webb of Mercer Webb PLLC. The brief contains no sealed material and relies only on the certified actual record and authorities available as of filing.
+Maya Holt and Jonas Bell of Holt Bell PLLC submit this reply for Blue Ember Biologics, LLC. Counsel certify electronic filing on April 20, 2026 under docket SYN-CA4-26-CV-4105 and service through the court system on Eli Mercer and Tara Webb of Mercer Webb PLLC. The brief contains no sealed material and relies only on the certified actual record and authorities available as of filing. The requested ruling preserves the general sufficiency issue actually raised while rejecting only the later distinct mitigation basis.

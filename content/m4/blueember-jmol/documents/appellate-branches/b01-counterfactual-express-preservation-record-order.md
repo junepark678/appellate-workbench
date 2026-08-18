@@ -42,7 +42,7 @@ Nothing here changes the witnesses, offer terms, facility status, damages compon
 
 ## Isolation and counterfactual briefing directions
 
-This counterfactual source does not alter L32 or L33, which occupy actual joint-appendix pages 373 through 382. Those two actual district sources remain causation-only motions and expressly leave mitigation to the jury. The hypothetical language above is not inserted into either document, is not treated as a correction, and cannot prove what occurred in the actual litigation history.
+This counterfactual source does not alter Granite Heron’s Initial Rule 50(a) Motion or Granite Heron’s Close-of-All-Evidence Rule 50(a) Motion, which occupy actual joint-appendix pages 373 through 382. Those two actual district sources remain causation-only motions and expressly leave mitigation to the jury. The hypothetical language above is not inserted into either document, is not treated as a correction, and cannot prove what occurred in the actual litigation history.
 
 The isolated premise creates no second district judgment. The October 14 verdict remains $4,200,000 gross less the jury’s $300,000 deduction, the October 15 judgment remains $3,900,000, and the December 15 order remains the instrument imposing a $1,500,000 deduction and entering the $2,700,000 amended judgment. The branch changes only the preservation analysis applied to that same posttrial disposition.
 

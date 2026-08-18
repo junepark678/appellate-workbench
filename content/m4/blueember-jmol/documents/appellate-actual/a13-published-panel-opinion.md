@@ -93,29 +93,31 @@ We hold only that mitigation did not support renewed judgment on this record. Re
 
 <!-- PAGE BREAK -->
 
-## IX. *Unitherm* and *Price* require continuity
+## VIII. *Unitherm*, *Price*, and *Plyler* require continuity
 
 Rule 50’s pre-verdict and postverdict stages serve related functions. *Unitherm Food Systems, Inc. v. Swift-Eckrich, Inc.*, 546 U.S. 394, 399–406 (2006), emphasizes that a proper renewed motion permits the trial judge to evaluate the verdict and possible new-trial consequences on a ground first presented before submission. The structure does not allow a party to reserve jury treatment and select judicial resolution after learning the answer.
 
 Our published decision in *Price v. City of Charlotte*, 93 F.3d 1241 (4th Cir. 1996), requires the reason supporting judgment to be raised under Rule 50(a) and reasserted under Rule 50(b). Notice enables the court and opposing party to address the alleged gap before deliberations. Granite Heron’s causal reason continued across its first two motions; the mitigation reason began only in the third.
 
+*Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), applies that rule to adjacent sufficiency theories. A defendant-specific physical-proximity basis first raised under Rule 50(b) was unavailable, although the general sufficiency issue actually raised under Rule 50(a) remained reviewable. Granite Heron likewise retains its causal sufficiency issue, but not the distinct mitigation basis first asserted after verdict.
+
 The district court regarded both reasons as boundaries on recoverable delay. At that level of abstraction, almost any defense affecting a net award could appear continuous. The rule instead asks what insufficiency and judgment were specified. Granite Heron did not contend before verdict that no reasonable jury could reject Park’s proposed deduction. Indeed, it expressly requested jury evaluation. *Unitherm* and *Price* require us to honor that procedural choice.
 
 <!-- PAGE BREAK -->
 
-## X. *Wiener* does not treat exclusion as imperfect phrasing
+## IX. *Wiener* concerns appellate theory after Rule 50(b) preservation
 
-*Wiener v. AXA Equitable Life Insurance Co.*, No. 24-1316 (4th Cir. Sept. 3, 2025), permits a degree of variation when pre-verdict, postverdict, and appellate arguments concern the same damages issue and provide adequate notice. The rule protects substance from an insistence on talismanic words. It does not make an express disclaimer meaningless.
+*Wiener v. AXA Equitable Life Insurance Co.*, 153 F.4th 413, 422 (4th Cir. 2025), addressed whether appellate arguments varied impermissibly from a damages-sufficiency issue already raised in Rule 50(b). It allowed slightly different appellate theories supporting that preserved issue. It did not authorize movement from one Rule 50(a) ground to a distinct Rule 50(b) basis.
 
 Here the motions did not incompletely describe mitigation. They said the affirmative defense was not a ground and that reasonableness and amount remained for jurors. Causation and mitigation also carried different burdens and temporal focus. The later fixed deduction was neither a detail nor a refined explanation of the causal motion; it was relief Granite Heron had specifically declined to request.
 
 The unpublished *Boley v. Armor Correctional Health Services, Inc.* majority discussed notice, cure, and fairness and separately considered a fundamental-error concept. That latter discussion is nonprecedential and supplies no controlling exception. The concurrence read *Unitherm* strictly. We need not choose between their broader remedial views because published authority and the unambiguous motion text resolve this appeal.
 
-Our holding preserves *Wiener*’s functional approach while recognizing its boundary: imperfect alignment within one issue is not contradiction between two distinct issues.
+Our holding respects *Wiener*’s appellate-theory rule and *Plyler*’s earlier renewal boundary. Appellate reasoning may vary while supporting an issue preserved in Rule 50(b); it cannot retroactively supply a distinct ground omitted from Rule 50(a).
 
 <!-- PAGE BREAK -->
 
-## XI. We reverse without deciding mitigation sufficiency
+## X. We reverse without deciding mitigation sufficiency
 
 Because the Rule 50(b) ground was unavailable, we do not decide whether the trial evidence could support only a $1,500,000 deduction. Cobalt Finch’s held slot, relevant equipment, staged diligence, schedule potential, and later booking were substantial evidence. So were Blue Ember’s points about incomplete qualification, technical risk, a compressed decision period, and possible duplicated cost.
 
@@ -127,7 +129,7 @@ The first component of our disposition is therefore precise: the mitigation JMOL
 
 <!-- PAGE BREAK -->
 
-## XII. The conditional damages new trial is affirmed
+## XI. The conditional damages new trial is affirmed
 
 Granite Heron timely moved under Rule 59 within twenty-eight days of the original judgment. Blue Ember answered that request, the parties argued it, and the district court supplied independent reasons. The court identified the actual held capacity, proposed transfer sequence, staged readiness process, expected schedule benefit, incremental cost, and expert comparison. It also recognized incomplete qualification and uncertainty.
 
@@ -139,7 +141,7 @@ We find no abuse of discretion. The second component of our disposition affirms 
 
 <!-- PAGE BREAK -->
 
-## XIII. The damages-only limitation is affirmed
+## XII. The damages-only limitation is affirmed
 
 A partial new trial is permissible only when the issue to be retried is distinct and separable from retained issues without injustice or jury confusion. *Atlas Food Systems*, 99 F.3d 587; *Rice v. Community Health Association*, 203 F.3d 283 (4th Cir. 2000). The special verdict and evidentiary presentation satisfy that condition.
 
@@ -151,7 +153,7 @@ The new jury will be instructed that breach and causal responsibility are fixed,
 
 <!-- PAGE BREAK -->
 
-## XIV. The amended judgment must be vacated and the case remanded
+## XIII. The amended judgment must be vacated and the case remanded
 
 The December 15 amended judgment states $2,700,000 because the district court replaced the jury’s deduction through JMOL. Reversal of that ruling removes the amended amount’s legal foundation. The judgment cannot remain while a new financial jury determines a different net award.
 
@@ -163,7 +165,7 @@ After the new jury determines gross damages and mitigation, the district court w
 
 <!-- PAGE BREAK -->
 
-## XV. The record supplies an administrable remand boundary
+## XIV. The record supplies an administrable remand boundary
 
 Granite Heron argues that shared financial inputs supported its preservation theory. We reject that theory because the motions expressly excluded mitigation, but the overlap helps define the retrial. A new jury must be free to evaluate the gross delay baseline while deciding how a reasonable Cobalt Finch response would affect it. The jury should likewise consider any relationship among lot value, replacement expense, and alternate-production cost supported by admissible evidence.
 
@@ -173,7 +175,7 @@ Granite Heron continues to bear the burden to prove a failure to mitigate and th
 
 <!-- PAGE BREAK -->
 
-## XVI. Rule 50(c)(2) determines the post-mandate consequence
+## XV. Rule 50(c)(2) determines the post-mandate consequence
 
 Rule 50(c)(1) requires a district court granting renewed judgment to conditionally rule on a joined new-trial request and state its grounds. Rule 50(c)(2) then addresses appellate reversal: the new trial proceeds unless the appellate court orders otherwise. The district court followed the first command, and our component-by-component disposition gives effect to the second.
 
@@ -185,7 +187,7 @@ These consequences follow the rules and the affirmed conditional order; they are
 
 <!-- PAGE BREAK -->
 
-## XVII. Disposition
+## XVI. Disposition
 
 We resolve the district court’s rulings as separate components. First, the mitigation judgment as a matter of law is **reversed** because Granite Heron’s causation-only Rule 50(a) motions expressly left mitigation for the jury and did not preserve the postverdict ground. Second, the conditional Rule 59 damages new trial is **affirmed** because the district court independently applied the clear-weight standard without abusing its discretion.
 
