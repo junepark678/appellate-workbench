@@ -1,0 +1,411 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "source_path": "documents/lower-record/l01-criminal-complaint.md",
+      "output_path": "objects/l01-criminal-complaint.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 1,
+      "title": "Criminal Complaint and Supporting Affidavit"
+    },
+    {
+      "source_path": "documents/lower-record/l02-indictment.md",
+      "output_path": "objects/l02-indictment.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 9,
+      "title": "Indictment"
+    },
+    {
+      "source_path": "documents/lower-record/l03-initial-appearance.md",
+      "output_path": "objects/l03-initial-appearance.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 16,
+      "title": "Arrest Return, Initial-Appearance Minutes, and Conditions Order"
+    },
+    {
+      "source_path": "documents/lower-record/l04-detention-hearing-order.md",
+      "output_path": "objects/l04-detention-hearing-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 21,
+      "title": "Detention Hearing Transcript and Detention Order"
+    },
+    {
+      "source_path": "documents/lower-record/l05-discovery-index.md",
+      "output_path": "objects/l05-discovery-index.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 29,
+      "title": "Discovery Production Index and Confidentiality Acknowledgment"
+    },
+    {
+      "source_path": "documents/lower-record/l06-notice-change-plea.md",
+      "output_path": "objects/l06-notice-change-plea.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 36,
+      "title": "Defendant Notice of Intent to Change Plea"
+    },
+    {
+      "source_path": "documents/lower-record/l07-pre-plea-status.md",
+      "output_path": "objects/l07-pre-plea-status.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 44,
+      "title": "Joint Pre-Plea Status Report and Guidelines-Manual Notice"
+    },
+    {
+      "source_path": "documents/lower-record/l08-rule11-scheduling-order.md",
+      "output_path": "objects/l08-rule11-scheduling-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 50,
+      "title": "Order Scheduling Rule 11 Hearing"
+    },
+    {
+      "source_path": "documents/lower-record/l09-plea-agreement.md",
+      "output_path": "objects/l09-plea-agreement.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 57,
+      "title": "Plea Agreement with Appeal Waiver and Express Allocution Carve-Out"
+    },
+    {
+      "source_path": "documents/lower-record/l10-stipulated-factual-basis.md",
+      "output_path": "objects/l10-stipulated-factual-basis.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 69,
+      "title": "Stipulated Factual Basis"
+    },
+    {
+      "source_path": "documents/lower-record/l11-rule11-transcript.md",
+      "output_path": "objects/l11-rule11-transcript.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 77,
+      "title": "Rule 11 Plea-Hearing Transcript"
+    },
+    {
+      "source_path": "documents/lower-record/l12-plea-acceptance-order.md",
+      "output_path": "objects/l12-plea-acceptance-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 98,
+      "title": "Order Accepting Guilty Plea"
+    },
+    {
+      "source_path": "documents/lower-record/l13-public-psr-surrogate.md",
+      "output_path": "objects/l13-public-psr-surrogate.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 102,
+      "title": "Public Docket Surrogate and Category Index for Sealed Presentence Report Packet"
+    },
+    {
+      "source_path": "documents/lower-record/l14-sealed-psr-packet.md",
+      "output_path": "objects/l14-sealed-psr-packet.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 122,
+      "title": "Sealed Presentence Report Packet — Draft January 9 and Final February 17"
+    },
+    {
+      "source_path": "documents/lower-record/l15-public-objection-surrogate.md",
+      "output_path": "objects/l15-public-objection-surrogate.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 142,
+      "title": "Public Docket Surrogate and Category Index for Sealed Objection Packet"
+    },
+    {
+      "source_path": "documents/lower-record/l16-sealed-objection-packet.md",
+      "output_path": "objects/l16-sealed-objection-packet.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 152,
+      "title": "Sealed Defendant Objection, Probation Position, and Government Response Packet"
+    },
+    {
+      "source_path": "documents/lower-record/l17-public-defense-sentencing-surrogate.md",
+      "output_path": "objects/l17-public-defense-sentencing-surrogate.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 162,
+      "title": "Public Docket Surrogate for Sealed Defendant Sentencing Memorandum"
+    },
+    {
+      "source_path": "documents/lower-record/l18-sealed-defense-sentencing.md",
+      "output_path": "objects/l18-sealed-defense-sentencing.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 173,
+      "title": "Sealed Defendant Sentencing Memorandum"
+    },
+    {
+      "source_path": "documents/lower-record/l19-public-government-sentencing-surrogate.md",
+      "output_path": "objects/l19-public-government-sentencing-surrogate.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 184,
+      "title": "Public Docket Surrogate for Sealed Government Sentencing Memorandum"
+    },
+    {
+      "source_path": "documents/lower-record/l20-sealed-government-sentencing.md",
+      "output_path": "objects/l20-sealed-government-sentencing.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 194,
+      "title": "Sealed Government Sentencing Memorandum"
+    },
+    {
+      "source_path": "documents/lower-record/l21-sentencing-transcript.md",
+      "output_path": "objects/l21-sentencing-transcript.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 204,
+      "title": "Sentencing Hearing Transcript"
+    },
+    {
+      "source_path": "documents/lower-record/l22-public-sentencing-minute-reasons-summary.md",
+      "output_path": "objects/l22-public-sentencing-minute-reasons-summary.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 230,
+      "title": "Public Sentencing Minute Entry and Reasons Summary — Not the Confidential Statement-of-Reasons Form"
+    },
+    {
+      "source_path": "documents/lower-record/l23-role-objection-order.md",
+      "output_path": "objects/l23-role-objection-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 235,
+      "title": "Order Overruling Aggravating-Role Objection"
+    },
+    {
+      "source_path": "documents/lower-record/l24-criminal-judgment.md",
+      "output_path": "objects/l24-criminal-judgment.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 242,
+      "title": "Criminal Judgment"
+    },
+    {
+      "source_path": "documents/lower-record/l25-appellate-rights-notice.md",
+      "output_path": "objects/l25-appellate-rights-notice.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 247,
+      "title": "Rule 32(j) Notice of Appellate Rights"
+    },
+    {
+      "source_path": "documents/lower-record/l26-district-docket-report.md",
+      "output_path": "objects/l26-district-docket-report.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 249,
+      "title": "Certified District-Court Docket Report"
+    },
+    {
+      "source_path": "documents/lower-record/l27-notice-of-appeal.md",
+      "output_path": "objects/l27-notice-of-appeal.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 254,
+      "title": "Actual Day-14 Notice of Appeal"
+    },
+    {
+      "source_path": "documents/lower-record/l28-record-transmittal.md",
+      "output_path": "objects/l28-record-transmittal.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 257,
+      "title": "Certified Record Transmittal and Sealed-Volume Index"
+    },
+    {
+      "source_path": "documents/appellate-actual/a01-case-opening-notice.md",
+      "output_path": "objects/a01-case-opening-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 1,
+      "title": "Actual Case-Opening Notice"
+    },
+    {
+      "source_path": "documents/appellate-actual/a02-docketing-statement.md",
+      "output_path": "objects/a02-docketing-statement.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 4,
+      "title": "Actual Docketing Statement"
+    },
+    {
+      "source_path": "documents/appellate-actual/a03-appearances-disclosures.md",
+      "output_path": "objects/a03-appearances-disclosures.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 8,
+      "title": "Actual Appearances and Disclosure Statements"
+    },
+    {
+      "source_path": "documents/appellate-actual/a04-motion-sealed-materials.md",
+      "output_path": "objects/a04-motion-sealed-materials.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 12,
+      "title": "Motion to Continue Lower-Record Seal and File Public/Sealed Appellate Twins"
+    },
+    {
+      "source_path": "documents/appellate-actual/a05-certificate-confidentiality.md",
+      "output_path": "objects/a05-certificate-confidentiality.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 18,
+      "title": "Certificate of Confidentiality and Sealed-Volume Protocol"
+    },
+    {
+      "source_path": "documents/appellate-actual/a06-public-opening-brief.md",
+      "output_path": "objects/a06-public-opening-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 22,
+      "title": "Public Redacted Opening Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a07-sealed-opening-brief.md",
+      "output_path": "objects/a07-sealed-opening-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 38,
+      "title": "Sealed Highlighted Opening Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a08-government-waiver-motion.md",
+      "output_path": "objects/a08-government-waiver-motion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 54,
+      "title": "Government First Threshold Motion to Dismiss Enhancement Target Under Appeal Waiver"
+    },
+    {
+      "source_path": "documents/appellate-actual/a09-waiver-motion-opposition.md",
+      "output_path": "objects/a09-waiver-motion-opposition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 62,
+      "title": "Opposition to Target-Limited Waiver Motion"
+    },
+    {
+      "source_path": "documents/appellate-actual/a10-partial-dismissal-order.md",
+      "output_path": "objects/a10-partial-dismissal-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 70,
+      "title": "Order Dismissing Enhancement Target and Preserving Allocution Issue"
+    },
+    {
+      "source_path": "documents/appellate-actual/a11-public-response-brief.md",
+      "output_path": "objects/a11-public-response-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 74,
+      "title": "Public Redacted Government Response Brief on Allocution"
+    },
+    {
+      "source_path": "documents/appellate-actual/a12-sealed-response-brief.md",
+      "output_path": "objects/a12-sealed-response-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 88,
+      "title": "Sealed Highlighted Government Response Brief on Allocution"
+    },
+    {
+      "source_path": "documents/appellate-actual/a13-public-reply-brief.md",
+      "output_path": "objects/a13-public-reply-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 102,
+      "title": "Public Redacted Reply Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a14-sealed-reply-brief.md",
+      "output_path": "objects/a14-sealed-reply-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 110,
+      "title": "Sealed Highlighted Reply Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a15-public-psr-volume-surrogate.md",
+      "output_path": "objects/a15-public-psr-volume-surrogate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 118,
+      "title": "Public Docket Surrogate and Index for Sealed PSR Appendix Volume"
+    },
+    {
+      "source_path": "documents/appellate-actual/a16-sealed-psr-volume.md",
+      "output_path": "objects/a16-sealed-psr-volume.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 124,
+      "title": "Sealed Separate PSR Appendix Volume"
+    },
+    {
+      "source_path": "documents/appellate-actual/a17-argument-calendar-notice.md",
+      "output_path": "objects/a17-argument-calendar-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 130,
+      "title": "Oral-Argument Calendar Notice"
+    },
+    {
+      "source_path": "documents/appellate-actual/a18-published-opinion.md",
+      "output_path": "objects/a18-published-opinion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 133,
+      "title": "Published Opinion — Dismissed in Part; Sentence Vacated and Remanded"
+    },
+    {
+      "source_path": "documents/appellate-actual/a19-judgment.md",
+      "output_path": "objects/a19-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 151,
+      "title": "Judgment — Enhancement Appeal Dismissed; Sentence Vacated and Remanded"
+    },
+    {
+      "source_path": "documents/appellate-actual/a20-mandate.md",
+      "output_path": "objects/a20-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 154,
+      "title": "Actual Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b01-day15-notice-packet.md",
+      "output_path": "objects/b01-day15-notice-packet.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 156,
+      "title": "Never-Filed Day-15 Notice of Appeal and Timing-Predicate Packet"
+    },
+    {
+      "source_path": "documents/appellate-branches/b02-limited-remand-order.md",
+      "output_path": "objects/b02-limited-remand-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 161,
+      "title": "Never-Filed Appellate Case-Opening and Limited-Remand Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b03-no-extension-statement.md",
+      "output_path": "objects/b03-no-extension-statement.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 165,
+      "title": "Never-Filed Serrano Statement Disclaiming Rule 4(b)(4) Extension and Excuse"
+    },
+    {
+      "source_path": "documents/appellate-branches/b04-rule4b4-findings-order.md",
+      "output_path": "objects/b04-rule4b4-findings-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 168,
+      "title": "Never-Filed District Rule 4(b)(4) Findings and Order Declining Extension"
+    },
+    {
+      "source_path": "documents/appellate-branches/b05-limited-remand-return.md",
+      "output_path": "objects/b05-limited-remand-return.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 172,
+      "title": "Never-Filed Certified Limited-Remand Return and Resumption Notice"
+    },
+    {
+      "source_path": "documents/appellate-branches/b06-government-first-threshold-motion.md",
+      "output_path": "objects/b06-government-first-threshold-motion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 174,
+      "title": "Never-Filed Government First Threshold Motion to Dismiss for Rule 4(b) Untimeliness and Appeal Waiver"
+    },
+    {
+      "source_path": "documents/appellate-branches/b07-threshold-motion-opposition.md",
+      "output_path": "objects/b07-threshold-motion-opposition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 181,
+      "title": "Never-Filed Opposition to Government Threshold Motion"
+    },
+    {
+      "source_path": "documents/appellate-branches/b08-threshold-motion-reply.md",
+      "output_path": "objects/b08-threshold-motion-reply.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 186,
+      "title": "Never-Filed Government Reply on Rule 4(b) and Waiver"
+    },
+    {
+      "source_path": "documents/appellate-branches/b09-dismissal-opinion-judgment.md",
+      "output_path": "objects/b09-dismissal-opinion-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 189,
+      "title": "Never-Filed Opinion, Order, and Judgment Dismissing Appeal"
+    },
+    {
+      "source_path": "documents/appellate-branches/b10-ordinary-mandate.md",
+      "output_path": "objects/b10-ordinary-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 195,
+      "title": "Never-Filed Ordinary Mandate"
+    }
+  ]
+}
