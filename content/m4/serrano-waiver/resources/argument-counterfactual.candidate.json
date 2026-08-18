@@ -1,0 +1,384 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.serrano.argument.day15-counterfactual",
+  "case_id": "ca4m4.case.serrano-waiver",
+  "bench_configuration_id": "ca4m4.serrano.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.serrano.issue.rule4b-day15-notice"
+  ],
+  "grounded_question_bank": {
+    "mode": "counterfactual_training",
+    "grounding_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.preservation",
+          "workbench.topic.standard-of-review",
+          "workbench.topic.record-support",
+          "workbench.topic.governing-authority",
+          "workbench.topic.merits",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-nonjurisdictional",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Why is Rule 4(b)'s deadline nonjurisdictional, and why does that classification still require dismissal after the extension question is resolved and the government promptly invokes the rule?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-nonjurisdictional-frap4",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-4-criminal-time"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-nonjurisdictional-marsh",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.marsh-rule4b"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-nonjurisdictional-motion",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa174"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-invocation-preservation",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.preservation",
+        "prompt": "Why must the government's first substantive filing on disposition invoke both Rule 4(b) untimeliness and any appeal-waiver ground, how did the March 25 combined motion satisfy then-issued Kemp and Local Rule 27(f)(2), and how does later Melvin confirm that result at the August 19 cutoff without appearing in the earlier filing?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-invocation-brantley",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.brantley-prompt-invocation"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-invocation-melvin",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.melvin-threshold-forfeiture"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-invocation-kemp",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.kemp-threshold-forfeiture"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-invocation-local27",
+            "kind": "authority",
+            "authority_id": "us.ca4.authority.local-rule-27-motions"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-invocation-boutcher",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.boutcher-appeal-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-invocation-pa174",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa174"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-invocation-pa186",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa186"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-review-standard",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "Because Rule 4(b)(4) permits relief with or without a motion, what inquiry controls the limited remand and what express district finding closes both excusable neglect and good cause before the appeal resumes?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-review-standard-frap4",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-4-criminal-time"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-review-standard-pa161",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa161"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-review-standard-pa165",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa165"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-review-standard-pa168",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa168"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-date-record",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Using the February 25 judgment, why was March 11 day 14, why was the isolated March 12 notice day 15, and where does the branch certify those dates?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-date-record-frap4",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-4-criminal-time"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-date-record-frap26",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-26-calendar"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-date-record-ja242",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja242"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-date-record-ja254",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja254"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-date-record-pa156",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa156"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-rule4b-authority",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "At the August 19 cutoff, how do Marsh, Brantley, and later-published Melvin evaluate a Rule 4(b) record in which the government raised every apparent threshold ground in its first disposition filing?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-rule4b-authority-marsh",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.marsh-rule4b"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-rule4b-authority-brantley",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.brantley-prompt-invocation"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-rule4b-authority-melvin",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.melvin-threshold-forfeiture"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-rule4b-authority-pa189",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa189"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-extension-boundary",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Why does the day-15 notice remain untimely after Serrano disclaims extension or excuse and the district court affirmatively finds neither excusable neglect nor good cause and declines an extension?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-extension-boundary-frap4",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-4-criminal-time"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-extension-boundary-pa156",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa156"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-extension-boundary-pa165",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa165"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-extension-boundary-pa168",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa168"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-no-equity",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Which branch facts exclude Rule 4(c) prison-mail deposit, Rule 4(b)(3) tolling motions, clerk inaccessibility, and any residual equitable excuse for the one-day delay?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-no-equity-marsh",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.marsh-rule4b"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-no-equity-brantley",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.brantley-prompt-invocation"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-no-equity-frap4",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-4-criminal-time"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-no-equity-frap26",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-26-calendar"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-no-equity-pa156",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa156"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-no-equity-pa165",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa165"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-no-equity-pa168",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa168"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-response-record",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "What does Serrano's never-filed opposition preserve after the district court has already declined an extension, and why can it not reopen the returned Rule 4(b)(4) determination?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-response-record-frap4",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-4-criminal-time"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-response-record-pa181",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa181"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-response-record-pa189",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa189"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-substance-neutrality",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Why does Brantley's substance-neutral treatment of Rule 4(b) foreclose an exception based on the strength or expressly reserved status of Serrano's allocution claim?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-substance-neutrality-brantley",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.brantley-prompt-invocation"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-substance-neutrality-pa174",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa174"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-substance-neutrality-pa189",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa189"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-dismissal-remedy",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "What is the exact disposition after the government's prompt combined threshold motion, and why does dismissal under Rule 4(b) make it unnecessary to reach the separately preserved waiver ground or allocution merits?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-dismissal-remedy-marsh",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.marsh-rule4b"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-dismissal-remedy-brantley",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.brantley-prompt-invocation"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-dismissal-remedy-pa189",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa189"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-actual-notice-isolation",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "How does the plan preserve Serrano's actual March 11 day-14 notice while treating the March 12 notice, limited-remand packet, and every resulting order as never-filed counterfactual material?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-actual-notice-ja254",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja254"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-actual-notice-pa156",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa156"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-actual-notice-pa161",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa161"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.counterfactual-finality",
+        "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "After the April 10 dismissal opinion and judgment, how do the ordinary Rule 40 and Rule 41 intervals produce the May 1 mandate, what does that mandate terminate, and what actual-case disposition remains unaffected?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-finality-brantley",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.brantley-prompt-invocation"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-finality-frap40",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-40-rehearing"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-finality-frap41",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-41-mandate"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-finality-pa193",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa193"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.counterfactual-finality-pa195",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa195"
+          }
+        ]
+      }
+    ]
+  }
+}

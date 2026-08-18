@@ -1,0 +1,390 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.serrano.argument.actual-record",
+  "case_id": "ca4m4.case.serrano-waiver",
+  "bench_configuration_id": "ca4m4.serrano.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.serrano.issue.waiver-validity",
+    "ca4m4.serrano.issue.waiver-scope-role-enhancement",
+    "ca4m4.serrano.issue.complete-denial-allocution"
+  ],
+  "grounded_question_bank": {
+    "mode": "actual_record",
+    "grounding_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.serrano.issue.waiver-validity",
+        "topic_ids": [
+          "workbench.topic.preservation",
+          "workbench.topic.governing-authority",
+          "workbench.topic.record-support",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.serrano.issue.waiver-scope-role-enhancement",
+        "topic_ids": [
+          "workbench.topic.standard-of-review",
+          "workbench.topic.governing-authority",
+          "workbench.topic.record-support",
+          "workbench.topic.remedy"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.serrano.issue.complete-denial-allocution",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.record-support",
+          "workbench.topic.standard-of-review",
+          "workbench.topic.remedy"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.serrano.question.actual-waiver-reservation",
+        "issue_id": "ca4m4.serrano.issue.waiver-validity",
+        "topic_id": "workbench.topic.preservation",
+        "prompt": "What exact plea term waives Guidelines-calculation appeals while preserving a claim that Serrano was completely denied allocution, and how did the Rule 11 colloquy test that distinction?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-reservation-rule11",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.frcrp-11-appeal-waiver-colloquy"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-reservation-ja62",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja62"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-reservation-ja89",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja89"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-waiver-rule11",
+        "issue_id": "ca4m4.serrano.issue.waiver-validity",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Under Rule 11, Boutcher, Smith, and Hunter, which personal confirmations make the broad waiver and express allocution carve-out knowing and intelligent, and why does Serrano rely on the text rather than Hunter's exception?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-rule11-rule",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.frcrp-11-appeal-waiver-colloquy"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-rule11-boutcher",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.boutcher-appeal-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-rule11-hunter",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.hunter-miscarriage-limit"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-rule11-smith",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.smith-rule11-waiver-scope"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-rule11-ja97",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja97"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-waiver-colloquy-record",
+        "issue_id": "ca4m4.serrano.issue.waiver-validity",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Where does the actual record show Serrano's personal understanding of both the broad sentencing waiver and the narrow allocution reservation, rather than counsel's understanding alone?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-colloquy-boutcher",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.boutcher-appeal-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-colloquy-ja89",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja89"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-colloquy-ja97",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja97"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-waiver-severability",
+        "issue_id": "ca4m4.serrano.issue.waiver-validity",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "Why does Ashford place allocution within a generic sentencing waiver while Serrano's narrower text expressly preserves complete denial, allowing enforcement against only the Guidelines target?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-severability-boutcher",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.boutcher-appeal-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-severability-ashford",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.ashford-generic-waiver-allocution"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-severability-opening-waiver-clause",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-waiver-clause"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-waiver-severability-pa54",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa54"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-scope-standard",
+        "issue_id": "ca4m4.serrano.issue.waiver-scope-role-enhancement",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "What is the de novo inquiry for waiver enforcement, and which part of that inquiry concerns validity rather than whether the § 3B1.1 challenge falls within scope?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-standard-boutcher",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.boutcher-appeal-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-standard-opening-waiver-clause",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-waiver-clause"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-scope-authority",
+        "issue_id": "ca4m4.serrano.issue.waiver-scope-role-enhancement",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Why is an asserted § 3B1.1 misapplication a standard-fare § 3742 Guidelines challenge within the waiver, how did Amendment 836 remove the old asset-only departure sentence without changing the person-management requirement, and why does Hunter foreclose treating this ordinary claim as a miscarriage exception?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-authority-section3742",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.section-3742-sentence-review"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-authority-ussg",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.ussg-3b1-1-aggravating-role"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-authority-amendment-836",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.ussg-amendment-836-role-note"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-authority-boutcher",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.boutcher-appeal-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-authority-hunter",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.hunter-miscarriage-limit"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-authority-steffen",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.steffen-person-management"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-scope-record",
+        "issue_id": "ca4m4.serrano.issue.waiver-scope-role-enhancement",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "What do the stable PSR, objection, sentencing-position, and separate appellate-volume anchors identify about the § 3B1.1(b) target, and why must the panel avoid deciding whether Serrano supervised another of the five participants?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-record-ussg",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.ussg-3b1-1-aggravating-role"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-record-steffen",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.steffen-person-management"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-record-psr-offense-conduct",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.psr-offense-conduct"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-record-psr-role",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.psr-role-adjustment"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-record-objection",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.role-enhancement-objection"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-record-government-position",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.government-sentencing-role-position"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-record-appellate-psr-volume",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.actual-appendix-psr-volume"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-record-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja235"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-scope-remedy",
+        "issue_id": "ca4m4.serrano.issue.waiver-scope-role-enhancement",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why is dismissal of the enhancement target, rather than affirmance of the enhancement on the merits, the precise consequence of enforcing this appeal waiver?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-remedy-boutcher",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.boutcher-appeal-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-remedy-opening-role-scope",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-role-scope"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-scope-remedy-pa54",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa54"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-allocution-authority",
+        "issue_id": "ca4m4.serrano.issue.complete-denial-allocution",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "How do Rule 32, Jennings, and Muhammad establish complete denial, and why does Ashford's generic-waiver holding not override Serrano's express allocution reservation?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-authority-rule32",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frcrp-32-sentencing"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-authority-ashford",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.ashford-generic-waiver-allocution"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-authority-jennings",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.jennings-allocution"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-authority-muhammad",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.muhammad-complete-denial"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-allocution-record",
+        "issue_id": "ca4m4.serrano.issue.complete-denial-allocution",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "At what point did the court impose sentence without personally inviting Serrano to speak, and how do the transcript endpoint and written sentencing record confirm a complete omission rather than a content restriction?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-record-ja220",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja220"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-record-ja229",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja229"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-record-ja230",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.ja230"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-allocution-plain-error",
+        "issue_id": "ca4m4.serrano.issue.complete-denial-allocution",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "Even without a contemporaneous objection, why is complete denial plain, why is counsel's speaking insufficient, and what preserved mitigation shows a real possibility of a lower sentence?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-plain-error-jennings",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.jennings-allocution"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-plain-error-muhammad",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.muhammad-complete-denial"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-plain-error-psr-mitigation-history",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.psr-mitigation-history"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-plain-error-defense-mitigation",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.defense-sentencing-mitigation"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-plain-error-response",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.actual-response-allocution-prejudice"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.serrano.question.actual-allocution-remedy",
+        "issue_id": "ca4m4.serrano.issue.complete-denial-allocution",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why does the reserved allocution error require vacating the sentence and remanding for resentencing, even though the separate enhancement appeal has already been dismissed under the waiver?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-remedy-muhammad",
+            "kind": "authority",
+            "authority_id": "ca4m4.serrano.authority.muhammad-complete-denial"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-remedy-response-prejudice",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.stable.actual-response-allocution-prejudice"
+          },
+          {
+            "grounding_id": "ca4m4.serrano.grounding.actual-allocution-remedy-pa140",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.serrano.anchor.pa140"
+          }
+        ]
+      }
+    ]
+  }
+}

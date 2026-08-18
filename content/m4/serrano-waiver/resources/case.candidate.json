@@ -1,0 +1,255 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4m4.case.serrano-waiver",
+  "title": "United States v. Mateo Serrano",
+  "procedure_profile_id": "ca4m4.serrano.procedure.criminal-sentencing-appeal",
+  "record_id": "ca4m4.serrano.record",
+  "actors": [
+    {
+      "actor_id": "ca4m4.serrano.actor.mateo-serrano",
+      "role_id": "us.ca4.role.initiating-party",
+      "display_name": "Mateo Serrano (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.serrano.actor.united-states",
+      "role_id": "us.ca4.role.responding-party",
+      "display_name": "Fictional United States prosecution actor",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.serrano.actor.district-court",
+      "role_id": "ca4m4.serrano.role.originating-court",
+      "display_name": "Fictional United States District Court for the Middle District of North Carolina",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.serrano.actor.ca4-clerk",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional Fourth Circuit exercise clerk",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.serrano.actor.composite-panel",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional composite Fourth Circuit panel",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4m4.serrano.issue.waiver-validity",
+      "title": "Whether the plea agreement and personal Rule 11 confirmation establish a knowing and intelligent waiver of conviction and sentencing appeals, with no government breach and an express exception for complete denial of allocution",
+      "target_ids": [
+        "ca4m4.serrano.target.plea-appeal-waiver"
+      ],
+      "authority_ids": [
+        "ca4m4.serrano.authority.frcrp-11-appeal-waiver-colloquy",
+        "ca4m4.serrano.authority.boutcher-appeal-waiver",
+        "ca4m4.serrano.authority.smith-rule11-waiver-scope",
+        "ca4m4.serrano.authority.hunter-miscarriage-limit",
+        "ca4m4.serrano.authority.ashford-generic-waiver-allocution"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.serrano.anchor.ja57",
+        "ca4m4.serrano.anchor.ja62",
+        "ca4m4.serrano.anchor.ja89",
+        "ca4m4.serrano.anchor.ja97",
+        "ca4m4.serrano.anchor.stable.actual-opening-waiver-clause",
+        "ca4m4.serrano.anchor.pa54",
+        "ca4m4.serrano.anchor.pa70"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.serrano.issue.waiver-scope-role-enhancement",
+      "title": "Whether the valid waiver covers an ordinary challenge to the three-level § 3B1.1(b) manager-or-supervisor enhancement for exactly five participants and therefore requires dismissal without deciding whether Serrano managed another person",
+      "target_ids": [
+        "ca4m4.serrano.target.role-enhancement-appeal"
+      ],
+      "authority_ids": [
+        "ca4m4.serrano.authority.section-3742-sentence-review",
+        "ca4m4.serrano.authority.ussg-3b1-1-aggravating-role",
+        "ca4m4.serrano.authority.ussg-amendment-836-role-note",
+        "ca4m4.serrano.authority.steffen-person-management",
+        "ca4m4.serrano.authority.boutcher-appeal-waiver",
+        "ca4m4.serrano.authority.hunter-miscarriage-limit"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.serrano.anchor.stable.psr-offense-conduct",
+        "ca4m4.serrano.anchor.stable.psr-role-adjustment",
+        "ca4m4.serrano.anchor.stable.psr-guideline-range",
+        "ca4m4.serrano.anchor.stable.role-enhancement-objection",
+        "ca4m4.serrano.anchor.stable.role-enhancement-response",
+        "ca4m4.serrano.anchor.stable.government-sentencing-role-position",
+        "ca4m4.serrano.anchor.stable.actual-opening-waiver-clause",
+        "ca4m4.serrano.anchor.stable.actual-opening-role-scope",
+        "ca4m4.serrano.anchor.stable.actual-appendix-psr-volume",
+        "ca4m4.serrano.anchor.ja235",
+        "ca4m4.serrano.anchor.pa54",
+        "ca4m4.serrano.anchor.pa70"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.serrano.issue.complete-denial-allocution",
+      "title": "Whether the court completely denied Serrano a personal opportunity to allocute, despite counsel's statements and without objection, and whether a real possibility of a lower sentence requires vacatur and full resentencing under the express waiver carve-out",
+      "target_ids": [
+        "ca4m4.serrano.target.sentence-without-allocution"
+      ],
+      "authority_ids": [
+        "us.federal.authority.frcrp-32-sentencing",
+        "ca4m4.serrano.authority.ashford-generic-waiver-allocution",
+        "ca4m4.serrano.authority.jennings-allocution",
+        "ca4m4.serrano.authority.muhammad-complete-denial"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.serrano.anchor.ja220",
+        "ca4m4.serrano.anchor.ja229",
+        "ca4m4.serrano.anchor.ja230",
+        "ca4m4.serrano.anchor.stable.psr-mitigation-history",
+        "ca4m4.serrano.anchor.stable.defense-sentencing-mitigation",
+        "ca4m4.serrano.anchor.stable.actual-response-allocution-prejudice",
+        "ca4m4.serrano.anchor.stable.actual-reply-express-carve-out",
+        "ca4m4.serrano.anchor.pa140"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+      "title": "Whether the isolated never-filed day-15 notice must be dismissed after a limited remand finds no excusable neglect or good cause and declines extension, with no prison-mail deposit, tolling motion, clerk inaccessibility, or government forfeiture",
+      "target_ids": [
+        "ca4m4.serrano.target.counterfactual-day15-appeal"
+      ],
+      "authority_ids": [
+        "us.federal.authority.frap-4-criminal-time",
+        "us.federal.authority.frap-26-calendar",
+        "us.ca4.authority.local-rule-27-motions",
+        "us.federal.authority.frap-40-rehearing",
+        "us.federal.authority.frap-41-mandate",
+        "ca4m4.serrano.authority.marsh-rule4b",
+        "ca4m4.serrano.authority.brantley-prompt-invocation",
+        "ca4m4.serrano.authority.melvin-threshold-forfeiture",
+        "ca4m4.serrano.authority.kemp-threshold-forfeiture",
+        "ca4m4.serrano.authority.boutcher-appeal-waiver"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.serrano.anchor.ja242",
+        "ca4m4.serrano.anchor.ja254",
+        "ca4m4.serrano.anchor.pa156",
+        "ca4m4.serrano.anchor.pa161",
+        "ca4m4.serrano.anchor.pa165",
+        "ca4m4.serrano.anchor.pa168",
+        "ca4m4.serrano.anchor.pa172",
+        "ca4m4.serrano.anchor.pa174",
+        "ca4m4.serrano.anchor.pa181",
+        "ca4m4.serrano.anchor.pa186",
+        "ca4m4.serrano.anchor.pa189",
+        "ca4m4.serrano.anchor.pa193",
+        "ca4m4.serrano.anchor.pa195"
+      ]
+    }
+  ],
+  "authored_disposition_id": "ca4m4.serrano.operation.issue-actual-judgment",
+  "authored_disposition_plan_id": "ca4m4.serrano.disposition.actual-partial-dismissal-vacatur-remand",
+  "disposition_plans": [
+    {
+      "plan_id": "ca4m4.serrano.disposition.actual-partial-dismissal-vacatur-remand",
+      "finality": "final",
+      "digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "components": [
+        {
+          "issue_id": "ca4m4.serrano.issue.waiver-validity",
+          "target_id": "ca4m4.serrano.target.plea-appeal-waiver",
+          "scope": "whole",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.serrano.authority.frcrp-11-appeal-waiver-colloquy",
+            "ca4m4.serrano.authority.boutcher-appeal-waiver",
+            "ca4m4.serrano.authority.smith-rule11-waiver-scope",
+            "ca4m4.serrano.authority.hunter-miscarriage-limit"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.serrano.anchor.ja62",
+            "ca4m4.serrano.anchor.ja89",
+            "ca4m4.serrano.anchor.ja97",
+            "ca4m4.serrano.anchor.pa54",
+            "ca4m4.serrano.anchor.pa70"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.serrano.issue.waiver-scope-role-enhancement",
+          "target_id": "ca4m4.serrano.target.role-enhancement-appeal",
+          "scope": "whole",
+          "action": "dismiss",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.serrano.authority.section-3742-sentence-review",
+            "ca4m4.serrano.authority.ussg-3b1-1-aggravating-role",
+            "ca4m4.serrano.authority.ussg-amendment-836-role-note",
+            "ca4m4.serrano.authority.steffen-person-management",
+            "ca4m4.serrano.authority.boutcher-appeal-waiver",
+            "ca4m4.serrano.authority.hunter-miscarriage-limit"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.serrano.anchor.stable.psr-role-adjustment",
+            "ca4m4.serrano.anchor.stable.role-enhancement-objection",
+            "ca4m4.serrano.anchor.stable.actual-opening-role-scope",
+            "ca4m4.serrano.anchor.ja235",
+            "ca4m4.serrano.anchor.pa70"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.serrano.issue.complete-denial-allocution",
+          "target_id": "ca4m4.serrano.target.sentence-without-allocution",
+          "scope": "whole",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "us.federal.authority.frcrp-32-sentencing",
+            "ca4m4.serrano.authority.ashford-generic-waiver-allocution",
+            "ca4m4.serrano.authority.jennings-allocution",
+            "ca4m4.serrano.authority.muhammad-complete-denial"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.serrano.anchor.ja220",
+            "ca4m4.serrano.anchor.ja229",
+            "ca4m4.serrano.anchor.ja230",
+            "ca4m4.serrano.anchor.stable.actual-response-allocution-prejudice",
+            "ca4m4.serrano.anchor.pa140"
+          ]
+        }
+      ]
+    },
+    {
+      "plan_id": "ca4m4.serrano.disposition.counterfactual-rule4b-dismissal",
+      "finality": "final",
+      "digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "components": [
+        {
+          "issue_id": "ca4m4.serrano.issue.rule4b-day15-notice",
+          "target_id": "ca4m4.serrano.target.counterfactual-day15-appeal",
+          "scope": "whole",
+          "action": "dismiss",
+          "remand": false,
+          "authority_ids": [
+            "us.federal.authority.frap-4-criminal-time",
+            "us.federal.authority.frap-26-calendar",
+            "us.ca4.authority.local-rule-27-motions",
+            "ca4m4.serrano.authority.marsh-rule4b",
+            "ca4m4.serrano.authority.brantley-prompt-invocation",
+            "ca4m4.serrano.authority.kemp-threshold-forfeiture"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.serrano.anchor.ja242",
+            "ca4m4.serrano.anchor.pa156",
+            "ca4m4.serrano.anchor.pa165",
+            "ca4m4.serrano.anchor.pa168",
+            "ca4m4.serrano.anchor.pa174",
+            "ca4m4.serrano.anchor.pa189",
+            "ca4m4.serrano.anchor.pa193"
+          ]
+        }
+      ]
+    }
+  ]
+}
