@@ -9,7 +9,7 @@
 
 **Filed:** February 12, 2026
 
-DOE moves for limited sealing of three controlled brief counterparts in this isolated exercise. The requested relief is confined to passages that use harmless sealed labels to represent the operational and human-function fields described in the corrected premise. DOE does not seek to close the docket, conceal the existence of a filing, or restrict any public counterpart.
+DOE moves for limited sealing of three anticipated controlled brief counterparts in this isolated exercise and, conditionally, one later public/sealed joint supplemental pair if the Court orders joint supplemental briefing on the same controlled subjects. The requested relief is confined to passages that use harmless sealed labels to represent the operational and human-function fields described in the corrected premise. DOE does not seek to close the docket, conceal the existence of a filing, or restrict any public counterpart.
 
 The motion is prospective because the briefs have not yet been submitted. It identifies the anticipated materials now so that public notice and access procedures precede any controlled filing. The public opening, response, and reply will remain available in full except for conspicuous category notices replacing the defined fictional fields.
 
@@ -27,7 +27,9 @@ The second pair is the fourteen-page counterfactual response brief. Its principa
 
 The third pair is the eight-page counterfactual reply brief. Its controlled subject includes the narrow-sealing discussion. The public version will disclose the proposed duration, alternatives, and access mechanics while masking only fabricated field examples. The controlled counterpart will contain no operational value.
 
-Each public and sealed counterpart will have equal logical pages and page-aligned subjects, but independently worded prose. This motion does not cover the corrected-premise notice, confidentiality certificate, argument notice, opinion, judgment, or rehearing papers. Those documents remain public on the isolated training docket.
+The conditional fourth class is limited to one joint supplemental brief pair that a later court order may require. It is covered only if both parties address the same controlled field subjects, file an equal-page public counterpart, and obtain a disclosure-specific judicial grant for that pair. This condition neither predicts that supplemental briefing will occur nor authorizes any other later filing.
+
+Each public and sealed counterpart will have equal logical pages and page-aligned subjects, but independently worded prose. The corrected-premise notice, confidentiality certificate, argument notice, opinions, judgments, and unmatched later papers remain public on the isolated training docket.
 
 <!-- PAGE BREAK -->
 
@@ -69,9 +71,9 @@ Revocation removes the controlled row and returns the viewer to the public count
 
 ## Requested Order and Certification
 
-DOE asks the Court to permit controlled submission of the three identified sealed counterparts only when the matching public copy and the separate confidentiality certificate are present. The order should identify each pair, incorporate the stated duration, and preserve authority to narrow or terminate sealing at any time.
+DOE asks the Court to permit controlled submission of the three identified sealed counterparts only when the matching public copy and the separate confidentiality certificate are present. The same support may reach the conditional joint supplemental pair only if the Court first orders that briefing and issues a judicial grant naming that disclosure. The order should identify each covered pair, incorporate the stated duration, and preserve authority to narrow or terminate sealing at any time.
 
-The public versions must remain available without a session grant. The clerk should reject a sealed counterpart whose page count differs from its public mate, whose disclosure lacks a required supporting item, or whose current content-addressed bytes cannot be verified. The ruling should not extend to later documents without a new request and findings.
+The public versions must remain available without a session grant. The clerk should reject a sealed counterpart whose page count differs from its public mate, whose disclosure lacks a required supporting item, or whose current content-addressed bytes cannot be verified. For the conditional class, the grant must bind the exact disclosure and resolved closure; every open must repeat the path, size, digest, readability, and page-count checks, and revocation must remove the sealed row. The ruling extends to no other later document.
 
 Counsel certifies that the motion is publicly filed on the isolated training docket and that its subject has been described without revealing any purported protected value. Open Grid counsel received the motion electronically on February 12, 2026. The parties may present different legal positions on sealing while using the same access protocol.
 

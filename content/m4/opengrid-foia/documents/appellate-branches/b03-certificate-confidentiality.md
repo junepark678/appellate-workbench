@@ -9,7 +9,7 @@
 
 **Filed:** February 12, 2026
 
-Corin Pell certifies that the controlled materials proposed for this isolated appeal are limited to the sealed counterparts of the counterfactual opening, response, and reply briefs. Each counterpart uses arbitrary exercise labels in place of purportedly sensitive field values. The labels are not real confidential information, yet access is treated as controlled so the record can test document-specific sealing behavior.
+Corin Pell certifies that the controlled materials proposed for this isolated appeal are limited to the sealed counterparts of the counterfactual opening, response, and reply briefs and, conditionally, one joint supplemental brief pair if the Court later orders joint briefing on the same controlled subjects. Each counterpart uses arbitrary exercise labels in place of purportedly sensitive field values. The labels are not real confidential information, yet access is treated as controlled so the record can test document-specific sealing behavior.
 
 The asserted basis is the corrected premise concerning narrow 7(E) implementation relationships and limited 7(F) human-function fields. The certificate does not broaden those categories. It does not designate public legal argument, authorities, chronology, arithmetic, document titles, or general administrative text as confidential.
 
@@ -27,7 +27,9 @@ The fourteen-page response pair addresses the same four targets from DOE’s per
 
 The eight-page reply pair narrows the disputed points after the response. Its fourth subject analyzes document-specific sealing and the public-only default. The controlled side illustrates the field categories without changing the legal analysis disclosed publicly.
 
-No other never-filed document is certified for sealing. The premise notice, motion, this certificate, argument notice, opinion, judgment, rehearing petition, and rehearing response are public exercise records. A later filing cannot inherit the certificate merely by discussing the same subject; it must satisfy its own disclosure definition and supporting requirements.
+One later joint supplemental pair may use this certificate only if a court order first requires that joint briefing, the pair addresses the same controlled field subjects, its equal-page public counterpart is filed, and a disclosure-specific judicial grant identifies its exact resolved closure. The condition does not assume that such briefing will be ordered or filed.
+
+No other never-filed document is certified for sealing. The premise notice, motion, this certificate, argument notice, opinions, judgments, and unmatched later papers remain public exercise records. A filing cannot inherit the certificate merely by discussing the same subject; it must satisfy its own disclosure definition and supporting requirements.
 
 <!-- PAGE BREAK -->
 
