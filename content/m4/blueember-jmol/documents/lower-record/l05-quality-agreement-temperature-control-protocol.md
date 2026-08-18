@@ -1,6 +1,6 @@
 > **SYNTHETIC TRAINING RECORD — FICTIONAL PARTIES, PEOPLE, PLACES, IDENTIFIERS, AND EVENTS — NOT A REAL FILING**
 
-# Quality Agreement QA-BE-GHL-017
+# Quality Agreement and Temperature-Control Protocol
 
 ## Temperature-Control Protocol for BE-214 Materials
 

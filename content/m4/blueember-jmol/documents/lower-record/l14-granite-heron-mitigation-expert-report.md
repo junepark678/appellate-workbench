@@ -1,6 +1,6 @@
 > **SYNTHETIC TRAINING RECORD — FICTIONAL PARTIES, PEOPLE, PLACES, IDENTIFIERS, AND EVENTS — NOT A REAL FILING**
 
-# Expert Report of Dr. Elodie Park
+# Granite Heron Mitigation Expert Report
 
 ## Mitigation and economic-loss opinions for Granite Heron Logistics, Inc.
 

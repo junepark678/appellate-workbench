@@ -1,6 +1,6 @@
 > **SYNTHETIC TRAINING RECORD — FICTIONAL PARTIES, PEOPLE, PLACES, IDENTIFIERS, AND EVENTS — NOT A REAL FILING**
 
-# Master Logistics Services Agreement BE-GHL-MLS-2023-1101
+# Master Logistics Services Agreement
 
 Executed and effective November 1, 2023. Attached to Blue Ember’s complaint filed December 2, 2024 in Civil Action No. SYN-WDNC-24-CV-0520.
 

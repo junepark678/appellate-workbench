@@ -1,6 +1,6 @@
 > **SYNTHETIC TRAINING RECORD — FICTIONAL PARTIES, PEOPLE, PLACES, IDENTIFIERS, AND EVENTS — NOT A REAL FILING**
 
-# Shipment Rate Confirmation RC-240912-087
+# Shipment Rate Confirmation and Custody Terms
 
 Issued September 11, 2024 by Granite Heron Logistics, Inc. for shipment GHL-ASH-091224-087. Filed as an attachment to Granite Heron’s answer on December 30, 2024 in Civil Action No. SYN-WDNC-24-CV-0520.
 

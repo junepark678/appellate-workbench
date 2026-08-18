@@ -1,6 +1,6 @@
 > **SYNTHETIC TRAINING RECORD — FICTIONAL PARTIES, PEOPLE, PLACES, IDENTIFIERS, AND EVENTS — NOT A REAL FILING**
 
-# Deposition of Blue Ember Biologics, LLC
+# Blue Ember Rule 30(b)(6) Deposition
 
 ## Testimony through Dr. Mira Solis under Rule 30(b)(6)
 

@@ -1,6 +1,6 @@
 > **SYNTHETIC TRAINING RECORD — FICTIONAL PARTIES, PEOPLE, PLACES, IDENTIFIERS, AND EVENTS — NOT A REAL FILING**
 
-# Complaint and Jury Demand
+# Complaint
 
 ## United States District Court for the Western District of North Carolina
 

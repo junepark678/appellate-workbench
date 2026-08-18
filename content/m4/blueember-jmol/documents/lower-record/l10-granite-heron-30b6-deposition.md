@@ -1,6 +1,6 @@
 > **SYNTHETIC TRAINING RECORD — FICTIONAL PARTIES, PEOPLE, PLACES, IDENTIFIERS, AND EVENTS — NOT A REAL FILING**
 
-# Deposition of Granite Heron Logistics, Inc.
+# Granite Heron Rule 30(b)(6) Deposition
 
 ## Rule 30(b)(6) testimony through Adrian Locke
 
