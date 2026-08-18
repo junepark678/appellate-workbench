@@ -1,0 +1,653 @@
+{
+    "blobs": [
+        {
+            "byte_size": 23492,
+            "media_type": "application/pdf",
+            "path": "objects/a01-appellate-docketing-notice.pdf",
+            "sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        },
+        {
+            "byte_size": 26329,
+            "media_type": "application/pdf",
+            "path": "objects/a02-blue-ember-appearance-disclosure.pdf",
+            "sha256": "a60c6178662e176fe35135a6637abea07de7210a484894f6ff4d16cdd3016c31"
+        },
+        {
+            "byte_size": 26064,
+            "media_type": "application/pdf",
+            "path": "objects/a03-granite-heron-appearance-disclosure.pdf",
+            "sha256": "282d7ba13e6e8342a35349a64da46a12d6137a91aec9b8a22a3e95c1950fc094"
+        },
+        {
+            "byte_size": 38794,
+            "media_type": "application/pdf",
+            "path": "objects/a04-blue-ember-docketing-statement.pdf",
+            "sha256": "40e17692dd04c069e7abe1f474d7d96c3d6e18dc4467f06856fb71647356e7d1"
+        },
+        {
+            "byte_size": 26601,
+            "media_type": "application/pdf",
+            "path": "objects/a05-transcript-order-record-designation.pdf",
+            "sha256": "8c7a351de10681db3f9ea7e2ed382d1c1e888c8da19ca6a1371ad629ab63ae66"
+        },
+        {
+            "byte_size": 26589,
+            "media_type": "application/pdf",
+            "path": "objects/a06-record-complete-briefing-order.pdf",
+            "sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4"
+        },
+        {
+            "byte_size": 91865,
+            "media_type": "application/pdf",
+            "path": "objects/a07-blue-ember-opening-brief.pdf",
+            "sha256": "80350f6c94023cd1b5287b1e69b28e1439e82d234c1919a9821f9bc17d2d6a0c"
+        },
+        {
+            "byte_size": 39284,
+            "media_type": "application/pdf",
+            "path": "objects/a08-joint-appendix-cover-index-certification.pdf",
+            "sha256": "111ec43222386ffe0f0bae3e98dbbc7361557abdd1c6f9ffeedd74d36e0d438a"
+        },
+        {
+            "byte_size": 93965,
+            "media_type": "application/pdf",
+            "path": "objects/a09-granite-heron-response-brief.pdf",
+            "sha256": "c20c4fdf945677387996289b392a04844ae224938aa6616426f54e91ae6116e6"
+        },
+        {
+            "byte_size": 61998,
+            "media_type": "application/pdf",
+            "path": "objects/a10-blue-ember-reply-brief.pdf",
+            "sha256": "9c365d4e8639ac39337dfdcf727d4f205f2fbd335f99cc67f500f9355b8147dc"
+        },
+        {
+            "byte_size": 29619,
+            "media_type": "application/pdf",
+            "path": "objects/a11-oral-argument-calendar-notice.pdf",
+            "sha256": "bdeba1c0d6e611782e65323256095209b6bf20c5a85099beb75b058219baaa78"
+        },
+        {
+            "byte_size": 29687,
+            "media_type": "application/pdf",
+            "path": "objects/a12-argument-held-minute-sheet.pdf",
+            "sha256": "0c5c74570aacc1c45b8f5252c03fe46f1e2c3412635b2852e0e6c504b724db0a"
+        },
+        {
+            "byte_size": 77666,
+            "media_type": "application/pdf",
+            "path": "objects/a13-published-panel-opinion.pdf",
+            "sha256": "6e87cdcbd62d617aae22db97313903bbc07aedbb40e583ad7f1bc153c9add957"
+        },
+        {
+            "byte_size": 23586,
+            "media_type": "application/pdf",
+            "path": "objects/a14-judgment.pdf",
+            "sha256": "5a339a13e14a331db000bcc1f5ab138e3c83060a10223c9ea6fad6c16d7854da"
+        },
+        {
+            "byte_size": 19733,
+            "media_type": "application/pdf",
+            "path": "objects/a15-ordinary-mandate-release-order.pdf",
+            "sha256": "45aa0355821b674e0f835653f118f286bb19f50f7960a7db9d56f696591b5ab2"
+        },
+        {
+            "byte_size": 22698,
+            "media_type": "application/pdf",
+            "path": "objects/a16-mandate.pdf",
+            "sha256": "a51004a8cd6aabdbad6f7fd693c4649479b35c2115795864d0180860fc246233"
+        },
+        {
+            "byte_size": 31326,
+            "media_type": "application/pdf",
+            "path": "objects/b01-counterfactual-express-preservation-record-order.pdf",
+            "sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8"
+        },
+        {
+            "byte_size": 74956,
+            "media_type": "application/pdf",
+            "path": "objects/b02-counterfactual-blue-ember-opening-brief.pdf",
+            "sha256": "c6aa4b2ce5f62101c14ad216a862175e0c891d798e82335e2702c18b108e0020"
+        },
+        {
+            "byte_size": 39273,
+            "media_type": "application/pdf",
+            "path": "objects/b03-counterfactual-joint-appendix-cover-index-certification.pdf",
+            "sha256": "5c3923d96ac613b95c5a453cb91554811e1b790b0ef7fff68738b1f3132e3d5e"
+        },
+        {
+            "byte_size": 73488,
+            "media_type": "application/pdf",
+            "path": "objects/b04-counterfactual-granite-heron-response-brief.pdf",
+            "sha256": "ae2e850d965ff49d679c8034ae5fa7b42979424e0628c3b0a5c458ed3359ed3d"
+        },
+        {
+            "byte_size": 49224,
+            "media_type": "application/pdf",
+            "path": "objects/b05-counterfactual-blue-ember-reply-brief.pdf",
+            "sha256": "0d550fd76aa1373c0a8f6d610424bc1893aaff70e394ed4f7c1a10a520a23c26"
+        },
+        {
+            "byte_size": 23338,
+            "media_type": "application/pdf",
+            "path": "objects/b06-submission-on-briefs-order.pdf",
+            "sha256": "5b328caaf05ef9a011bd0bb2c24cdca4a4ea12eb21142a5e21aac9030594fbcb"
+        },
+        {
+            "byte_size": 64079,
+            "media_type": "application/pdf",
+            "path": "objects/b07-counterfactual-preserved-mitigation-opinion.pdf",
+            "sha256": "ba10265c06549a8ac8576145b27dfacfb18fa5fd40ab58fa8ce7c82d0998c49d"
+        },
+        {
+            "byte_size": 23368,
+            "media_type": "application/pdf",
+            "path": "objects/b08-counterfactual-judgment.pdf",
+            "sha256": "b1b26db82867301512e3670925bce6f0e69cd746b0b0db764542e264f90a2564"
+        },
+        {
+            "byte_size": 20750,
+            "media_type": "application/pdf",
+            "path": "objects/b09-counterfactual-ordinary-mandate-release-order.pdf",
+            "sha256": "79250c09a62a74dd3e31243753b18939dd418365082428468f8fa9bf4f4e7116"
+        },
+        {
+            "byte_size": 23184,
+            "media_type": "application/pdf",
+            "path": "objects/b10-counterfactual-ordinary-mandate.pdf",
+            "sha256": "41a80248b6ccec0365b7ce9073c1bd2382f53c875f8e0cf7d16623d20263aa30"
+        },
+        {
+            "byte_size": 41720,
+            "media_type": "application/pdf",
+            "path": "objects/b11-timely-rehearing-petition.pdf",
+            "sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99"
+        },
+        {
+            "byte_size": 23285,
+            "media_type": "application/pdf",
+            "path": "objects/b12-rehearing-denial.pdf",
+            "sha256": "2a81bd29a12d77c0db65a0cac4dfa97207176be7d54a9b0e7f74f34608684087"
+        },
+        {
+            "byte_size": 20603,
+            "media_type": "application/pdf",
+            "path": "objects/b13-post-rehearing-release-order.pdf",
+            "sha256": "407131f5c8566852acbbb5024bebc487b248db7cc5c912c9aafb695ce822ee04"
+        },
+        {
+            "byte_size": 23771,
+            "media_type": "application/pdf",
+            "path": "objects/b14-post-rehearing-mandate.pdf",
+            "sha256": "2325acb4453537cd1a535588f1921df1f451bf239f71d43fa3fd19835e86186c"
+        },
+        {
+            "byte_size": 36240,
+            "media_type": "application/pdf",
+            "path": "objects/b15-mandate-stay-motion-denial-path.pdf",
+            "sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+        },
+        {
+            "byte_size": 32710,
+            "media_type": "application/pdf",
+            "path": "objects/b16-mandate-stay-response-denial-path.pdf",
+            "sha256": "b2878f685087d70104f7a51af2646266a91f050d78540807a4ee7149cb36b14c"
+        },
+        {
+            "byte_size": 23673,
+            "media_type": "application/pdf",
+            "path": "objects/b17-mandate-stay-denial.pdf",
+            "sha256": "e526ea9b6c833fe083854478d59fedd1eb9590511cc88f2d347fd3cfb75bd6be"
+        },
+        {
+            "byte_size": 20568,
+            "media_type": "application/pdf",
+            "path": "objects/b18-post-stay-denial-release-order.pdf",
+            "sha256": "b317c8109c744a02729bd8283890ddb90ac04d7e8a4ba41497425ad861d3bd5a"
+        },
+        {
+            "byte_size": 23385,
+            "media_type": "application/pdf",
+            "path": "objects/b19-post-stay-denial-mandate.pdf",
+            "sha256": "76ba7bdbc19a0cf1f45ac9da7920c8a6c863b3e7c8ca7bb876540855a8f80446"
+        },
+        {
+            "byte_size": 36290,
+            "media_type": "application/pdf",
+            "path": "objects/b20-mandate-stay-motion-grant-path.pdf",
+            "sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+        },
+        {
+            "byte_size": 33156,
+            "media_type": "application/pdf",
+            "path": "objects/b21-mandate-stay-response-grant-path.pdf",
+            "sha256": "8186c7c38c8a2b6cf1d4527699a90e8d19af499819522e371bb488b5afd286ef"
+        },
+        {
+            "byte_size": 24412,
+            "media_type": "application/pdf",
+            "path": "objects/b22-mandate-stay-grant.pdf",
+            "sha256": "876ce411c14b6a7a4f16091998438f4cdc89c1ee03be63ac855e7f23d2789ba9"
+        },
+        {
+            "byte_size": 23873,
+            "media_type": "application/pdf",
+            "path": "objects/b23-certiorari-abandonment-stay-dissolution-order.pdf",
+            "sha256": "50d1c1b49d5330c89ae76303b5043a74c1242a537cda014884860e6fde60ed55"
+        },
+        {
+            "byte_size": 20740,
+            "media_type": "application/pdf",
+            "path": "objects/b24-post-dissolution-release-order.pdf",
+            "sha256": "5d8b9216a43d387242f6c38c2e9a5fc4d03a223d93a3d1d8a5e0db4622365323"
+        },
+        {
+            "byte_size": 23670,
+            "media_type": "application/pdf",
+            "path": "objects/b25-post-dissolution-mandate.pdf",
+            "sha256": "17d64ac2fb9c0f66783237ceaa6d1cf91962e865b5f143b220f66ecdefd932e1"
+        },
+        {
+            "byte_size": 51003,
+            "media_type": "application/pdf",
+            "path": "objects/l01-complaint.pdf",
+            "sha256": "b3b43e69265311fd713fb140f2d3f26ecd72f2206a2453f387f525732c846cc8"
+        },
+        {
+            "byte_size": 44790,
+            "media_type": "application/pdf",
+            "path": "objects/l02-granite-heron-answer.pdf",
+            "sha256": "3602e3cfedcf26c0b5820f9eb7824a35121d584bd09a2661f79351ec2774fa1e"
+        },
+        {
+            "byte_size": 63163,
+            "media_type": "application/pdf",
+            "path": "objects/l03-master-logistics-services-agreement.pdf",
+            "sha256": "ba4af964db75a4290bc90def604b6c58069de512e45ad45473e245c86158585f"
+        },
+        {
+            "byte_size": 47371,
+            "media_type": "application/pdf",
+            "path": "objects/l04-be214-cold-chain-statement-of-work.pdf",
+            "sha256": "fac7f301847f0fc89f2d4aed4d00edf89b554347270db3b92b2734dcfdf90a54"
+        },
+        {
+            "byte_size": 52287,
+            "media_type": "application/pdf",
+            "path": "objects/l05-quality-agreement-temperature-control-protocol.pdf",
+            "sha256": "c36174faf6f6c4f89dd07832375cb5f877fce7900b6bf88f66dd81e9063794c7"
+        },
+        {
+            "byte_size": 42228,
+            "media_type": "application/pdf",
+            "path": "objects/l06-validation-lot-purchase-order-release-specification.pdf",
+            "sha256": "243ff1496939856ce81d63839d84ca5cdf47a4c91ecf7d20be8c5b8f0d1dcf9a"
+        },
+        {
+            "byte_size": 35350,
+            "media_type": "application/pdf",
+            "path": "objects/l07-shipment-rate-confirmation-custody-terms.pdf",
+            "sha256": "42851e603b47afe36cced57b2d9ff56418d7d08aa033a1d02dc12ce605cc1dc8"
+        },
+        {
+            "byte_size": 42052,
+            "media_type": "application/pdf",
+            "path": "objects/l08-rule26-report-disclosures.pdf",
+            "sha256": "945b0aead2a00859341a622a8651bc20c7fdc86817b1e30e39b6ba02fea8a575"
+        },
+        {
+            "byte_size": 65717,
+            "media_type": "application/pdf",
+            "path": "objects/l09-blue-ember-30b6-deposition.pdf",
+            "sha256": "da3200ba8f0b62426b712f5e80262a50bbb43280fc20335c08cf96890307aced"
+        },
+        {
+            "byte_size": 62988,
+            "media_type": "application/pdf",
+            "path": "objects/l10-granite-heron-30b6-deposition.pdf",
+            "sha256": "d759188fa7de9bec07b43905678395cc79bc7d9ca623ea6db447fa569750221b"
+        },
+        {
+            "byte_size": 55971,
+            "media_type": "application/pdf",
+            "path": "objects/l11-transport-operations-manager-deposition.pdf",
+            "sha256": "2e3e61e8ba68d8fce716a1c2db3c30a0b050e27163287bdfbf724e4053165df3"
+        },
+        {
+            "byte_size": 56940,
+            "media_type": "application/pdf",
+            "path": "objects/l12-cobalt-finch-capacity-witness-deposition.pdf",
+            "sha256": "ef7811c3849f3c85833e70f395cb315b80ea49cbfe0076b198fe8a3b796356a1"
+        },
+        {
+            "byte_size": 65950,
+            "media_type": "application/pdf",
+            "path": "objects/l13-blue-ember-damages-expert-report.pdf",
+            "sha256": "bdde4415318bc7b47b974b6251e246226335902e5eba1111c080fb36d7cd4ead"
+        },
+        {
+            "byte_size": 62961,
+            "media_type": "application/pdf",
+            "path": "objects/l14-granite-heron-mitigation-expert-report.pdf",
+            "sha256": "c6a7651c666376f3fe3aa06145b1fa188c1502e64ebcde58bb51a7bd2248ac57"
+        },
+        {
+            "byte_size": 47120,
+            "media_type": "application/pdf",
+            "path": "objects/l15-final-pretrial-order.pdf",
+            "sha256": "f3308ccd7e55e33a6fac330a95c8fe1fae0116c8d99eb0b9565b5ff13f9b0779"
+        },
+        {
+            "byte_size": 40638,
+            "media_type": "application/pdf",
+            "path": "objects/l16-joint-stipulated-facts-contested-issues.pdf",
+            "sha256": "2e3334f3e92a69db20e8b2ab39558d8637339c0cc56765b6167b87f6c20f5f3e"
+        },
+        {
+            "byte_size": 46723,
+            "media_type": "application/pdf",
+            "path": "objects/l17-proposed-jury-instructions-objections.pdf",
+            "sha256": "b805ec207afa8b1ba58f2925f045d142991873b496bf88710aa76d2534988e17"
+        },
+        {
+            "byte_size": 41002,
+            "media_type": "application/pdf",
+            "path": "objects/l18-final-pretrial-conference-order-witness-exhibit-lists.pdf",
+            "sha256": "dda86d75bb96c253d7d81345895f7f9f6da586299c8624d3593b3dfb3c6e1dfe"
+        },
+        {
+            "byte_size": 79091,
+            "media_type": "application/pdf",
+            "path": "objects/l19-trial-transcript-day1-openings-contract.pdf",
+            "sha256": "ff60071e33e23e3ba0c13a55a42ee2fd66533369ae621bbf0966a7768febcabc"
+        },
+        {
+            "byte_size": 76451,
+            "media_type": "application/pdf",
+            "path": "objects/l20-trial-transcript-day2-temperature-causation.pdf",
+            "sha256": "1448fe8db58dd6761f9aa10406f2d91942d1fff959fc0f7b12cf251c39ddd9e7"
+        },
+        {
+            "byte_size": 77181,
+            "media_type": "application/pdf",
+            "path": "objects/l21-trial-transcript-day3-cobalt-finch-mitigation.pdf",
+            "sha256": "96cb8e353933df7217f400d240a0324b007affdf5bcece965c9e9f8df1ad581b"
+        },
+        {
+            "byte_size": 77215,
+            "media_type": "application/pdf",
+            "path": "objects/l22-trial-transcript-day4-damages-experts.pdf",
+            "sha256": "e27d060017d997b9e37a60b7ea6b495bb291da0e17eed047d3e519ff3ed0be58"
+        },
+        {
+            "byte_size": 78455,
+            "media_type": "application/pdf",
+            "path": "objects/l23-trial-transcript-day5-defense-evidence.pdf",
+            "sha256": "df607cd90a8d21ec14fcd24f6cbf56f2d8a19a2f295f9d2fb4190619dd8268d4"
+        },
+        {
+            "byte_size": 72840,
+            "media_type": "application/pdf",
+            "path": "objects/l24-trial-transcript-day6-rebuttal-charge-closing.pdf",
+            "sha256": "d040a48a1697a2d4a92cb93dc1538d65bb666bd51ab6f5e42c377ceb9d7ab32b"
+        },
+        {
+            "byte_size": 32280,
+            "media_type": "application/pdf",
+            "path": "objects/l25-shipment-logger-chain-of-custody-exhibit.pdf",
+            "sha256": "1d8177b46615d709e5ee72b5e1a6d7fd1dc22e2730e01727943326cdc7588f79"
+        },
+        {
+            "byte_size": 35241,
+            "media_type": "application/pdf",
+            "path": "objects/l26-stability-assay-lot-disposition-exhibit.pdf",
+            "sha256": "35c8730180b8774216bc6189aaf7c94b27c4fa4b93b49a3b77d53977c9438072"
+        },
+        {
+            "byte_size": 34893,
+            "media_type": "application/pdf",
+            "path": "objects/l27-replacement-campaign-schedule-cost-ledger.pdf",
+            "sha256": "82b9fe210746286f10bd92b99f7a83e68a49bbe5dc3828c9184174c5dec4999f"
+        },
+        {
+            "byte_size": 35673,
+            "media_type": "application/pdf",
+            "path": "objects/l28-cobalt-finch-capacity-offer-emails.pdf",
+            "sha256": "5913bd94ffb6a6094cc1476df4c4911a25892f4c5c8a60083de44a5d027bdfbc"
+        },
+        {
+            "byte_size": 32491,
+            "media_type": "application/pdf",
+            "path": "objects/l29-cobalt-finch-qualification-change-control-file.pdf",
+            "sha256": "b8e4f227d3f6ba5b14a71714f97d7f32063ddb8e96e49fc6eac62e9ca7f9368f"
+        },
+        {
+            "byte_size": 31640,
+            "media_type": "application/pdf",
+            "path": "objects/l30-blue-ember-damages-schedule-invoices.pdf",
+            "sha256": "8c4a51ccad07c3766d00c0ede3eadd9b36852aa2095418c990b6d281e08cf4a2"
+        },
+        {
+            "byte_size": 31431,
+            "media_type": "application/pdf",
+            "path": "objects/l31-granite-heron-mitigation-savings-model.pdf",
+            "sha256": "cc13f8ef196b4c9884b3741863deb96601a3c8f7a8a131d3e492bc06c54f36e3"
+        },
+        {
+            "byte_size": 31651,
+            "media_type": "application/pdf",
+            "path": "objects/l32-granite-heron-initial-rule50a-motion.pdf",
+            "sha256": "1629bfdba3921e53299126413f1cb484820aca4175ea4095184a5130aefc3dfc"
+        },
+        {
+            "byte_size": 31726,
+            "media_type": "application/pdf",
+            "path": "objects/l33-granite-heron-close-of-all-evidence-rule50a-motion.pdf",
+            "sha256": "77331fef1f6b0cd202564d24c7b663205e8e373c5d1f3c17a8ccebbb45e05adc"
+        },
+        {
+            "byte_size": 25381,
+            "media_type": "application/pdf",
+            "path": "objects/l34-special-verdict.pdf",
+            "sha256": "55718958a7667c4c8393a32c87c84d749350c49bacae7cdd6cf3d55fc33ebfd4"
+        },
+        {
+            "byte_size": 25864,
+            "media_type": "application/pdf",
+            "path": "objects/l35-original-judgment.pdf",
+            "sha256": "b497cd641c4b6f9c12ffdd512702af4c7e9a95c859607a32e952a7e1bf5dbe29"
+        },
+        {
+            "byte_size": 42018,
+            "media_type": "application/pdf",
+            "path": "objects/l36-granite-heron-rule50b-rule59-motion.pdf",
+            "sha256": "0c1d21bdaa8e32e7552cc952e94b66d510870d02d67c6efe5e735f09735a870e"
+        },
+        {
+            "byte_size": 36911,
+            "media_type": "application/pdf",
+            "path": "objects/l37-blue-ember-posttrial-opposition.pdf",
+            "sha256": "4f3821a0830b097efc12c93591d5df98406da2eac06fb9e34451663f84ccbe8c"
+        },
+        {
+            "byte_size": 28659,
+            "media_type": "application/pdf",
+            "path": "objects/l38-granite-heron-posttrial-reply.pdf",
+            "sha256": "37a7f21d9acab2b8d8bd263750d534641256c6cb93cf6c1a13eaf86de7650176"
+        },
+        {
+            "byte_size": 31495,
+            "media_type": "application/pdf",
+            "path": "objects/l39-posttrial-motion-hearing-transcript.pdf",
+            "sha256": "1891fbf04673905f0236a0e2117f5986e9695e7ef97217d8f725ad9fdac3c0ce"
+        },
+        {
+            "byte_size": 41834,
+            "media_type": "application/pdf",
+            "path": "objects/l40-posttrial-order-amended-judgment.pdf",
+            "sha256": "376ab83d24bf47d5b7af1b12842519b4cda5362ab73868d0c99c921ed1eb52a5"
+        },
+        {
+            "byte_size": 23590,
+            "media_type": "application/pdf",
+            "path": "objects/l41-blue-ember-notice-of-appeal.pdf",
+            "sha256": "29861569765b48ff172f5ded65ae8c5990598e4783240bdfdf35719fe77d0fac"
+        },
+        {
+            "byte_size": 35368,
+            "media_type": "application/pdf",
+            "path": "objects/l42-certified-docket-record-certificate.pdf",
+            "sha256": "b5b15b59b0307a787c7c27e97a1352ebda5a9d5d3d0ff801378b18bf7f707c5a"
+        }
+    ],
+    "contents": [
+        {
+            "id": "ca4m4.case.blueember-jmol",
+            "kind": "case",
+            "path": "resources/case.json",
+            "schema_version": 2,
+            "sha256": "c63d4399b31294205e1d95f82ed0944433c58ae378969de80e502b587545fccb"
+        },
+        {
+            "id": "ca4m4.blueember.argument.actual-record",
+            "kind": "argument_config",
+            "path": "resources/argument-actual.json",
+            "schema_version": 2,
+            "sha256": "9d983eb1270280497795e24d487a3b0fad510c55eeeb4b4a6b70d5a93e364404"
+        },
+        {
+            "id": "ca4m4.blueember.argument.preserved-counterfactual",
+            "kind": "argument_config",
+            "path": "resources/argument-counterfactual.json",
+            "schema_version": 2,
+            "sha256": "4502a5f3184bc953db27f9524d750af6968355f7111ea6d9aceca4e11e5a447e"
+        },
+        {
+            "id": "ca4m4.blueember.authorities.case-specific",
+            "kind": "authority_set",
+            "path": "resources/authority-set.json",
+            "schema_version": 2,
+            "sha256": "34f7f611377e8bfd666bf261bd9e538169ce88f99b333f0414e8e1d8a99db530"
+        },
+        {
+            "id": "ca4m4.blueember.bench.three-judge",
+            "kind": "bench_configuration",
+            "path": "resources/bench-configuration.json",
+            "schema_version": 2,
+            "sha256": "e331949939abbfc1000b92ab1b01066a3be544289e5f5fd2f9e159bc5b9a05b5"
+        },
+        {
+            "id": "ca4m4.blueember.procedure.civil-post-trial-appeal",
+            "kind": "procedure_profile",
+            "path": "resources/procedure-profile.json",
+            "schema_version": 2,
+            "sha256": "f19aa58510d03b915c07da24aea464dfd9163e0b19a63778cce073bb00db722e"
+        },
+        {
+            "id": "ca4m4.blueember.record",
+            "kind": "record",
+            "path": "resources/record.json",
+            "schema_version": 2,
+            "sha256": "080ff7772d73131a5471f2fc530b4d63c6215831a82ffcd671ef50beff8d1c7a"
+        },
+        {
+            "id": "ca4m4.blueember.workflow.post-trial-jmol",
+            "kind": "workflow",
+            "path": "resources/workflow.json",
+            "schema_version": 2,
+            "sha256": "7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120"
+        },
+        {
+            "id": "ca4m4.blueember.review.authoring-2026-08-19",
+            "kind": "realism_review",
+            "path": "resources/realism-review.json",
+            "schema_version": 2,
+            "sha256": "8fe8d9b06f38ca16fe535c917c3da4b2c6d92a5ee2f17924d49a945d2e5e0688"
+        }
+    ],
+    "dependencies": [
+        {
+            "pack_id": "foundation.us-federal",
+            "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9",
+            "version": "2025.12.01"
+        },
+        {
+            "pack_id": "foundation.us-ca4",
+            "sha256": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262",
+            "version": "2026.03.23"
+        },
+        {
+            "pack_id": "foundation.us-ca4-fictional-bench",
+            "sha256": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d",
+            "version": "1.0.0"
+        }
+    ],
+    "pack_id": "us.ca4.m4.blueember-jmol",
+    "required_capabilities": [
+        {
+            "id": "workbench.pack.argument-date-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.canonical-authority",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.declarative-resources",
+            "version": 2
+        },
+        {
+            "id": "workbench.pack.dependent-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.event-date-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.grounded-questions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.named-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-disposition-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-document-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-legal-time-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.realism-evidence",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-filing-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-role-subsets",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.structured-disposition",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-instance-preconditions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-preconditions",
+            "version": 1
+        }
+    ],
+    "schema_version": 2,
+    "version": "1.2.0"
+}
