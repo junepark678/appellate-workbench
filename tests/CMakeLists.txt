@@ -723,4 +723,59 @@ set_tests_properties(
         LABELS "content;integration;local;e2e;ui;offscreen"
 )
 
+qt_add_executable(
+    tst_m4_ellison_immunity
+    integration/tst_m4_ellison_immunity.cpp
+)
+target_link_libraries(
+    tst_m4_ellison_immunity
+    PRIVATE
+        appellate::engine
+        appellate::packs
+        appellate::storage
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Pdf
+)
+target_compile_definitions(
+    tst_m4_ellison_immunity
+    PRIVATE
+        APPELLATE_M4_ELLISON_ROOT="${PROJECT_SOURCE_DIR}/content/m4/ellison-immunity"
+        APPELLATE_M4_FOUNDATIONS="${PROJECT_SOURCE_DIR}/content/foundations"
+)
+target_compile_features(tst_m4_ellison_immunity PRIVATE cxx_std_26)
+add_test(NAME m4_ellison_immunity COMMAND tst_m4_ellison_immunity)
+set_tests_properties(
+    m4_ellison_immunity
+    PROPERTIES
+        LABELS "content;integration;local"
+)
+
+qt_add_executable(
+    tst_m4_ellison_immunity_ui_e2e
+    integration/tst_m4_ellison_immunity_ui_e2e.cpp
+)
+target_link_libraries(
+    tst_m4_ellison_immunity_ui_e2e
+    PRIVATE
+        appellate::desktop_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_m4_ellison_immunity_ui_e2e
+    PRIVATE
+        APPELLATE_M4_ELLISON_ROOT="${PROJECT_SOURCE_DIR}/content/m4/ellison-immunity"
+        APPELLATE_M4_FOUNDATIONS="${PROJECT_SOURCE_DIR}/content/foundations"
+)
+target_compile_features(tst_m4_ellison_immunity_ui_e2e PRIVATE cxx_std_26)
+add_test(NAME m4_ellison_immunity_ui_e2e COMMAND tst_m4_ellison_immunity_ui_e2e)
+set_tests_properties(
+    m4_ellison_immunity_ui_e2e
+    PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        LABELS "content;integration;local;e2e;ui;offscreen"
+)
+
 add_subdirectory(content)
