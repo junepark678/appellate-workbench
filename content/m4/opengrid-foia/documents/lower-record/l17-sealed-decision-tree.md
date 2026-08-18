@@ -3,6 +3,7 @@
 # Sealed Grid Sentinel Operational Decision Tree
 
 **Filed:** September 8, 2025
+**Synthetic docket:** SYN-DMD-25-CV-0914
 **Source record:** GS-DT-4.2, effective February 12, 2024
 **Access:** Sealed exercise excerpt
 

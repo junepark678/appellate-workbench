@@ -3,6 +3,7 @@
 # Supplemental Declaration on Re-Search and Segregability Review
 
 **Filed:** September 8, 2025
+**Synthetic docket:** SYN-DMD-25-CV-0914
 **Supplemental production:** RLS-OG-002
 
 I, Elian Voss, provide this supplemental declaration after reviewing the issues raised in the pleadings and early litigation submissions. I repeated targeted search checks, coordinated another review of withheld passages, and prepared a supplemental public index with a sealed inert counterpart.

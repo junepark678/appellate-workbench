@@ -3,6 +3,7 @@
 # Declaration on Repositories, Search Terms, and Deduplication
 
 **Filed:** August 4, 2025
+**Synthetic docket:** SYN-DMD-25-CV-0914
 **Search log:** SRCH-OG-2025-0804
 
 I, Dalen Saye, am the fictional search-and-deduplication specialist assigned to ORER. I designed and documented the collection method for DOE-FOIA-2024-OG-041 after the June 21 clarification. My statements are based on the synthetic search log, export manifests, deduplication report, and custodian disposition sheet.

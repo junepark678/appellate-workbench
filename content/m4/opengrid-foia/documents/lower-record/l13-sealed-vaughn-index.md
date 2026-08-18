@@ -3,6 +3,7 @@
 # Sealed Unredacted Vaughn Index
 
 **Filed:** August 4, 2025
+**Synthetic docket:** SYN-DMD-25-CV-0914
 **Request:** DOE-FOIA-2024-OG-041
 **Access:** Sealed exercise counterpart
 
