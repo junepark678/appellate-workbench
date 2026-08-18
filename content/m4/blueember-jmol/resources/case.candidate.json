@@ -48,6 +48,7 @@
         "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
         "ca4m4.blueember.authority.unitherm-rule50-renewal",
         "ca4m4.blueember.authority.price-same-ground",
+        "ca4m4.blueember.authority.plyler-distinct-basis",
         "ca4m4.blueember.authority.wiener-same-issue",
         "ca4m4.blueember.authority.boley-majority-variance",
         "ca4m4.blueember.authority.boley-concurrence-unitherm",
@@ -105,12 +106,14 @@
         "ca4m4.blueember.anchor.ja414",
         "ca4m4.blueember.anchor.ja418",
         "ca4m4.blueember.anchor.ja420",
+        "ca4m4.blueember.anchor.ja421",
         "ca4m4.blueember.anchor.pa31",
         "ca4m4.blueember.anchor.pa59",
         "ca4m4.blueember.anchor.pa78",
         "ca4m4.blueember.anchor.pa98",
         "ca4m4.blueember.anchor.pa102",
-        "ca4m4.blueember.anchor.pa170"
+        "ca4m4.blueember.anchor.pa170",
+        "ca4m4.blueember.anchor.pa171"
       ]
     },
     {
@@ -120,6 +123,7 @@
         "ca4m4.blueember.target.damages-only-retrial"
       ],
       "authority_ids": [
+        "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
         "ca4m4.blueember.authority.frcp-59-new-trial",
         "ca4m4.blueember.authority.atlas-rule59-and-partial-retrial",
         "ca4m4.blueember.authority.rice-separable-damages-retrial"
@@ -158,6 +162,8 @@
         "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
         "ca4m4.blueember.authority.frap-4-postjudgment-tolling",
         "ca4m4.blueember.authority.unitherm-rule50-renewal",
+        "ca4m4.blueember.authority.plyler-distinct-basis",
+        "ca4m4.blueember.authority.wiener-same-issue",
         "ca4m4.blueember.authority.rice-separable-damages-retrial"
       ],
       "record_anchor_ids": [
@@ -174,6 +180,7 @@
         "ca4m4.blueember.anchor.pa103",
         "ca4m4.blueember.anchor.pa104",
         "ca4m4.blueember.anchor.pa105",
+        "ca4m4.blueember.anchor.pa109",
         "ca4m4.blueember.anchor.pa171",
         "ca4m4.blueember.anchor.pa174",
         "ca4m4.blueember.anchor.pa175",
@@ -187,7 +194,7 @@
     {
       "plan_id": "ca4m4.blueember.disposition.actual-reversal-new-trial",
       "finality": "final",
-      "digest": "3f8ae722fa7981971332142d6d2853b050204b4907ce79d50894eaa7c6d3dc32",
+      "digest": "fa510c486dd334dd0b3b870ea29b8fa808c0b72bcd5733e6f58839f03bf976eb",
       "components": [
         {
           "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
@@ -199,6 +206,7 @@
             "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
             "ca4m4.blueember.authority.unitherm-rule50-renewal",
             "ca4m4.blueember.authority.price-same-ground",
+            "ca4m4.blueember.authority.plyler-distinct-basis",
             "ca4m4.blueember.authority.wiener-same-issue"
           ],
           "record_anchor_ids": [
@@ -279,7 +287,7 @@
     {
       "plan_id": "ca4m4.blueember.disposition.counterfactual-preserved-jmol",
       "finality": "final",
-      "digest": "caf23e14a1a2809b34f0497cfd3ebefd483a0d3cc0d99413367fad9384fb49c3",
+      "digest": "a89405ee0112d1879b2ed9765624966d4ae32289e1f4a6e27c4fc23c80892f40",
       "components": [
         {
           "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
@@ -290,6 +298,7 @@
           "authority_ids": [
             "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
             "ca4m4.blueember.authority.price-same-ground",
+            "ca4m4.blueember.authority.plyler-distinct-basis",
             "ca4m4.blueember.authority.wiener-same-issue",
             "ca4m4.blueember.authority.thermal-design-mitigation-burden",
             "ca4m4.blueember.authority.clark-mitigation-defense"
@@ -314,6 +323,7 @@
           "authority_ids": [
             "ca4m4.blueember.authority.section-1291-final-judgment",
             "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+            "ca4m4.blueember.authority.plyler-distinct-basis",
             "ca4m4.blueember.authority.wiener-same-issue"
           ],
           "record_anchor_ids": [

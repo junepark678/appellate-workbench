@@ -89,18 +89,32 @@
       "proposition": "The reason offered for judgment as a matter of law must be raised in the Rule 50(a) motion and reasserted under Rule 50(b), thereby apprising the court and opposing party of the asserted insufficiency while correction before jury submission remains possible."
     },
     {
+      "authority_id": "ca4m4.blueember.authority.plyler-distinct-basis",
+      "authority_type": "case",
+      "jurisdiction_id": "us.ca4",
+      "issuing_body_id": "us.ca4.court.appeals",
+      "precedential_status": "precedential",
+      "official_source": true,
+      "citation": "Plyler v. Cox, 145 F.4th 501, 510–11 (4th Cir. 2025)",
+      "source_version": "2025-07-29",
+      "checked_on": "2026-08-18",
+      "locator": "Nos. 24-1445 and 24-1488, official slip opinion pages 10–11",
+      "source_url": "https://www.ca4.uscourts.gov/opinions/241445.P.pdf",
+      "proposition": "A distinct physical-proximity basis first raised in Rule 50(b) was unavailable even though the general sufficiency issue raised in Rule 50(a) remained reviewable."
+    },
+    {
       "authority_id": "ca4m4.blueember.authority.wiener-same-issue",
       "authority_type": "case",
       "jurisdiction_id": "us.ca4",
       "issuing_body_id": "us.ca4.court.appeals",
       "precedential_status": "precedential",
       "official_source": true,
-      "citation": "Wiener v. AXA Equitable Life Insurance Co., No. 24-1316 (4th Cir. Sept. 3, 2025)",
+      "citation": "Wiener v. AXA Equitable Life Insurance Co., 153 F.4th 413 (4th Cir. 2025)",
       "source_version": "2025-09-03",
       "checked_on": "2026-08-18",
-      "locator": "Official slip opinion pages 13-16",
+      "locator": "No. 24-1316, official slip opinion pages 13–14",
       "source_url": "https://www.ca4.uscourts.gov/opinions/241316.P.pdf",
-      "proposition": "A Rule 50 challenge need not use perfectly identical argument at every stage when the pre-verdict motion, renewed motion, and appeal concern the same damages issue and provide adequate notice. That same-issue rule does not convert a causation-only Rule 50(a) motion into preservation of a distinct mitigation ground first asserted after verdict."
+      "proposition": "Variation between the Rule 50(b) issue and appellate theory need not align perfectly when the same issue was raised; it does not establish Rule 50(a)-to-Rule 50(b) preservation."
     },
     {
       "authority_id": "ca4m4.blueember.authority.boley-majority-variance",

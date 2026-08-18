@@ -309,12 +309,17 @@
         "question_id": "ca4m4.blueember.question.counterfactual-relief-remedy",
         "issue_id": "ca4m4.blueember.issue.rule50c-appellate-relief",
         "topic_id": "workbench.topic.remedy",
-        "prompt": "Why does express preservation change the result to affirmance of both mitigation JMOL and the $2.7 million amended judgment, with no remand component?",
+        "prompt": "Why does the express Rule 50(a) mitigation ground at PA109-PA112 avoid the distinct-basis defect identified in Plyler, while Wiener permits imperfect alignment only between that same Rule 50(b) issue and appellate theory, yielding affirmance of mitigation JMOL and the $2.7 million amended judgment without remand?",
         "grounding": [
           {
             "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-remedy-rule50",
             "kind": "authority",
             "authority_id": "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-remedy-plyler",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.plyler-distinct-basis"
           },
           {
             "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-remedy-wiener",
