@@ -16,7 +16,7 @@ The Court has reviewed the public motion, confidentiality certificate, objection
 
 ## Public Notice and Opportunity to Object
 
-D. Md. Local Rule 105.11 requires a sealing motion to identify the material, explain why sealing is necessary, address alternatives, and state a proposed duration. The motion must remain publicly available for at least fourteen days before disposition unless the Court finds a reason for earlier action.
+D. Md. Local Rule 105.11 requires a sealing motion to identify the material, provide specific factual reasons supporting sealing, and explain why alternatives are inadequate. The motion remains publicly available on the docket for at least fourteen days before the Court rules.
 
 DOE filed its motion and sealed-materials chart on November 11. The chart lists the primary and supplemental Vaughn pairs, three sample-record pairs, three memorandum pairs, and the in-camera declaration pair. It identifies a public counterpart for each controlled item.
 
