@@ -1,0 +1,4719 @@
+{
+  "schema_version": 2,
+  "resource_kind": "workflow",
+  "resource_id": "ca4m4.blueember.workflow.post-trial-jmol",
+  "initial_stage_id": "ca4m4.blueember.stage.notice-of-appeal",
+  "stages": [
+    "ca4m4.blueember.stage.notice-of-appeal",
+    "ca4m4.blueember.stage.opened",
+    "ca4m4.blueember.stage.record-ready",
+    "ca4m4.blueember.stage.actual-opening-briefing",
+    "ca4m4.blueember.stage.actual-response-briefing",
+    "ca4m4.blueember.stage.actual-reply-briefing",
+    "ca4m4.blueember.stage.actual-briefing-complete",
+    "ca4m4.blueember.stage.actual-argument",
+    "ca4m4.blueember.stage.actual-submitted",
+    "ca4m4.blueember.stage.actual-post-judgment",
+    "ca4m4.blueember.stage.counterfactual-opening-briefing",
+    "ca4m4.blueember.stage.counterfactual-response-briefing",
+    "ca4m4.blueember.stage.counterfactual-reply-briefing",
+    "ca4m4.blueember.stage.counterfactual-briefing-complete",
+    "ca4m4.blueember.stage.counterfactual-submitted",
+    "ca4m4.blueember.stage.counterfactual-post-judgment",
+    "ca4m4.blueember.stage.counterfactual-rehearing-decision",
+    "ca4m4.blueember.stage.counterfactual-post-rehearing",
+    "ca4m4.blueember.stage.counterfactual-stay-response",
+    "ca4m4.blueember.stage.counterfactual-stay-decision",
+    "ca4m4.blueember.stage.counterfactual-post-stay-denial",
+    "ca4m4.blueember.stage.counterfactual-mandate-stayed",
+    "ca4m4.blueember.stage.counterfactual-post-dissolution",
+    "ca4m4.blueember.stage.terminated"
+  ],
+  "operations": [
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-notice-of-appeal",
+      "stage_id": "ca4m4.blueember.stage.notice-of-appeal",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-3-appeal-as-of-right",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-4-civil-time"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-12",
+          "instant_unix_seconds": "1768176000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-notice-of-appeal",
+      "stage_id": "ca4m4.blueember.stage.notice-of-appeal",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-3-appeal-as-of-right"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-12",
+          "instant_unix_seconds": "1768176000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-notice-to-opened",
+      "stage_id": "ca4m4.blueember.stage.notice-of-appeal",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-3-appeal-as-of-right",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-4-civil-time"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.opened",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.civil-notice-of-appeal",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.l41-notice-of-appeal",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-notice-of-appeal",
+          "record_entry_id": "ca4m4.blueember.record.entry.l41",
+          "document_sha256": "29861569765b48ff172f5ded65ae8c5990598e4783240bdfdf35719fe77d0fac"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-12",
+          "instant_unix_seconds": "1768176000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-certified-record-certificate",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-11-record-forwarding",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-10-record"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.l42",
+        "document_sha256": "b5b15b59b0307a787c7c27e97a1352ebda5a9d5d3d0ff801378b18bf7f707c5a",
+        "expected_court_date": "2026-01-13",
+        "order_id": "ca4m4.blueember.order.certified-record",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.civil-notice-of-appeal",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.l41-notice-of-appeal",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-notice-of-appeal",
+          "record_entry_id": "ca4m4.blueember.record.entry.l41",
+          "document_sha256": "29861569765b48ff172f5ded65ae8c5990598e4783240bdfdf35719fe77d0fac"
+        }
+      ],
+      "authorized_role_ids": [
+        "ca4m4.blueember.role.originating-court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-13",
+          "instant_unix_seconds": "1768262400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-3-appeal-as-of-right",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-3b-docketing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.a01",
+        "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60",
+        "expected_court_date": "2026-01-14",
+        "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.civil-notice-of-appeal",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.l41-notice-of-appeal",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-notice-of-appeal",
+          "record_entry_id": "ca4m4.blueember.record.entry.l41",
+          "document_sha256": "29861569765b48ff172f5ded65ae8c5990598e4783240bdfdf35719fe77d0fac"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.certified-record",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-certified-record-certificate",
+          "record_entry_id": "ca4m4.blueember.record.entry.l42",
+          "document_sha256": "b5b15b59b0307a787c7c27e97a1352ebda5a9d5d3d0ff801378b18bf7f707c5a"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-14",
+          "instant_unix_seconds": "1768348800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-appearance",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-46c-appearance",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a01",
+          "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-16",
+          "instant_unix_seconds": "1768521600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-appearance",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-46c-appearance"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a01",
+          "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-16",
+          "instant_unix_seconds": "1768521600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-transcript-order",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-10c-transcripts",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-10-record"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a01",
+          "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-23",
+          "instant_unix_seconds": "1769126400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-transcript-order",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-10c-transcripts"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a01",
+          "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-23",
+          "instant_unix_seconds": "1769126400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-docketing-statement",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-3b-docketing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a01",
+          "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-23",
+          "instant_unix_seconds": "1769126400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-docketing-statement",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-3b-docketing"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a01",
+          "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-23",
+          "instant_unix_seconds": "1769126400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-opened-to-record-ready",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-11-record-forwarding",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-10-record"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.record-ready",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.certified-record",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-certified-record-certificate",
+          "record_entry_id": "ca4m4.blueember.record.entry.l42",
+          "document_sha256": "b5b15b59b0307a787c7c27e97a1352ebda5a9d5d3d0ff801378b18bf7f707c5a"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a01",
+          "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a02-blue-ember-appearance",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-appearance",
+          "record_entry_id": "ca4m4.blueember.record.entry.a02",
+          "document_sha256": "a60c6178662e176fe35135a6637abea07de7210a484894f6ff4d16cdd3016c31"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.a03-granite-heron-appearance",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-appearance",
+          "record_entry_id": "ca4m4.blueember.record.entry.a03",
+          "document_sha256": "282d7ba13e6e8342a35349a64da46a12d6137a91aec9b8a22a3e95c1950fc094"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.docketing-statement",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a04-blue-ember-docketing-statement",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-docketing-statement",
+          "record_entry_id": "ca4m4.blueember.record.entry.a04",
+          "document_sha256": "40e17692dd04c069e7abe1f474d7d96c3d6e18dc4467f06856fb71647356e7d1"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.transcript-order",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a05-transcript-order-record-designation",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-transcript-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a05",
+          "document_sha256": "8c7a351de10681db3f9ea7e2ed382d1c1e888c8da19ca6a1371ad629ab63ae66"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-01-23",
+          "instant_unix_seconds": "1769126400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order",
+      "stage_id": "ca4m4.blueember.stage.record-ready",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.a06",
+        "document_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4",
+        "expected_court_date": "2026-02-02",
+        "order_id": "ca4m4.blueember.order.record-complete-briefing",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.certified-record",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-certified-record-certificate",
+          "record_entry_id": "ca4m4.blueember.record.entry.l42",
+          "document_sha256": "b5b15b59b0307a787c7c27e97a1352ebda5a9d5d3d0ff801378b18bf7f707c5a"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a01",
+          "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a02-blue-ember-appearance",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-appearance",
+          "record_entry_id": "ca4m4.blueember.record.entry.a02",
+          "document_sha256": "a60c6178662e176fe35135a6637abea07de7210a484894f6ff4d16cdd3016c31"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.a03-granite-heron-appearance",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-appearance",
+          "record_entry_id": "ca4m4.blueember.record.entry.a03",
+          "document_sha256": "282d7ba13e6e8342a35349a64da46a12d6137a91aec9b8a22a3e95c1950fc094"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.docketing-statement",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a04-blue-ember-docketing-statement",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-docketing-statement",
+          "record_entry_id": "ca4m4.blueember.record.entry.a04",
+          "document_sha256": "40e17692dd04c069e7abe1f474d7d96c3d6e18dc4467f06856fb71647356e7d1"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.transcript-order",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a05-transcript-order-record-designation",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-transcript-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a05",
+          "document_sha256": "8c7a351de10681db3f9ea7e2ed382d1c1e888c8da19ca6a1371ad629ab63ae66"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-actual-opening-brief-deadline",
+      "stage_id": "ca4m4.blueember.stage.record-ready",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 35,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.actual-opening-brief",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.blueember.order.record-complete-briefing",
+        "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a06",
+          "document_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-record-ready-to-actual-opening",
+      "stage_id": "ca4m4.blueember.stage.record-ready",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.actual-opening-briefing",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a06",
+          "document_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order",
+      "stage_id": "ca4m4.blueember.stage.record-ready",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b01",
+        "document_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8",
+        "expected_court_date": "2026-02-02",
+        "order_id": "ca4m4.blueember.order.record-complete-briefing",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.certified-record",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-certified-record-certificate",
+          "record_entry_id": "ca4m4.blueember.record.entry.l42",
+          "document_sha256": "b5b15b59b0307a787c7c27e97a1352ebda5a9d5d3d0ff801378b18bf7f707c5a"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.appellate-docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-appellate-docketing-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a01",
+          "document_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a02-blue-ember-appearance",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-appearance",
+          "record_entry_id": "ca4m4.blueember.record.entry.a02",
+          "document_sha256": "a60c6178662e176fe35135a6637abea07de7210a484894f6ff4d16cdd3016c31"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.a03-granite-heron-appearance",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-appearance",
+          "record_entry_id": "ca4m4.blueember.record.entry.a03",
+          "document_sha256": "282d7ba13e6e8342a35349a64da46a12d6137a91aec9b8a22a3e95c1950fc094"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.docketing-statement",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a04-blue-ember-docketing-statement",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-docketing-statement",
+          "record_entry_id": "ca4m4.blueember.record.entry.a04",
+          "document_sha256": "40e17692dd04c069e7abe1f474d7d96c3d6e18dc4467f06856fb71647356e7d1"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.transcript-order",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a05-transcript-order-record-designation",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-transcript-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a05",
+          "document_sha256": "8c7a351de10681db3f9ea7e2ed382d1c1e888c8da19ca6a1371ad629ab63ae66"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-counterfactual-opening-brief-deadline",
+      "stage_id": "ca4m4.blueember.stage.record-ready",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 35,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.counterfactual-opening-brief",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.blueember.order.record-complete-briefing",
+        "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b01",
+          "document_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-record-ready-to-counterfactual-opening",
+      "stage_id": "ca4m4.blueember.stage.record-ready",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-opening-briefing",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b01",
+          "document_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-actual-opening-brief",
+      "stage_id": "ca4m4.blueember.stage.actual-opening-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a06",
+          "document_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-actual-opening-brief",
+      "stage_id": "ca4m4.blueember.stage.actual-opening-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a06",
+          "document_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-actual-joint-appendix",
+      "stage_id": "ca4m4.blueember.stage.actual-opening-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-30-appendix",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-30b-appendix"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a06",
+          "document_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a07-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a07",
+          "document_sha256": "80350f6c94023cd1b5287b1e69b28e1439e82d234c1919a9821f9bc17d2d6a0c"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-opening-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-actual-joint-appendix",
+      "stage_id": "ca4m4.blueember.stage.actual-opening-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-30b-appendix"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a06",
+          "document_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a07-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a07",
+          "document_sha256": "80350f6c94023cd1b5287b1e69b28e1439e82d234c1919a9821f9bc17d2d6a0c"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-opening-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-actual-response-brief-deadline",
+      "stage_id": "ca4m4.blueember.stage.actual-opening-briefing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 30,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.actual-response-brief",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a06",
+          "document_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a07-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a07",
+          "document_sha256": "80350f6c94023cd1b5287b1e69b28e1439e82d234c1919a9821f9bc17d2d6a0c"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-opening-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-actual-opening-to-response",
+      "stage_id": "ca4m4.blueember.stage.actual-opening-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-30-appendix"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.actual-response-briefing",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-record-complete-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.a06",
+          "document_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a07-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a07",
+          "document_sha256": "80350f6c94023cd1b5287b1e69b28e1439e82d234c1919a9821f9bc17d2d6a0c"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a08-joint-appendix",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-joint-appendix",
+          "record_entry_id": "ca4m4.blueember.record.entry.a08",
+          "document_sha256": "111ec43222386ffe0f0bae3e98dbbc7361557abdd1c6f9ffeedd74d36e0d438a"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-opening-brief",
+          "status": "satisfied"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-actual-response-brief",
+      "stage_id": "ca4m4.blueember.stage.actual-response-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a07-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a07",
+          "document_sha256": "80350f6c94023cd1b5287b1e69b28e1439e82d234c1919a9821f9bc17d2d6a0c"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a08-joint-appendix",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-joint-appendix",
+          "record_entry_id": "ca4m4.blueember.record.entry.a08",
+          "document_sha256": "111ec43222386ffe0f0bae3e98dbbc7361557abdd1c6f9ffeedd74d36e0d438a"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-08",
+          "instant_unix_seconds": "1775606400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-actual-response-brief",
+      "stage_id": "ca4m4.blueember.stage.actual-response-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a07-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a07",
+          "document_sha256": "80350f6c94023cd1b5287b1e69b28e1439e82d234c1919a9821f9bc17d2d6a0c"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a08-joint-appendix",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-joint-appendix",
+          "record_entry_id": "ca4m4.blueember.record.entry.a08",
+          "document_sha256": "111ec43222386ffe0f0bae3e98dbbc7361557abdd1c6f9ffeedd74d36e0d438a"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-08",
+          "instant_unix_seconds": "1775606400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-actual-reply-brief-deadline",
+      "stage_id": "ca4m4.blueember.stage.actual-response-briefing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 12,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.actual-reply-brief",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.a09-granite-heron-response-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-response-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a09",
+          "document_sha256": "c20c4fdf945677387996289b392a04844ae224938aa6616426f54e91ae6116e6"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-response-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-08",
+          "instant_unix_seconds": "1775606400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-actual-response-to-reply",
+      "stage_id": "ca4m4.blueember.stage.actual-response-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.actual-reply-briefing",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.a09-granite-heron-response-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-response-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a09",
+          "document_sha256": "c20c4fdf945677387996289b392a04844ae224938aa6616426f54e91ae6116e6"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-response-brief",
+          "status": "satisfied"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-08",
+          "instant_unix_seconds": "1775606400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-actual-reply-brief",
+      "stage_id": "ca4m4.blueember.stage.actual-reply-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.a09-granite-heron-response-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-response-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a09",
+          "document_sha256": "c20c4fdf945677387996289b392a04844ae224938aa6616426f54e91ae6116e6"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-20",
+          "instant_unix_seconds": "1776643200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-actual-reply-brief",
+      "stage_id": "ca4m4.blueember.stage.actual-reply-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.a09-granite-heron-response-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-response-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a09",
+          "document_sha256": "c20c4fdf945677387996289b392a04844ae224938aa6616426f54e91ae6116e6"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-20",
+          "instant_unix_seconds": "1776643200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-actual-reply-to-briefing-complete",
+      "stage_id": "ca4m4.blueember.stage.actual-reply-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-34-argument"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.actual-briefing-complete",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a10-blue-ember-reply-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-reply-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a10",
+          "document_sha256": "9c365d4e8639ac39337dfdcf727d4f205f2fbd335f99cc67f500f9355b8147dc"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-reply-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-20",
+          "instant_unix_seconds": "1776643200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-counterfactual-opening-brief",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-opening-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b01",
+          "document_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-counterfactual-opening-brief",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-opening-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b01",
+          "document_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-counterfactual-joint-appendix",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-opening-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-30-appendix",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-30b-appendix"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b01",
+          "document_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b02-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b02",
+          "document_sha256": "c6aa4b2ce5f62101c14ad216a862175e0c891d798e82335e2702c18b108e0020"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-opening-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-counterfactual-joint-appendix",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-opening-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-30b-appendix"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b01",
+          "document_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b02-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b02",
+          "document_sha256": "c6aa4b2ce5f62101c14ad216a862175e0c891d798e82335e2702c18b108e0020"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-opening-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-counterfactual-response-brief-deadline",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-opening-briefing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 30,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.counterfactual-response-brief",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b01",
+          "document_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b02-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b02",
+          "document_sha256": "c6aa4b2ce5f62101c14ad216a862175e0c891d798e82335e2702c18b108e0020"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-opening-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-opening-to-response",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-opening-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-30-appendix"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-response-briefing",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.record-complete-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preservation-briefing-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b01",
+          "document_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b02-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b02",
+          "document_sha256": "c6aa4b2ce5f62101c14ad216a862175e0c891d798e82335e2702c18b108e0020"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b03-joint-appendix",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-joint-appendix",
+          "record_entry_id": "ca4m4.blueember.record.entry.b03",
+          "document_sha256": "5c3923d96ac613b95c5a453cb91554811e1b790b0ef7fff68738b1f3132e3d5e"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-opening-brief",
+          "status": "satisfied"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-09",
+          "instant_unix_seconds": "1773014400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-counterfactual-response-brief",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-response-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b02-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b02",
+          "document_sha256": "c6aa4b2ce5f62101c14ad216a862175e0c891d798e82335e2702c18b108e0020"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b03-joint-appendix",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-joint-appendix",
+          "record_entry_id": "ca4m4.blueember.record.entry.b03",
+          "document_sha256": "5c3923d96ac613b95c5a453cb91554811e1b790b0ef7fff68738b1f3132e3d5e"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-08",
+          "instant_unix_seconds": "1775606400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-counterfactual-response-brief",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-response-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b02-blue-ember-opening-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b02",
+          "document_sha256": "c6aa4b2ce5f62101c14ad216a862175e0c891d798e82335e2702c18b108e0020"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b03-joint-appendix",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-joint-appendix",
+          "record_entry_id": "ca4m4.blueember.record.entry.b03",
+          "document_sha256": "5c3923d96ac613b95c5a453cb91554811e1b790b0ef7fff68738b1f3132e3d5e"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-08",
+          "instant_unix_seconds": "1775606400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-counterfactual-reply-brief-deadline",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-response-briefing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 12,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.counterfactual-reply-brief",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b04-granite-heron-response-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-response-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b04",
+          "document_sha256": "ae2e850d965ff49d679c8034ae5fa7b42979424e0628c3b0a5c458ed3359ed3d"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-response-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-08",
+          "instant_unix_seconds": "1775606400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-response-to-reply",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-response-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-reply-briefing",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b04-granite-heron-response-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-response-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b04",
+          "document_sha256": "ae2e850d965ff49d679c8034ae5fa7b42979424e0628c3b0a5c458ed3359ed3d"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-response-brief",
+          "status": "satisfied"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-08",
+          "instant_unix_seconds": "1775606400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-counterfactual-reply-brief",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-reply-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b04-granite-heron-response-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-response-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b04",
+          "document_sha256": "ae2e850d965ff49d679c8034ae5fa7b42979424e0628c3b0a5c458ed3359ed3d"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-20",
+          "instant_unix_seconds": "1776643200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-counterfactual-reply-brief",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-reply-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b04-granite-heron-response-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-response-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b04",
+          "document_sha256": "ae2e850d965ff49d679c8034ae5fa7b42979424e0628c3b0a5c458ed3359ed3d"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-20",
+          "instant_unix_seconds": "1776643200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-reply-to-briefing-complete",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-reply-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-34-argument"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-briefing-complete",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b05-blue-ember-reply-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-reply-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b05",
+          "document_sha256": "0d550fd76aa1373c0a8f6d610424bc1893aaff70e394ed4f7c1a10a520a23c26"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-reply-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-20",
+          "instant_unix_seconds": "1776643200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-actual-oral-argument-calendar-notice",
+      "stage_id": "ca4m4.blueember.stage.actual-briefing-complete",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.a11",
+        "document_sha256": "bdeba1c0d6e611782e65323256095209b6bf20c5a85099beb75b058219baaa78",
+        "expected_court_date": "2026-04-24",
+        "order_id": "ca4m4.blueember.order.submission-mode",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.a10-blue-ember-reply-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-actual-reply-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.a10",
+          "document_sha256": "9c365d4e8639ac39337dfdcf727d4f205f2fbd335f99cc67f500f9355b8147dc"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-24",
+          "instant_unix_seconds": "1776988800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.schedule-actual-oral-argument",
+      "stage_id": "ca4m4.blueember.stage.actual-briefing-complete",
+      "opcode": "schedule_argument",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "expected_argument_date": "2026-05-06",
+      "next_stage_id": "ca4m4.blueember.stage.actual-argument",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.submission-mode",
+          "disposition": "granted",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-oral-argument-calendar-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a11",
+          "document_sha256": "bdeba1c0d6e611782e65323256095209b6bf20c5a85099beb75b058219baaa78"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-24",
+          "instant_unix_seconds": "1776988800"
+        },
+        {
+          "court_date": "2026-05-06",
+          "instant_unix_seconds": "1778025600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-actual-argument-held-minute-sheet",
+      "stage_id": "ca4m4.blueember.stage.actual-argument",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.a12",
+        "document_sha256": "0c5c74570aacc1c45b8f5252c03fe46f1e2c3412635b2852e0e6c504b724db0a",
+        "expected_court_date": "2026-05-06",
+        "order_id": "ca4m4.blueember.order.argument-held",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.submission-mode",
+          "disposition": "granted",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-oral-argument-calendar-notice",
+          "record_entry_id": "ca4m4.blueember.record.entry.a11",
+          "document_sha256": "bdeba1c0d6e611782e65323256095209b6bf20c5a85099beb75b058219baaa78"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": true
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-06",
+          "instant_unix_seconds": "1778025600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-actual-argument-to-submitted",
+      "stage_id": "ca4m4.blueember.stage.actual-argument",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-36-judgment"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.actual-submitted",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.argument-held",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-argument-held-minute-sheet",
+          "record_entry_id": "ca4m4.blueember.record.entry.a12",
+          "document_sha256": "0c5c74570aacc1c45b8f5252c03fe46f1e2c3412635b2852e0e6c504b724db0a"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": true
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-06",
+          "instant_unix_seconds": "1778025600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-submission-on-briefs-order",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-briefing-complete",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b06",
+        "document_sha256": "5b328caaf05ef9a011bd0bb2c24cdca4a4ea12eb21142a5e21aac9030594fbcb",
+        "expected_court_date": "2026-05-06",
+        "order_id": "ca4m4.blueember.order.submission-mode",
+        "disposition": "denied"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b05-blue-ember-reply-brief",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-reply-brief",
+          "record_entry_id": "ca4m4.blueember.record.entry.b05",
+          "document_sha256": "0d550fd76aa1373c0a8f6d610424bc1893aaff70e394ed4f7c1a10a520a23c26"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-06",
+          "instant_unix_seconds": "1778025600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-briefing-to-submitted",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-briefing-complete",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-submitted",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.submission-mode",
+          "disposition": "denied",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-submission-on-briefs-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b06",
+          "document_sha256": "5b328caaf05ef9a011bd0bb2c24cdca4a4ea12eb21142a5e21aac9030594fbcb"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-06",
+          "instant_unix_seconds": "1778025600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-actual-published-opinion",
+      "stage_id": "ca4m4.blueember.stage.actual-submitted",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "ca4m4.blueember.authority.plyler-distinct-basis",
+        "supporting_authority_ids": [
+          "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+          "ca4m4.blueember.authority.unitherm-rule50-renewal",
+          "ca4m4.blueember.authority.price-same-ground",
+          "ca4m4.blueember.authority.atlas-rule59-and-partial-retrial",
+          "ca4m4.blueember.authority.rice-separable-damages-retrial"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.a13",
+        "document_sha256": "6e87cdcbd62d617aae22db97313903bbc07aedbb40e583ad7f1bc153c9add957",
+        "expected_court_date": "2026-07-09",
+        "order_id": "ca4m4.blueember.order.actual-published-opinion",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.argument-held",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-argument-held-minute-sheet",
+          "record_entry_id": "ca4m4.blueember.record.entry.a12",
+          "document_sha256": "0c5c74570aacc1c45b8f5252c03fe46f1e2c3412635b2852e0e6c504b724db0a"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.issue-actual-judgment",
+      "stage_id": "ca4m4.blueember.stage.actual-submitted",
+      "opcode": "issue_judgment",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+          "ca4m4.blueember.authority.rice-separable-damages-retrial"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.a14",
+        "document_sha256": "5a339a13e14a331db000bcc1f5ab138e3c83060a10223c9ea6fad6c16d7854da",
+        "expected_court_date": "2026-07-09"
+      },
+      "disposition_plan_id": "ca4m4.blueember.disposition.actual-reversal-new-trial",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.actual-published-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-published-opinion",
+          "record_entry_id": "ca4m4.blueember.record.entry.a13",
+          "document_sha256": "6e87cdcbd62d617aae22db97313903bbc07aedbb40e583ad7f1bc153c9add957"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-actual-rehearing-deadline",
+      "stage_id": "ca4m4.blueember.stage.actual-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.actual-rehearing-petition",
+      "deadline_event_base": {
+        "kind": "judgment_occurred"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-actual-ordinary-mandate-deadline",
+      "stage_id": "ca4m4.blueember.stage.actual-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.actual-ordinary-mandate",
+      "deadline_base_id": "ca4m4.blueember.deadline.actual-rehearing-petition",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-rehearing-petition",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-actual-submitted-to-post-judgment",
+      "stage_id": "ca4m4.blueember.stage.actual-submitted",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.federal.authority.frap-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.actual-post-judgment",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-rehearing-petition",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-ordinary-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preserved-mitigation-opinion",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-submitted",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "ca4m4.blueember.authority.thermal-design-mitigation-burden",
+        "supporting_authority_ids": [
+          "ca4m4.blueember.authority.clark-mitigation-defense",
+          "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+          "ca4m4.blueember.authority.plyler-distinct-basis",
+          "ca4m4.blueember.authority.wiener-same-issue"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b07",
+        "document_sha256": "ba10265c06549a8ac8576145b27dfacfb18fa5fd40ab58fa8ce7c82d0998c49d",
+        "expected_court_date": "2026-07-09",
+        "order_id": "ca4m4.blueember.order.counterfactual-published-opinion",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.submission-mode",
+          "disposition": "denied",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-submission-on-briefs-order",
+          "record_entry_id": "ca4m4.blueember.record.entry.b06",
+          "document_sha256": "5b328caaf05ef9a011bd0bb2c24cdca4a4ea12eb21142a5e21aac9030594fbcb"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.issue-counterfactual-judgment",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-submitted",
+      "opcode": "issue_judgment",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+          "ca4m4.blueember.authority.thermal-design-mitigation-burden"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b08",
+        "document_sha256": "b1b26db82867301512e3670925bce6f0e69cd746b0b0db764542e264f90a2564",
+        "expected_court_date": "2026-07-09"
+      },
+      "disposition_plan_id": "ca4m4.blueember.disposition.counterfactual-preserved-jmol",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-published-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-preserved-mitigation-opinion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b07",
+          "document_sha256": "ba10265c06549a8ac8576145b27dfacfb18fa5fd40ab58fa8ce7c82d0998c49d"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-counterfactual-rehearing-deadline",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+      "deadline_event_base": {
+        "kind": "judgment_occurred"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-counterfactual-ordinary-mandate-deadline",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.counterfactual-ordinary-mandate",
+      "deadline_base_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-submitted-to-post-judgment",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-submitted",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.federal.authority.frap-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-ordinary-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-09",
+          "instant_unix_seconds": "1783555200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-actual-ordinary-mandate-release",
+      "stage_id": "ca4m4.blueember.stage.actual-post-judgment",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.a15",
+        "document_sha256": "45aa0355821b674e0f835653f118f286bb19f50f7960a7db9d56f696591b5ab2",
+        "expected_court_date": "2026-07-30",
+        "order_id": "ca4m4.blueember.order.actual-ordinary-mandate-release",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-rehearing-petition",
+          "status": "reached"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.actual-ordinary-mandate",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-30",
+          "instant_unix_seconds": "1785369600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.issue-actual-ordinary-mandate",
+      "stage_id": "ca4m4.blueember.stage.actual-post-judgment",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.a16",
+        "document_sha256": "a51004a8cd6aabdbad6f7fd693c4649479b35c2115795864d0180860fc246233",
+        "expected_court_date": "2026-07-30"
+      },
+      "next_stage_id": "ca4m4.blueember.stage.terminated",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.actual-ordinary-mandate-release",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-actual-ordinary-mandate-release",
+          "record_entry_id": "ca4m4.blueember.record.entry.a15",
+          "document_sha256": "45aa0355821b674e0f835653f118f286bb19f50f7960a7db9d56f696591b5ab2"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-30",
+          "instant_unix_seconds": "1785369600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-ordinary-mandate-release",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b09",
+        "document_sha256": "79250c09a62a74dd3e31243753b18939dd418365082428468f8fa9bf4f4e7116",
+        "expected_court_date": "2026-07-30",
+        "order_id": "ca4m4.blueember.order.counterfactual-ordinary-mandate-release",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+          "status": "reached"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-ordinary-mandate",
+          "status": "reached"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b11-rehearing-petition",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.blueember.record.entry.b11",
+          "document_sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b15",
+          "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b20",
+          "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-30",
+          "instant_unix_seconds": "1785369600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.issue-counterfactual-ordinary-mandate",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b10",
+        "document_sha256": "41a80248b6ccec0365b7ce9073c1bd2382f53c875f8e0cf7d16623d20263aa30",
+        "expected_court_date": "2026-07-30"
+      },
+      "next_stage_id": "ca4m4.blueember.stage.terminated",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-ordinary-mandate-release",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-ordinary-mandate-release",
+          "record_entry_id": "ca4m4.blueember.record.entry.b09",
+          "document_sha256": "79250c09a62a74dd3e31243753b18939dd418365082428468f8fa9bf4f4e7116"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-30",
+          "instant_unix_seconds": "1785369600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-counterfactual-rehearing-petition",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-23",
+          "instant_unix_seconds": "1784764800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-counterfactual-rehearing-petition",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-23",
+          "instant_unix_seconds": "1784764800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-post-judgment-to-rehearing",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-rehearing-decision",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b11-rehearing-petition",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.blueember.record.entry.b11",
+          "document_sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+          "status": "satisfied"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b15",
+          "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b20",
+          "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-23",
+          "instant_unix_seconds": "1784764800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+          "status": "reached"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-ordinary-mandate",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-ordinary-mandate",
+          "status": "not_elapsed"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-27",
+          "instant_unix_seconds": "1785110400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-counterfactual-mandate-stay-motion",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition",
+          "status": "reached"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-ordinary-mandate",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-ordinary-mandate",
+          "status": "not_elapsed"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-27",
+          "instant_unix_seconds": "1785110400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-denial-stay-motion-to-response",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-stay-response",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b15",
+          "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b20",
+          "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b11-rehearing-petition",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.blueember.record.entry.b11",
+          "document_sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-27",
+          "instant_unix_seconds": "1785110400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-grant-stay-motion-to-response",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-stay-response",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b20",
+          "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b15",
+          "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b11-rehearing-petition",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.blueember.record.entry.b11",
+          "document_sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-27",
+          "instant_unix_seconds": "1785110400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-rehearing-denial",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-rehearing-decision",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b12",
+        "document_sha256": "2a81bd29a12d77c0db65a0cac4dfa97207176be7d54a9b0e7f74f34608684087",
+        "expected_court_date": "2026-08-06",
+        "order_id": "ca4m4.blueember.order.counterfactual-rehearing",
+        "disposition": "denied"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b11-rehearing-petition",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.blueember.record.entry.b11",
+          "document_sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-06",
+          "instant_unix_seconds": "1785974400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-counterfactual-post-rehearing-mandate-deadline",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-rehearing-decision",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.counterfactual-post-rehearing-mandate",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.blueember.order.counterfactual-rehearing",
+        "operation_id": "ca4m4.blueember.operation.enter-counterfactual-rehearing-denial"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-rehearing",
+          "disposition": "denied",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-rehearing-denial",
+          "record_entry_id": "ca4m4.blueember.record.entry.b12",
+          "document_sha256": "2a81bd29a12d77c0db65a0cac4dfa97207176be7d54a9b0e7f74f34608684087"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-06",
+          "instant_unix_seconds": "1785974400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-rehearing-denial-to-release",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-rehearing-decision",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-post-rehearing",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-rehearing",
+          "disposition": "denied",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-rehearing-denial",
+          "record_entry_id": "ca4m4.blueember.record.entry.b12",
+          "document_sha256": "2a81bd29a12d77c0db65a0cac4dfa97207176be7d54a9b0e7f74f34608684087"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-post-rehearing-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-06",
+          "instant_unix_seconds": "1785974400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-post-rehearing-release",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-rehearing",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b13",
+        "document_sha256": "407131f5c8566852acbbb5024bebc487b248db7cc5c912c9aafb695ce822ee04",
+        "expected_court_date": "2026-08-13",
+        "order_id": "ca4m4.blueember.order.counterfactual-post-rehearing-release",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-rehearing",
+          "disposition": "denied",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-rehearing-denial",
+          "record_entry_id": "ca4m4.blueember.record.entry.b12",
+          "document_sha256": "2a81bd29a12d77c0db65a0cac4dfa97207176be7d54a9b0e7f74f34608684087"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-post-rehearing-mandate",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-13",
+          "instant_unix_seconds": "1786579200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.issue-counterfactual-post-rehearing-mandate",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-rehearing",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b14",
+        "document_sha256": "2325acb4453537cd1a535588f1921df1f451bf239f71d43fa3fd19835e86186c",
+        "expected_court_date": "2026-08-13"
+      },
+      "next_stage_id": "ca4m4.blueember.stage.terminated",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-post-rehearing-release",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-post-rehearing-release",
+          "record_entry_id": "ca4m4.blueember.record.entry.b13",
+          "document_sha256": "407131f5c8566852acbbb5024bebc487b248db7cc5c912c9aafb695ce822ee04"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-13",
+          "instant_unix_seconds": "1786579200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-response",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-27-motions",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-41-mandate",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-28",
+          "instant_unix_seconds": "1785196800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.reject-counterfactual-mandate-stay-response",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-response",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-41-mandate",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-28",
+          "instant_unix_seconds": "1785196800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-denial-stay-response-to-decision",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-response",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-27-motions",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-stay-decision",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b15",
+          "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b16-stay-response-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+          "record_entry_id": "ca4m4.blueember.record.entry.b16",
+          "document_sha256": "b2878f685087d70104f7a51af2646266a91f050d78540807a4ee7149cb36b14c"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b20",
+          "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b21-stay-response-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+          "record_entry_id": "ca4m4.blueember.record.entry.b21",
+          "document_sha256": "8186c7c38c8a2b6cf1d4527699a90e8d19af499819522e371bb488b5afd286ef"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-28",
+          "instant_unix_seconds": "1785196800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-grant-stay-response-to-decision",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-response",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-27-motions",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-stay-decision",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b20",
+          "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b21-stay-response-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+          "record_entry_id": "ca4m4.blueember.record.entry.b21",
+          "document_sha256": "8186c7c38c8a2b6cf1d4527699a90e8d19af499819522e371bb488b5afd286ef"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b15",
+          "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b16-stay-response-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+          "record_entry_id": "ca4m4.blueember.record.entry.b16",
+          "document_sha256": "b2878f685087d70104f7a51af2646266a91f050d78540807a4ee7149cb36b14c"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-28",
+          "instant_unix_seconds": "1785196800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-denial",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-decision",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b17",
+        "document_sha256": "e526ea9b6c833fe083854478d59fedd1eb9590511cc88f2d347fd3cfb75bd6be",
+        "expected_court_date": "2026-07-29",
+        "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+        "disposition": "denied"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b15",
+          "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b16-stay-response-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+          "record_entry_id": "ca4m4.blueember.record.entry.b16",
+          "document_sha256": "b2878f685087d70104f7a51af2646266a91f050d78540807a4ee7149cb36b14c"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b20",
+          "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b21-stay-response-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+          "record_entry_id": "ca4m4.blueember.record.entry.b21",
+          "document_sha256": "8186c7c38c8a2b6cf1d4527699a90e8d19af499819522e371bb488b5afd286ef"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-29",
+          "instant_unix_seconds": "1785283200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-counterfactual-shortened-post-denial-mandate-deadline",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-decision",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "deadline_days": 1,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.counterfactual-post-stay-denial-mandate",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+        "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-denial"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+          "disposition": "denied",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-denial",
+          "record_entry_id": "ca4m4.blueember.record.entry.b17",
+          "document_sha256": "e526ea9b6c833fe083854478d59fedd1eb9590511cc88f2d347fd3cfb75bd6be"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-29",
+          "instant_unix_seconds": "1785283200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-stay-denial-to-release",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-decision",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-post-stay-denial",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+          "disposition": "denied",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-denial",
+          "record_entry_id": "ca4m4.blueember.record.entry.b17",
+          "document_sha256": "e526ea9b6c833fe083854478d59fedd1eb9590511cc88f2d347fd3cfb75bd6be"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-post-stay-denial-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-29",
+          "instant_unix_seconds": "1785283200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-grant",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-decision",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b22",
+        "document_sha256": "876ce411c14b6a7a4f16091998438f4cdc89c1ee03be63ac855e7f23d2789ba9",
+        "expected_court_date": "2026-07-29",
+        "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b20",
+          "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b21-stay-response-grant",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+          "record_entry_id": "ca4m4.blueember.record.entry.b21",
+          "document_sha256": "8186c7c38c8a2b6cf1d4527699a90e8d19af499819522e371bb488b5afd286ef"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.blueember.record.entry.b15",
+          "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "filing_id": "ca4m4.blueember.filing.b16-stay-response-denial",
+          "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+          "record_entry_id": "ca4m4.blueember.record.entry.b16",
+          "document_sha256": "b2878f685087d70104f7a51af2646266a91f050d78540807a4ee7149cb36b14c"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-29",
+          "instant_unix_seconds": "1785283200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-counterfactual-mandate-stay-through-deadline",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-decision",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "deadline_days": 90,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.counterfactual-stay-through",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+        "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-grant"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+          "disposition": "granted",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-grant",
+          "record_entry_id": "ca4m4.blueember.record.entry.b22",
+          "document_sha256": "876ce411c14b6a7a4f16091998438f4cdc89c1ee03be63ac855e7f23d2789ba9"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-29",
+          "instant_unix_seconds": "1785283200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-stay-grant-to-mandate-stayed",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-decision",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-mandate-stayed",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+          "disposition": "granted",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-grant",
+          "record_entry_id": "ca4m4.blueember.record.entry.b22",
+          "document_sha256": "876ce411c14b6a7a4f16091998438f4cdc89c1ee03be63ac855e7f23d2789ba9"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-stay-through",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-stay-through",
+          "status": "not_elapsed"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-29",
+          "instant_unix_seconds": "1785283200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-post-stay-denial-release",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-stay-denial",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b18",
+        "document_sha256": "b317c8109c744a02729bd8283890ddb90ac04d7e8a4ba41497425ad861d3bd5a",
+        "expected_court_date": "2026-07-30",
+        "order_id": "ca4m4.blueember.order.counterfactual-post-stay-denial-release",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+          "disposition": "denied",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-denial",
+          "record_entry_id": "ca4m4.blueember.record.entry.b17",
+          "document_sha256": "e526ea9b6c833fe083854478d59fedd1eb9590511cc88f2d347fd3cfb75bd6be"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-post-stay-denial-mandate",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-30",
+          "instant_unix_seconds": "1785369600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.issue-counterfactual-post-stay-denial-mandate",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-stay-denial",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b19",
+        "document_sha256": "76ba7bdbc19a0cf1f45ac9da7920c8a6c863b3e7c8ca7bb876540855a8f80446",
+        "expected_court_date": "2026-07-30"
+      },
+      "next_stage_id": "ca4m4.blueember.stage.terminated",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-post-stay-denial-release",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-post-stay-denial-release",
+          "record_entry_id": "ca4m4.blueember.record.entry.b18",
+          "document_sha256": "b317c8109c744a02729bd8283890ddb90ac04d7e8a4ba41497425ad861d3bd5a"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-30",
+          "instant_unix_seconds": "1785369600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-certiorari-abandonment-stay-dissolution",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-mandate-stayed",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b23",
+        "document_sha256": "50d1c1b49d5330c89ae76303b5043a74c1242a537cda014884860e6fde60ed55",
+        "expected_court_date": "2026-08-12",
+        "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay-dissolution",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay",
+          "disposition": "granted",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-mandate-stay-grant",
+          "record_entry_id": "ca4m4.blueember.record.entry.b22",
+          "document_sha256": "876ce411c14b6a7a4f16091998438f4cdc89c1ee03be63ac855e7f23d2789ba9"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-stay-through",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-stay-through",
+          "status": "not_elapsed"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-12",
+          "instant_unix_seconds": "1786492800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.calculate-counterfactual-post-dissolution-mandate-deadline",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-mandate-stayed",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "deadline_days": 1,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.blueember.deadline.counterfactual-post-dissolution-mandate",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay-dissolution",
+        "operation_id": "ca4m4.blueember.operation.enter-counterfactual-certiorari-abandonment-stay-dissolution"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay-dissolution",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-certiorari-abandonment-stay-dissolution",
+          "record_entry_id": "ca4m4.blueember.record.entry.b23",
+          "document_sha256": "50d1c1b49d5330c89ae76303b5043a74c1242a537cda014884860e6fde60ed55"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-12",
+          "instant_unix_seconds": "1786492800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.advance-counterfactual-dissolution-to-release",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-mandate-stayed",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.blueember.stage.counterfactual-post-dissolution",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay-dissolution",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-certiorari-abandonment-stay-dissolution",
+          "record_entry_id": "ca4m4.blueember.record.entry.b23",
+          "document_sha256": "50d1c1b49d5330c89ae76303b5043a74c1242a537cda014884860e6fde60ed55"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-post-dissolution-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-12",
+          "instant_unix_seconds": "1786492800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.enter-counterfactual-post-dissolution-release",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-dissolution",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b24",
+        "document_sha256": "5d8b9216a43d387242f6c38c2e9a5fc4d03a223d93a3d1d8a5e0db4622365323",
+        "expected_court_date": "2026-08-13",
+        "order_id": "ca4m4.blueember.order.counterfactual-post-dissolution-release",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-mandate-stay-dissolution",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-certiorari-abandonment-stay-dissolution",
+          "record_entry_id": "ca4m4.blueember.record.entry.b23",
+          "document_sha256": "50d1c1b49d5330c89ae76303b5043a74c1242a537cda014884860e6fde60ed55"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.blueember.deadline.counterfactual-post-dissolution-mandate",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-13",
+          "instant_unix_seconds": "1786579200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.blueember.operation.issue-counterfactual-post-dissolution-mandate",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-dissolution",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.blueember.record.entry.b25",
+        "document_sha256": "17d64ac2fb9c0f66783237ceaa6d1cf91962e865b5f143b220f66ecdefd932e1",
+        "expected_court_date": "2026-08-13"
+      },
+      "next_stage_id": "ca4m4.blueember.stage.terminated",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.blueember.order.counterfactual-post-dissolution-release",
+          "disposition": "other",
+          "operation_id": "ca4m4.blueember.operation.enter-counterfactual-post-dissolution-release",
+          "record_entry_id": "ca4m4.blueember.record.entry.b24",
+          "document_sha256": "5d8b9216a43d387242f6c38c2e9a5fc4d03a223d93a3d1d8a5e0db4622365323"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-13",
+          "instant_unix_seconds": "1786579200"
+        }
+      ]
+    }
+  ],
+  "filing_routes": [
+    {
+      "filing_type_id": "us.ca4.filing.civil-notice-of-appeal",
+      "stage_id": "ca4m4.blueember.stage.notice-of-appeal",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.civil-notice.caption",
+        "us.ca4.field.civil-notice.appealing-parties",
+        "us.ca4.field.civil-notice.originating-docket",
+        "us.ca4.field.civil-notice.judgment-or-order",
+        "us.ca4.field.civil-notice.order-date",
+        "us.ca4.field.civil-notice.destination-court"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-notice-of-appeal",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-notice-of-appeal",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.l41-notice-of-appeal",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.l41",
+          "document_sha256": "29861569765b48ff172f5ded65ae8c5990598e4783240bdfdf35719fe77d0fac",
+          "expected_legal_time": {
+            "court_date": "2026-01-12",
+            "instant_unix_seconds": "1768176000"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.appearance",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.appearance.counsel-name",
+        "us.ca4.field.appearance.party-name",
+        "us.ca4.field.appearance.contact"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-appearance",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-appearance",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.a02-blue-ember-appearance",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.a02",
+          "document_sha256": "a60c6178662e176fe35135a6637abea07de7210a484894f6ff4d16cdd3016c31",
+          "expected_legal_time": {
+            "court_date": "2026-01-16",
+            "instant_unix_seconds": "1768521600"
+          }
+        },
+        {
+          "filing_id": "ca4m4.blueember.filing.a03-granite-heron-appearance",
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "record_entry_id": "ca4m4.blueember.record.entry.a03",
+          "document_sha256": "282d7ba13e6e8342a35349a64da46a12d6137a91aec9b8a22a3e95c1950fc094",
+          "expected_legal_time": {
+            "court_date": "2026-01-16",
+            "instant_unix_seconds": "1768521600"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.transcript-order",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.transcript.status",
+        "us.ca4.field.transcript.proceedings"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-transcript-order",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-transcript-order",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.a05-transcript-order-record-designation",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.a05",
+          "document_sha256": "8c7a351de10681db3f9ea7e2ed382d1c1e888c8da19ca6a1371ad629ab63ae66",
+          "expected_legal_time": {
+            "court_date": "2026-01-23",
+            "instant_unix_seconds": "1769126400"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.docketing-statement",
+      "stage_id": "ca4m4.blueember.stage.opened",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.docketing.jurisdiction",
+        "us.ca4.field.docketing.issues",
+        "us.ca4.field.docketing.related-cases"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-docketing-statement",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-docketing-statement",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.a04-blue-ember-docketing-statement",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.a04",
+          "document_sha256": "40e17692dd04c069e7abe1f474d7d96c3d6e18dc4467f06856fb71647356e7d1",
+          "expected_legal_time": {
+            "court_date": "2026-01-23",
+            "instant_unix_seconds": "1769126400"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.blueember.stage.actual-opening-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-actual-opening-brief",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-actual-opening-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.a07-blue-ember-opening-brief",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.a07",
+          "document_sha256": "80350f6c94023cd1b5287b1e69b28e1439e82d234c1919a9821f9bc17d2d6a0c",
+          "expected_legal_time": {
+            "court_date": "2026-03-09",
+            "instant_unix_seconds": "1773014400"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.blueember.deadline.actual-opening-brief"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.appendix",
+      "stage_id": "ca4m4.blueember.stage.actual-opening-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.appendix.contents",
+        "us.ca4.field.appendix.pagination"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-actual-joint-appendix",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-actual-joint-appendix",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.a08-joint-appendix",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.a08",
+          "document_sha256": "111ec43222386ffe0f0bae3e98dbbc7361557abdd1c6f9ffeedd74d36e0d438a",
+          "expected_legal_time": {
+            "court_date": "2026-03-09",
+            "instant_unix_seconds": "1773014400"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.blueember.stage.actual-response-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-actual-response-brief",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-actual-response-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.a09-granite-heron-response-brief",
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "record_entry_id": "ca4m4.blueember.record.entry.a09",
+          "document_sha256": "c20c4fdf945677387996289b392a04844ae224938aa6616426f54e91ae6116e6",
+          "expected_legal_time": {
+            "court_date": "2026-04-08",
+            "instant_unix_seconds": "1775606400"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.blueember.deadline.actual-response-brief"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.blueember.stage.actual-reply-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-actual-reply-brief",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-actual-reply-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.a10-blue-ember-reply-brief",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.a10",
+          "document_sha256": "9c365d4e8639ac39337dfdcf727d4f205f2fbd335f99cc67f500f9355b8147dc",
+          "expected_legal_time": {
+            "court_date": "2026-04-20",
+            "instant_unix_seconds": "1776643200"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.blueember.deadline.actual-reply-brief"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-opening-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-opening-brief",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-counterfactual-opening-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.b02-blue-ember-opening-brief",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.b02",
+          "document_sha256": "c6aa4b2ce5f62101c14ad216a862175e0c891d798e82335e2702c18b108e0020",
+          "expected_legal_time": {
+            "court_date": "2026-03-09",
+            "instant_unix_seconds": "1773014400"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.blueember.deadline.counterfactual-opening-brief"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.appendix",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-opening-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.appendix.contents",
+        "us.ca4.field.appendix.pagination"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-joint-appendix",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-counterfactual-joint-appendix",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.b03-joint-appendix",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.b03",
+          "document_sha256": "5c3923d96ac613b95c5a453cb91554811e1b790b0ef7fff68738b1f3132e3d5e",
+          "expected_legal_time": {
+            "court_date": "2026-03-09",
+            "instant_unix_seconds": "1773014400"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-response-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-response-brief",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-counterfactual-response-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.b04-granite-heron-response-brief",
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "record_entry_id": "ca4m4.blueember.record.entry.b04",
+          "document_sha256": "ae2e850d965ff49d679c8034ae5fa7b42979424e0628c3b0a5c458ed3359ed3d",
+          "expected_legal_time": {
+            "court_date": "2026-04-08",
+            "instant_unix_seconds": "1775606400"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.blueember.deadline.counterfactual-response-brief"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-reply-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-reply-brief",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-counterfactual-reply-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.b05-blue-ember-reply-brief",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.b05",
+          "document_sha256": "0d550fd76aa1373c0a8f6d610424bc1893aaff70e394ed4f7c1a10a520a23c26",
+          "expected_legal_time": {
+            "court_date": "2026-04-20",
+            "instant_unix_seconds": "1776643200"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.blueember.deadline.counterfactual-reply-brief"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.rehearing-petition",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.rehearing.kind",
+        "us.ca4.field.rehearing.purpose-statement",
+        "us.ca4.field.rehearing.grounds"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-rehearing-petition",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-counterfactual-rehearing-petition",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.b11-rehearing-petition",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.b11",
+          "document_sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99",
+          "expected_legal_time": {
+            "court_date": "2026-07-23",
+            "instant_unix_seconds": "1784764800"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.granite-heron",
+              "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+              "record_entry_id": "ca4m4.blueember.record.entry.b15",
+              "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.granite-heron",
+              "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+              "record_entry_id": "ca4m4.blueember.record.entry.b20",
+              "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+            }
+          ]
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.blueember.deadline.counterfactual-rehearing-petition"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-post-judgment",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-counterfactual-mandate-stay-motion",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "record_entry_id": "ca4m4.blueember.record.entry.b15",
+          "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75",
+          "expected_legal_time": {
+            "court_date": "2026-07-27",
+            "instant_unix_seconds": "1785110400"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.rehearing-petition",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.blue-ember",
+              "filing_id": "ca4m4.blueember.filing.b11-rehearing-petition",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-rehearing-petition",
+              "record_entry_id": "ca4m4.blueember.record.entry.b11",
+              "document_sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.granite-heron",
+              "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+              "record_entry_id": "ca4m4.blueember.record.entry.b20",
+              "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+            }
+          ]
+        },
+        {
+          "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+          "actor_id": "ca4m4.blueember.actor.granite-heron",
+          "record_entry_id": "ca4m4.blueember.record.entry.b20",
+          "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6",
+          "expected_legal_time": {
+            "court_date": "2026-07-27",
+            "instant_unix_seconds": "1785110400"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.rehearing-petition",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.blue-ember",
+              "filing_id": "ca4m4.blueember.filing.b11-rehearing-petition",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-rehearing-petition",
+              "record_entry_id": "ca4m4.blueember.record.entry.b11",
+              "document_sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.granite-heron",
+              "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+              "record_entry_id": "ca4m4.blueember.record.entry.b15",
+              "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.blueember.stage.counterfactual-stay-response",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+      "reject_operation_id": "ca4m4.blueember.operation.reject-counterfactual-mandate-stay-response",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.blueember.filing.b16-stay-response-denial",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.b16",
+          "document_sha256": "b2878f685087d70104f7a51af2646266a91f050d78540807a4ee7149cb36b14c",
+          "expected_legal_time": {
+            "court_date": "2026-07-28",
+            "instant_unix_seconds": "1785196800"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.blueember.actor.granite-heron",
+              "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+              "record_entry_id": "ca4m4.blueember.record.entry.b15",
+              "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.granite-heron",
+              "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+              "record_entry_id": "ca4m4.blueember.record.entry.b20",
+              "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.blue-ember",
+              "filing_id": "ca4m4.blueember.filing.b21-stay-response-grant",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+              "record_entry_id": "ca4m4.blueember.record.entry.b21",
+              "document_sha256": "8186c7c38c8a2b6cf1d4527699a90e8d19af499819522e371bb488b5afd286ef"
+            }
+          ]
+        },
+        {
+          "filing_id": "ca4m4.blueember.filing.b21-stay-response-grant",
+          "actor_id": "ca4m4.blueember.actor.blue-ember",
+          "record_entry_id": "ca4m4.blueember.record.entry.b21",
+          "document_sha256": "8186c7c38c8a2b6cf1d4527699a90e8d19af499819522e371bb488b5afd286ef",
+          "expected_legal_time": {
+            "court_date": "2026-07-28",
+            "instant_unix_seconds": "1785196800"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.blueember.actor.granite-heron",
+              "filing_id": "ca4m4.blueember.filing.b20-stay-motion-grant",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+              "record_entry_id": "ca4m4.blueember.record.entry.b20",
+              "document_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.granite-heron",
+              "filing_id": "ca4m4.blueember.filing.b15-stay-motion-denial",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-motion",
+              "record_entry_id": "ca4m4.blueember.record.entry.b15",
+              "document_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": false,
+              "actor_id": "ca4m4.blueember.actor.blue-ember",
+              "filing_id": "ca4m4.blueember.filing.b16-stay-response-denial",
+              "accept_operation_id": "ca4m4.blueember.operation.accept-counterfactual-mandate-stay-response",
+              "record_entry_id": "ca4m4.blueember.record.entry.b16",
+              "document_sha256": "b2878f685087d70104f7a51af2646266a91f050d78540807a4ee7149cb36b14c"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "calendar": {
+    "holidays": [
+      "2025-01-01",
+      "2025-01-20",
+      "2025-02-17",
+      "2025-05-26",
+      "2025-06-19",
+      "2025-07-04",
+      "2025-09-01",
+      "2025-10-13",
+      "2025-11-11",
+      "2025-11-27",
+      "2025-12-25",
+      "2026-01-01",
+      "2026-01-19",
+      "2026-02-16",
+      "2026-05-25",
+      "2026-06-19",
+      "2026-07-03",
+      "2026-09-07",
+      "2026-10-12",
+      "2026-11-11",
+      "2026-11-26",
+      "2026-12-25",
+      "2027-01-01",
+      "2027-01-18",
+      "2027-02-15",
+      "2027-05-31",
+      "2027-06-18",
+      "2027-07-05",
+      "2027-09-06",
+      "2027-10-11",
+      "2027-11-11",
+      "2027-11-25",
+      "2027-12-24"
+    ]
+  }
+}
