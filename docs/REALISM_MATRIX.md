@@ -18,7 +18,7 @@ designation and does not satisfy the level-3 gate.
 | Employment retaliation | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable successor level-2 evidence; qualified independent review pending |
 | Preliminary injunction / stay | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring scaffold level 2; workflow, trace, and release evidence pending; qualified independent review pending |
+| Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Post-trial JMOL | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Sealed FOIA | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Criminal sentencing / waiver | Criminal (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
@@ -72,10 +72,25 @@ its evidence closure is `1170d682b46773d09b63b5dcfcd5b7c485c2f792881c94027b76550
 The review remains `independent_review_pending`; automated evidence does not substitute for
 qualified independent First Amendment/appellate review or make Norvale a gold candidate.
 
-The Ellison immunity `1.2.0` authoring candidate currently records level 2 in every dimension
-with `independent_review_pending`. Its frozen completed slice contains 37 lower-record PDFs/275
-JA pages, 15 actual appellate PDFs/91 PA pages, and 20 separately docketed, never-filed
-counterfactual PDFs/83 PA pages, for 72 PDFs/449 anchors. Source, render, record, and seven
-non-workflow core resources are frozen. Workflow, traces, manifest, exact review evidence, root,
-archive, resolved install, and focused release tests remain `PENDING`; this checkpoint is neither
-an installable release claim nor a level-3 or gold designation.
+The Ellison immunity `1.2.0` authoring candidate records level 2 in every dimension with
+`independent_review_pending`. Its frozen corpus contains 37 lower-record PDFs/275 JA pages,
+15 actual appellate PDFs/91 PA pages, and 20 separately docketed, never-filed counterfactual
+PDFs/83 PA pages, for 72 PDFs/449 anchors. Workflow
+`cd69b276a63ae508ba0d98bbee15585847a405b5b55a48df69fffe45811ca23a` and successor plan
+`82f1afa17e4d15a192cc6567ff3ffaa3415d2dd95f609aa58c760c026c78273d` produce six canonical
+traces with 229 commands/events, exact 77-operation coverage, 14 same-ID filing recoveries,
+24 court documents, 11 named deadlines, and five terminated plus one stayed endpoint. The
+final manifest `8f0d614a73a4850a93170a7338229b64e2b1d042134e678785eaab481fd8ca42`
+closes nine resources, 72 blobs, 16 capabilities, and three exact dependencies. Review
+`5545977962535b58f029de10959cf2f9e49348a12fb4f7bff17574aa688b8867` binds evidence closure
+`8032c5547dd522cad241b9c816bd611d198dbe7e007b0cd29781b8b471de41ac`: four packs, 44
+non-review resources, 72 blobs, six traces, two record checks, 35 authorities, 159 unique
+non-pack evidence IDs, and dimension-reference counts 49/19/75/33/17/4/114. Exactly one
+successful authoring invocation produced root
+`c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0`; the deterministic
+4,230,462-byte archive is
+`59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0`. Fresh resolved install
+and runtime checks made 458 command redecisions, 229 prefix replays, 12 full replays, and 66
+hostile-mutation rejections. This is installable level-2 evidence, not level 3 or gold. The
+PDF-only corpus contains no MP4, the engine makes no video inference, and synthetic PA92–PA174
+remain isolated from actual-history grounding.

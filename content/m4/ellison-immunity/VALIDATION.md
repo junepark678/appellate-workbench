@@ -1,11 +1,11 @@
-# Ellison v1.2.0 validation scaffold
+# Ellison v1.2.0 validation record
 
-Evidence status as of **2026-08-12**: all 72 synthetic sources are frozen; the fresh
-production render and schema-v2 record are accepted; and seven non-workflow core resources
-have been copied byte-for-byte into the pack candidate and pass schema and resolved-reference
-checks. Workflow authoring, canonical replay traces, manifest closure, promoted realism-review
-evidence, root revision, deterministic archive, resolved installation, and focused release tests
-remain pending.
+Final assembly verification as of **2026-08-18**: all 72 synthetic sources, accepted PDFs,
+schema-v2 record entries and anchors, nine resources, workflow, six canonical traces, manifest,
+level-2 realism evidence, root revision, and deterministic archive are frozen. Fresh exact-
+dependency installation, four-revision resolved validation, and the installed hostile replay
+audit passed. The review's `reviewed_on` date remains 2026-08-12 and its state remains
+`independent_review_pending`; no level-3 or gold claim is made.
 
 ## Evidence pins
 
@@ -31,16 +31,30 @@ remain pending.
 | Counterfactual question-bank grounding digest | `cf7097c563a40f40feac132943f3f231efa6c1fb1ade0e3b7e433e12f1a38849` | Independently recomputed from frozen authority/record bytes |
 | Actual disposition digest | `d98cbd88077bb3415931f324c5fdca0e714a62bb3894279e8e5b269ccd66823c` | Independently recomputed from the three-component actual plan |
 | Counterfactual disposition digest | `6f1a4ce2280a21f41f085c72faa36fb4e72dcee09ea104d4867822bf1754b793` | Independently recomputed from the two-component adverse plan |
-| Realism-review authoring scaffold SHA-256 | `ad4b08d350f5cf843b57970e7b5d0342cd95edda08ba2d91f575196c8786c28f` | Level 2 in all seven dimensions; `independent_review_pending`; no evidence field |
-| Workflow resource SHA-256 | `PENDING_WORKFLOW_SHA256` | Pending workflow authorship and review |
-| Canonical trace bundle | `PENDING_TRACE_BUNDLE_SHA256` | Pending production-engine replay |
-| Manifest SHA-256 | `PENDING_MANIFEST_SHA256` | Pending closure over finalized resources and blobs |
-| Promoted realism-review SHA-256 | `PENDING_REALISM_REVIEW_SHA256` | Pending exact evidence and independent-review status recording |
-| Exact evidence-closure digest | `PENDING_EVIDENCE_CLOSURE_SHA256` | Pending workflow, trace, record-check, and authority closure |
-| Root revision | `PENDING_ROOT_REVISION` | Pending manifest finalization |
-| Deterministic archive | `PENDING_ARCHIVE_SHA256` | Pending two-export byte comparison |
-| Resolved installation | `PENDING_RESOLVED_INSTALL` | Pending exact dependency installation and resolved validation |
-| Focused tests | `PENDING_RELEASE_TEST_PINS` | Pending local and `TZ=UTC` case/UI runs |
+| Historical realism-review scaffold SHA-256 | `ad4b08d350f5cf843b57970e7b5d0342cd95edda08ba2d91f575196c8786c28f` | Frozen pre-authoring input; level 2 throughout; no `evidence` field |
+| Workflow resource SHA-256 | `cd69b276a63ae508ba0d98bbee15585847a405b5b55a48df69fffe45811ca23a` | Frozen: 20 stages / 77 operations / 11 routes / 14 filing bindings / 24 court-document bindings / 2 disposition-discriminated branches / 11 named deadlines |
+| Successor appellate plan SHA-256 | `82f1afa17e4d15a192cc6567ff3ffaa3415d2dd95f609aa58c760c026c78273d` | Frozen six-path allocation and trace contract |
+| Canonical trace set | Six exact file pins below | Frozen: 6 traces / 229 commands / 229 events / exact 77-operation union / 5 terminated + 1 stayed |
+| Manifest SHA-256 | `8f0d614a73a4850a93170a7338229b64e2b1d042134e678785eaab481fd8ca42` | Final: 9 resources / 72 blobs / 16 capabilities / 3 dependencies / exact 82-member allowlist |
+| Promoted realism-review SHA-256 | `5545977962535b58f029de10959cf2f9e49348a12fb4f7bff17574aa688b8867` | Level 2 in all seven dimensions; `independent_review_pending` |
+| Exact evidence-closure digest | `8032c5547dd522cad241b9c816bd611d198dbe7e007b0cd29781b8b471de41ac` | Exact 4 packs / 44 non-review resources / 72 blobs / 6 traces / 2 checks / 35 authorities; 159 unique non-pack evidence IDs |
+| Dimension-evidence references | `49 / 19 / 75 / 33 / 17 / 4 / 114` | Procedural law / deadlines-authority / record consistency / consequences / oral argument / bench differentiation / provenance; all scores are 2 |
+| Root revision | `c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0` | Final installable revision over four exact packs |
+| Deterministic archive | 4,230,462 bytes; `59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0` | Independent A/B and frozen exports byte-identical |
+| Authoring provenance | Transcript SHA-256 `55f5393d73b2d9505fd9fa85332c43690cbfaef25fed87115c1d824db80b5e4b` | Exactly one successful `author-realism-evidence-multi` invocation; no retry or transaction residue |
+| Resolved installation | Root `c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0` / 4 revisions | Fresh dependency-only catalog, root install, and exact resolved validation passed |
+| Focused installed runtime audit | `229 / 77 / 14 / 24 / 11 / 5+1`; 66 hostile mutations rejected | 458 deterministic decisions, 229 prefix replays, 12 full replays; all filing recoveries, court documents, deadlines, and endpoints exact |
+
+## Canonical trace pins
+
+| Trace | Commands / events | Final stage | File SHA-256 | Journal SHA-256 | Trace digest |
+| --- | ---: | --- | --- | --- | --- |
+| Actual ordinary mandate | 41 / 41 | `terminated` | `1de19773f90e9a5c440a8ec79d4f726d4eb2c9b2d0817293e185ef145357928e` | `b2fd82908689c742be0f375a3307e107b5dfb7686c3233ba8beb2e3e1d8e76ef` | `2ddd609848aedd2cc17ef41b3cf9533326c133e24fdea0de5c8eb662fe130046` |
+| Adverse ordinary mandate | 30 / 30 | `terminated` | `7bdc9a1469efd3c3a899769f61833176d56bd81e2b34a4920cb3e34b73848ac0` | `9dbf9038a0e191d4a85ec95873930e17c6ec8f88bb2e27fc02c3e5ce75764fed` | `c379f538713d1a82bac4491afdfc3cc80e98532aeaf07d5729dcd76a78261af4` |
+| Adverse rehearing denial | 36 / 36 | `terminated` | `6abc5c4bad493e38ff985de9760618aea0101b501715b0becbdd87172f0f6550` | `86beba025bb3e7c398325c1c30f0aecca08fd1714d9fe9b8620c50a619bac26c` | `7b1a2104c2bbf1f267adc8353590520528ce1ce1c47e50bc67d0f8e041e19db4` |
+| Mandate-stay denial | 41 / 41 | `terminated` | `b93fd95c53ba444c52acc7f2554cf47ce2a93d9e3636e17f272b5e20a5578352` | `7bb7f009e50a08894238eb684773c7d4c3bcde65dad51d2dd793978b7b82e1d4` | `8fce82b56d0534556ff39896e9ce48118f635e54c69d92481a85fdbaa5128661` |
+| Mandate-stay grant blocked | 39 / 39 | `actual-mandate-stayed` | `ef13313ee3210b83f213b7ff6a4442f52a289609c4d768ee6e63e822e56fdd10` | `ad66809ad0a71608c2267b2899207fe286ea2dd54313862a4b893061a4a1b3ae` | `404db726c651dfe4a935445c43b16fef74dee2379699910d0aeecf993e756266` |
+| Mandate-stay grant/dissolution | 42 / 42 | `terminated` | `bb487adce5391e60d4c14f4a863c2cbb1dce265eeeb6d84985cd370c3bc78e40` | `59ea3a57185d9e200436ceafb618ffbc6de8ccfcdb5e75dd43c45fea33a18a1e` | `94161b19dd755bdbdcb3cdd0a8293035b3a8358a798ae5d078b2d1377d0df55e` |
 
 ## Completed source, render, record, and core gates
 
@@ -67,28 +81,38 @@ The following claims are confined to the frozen source/render/record/core bytes:
    The three-component actual plan and two-component adverse plan preserve their intentionally
    asymmetric target coverage.
 
-These gates establish provenance and internal consistency for the completed slice. They do not
-establish workflow reachability, replay completeness, release closure, deterministic export,
-resolved installability, accessibility conformance, legal correctness, or independent review.
+These source gates establish provenance and internal consistency. The completed workflow and
+release gates below establish exact technical closure and installability. Neither set establishes
+accessibility conformance, legal correctness, practical realism, or independent professional
+review.
 
-## Pending workflow and release gates
+## Completed workflow and release gates
 
-Before promotion, exact evidence must establish all of the following:
+The final artifacts verify all of the following:
 
-1. a schema-valid workflow whose operation, filing-route, exact-document-binding, disposition,
-   deadline, stage, actor, and branch references resolve against the frozen resources;
-2. runtime reachability for every workflow operation and successful production-engine replay of
-   each named actual and mutually exclusive counterfactual route;
-3. actual-history exclusion of PA92–PA174 from actual operations, disposition grounding, and
-   actual-record questions;
-4. manifest closure over every finalized resource, blob, capability, and exact dependency, with
-   no undeclared or missing member;
-5. a promoted realism review with exact evidence references, while retaining
-   `independent_review_pending` unless a qualified reviewer actually supplies attributable review;
-6. two byte-identical deferred exports, fresh exact-dependency installation, resolved validation,
-   and focused case/UI tests both locally and under `TZ=UTC`.
+1. the frozen workflow contains exactly 20 stages, 77 operations, 11 filing routes, 14 exact
+   filing bindings, 24 exact court-document bindings, two disposition-discriminated order
+   branches, and 11 named deadline calculations; all 77 operations occur in the trace union;
+2. all six named canonical journals round-trip through the production codec, independently
+   redecide every command, replay every prefix and two full passes, recover every bound filing
+   after an exact-ID `nonconforming_filing` rejection, and reach five terminated plus one
+   mandate-stayed endpoint;
+3. actual-history operations, disposition grounding, and actual-record questions exclude
+   synthetic PA92–PA174, while all B-coded artifacts remain on the separate never-filed docket;
+4. all nine resources, 72 blobs, 16 capabilities, and three exact dependencies close in the
+   manifest with an exact 82-member allowlist and no undeclared, missing, symlink, or special
+   entry;
+5. the final level-2 review binds the exact four-pack closure, 44 non-review resources, 72 blobs,
+   six traces, two record checks, 35 authorities, 159 unique non-pack evidence IDs, and all seven
+   dimension-evidence partitions without claiming independent review;
+6. two independent deferred exports and a frozen re-export are byte-identical; fresh exact-
+   dependency installation and four-revision resolved validation pass for the same root; and
+7. exactly one successful multi-trace authoring invocation changed only the manifest and review,
+   with no retry or transaction residue, and the installed hostile audit rejected all 66 tested
+   replay mutations.
 
-No placeholder above reserves a future hash or success result.
+The result is an installable level-2 authoring candidate. It is not a level-3 independent-review
+or gold claim.
 
 ## Procedural and merits consistency gates
 
@@ -120,13 +144,37 @@ Final validation must preserve these authored boundaries:
 
 ## Reproduction scaffold
 
-The completed-slice gates can be rechecked from the repository root with the repository's
-schema validator, reference-audit harness, `sha256sum`, `jq`, `qpdf`, and PDF page/text tools.
-The exact workflow and release commands remain intentionally absent until those artifacts exist.
-The future root must use deferred export because its schema-v2 references depend on exact-pinned
-foundation resources.
+The pack-closure gate can be reproduced from the repository root:
 
-Expected dependency revisions are:
+```sh
+jq empty content/m4/ellison-immunity/metadata/successor-appellate-plan.json
+jq empty content/m4/ellison-immunity/pack-candidate/manifest.json
+
+ellison_check_root="$(mktemp -d)"
+ellison_catalog="$ellison_check_root/catalog"
+ellison_archive="$ellison_check_root/us-ca4-m4-ellison-immunity-1.2.0.awpack"
+
+./build/dev/src/cli/appellate-pack export-deferred \
+  content/m4/ellison-immunity/pack-candidate "$ellison_archive"
+./build/dev/src/cli/appellate-pack install \
+  content/foundations/us-federal/foundation-us-federal-2025.12.01.awpack "$ellison_catalog"
+./build/dev/src/cli/appellate-pack install \
+  content/foundations/us-ca4/foundation-us-ca4-2026.03.23.awpack "$ellison_catalog"
+./build/dev/src/cli/appellate-pack install \
+  content/foundations/us-ca4-fictional-bench/foundation-us-ca4-fictional-bench-1.0.0.awpack \
+  "$ellison_catalog"
+./build/dev/src/cli/appellate-pack install "$ellison_archive" "$ellison_catalog"
+./build/dev/src/cli/appellate-pack validate-resolved \
+  "$ellison_catalog" us.ca4.m4.ellison-immunity 1.2.0 \
+  c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0
+```
+
+Schema-v2 thin roots with dependency-owned references require deferred export, exact dependency
+installation, and resolved validation. Those gates passed for the exact root above; ordinary
+standalone validation is not a substitute. The trace-specific codec/replay/tamper audit uses the
+six frozen journals pinned above.
+
+Exact dependency revisions are:
 
 - `foundation.us-federal@2025.12.01` —
   `866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9`;

@@ -50,7 +50,7 @@ Frozen provenance pins are:
 The accepted PDFs total 2,763,463 bytes. The closure checks cover source/output hashes,
 sizes, physical page counts, JA/PA ranges, record links, and PDF structure. PDF byte
 determinism is not promised for a later renderer invocation; the accepted bytes are
-identified by the record and eventual manifest.
+identified by the record and final manifest.
 
 Seven frozen non-workflow resources are copied byte-for-byte into the pack candidate:
 the case with three issues and two asymmetric disposition plans; eleven case-specific
@@ -92,17 +92,56 @@ stay-grant/dissolution paths. Their later-of calculations, shortened intervals, 
 August 10–11 dissolution/release sequence are exact branch consequences, not a general
 scheduling engine or a single combined procedural history.
 
-## Pending workflow and evidence
+## Final workflow and evidence
 
-The workflow, canonical traces, manifest, promoted realism review with exact evidence,
-root revision, deterministic archive, resolved install, and focused release tests are
-`PENDING`. No hash or success claim is reserved for any of them in advance. The current
-realism-review scaffold is level 2 in all seven dimensions, remains
-`independent_review_pending`, deliberately has no `evidence` field, and has SHA-256
-`ad4b08d350f5cf843b57970e7b5d0342cd95edda08ba2d91f575196c8786c28f`.
-It is an authoring checkpoint, not a promoted release resource or level-3 claim.
+The frozen workflow SHA-256 is
+`cd69b276a63ae508ba0d98bbee15585847a405b5b55a48df69fffe45811ca23a`.
+It contains 20 stages, 77 operations, 11 filing routes, 14 exact filing bindings,
+24 exact court-document bindings, and 11 named deadline calculations. The filing and
+court-document bindings reserve a disjoint union of 38 record entries; B18 is one exact
+court order and is not modeled as a filing.
 
-## Expected exact dependencies
+The successor appellate plan SHA-256 is
+`82f1afa17e4d15a192cc6567ff3ffaa3415d2dd95f609aa58c760c026c78273d`.
+Its six canonical production traces contain 41, 30, 36, 41, 39, and 42 commands,
+respectively: 229 commands and 229 events covering all 77 operations. They exercise all
+14 exact filing bindings through `nonconforming_filing` rejection and same-ID recovery,
+all 24 court documents, and all 11 named deadlines. Five traces terminate; the sixth ends
+in `actual-mandate-stayed`. Independent replay redecided 458 commands, replayed all 229
+prefixes and each full journal twice, and rejected 66 sequence, legal-time, document,
+service, order, disposition, state, and journal mutations. Exact per-trace file, journal,
+and trace-digest pins are listed in [VALIDATION.md](VALIDATION.md).
+
+The final manifest SHA-256 is
+`8f0d614a73a4850a93170a7338229b64e2b1d042134e678785eaab481fd8ca42`.
+It closes exactly nine resources, 72 PDF blobs, 16 capabilities, and three dependencies.
+The promoted realism-review SHA-256 is
+`5545977962535b58f029de10959cf2f9e49348a12fb4f7bff17574aa688b8867`,
+with evidence closure
+`8032c5547dd522cad241b9c816bd611d198dbe7e007b0cd29781b8b471de41ac`.
+That evidence covers four packs, 44 non-review resources, 72 blobs, six traces, two record
+checks, and 35 authorities: 159 unique non-pack evidence IDs. All seven dimensions remain
+level 2; their exact evidence-reference counts are 49 procedural-law, 19 deadlines/authority,
+75 record-consistency, 33 consequences, 17 oral-argument, 4 bench-differentiation, and
+114 provenance references.
+
+Exactly one successful multi-trace authoring invocation promoted the review and manifest.
+Two independent exports were byte-identical. The final root revision is
+`c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0`;
+the deterministic archive is 4,230,462 bytes with SHA-256
+`59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0`.
+A fresh dependency-only catalog accepted the root and passed exact four-revision resolved
+validation and the installed replay/tamper audit.
+
+The final review remains `independent_review_pending`. This is an installable level-2
+authoring candidate, not an independently reviewed level-3 pack or a gold claim. Automated
+schema, digest, replay, and hostile checks do not establish qualified-immunity accuracy or
+current Fourth Circuit practice. The PDF-only corpus still contains no MP4, and neither the
+engine nor the review evidence inspects video or infers disputed movement, resistance, threat,
+force, or credibility. PA92–PA174 remain synthetic, never-filed counterfactual branch material
+on a separate docket and cannot ground actual-history claims.
+
+## Exact dependencies
 
 - `foundation.us-federal@2025.12.01`
   (`866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9`)
@@ -111,6 +150,6 @@ It is an authoring checkpoint, not a promoted release resource or level-3 claim.
 - `foundation.us-ca4-fictional-bench@1.0.0`
   (`cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d`)
 
-The eventual manifest must exact-pin those revisions. See
-[VALIDATION.md](VALIDATION.md) for the current gate and
+The final manifest exact-pins those revisions. See
+[VALIDATION.md](VALIDATION.md) for the completed evidence gate and
 [metadata/record-inventory.md](metadata/record-inventory.md) for all 72 document ranges.

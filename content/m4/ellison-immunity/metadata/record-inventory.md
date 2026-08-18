@@ -129,5 +129,36 @@ and their path-and-byte-framed SHA-256 is
 `277c650a0d1263acb972d1cb86c7be242f3a80d5c134c11eb1e85a61abe36afa`.
 The record SHA-256 is
 `3269cf7be84b0e1545f17d19876a64e86930d44259bb13d543d53ddb12bd199f`.
-Workflow, trace, manifest, promoted review, evidence-closure, root, archive, resolved-install,
-and release-test pins remain `PENDING`; this inventory makes no advance release claim.
+
+## Final workflow and release closure
+
+The frozen workflow SHA-256 is
+`cd69b276a63ae508ba0d98bbee15585847a405b5b55a48df69fffe45811ca23a`,
+and the successor appellate plan SHA-256 is
+`82f1afa17e4d15a192cc6567ff3ffaa3415d2dd95f609aa58c760c026c78273d`.
+Six canonical traces contain 229 commands and 229 events, cover all 77 operations,
+exercise all 14 filing bindings through same-ID rejection and recovery, bind all 24 court
+documents and 11 named deadlines, and reach five terminated endpoints plus one
+`actual-mandate-stayed` endpoint. Independent runtime verification made 458 command
+redecisions, 229 prefix replays, 12 full replays, and 66 hostile-mutation rejections.
+
+The final manifest SHA-256 is
+`8f0d614a73a4850a93170a7338229b64e2b1d042134e678785eaab481fd8ca42`;
+it closes nine resources, 72 PDF blobs, 16 capabilities, and three exact dependencies.
+The promoted realism-review SHA-256 is
+`5545977962535b58f029de10959cf2f9e49348a12fb4f7bff17574aa688b8867`,
+and its evidence-closure digest is
+`8032c5547dd522cad241b9c816bd611d198dbe7e007b0cd29781b8b471de41ac`.
+The evidence envelope covers four packs, 44 non-review resources, 72 blobs, six traces,
+two record checks, and 35 authorities: 159 unique non-pack evidence IDs. Its seven level-2
+dimension-reference counts are 49, 19, 75, 33, 17, 4, and 114.
+
+Exactly one successful multi-trace authoring invocation produced the final root
+`c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0`.
+The deterministic 4,230,462-byte archive has SHA-256
+`59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0`;
+a fresh dependency-only install, four-revision resolved validation, and installed hostile
+replay all passed. The review remains `independent_review_pending`, so this is an
+installable level-2 authoring candidate, not a level-3 or gold pack. The corpus remains
+PDF-only: no MP4 or video inference supports a disputed fact. PA92–PA174 remain isolated,
+synthetic counterfactual material and cannot ground the actual appeal.

@@ -58,8 +58,10 @@ The frozen Ellison source/render/record/core slice likewise refines only its pag
 283-PDF breadth total. Its lower-court record is 37 PDFs/275 JA pages, while its complete record
 is 72 PDFs/449 pages after adding 15 actual appellate PDFs/91 PA pages and 20 separately
 docketed, never-filed counterfactual PDFs/83 PA pages. PA92–PA174 never occurred on the actual
-appeal. Workflow, traces, manifest, promoted review evidence, root, archive, resolved install,
-and focused release tests remain pending.
+appeal. The frozen workflow and six traces, final nine-resource/72-blob manifest, promoted
+level-2 review, deterministic archive, dependency-only resolved install, and hostile runtime
+audit now form an installable authoring candidate. Synthetic PA92–PA174 remain excluded from
+actual-history and actual-disposition grounding.
 
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
@@ -175,10 +177,20 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
   legal ruling on assumed facts, and affirm the clearly-established-law denial of qualified
   immunity. Adverse—dismiss the factual target, assume constitutional excessiveness without
   deciding it, and reverse only the qualified-immunity target for summary judgment to Rusk.
-- **Evidence status:** source, render, 72-entry/449-anchor record, and seven non-workflow core
-  resources are frozen; both question-bank and disposition digests independently recompute.
-  Workflow, traces, manifest, exact review evidence, root, archive, resolved install, and focused
-  release tests remain `PENDING`; the review is level 2 and `independent_review_pending`.
+- **Evidence status:** source, render, and the 72-entry/449-anchor record are frozen. Workflow
+  `cd69b276a63ae508ba0d98bbee15585847a405b5b55a48df69fffe45811ca23a` and successor plan
+  `82f1afa17e4d15a192cc6567ff3ffaa3415d2dd95f609aa58c760c026c78273d` bind six canonical
+  traces with 229 commands/events, all 77 operations, 14 same-ID filing recoveries, 24 court
+  documents, 11 deadlines, and five terminated plus one stayed endpoint. Manifest
+  `8f0d614a73a4850a93170a7338229b64e2b1d042134e678785eaab481fd8ca42` closes nine resources,
+  72 blobs, 16 capabilities, and three exact dependencies. Review
+  `5545977962535b58f029de10959cf2f9e49348a12fb4f7bff17574aa688b8867` binds closure
+  `8032c5547dd522cad241b9c816bd611d198dbe7e007b0cd29781b8b471de41ac`; exactly one successful
+  authoring invocation produced root
+  `c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0` and the deterministic
+  4,230,462-byte archive
+  `59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0`.
+  The review remains level 2 and `independent_review_pending`.
 - **Limits:** the engine does not classify arbitrary argument as legal or factual, inspect video,
   infer disputed movement/resistance/threat/credibility, treat post-incident *Barricks* or *Zorn*
   as February 2025 notice, combine mutually exclusive Rule 41 paths, or model real judges.
@@ -328,11 +340,17 @@ final replay. It therefore remains the installable civil gold candidate rather t
 pack. The v0.1.0 predecessor
 stays immutable and is not silently upgraded into schema v2 or level 3.
 
-The Ellison `1.2.0` authoring checkpoint records level 2 in every dimension with
-`independent_review_pending`. Frozen evidence currently covers 72 PDFs/449 anchors and seven
-non-workflow core resources. Workflow, trace, manifest, exact review-evidence, root, archive,
-resolved-install, and focused-test pins remain `PENDING`, so Ellison is not yet an installable
-release and makes no level-3 or gold claim.
+The Ellison `1.2.0` authoring candidate records level 2 in every dimension with
+`independent_review_pending`. Its exact evidence envelope covers four packs, 44 non-review
+resources, 72 blobs, six traces, two record checks, and 35 authorities: 159 unique non-pack
+evidence IDs. The seven dimension-reference counts are 49/19/75/33/17/4/114. The installed
+hostile audit made 458 command
+redecisions, 229 prefix replays, 12 full replays, and 66 mutation rejections. The final root is
+`c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0`, with evidence closure
+`8032c5547dd522cad241b9c816bd611d198dbe7e007b0cd29781b8b471de41ac`.
+Ellison is therefore an installable level-2 authoring candidate, not a level-3 or gold pack.
+Its PDF-only corpus contains no MP4; the engine makes no video inference, and separately
+docketed synthetic PA92–PA174 cannot ground actual-history claims.
 
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and
