@@ -12,7 +12,7 @@ This short controlled volume identifies semantic positions in selected lower-cou
 
 The selected sequence covers the request, acknowledgment, clarification, initial release, administrative appeal, final administrative decision, search certification, Vaughn materials, supplemental release, cross-motions, relevant orders, judgment, docket certification, and transmittal. The equal-page public volume supplies ordinary legal and factual context without resolving the inert labels.
 
-The fixed universe is twelve records comprising 200 source pages: sixty decision-tree pages, fifty-four escalation-matrix pages, sixty-four coordination-appendix pages, and twenty-two governance pages. No excerpt contains a real system detail, actionable instruction, authentic communication path, credential, incident, or personal locator. The controlled vocabulary permits comparison of placement only.
+The fixed universe is twelve records comprising 200 source pages: sixty decision-tree pages, fifty-four escalation-matrix pages, sixty-four coordination-appendix pages, and twenty-two governance pages. No excerpt contains a real system detail, actionable instruction, authentic communication path, credential, incident, or personal locator. The controlled vocabulary permits comparison of placement only. Every referenced item remains subject to the same fictional access grant, closure verification, and revocation conditions.
 
 <!-- PAGE BREAK -->
 
