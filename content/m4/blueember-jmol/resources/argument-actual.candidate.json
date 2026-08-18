@@ -82,7 +82,7 @@
         "question_id": "ca4m4.blueember.question.actual-renewal-authority",
         "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
         "topic_id": "workbench.topic.governing-authority",
-        "prompt": "How does Plyler's treatment of a distinct physical-proximity basis first raised in Rule 50(b), together with Unitherm and Price, bar Granite Heron's distinct mitigation basis, while Wiener permits imperfect alignment only between the Rule 50(b) issue and appellate theory on that same issue?",
+        "prompt": "Why do Unitherm, Price, and Plyler bar Granite Heron's distinct mitigation basis expressly excluded at Rule 50(a), while Gautier's threadbare Rule 50(b) incorporation and Wiener's imperfect appellate alignment preserve only the same issue already raised and addressed below?",
         "grounding": [
           {
             "grounding_id": "ca4m4.blueember.grounding.actual-renewal-authority-unitherm",
@@ -98,6 +98,11 @@
             "grounding_id": "ca4m4.blueember.grounding.actual-renewal-authority-plyler",
             "kind": "authority",
             "authority_id": "ca4m4.blueember.authority.plyler-distinct-basis"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.actual-renewal-authority-gautier",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.gautier-same-issue-incorporation"
           },
           {
             "grounding_id": "ca4m4.blueember.grounding.actual-renewal-authority-wiener",

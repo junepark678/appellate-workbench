@@ -50,6 +50,7 @@
         "ca4m4.blueember.authority.price-same-ground",
         "ca4m4.blueember.authority.plyler-distinct-basis",
         "ca4m4.blueember.authority.wiener-same-issue",
+        "ca4m4.blueember.authority.gautier-same-issue-incorporation",
         "ca4m4.blueember.authority.boley-majority-variance",
         "ca4m4.blueember.authority.boley-concurrence-unitherm",
         "ca4m4.blueember.authority.thermal-design-mitigation-burden",
@@ -194,7 +195,7 @@
     {
       "plan_id": "ca4m4.blueember.disposition.actual-reversal-new-trial",
       "finality": "final",
-      "digest": "fa510c486dd334dd0b3b870ea29b8fa808c0b72bcd5733e6f58839f03bf976eb",
+      "digest": "e1569b1519f425703fdd80738814ba88d610837372eb234937176a6b0b3e6a67",
       "components": [
         {
           "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
@@ -207,7 +208,8 @@
             "ca4m4.blueember.authority.unitherm-rule50-renewal",
             "ca4m4.blueember.authority.price-same-ground",
             "ca4m4.blueember.authority.plyler-distinct-basis",
-            "ca4m4.blueember.authority.wiener-same-issue"
+            "ca4m4.blueember.authority.wiener-same-issue",
+            "ca4m4.blueember.authority.gautier-same-issue-incorporation"
           ],
           "record_anchor_ids": [
             "ca4m4.blueember.anchor.ja373",

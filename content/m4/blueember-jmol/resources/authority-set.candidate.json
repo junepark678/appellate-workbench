@@ -117,6 +117,20 @@
       "proposition": "Variation between the Rule 50(b) issue and appellate theory need not align perfectly when the same issue was raised; it does not establish Rule 50(a)-to-Rule 50(b) preservation."
     },
     {
+      "authority_id": "ca4m4.blueember.authority.gautier-same-issue-incorporation",
+      "authority_type": "case",
+      "jurisdiction_id": "us.ca4",
+      "issuing_body_id": "us.ca4.court.appeals",
+      "precedential_status": "precedential",
+      "official_source": true,
+      "citation": "Gautier v. Tams Management, Inc., 163 F.4th 786, 793–94 (4th Cir. 2026)",
+      "source_version": "2026-01-02",
+      "checked_on": "2026-08-18",
+      "locator": "No. 24-1401, official slip opinion pages 6–7",
+      "source_url": "https://www.ca4.uscourts.gov/opinions/241401.P.pdf",
+      "proposition": "Rule 50(b)'s threadbare incorporation did not forfeit the same one-employer sufficiency issue where Rule 50(a) raised it and the district court spotted and addressed it; this is distinct from a ground expressly excluded at Rule 50(a)."
+    },
+    {
       "authority_id": "ca4m4.blueember.authority.boley-majority-variance",
       "authority_type": "case",
       "jurisdiction_id": "us.ca4",
