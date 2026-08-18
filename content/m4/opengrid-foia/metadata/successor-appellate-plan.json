@@ -1,0 +1,491 @@
+{
+  "schema_version": 1,
+  "pack_id": "us.ca4.m4.opengrid-foia",
+  "successor_version": "1.2.0",
+  "boundary": "appellate_workflow_and_five_canonical_production_traces",
+  "frozen_core": {
+    "authority_set_sha256": "5d05989cdfbe0b845aa33f48754b711c4541fece66481c29430b03869ecb9a8a",
+    "bench_configuration_sha256": "4943c36f07b46c3a365e0d6c31d8e98a9b1f48caee3ba434fb1232945b1de237",
+    "case_sha256": "472ea3d8d67c6bc4d2cada60ea98e69529ed6a19749833d1db218d5448f444f2",
+    "procedure_profile_sha256": "d570c49a8c8e26845228305d0df63909e950c1192b5ece5a429693b07dcece24",
+    "record_sha256": "4fb13f25af4e06234cfa0ffbb0c0f77b7476ad7c65ed9365cc9642cb38f27f5a",
+    "actual_argument_configuration_sha256": "c403426fbe41b17bc5c32d6215625f8470a4d859e38cb0c63f417fcae4ba8cc1",
+    "counterfactual_argument_configuration_sha256": "17c3e9e0751ac5ebca9499e19d360993250b6bda5fdc1f838001ac72468572e1",
+    "workflow_sha256": "66361faed640a8e274834b49595061b51d5fc41b1ef34b4d494f0ca49de67503"
+  },
+  "resolved_contract": {
+    "root_digest": "642435c488928188d00a657e048748ca9141fae7df0176e1e8245863b2e02bfe",
+    "resolved_revision_count": 4,
+    "dependency_revision_pins": [
+      {
+        "pack_id": "foundation.us-federal",
+        "version": "2025.12.01",
+        "digest": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9"
+      },
+      {
+        "pack_id": "foundation.us-ca4",
+        "version": "2026.03.23",
+        "digest": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262"
+      },
+      {
+        "pack_id": "foundation.us-ca4-fictional-bench",
+        "version": "1.0.0",
+        "digest": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d"
+      }
+    ]
+  },
+  "workflow_contract": {
+    "resource_id": "ca4m4.opengrid.workflow.foia-sealed-appeal",
+    "source_path": "resources/workflow.candidate.json",
+    "promoted_path": "pack-candidate/resources/workflow.json",
+    "sha256": "66361faed640a8e274834b49595061b51d5fc41b1ef34b4d494f0ca49de67503",
+    "stage_count": 35,
+    "operation_count": 101,
+    "operation_opcode_counts": {
+      "accept_filing": 17,
+      "reject_filing": 17,
+      "advance_stage": 31,
+      "calculate_deadline": 12,
+      "enter_order": 16,
+      "schedule_argument": 2,
+      "issue_judgment": 2,
+      "issue_mandate": 4,
+      "set_sealed": 0
+    },
+    "filing_route_count": 17,
+    "filing_binding_count": 19,
+    "court_document_binding_count": 22,
+    "disposition_binding_count": 2,
+    "deadline_calculation_operation_count": 12,
+    "concrete_deadline_id_count": 12,
+    "bound_public_record_union_count": 41,
+    "sealed_record_binding_count": 0,
+    "deficiency_count": 0,
+    "all_operations_exact_legal_time_guarded": true,
+    "all_operations_precondition_guarded": true
+  },
+  "source_binding_contract": {
+    "filing_record_entry_codes": [
+      "L36",
+      "A02",
+      "A03",
+      "A04",
+      "A05",
+      "A06",
+      "A08",
+      "A10",
+      "A12",
+      "B02",
+      "B03",
+      "B04",
+      "B06",
+      "B08",
+      "B13",
+      "B14",
+      "B17",
+      "B18",
+      "B24"
+    ],
+    "court_document_record_entry_codes": [
+      "L37",
+      "A01",
+      "A14",
+      "A15",
+      "A16",
+      "A17",
+      "A18",
+      "A19",
+      "B01",
+      "B10",
+      "B11",
+      "B12",
+      "B15",
+      "B16",
+      "B19",
+      "B20",
+      "B21",
+      "B22",
+      "B23",
+      "B26",
+      "B27",
+      "B28"
+    ],
+    "sealed_record_entry_codes_excluded": [
+      "A07",
+      "A09",
+      "A11",
+      "A13",
+      "B05",
+      "B07",
+      "B09",
+      "B25"
+    ],
+    "filing_and_court_document_sets_disjoint": true,
+    "workflow_selectors_are_public_record_only": true,
+    "sealed_session_access_is_record_layer_only": true,
+    "active_opposing_party_service_only": true
+  },
+  "representational_boundaries": {
+    "canonical_path_count": 5,
+    "no_sixth_path": "The frozen sources support no no-rehearing counterfactual mandate and no stay-grant/dissolution branch; the corpus therefore contains exactly five executions rather than a standard six-path shape.",
+    "sealed_session_separation": "The workflow and canonical traces bind only public record entries. Sealed twins remain available solely through the record disclosure-session boundary and never enter a workflow command or event provenance selector.",
+    "b14_response_request": "The Rule 40(d)(4) request for a response is an unbound court-authorized stage advance because the frozen record contains no separate docketed request order; B14 remains the generic motion filing bound to the response route.",
+    "b12_b27_engine_boundary": "B12 is the sole counterfactual issue_judgment operation. B21 vacates its opinion and judgment as a source event, but the engine has no judgment-reset opcode; B27 is therefore an exact enter_order revised-judgment binding and the stored engine judgment SHA intentionally remains B12 through B28."
+  },
+  "deadline_contract": [
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.actual-opening-brief",
+      "rule": "32 calendar days from the February 9 actual case-opening notice",
+      "due_date": "2026-03-13"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.actual-response-brief",
+      "rule": "30 calendar days from the March 13 opening brief, rolled from Sunday April 12",
+      "due_date": "2026-04-13"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.actual-reply-brief",
+      "rule": "21 calendar days from the April 13 response brief",
+      "due_date": "2026-05-04"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.actual-rehearing-petition",
+      "rule": "14 calendar days from the July 17 actual judgment",
+      "due_date": "2026-07-31"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.actual-mandate",
+      "rule": "7 calendar days after the actual rehearing deadline",
+      "due_date": "2026-08-07"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+      "rule": "Rule 40(d)(1) 45-day government-party period from the May 29 counterfactual judgment",
+      "due_date": "2026-07-13"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-ordinary-mandate",
+      "rule": "Rule 41(b) 7 calendar days after the initial rehearing deadline",
+      "due_date": "2026-07-20"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-rehearing-denial-mandate",
+      "rule": "7 calendar days from the June 22 rehearing denial under the denial fork's express timing order",
+      "due_date": "2026-06-29"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-stay-denial-mandate",
+      "rule": "B19 expressly shortens Rule 41(b)'s ordinary July 6 post-stay-denial interval to one calendar day",
+      "due_date": "2026-06-30"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.counterfactual-supplemental-brief",
+      "rule": "9 calendar days from the June 23 supplemental-briefing order",
+      "due_date": "2026-07-02"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.counterfactual-revised-rehearing-petition",
+      "rule": "14 calendar days from the July 13 revised-judgment order under its express Rule 40(d)(1) shortening",
+      "due_date": "2026-07-27"
+    },
+    {
+      "deadline_id": "ca4m4.opengrid.deadline.counterfactual-revised-mandate",
+      "rule": "7 calendar days after the revised rehearing deadline",
+      "due_date": "2026-08-03"
+    }
+  ],
+  "trace_contract": {
+    "engine_revision": "appellate.realism-evidence.codec-replay-multi.v1",
+    "trace_count": 5,
+    "command_count": 221,
+    "event_count": 221,
+    "operation_union_count": 101,
+    "filing_binding_union_count": 19,
+    "filing_route_union_count": 17,
+    "court_document_binding_union_count": 22,
+    "reject_operation_union_count": 17,
+    "nonconforming_rejection_event_count": 39,
+    "rejection_reason": "nonconforming_filing",
+    "same_trace_same_filing_id_recovery_required": true,
+    "two_binding_sealing_routes": [
+      "A04+A05",
+      "B02+B03"
+    ],
+    "codec_decode_reencode_required": true,
+    "canonical_contiguous_command_ids_required": true,
+    "fresh_generation_count": 2,
+    "fresh_generations_byte_identical": true,
+    "command_redecision_count": 221,
+    "command_prefix_replay_count": 221,
+    "full_replay_passes_per_trace": 2,
+    "full_replay_pass_count": 10,
+    "terminal_trace_count": 4,
+    "blocked_state_trace_count": 1,
+    "trace_closure_sha256": "9247eb77b22dc166db60ef7d984ac70114b00af4387cd61ebdc1d377654b02ae",
+    "trace_closure_framing": "plan-order canonical relative path + NUL + exact trace bytes + NUL",
+    "exact_path_document_entry_sets_required": true,
+    "hostile_crossing_contract": [
+      "actual selector versus counterfactual selector",
+      "counterfactual rehearing denial versus grant selectors",
+      "B16 ordinary post-denial mandate versus accepted B17 stay filing",
+      "B21 grant closes B15, B16, B17 through B20",
+      "B22 mandate-stayed order requires exact B21 grant",
+      "B28 revised mandate requires exact B27 revised-judgment order and both revised deadlines"
+    ],
+    "per_trace_tamper_rejections": [
+      "sequence",
+      "legal_time",
+      "document_sha256",
+      "actor_id",
+      "required_service",
+      "order_id",
+      "order_disposition",
+      "deadline_due_date",
+      "deadline_id",
+      "deadline_event_base",
+      "deadline_dependent_base_id",
+      "event_authority",
+      "applied_record_provenance"
+    ],
+    "tamper_rejection_count": 65
+  },
+  "rejection_recovery_distribution": [
+    {
+      "trace_id": "ca4m4.opengrid.trace.actual-ordinary",
+      "filing_ids": [
+        "ca4m4.opengrid.filing.l36-notice-of-appeal",
+        "ca4m4.opengrid.filing.a02-docketing-statement",
+        "ca4m4.opengrid.filing.a03-appearances-disclosures",
+        "ca4m4.opengrid.filing.a04-motion-limited-sealing",
+        "ca4m4.opengrid.filing.a06-public-opening-brief",
+        "ca4m4.opengrid.filing.a08-public-response-brief",
+        "ca4m4.opengrid.filing.a10-public-reply-brief",
+        "ca4m4.opengrid.filing.a12-public-joint-appendix"
+      ]
+    },
+    {
+      "trace_id": "ca4m4.opengrid.trace.counterfactual-rehearing-denial",
+      "filing_ids": [
+        "ca4m4.opengrid.filing.l36-notice-of-appeal",
+        "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+        "ca4m4.opengrid.filing.b04-counterfactual-public-opening-brief",
+        "ca4m4.opengrid.filing.b06-counterfactual-public-response-brief",
+        "ca4m4.opengrid.filing.b08-counterfactual-public-reply-brief",
+        "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+        "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response"
+      ]
+    },
+    {
+      "trace_id": "ca4m4.opengrid.trace.counterfactual-stay-denial",
+      "filing_ids": [
+        "ca4m4.opengrid.filing.l36-notice-of-appeal",
+        "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+        "ca4m4.opengrid.filing.b04-counterfactual-public-opening-brief",
+        "ca4m4.opengrid.filing.b06-counterfactual-public-response-brief",
+        "ca4m4.opengrid.filing.b08-counterfactual-public-reply-brief",
+        "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+        "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response",
+        "ca4m4.opengrid.filing.b17-counterfactual-mandate-stay-motion",
+        "ca4m4.opengrid.filing.b18-counterfactual-mandate-stay-opposition"
+      ]
+    },
+    {
+      "trace_id": "ca4m4.opengrid.trace.counterfactual-rehearing-grant-blocked",
+      "filing_ids": [
+        "ca4m4.opengrid.filing.l36-notice-of-appeal",
+        "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+        "ca4m4.opengrid.filing.b04-counterfactual-public-opening-brief",
+        "ca4m4.opengrid.filing.b06-counterfactual-public-response-brief",
+        "ca4m4.opengrid.filing.b08-counterfactual-public-reply-brief",
+        "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+        "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response"
+      ]
+    },
+    {
+      "trace_id": "ca4m4.opengrid.trace.counterfactual-rehearing-grant-complete",
+      "filing_ids": [
+        "ca4m4.opengrid.filing.l36-notice-of-appeal",
+        "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+        "ca4m4.opengrid.filing.b04-counterfactual-public-opening-brief",
+        "ca4m4.opengrid.filing.b06-counterfactual-public-response-brief",
+        "ca4m4.opengrid.filing.b08-counterfactual-public-reply-brief",
+        "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+        "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response",
+        "ca4m4.opengrid.filing.b24-counterfactual-public-supplemental-brief"
+      ]
+    }
+  ],
+  "planned_traces": [
+    {
+      "trace_id": "ca4m4.opengrid.trace.actual-ordinary",
+      "evidence_id": "ca4m4.opengrid.evidence.trace.actual-ordinary",
+      "canonical_trace_path": "traces/actual-ordinary-through-mandate.json",
+      "canonical_trace_sha256": "bbdda19bf1435be26279ff230adbaeb82b165e2fc90c28b81976d83f368e0a46",
+      "journal_sha256": "e158e057f05bafee0dc3ddc27a13f32f79b455cfc98062e3fb367caac0a1db36",
+      "digest": "496d734ed581c990debfdb99076270d8bbb59e61090202fea9b53a3ae1b62eee",
+      "classification": "actual_appellate_path",
+      "command_count": 42,
+      "event_count": 42,
+      "unique_operation_count": 41,
+      "document_entry_codes": [
+        "L36",
+        "L37",
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A08",
+        "A10",
+        "A12",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19"
+      ],
+      "terminal_stage_id": "ca4m4.opengrid.stage.terminated",
+      "terminal": true,
+      "terminal_result": "actual_partial_vacatur_and_remand_mandate_issued"
+    },
+    {
+      "trace_id": "ca4m4.opengrid.trace.counterfactual-rehearing-denial",
+      "evidence_id": "ca4m4.opengrid.evidence.trace.counterfactual-rehearing-denial",
+      "canonical_trace_path": "traces/counterfactual-rehearing-denial-through-mandate.json",
+      "canonical_trace_sha256": "415e1ecaff88005e75916ba7b315ee98586180203322fd1ea6ee948425c9d5ac",
+      "journal_sha256": "2becec6d9dc58a851a687832b5a8ca6c40390090d02834a07a386d0404a9f962",
+      "digest": "63dcbece5924a73a30460af689cf9005adf5c165c901ea1aa1953e69abe9c4a7",
+      "classification": "counterfactual_appellate_branch",
+      "command_count": 40,
+      "event_count": 40,
+      "unique_operation_count": 39,
+      "document_entry_codes": [
+        "L36",
+        "L37",
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B06",
+        "B08",
+        "B10",
+        "B11",
+        "B12",
+        "B13",
+        "B14",
+        "B15",
+        "B16"
+      ],
+      "terminal_stage_id": "ca4m4.opengrid.stage.terminated",
+      "terminal": true,
+      "terminal_result": "counterfactual_rehearing_denied_then_ordinary_post_denial_mandate_issued"
+    },
+    {
+      "trace_id": "ca4m4.opengrid.trace.counterfactual-stay-denial",
+      "evidence_id": "ca4m4.opengrid.evidence.trace.counterfactual-stay-denial",
+      "canonical_trace_path": "traces/counterfactual-stay-denial-through-mandate.json",
+      "canonical_trace_sha256": "876c229f8443cfbc987a230e554895989f0c4b1c1bda50f441a119c6e32f2b22",
+      "journal_sha256": "66cada38e814196fbf182e4bfaaed5ae9f3b8d1e969f850a87ad3e08a5b80a98",
+      "digest": "f8b78013cc1369bddaa1ea08f4a3120199ed1373527908c593433a0fd19f5842",
+      "classification": "counterfactual_appellate_branch",
+      "command_count": 49,
+      "event_count": 49,
+      "unique_operation_count": 48,
+      "document_entry_codes": [
+        "L36",
+        "L37",
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B06",
+        "B08",
+        "B10",
+        "B11",
+        "B12",
+        "B13",
+        "B14",
+        "B15",
+        "B17",
+        "B18",
+        "B19",
+        "B20"
+      ],
+      "terminal_stage_id": "ca4m4.opengrid.stage.terminated",
+      "terminal": true,
+      "terminal_result": "counterfactual_mandate_issued_after_expressly_shortened_stay_denial_interval"
+    },
+    {
+      "trace_id": "ca4m4.opengrid.trace.counterfactual-rehearing-grant-blocked",
+      "evidence_id": "ca4m4.opengrid.evidence.trace.counterfactual-rehearing-grant-blocked",
+      "canonical_trace_path": "traces/counterfactual-rehearing-grant-mandate-stayed.json",
+      "canonical_trace_sha256": "c904aa859eb73463860164299c99ffacbd6e90458a8dba71b5f367541bc9a91e",
+      "journal_sha256": "0a73e1a551e783f1b16aa66edc53fac0f24f80b0ff53bf88dc0d23ce17bd60ac",
+      "digest": "f838f3275d96a866adaccb53f5f96f96145805246cf04296b88f909e819689c6",
+      "classification": "counterfactual_appellate_branch",
+      "command_count": 39,
+      "event_count": 39,
+      "unique_operation_count": 38,
+      "document_entry_codes": [
+        "L36",
+        "L37",
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B06",
+        "B08",
+        "B10",
+        "B11",
+        "B12",
+        "B13",
+        "B14",
+        "B21",
+        "B22"
+      ],
+      "terminal_stage_id": "ca4m4.opengrid.stage.counterfactual-mandate-stayed",
+      "terminal": false,
+      "terminal_result": "counterfactual_panel_rehearing_granted_and_mandate_stayed",
+      "endpoint_scope": "blocked_state"
+    },
+    {
+      "trace_id": "ca4m4.opengrid.trace.counterfactual-rehearing-grant-complete",
+      "evidence_id": "ca4m4.opengrid.evidence.trace.counterfactual-rehearing-grant-complete",
+      "canonical_trace_path": "traces/counterfactual-rehearing-grant-through-revised-mandate.json",
+      "canonical_trace_sha256": "708b0f0fe83f1adc14f36f1b58fdc8f8ddc25a2ad7e4c2d913d89c3d3cd13f46",
+      "journal_sha256": "d84750ce6c774fb9ae3bdb29b483f7ba9a7c422446cb215f6e6fca8ffbf10fc9",
+      "digest": "fd75f8dfca868d5da62568009f5ef880a8ad10e1fc9ec75f940255eb6abaa2bc",
+      "classification": "counterfactual_appellate_branch",
+      "command_count": 51,
+      "event_count": 51,
+      "unique_operation_count": 50,
+      "document_entry_codes": [
+        "L36",
+        "L37",
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B06",
+        "B08",
+        "B10",
+        "B11",
+        "B12",
+        "B13",
+        "B14",
+        "B21",
+        "B22",
+        "B23",
+        "B24",
+        "B26",
+        "B27",
+        "B28"
+      ],
+      "terminal_stage_id": "ca4m4.opengrid.stage.terminated",
+      "terminal": true,
+      "terminal_result": "counterfactual_full_affirmance_preserved_after_rehearing_and_revised_mandate_issued"
+    }
+  ]
+}
