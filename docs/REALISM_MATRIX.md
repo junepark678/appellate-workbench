@@ -20,7 +20,7 @@ designation and does not satisfy the level-3 gate.
 | Preliminary injunction / stay | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Post-trial JMOL | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Sealed FOIA | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Frozen level-2 scaffold; workflow/release evidence and qualified independent review pending |
+| Sealed FOIA | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Criminal sentencing / waiver | Criminal (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Immigration agency review | Agency (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Privileged-discovery mandamus | Writ (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
@@ -121,21 +121,32 @@ zero skips. This is installable level-2 evidence, not level 3 or gold. The gener
 corpus contains no MP4 or raw instrument-data file; automated checks do not substitute for
 qualified independent civil-trial, posttrial-motions, and appellate review.
 
-The Open Grid FOIA `1.2.0` authoring scaffold records level 2 in every dimension with
-`independent_review_pending`, but deliberately has no authored `evidence` envelope. Its frozen
-corpus contains 37 lower-record PDFs/290 JA pages, 19 actual appellate PDFs/155 PA pages, and
-28 separately docketed, never-filed counterfactual PDFs/209 PA pages, for 84 PDFs/654 anchors.
-The record closes 17 public/sealed disclosure pairs through 172 bijective page mappings,
-including 22 named stable-anchor subjects, with public-default projection, exact-disclosure
-session grant, revocation, exact-closure binding, and deferred per-open CAS verification. Frozen
-source, PDF, record, and seven-resource core closures are
-`ec7ab1ce6ff02b2005f672f1da03c75fb51aac5eb3b95b97ac3ddeeeab6fb1c1`,
-`ab5dcc9df062758bc9d58eddb24657fbdeea71dc7afe47a1a04ef1a29072a9fe`,
-`4fb13f25af4e06234cfa0ffbb0c0f77b7476ad7c65ed9365cc9642cb38f27f5a`, and
-`8d245455f20b896d9333e414db5a6d30520c948166bb9797c99cd916fd1ebb4f`.
-Source chronology supports five preflight labels only: actual ordinary; counterfactual rehearing
-denial; counterfactual mandate-stay denial after rehearing denial; counterfactual rehearing grant
-ending at mandate-stayed; and rehearing grant through supplemental merits, revised judgment, and
-mandate. Workflow, traces, realism evidence, manifest, root, archive, resolved install, and tests
-remain **PENDING**; no sixth execution, workflow hash/count, replay result, installability claim,
-level-3 claim, or gold claim is reserved in advance.
+The Open Grid FOIA `1.2.0` authoring candidate records level 2 in every dimension with
+`independent_review_pending`. Its frozen corpus contains 37 lower-record PDFs/290 JA pages,
+19 actual appellate PDFs/155 PA pages, and 28 separately docketed, never-filed counterfactual
+PDFs/209 PA pages, for 84 PDFs/654 anchors. The record closes 17 public/sealed disclosure pairs
+through 172 bijective page mappings, including 22 named stable-anchor subjects. Workflow
+`66361faed640a8e274834b49595061b51d5fc41b1ef34b4d494f0ca49de67503` has 35 stages,
+101 operations, 17 routes, 19 public filing bindings, 22 public court-document bindings,
+12 deadlines, a 41-entry public provenance union, and no sealed binding. Five canonical traces
+contain 221 commands/events, cover all 101 operations, include 39 rejection events, and end at
+four terminated plus one mandate-stayed endpoint; the plan-order trace closure is
+`9247eb77b22dc166db60ef7d984ac70114b00af4387cd61ebdc1d377654b02ae`.
+
+Manifest `94ff5a6f3e89686c6119578033cbec7218afe5b0543ddbebba6e54e787bf3f70`
+closes nine resources, 84 blobs, 17 capabilities, and three dependencies. Review
+`2f0b0b06fd7de51dd2fa53466458b3e3e4ba7bc1c181ea0342c543e65b36ba34` binds evidence closure
+`1acce5699c11f75736f2f611e0eae6158f37f26970bf1f7d8b99ddbd85956534`: four packs,
+44 non-review resources, 84 blobs, five traces, two record checks, 33 authorities, 168 unique
+non-pack evidence IDs, and dimension counts 46/20/87/32/18/4/124. Exactly one successful
+authoring call produced root
+`9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5`; the deterministic
+5,244,039-byte archive is
+`1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09`. Fresh four-revision
+resolved validation, 221 command redecisions and prefix replays, ten full replays, and 65 hostile
+mutation rejections passed. The authored record checks bind exact record/blob descriptors and
+anchor-bearing record bytes; separate installed runtime evidence establishes grant/revoke,
+cross-root denial, per-open CAS/PDF/page verification, and snapshot isolation. Focused-test commit
+`f2192e7462f12faf58d67b297216fecedba53a28` passed normal and `TZ=UTC` integration/UI runs
+2/2 with zero skips in 85.43 and 85.29 seconds. This is installable level-2 evidence, not
+qualified independent review, level 3, or gold.

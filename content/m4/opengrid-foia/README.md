@@ -1,17 +1,17 @@
-# Open Grid FOIA authoring candidate
+# Open Grid FOIA installable authoring candidate
 
-This tree prepares the schema-v2 root `us.ca4.m4.opengrid-foia@1.2.0` for the
+This tree contains the schema-v2 root `us.ca4.m4.opengrid-foia@1.2.0` for the
 fictional exercise *Open Grid Archive v. United States Department of Energy*
 (`SYN-DMD-25-CV-0914`; `SYN-CA4-26-CV-4106`). It is synthetic training material,
 not legal advice, a representation of a real dispute, an independently reviewed pack,
-an operational cybersecurity guide, or a release-ready gold pack.
+an operational cybersecurity guide, a level-3 pack, or a release-ready gold pack.
 
 All parties, people, offices, systems, addresses, identifiers, facts, events, and
 dockets are fictional. Real courts and the Department of Energy appear only as
 institutional procedural actors. The Fourth Circuit bench uses fictional/composite
 Vale, Quill, and Reed profiles supplied by an exact-pinned foundation.
 
-## Frozen source, render, record, and core boundary
+## Frozen source, render, record, core, and workflow boundary
 
 The accepted record contains 84 distinct searchable PDFs and 654 page anchors:
 
@@ -80,6 +80,14 @@ independently recomputed question-bank digests are
 `bdbfefea95255ef6d323ce0baebf27a5bb0f93f73484cc68df1e6e5e59b1c23b`
 and `68f4d32cb47237aea128c33d638cafd3529a8cc1a807d43dd970b4b70d49b3f8`.
 
+The promoted workflow SHA-256 is
+`66361faed640a8e274834b49595061b51d5fc41b1ef34b4d494f0ca49de67503`.
+It contains 35 stages, 101 operations, 17 filing routes, 19 exact public filing
+bindings, 22 exact public court-document bindings, two disposition bindings, 12 named
+deadlines, and a 41-entry public record union. It binds no sealed entry. Sealed access
+remains exclusively at the record layer and never appears in workflow selectors or
+command/event provenance.
+
 The successor plan remains an allocation ledger whose top-level status fields say
 `planned` and `pending_render`. Accepted byte identity is instead established by the
 frozen source closure, render inventory, checked-in PDFs, record, and core-resource
@@ -108,9 +116,9 @@ findings with public counterparts and bounded duration. The counterfactual dispo
 therefore affirms all four targets. Nothing in B01 or PA156–PA364 alters the actual
 district record or appeal.
 
-## Pending workflow and release evidence
+## Frozen workflow and release evidence
 
-Source chronology supports exactly five workflow preflight labels:
+Source chronology and the committed workflow support exactly five canonical executions:
 
 1. actual ordinary path through the August 7 mandate;
 2. counterfactual rehearing-denial path through the June 29 mandate;
@@ -120,20 +128,75 @@ Source chronology supports exactly five workflow preflight labels:
    mandate.
 
 The documents do not support a sixth execution path, a no-rehearing counterfactual
-mandate route, or a mandate-stay-grant/dissolution route. These five labels are a frozen
-source-faithful topology preflight only. The workflow candidate, production traces and
-journals, evidence-bearing review, manifest, root revision, deterministic archive,
-resolved installation, and focused/full-suite tests all remain explicitly **PENDING**.
-No provisional workflow hash, count, replay result, or future release pin is claimed.
+mandate route, or a mandate-stay-grant/dissolution route. The five traces contain
+42/40/49/39/51 commands and events, respectively: 221 commands, 221 events, exact
+101-operation coverage, 39 nonconforming-filing rejection events, 19 filing bindings,
+17 route recoveries, 22 court documents, 12 deadlines, four terminated endpoints, and
+one mandate-stayed blocked endpoint. Independent replay redecided all 221 commands,
+replayed all 221 prefixes and ten complete journals, and rejected 65 hostile mutations.
 
-The realism-review scaffold SHA-256 is
-`d5a1b604bee39e299674ecd56196195e0629cb78bfc5e21dd083f1605bb7045f`.
-It records level 2 in all seven dimensions and `independent_review_pending`, but
-deliberately has no `evidence` field. It is a schema-valid authoring checkpoint, not
-authored realism evidence, a promoted pack resource, an installability claim, a level-3
-claim, or a gold claim.
+The Rule 40 response request is represented by a court-authorized stage advance because
+the sources contain no separately docketed request order. B12 remains the immutable
+engine judgment after B21 vacates it because there is no reset opcode; B27 is instead an
+exact revised-judgment order whose order instance and revised deadlines gate B28. These
+are disclosed engine boundaries, not invented source events.
 
-## Expected exact dependencies
+The final manifest closes nine resources, 84 PDF blobs, 17 capabilities, and three exact
+dependencies. The authored level-2 review remains `independent_review_pending` and binds
+four packs, 44 non-review resources, 84 blobs, five traces, two record checks, and
+33 authorities (nine local, 11 Fourth Circuit, and 13 federal): 168 globally unique
+non-pack evidence IDs. Dimension-reference counts
+are 46/20/87/32/18/4/124 for procedural law, deadlines/authority, record consistency,
+consequences, oral argument, bench differentiation, and provenance.
+
+Frozen release pins are:
+
+- successor appellate-plan SHA-256:
+  `89b30afb72227c71f32926fdc418b25727b4914ad15e13240dc8d8cc1d371ddf`;
+- plan-order trace closure:
+  `9247eb77b22dc166db60ef7d984ac70114b00af4387cd61ebdc1d377654b02ae`;
+- manifest SHA-256:
+  `94ff5a6f3e89686c6119578033cbec7218afe5b0543ddbebba6e54e787bf3f70`;
+- authored review SHA-256:
+  `2f0b0b06fd7de51dd2fa53466458b3e3e4ba7bc1c181ea0342c543e65b36ba34`;
+- evidence closure:
+  `1acce5699c11f75736f2f611e0eae6158f37f26970bf1f7d8b99ddbd85956534`;
+- root revision:
+  `9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5`;
+- deterministic 5,244,039-byte archive SHA-256:
+  `1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09`;
+  and
+- assembly commit:
+  `0b44b265164c44522509d8a8c2ed3cbb31427eea`.
+
+Exactly one successful evidence-authoring invocation updated the review and manifest;
+the persistent one-shot ledger is exactly one and no lock, transaction, temporary, or
+process residue remains. Two deferred exports were byte-identical, and a fresh catalog
+resolved and validated the exact root plus its three dependencies before and after the
+installed runtime audit.
+
+The two authored record checks have a narrower meaning than that runtime audit. The
+`asset_resolution` check binds the exact record descriptor and all 84 sorted blob
+descriptors; the `page_anchor_resolution` check binds the exact record descriptor that
+contains all anchors and disclosure mappings. Session grant/revoke behavior,
+same-identity cross-root rejection, per-open CAS/PDF/page verification, and leased-
+snapshot isolation and recovery were exercised separately through the installed
+`workbench.pack.sealed-record-twins@1` runtime boundary; they are not direct claims of
+the two descriptor checks.
+
+Focused integration and offscreen UI coverage is frozen in commit
+`f2192e7462f12faf58d67b297216fecedba53a28`, whose scope is exactly
+`tests/CMakeLists.txt`, `tests/integration/tst_m4_opengrid_foia.cpp`, and
+`tests/integration/tst_m4_opengrid_foia_ui_e2e.cpp`. The core test independently
+installs the exact root, replays the five workflow paths, exercises the complete hostile
+and sealed-record runtime contracts, and verifies all frozen evidence counts. The UI
+test exercises the three public docket filters, PDF navigation/search, and an exact
+public-to-controlled-to-public grant/revoke cycle. Normal and `TZ=UTC` focused CTest
+runs each passed 2/2 with zero skips in the author-recorded 85.43 and 85.29 seconds,
+respectively. Independent committed-byte reruns also passed 2/2 with zero skips in
+85.88 and 86.01 seconds.
+
+## Exact dependencies
 
 - `foundation.us-federal@2025.12.01`
   (`866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9`)
@@ -142,7 +205,7 @@ claim, or a gold claim.
 - `foundation.us-ca4-fictional-bench@1.0.0`
   (`cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d`)
 
-The eventual manifest must exact-pin those revisions. See
-[VALIDATION.md](VALIDATION.md) for the current gate and
+The final manifest exact-pins those revisions. See
+[VALIDATION.md](VALIDATION.md) for the completed evidence gates and
 [metadata/record-inventory.md](metadata/record-inventory.md) for all 84 document
 ranges.

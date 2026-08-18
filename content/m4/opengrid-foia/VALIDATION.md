@@ -1,12 +1,11 @@
-# Open Grid v1.2.0 validation scaffold
+# Open Grid v1.2.0 validation
 
-Evidence status as of **2026-08-19**: all 84 synthetic sources are frozen; the
-production render and schema-v2 record are accepted; the sealed-record capability
-contract has been exercised against the exact record and PDFs; and seven non-workflow
-core resources have been copied byte-for-byte into the pack candidate and pass schema,
-digest, and resolved-reference checks. Workflow authorship, canonical replay traces,
-manifest closure, promoted realism-review evidence, root revision, deterministic
-archive, resolved installation, and focused release tests remain **PENDING**.
+Evidence status as of **2026-08-19**: the 84-source corpus, production render,
+schema-v2 record, eight runtime resources, five canonical traces, nine-resource
+manifest, authored level-2 realism review, exact root, deterministic archive, and fresh
+four-revision resolved installation are frozen and independently audited. The installed
+record capability, workflow replay, and focused integration/UI gates pass against the
+exact bytes.
 
 ## Frozen evidence pins
 
@@ -42,33 +41,46 @@ archive, resolved installation, and focused release tests remain **PENDING**.
 | Counterfactual question-bank grounding digest | `68f4d32cb47237aea128c33d638cafd3529a8cc1a807d43dd970b4b70d49b3f8` | Independently recomputed from frozen authority/record bytes |
 | Actual disposition digest | `523c7bc9574fd76f87c4b67955d7366a30a9cc6c30847c9fbffbf6df87d6b8d0` | Independently recomputed from the four-component actual plan |
 | Counterfactual disposition digest | `6309ed33d1d12a0dd64c88b1be3951368fc9e15a6586b065d7886e60bb7428e6` | Independently recomputed from the four-component full-affirmance plan |
-| Realism-review scaffold SHA-256 | `d5a1b604bee39e299674ecd56196195e0629cb78bfc5e21dd083f1605bb7045f` | Schema-valid level-2 scaffold; `independent_review_pending`; no `evidence` field |
+| Corrected pre-author realism scaffold SHA-256 | `6d770c938f44ad11d0579e3de9e9781da8daa631a841820dd97437434c8ba1f5` | Historical schema-valid level-2 authoring input; no `evidence` field |
+| Workflow resource SHA-256 | `66361faed640a8e274834b49595061b51d5fc41b1ef34b4d494f0ca49de67503` | Frozen: 35 stages / 101 operations / 17 routes / 19 filing bindings / 22 court bindings / 12 deadlines / 41 public entries / 0 sealed entries |
+| Successor appellate-plan SHA-256 | `89b30afb72227c71f32926fdc418b25727b4914ad15e13240dc8d8cc1d371ddf` | Frozen workflow, deadline, binding, boundary, and five-trace contract |
+| Plan-order trace closure | `9247eb77b22dc166db60ef7d984ac70114b00af4387cd61ebdc1d377654b02ae` | Frozen five path-framed canonical trace files |
+| Authoring trace-set wrapper | `7cc540ef865e80d408dcfab59b152810bb2fd76e0a47a93ac3b600985b45dcde` | Frozen 1,023,754-byte plan-order multi-trace input |
+| Manifest SHA-256 | `94ff5a6f3e89686c6119578033cbec7218afe5b0543ddbebba6e54e787bf3f70` | Frozen: 9 resources / 84 PDF blobs / 17 capabilities / 3 exact dependencies |
+| Authored realism-review SHA-256 | `2f0b0b06fd7de51dd2fa53466458b3e3e4ba7bc1c181ea0342c543e65b36ba34` | Level 2 throughout; `independent_review_pending`; exact evidence envelope |
+| Exact evidence-closure digest | `1acce5699c11f75736f2f611e0eae6158f37f26970bf1f7d8b99ddbd85956534` | Frozen: 4 packs / 44 non-review resources / 84 blobs / 5 traces / 2 checks / 33 authorities (9 local + 11 Fourth Circuit + 13 federal) |
+| Root revision | `9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5` | Frozen installable schema-v2 root |
+| Deterministic archive | `1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09` | Two byte-identical deferred exports / 5,244,039 bytes |
+| Pack-tree framed closure | `b3264cb532486b2ba309793a92d8575e78c1a1bd7ab3002054ac25bc44a7505c` | Frozen manifest plus nine resources and 84 blobs / 94 files |
+| Workflow promotion commit | `fa4a520b0928657bbffe2f51903db797dcfa4829` | Exact promoted workflow scope |
+| Canonical trace commit | `28f3bfd095eb27891c5662c994ae2ec2cc42a86c` | Exact successor plan plus five-trace scope |
+| Evidence assembly commit | `0b44b265164c44522509d8a8c2ed3cbb31427eea` | Exact manifest plus authored-review scope |
+| Evidence authoring ledger | `1` | Exactly one successful status-0 update; no retry or transaction residue |
+| Focused-test commit | `f2192e7462f12faf58d67b297216fecedba53a28` | Frozen exact three-path scope: CMake registration, core integration test, and offscreen UI test |
+| Focused-test source SHA-256 values | CMake `3356e1859a5c1e539f217ff29a44d32229907b6729675a0ee3e563ff4e3ea25b`; core `2b087548e625e461e7f8a4a196fe9dbcced5d7007e5b6273959c305be0951882`; UI `5ecc2c448ce75f73bd9c9ac67c7dc4161e5617951898e3c9d7e3a31a8498d039` | Commit blobs and worktree bytes match exactly |
+| Focused-test outputs | Core: sealed `67/68/67`, `17/172`, cross-root/CAS/PDF/page/snapshot/recovery CLEAR; trace `5/221/221 prefixes/10 full/101/19/17/39/22/12/4+1/65`; UI `3 pass / 0 fail / 0 skip` | Normal and `TZ=UTC` CTest each passed 2/2 with zero skipped |
+| Focused-test author timings | Werror target build 8.87 s; direct core 63.68 s; direct UI 21.59 s; normal CTest 63.66 + 21.76 = 85.43 s; `TZ=UTC` CTest 63.67 + 21.61 = 85.29 s; full incremental Werror build 0.31 s | Frozen author run |
+| Independent committed-byte test audit | Normal CTest 64.20 + 21.68 = 85.88 s; `TZ=UTC` CTest 64.32 + 21.69 = 86.01 s | Both 2/2 with zero skipped; direct core exact counters/probes and UI 3/0/0 passed; forced Werror build plus format/diff/stale gates passed |
 
-## Explicitly pending artifacts and gates
+## Canonical trace pins
 
-| Artifact or gate | Current value | Status |
-| --- | --- | --- |
-| Workflow resource SHA-256 | **PENDING** | Candidate authorship, hostile review, and promotion are not frozen |
-| Canonical trace set | **PENDING** | No production journal, command/event count, or trace digest is claimed |
-| Realism evidence | **PENDING** | Scaffold is not authored evidence and deliberately omits `evidence` |
-| Manifest SHA-256 | **PENDING** | No final resource/blob/capability closure is claimed |
-| Promoted realism-review SHA-256 | **PENDING** | Evidence authoring must follow workflow and trace freeze |
-| Exact evidence-closure digest | **PENDING** | No evidence envelope exists |
-| Root revision | **PENDING** | Candidate is not yet installable |
-| Deterministic archive | **PENDING** | No archive size or digest is claimed |
-| Resolved installation audit | **PENDING** | Requires a frozen root and exact dependencies |
-| Open Grid focused/full-suite tests | **PENDING** | No case-test completion claim is made |
+| Path | Trace SHA-256 | Commands / events | Endpoint |
+| --- | --- | ---: | --- |
+| Actual ordinary mandate | `bbdda19bf1435be26279ff230adbaeb82b165e2fc90c28b81976d83f368e0a46` | 42 / 42 | Terminated |
+| Counterfactual rehearing denial | `415e1ecaff88005e75916ba7b315ee98586180203322fd1ea6ee948425c9d5ac` | 40 / 40 | Terminated |
+| Counterfactual mandate-stay denial | `876c229f8443cfbc987a230e554895989f0c4b1c1bda50f441a119c6e32f2b22` | 49 / 49 | Terminated |
+| Counterfactual rehearing grant, mandate stayed | `c904aa859eb73463860164299c99ffacbd6e90458a8dba71b5f367541bc9a91e` | 39 / 39 | `counterfactual-mandate-stayed` blocked state |
+| Counterfactual rehearing grant through revised mandate | `708b0f0fe83f1adc14f36f1b58fdc8f8ddc25a2ad7e4c2d913d89c3d3cd13f46` | 51 / 51 | Terminated |
 
-The source-faithful workflow preflight identifies five labels only: actual ordinary;
-counterfactual rehearing denial; counterfactual mandate-stay denial after rehearing
-denial; counterfactual rehearing grant ending at mandate-stayed; and counterfactual
-rehearing grant through supplemental merits, revised judgment, and mandate. The
-documents do not support a standard sixth execution. Those labels do not reserve a
-future workflow hash, structural count, trace count, replay result, or success claim.
+Together the traces contain 221 commands and 221 events, cover all 101 operations,
+exercise all 19 filing bindings and 17 filing routes, bind 22 court documents and
+12 deadlines, and include 39 nonconforming-filing rejection events. Replay redecided
+all 221 commands, replayed all 221 prefixes and ten full journals, and rejected 65
+hostile mutations. The source record supports no standard sixth execution.
 
-## Completed source, render, record, and core gates
+## Completed source, render, record, core, workflow, and assembly gates
 
-The following claims are confined to the frozen source/render/record/core bytes:
+The following claims are confined to the frozen bytes identified above:
 
 1. The source allocation resolves 37 lower sources to JA1–JA290, 19 actual appellate
    sources to PA1–PA155, and 28 never-filed counterfactual sources to PA156–PA364. The
@@ -112,34 +124,68 @@ The following claims are confined to the frozen source/render/record/core bytes:
     checked-on dates, precedential status, and propositions as of the 2026-08-19 cutoff.
     Automated checking does not itself establish their legal application or currency
     after that cutoff.
+12. The workflow validates with exactly 35 stages, 101 operations, 17 filing routes,
+    19 public filing bindings, 22 public court-document bindings, two disposition
+    bindings, 12 named deadlines, and 41 distinct public provenance entries. Its
+    selectors and bindings contain none of the eight sealed appellate entries.
+13. Five canonical traces contain 221 commands/events and cover all 101 operations,
+    19 filing bindings, 17 routes, 22 court documents, and 12 deadlines. Four traces
+    terminate and one ends at the mandate-stayed blocked state; 39 rejection events and
+    65 hostile mutations exercise recovery, time, byte, actor, service, order,
+    disposition, deadline, authority, and provenance failures.
+14. Structural mutexes prevent actual/counterfactual crossing and mutually exclusive
+    denial, stay-denial, and rehearing-grant crossings. The generic Rule 40 response
+    transport does not invent a request order. B21 closes the old denial/stay routes,
+    and B28 requires the exact B27 revised-judgment order plus revised deadlines.
+15. The manifest allowlist is exactly nine resource members and 84 PDF blob members,
+    with 17 capabilities and three exact dependencies. The review evidence contains
+    4/44/84/5/2/33 pack/resource/blob/trace/check/authority entries and 168 globally
+    unique non-pack evidence IDs; its 33 authorities partition as 9 local, 11 Fourth
+    Circuit, and 13 federal, and dimension references are 46/20/87/32/18/4/124.
+16. The authored asset check binds the exact record descriptor plus the sorted
+    descriptors of all 84 docket assets. The authored page-anchor check binds the exact
+    record descriptor containing 654 anchors, 17 disclosures, 172 mappings, and 22 named
+    mappings. Those descriptor checks are not direct behavioral tests of access-session
+    grant/revoke, cross-root denial, deferred per-open CAS/PDF/page verification, or
+    snapshot isolation; those behaviors passed a separate installed runtime audit.
+17. Exactly one successful authoring invocation produced the final manifest/review and
+    left the persistent ledger at one with no retry or transaction residue. Two deferred
+    exports were byte-identical. A fresh catalog exact-pinned and resolved the federal,
+    Fourth Circuit, fictional-bench, and Open Grid revisions before and after runtime.
+18. The frozen three-file focused-test commit independently exports, installs, and
+    validates the exact root; checks the static resource/evidence topology; redecides and
+    replays all five traces and their hostile variants; exercises grant, revoke,
+    cross-root, per-open CAS/PDF/page, and snapshot behavior; and drives the public UI
+    through docket filtering, PDF search/navigation, and disclosure grant/revoke.
+    Werror builds and normal/`TZ=UTC` CTest passed; both CTest runs executed 2/2 tests
+    with zero skips.
 
-These gates establish provenance, access-control behavior, and internal consistency for
-the completed slice. They do not establish workflow reachability, trace replay,
-release closure, deterministic export, resolved installability, accessibility
-conformance, legal correctness, practical realism, or independent review.
+These gates establish exact machine provenance, workflow reachability and replay,
+access-control behavior, deterministic export, resolved installability, and internal
+consistency for the frozen bytes. They do not establish accessibility conformance,
+legal correctness, practical realism, qualified independent review, level 3, or gold
+status.
 
-## Pending workflow and release gates
+## Workflow and release boundaries
 
-Before promotion, exact evidence must establish all of the following:
+The completed machine evidence preserves all of the following boundaries:
 
-1. a schema-valid workflow whose operation, filing-route, exact public-document binding,
+1. The schema-valid workflow's operation, filing-route, exact public-document binding,
    disposition, deadline, stage, actor, authority, and branch references resolve against
    the frozen resources without binding a sealed entry;
-2. production-engine replay and hostile mutation rejection for the five source-faithful
+2. production-engine replay and hostile mutation rejection cover the five source-faithful
    paths, with actual/counterfactual and mutually exclusive counterfactual stages fenced;
-3. actual-history exclusion of PA156–PA364 from actual operations, disposition grounding,
+3. PA156–PA364 remain excluded from actual operations, disposition grounding,
    and actual-record questions;
-4. exact enforcement of the Rule 40 response boundary and the rehearing-grant/revised-
+4. the Rule 40 response boundary and rehearing-grant/revised-
    judgment representation without inventing an unsupported source document or sixth
-   route;
-5. manifest closure over every finalized resource, blob, capability, and exact dependency,
-   with no undeclared or missing member;
-6. a promoted realism review with exact evidence references, while retaining
-   `independent_review_pending` unless a qualified reviewer supplies attributable review;
-7. two byte-identical deferred exports, fresh exact-dependency installation, resolved
-   validation, and focused case/UI tests locally and under `TZ=UTC`.
-
-No pending label above reserves a future hash, count, or success result.
+   route are explicit;
+5. the exact manifest contains no undeclared or missing resource/blob member and pins all
+   negotiated capabilities and dependencies;
+6. the promoted realism review retains `independent_review_pending`; and
+7. the engine's immutable judgment SHA remains B12 after B21 vacatur because no reset
+   opcode exists, while the exact B27 order instance gates B28. That representational
+   limitation is disclosed and does not change the source chronology.
 
 ## Procedural and merits consistency gates
 
@@ -164,15 +210,15 @@ Final validation must preserve these authored boundaries:
 - Vale, Quill, and Reed are synthetic/composite profiles. Deterministic questioning does
   not model a real judge or predict an actual outcome.
 
-## Reproduction scaffold
+## Reproduction
 
-The completed-slice gates can be rechecked from the repository root with the repository's
+The frozen gates can be rechecked from the repository root with the repository's
 schema validator, reference-audit harness, `sha256sum`, `jq`, `qpdf`, `pdfinfo`, and PDF
-text extraction tools. The exact workflow and release commands remain intentionally absent
-until those artifacts freeze. The future root must use deferred export because its
-schema-v2 references depend on exact-pinned foundation resources.
+text extraction tools. The root uses deferred export because its schema-v2 references
+depend on exact-pinned foundation resources; a fresh catalog must install those exact
+dependencies before resolved validation and runtime replay.
 
-Expected dependency revisions are:
+Exact dependency revisions are:
 
 - `foundation.us-federal@2025.12.01` —
   `866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9`;

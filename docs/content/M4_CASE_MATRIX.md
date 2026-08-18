@@ -78,10 +78,14 @@ unchanged. Its lower-court record is 37 PDFs/290 JA pages, while its complete re
 84 PDFs/654 pages after adding 19 actual appellate PDFs/155 PA pages and 28 separately docketed,
 never-filed counterfactual PDFs/209 PA pages. PA156–PA364 never occurred on the actual appeal.
 Seventeen public/sealed disclosure pairs close through 172 bijective page mappings, including
-22 named stable-anchor subjects, and the exact record capability gate covers public-default
-projection, disclosure-specific session grant, revocation, exact-closure binding, and deferred
-per-open CAS verification. Workflow, traces, realism evidence, manifest, root, archive, resolved
-install, and tests remain pending; the level-2 scaffold is not authored evidence.
+22 named stable-anchor subjects. The frozen 35-stage/101-operation workflow and five traces,
+final nine-resource/84-blob manifest, authored level-2 review, deterministic archive, exact
+four-revision resolved install, and 65-mutation hostile audit now form an installable authoring
+candidate. The authored descriptor/anchor checks bind the exact record and blob closure; separate
+installed runtime evidence covers public-default projection, disclosure-specific session grant,
+revocation, exact-closure denial, deferred per-open CAS verification, and snapshot isolation.
+Frozen focused integration/UI commit `f2192e7462f12faf58d67b297216fecedba53a28` passed normal
+and `TZ=UTC` runs 2/2 with zero skips.
 
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
@@ -290,13 +294,30 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
   `ab5dcc9df062758bc9d58eddb24657fbdeea71dc7afe47a1a04ef1a29072a9fe`; record
   `4fb13f25af4e06234cfa0ffbb0c0f77b7476ad7c65ed9365cc9642cb38f27f5a`; seven-resource core
   `8d245455f20b896d9333e414db5a6d30520c948166bb9797c99cd916fd1ebb4f`.
-- **Workflow/release status:** source chronology supports five preflight labels only—actual
+- **Workflow:** workflow
+  `66361faed640a8e274834b49595061b51d5fc41b1ef34b4d494f0ca49de67503` contains 35 stages,
+  101 operations, 17 routes, 19 public filing bindings, 22 public court-document bindings,
+  12 deadlines, and 41 distinct public provenance entries, with no sealed binding. Source
+  chronology supports five canonical paths only—actual
   ordinary; counterfactual rehearing denial; counterfactual mandate-stay denial after rehearing
   denial; counterfactual rehearing grant ending at mandate-stayed; and rehearing grant through
   supplemental merits, revised judgment, and mandate. The sources do not support a sixth
-  execution. Workflow, traces, realism evidence, manifest, root, archive, resolved install, and
-  tests remain **PENDING**; the schema-valid level-2 scaffold has no `evidence` field and makes no
-  installability, level-3, or gold claim.
+  execution. The five traces contain 221 commands/events, cover all 101 operations, include
+  39 rejection events, and end at four terminated plus one blocked endpoint; their closure is
+  `9247eb77b22dc166db60ef7d984ac70114b00af4387cd61ebdc1d377654b02ae`.
+- **Release status:** manifest
+  `94ff5a6f3e89686c6119578033cbec7218afe5b0543ddbebba6e54e787bf3f70` closes nine resources,
+  84 blobs, 17 capabilities, and three dependencies. Review
+  `2f0b0b06fd7de51dd2fa53466458b3e3e4ba7bc1c181ea0342c543e65b36ba34` binds evidence closure
+  `1acce5699c11f75736f2f611e0eae6158f37f26970bf1f7d8b99ddbd85956534` over
+  4/44/84/5/2/33 packs/resources/blobs/traces/checks/authorities and 168 unique IDs. Root
+  `9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5` exports to the
+  deterministic 5,244,039-byte archive
+  `1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09` and passes fresh resolved
+  installation and runtime replay. Focused-test commit
+  `f2192e7462f12faf58d67b297216fecedba53a28` passed normal and `TZ=UTC` integration/UI runs
+  2/2 with zero skips in 85.43 and 85.29 seconds. The review remains
+  `independent_review_pending`, so this is installable level-2 evidence, not level 3 or gold.
 
 ### 7. Serrano waiver — `ca4m4.case.serrano-waiver`
 
@@ -434,20 +455,27 @@ Actual Rule 50(a) preservation remains causation-only; B01's express-mitigation 
 solely on the separate never-filed docket. The PDF-only corpus contains no MP4 or raw instrument
 data, and synthetic PA109–PA226 cannot ground actual-history claims.
 
-The Open Grid `1.2.0` authoring scaffold records level 2 in every dimension with
-`independent_review_pending` but no `evidence` field. Its frozen source/render/record/core slice
-contains 84 PDFs/654 anchors across the 37/290 lower, 19/155 actual, and 28/209 isolated
-counterfactual allocations. The record's 17 disclosures, 172 bijective stable mappings, and
-22 named mapped subjects pass the exact public/grant/revoke/closure/CAS capability boundary.
-Source chronology supports five workflow preflight labels, not a standard six-path contract.
-Workflow promotion, traces, realism evidence, manifest, root, archive, resolved install, and
-tests remain pending. The scaffold is therefore a documentation checkpoint, not installable
-level-2 evidence, level 3, or gold; synthetic PA156–PA364 cannot ground actual-history claims.
+The Open Grid `1.2.0` authoring candidate records level 2 in every dimension with
+`independent_review_pending`. Its frozen source/render/record corpus contains 84 PDFs/654 anchors
+across the 37/290 lower, 19/155 actual, and 28/209 isolated counterfactual allocations. The
+35-stage/101-operation workflow and five traces close 221 commands/events, exact 101-operation
+coverage, 39 rejection events, 19 bindings, 17 routes, 22 court documents, 12 deadlines, four
+terminated plus one blocked endpoint, and 65 hostile mutation rejections. The 9/84/17/3
+manifest binds an evidence envelope of 4/44/84/5/2/33 entries, 168 unique evidence IDs, and
+dimension-reference counts 46/20/87/32/18/4/124. Exact root
+`9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5` and archive
+`1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09` pass fresh resolved
+installation and runtime audits. The two authored record checks bind descriptors and anchors;
+the separate installed capability audit proves grant/revoke/CAS/snapshot behavior. Focused-test
+commit `f2192e7462f12faf58d67b297216fecedba53a28` passed normal and `TZ=UTC` integration/UI runs
+2/2 with zero skips. This is installable level-2 evidence, not level 3 or gold, and synthetic
+PA156–PA364 cannot ground actual-history claims.
 
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and
-appellate-privilege/writ reviewer. Open Grid's exact sealed/public record behavior is now frozen,
-but its workflow/release evidence and qualified independent FOIA/appellate review remain pending.
+appellate-privilege/writ reviewer. Open Grid's exact sealed/public record behavior and
+workflow/release evidence and focused tests are frozen; qualified independent FOIA/appellate
+review remains pending.
 
 After #23–#28 and the three shared foundations freeze, isolated root authoring may proceed in
 parallel without shared-file overlap:

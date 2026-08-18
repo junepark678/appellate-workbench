@@ -1,6 +1,6 @@
 # Open Grid record inventory
 
-This inventory describes the frozen source/render/record/core candidate for
+This inventory describes the frozen installable level-2 authoring candidate for
 `us.ca4.m4.opengrid-foia@1.2.0`. It contains exactly 84 searchable PDFs and
 654 page anchors: 37 lower-record PDFs/290 JA pages, 19 actual appellate PDFs/155
 PA pages, and 28 never-filed counterfactual PDFs/209 PA pages. JA1–JA290 and
@@ -154,7 +154,7 @@ authorized session may add exactly one controlled counterpart after exact-closur
 deferred per-open CAS checks; revocation restores the public-only projection. Sealed
 assets never become default workflow bindings or public results.
 
-## Byte, render, record, and core closure
+## Byte, render, record, workflow, and release closure
 
 The frozen source plan is `successor-document-plan.json`; the accepted render plan and
 checked-in inventory are `render-plan-successor.json` and
@@ -176,6 +176,44 @@ The record SHA-256 is
 and the pack-relative path-framed seven-resource core closure is
 `8d245455f20b896d9333e414db5a6d30520c948166bb9797c99cd916fd1ebb4f`.
 
-Workflow, traces, evidence, manifest, root, archive, resolved installation, and release-
-test pins remain **PENDING**. This inventory makes no advance replay, installability,
-independent-review, level-3, or gold claim.
+The promoted workflow SHA-256 is
+`66361faed640a8e274834b49595061b51d5fc41b1ef34b4d494f0ca49de67503`
+and the successor appellate-plan SHA-256 is
+`89b30afb72227c71f32926fdc418b25727b4914ad15e13240dc8d8cc1d371ddf`.
+The workflow contains 35 stages, 101 operations, 17 routes, 19 public filing bindings,
+22 public court-document bindings, 12 deadlines, and 41 distinct public record entries;
+it contains no sealed selector or binding. Its five canonical paths total 221 commands
+and 221 events, cover all 101 operations, contain 39 rejection events, and end at four
+terminated plus one blocked endpoint. Their plan-order path-framed closure is
+`9247eb77b22dc166db60ef7d984ac70114b00af4387cd61ebdc1d377654b02ae`.
+
+The final manifest SHA-256 is
+`94ff5a6f3e89686c6119578033cbec7218afe5b0543ddbebba6e54e787bf3f70`:
+nine resources, 84 blobs, 17 capabilities, and three exact dependencies. Review
+`2f0b0b06fd7de51dd2fa53466458b3e3e4ba7bc1c181ea0342c543e65b36ba34`
+binds evidence closure
+`1acce5699c11f75736f2f611e0eae6158f37f26970bf1f7d8b99ddbd85956534`:
+four packs, 44 non-review resources, 84 blobs, five traces, two record checks, and
+33 authorities (nine local, 11 Fourth Circuit, and 13 federal), with 168 unique
+non-pack evidence IDs. Root
+`9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5`
+exports deterministically to the 5,244,039-byte archive
+`1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09`.
+
+The authored asset and page-anchor checks bind exact descriptors: the record plus all
+84 sorted blob descriptors, and the record containing its anchors/mappings,
+respectively. They do not themselves execute the disclosure session. Separate installed
+runtime evidence establishes public 67-entry projection, exact-disclosure grant to
+68 entries, revocation to 67, cross-closure denial, deferred per-open CAS/PDF/page
+verification, and leased-snapshot isolation and recovery.
+
+Focused integration and offscreen UI tests are frozen in exact three-file commit
+`f2192e7462f12faf58d67b297216fecedba53a28`. Normal and `TZ=UTC` CTest each passed
+2/2 with zero skips in the author-recorded 85.43 and 85.29 seconds, respectively;
+independent committed-byte reruns also passed 2/2 with zero skips in 85.88 and
+86.01 seconds. The core test reproduces
+the `67/68/67` public/grant/revoke projection, 17 disclosures/172 mappings, all sealed
+CAS/PDF/page/snapshot failures and recoveries, and the complete five-trace replay/tamper
+contract. The UI test passed three slots with no failure or skip. The authored review
+remains `independent_review_pending`; this inventory makes no qualified-independent-
+review, level-3, or gold claim.
