@@ -146,9 +146,9 @@
   },
   "sealed_record_twins": {
     "policy_id": "ca4m4.serrano.record.policy.public-sealed-psr-twins",
-    "unauthorized_projection": "public_counterparts_and_public_docket_surrogates_only",
-    "authorized_projection": "public_projection_and_disclosure_specific_sealed_entries",
-    "sealed_asset_access": "synthetic_session_event_grant_required",
+    "unauthorized_projection": "public_counterparts_only",
+    "authorized_projection": "public_and_authorized_sealed",
+    "sealed_asset_access": "session_event_grant_required",
     "stable_anchor_mapping_count": 95,
     "mapping_rule": "Each page in every equal-page pair receives one record-unique stable logical anchor mapped to one public-surrogate or public-redacted physical anchor and one sealed physical anchor. Case, issue, disposition, and question resources reference only the stable logical anchor for paired material.",
     "referenced_stable_anchor_ids": [
@@ -279,7 +279,7 @@
         "ca4m4.serrano.authority.mdnc-standing-order-41-sealed-access"
         ],
         "required_items": [
-          "public_docket_surrogate"
+          "redacted_counterpart"
         ],
         "page_count": 20,
         "anchor_mapping_count": 20
@@ -296,7 +296,7 @@
           "ca4m4.serrano.authority.mdnc-standing-order-41-sealed-access"
         ],
         "required_items": [
-          "public_docket_surrogate"
+          "redacted_counterpart"
         ],
         "page_count": 10,
         "anchor_mapping_count": 10
@@ -312,7 +312,7 @@
           "ca4m4.serrano.authority.mdnc-standing-order-41-sealed-access"
         ],
         "required_items": [
-          "public_docket_surrogate"
+          "redacted_counterpart"
         ],
         "page_count": 11,
         "anchor_mapping_count": 11
@@ -328,7 +328,7 @@
           "ca4m4.serrano.authority.mdnc-standing-order-41-sealed-access"
         ],
         "required_items": [
-          "public_docket_surrogate"
+          "redacted_counterpart"
         ],
         "page_count": 10,
         "anchor_mapping_count": 10
@@ -347,7 +347,7 @@
         "required_items": [
           "motion",
           "certificate",
-          "public_redacted_counterpart"
+          "redacted_counterpart"
         ],
         "page_count": 16,
         "anchor_mapping_count": 16
@@ -366,7 +366,7 @@
         "required_items": [
           "motion",
           "certificate",
-          "public_redacted_counterpart"
+          "redacted_counterpart"
         ],
         "page_count": 14,
         "anchor_mapping_count": 14
@@ -385,7 +385,7 @@
         "required_items": [
           "motion",
           "certificate",
-          "public_redacted_counterpart"
+          "redacted_counterpart"
         ],
         "page_count": 8,
         "anchor_mapping_count": 8
@@ -407,7 +407,7 @@
         "required_items": [
           "motion",
           "certificate",
-          "public_docket_surrogate"
+          "redacted_counterpart"
         ],
         "page_count": 6,
         "anchor_mapping_count": 6
