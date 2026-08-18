@@ -1,0 +1,332 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4m4.case.blueember-jmol",
+  "title": "Blue Ember Biologics, LLC v. Granite Heron Logistics, Inc.",
+  "procedure_profile_id": "ca4m4.blueember.procedure.civil-post-trial-appeal",
+  "record_id": "ca4m4.blueember.record",
+  "actors": [
+    {
+      "actor_id": "ca4m4.blueember.actor.blue-ember",
+      "role_id": "us.ca4.role.initiating-party",
+      "display_name": "Blue Ember Biologics, LLC (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.blueember.actor.granite-heron",
+      "role_id": "us.ca4.role.responding-party",
+      "display_name": "Granite Heron Logistics, Inc. (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.blueember.actor.district-court",
+      "role_id": "ca4m4.blueember.role.originating-court",
+      "display_name": "Fictional United States District Court for the Western District of North Carolina",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.blueember.actor.ca4-clerk",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional Fourth Circuit exercise clerk",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.blueember.actor.composite-panel",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional composite Fourth Circuit panel",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
+      "title": "Whether Granite Heron could obtain renewed judgment as a matter of law on mitigation when both Rule 50(a) motions challenged causation only and mitigation first appeared in the Rule 50(b) motion, contrasted with the never-occurred premise in which both Rule 50(a) motions expressly preserved mitigation",
+      "target_ids": [
+        "ca4m4.blueember.target.mitigation-jmol-grant"
+      ],
+      "authority_ids": [
+        "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+        "ca4m4.blueember.authority.unitherm-rule50-renewal",
+        "ca4m4.blueember.authority.price-same-ground",
+        "ca4m4.blueember.authority.wiener-same-issue",
+        "ca4m4.blueember.authority.boley-majority-variance",
+        "ca4m4.blueember.authority.boley-concurrence-unitherm",
+        "ca4m4.blueember.authority.thermal-design-mitigation-burden",
+        "ca4m4.blueember.authority.clark-mitigation-defense"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.blueember.anchor.ja373",
+        "ca4m4.blueember.anchor.ja377",
+        "ca4m4.blueember.anchor.ja378",
+        "ca4m4.blueember.anchor.ja382",
+        "ca4m4.blueember.anchor.ja389",
+        "ca4m4.blueember.anchor.ja391",
+        "ca4m4.blueember.anchor.ja398",
+        "ca4m4.blueember.anchor.ja405",
+        "ca4m4.blueember.anchor.ja414",
+        "ca4m4.blueember.anchor.ja416",
+        "ca4m4.blueember.anchor.ja352",
+        "ca4m4.blueember.anchor.ja358",
+        "ca4m4.blueember.anchor.ja368",
+        "ca4m4.blueember.anchor.pa20",
+        "ca4m4.blueember.anchor.pa49",
+        "ca4m4.blueember.anchor.pa71",
+        "ca4m4.blueember.anchor.pa87",
+        "ca4m4.blueember.anchor.pa94",
+        "ca4m4.blueember.anchor.pa101",
+        "ca4m4.blueember.anchor.pa109",
+        "ca4m4.blueember.anchor.pa110",
+        "ca4m4.blueember.anchor.pa111",
+        "ca4m4.blueember.anchor.pa112",
+        "ca4m4.blueember.anchor.pa113",
+        "ca4m4.blueember.anchor.pa136",
+        "ca4m4.blueember.anchor.pa152",
+        "ca4m4.blueember.anchor.pa162",
+        "ca4m4.blueember.anchor.pa169"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.blueember.issue.conditional-rule59-new-trial",
+      "title": "Whether the district court independently and permissibly granted a conditional Rule 59 damages retrial after granting mitigation JMOL, and whether that conditional ruling becomes operative when the JMOL is reversed",
+      "target_ids": [
+        "ca4m4.blueember.target.conditional-damages-new-trial"
+      ],
+      "authority_ids": [
+        "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+        "ca4m4.blueember.authority.frcp-59-new-trial",
+        "ca4m4.blueember.authority.atlas-rule59-and-partial-retrial"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.blueember.anchor.ja389",
+        "ca4m4.blueember.anchor.ja397",
+        "ca4m4.blueember.anchor.ja398",
+        "ca4m4.blueember.anchor.ja404",
+        "ca4m4.blueember.anchor.ja409",
+        "ca4m4.blueember.anchor.ja414",
+        "ca4m4.blueember.anchor.ja418",
+        "ca4m4.blueember.anchor.ja420",
+        "ca4m4.blueember.anchor.pa31",
+        "ca4m4.blueember.anchor.pa59",
+        "ca4m4.blueember.anchor.pa78",
+        "ca4m4.blueember.anchor.pa98",
+        "ca4m4.blueember.anchor.pa102",
+        "ca4m4.blueember.anchor.pa170"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.blueember.issue.partial-new-trial-scope",
+      "title": "Whether gross damages and mitigation are distinct and separable from liability and causation so that the conditional retrial may be confined to damages without injustice, compromise, or jury confusion",
+      "target_ids": [
+        "ca4m4.blueember.target.damages-only-retrial"
+      ],
+      "authority_ids": [
+        "ca4m4.blueember.authority.frcp-59-new-trial",
+        "ca4m4.blueember.authority.atlas-rule59-and-partial-retrial",
+        "ca4m4.blueember.authority.rice-separable-damages-retrial"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.blueember.anchor.ja126",
+        "ca4m4.blueember.anchor.ja140",
+        "ca4m4.blueember.anchor.ja157",
+        "ca4m4.blueember.anchor.ja191",
+        "ca4m4.blueember.anchor.ja200",
+        "ca4m4.blueember.anchor.ja252",
+        "ca4m4.blueember.anchor.ja273",
+        "ca4m4.blueember.anchor.ja352",
+        "ca4m4.blueember.anchor.ja358",
+        "ca4m4.blueember.anchor.ja368",
+        "ca4m4.blueember.anchor.ja383",
+        "ca4m4.blueember.anchor.ja385",
+        "ca4m4.blueember.anchor.ja418",
+        "ca4m4.blueember.anchor.ja420",
+        "ca4m4.blueember.anchor.pa35",
+        "ca4m4.blueember.anchor.pa64",
+        "ca4m4.blueember.anchor.pa80",
+        "ca4m4.blueember.anchor.pa99",
+        "ca4m4.blueember.anchor.pa171",
+        "ca4m4.blueember.anchor.pa174"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.blueember.issue.rule50c-appellate-relief",
+      "title": "What final appellate relief follows from reversing the mitigation JMOL while affirming its conditional Rule 59 ruling, including vacatur of the amended judgment and remand for damages retrial, and why the preserved counterfactual instead affirms the amended judgment without reaching the conditional ruling",
+      "target_ids": [
+        "ca4m4.blueember.target.amended-judgment"
+      ],
+      "authority_ids": [
+        "ca4m4.blueember.authority.section-1291-final-judgment",
+        "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+        "ca4m4.blueember.authority.frap-4-postjudgment-tolling",
+        "ca4m4.blueember.authority.unitherm-rule50-renewal",
+        "ca4m4.blueember.authority.rice-separable-damages-retrial"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.blueember.anchor.ja383",
+        "ca4m4.blueember.anchor.ja386",
+        "ca4m4.blueember.anchor.ja414",
+        "ca4m4.blueember.anchor.ja421",
+        "ca4m4.blueember.anchor.ja422",
+        "ca4m4.blueember.anchor.ja423",
+        "ca4m4.blueember.anchor.pa38",
+        "ca4m4.blueember.anchor.pa68",
+        "ca4m4.blueember.anchor.pa81",
+        "ca4m4.blueember.anchor.pa100",
+        "ca4m4.blueember.anchor.pa103",
+        "ca4m4.blueember.anchor.pa104",
+        "ca4m4.blueember.anchor.pa105",
+        "ca4m4.blueember.anchor.pa171",
+        "ca4m4.blueember.anchor.pa174",
+        "ca4m4.blueember.anchor.pa175",
+        "ca4m4.blueember.anchor.pa176"
+      ]
+    }
+  ],
+  "authored_disposition_id": "ca4m4.blueember.operation.issue-actual-judgment",
+  "authored_disposition_plan_id": "ca4m4.blueember.disposition.actual-reversal-new-trial",
+  "disposition_plans": [
+    {
+      "plan_id": "ca4m4.blueember.disposition.actual-reversal-new-trial",
+      "finality": "final",
+      "digest": "3f8ae722fa7981971332142d6d2853b050204b4907ce79d50894eaa7c6d3dc32",
+      "components": [
+        {
+          "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
+          "target_id": "ca4m4.blueember.target.mitigation-jmol-grant",
+          "scope": "part",
+          "action": "reverse",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+            "ca4m4.blueember.authority.unitherm-rule50-renewal",
+            "ca4m4.blueember.authority.price-same-ground",
+            "ca4m4.blueember.authority.wiener-same-issue"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.blueember.anchor.ja373",
+            "ca4m4.blueember.anchor.ja378",
+            "ca4m4.blueember.anchor.ja382",
+            "ca4m4.blueember.anchor.ja389",
+            "ca4m4.blueember.anchor.ja414",
+            "ca4m4.blueember.anchor.ja416",
+            "ca4m4.blueember.anchor.pa94"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.blueember.issue.conditional-rule59-new-trial",
+          "target_id": "ca4m4.blueember.target.conditional-damages-new-trial",
+          "scope": "part",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+            "ca4m4.blueember.authority.frcp-59-new-trial",
+            "ca4m4.blueember.authority.atlas-rule59-and-partial-retrial"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.blueember.anchor.ja389",
+            "ca4m4.blueember.anchor.ja397",
+            "ca4m4.blueember.anchor.ja414",
+            "ca4m4.blueember.anchor.ja418",
+            "ca4m4.blueember.anchor.ja420",
+            "ca4m4.blueember.anchor.pa98",
+            "ca4m4.blueember.anchor.pa102"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.blueember.issue.partial-new-trial-scope",
+          "target_id": "ca4m4.blueember.target.damages-only-retrial",
+          "scope": "part",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.blueember.authority.frcp-59-new-trial",
+            "ca4m4.blueember.authority.atlas-rule59-and-partial-retrial",
+            "ca4m4.blueember.authority.rice-separable-damages-retrial"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.blueember.anchor.ja191",
+            "ca4m4.blueember.anchor.ja252",
+            "ca4m4.blueember.anchor.ja273",
+            "ca4m4.blueember.anchor.ja352",
+            "ca4m4.blueember.anchor.ja368",
+            "ca4m4.blueember.anchor.ja383",
+            "ca4m4.blueember.anchor.ja418",
+            "ca4m4.blueember.anchor.pa99"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.blueember.issue.rule50c-appellate-relief",
+          "target_id": "ca4m4.blueember.target.amended-judgment",
+          "scope": "whole",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.blueember.authority.section-1291-final-judgment",
+            "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+            "ca4m4.blueember.authority.rice-separable-damages-retrial"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.blueember.anchor.ja421",
+            "ca4m4.blueember.anchor.ja422",
+            "ca4m4.blueember.anchor.pa100",
+            "ca4m4.blueember.anchor.pa103",
+            "ca4m4.blueember.anchor.pa104",
+            "ca4m4.blueember.anchor.pa105"
+          ]
+        }
+      ]
+    },
+    {
+      "plan_id": "ca4m4.blueember.disposition.counterfactual-preserved-jmol",
+      "finality": "final",
+      "digest": "caf23e14a1a2809b34f0497cfd3ebefd483a0d3cc0d99413367fad9384fb49c3",
+      "components": [
+        {
+          "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
+          "target_id": "ca4m4.blueember.target.mitigation-jmol-grant",
+          "scope": "part",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+            "ca4m4.blueember.authority.price-same-ground",
+            "ca4m4.blueember.authority.wiener-same-issue",
+            "ca4m4.blueember.authority.thermal-design-mitigation-burden",
+            "ca4m4.blueember.authority.clark-mitigation-defense"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.blueember.anchor.ja352",
+            "ca4m4.blueember.anchor.ja358",
+            "ca4m4.blueember.anchor.ja368",
+            "ca4m4.blueember.anchor.pa109",
+            "ca4m4.blueember.anchor.pa110",
+            "ca4m4.blueember.anchor.pa111",
+            "ca4m4.blueember.anchor.pa112",
+            "ca4m4.blueember.anchor.pa169"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.blueember.issue.rule50c-appellate-relief",
+          "target_id": "ca4m4.blueember.target.amended-judgment",
+          "scope": "whole",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.blueember.authority.section-1291-final-judgment",
+            "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling",
+            "ca4m4.blueember.authority.wiener-same-issue"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.blueember.anchor.ja421",
+            "ca4m4.blueember.anchor.ja422",
+            "ca4m4.blueember.anchor.pa109",
+            "ca4m4.blueember.anchor.pa171",
+            "ca4m4.blueember.anchor.pa174",
+            "ca4m4.blueember.anchor.pa175",
+            "ca4m4.blueember.anchor.pa176"
+          ]
+        }
+      ]
+    }
+  ]
+}
