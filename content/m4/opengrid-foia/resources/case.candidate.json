@@ -1,0 +1,327 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4m4.case.opengrid-foia",
+  "title": "Open Grid Archive v. United States Department of Energy",
+  "procedure_profile_id": "ca4m4.opengrid.procedure.civil-foia-appeal",
+  "record_id": "ca4m4.opengrid.record",
+  "actors": [
+    {
+      "actor_id": "ca4m4.opengrid.actor.open-grid",
+      "role_id": "us.ca4.role.initiating-party",
+      "display_name": "Open Grid Archive (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.opengrid.actor.doe",
+      "role_id": "us.ca4.role.responding-party",
+      "display_name": "Fictional United States Department of Energy institutional respondent actor",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.opengrid.actor.district-court",
+      "role_id": "ca4m4.opengrid.role.originating-court",
+      "display_name": "Fictional United States District Court for the District of Maryland",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.opengrid.actor.ca4-clerk",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional Fourth Circuit exercise clerk",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.opengrid.actor.composite-panel",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional composite Fourth Circuit panel",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+      "title": "Whether Exemption 7(E) protects nonpublic trigger sequences and implementation details in DOE's fictional cyber-response operational decision tree while leaving general and administrative material subject to disclosure",
+      "target_ids": [
+        "ca4m4.opengrid.target.operational-decision-tree-withholdings"
+      ],
+      "authority_ids": [
+        "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability",
+        "ca4m4.opengrid.authority.grey-7e-techniques-guidelines",
+        "ca4m4.opengrid.authority.peer-critical-infrastructure"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.opengrid.anchor.ja55",
+        "ca4m4.opengrid.anchor.stable.primary-vaughn-law-enforcement-purpose",
+        "ca4m4.opengrid.anchor.stable.primary-vaughn-7e-tree",
+        "ca4m4.opengrid.anchor.stable.decision-tree-trigger-sequence",
+        "ca4m4.opengrid.anchor.stable.decision-tree-operational-details",
+        "ca4m4.opengrid.anchor.stable.actual-opening-7e",
+        "ca4m4.opengrid.anchor.pa129",
+        "ca4m4.opengrid.anchor.pa133",
+        "ca4m4.opengrid.anchor.pa156",
+        "ca4m4.opengrid.anchor.pa158",
+        "ca4m4.opengrid.anchor.stable.counterfactual-response-line-review",
+        "ca4m4.opengrid.anchor.pa249"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+      "title": "Whether DOE's actual Vaughn submissions and categorical Exemption 7(F) theory specifically connect functional groups of withheld cyber-response material to a reasonable threat to life or physical safety, contrasted with the isolated never-filed corrected showing",
+      "target_ids": [
+        "ca4m4.opengrid.target.categorical-7f-withholdings"
+      ],
+      "authority_ids": [
+        "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability",
+        "ca4m4.opengrid.authority.rein-vaughn-segregability",
+        "ca4m4.opengrid.authority.zaid-categorical-proof",
+        "ca4m4.opengrid.authority.peer-critical-infrastructure",
+        "ca4m4.opengrid.authority.epic-7f-and-segregability"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.opengrid.anchor.ja55",
+        "ca4m4.opengrid.anchor.stable.primary-vaughn-7f-category",
+        "ca4m4.opengrid.anchor.stable.escalation-matrix-7f",
+        "ca4m4.opengrid.anchor.stable.doe-summary-7f",
+        "ca4m4.opengrid.anchor.stable.in-camera-categorical-assertion",
+        "ca4m4.opengrid.anchor.stable.actual-opening-7f",
+        "ca4m4.opengrid.anchor.stable.actual-response-vaughn",
+        "ca4m4.opengrid.anchor.pa136",
+        "ca4m4.opengrid.anchor.pa138",
+        "ca4m4.opengrid.anchor.pa157",
+        "ca4m4.opengrid.anchor.stable.counterfactual-opening-limited-7f",
+        "ca4m4.opengrid.anchor.stable.counterfactual-response-line-review",
+        "ca4m4.opengrid.anchor.pa253"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.opengrid.issue.segregability",
+      "title": "Whether DOE actually performed and documented a page-level segregability review of administrative and coordination material within the paired cyber-response playbooks, contrasted with the isolated never-filed corrected line review and supplemental release",
+      "target_ids": [
+        "ca4m4.opengrid.target.nonexempt-segregable-portions"
+      ],
+      "authority_ids": [
+        "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability",
+        "ca4m4.opengrid.authority.rein-vaughn-segregability",
+        "ca4m4.opengrid.authority.epic-7f-and-segregability"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.opengrid.anchor.ja70",
+        "ca4m4.opengrid.anchor.stable.primary-vaughn-segregability",
+        "ca4m4.opengrid.anchor.stable.supplemental-vaughn-line-review",
+        "ca4m4.opengrid.anchor.stable.playbook-admin-segregable",
+        "ca4m4.opengrid.anchor.stable.open-grid-reply-segregability",
+        "ca4m4.opengrid.anchor.stable.actual-reply-segregability",
+        "ca4m4.opengrid.anchor.pa141",
+        "ca4m4.opengrid.anchor.pa143",
+        "ca4m4.opengrid.anchor.pa159",
+        "ca4m4.opengrid.anchor.stable.counterfactual-response-line-review",
+        "ca4m4.opengrid.anchor.stable.counterfactual-supplemental-release",
+        "ca4m4.opengrid.anchor.pa257"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+      "title": "Whether final-decision jurisdiction permits review of the district court's broad sealing order and whether document-specific findings, public redacted counterparts, less restrictive alternatives, and bounded access support only narrow sealing of operational details",
+      "target_ids": [
+        "ca4m4.opengrid.target.district-sealing-order"
+      ],
+      "authority_ids": [
+        "ca4m4.opengrid.authority.section-1291-final-judgment",
+        "ca4m4.opengrid.authority.dmd-local-rule-105-11-sealing",
+        "ca4m4.opengrid.authority.company-doe-sealing",
+        "us.ca4.authority.local-rule-25c-sealed-materials",
+        "us.ca4.authority.sealed-materials-guide"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.opengrid.anchor.ja221",
+        "ca4m4.opengrid.anchor.ja227",
+        "ca4m4.opengrid.anchor.ja243",
+        "ca4m4.opengrid.anchor.ja250",
+        "ca4m4.opengrid.anchor.ja270",
+        "ca4m4.opengrid.anchor.pa13",
+        "ca4m4.opengrid.anchor.pa19",
+        "ca4m4.opengrid.anchor.stable.actual-appendix-sealing",
+        "ca4m4.opengrid.anchor.pa119",
+        "ca4m4.opengrid.anchor.pa146",
+        "ca4m4.opengrid.anchor.pa148",
+        "ca4m4.opengrid.anchor.pa160",
+        "ca4m4.opengrid.anchor.pa164",
+        "ca4m4.opengrid.anchor.pa170",
+        "ca4m4.opengrid.anchor.stable.counterfactual-reply-narrow-sealing",
+        "ca4m4.opengrid.anchor.pa263"
+      ]
+    }
+  ],
+  "disposition_plans": [
+    {
+      "plan_id": "ca4m4.opengrid.disposition.actual-partial-vacatur-remand",
+      "finality": "final",
+      "digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "components": [
+        {
+          "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+          "target_id": "ca4m4.opengrid.target.operational-decision-tree-withholdings",
+          "scope": "part",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability",
+            "ca4m4.opengrid.authority.grey-7e-techniques-guidelines",
+            "ca4m4.opengrid.authority.peer-critical-infrastructure"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.opengrid.anchor.ja55",
+            "ca4m4.opengrid.anchor.stable.primary-vaughn-7e-tree",
+            "ca4m4.opengrid.anchor.stable.decision-tree-trigger-sequence",
+            "ca4m4.opengrid.anchor.stable.decision-tree-operational-details",
+            "ca4m4.opengrid.anchor.pa133"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+          "target_id": "ca4m4.opengrid.target.categorical-7f-withholdings",
+          "scope": "part",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability",
+            "ca4m4.opengrid.authority.rein-vaughn-segregability",
+            "ca4m4.opengrid.authority.zaid-categorical-proof",
+            "ca4m4.opengrid.authority.peer-critical-infrastructure",
+            "ca4m4.opengrid.authority.epic-7f-and-segregability"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.opengrid.anchor.stable.primary-vaughn-7f-category",
+            "ca4m4.opengrid.anchor.stable.doe-summary-7f",
+            "ca4m4.opengrid.anchor.stable.in-camera-categorical-assertion",
+            "ca4m4.opengrid.anchor.pa138"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.opengrid.issue.segregability",
+          "target_id": "ca4m4.opengrid.target.nonexempt-segregable-portions",
+          "scope": "part",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability",
+            "ca4m4.opengrid.authority.rein-vaughn-segregability",
+            "ca4m4.opengrid.authority.epic-7f-and-segregability"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.opengrid.anchor.ja70",
+            "ca4m4.opengrid.anchor.stable.primary-vaughn-segregability",
+            "ca4m4.opengrid.anchor.stable.playbook-admin-segregable",
+            "ca4m4.opengrid.anchor.stable.open-grid-reply-segregability",
+            "ca4m4.opengrid.anchor.pa143"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+          "target_id": "ca4m4.opengrid.target.district-sealing-order",
+          "scope": "part",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.opengrid.authority.dmd-local-rule-105-11-sealing",
+            "ca4m4.opengrid.authority.company-doe-sealing",
+            "us.ca4.authority.local-rule-25c-sealed-materials",
+            "us.ca4.authority.sealed-materials-guide"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.opengrid.anchor.ja243",
+            "ca4m4.opengrid.anchor.stable.actual-appendix-sealing",
+            "ca4m4.opengrid.anchor.pa119",
+            "ca4m4.opengrid.anchor.pa146",
+            "ca4m4.opengrid.anchor.pa148"
+          ]
+        }
+      ]
+    },
+    {
+      "plan_id": "ca4m4.opengrid.disposition.counterfactual-full-affirmance",
+      "finality": "final",
+      "digest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "components": [
+        {
+          "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+          "target_id": "ca4m4.opengrid.target.operational-decision-tree-withholdings",
+          "scope": "part",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability",
+            "ca4m4.opengrid.authority.grey-7e-techniques-guidelines",
+            "ca4m4.opengrid.authority.peer-critical-infrastructure"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.opengrid.anchor.pa156",
+            "ca4m4.opengrid.anchor.stable.counterfactual-response-line-review",
+            "ca4m4.opengrid.anchor.pa249"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+          "target_id": "ca4m4.opengrid.target.categorical-7f-withholdings",
+          "scope": "part",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability",
+            "ca4m4.opengrid.authority.rein-vaughn-segregability",
+            "ca4m4.opengrid.authority.zaid-categorical-proof",
+            "ca4m4.opengrid.authority.peer-critical-infrastructure",
+            "ca4m4.opengrid.authority.epic-7f-and-segregability"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.opengrid.anchor.pa157",
+            "ca4m4.opengrid.anchor.stable.counterfactual-opening-limited-7f",
+            "ca4m4.opengrid.anchor.stable.counterfactual-response-line-review",
+            "ca4m4.opengrid.anchor.pa253"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.opengrid.issue.segregability",
+          "target_id": "ca4m4.opengrid.target.nonexempt-segregable-portions",
+          "scope": "part",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability",
+            "ca4m4.opengrid.authority.rein-vaughn-segregability",
+            "ca4m4.opengrid.authority.epic-7f-and-segregability"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.opengrid.anchor.pa159",
+            "ca4m4.opengrid.anchor.stable.counterfactual-response-line-review",
+            "ca4m4.opengrid.anchor.stable.counterfactual-supplemental-release",
+            "ca4m4.opengrid.anchor.pa257"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+          "target_id": "ca4m4.opengrid.target.district-sealing-order",
+          "scope": "part",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.opengrid.authority.section-1291-final-judgment",
+            "ca4m4.opengrid.authority.dmd-local-rule-105-11-sealing",
+            "ca4m4.opengrid.authority.company-doe-sealing",
+            "us.ca4.authority.local-rule-25c-sealed-materials",
+            "us.ca4.authority.sealed-materials-guide"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.opengrid.anchor.pa160",
+            "ca4m4.opengrid.anchor.pa164",
+            "ca4m4.opengrid.anchor.pa170",
+            "ca4m4.opengrid.anchor.stable.counterfactual-reply-narrow-sealing",
+            "ca4m4.opengrid.anchor.pa263"
+          ]
+        }
+      ]
+    }
+  ],
+  "authored_disposition_id": "ca4m4.opengrid.operation.issue-actual-judgment",
+  "authored_disposition_plan_id": "ca4m4.opengrid.disposition.actual-partial-vacatur-remand"
+}
