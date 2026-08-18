@@ -92,7 +92,7 @@ The record supports affirmance only for the adequately explained nonpublic trigg
 
 Three other rulings should be vacated. Categorical 7(F) must return for an explanation connecting retained fields to expected danger to an individual. Segregability must return for a passage-level assessment reconciled with RLS-OG-002. The district sealing order must return for material-specific access findings and consideration of public redaction.
 
-Those remands do not order disclosure of any detail protected by the affirmed ruling. DOE may establish a narrower 7(F) claim, sustain contextual 7(E) protection with a sufficient account, and seek a justified judicial restriction. The district court and agency simply must perform the separate inquiries the existing judgment compressed.
+Those remands do not order disclosure of any detail protected by the affirmed ruling. DOE may establish a narrower 7(F) claim, sustain contextual 7(E) protection with a sufficient account, and seek a justified judicial restriction. The district court and agency simply must perform the separate inquiries the existing judgment compressed. Each issue remains analytically distinct throughout that remand.
 
 <!-- PAGE BREAK -->
 
