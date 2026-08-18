@@ -1,0 +1,69 @@
+{
+  "schema_version": 2,
+  "resource_kind": "realism_review",
+  "resource_id": "ca4m4.ellison.review.authoring-2026-08-12",
+  "case_id": "ca4m4.case.ellison-immunity",
+  "review_state": "independent_review_pending",
+  "reviewed_on": "2026-08-12",
+  "dimensions": {
+    "procedural_law": 2,
+    "deadlines_authority": 2,
+    "record_consistency": 2,
+    "consequences": 2,
+    "oral_argument": 2,
+    "bench_differentiation": 2,
+    "provenance": 2
+  },
+  "known_uncertainty": [
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.qualified-review-pending",
+      "summary": "Review by a qualified civil-rights, qualified-immunity, and appellate practitioner remains pending; no independent review is recorded and no level-3 claim is made.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.automated-legal-realism-limit",
+      "summary": "Automated schema, citation, deadline, digest, and replay checks do not establish the legal accuracy, completeness, currency, or practical realism of the cited authorities or authored analysis.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.exact-document-classification-scope",
+      "summary": "Operation bindings, record tags, and semantic classifications are authored for the exact identified documents and do not generalize to novel filings, altered bytes, or unreviewed procedural circumstances.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.collateral-order-legal-factual-boundary",
+      "summary": "The distinction between unreviewable evidence sufficiency and reviewable qualified-immunity law on plaintiff-favorable assumed facts is an authored collateral-order boundary. The engine does not infer that boundary from arbitrary records, arguments, or disputed evidence.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.obscured-video-pdf-only-media",
+      "summary": "The accepted evidence corpus is PDF-only and includes transcripts, frame maps, authentication, and occlusion analysis but no MP4. The system does not inspect video, resolve obscured movement, evaluate credibility, or infer resistance, threat, or force from audiovisual media.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.intervening-authority-not-incident-notice",
+      "summary": "Barricks (March 3, 2026) and Zorn (March 23, 2026) postdate the February 3, 2025 incident and cannot themselves supply incident-date notice. Barricks first appears in appellate briefing, Zorn enters later appellate analysis, and neither is treated as district-court authority in this record.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.counterfactual-docket-isolation",
+      "summary": "PA92–PA174 are never-filed counterfactual branch artifacts on a distinct synthetic docket. Actual-history operations, the actual disposition, and actual-record argument questions must exclude those pages even though the complete training record resolves their anchors.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.branch-specific-rule41-timing",
+      "summary": "Ordinary mandate, rehearing, stay-denial, and stay-grant/dissolution documents encode mutually exclusive Rule 41 paths. Their later-of calculations, shortened issuance intervals, and dissolution dates are branch-specific authored consequences and are not a general scheduling oracle.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.synthetic-bench-oral-limit",
+      "summary": "The Alder, Reed, and March profiles and oral-argument behavior are fictional or composite training constructs; differentiation and deterministic replay do not model any real judge or predict actual advocacy, questioning, or outcomes.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.ellison.uncertainty.generated-pdf-provenance-limit",
+      "summary": "The PDFs are generated training artifacts. Source-to-PDF checks, accepted render inventories, and pinned hashes document repository provenance but cannot establish external authenticity, cross-render byte determinism, or complete accessibility and typography quality.",
+      "blocking": false
+    }
+  ]
+}

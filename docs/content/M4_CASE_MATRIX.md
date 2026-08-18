@@ -54,6 +54,13 @@ docketed, never-filed branch PDFs/99 PA pages. PA136–PA234 never occurred on t
 The independently hostile-reviewed workflow, nine traces, manifest, review, root, deterministic
 archive, resolved install, and focused tests now form an installable level-2 authoring candidate.
 
+The frozen Ellison source/render/record/core slice likewise refines only its page floor, not the
+283-PDF breadth total. Its lower-court record is 37 PDFs/275 JA pages, while its complete record
+is 72 PDFs/449 pages after adding 15 actual appellate PDFs/91 PA pages and 20 separately
+docketed, never-filed counterfactual PDFs/83 PA pages. PA92–PA174 never occurred on the actual
+appeal. Workflow, traces, manifest, promoted review evidence, root, archive, resolved install,
+and focused release tests remain pending.
+
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
 records are fictional. Simulated docket numbers begin `SYN-`. Real courts, sovereigns, and
@@ -158,11 +165,23 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
 - **Wedge:** collateral-order review of qualified-immunity denial after a welfare-check seizure;
   obstructed body-camera footage leaves resistance and threat facts disputed.
 - **Record:** 4 pleadings, 6 report/dispatch/medical, 6 bodycam transcript/frame/authentication,
-  8 deposition/expert, 7 immunity/SUMF, 1 order, and 5 docket/initiation PDFs. A root-owned MP4
-  is optional and does not count toward 37.
-- **Argument:** assumed facts, why video is not dispositive, clearly established law, and relief.
-- **Disposition:** dismiss factual-sufficiency targets; affirm legal denial on assumed facts.
-- **Limits:** automated classification of argument type or video facts is out of scope.
+  8 deposition/expert, 7 immunity/SUMF, 1 order, and 5 docket/initiation PDFs. The complete
+  PDF-only corpus adds 15 actual appellate and 20 never-filed counterfactual PDFs. No MP4 is
+  included.
+- **Argument:** separate unreviewable factual sufficiency from reviewable legal questions on
+  plaintiff-favorable assumed facts; address why obscured camera evidence is not dispositive,
+  incident-date clearly established law, intervening *Barricks*/*Zorn*, and exact relief.
+- **Disposition:** actual—dismiss the factual-sufficiency target, affirm the Fourth Amendment
+  legal ruling on assumed facts, and affirm the clearly-established-law denial of qualified
+  immunity. Adverse—dismiss the factual target, assume constitutional excessiveness without
+  deciding it, and reverse only the qualified-immunity target for summary judgment to Rusk.
+- **Evidence status:** source, render, 72-entry/449-anchor record, and seven non-workflow core
+  resources are frozen; both question-bank and disposition digests independently recompute.
+  Workflow, traces, manifest, exact review evidence, root, archive, resolved install, and focused
+  release tests remain `PENDING`; the review is level 2 and `independent_review_pending`.
+- **Limits:** the engine does not classify arbitrary argument as legal or factual, inspect video,
+  infer disputed movement/resistance/threat/credibility, treat post-incident *Barricks* or *Zorn*
+  as February 2025 notice, combine mutually exclusive Rule 41 paths, or model real judges.
 
 ### 5. Blue Ember post-trial — `ca4m4.case.blueember-jmol`
 
@@ -271,7 +290,7 @@ Case-specific primary sources:
 | Benton | [42 U.S.C. § 2000e-3](https://uscode.house.gov/view.xhtml?req=%28title%3A42+section%3A2000e-3+edition%3Aprelim%29); [Foster v. UMES](https://www.ca4.uscourts.gov/opinions/published/141073.p.pdf) (published, 2015-05-21) |
 | Asterglen | [28 U.S.C. § 1291](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1291); [28 U.S.C. § 2107](https://uscode.house.gov/view.xhtml?edition=prelim&req=granuleid%3AUSC-prelim-title28-section2107); FRCP 54(b) and 58; [Kinsale Insurance](https://www.ca4.uscourts.gov/opinions/211754.P.pdf) (published, 2022-04-20); [McPherson](https://www.ca4.uscourts.gov/opinions/231938.U.pdf) (unpublished, 2024-10-15); [Bowles](https://www.govinfo.gov/content/pkg/USREPORTS-551/pdf/USREPORTS-551-205.pdf); [Primov](https://www.courts.state.va.us/static/opinions/opnscvwp/1171381.pdf) |
 | Norvale | [28 U.S.C. § 1292(a)(1)](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1292%28a%29%281%29); FRCP 65; [Billups](https://www.ca4.uscourts.gov/opinions/191044.P.pdf); [Pashby](https://www.ca4.uscourts.gov/opinions/Published/112363.p.pdf) |
-| Ellison | [42 U.S.C. § 1983](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title42-section1983); [Barricks](https://www.ca4.uscourts.gov/opinions/251250.P.pdf); [Armstrong](https://www.ca4.uscourts.gov/opinions/published/151191.p.pdf) |
+| Ellison | [42 U.S.C. § 1983](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title42-section1983); [Graham](https://www.govinfo.gov/content/pkg/USREPORTS-490/pdf/USREPORTS-490-386.pdf); [Johnson](https://www.govinfo.gov/content/pkg/USREPORTS-515/pdf/USREPORTS-515-304.pdf); [Barricks](https://www.ca4.uscourts.gov/opinions/251250.P.pdf); [Armstrong](https://www.ca4.uscourts.gov/opinions/151191.P.pdf); [Smith](https://www.ca4.uscourts.gov/opinions/121503.P.pdf); [Meyers](https://www.ca4.uscourts.gov/opinions/112192.P.pdf); [Yates](https://www.ca4.uscourts.gov/opinions/151555.P.pdf); [Zorn](https://www.supremecourt.gov/opinions/25pdf/25-297_bqm2.pdf) |
 | Blue Ember | FRCP 50 and 59; [Unitherm](https://www.govinfo.gov/app/details/USREPORTS-546/USREPORTS-546-394); [Wiener](https://www.ca4.uscourts.gov/opinions/241316.P.pdf); [Boley](https://www.ca4.uscourts.gov/opinions/231493.u.pdf) (nonprecedential) |
 | Open Grid | [5 U.S.C. § 552](https://uscode.house.gov/view.xhtml?edition=prelim&req=granuleid%3AUSC-prelim-title5-section552); [Grey](https://www.ca4.uscourts.gov/opinions/231910.P.pdf); [Company Doe](https://www.ca4.uscourts.gov/Opinions/Published/122209.P.pdf) |
 | Serrano | [18 U.S.C. § 3742](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title18-section3742); [Boutcher](https://www.ca4.uscourts.gov/opinions/204248.P.pdf); [Jennings](https://www.ca4.uscourts.gov/opinions/244027.P.pdf); [Marsh](https://www.ca4.uscourts.gov/Opinions/184609.P.pdf); [2025 Guidelines Manual](https://www.ussc.gov/guidelines/2025-guidelines-manual) |
@@ -308,6 +327,12 @@ three structured dispositions, and eight production traces. Exact root
 final replay. It therefore remains the installable civil gold candidate rather than a civil gold
 pack. The v0.1.0 predecessor
 stays immutable and is not silently upgraded into schema v2 or level 3.
+
+The Ellison `1.2.0` authoring checkpoint records level 2 in every dimension with
+`independent_review_pending`. Frozen evidence currently covers 72 PDFs/449 anchors and seven
+non-workflow core resources. Workflow, trace, manifest, exact review-evidence, root, archive,
+resolved-install, and focused-test pins remain `PENDING`, so Ellison is not yet an installable
+release and makes no level-3 or gold claim.
 
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and

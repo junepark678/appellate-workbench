@@ -18,7 +18,7 @@ designation and does not satisfy the level-3 gate.
 | Employment retaliation | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable successor level-2 evidence; qualified independent review pending |
 | Preliminary injunction / stay | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Section 1983 qualified immunity | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
+| Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring scaffold level 2; workflow, trace, and release evidence pending; qualified independent review pending |
 | Post-trial JMOL | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Sealed FOIA | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Criminal sentencing / waiver | Criminal (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
@@ -71,3 +71,11 @@ The final root is `a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df
 its evidence closure is `1170d682b46773d09b63b5dcfcd5b7c485c2f792881c94027b76550ef021d82c`.
 The review remains `independent_review_pending`; automated evidence does not substitute for
 qualified independent First Amendment/appellate review or make Norvale a gold candidate.
+
+The Ellison immunity `1.2.0` authoring candidate currently records level 2 in every dimension
+with `independent_review_pending`. Its frozen completed slice contains 37 lower-record PDFs/275
+JA pages, 15 actual appellate PDFs/91 PA pages, and 20 separately docketed, never-filed
+counterfactual PDFs/83 PA pages, for 72 PDFs/449 anchors. Source, render, record, and seven
+non-workflow core resources are frozen. Workflow, traces, manifest, exact review evidence, root,
+archive, resolved install, and focused release tests remain `PENDING`; this checkpoint is neither
+an installable release claim nor a level-3 or gold designation.
