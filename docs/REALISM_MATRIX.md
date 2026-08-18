@@ -19,7 +19,7 @@ designation and does not satisfy the level-3 gate.
 | Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable successor level-2 evidence; qualified independent review pending |
 | Preliminary injunction / stay | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Post-trial JMOL | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Pre-evidence authoring scaffold; trace/release evidence pending |
+| Post-trial JMOL | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Sealed FOIA | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Criminal sentencing / waiver | Criminal (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Immigration agency review | Agency (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
@@ -95,16 +95,28 @@ hostile-mutation rejections. This is installable level-2 evidence, not level 3 o
 PDF-only corpus contains no MP4, the engine makes no video inference, and synthetic PA92–PA174
 remain isolated from actual-history grounding.
 
-The Blue Ember JMOL `1.2.0` pre-authoring scaffold records level 2 in every dimension with
-`independent_review_pending`, but deliberately contains no `evidence` field and is not yet an
-installable or promoted review. Its frozen corpus contains 42 lower-record PDFs/430 JA pages,
+The Blue Ember JMOL `1.2.0` authoring candidate records level 2 in every dimension with
+`independent_review_pending`. Its frozen corpus contains 42 lower-record PDFs/430 JA pages,
 16 actual appellate PDFs/108 PA pages, and 25 separately docketed, never-filed counterfactual
 PDFs/118 PA pages, for 83 PDFs/656 anchors. Actual Rule 50(a) preservation remains fixed to
 causation only; B01 alone supplies the isolated counterfactual express-mitigation premise.
-Workflow `7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120` freezes
-24 stages, 93 operations, 15 filing routes, 18 exact filing bindings, 25 court-document bindings,
-and 14 named deadlines. Every downstream trace, manifest, review, root, archive,
-resolved-install, and test pin remains **PENDING**; workflow structure is not release evidence
-without exact production replay and hostile audit. The corpus is generated, PDF-only, and
-contains no MP4 or raw instrument-data file; automated checks do not substitute for qualified
-independent civil-trial and appellate review.
+Workflow `7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120` and successor plan
+`664b8632be87d885cebc4625282f0b452c5d376be607bc889ee86012c3ddcee5` bind six canonical
+traces with 270 commands/events, exact 93-operation coverage, 18 unique same-ID filing
+recoveries across 61 rejection instances, 25 court documents, 14 deadlines, and five
+terminated plus one stayed endpoint. Manifest
+`2b545cee1aaba7a1475b2f5085ae93d50ec9e3255a68f9762d3bec63492a8dac` closes nine resources,
+83 blobs, 16 capabilities, and three exact dependencies. Review
+`8fe8d9b06f38ca16fe535c917c3da4b2c6d92a5ee2f17924d49a945d2e5e0688` binds evidence closure
+`3f38cd1a12f7f61c037f338fef4f1600ab83434208aa13a8ff5cf56a52fe5d5a`: four packs, 44
+non-review resources, 83 blobs, six traces, two record checks, 39 authorities, 174 unique
+non-pack evidence IDs, and dimension-reference counts 53/19/86/37/20/4/129. Exactly one valid
+successful authoring call produced root
+`08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec`; the deterministic
+5,326,158-byte archive is
+`c6332ae33e351ccb27ed17b5576b147a47f9f5f0b44583365212b1781a288ed2`. Fresh four-revision
+resolved installation and the 78-mutation installed hostile audit passed. Frozen focused-test
+commit `1d497aecd9e9fdf2ab5ffa4f47ad994052cd304f` passed normal and UTC integration/UI runs with
+zero skips. This is installable level-2 evidence, not level 3 or gold. The generated PDF-only
+corpus contains no MP4 or raw instrument-data file; automated checks do not substitute for
+qualified independent civil-trial, posttrial-motions, and appellate review.

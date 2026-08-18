@@ -144,11 +144,47 @@ and their path-and-byte-framed SHA-256 is
 The record SHA-256 is
 `080ff7772d73131a5471f2fc530b4d63c6215831a82ffcd671ef50beff8d1c7a`.
 
-## Workflow and release boundary
+## Final workflow and release closure
 
 The workflow is frozen at
-`7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120`:
-24 stages, 93 operations, 15 filing routes, 18 exact filing bindings, 25 court-document
-bindings, and 14 named deadlines. Traces, manifest, promoted evidence-bearing review,
-root, archive, resolved installation, and tests are all **PENDING**. The frozen
-workflow structure alone is not trace evidence or an installability claim.
+`7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120`,
+and the successor appellate plan is frozen at
+`664b8632be87d885cebc4625282f0b452c5d376be607bc889ee86012c3ddcee5`.
+The workflow contains 24 stages, 93 operations, 15 filing routes, 18 exact filing
+bindings, 25 court-document bindings, two disposition bindings, 14 deadline operations
+and IDs, and 43 bound record entries. Six canonical traces contain 270 commands and
+270 events, cover all 93 operations, exercise all 18 filing IDs through 61 same-ID
+rejection/recovery instances, bind all 25 court documents and 14 deadlines, and reach
+five terminated endpoints plus one `counterfactual-mandate-stayed` endpoint. Their
+path-framed closure is
+`b6ba5a4be1ac19c672b121f1e0e48a5a16c5b17e94792721e82261500e2adefb`;
+the independent installed audit rejected all 78 tested hostile mutations.
+
+The final manifest SHA-256 is
+`2b545cee1aaba7a1475b2f5085ae93d50ec9e3255a68f9762d3bec63492a8dac`;
+it closes nine resources, 83 PDF blobs, 16 capabilities, and three exact dependencies.
+The promoted level-2 realism-review SHA-256 is
+`8fe8d9b06f38ca16fe535c917c3da4b2c6d92a5ee2f17924d49a945d2e5e0688`,
+with evidence closure
+`3f38cd1a12f7f61c037f338fef4f1600ab83434208aa13a8ff5cf56a52fe5d5a`:
+four packs, 44 non-review resources, 83 blobs, six traces, two record checks, and
+39 authorities, for 174 unique non-pack evidence IDs. The final root is
+`08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec`;
+the deterministic 5,326,158-byte archive SHA-256 is
+`c6332ae33e351ccb27ed17b5576b147a47f9f5f0b44583365212b1781a288ed2`.
+A fresh dependency-only install resolved exactly four revisions and reproduced the
+runtime audit.
+
+Focused integration/UI coverage is frozen in exact three-file commit
+`1d497aecd9e9fdf2ab5ffa4f47ad994052cd304f` with CMake/core/UI SHA-256 values
+`babeb8136b3135b7ae98d4da92c234e670a27d097cabbd3957c0aa36c8a5523a`,
+`6b2a1b65a5e2309a53b82de47e797a0dd4fc66f986b6adaa9ac0d8ece65dff44`, and
+`d005bf5bd37fa94ba4a2087648c9b60c42e512aa4a5a7bd455d5159d748c0e88`.
+Normal and `TZ=UTC` CTest runs passed 2/2 with zero skips in 42.932 s and 42.837 s;
+the direct core/UI runs took 41.307 s and 1.573 s, the Werror target build took
+3.163 s, and the full incremental project build took 0.313 s.
+
+The review remains level 2 and `independent_review_pending`. The installed root is an
+authoring candidate, not an independently reviewed level-3 or gold pack. PA109–PA226
+remain isolated, synthetic, never-filed counterfactual material and cannot ground the
+actual appeal.

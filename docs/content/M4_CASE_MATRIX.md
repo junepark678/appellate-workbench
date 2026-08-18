@@ -67,9 +67,11 @@ The frozen Blue Ember source/render/record/core slice also leaves the 283-PDF br
 unchanged. Its lower-court record is 42 PDFs/430 JA pages, while its complete record is
 83 PDFs/656 pages after adding 16 actual appellate PDFs/108 PA pages and 25 separately docketed,
 never-filed counterfactual PDFs/118 PA pages. PA109–PA226 never occurred on the actual appeal.
-The workflow is frozen; traces, manifest, evidence-bearing review, root, archive, resolved
-installation, and tests remain pending, so this slice is not yet an installable authoring
-candidate.
+The frozen workflow and six traces, final nine-resource/83-blob manifest, promoted level-2
+review, deterministic archive, dependency-only four-revision install, and 78-mutation hostile
+runtime audit now form an installable authoring candidate. Frozen focused integration/UI tests
+also pass normally and under UTC with zero skips. Synthetic PA109–PA226 remain excluded from
+actual-history, actual-disposition, and actual-record question grounding.
 
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
@@ -226,12 +228,22 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
   resources are frozen. Source closure
   `c5e843bfc968a726ee86a0d130cd8b85e89c74e76dc75239191a20048a9054a5`, render inventory
   `c52eab8d01e68ec08f5f43e07e8ef2fdc7996ddc15cace7ab4b818518b51f89a`, and record
-  `080ff7772d73131a5471f2fc530b4d63c6215831a82ffcd671ef50beff8d1c7a` bind that slice. The
-  pre-authoring level-2 review scaffold has no evidence field. Workflow
-  `7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120` freezes the exact
-  24-stage/93-operation/15-route/18-filing-binding/25-court-document-binding/14-deadline
-  topology. All traces, manifest, promoted review, root, archive, install, and test pins remain
-  **PENDING**; workflow structure alone is not release evidence.
+  `080ff7772d73131a5471f2fc530b4d63c6215831a82ffcd671ef50beff8d1c7a` bind that slice. Workflow
+  `7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120` and successor plan
+  `664b8632be87d885cebc4625282f0b452c5d376be607bc889ee86012c3ddcee5` bind six traces with
+  270 commands/events, all 93 operations, 18 unique filing IDs and 61 same-ID recoveries,
+  25 court documents, 14 deadlines, and five terminated plus one stayed endpoint. Manifest
+  `2b545cee1aaba7a1475b2f5085ae93d50ec9e3255a68f9762d3bec63492a8dac` closes nine resources,
+  83 blobs, 16 capabilities, and three exact dependencies. Review
+  `8fe8d9b06f38ca16fe535c917c3da4b2c6d92a5ee2f17924d49a945d2e5e0688` binds closure
+  `3f38cd1a12f7f61c037f338fef4f1600ab83434208aa13a8ff5cf56a52fe5d5a`; exactly one valid
+  authoring call produced root
+  `08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec` and the deterministic
+  5,326,158-byte archive
+  `c6332ae33e351ccb27ed17b5576b147a47f9f5f0b44583365212b1781a288ed2`. Fresh four-revision
+  resolved installation and the 78-mutation hostile audit passed. Exact three-file focused-test
+  commit `1d497aecd9e9fdf2ab5ffa4f47ad994052cd304f` passed normal and UTC integration/UI runs with
+  zero skips. The review remains level 2 and `independent_review_pending`.
 - **Limits:** the engine does not infer Rule 50 preservation, distinguish a new ground from a
   variation on a preserved issue, classify arbitrary posttrial filings, evaluate mitigation or
   damages evidence, combine mutually exclusive Rule 41 paths, or model real judges. The generated
@@ -379,15 +391,19 @@ Ellison is therefore an installable level-2 authoring candidate, not a level-3 o
 Its PDF-only corpus contains no MP4; the engine makes no video inference, and separately
 docketed synthetic PA92–PA174 cannot ground actual-history claims.
 
-The Blue Ember `1.2.0` pre-authoring scaffold records level 2 in every dimension with
-`independent_review_pending`, but it has no evidence field and does not yet support an
-installability or release claim. The frozen source/render/record/core slice contains 83 PDFs,
-656 anchors, 15 case-specific authorities, two 12-question banks, four issues, and two
-asymmetric disposition plans. Actual Rule 50(a) preservation is causation-only; B01's express-
-mitigation premise exists solely on the separate never-filed docket. Workflow
-`7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120` freezes the exact
-24/93/15/18/25/14 topology. Every trace and downstream release artifact remains pending; exact
-production replay and hostile audit must finish before evidence authoring.
+The Blue Ember `1.2.0` authoring candidate records level 2 in every dimension with
+`independent_review_pending`. Its exact evidence envelope covers four packs, 44 non-review
+resources, 83 blobs, six traces, two record checks, and 39 authorities: 174 unique non-pack
+evidence IDs. The seven dimension-reference counts are 53/19/86/37/20/4/129. The installed
+audit redecided 270 commands, replayed all 270 prefixes and 12 complete journals, and rejected
+78 hostile mutations. The final root is
+`08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec`, with evidence closure
+`3f38cd1a12f7f61c037f338fef4f1600ab83434208aa13a8ff5cf56a52fe5d5a`.
+Focused-test commit `1d497aecd9e9fdf2ab5ffa4f47ad994052cd304f` passed normal and UTC runs with zero skips.
+Blue Ember is therefore an installable level-2 authoring candidate, not a level-3 or gold pack.
+Actual Rule 50(a) preservation remains causation-only; B01's express-mitigation premise exists
+solely on the separate never-filed docket. The PDF-only corpus contains no MP4 or raw instrument
+data, and synthetic PA109–PA226 cannot ground actual-history claims.
 
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and

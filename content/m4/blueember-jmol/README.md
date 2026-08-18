@@ -1,6 +1,7 @@
 # Blue Ember JMOL authoring candidate
 
-This tree prepares the schema-v2 root `us.ca4.m4.blueember-jmol@1.2.0` for the
+This tree contains the schema-v2 root `us.ca4.m4.blueember-jmol@1.2.0` as an
+installable level-2 authoring candidate for the
 fictional exercise *Blue Ember Biologics, LLC v. Granite Heron Logistics, Inc.*
 (`SYN-WDNC-24-CV-0520`; `SYN-CA4-26-CV-4105`). It is synthetic training
 material, not legal advice, a representation of a real dispute, an independently
@@ -90,28 +91,74 @@ theory and *Gautier*'s same-issue incorporation. Those authored distinctions, th
 damages arithmetic, and the separability conclusion remain subject to qualified
 independent civil-trial and appellate review.
 
-## Workflow and release status
+## Final workflow and evidence
 
-The frozen workflow has 24 stages, 93 operations, 15 filing routes, 18 exact filing
-bindings, 25 court-document bindings, and 14 named deadlines. Its SHA-256 is
+The frozen workflow SHA-256 is
 `7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120`.
-That structural freeze is not trace or release evidence. Until production replay and
-hostile audit finish, every downstream release artifact remains explicitly **PENDING**:
+It contains 24 stages, 93 operations, 15 filing routes, 18 exact filing bindings,
+25 court-document bindings, two structured-disposition bindings, 14 deadline-
+calculation operations and concrete deadline IDs representing nine logical concepts,
+and a disjoint union of 43 bound record entries. Every operation has exact LegalTime
+and precondition guards; the frozen workflow has no structural deficiency.
 
-- canonical traces and journals: **PENDING**;
-- manifest: **PENDING**;
-- evidence-bearing promoted realism review: **PENDING**;
-- root revision: **PENDING**;
-- deterministic archive: **PENDING**;
-- resolved installation audit: **PENDING**;
-- Blue Ember focused and full-suite tests: **PENDING**.
+The successor appellate plan SHA-256 is
+`664b8632be87d885cebc4625282f0b452c5d376be607bc889ee86012c3ddcee5`.
+Its six canonical production traces contain 41, 39, 45, 48, 46, and 51 commands,
+respectively: 270 commands and 270 events covering all 93 operations. They exercise
+all 18 unique filing IDs through same-trace, same-ID `nonconforming_filing` rejection
+and recovery, producing 61 rejection/recovery instances; bind all 25 court documents
+and all 14 concrete deadline IDs; and reach five terminated endpoints plus one
+`counterfactual-mandate-stayed` endpoint. The path-framed trace closure is
+`b6ba5a4be1ac19c672b121f1e0e48a5a16c5b17e94792721e82261500e2adefb`.
+Independent verification decoded and re-encoded every command and event, redecided
+all 270 commands, replayed every prefix and each complete journal twice, and rejected
+78 sequence, LegalTime, SHA, actor, service, order/disposition, deadline, authority,
+and applied-record-provenance mutations.
 
-The pre-authoring realism scaffold SHA-256 is
-`fd9040612bd9257e7b0a7486349d0659cdddb27f6c448f4363c90dba0e1cbbb1`.
-It records level 2 in all seven dimensions and
-`independent_review_pending`, but deliberately has no `evidence` field. It is not a
-promoted review, installability claim, level-3 claim, or gold claim. Evidence may be
-authored only after the trace corpus is frozen.
+The final manifest SHA-256 is
+`2b545cee1aaba7a1475b2f5085ae93d50ec9e3255a68f9762d3bec63492a8dac`.
+It closes exactly nine resources, 83 PDF blobs, 16 capabilities, and three exact
+dependencies with a 93-member pack allowlist. The historical pre-authoring realism
+scaffold remains frozen at
+`fd9040612bd9257e7b0a7486349d0659cdddb27f6c448f4363c90dba0e1cbbb1`;
+the promoted evidence-bearing review SHA-256 is
+`8fe8d9b06f38ca16fe535c917c3da4b2c6d92a5ee2f17924d49a945d2e5e0688`,
+with evidence closure
+`3f38cd1a12f7f61c037f338fef4f1600ab83434208aa13a8ff5cf56a52fe5d5a`.
+That envelope covers four packs, 44 non-review resources, 83 blobs, six traces,
+two record checks, and 39 authorities: 174 unique non-pack evidence IDs. The seven
+dimension-reference counts are 53 procedural-law, 19 deadlines/authority,
+86 record-consistency, 37 consequences, 20 oral-argument, 4 bench-differentiation,
+and 129 provenance references.
+
+Exactly one valid four-argument `author-realism-evidence-multi` invocation succeeded
+and changed only the manifest and review. A separately disclosed earlier `--help`
+usage probe failed at argument-count parsing before opening the root, catalog, review,
+or traces; it created no transaction, mutation, or authoring retry. Independent A/B
+exports were byte-identical. The final root revision is
+`08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec`;
+the deterministic archive is 5,326,158 bytes with SHA-256
+`c6332ae33e351ccb27ed17b5576b147a47f9f5f0b44583365212b1781a288ed2`.
+A fresh dependency-only catalog installed the three foundations and this root as
+exactly four revisions, passed resolved validation, and reproduced the complete
+270-command runtime and 78 hostile-rejection audit.
+
+Focused integration and offscreen UI coverage is frozen in commit
+`1d497aecd9e9fdf2ab5ffa4f47ad994052cd304f`, whose scope is exactly
+`tests/CMakeLists.txt`, `tests/integration/tst_m4_blueember_jmol.cpp`, and
+`tests/integration/tst_m4_blueember_jmol_ui_e2e.cpp`. The committed tests independently
+export and install the exact root, replay all six trace paths, exercise the complete
+runtime/tamper contract, enforce the 42/16/25 docket filters, and navigate and search
+seven PDFs across all three dockets. Normal and `TZ=UTC` focused CTest runs each passed
+2/2 with zero skips. Exact test-source hashes, outputs, and recorded timings appear in
+[VALIDATION.md](VALIDATION.md).
+
+The promoted review still records level 2 in all seven dimensions and
+`independent_review_pending`. This is an installable authoring candidate, not an
+independently reviewed level-3 pack or a gold claim. Automated schema, digest, replay,
+and hostile checks do not establish the legal accuracy, currency, completeness, or
+practical realism of the Rule 50, Rule 59, mitigation, retrial-scope, or appellate-
+practice analysis.
 
 ## Exact dependencies
 
@@ -122,7 +169,7 @@ authored only after the trace corpus is frozen.
 - `foundation.us-ca4-fictional-bench@1.0.0`
   (`cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d`)
 
-The future final manifest must exact-pin those revisions. See
-[VALIDATION.md](VALIDATION.md) for the completed and pending gates and
+The final manifest exact-pins those revisions. See
+[VALIDATION.md](VALIDATION.md) for the completed evidence gates and
 [metadata/record-inventory.md](metadata/record-inventory.md) for all 83 document
 ranges.
