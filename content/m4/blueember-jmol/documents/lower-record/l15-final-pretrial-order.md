@@ -145,4 +145,4 @@ Counsel for Blue Ember Biologics, LLC
 Eli Mercer and Tara Webb  
 Counsel for Granite Heron Logistics, Inc.
 
-The signature names and docket are fabricated. This order does not correspond to a real judge, clerk, lawyer, company, shipment, or judicial proceeding.
+All names and events are fictional.

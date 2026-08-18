@@ -14,6 +14,8 @@ The judgment resolves the contract claim tried to the jury. It does not adopt Gr
 
 Postjudgment interest accrues as provided by governing federal law from the date of entry. Taxable costs may be sought through the ordinary procedure and are not fixed in this document. The clerk shall record entry and provide notice to counsel of record.
 
+The verdict supplies the complete basis for this judgment, and no additional factual finding is added.
+
 <!-- PAGE BREAK -->
 
 ## Basis and relationship to verdict
