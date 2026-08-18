@@ -101,7 +101,7 @@ Our published decision in *Price v. City of Charlotte*, 93 F.3d 1241 (4th Cir. 1
 
 *Plyler v. Cox*, 145 F.4th 501, 510–11 (4th Cir. 2025), applies that rule to adjacent sufficiency theories. A defendant-specific physical-proximity basis first raised under Rule 50(b) was unavailable, although the general sufficiency issue actually raised under Rule 50(a) remained reviewable. Granite Heron likewise retains its causal sufficiency issue, but not the distinct mitigation basis first asserted after verdict.
 
-The district court regarded both reasons as boundaries on recoverable delay. At that level of abstraction, almost any defense affecting a net award could appear continuous. The rule instead asks what insufficiency and judgment were specified. Granite Heron did not contend before verdict that no reasonable jury could reject Park’s proposed deduction. Indeed, it expressly requested jury evaluation. *Unitherm* and *Price* require us to honor that procedural choice.
+*Gautier v. Tams Management, Inc.*, 163 F.4th 786, 793–94 (4th Cir. 2026), declined forfeiture where a Rule 50(b) footnote incorporated the same single-employer sufficiency issue raised before verdict and the district court addressed it. That is not this case: Granite Heron expressly excluded mitigation before verdict. The district court’s later treatment of causation and mitigation as recoverable-delay variants cannot convert a distinct omitted ground into the required renewal.
 
 <!-- PAGE BREAK -->
 
