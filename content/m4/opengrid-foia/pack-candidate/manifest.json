@@ -1,0 +1,663 @@
+{
+    "blobs": [
+        {
+            "byte_size": 32248,
+            "media_type": "application/pdf",
+            "path": "objects/a01-case-opening-notice.pdf",
+            "sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515"
+        },
+        {
+            "byte_size": 36766,
+            "media_type": "application/pdf",
+            "path": "objects/a02-docketing-statement.pdf",
+            "sha256": "037efef4be1009fb4236c116acfa9ec6e07544f6cade35eebe40eae50c7f39c6"
+        },
+        {
+            "byte_size": 26709,
+            "media_type": "application/pdf",
+            "path": "objects/a03-appearances-disclosures.pdf",
+            "sha256": "dbec9de5d406b595fd60a03c3cc9f9374ae54cf8b51be40239e3abd7ed3a0a37"
+        },
+        {
+            "byte_size": 35812,
+            "media_type": "application/pdf",
+            "path": "objects/a04-motion-limited-sealing.pdf",
+            "sha256": "f785589a928138df9cbda592c7c2aa04ae73ac015f96246720a3c22c83932e7f"
+        },
+        {
+            "byte_size": 29014,
+            "media_type": "application/pdf",
+            "path": "objects/a05-certificate-confidentiality.pdf",
+            "sha256": "0f38fbaafa4c3ec91478fad9b8dd406b500221d5ba65636ffd460de2e241dcea"
+        },
+        {
+            "byte_size": 69289,
+            "media_type": "application/pdf",
+            "path": "objects/a06-public-opening-brief.pdf",
+            "sha256": "4530bd7489ce8ae23743e70cfe228dc41cfa7805c77a155683c2ff04a78a712e"
+        },
+        {
+            "byte_size": 63709,
+            "media_type": "application/pdf",
+            "path": "objects/a07-sealed-opening-brief.pdf",
+            "sha256": "f32302dfdb3295872e49b8c0b29e2fa3e61e92f42af8d301c3b61e45ee87eb54"
+        },
+        {
+            "byte_size": 66973,
+            "media_type": "application/pdf",
+            "path": "objects/a08-public-response-brief.pdf",
+            "sha256": "8cb08453d796225763c5e96680fc6ee8af47ff163279edc7384bc9853dfc0a12"
+        },
+        {
+            "byte_size": 61007,
+            "media_type": "application/pdf",
+            "path": "objects/a09-sealed-response-brief.pdf",
+            "sha256": "e9ee5f5d1793fa57ced3f29ad27864357a9c5d732b60d285db6d2df9fb0469c7"
+        },
+        {
+            "byte_size": 49769,
+            "media_type": "application/pdf",
+            "path": "objects/a10-public-reply-brief.pdf",
+            "sha256": "8496047c8ff612fae44f932971e80ffdc1e72aa7941a563bf031c5b3b1211566"
+        },
+        {
+            "byte_size": 44067,
+            "media_type": "application/pdf",
+            "path": "objects/a11-sealed-reply-brief.pdf",
+            "sha256": "d3d94c8ed8347feb7149b2813cc929565e7e80b791a7d4f1a5e145adb28961dc"
+        },
+        {
+            "byte_size": 39310,
+            "media_type": "application/pdf",
+            "path": "objects/a12-public-appendix-excerpts.pdf",
+            "sha256": "468dd9ee1c0b8838fef4107009cdbb03f4e064a4944935d60aa71c088fcda034"
+        },
+        {
+            "byte_size": 34109,
+            "media_type": "application/pdf",
+            "path": "objects/a13-sealed-appendix-excerpts.pdf",
+            "sha256": "56aa38c71b97a64954861f4869ee86bda7b55d23b998004fae2f576325f8cb26"
+        },
+        {
+            "byte_size": 32710,
+            "media_type": "application/pdf",
+            "path": "objects/a14-limited-sealing-order.pdf",
+            "sha256": "c3000beda5478bc9bb088d319d21e85ed84d5dd462e71ebe703404e4b9f2bf00"
+        },
+        {
+            "byte_size": 25794,
+            "media_type": "application/pdf",
+            "path": "objects/a15-argument-notice.pdf",
+            "sha256": "2073a199560db302e36898a0eab45a87ef39d40afa0b3be36a1ffac9e71a3b58"
+        },
+        {
+            "byte_size": 23364,
+            "media_type": "application/pdf",
+            "path": "objects/a16-argument-held.pdf",
+            "sha256": "d4dff53695367842637c5db4d22f8f3f828eb7cb5743bfa4a7e83e69abe588fb"
+        },
+        {
+            "byte_size": 77784,
+            "media_type": "application/pdf",
+            "path": "objects/a17-published-opinion.pdf",
+            "sha256": "46b8f27e9338664be088d6b701c70477169f7933173ad78911e2ce1b45e222d9"
+        },
+        {
+            "byte_size": 26152,
+            "media_type": "application/pdf",
+            "path": "objects/a18-judgment.pdf",
+            "sha256": "70678a617a30bb5430791f1fb14999af2f1d0d01d5bf171141b107b4a6a2d497"
+        },
+        {
+            "byte_size": 23603,
+            "media_type": "application/pdf",
+            "path": "objects/a19-mandate.pdf",
+            "sha256": "22a3a0b7ed9854685ef3fcbf13cd1012a4163422766c5799b3592bff89d54dd7"
+        },
+        {
+            "byte_size": 42798,
+            "media_type": "application/pdf",
+            "path": "objects/b01-corrected-premise.pdf",
+            "sha256": "9318b8d12de7a2b2b8b08af856c3c9cd5e157c8a6bdfafae54f8767f118e82c8"
+        },
+        {
+            "byte_size": 36780,
+            "media_type": "application/pdf",
+            "path": "objects/b02-motion-limited-sealing.pdf",
+            "sha256": "06ce6893e010003379fc613c68cd6b32e257df5b646d0e01cb8b60641123bfca"
+        },
+        {
+            "byte_size": 30661,
+            "media_type": "application/pdf",
+            "path": "objects/b03-certificate-confidentiality.pdf",
+            "sha256": "6c599f970c94589a1284fe882b57e4288c5f72abcf9ba90a2670a2cb54ca444a"
+        },
+        {
+            "byte_size": 72396,
+            "media_type": "application/pdf",
+            "path": "objects/b04-public-opening-brief.pdf",
+            "sha256": "d8f2de5ecbb31a4808ded59cb4ac95630287784583416346df86e5bb7fd75580"
+        },
+        {
+            "byte_size": 65515,
+            "media_type": "application/pdf",
+            "path": "objects/b05-sealed-opening-brief.pdf",
+            "sha256": "b57e31a0be740f252ad8f5de07cd5bec4afeb2383cadc1c24f89d4b21830edff"
+        },
+        {
+            "byte_size": 69899,
+            "media_type": "application/pdf",
+            "path": "objects/b06-public-response-brief.pdf",
+            "sha256": "6dcafd53106a77faa4f93d8968b14331de7d4320f918305c5e84b35136f62eb0"
+        },
+        {
+            "byte_size": 63772,
+            "media_type": "application/pdf",
+            "path": "objects/b07-sealed-response-brief.pdf",
+            "sha256": "b3069699bc44587fd20c949c5bb94c62409a2fb597627395321febd6cc697d10"
+        },
+        {
+            "byte_size": 49586,
+            "media_type": "application/pdf",
+            "path": "objects/b08-public-reply-brief.pdf",
+            "sha256": "df0026bf03edf7146fd419838f4adc7bdb596c3d9c8bd1d7b1f62fd99c5212b1"
+        },
+        {
+            "byte_size": 44690,
+            "media_type": "application/pdf",
+            "path": "objects/b09-sealed-reply-brief.pdf",
+            "sha256": "3cec29aa71a941559539e6a4e8c9188536a143b295257792c1c3832b9229849d"
+        },
+        {
+            "byte_size": 27348,
+            "media_type": "application/pdf",
+            "path": "objects/b10-argument-notice.pdf",
+            "sha256": "36a0af69b246a8714e31d43d06198974cc321b59cea37b7e2543157cbaf12712"
+        },
+        {
+            "byte_size": 77867,
+            "media_type": "application/pdf",
+            "path": "objects/b11-counterfactual-opinion.pdf",
+            "sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e"
+        },
+        {
+            "byte_size": 26841,
+            "media_type": "application/pdf",
+            "path": "objects/b12-counterfactual-judgment.pdf",
+            "sha256": "4a59123888e64ef2080666a6fd8d7152503392384f5fe8dac692b6b74519fa91"
+        },
+        {
+            "byte_size": 52926,
+            "media_type": "application/pdf",
+            "path": "objects/b13-rehearing-petition.pdf",
+            "sha256": "6333342fe41ac174518ef7136037da25a1ba91fa9fe2ed21679226d93691aefb"
+        },
+        {
+            "byte_size": 47793,
+            "media_type": "application/pdf",
+            "path": "objects/b14-rehearing-response.pdf",
+            "sha256": "0b12b856ee331a24aac67a94e3396c143ae355ccc9086f8482586198645f598a"
+        },
+        {
+            "byte_size": 24564,
+            "media_type": "application/pdf",
+            "path": "objects/b15-rehearing-denial.pdf",
+            "sha256": "bfde5cb24ca296156e84e437bbc4ed6d4db667f2a1e23e0407f531d2a64f8614"
+        },
+        {
+            "byte_size": 23759,
+            "media_type": "application/pdf",
+            "path": "objects/b16-post-denial-mandate.pdf",
+            "sha256": "8f2bddc24540e1a89c959e732d91ec622221aafd713707cc1efa5d9b455aca3f"
+        },
+        {
+            "byte_size": 45702,
+            "media_type": "application/pdf",
+            "path": "objects/b17-motion-stay-mandate.pdf",
+            "sha256": "080701338ea9d1982cb176ff38fd2219955a7ee21506bfb25c6dca245b3c3c56"
+        },
+        {
+            "byte_size": 41975,
+            "media_type": "application/pdf",
+            "path": "objects/b18-stay-opposition.pdf",
+            "sha256": "7800c91f9371e7bce4f0589846e71df7f32eabe34edacea1c8848638f2b8e52a"
+        },
+        {
+            "byte_size": 27198,
+            "media_type": "application/pdf",
+            "path": "objects/b19-stay-denial.pdf",
+            "sha256": "170dfa2dea017252b43b15a638630328fd7cbee15bc6bae5684a6018ecc49fdc"
+        },
+        {
+            "byte_size": 23930,
+            "media_type": "application/pdf",
+            "path": "objects/b20-post-stay-denial-mandate.pdf",
+            "sha256": "3b7adbb831932a52b7ec23de7ba5daf6f12edff43ec87279fd2bf5e7d0b00a1e"
+        },
+        {
+            "byte_size": 26748,
+            "media_type": "application/pdf",
+            "path": "objects/b21-rehearing-grant.pdf",
+            "sha256": "4c5cfd18ce0f56d1a873fc3f45589edec34cee287ab1c46ba3352778e976da8f"
+        },
+        {
+            "byte_size": 23801,
+            "media_type": "application/pdf",
+            "path": "objects/b22-mandate-stayed.pdf",
+            "sha256": "8fea958bbfeef1130d98f511273c8fd8f1bcf685dc0c0efc5630d3046e5b8277"
+        },
+        {
+            "byte_size": 27608,
+            "media_type": "application/pdf",
+            "path": "objects/b23-supplemental-briefing-order.pdf",
+            "sha256": "45116906ce9224a66602d08218a8d9f9718092f409e78cb3e9bf6343db361d13"
+        },
+        {
+            "byte_size": 51410,
+            "media_type": "application/pdf",
+            "path": "objects/b24-public-supplemental-brief.pdf",
+            "sha256": "71e095aa17a637d66170cecd8318d471838ff0c473d24a87e450484a03c901d9"
+        },
+        {
+            "byte_size": 45480,
+            "media_type": "application/pdf",
+            "path": "objects/b25-sealed-supplemental-brief.pdf",
+            "sha256": "a8f15c966c8feac977576c4a51d60dc0e16dfbe28b9d8c77fcb0f71fbddabf4a"
+        },
+        {
+            "byte_size": 87320,
+            "media_type": "application/pdf",
+            "path": "objects/b26-revised-opinion.pdf",
+            "sha256": "6460de11e0e49be7313cea02f92ebecd0235db2b14c68dcd847a6b1d89605154"
+        },
+        {
+            "byte_size": 26935,
+            "media_type": "application/pdf",
+            "path": "objects/b27-revised-judgment.pdf",
+            "sha256": "9e805e790c3620f92dcf9b7cdef018327bddeaa6eaffba3a4f0f79f8c194864c"
+        },
+        {
+            "byte_size": 23857,
+            "media_type": "application/pdf",
+            "path": "objects/b28-post-rehearing-mandate.pdf",
+            "sha256": "ae2338b43b46a23e4902c4fd3b9f563563d6f68b1263a2c1dc19063839e11cfc"
+        },
+        {
+            "byte_size": 36580,
+            "media_type": "application/pdf",
+            "path": "objects/l01-foia-request.pdf",
+            "sha256": "273618bb4cd7406fa21be59d67bdce40519bcffc003785e88a3876cb71acf4d7"
+        },
+        {
+            "byte_size": 27403,
+            "media_type": "application/pdf",
+            "path": "objects/l02-acknowledgment-clarification.pdf",
+            "sha256": "a01142508d0a8650165ce6f4bc45a7912c6bbba21517dccae2b283c20c374ce7"
+        },
+        {
+            "byte_size": 33131,
+            "media_type": "application/pdf",
+            "path": "objects/l03-scope-clarification.pdf",
+            "sha256": "e18d4444a621e71cc076d37a9c57de657d845618a9d66b636ef03e55830d3b96"
+        },
+        {
+            "byte_size": 35673,
+            "media_type": "application/pdf",
+            "path": "objects/l04-initial-determination.pdf",
+            "sha256": "0e848013b743edb998683cfd7d455dfd5a73b2c27eaa3a08a55d1402a6261516"
+        },
+        {
+            "byte_size": 41174,
+            "media_type": "application/pdf",
+            "path": "objects/l05-administrative-appeal-final-decision.pdf",
+            "sha256": "bf3fbbe7eac52de467587c4552810af7be8c9b26c1482ea81c0e3f06c36840c5"
+        },
+        {
+            "byte_size": 48166,
+            "media_type": "application/pdf",
+            "path": "objects/l06-complaint.pdf",
+            "sha256": "b5cfcc2878e2a68e074a2c51fdbca834eb42e14a6abb30202ea655ffc63039fb"
+        },
+        {
+            "byte_size": 41071,
+            "media_type": "application/pdf",
+            "path": "objects/l07-doe-answer.pdf",
+            "sha256": "6c29557400a699dffac4c2a035842f77a70921aec863f4a1d2768cf632c8f7db"
+        },
+        {
+            "byte_size": 41761,
+            "media_type": "application/pdf",
+            "path": "objects/l08-foia-officer-declaration.pdf",
+            "sha256": "4476e84d9a50e43ed8d1efee916dcaeb1fb1b1128e199c7c731adbcfff569eb4"
+        },
+        {
+            "byte_size": 41088,
+            "media_type": "application/pdf",
+            "path": "objects/l09-cyber-records-custodian-declaration.pdf",
+            "sha256": "0d1ba18d47b3fecb395db688591ec8b95ad63eedbae44a8419414e6fd966c64f"
+        },
+        {
+            "byte_size": 37935,
+            "media_type": "application/pdf",
+            "path": "objects/l10-search-method-declaration.pdf",
+            "sha256": "6cebf019211f111852b82b6b6f67b864f551eaf341d136bb54b4fd1bbfdf2b1a"
+        },
+        {
+            "byte_size": 38899,
+            "media_type": "application/pdf",
+            "path": "objects/l11-supplemental-search-declaration.pdf",
+            "sha256": "d3bd94e95aa823725109ac9072d72047e6c8619810d108162018853c0787090a"
+        },
+        {
+            "byte_size": 50181,
+            "media_type": "application/pdf",
+            "path": "objects/l12-public-vaughn-index.pdf",
+            "sha256": "0791e302b49472abc333185e1ce67b099cbf8290a93f361432bf118edf7f7c8c"
+        },
+        {
+            "byte_size": 44180,
+            "media_type": "application/pdf",
+            "path": "objects/l13-sealed-vaughn-index.pdf",
+            "sha256": "ce38e234e29fab170bd63f3efaa23bdd7ce1ef8ae665922054d17043fd78ddf1"
+        },
+        {
+            "byte_size": 42088,
+            "media_type": "application/pdf",
+            "path": "objects/l14-public-supplemental-vaughn.pdf",
+            "sha256": "c162c2d48a7c448978809de08ffd7916f50c2dc2cde8046411f6e9d140139b92"
+        },
+        {
+            "byte_size": 37385,
+            "media_type": "application/pdf",
+            "path": "objects/l15-sealed-supplemental-vaughn.pdf",
+            "sha256": "ec923a1e4ec8ede731c7a1efd04fb5129099159acb87f1be8b6e347ff9a349b6"
+        },
+        {
+            "byte_size": 43944,
+            "media_type": "application/pdf",
+            "path": "objects/l16-public-decision-tree.pdf",
+            "sha256": "e858828048db992346a5008bbb93db417bf07901d09a28c7195444e643f2f755"
+        },
+        {
+            "byte_size": 38541,
+            "media_type": "application/pdf",
+            "path": "objects/l17-sealed-decision-tree.pdf",
+            "sha256": "913ad2ac7297013dad4e2afaf4c813a6ed9aa939b34b87876b58cab5e78d7797"
+        },
+        {
+            "byte_size": 43607,
+            "media_type": "application/pdf",
+            "path": "objects/l18-public-escalation-matrix.pdf",
+            "sha256": "1ae708948ac8e263df255e4bd74fe253089b3b362ea325b461f92e5224954fff"
+        },
+        {
+            "byte_size": 38599,
+            "media_type": "application/pdf",
+            "path": "objects/l19-sealed-escalation-matrix.pdf",
+            "sha256": "ee0ad1624efa87708685cf155a36de93ed59a900fc85b1f2e6f40cdb0f7b8160"
+        },
+        {
+            "byte_size": 43353,
+            "media_type": "application/pdf",
+            "path": "objects/l20-public-playbook-appendix.pdf",
+            "sha256": "7e54f4ea1b36927b082b4b2b3250760a4f5b728fc9a7f88f13ba38a62e398330"
+        },
+        {
+            "byte_size": 38847,
+            "media_type": "application/pdf",
+            "path": "objects/l21-sealed-playbook-appendix.pdf",
+            "sha256": "a745ebb3e91be0796a2783443710566b126054bc727e6a482bd115db9af71927"
+        },
+        {
+            "byte_size": 60355,
+            "media_type": "application/pdf",
+            "path": "objects/l22-public-open-grid-summary-judgment.pdf",
+            "sha256": "38f6f23f3e84ba6b9c4e4664eb3f36dfdac2a9ee7fd77a104e07020e62531a19"
+        },
+        {
+            "byte_size": 52964,
+            "media_type": "application/pdf",
+            "path": "objects/l23-sealed-open-grid-summary-judgment.pdf",
+            "sha256": "0c523714891b515bd206689a174821980339fe2ba7ee30582d7c69518415ced4"
+        },
+        {
+            "byte_size": 61295,
+            "media_type": "application/pdf",
+            "path": "objects/l24-public-doe-cross-motion.pdf",
+            "sha256": "a82bb7e9fc1e96f8ddffa7e4db995a2797572220ae19712ea7f4e0ff25498808"
+        },
+        {
+            "byte_size": 54376,
+            "media_type": "application/pdf",
+            "path": "objects/l25-sealed-doe-cross-motion.pdf",
+            "sha256": "eb15e455cd10ef26cded7a37543154af27b86963f04e5f56c57077d712cbe3e8"
+        },
+        {
+            "byte_size": 52080,
+            "media_type": "application/pdf",
+            "path": "objects/l26-public-open-grid-reply.pdf",
+            "sha256": "84122a8cab82421e393d0d27f991701af38854b2b8ec763046fd29efed4d052d"
+        },
+        {
+            "byte_size": 45380,
+            "media_type": "application/pdf",
+            "path": "objects/l27-sealed-open-grid-reply.pdf",
+            "sha256": "4c7ad0b27e3a93ef9836739802d040adda9eec381fb516f135ad58d7d51fafba"
+        },
+        {
+            "byte_size": 34401,
+            "media_type": "application/pdf",
+            "path": "objects/l28-motion-to-seal.pdf",
+            "sha256": "eb555706d62ca8c6e503de414c5758f2152d5ad150d9a4d75405a314b75a336c"
+        },
+        {
+            "byte_size": 29656,
+            "media_type": "application/pdf",
+            "path": "objects/l29-certificate-confidentiality.pdf",
+            "sha256": "34b12ef924230c4d88b06b1fdff2a715d7706dad01b966c0969102d1395ad208"
+        },
+        {
+            "byte_size": 39939,
+            "media_type": "application/pdf",
+            "path": "objects/l30-public-in-camera-declaration.pdf",
+            "sha256": "2fb465406e1b55b56fe316b0c7522c51b58a48e7874265b7f07da0d66ebd783b"
+        },
+        {
+            "byte_size": 33851,
+            "media_type": "application/pdf",
+            "path": "objects/l31-sealed-in-camera-declaration.pdf",
+            "sha256": "862a53c32abae4ab698c2644cf030244626ccbb22094341c8db33a9a99153507"
+        },
+        {
+            "byte_size": 37268,
+            "media_type": "application/pdf",
+            "path": "objects/l32-sealing-in-camera-order.pdf",
+            "sha256": "3728433ac4c31ef7cfdf77c9e44ebe3c574e288d1b79743d1f67f7ba7e2c556e"
+        },
+        {
+            "byte_size": 74138,
+            "media_type": "application/pdf",
+            "path": "objects/l33-memorandum-opinion.pdf",
+            "sha256": "5b829e25b969be20c86249dbe8273bf5bfafeea7ea1b52df52f0afa1440ab508"
+        },
+        {
+            "byte_size": 22779,
+            "media_type": "application/pdf",
+            "path": "objects/l34-final-judgment.pdf",
+            "sha256": "178cdf3527ad392df3680f7453f453f8be73fa4028b687d9826c050e7ce7bbbf"
+        },
+        {
+            "byte_size": 44201,
+            "media_type": "application/pdf",
+            "path": "objects/l35-district-docket-report.pdf",
+            "sha256": "9e6d7870cd3322887f0680fede5fb6b0dc8fd6a3d25b5f03ac5a2b1189751718"
+        },
+        {
+            "byte_size": 28407,
+            "media_type": "application/pdf",
+            "path": "objects/l36-notice-of-appeal.pdf",
+            "sha256": "b44784557a1f508d353c13228db65b9475e8955ac8d01effc18e3b921cbe9547"
+        },
+        {
+            "byte_size": 31553,
+            "media_type": "application/pdf",
+            "path": "objects/l37-record-transmittal-index.pdf",
+            "sha256": "aec90c0b268785e2a4050f83b391f3eb933e00a46899e47c22a091f8d16c3dfe"
+        }
+    ],
+    "contents": [
+        {
+            "id": "ca4m4.case.opengrid-foia",
+            "kind": "case",
+            "path": "resources/case.json",
+            "schema_version": 2,
+            "sha256": "472ea3d8d67c6bc4d2cada60ea98e69529ed6a19749833d1db218d5448f444f2"
+        },
+        {
+            "id": "ca4m4.opengrid.argument.actual-record",
+            "kind": "argument_config",
+            "path": "resources/argument-actual.json",
+            "schema_version": 2,
+            "sha256": "c403426fbe41b17bc5c32d6215625f8470a4d859e38cb0c63f417fcae4ba8cc1"
+        },
+        {
+            "id": "ca4m4.opengrid.argument.corrected-counterfactual",
+            "kind": "argument_config",
+            "path": "resources/argument-counterfactual.json",
+            "schema_version": 2,
+            "sha256": "17c3e9e0751ac5ebca9499e19d360993250b6bda5fdc1f838001ac72468572e1"
+        },
+        {
+            "id": "ca4m4.opengrid.authorities.case-specific",
+            "kind": "authority_set",
+            "path": "resources/authority-set.json",
+            "schema_version": 2,
+            "sha256": "5d05989cdfbe0b845aa33f48754b711c4541fece66481c29430b03869ecb9a8a"
+        },
+        {
+            "id": "ca4m4.opengrid.bench.three-judge",
+            "kind": "bench_configuration",
+            "path": "resources/bench-configuration.json",
+            "schema_version": 2,
+            "sha256": "4943c36f07b46c3a365e0d6c31d8e98a9b1f48caee3ba434fb1232945b1de237"
+        },
+        {
+            "id": "ca4m4.opengrid.procedure.civil-foia-appeal",
+            "kind": "procedure_profile",
+            "path": "resources/procedure-profile.json",
+            "schema_version": 2,
+            "sha256": "d570c49a8c8e26845228305d0df63909e950c1192b5ece5a429693b07dcece24"
+        },
+        {
+            "id": "ca4m4.opengrid.record",
+            "kind": "record",
+            "path": "resources/record.json",
+            "schema_version": 2,
+            "sha256": "4fb13f25af4e06234cfa0ffbb0c0f77b7476ad7c65ed9365cc9642cb38f27f5a"
+        },
+        {
+            "id": "ca4m4.opengrid.workflow.foia-sealed-appeal",
+            "kind": "workflow",
+            "path": "resources/workflow.json",
+            "schema_version": 2,
+            "sha256": "66361faed640a8e274834b49595061b51d5fc41b1ef34b4d494f0ca49de67503"
+        },
+        {
+            "id": "ca4m4.opengrid.review.authoring-2026-08-19",
+            "kind": "realism_review",
+            "path": "resources/realism-review.json",
+            "schema_version": 2,
+            "sha256": "2f0b0b06fd7de51dd2fa53466458b3e3e4ba7bc1c181ea0342c543e65b36ba34"
+        }
+    ],
+    "dependencies": [
+        {
+            "pack_id": "foundation.us-federal",
+            "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9",
+            "version": "2025.12.01"
+        },
+        {
+            "pack_id": "foundation.us-ca4",
+            "sha256": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262",
+            "version": "2026.03.23"
+        },
+        {
+            "pack_id": "foundation.us-ca4-fictional-bench",
+            "sha256": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d",
+            "version": "1.0.0"
+        }
+    ],
+    "pack_id": "us.ca4.m4.opengrid-foia",
+    "required_capabilities": [
+        {
+            "id": "workbench.pack.argument-date-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.canonical-authority",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.declarative-resources",
+            "version": 2
+        },
+        {
+            "id": "workbench.pack.dependent-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.event-date-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.grounded-questions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.named-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-disposition-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-document-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-legal-time-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.realism-evidence",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-filing-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-role-subsets",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.sealed-record-twins",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.structured-disposition",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-instance-preconditions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-preconditions",
+            "version": 1
+        }
+    ],
+    "schema_version": 2,
+    "version": "1.2.0"
+}
