@@ -178,7 +178,7 @@ The agency may issue revised Vaughn entries, declarations, or releases. The dist
 
 The district court broadly restricted filings that discussed the agency material. Judicial-record access is distinct from FOIA’s source-record exemptions. Company Doe v. Public Citizen requires a court to identify the governing source of access, provide public notice and opportunity to object, consider less drastic alternatives, and make findings specific enough to support closure.
 
-D. Md. Local Rule 105.11 likewise calls for identification of the material, the need for sealing, alternatives, and proposed duration, with the motion publicly docketed before disposition. Those requirements reinforce material-specific analysis; they do not permit closure of a group of documents merely because portions discuss sensitive information.
+D. Md. Local Rule 105.11 requires proposed reasons supported by specific factual representations, an explanation why alternatives would not provide sufficient protection, and at least fourteen days on the public docket before a ruling so interested parties may object. Those requirements reinforce material-specific analysis; they do not permit closure of a group of documents merely because portions discuss sensitive information.
 
 An exemption finding may inform the interest at stake, but it does not automatically justify withholding all legal argument, arithmetic, and administration within a judicial filing. The district court’s order did not adequately distinguish among documents or explain why public redaction could not protect the relevant interest. Its access ruling cannot stand.
 
@@ -210,7 +210,7 @@ DOE shall reassess its 7(F) categories using functional groupings tied to expect
 
 The district court shall evaluate the resulting agency record de novo under FOIA. It may permit lawful supplementation, order an appropriate release where the agency fails to carry its burden, and preserve the operational decision-tree information covered by our 7(E) holding.
 
-For judicial records, the court shall revisit each challenged restriction under Company Doe and Local Rule 105.11, with public notice, consideration of public redaction and other alternatives, and findings addressed to the particular document and proposed duration. These directions do not prescribe the outcome of a narrower 7(F) claim or access request. They prescribe the analysis necessary to decide it.
+For judicial records, the court shall revisit each challenged restriction under Company Doe and Local Rule 105.11, with public notice, consideration of public redaction and other alternatives, and findings addressed to the particular document. Any continued restriction must also have a duration justified by material-specific narrow tailoring. These directions do not prescribe the outcome of a narrower 7(F) claim or access request. They prescribe the analysis necessary to decide it.
 
 <!-- PAGE BREAK -->
 
