@@ -47,12 +47,12 @@
     },
     {
       "uncertainty_id": "ca4m4.opengrid.uncertainty.five-path-workflow-preflight",
-      "summary": "The authored documents support five source-faithful workflow paths: actual ordinary mandate; counterfactual rehearing denial; counterfactual mandate-stay denial after rehearing denial; rehearing-grant mandate-stayed; and rehearing-grant supplemental merits through revised mandate. Workflow authoring and replay remain pending, and no unsupported sixth path may be manufactured.",
+      "summary": "The committed workflow and five canonical traces intentionally preserve exactly five source-faithful endpoints: actual ordinary mandate; counterfactual rehearing denial; counterfactual mandate-stay denial after rehearing denial; rehearing-grant mandate-stayed; and rehearing-grant supplemental merits through revised mandate. The trace corpus covers all 101 workflow operations, and no unsupported sixth execution is represented.",
       "blocking": false
     },
     {
       "uncertainty_id": "ca4m4.opengrid.uncertainty.workflow-engine-revised-judgment-limit",
-      "summary": "The planned counterfactual rehearing-grant route must represent vacatur and revised judgment without treating the never-filed documents as actual history. Production validation must disclose any engine boundary rather than inventing a source fact or silently combining mutually exclusive mandate routes.",
+      "summary": "After the B21 rehearing-grant order vacates the prior judgment, the engine retains B12 as its immutable judgment state because it has no reset opcode. The committed workflow encodes B27 as the exact revised-judgment order gating B28; this disclosed representational boundary neither makes the never-filed documents actual history nor combines mutually exclusive mandate routes.",
       "blocking": false
     },
     {
