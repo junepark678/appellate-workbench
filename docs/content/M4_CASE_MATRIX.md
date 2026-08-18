@@ -63,6 +63,14 @@ level-2 review, deterministic archive, dependency-only resolved install, and hos
 audit now form an installable authoring candidate. Synthetic PA92–PA174 remain excluded from
 actual-history and actual-disposition grounding.
 
+The frozen Blue Ember source/render/record/core slice also leaves the 283-PDF breadth total
+unchanged. Its lower-court record is 42 PDFs/430 JA pages, while its complete record is
+83 PDFs/656 pages after adding 16 actual appellate PDFs/108 PA pages and 25 separately docketed,
+never-filed counterfactual PDFs/118 PA pages. PA109–PA226 never occurred on the actual appeal.
+The workflow is frozen; traces, manifest, evidence-bearing review, root, archive, resolved
+installation, and tests remain pending, so this slice is not yet an installable authoring
+candidate.
+
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
 records are fictional. Simulated docket numbers begin `SYN-`. Real courts, sovereigns, and
@@ -203,13 +211,32 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
 - **Wedge:** Rule 50(a) challenges causation only; Rule 50(b) first raises mitigation. The court
   grants JMOL on mitigation and conditionally grants a Rule 59 damages retrial.
 - **Record:** 7 pleading/contract, 7 discovery/expert, 4 pretrial, 6 trial transcript, 7 trial
-  exhibit, 4 Rule 50(a)/verdict/judgment, 5 Rule 50(b)/59, and 2 docket/notice PDFs.
+  exhibit, 4 Rule 50(a)/verdict/judgment, 5 Rule 50(b)/59, and 2 docket/notice PDFs: 42 lower
+  PDFs/430 JA pages. The complete PDF-only corpus adds 16 actual appellate PDFs/108 PA pages and
+  25 separately docketed, never-filed counterfactual PDFs/118 PA pages, for 83 PDFs/656 anchors.
 - **Argument:** exact preservation language, renewed-motion boundaries, Rule 50 versus Rule 59
-  review, and permitted relief. Counterfactual: mitigation expressly preserved.
-- **Disposition:** reverse mitigation JMOL; affirm the conditional new-trial order; vacate amended
-  judgment; remand for a damages retrial.
-- **Limits:** generic Rule 4(a)(4) tolling and inferred Rule 50 preservation require later engine
-  work; the MVP uses a case-specific authored trace.
+  review, and permitted relief. On the actual record, both Rule 50(a) motions challenge causation
+  only and mitigation first appears under Rule 50(b). B01 alone supplies the isolated,
+  never-filed counterfactual premise that both pre-verdict motions expressly preserve mitigation.
+- **Disposition:** actual—reverse mitigation JMOL, affirm the conditional Rule 59 ruling and
+  damages-only scope, vacate the amended judgment, and remand for a damages retrial.
+  Counterfactual—affirm mitigation JMOL and the amended judgment without deciding the conditional
+  Rule 59 ruling or retrial scope.
+- **Evidence status:** source, render, the 83-entry/656-anchor record, and seven non-workflow core
+  resources are frozen. Source closure
+  `c5e843bfc968a726ee86a0d130cd8b85e89c74e76dc75239191a20048a9054a5`, render inventory
+  `c52eab8d01e68ec08f5f43e07e8ef2fdc7996ddc15cace7ab4b818518b51f89a`, and record
+  `080ff7772d73131a5471f2fc530b4d63c6215831a82ffcd671ef50beff8d1c7a` bind that slice. The
+  pre-authoring level-2 review scaffold has no evidence field. Workflow
+  `7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120` freezes the exact
+  24-stage/93-operation/15-route/18-filing-binding/25-court-document-binding/14-deadline
+  topology. All traces, manifest, promoted review, root, archive, install, and test pins remain
+  **PENDING**; workflow structure alone is not release evidence.
+- **Limits:** the engine does not infer Rule 50 preservation, distinguish a new ground from a
+  variation on a preserved issue, classify arbitrary posttrial filings, evaluate mitigation or
+  damages evidence, combine mutually exclusive Rule 41 paths, or model real judges. The generated
+  corpus has no MP4 or raw logger, assay, laboratory, or device-data file. Synthetic PA109–PA226
+  cannot ground the actual history, actual disposition, or actual-record question bank.
 
 ### 6. Open Grid FOIA — `ca4m4.case.opengrid-foia`
 
@@ -303,7 +330,7 @@ Case-specific primary sources:
 | Asterglen | [28 U.S.C. § 1291](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1291); [28 U.S.C. § 2107](https://uscode.house.gov/view.xhtml?edition=prelim&req=granuleid%3AUSC-prelim-title28-section2107); FRCP 54(b) and 58; [Kinsale Insurance](https://www.ca4.uscourts.gov/opinions/211754.P.pdf) (published, 2022-04-20); [McPherson](https://www.ca4.uscourts.gov/opinions/231938.U.pdf) (unpublished, 2024-10-15); [Bowles](https://www.govinfo.gov/content/pkg/USREPORTS-551/pdf/USREPORTS-551-205.pdf); [Primov](https://www.courts.state.va.us/static/opinions/opnscvwp/1171381.pdf) |
 | Norvale | [28 U.S.C. § 1292(a)(1)](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1292%28a%29%281%29); FRCP 65; [Billups](https://www.ca4.uscourts.gov/opinions/191044.P.pdf); [Pashby](https://www.ca4.uscourts.gov/opinions/Published/112363.p.pdf) |
 | Ellison | [42 U.S.C. § 1983](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title42-section1983); [Graham](https://www.govinfo.gov/content/pkg/USREPORTS-490/pdf/USREPORTS-490-386.pdf); [Johnson](https://www.govinfo.gov/content/pkg/USREPORTS-515/pdf/USREPORTS-515-304.pdf); [Barricks](https://www.ca4.uscourts.gov/opinions/251250.P.pdf); [Armstrong](https://www.ca4.uscourts.gov/opinions/151191.P.pdf); [Smith](https://www.ca4.uscourts.gov/opinions/121503.P.pdf); [Meyers](https://www.ca4.uscourts.gov/opinions/112192.P.pdf); [Yates](https://www.ca4.uscourts.gov/opinions/151555.P.pdf); [Zorn](https://www.supremecourt.gov/opinions/25pdf/25-297_bqm2.pdf) |
-| Blue Ember | FRCP 50 and 59; [Unitherm](https://www.govinfo.gov/app/details/USREPORTS-546/USREPORTS-546-394); [Wiener](https://www.ca4.uscourts.gov/opinions/241316.P.pdf); [Boley](https://www.ca4.uscourts.gov/opinions/231493.u.pdf) (nonprecedential) |
+| Blue Ember | FRCP 50 and 59; [Unitherm](https://www.govinfo.gov/app/details/USREPORTS-546/USREPORTS-546-394); [Plyler](https://www.ca4.uscourts.gov/opinions/241445.P.pdf); [Wiener](https://www.ca4.uscourts.gov/opinions/241316.P.pdf); [Gautier](https://www.ca4.uscourts.gov/opinions/241401.P.pdf); [Boley](https://www.ca4.uscourts.gov/opinions/231493.U.pdf) (nonprecedential) |
 | Open Grid | [5 U.S.C. § 552](https://uscode.house.gov/view.xhtml?edition=prelim&req=granuleid%3AUSC-prelim-title5-section552); [Grey](https://www.ca4.uscourts.gov/opinions/231910.P.pdf); [Company Doe](https://www.ca4.uscourts.gov/Opinions/Published/122209.P.pdf) |
 | Serrano | [18 U.S.C. § 3742](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title18-section3742); [Boutcher](https://www.ca4.uscourts.gov/opinions/204248.P.pdf); [Jennings](https://www.ca4.uscourts.gov/opinions/244027.P.pdf); [Marsh](https://www.ca4.uscourts.gov/Opinions/184609.P.pdf); [2025 Guidelines Manual](https://www.ussc.gov/guidelines/2025-guidelines-manual) |
 | A.R.M. | [8 U.S.C. § 1252](https://uscode.house.gov/view.xhtml?edition=prelim&f=treesort&num=0&req=%28title%3A8+section%3A1252+edition%3Aprelim%29+OR+%28granuleid%3AUSC-prelim-title8-section1252%29); [8 C.F.R. pt. 1208 (2025-01-01)](https://www.govinfo.gov/content/pkg/CFR-2025-title8-vol1/pdf/CFR-2025-title8-vol1-part1208.pdf); [Riley v. Bondi](https://www.supremecourt.gov/opinions/24pdf/23-1270_6j37.pdf); [Rodriguez-Arias](https://www.ca4.uscourts.gov/opinions/172211.P.pdf) |
@@ -351,6 +378,16 @@ redecisions, 229 prefix replays, 12 full replays, and 66 mutation rejections. Th
 Ellison is therefore an installable level-2 authoring candidate, not a level-3 or gold pack.
 Its PDF-only corpus contains no MP4; the engine makes no video inference, and separately
 docketed synthetic PA92–PA174 cannot ground actual-history claims.
+
+The Blue Ember `1.2.0` pre-authoring scaffold records level 2 in every dimension with
+`independent_review_pending`, but it has no evidence field and does not yet support an
+installability or release claim. The frozen source/render/record/core slice contains 83 PDFs,
+656 anchors, 15 case-specific authorities, two 12-question banks, four issues, and two
+asymmetric disposition plans. Actual Rule 50(a) preservation is causation-only; B01's express-
+mitigation premise exists solely on the separate never-filed docket. Workflow
+`7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120` freezes the exact
+24/93/15/18/25/14 topology. Every trace and downstream release artifact remains pending; exact
+production replay and hostile audit must finish before evidence authoring.
 
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and

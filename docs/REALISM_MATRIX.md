@@ -19,7 +19,7 @@ designation and does not satisfy the level-3 gate.
 | Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable successor level-2 evidence; qualified independent review pending |
 | Preliminary injunction / stay | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Post-trial JMOL | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
+| Post-trial JMOL | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Pre-evidence authoring scaffold; trace/release evidence pending |
 | Sealed FOIA | Civil | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Criminal sentencing / waiver | Criminal (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 | Immigration agency review | Agency (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
@@ -94,3 +94,17 @@ and runtime checks made 458 command redecisions, 229 prefix replays, 12 full rep
 hostile-mutation rejections. This is installable level-2 evidence, not level 3 or gold. The
 PDF-only corpus contains no MP4, the engine makes no video inference, and synthetic PA92–PA174
 remain isolated from actual-history grounding.
+
+The Blue Ember JMOL `1.2.0` pre-authoring scaffold records level 2 in every dimension with
+`independent_review_pending`, but deliberately contains no `evidence` field and is not yet an
+installable or promoted review. Its frozen corpus contains 42 lower-record PDFs/430 JA pages,
+16 actual appellate PDFs/108 PA pages, and 25 separately docketed, never-filed counterfactual
+PDFs/118 PA pages, for 83 PDFs/656 anchors. Actual Rule 50(a) preservation remains fixed to
+causation only; B01 alone supplies the isolated counterfactual express-mitigation premise.
+Workflow `7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120` freezes
+24 stages, 93 operations, 15 filing routes, 18 exact filing bindings, 25 court-document bindings,
+and 14 named deadlines. Every downstream trace, manifest, review, root, archive,
+resolved-install, and test pin remains **PENDING**; workflow structure is not release evidence
+without exact production replay and hostile audit. The corpus is generated, PDF-only, and
+contains no MP4 or raw instrument-data file; automated checks do not substitute for qualified
+independent civil-trial and appellate review.

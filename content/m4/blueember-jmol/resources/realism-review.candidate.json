@@ -1,0 +1,74 @@
+{
+  "schema_version": 2,
+  "resource_kind": "realism_review",
+  "resource_id": "ca4m4.blueember.review.authoring-2026-08-19",
+  "case_id": "ca4m4.case.blueember-jmol",
+  "review_state": "independent_review_pending",
+  "reviewed_on": "2026-08-19",
+  "dimensions": {
+    "procedural_law": 2,
+    "deadlines_authority": 2,
+    "record_consistency": 2,
+    "consequences": 2,
+    "oral_argument": 2,
+    "bench_differentiation": 2,
+    "provenance": 2
+  },
+  "known_uncertainty": [
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.qualified-review-pending",
+      "summary": "Review by a qualified civil-trial, posttrial-motions, and appellate practitioner remains pending; no independent review is recorded and no level-3 or gold claim is made.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.automated-legal-realism-limit",
+      "summary": "Automated schema, citation, deadline, digest, render, and replay checks do not establish the legal accuracy, completeness, currency, or practical realism of the cited authorities or authored Rule 50 and Rule 59 analysis.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.exact-document-classification-scope",
+      "summary": "Record tags, future operation bindings, and semantic classifications are authored for exact identified documents and do not generalize to novel filings, altered bytes, or unreviewed procedural circumstances.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.rule50-preservation-premise",
+      "summary": "On the actual docket, both Rule 50(a) motions challenge causation only and affirmatively leave mitigation to the jury; mitigation first appears in the Rule 50(b) motion. B01 instead supplies a deliberately isolated, never-filed counterfactual premise in which both Rule 50(a) motions expressly preserve mitigation. The system does not infer either legal premise from arbitrary motion text.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.counterfactual-docket-isolation",
+      "summary": "PA109–PA226 are never-filed counterfactual branch artifacts on a distinct synthetic docket. Actual-history operations, the actual disposition, and actual-record argument questions must exclude those pages even though the complete training record resolves their anchors.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.rule41-branch-timing",
+      "summary": "Ordinary mandate, rehearing, stay-denial, and stay-grant/dissolution documents encode mutually exclusive Rule 41 paths. Their shortened intervals, later-of calculations, and dissolution dates are branch-specific authored consequences, not a general scheduling oracle.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.workflow-automation-pending",
+      "summary": "The workflow is frozen at 24 stages, 93 operations, 15 filing routes, 18 exact filing bindings, 25 court-document bindings, and 14 named deadlines. Production traces, manifest, evidence-bearing review, root revision, archive, resolved installation, and focused tests remain pending; workflow structure alone is not release evidence without exact trace authoring and hostile replay.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.synthetic-identities",
+      "summary": "All parties, people, facilities, addresses, dockets, identifiers, testimony, and events are fictional. Real courts appear only as institutional procedural actors, and repository consistency checks cannot establish external authenticity.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.synthetic-bench-oral-limit",
+      "summary": "The March, Rowan, and Slate profiles and oral-argument behavior are fictional or composite training constructs; differentiation does not model any real judge or predict actual advocacy, questioning, or outcomes.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.pdf-only-media-boundary",
+      "summary": "The accepted evidence corpus is PDF-only and contains no MP4 or raw logger, assay, laboratory, or device-data file. The system does not independently interpret instrument output, scientific validity, temperature causation, mitigation feasibility, damages, or witness credibility.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.blueember.uncertainty.generated-pdf-provenance-limit",
+      "summary": "The PDFs are generated training artifacts. Source-to-PDF checks, accepted render inventories, and pinned hashes document repository provenance but cannot establish external authenticity, future cross-render byte determinism, or complete accessibility and typography quality.",
+      "blocking": false
+    }
+  ]
+}
