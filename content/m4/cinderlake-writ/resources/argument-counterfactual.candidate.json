@@ -38,7 +38,7 @@
         "question_id": "ca4m4.cinder.question.counterfactual-compliance-defects",
         "issue_id": "ca4m4.cinder.issue.petition-compliance",
         "topic_id": "workbench.topic.jurisdiction",
-        "prompt": "Which exact petition fields, essential materials, service, and trial-judge-copy requirements are missing from B01, and why is B02 a technical-deficiency notice rather than a merits disposition?",
+        "prompt": "Which exact essential-materials, respondent-service, and trial-judge-copy requirements are missing from B01, why is its caption otherwise materially conforming, and why is B02 a technical-deficiency notice rather than a merits disposition?",
         "grounding": [
           {
             "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-defects-frap21",
@@ -94,7 +94,7 @@
         "question_id": "ca4m4.cinder.question.counterfactual-compliance-conforming",
         "issue_id": "ca4m4.cinder.issue.petition-compliance",
         "topic_id": "workbench.topic.governing-authority",
-        "prompt": "Why is B04 accepted as formally conforming even though it omits the decisive letter and context needed to carry the extraordinary-relief burden?",
+        "prompt": "Why is B04 accepted as formally conforming when it includes the public August 21 letter, challenged March 25 order, and preservation orders, even though it omits the comparative protected-material evidence needed to carry the extraordinary-relief burden?",
         "grounding": [
           {
             "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-conforming-local21",
@@ -140,7 +140,7 @@
         "question_id": "ca4m4.cinder.question.counterfactual-threshold-substantive-omission",
         "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
         "topic_id": "workbench.topic.merits",
-        "prompt": "Why does omitting the response letter and its surrounding context prevent B04 from showing a clear and indisputable right even though the petition satisfies technical filing requirements?",
+        "prompt": "Why does omitting the public memorandum and privilege-log counterparts and item-level comparative evidence prevent B04 from showing a clear and indisputable right even though the petition satisfies technical filing requirements?",
         "grounding": [
           {
             "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-omission-cheney",
@@ -209,7 +209,7 @@
         "question_id": "ca4m4.cinder.question.counterfactual-threshold-terminal-timing",
         "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
         "topic_id": "workbench.topic.practical-consequences",
-        "prompt": "What fourteen-day rehearing period follows the April 3 summary-denial judgment, why does no mandate issue in this original proceeding, and which exact clerk certificate records the authored same-day transmittal to the trial judge?",
+        "prompt": "What fourteen-day rehearing period runs from the April 1 summary-denial judgment through April 15, why does no mandate issue in this original proceeding, and which exact clerk certificate records the authored same-day transmittal to the trial judge?",
         "grounding": [
           {
             "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-terminal-frap40",

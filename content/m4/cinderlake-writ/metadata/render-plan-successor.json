@@ -1,0 +1,341 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "source_path": "documents/lower-record/l01-complaint.md",
+      "output_path": "objects/l01-complaint.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 1,
+      "title": "Complaint"
+    },
+    {
+      "source_path": "documents/lower-record/l02-first-amended-complaint.md",
+      "output_path": "objects/l02-first-amended-complaint.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 11,
+      "title": "First Amended Complaint"
+    },
+    {
+      "source_path": "documents/lower-record/l03-answer.md",
+      "output_path": "objects/l03-answer.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 19,
+      "title": "Answer"
+    },
+    {
+      "source_path": "documents/lower-record/l04-rule26f-esi-privilege-protocol.md",
+      "output_path": "objects/l04-rule26f-esi-privilege-protocol.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 29,
+      "title": "Rule 26(f) Report, ESI Protocol, and Privilege Protocol"
+    },
+    {
+      "source_path": "documents/lower-record/l05-protective-rule502d-order.md",
+      "output_path": "objects/l05-protective-rule502d-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 37,
+      "title": "Protective and Federal Rule of Evidence 502(d) Order"
+    },
+    {
+      "source_path": "documents/lower-record/l06-audit-intake-charter-chronology.md",
+      "output_path": "objects/l06-audit-intake-charter-chronology.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 43,
+      "title": "Audit Intake, Investigation Charter, and Nonprivileged Chronology"
+    },
+    {
+      "source_path": "documents/lower-record/l07-compliance-response-letter.md",
+      "output_path": "objects/l07-compliance-response-letter.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 50,
+      "title": "August 21, 2025 Compliance Response Letter — Public Exhibit and Alleged Waiver Trigger"
+    },
+    {
+      "source_path": "documents/lower-record/l08-public-investigation-memorandum.md",
+      "output_path": "objects/l08-public-investigation-memorandum.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 55,
+      "title": "Public Redacted Outside-Counsel Investigation Memorandum — Exchanged Copy"
+    },
+    {
+      "source_path": "documents/lower-record/l09-sealed-investigation-memorandum.md",
+      "output_path": "objects/l09-sealed-investigation-memorandum.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 67,
+      "title": "Sealed Complete Outside-Counsel Investigation Memorandum — Outside-CM/ECF Exchanged Copy"
+    },
+    {
+      "source_path": "documents/lower-record/l10-public-privilege-log.md",
+      "output_path": "objects/l10-public-privilege-log.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 79,
+      "title": "Public Redacted Privilege Log — Exchanged Copy"
+    },
+    {
+      "source_path": "documents/lower-record/l11-sealed-privilege-log.md",
+      "output_path": "objects/l11-sealed-privilege-log.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 87,
+      "title": "Sealed Complete Privilege Log — Outside-CM/ECF Exchanged Copy"
+    },
+    {
+      "source_path": "documents/lower-record/l12-motion-to-compel.md",
+      "output_path": "objects/l12-motion-to-compel.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 95,
+      "title": "Motion to Compel, Memorandum, Item-Specific Requests, and Conference Certification"
+    },
+    {
+      "source_path": "documents/lower-record/l13-opposition-and-motion-to-seal.md",
+      "output_path": "objects/l13-opposition-and-motion-to-seal.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 109,
+      "title": "Opposition to Compel and Public Local Civil Rule 79.2 Motion to Seal Proposed Exhibits"
+    },
+    {
+      "source_path": "documents/lower-record/l14-confidentiality-service-certificate.md",
+      "output_path": "objects/l14-confidentiality-service-certificate.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 123,
+      "title": "Public Confidentiality, Access, Offline-Copy Provenance, and Outside-CM/ECF Service Certificate"
+    },
+    {
+      "source_path": "documents/lower-record/l15-discovery-hearing-transcript.md",
+      "output_path": "objects/l15-discovery-hearing-transcript.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 128,
+      "title": "Discovery Hearing Transcript"
+    },
+    {
+      "source_path": "documents/lower-record/l16-waiver-production-order.md",
+      "output_path": "objects/l16-waiver-production-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 144,
+      "title": "Order Finding Categorical Subject-Matter Waiver and Compelling Production by April 1, 2026"
+    },
+    {
+      "source_path": "documents/lower-record/l17-reconsideration-and-stay-motion.md",
+      "output_path": "objects/l17-reconsideration-and-stay-motion.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 152,
+      "title": "Motion to Reconsider or Vacate and for Interim Stay"
+    },
+    {
+      "source_path": "documents/lower-record/l18-reconsideration-opposition.md",
+      "output_path": "objects/l18-reconsideration-opposition.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 161,
+      "title": "Opposition to Reconsideration"
+    },
+    {
+      "source_path": "documents/lower-record/l19-reconsideration-order.md",
+      "output_path": "objects/l19-reconsideration-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 168,
+      "title": "Order Denying Reconsideration"
+    },
+    {
+      "source_path": "documents/lower-record/l20-district-stay-motion.md",
+      "output_path": "objects/l20-district-stay-motion.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 174,
+      "title": "Emergency Motion for District Stay Pending Mandamus"
+    },
+    {
+      "source_path": "documents/lower-record/l21-district-stay-opposition.md",
+      "output_path": "objects/l21-district-stay-opposition.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 181,
+      "title": "Opposition to District Stay"
+    },
+    {
+      "source_path": "documents/lower-record/l22-district-stay-order.md",
+      "output_path": "objects/l22-district-stay-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 186,
+      "title": "Order Denying District Stay"
+    },
+    {
+      "source_path": "documents/lower-record/l23-district-docket-report.md",
+      "output_path": "objects/l23-district-docket-report.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 190,
+      "title": "Certified District Docket Report and Public Sealing Notices"
+    },
+    {
+      "source_path": "documents/appellate-actual/a01-public-writ-petition.md",
+      "output_path": "objects/a01-public-writ-petition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 1,
+      "title": "Public Redacted Petition for Writ of Mandamus"
+    },
+    {
+      "source_path": "documents/appellate-actual/a02-motion-to-seal.md",
+      "output_path": "objects/a02-motion-to-seal.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 19,
+      "title": "Public Motion to Seal and Continue Lower-Court Sealing"
+    },
+    {
+      "source_path": "documents/appellate-actual/a03-confidentiality-certificate.md",
+      "output_path": "objects/a03-confidentiality-certificate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 24,
+      "title": "Public Confidentiality Certificate and Access List"
+    },
+    {
+      "source_path": "documents/appellate-actual/a04-highly-sensitive-document-certificate.md",
+      "output_path": "objects/a04-highly-sensitive-document-certificate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 28,
+      "title": "Highly Sensitive Document Certificate — Ordinary Sealed Material, Not HSD"
+    },
+    {
+      "source_path": "documents/appellate-actual/a05-sealed-writ-petition.md",
+      "output_path": "objects/a05-sealed-writ-petition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 30,
+      "title": "Sealed Petition for Writ of Mandamus"
+    },
+    {
+      "source_path": "documents/appellate-actual/a06-public-essential-record-appendix.md",
+      "output_path": "objects/a06-public-essential-record-appendix.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 48,
+      "title": "Public Essential-Record Appendix"
+    },
+    {
+      "source_path": "documents/appellate-actual/a07-sealed-essential-record-appendix.md",
+      "output_path": "objects/a07-sealed-essential-record-appendix.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 62,
+      "title": "Sealed Essential-Record Appendix"
+    },
+    {
+      "source_path": "documents/appellate-actual/a08-emergency-stay-motion.md",
+      "output_path": "objects/a08-emergency-stay-motion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 76,
+      "title": "Emergency Motion for Immediate Administrative and Production Stay"
+    },
+    {
+      "source_path": "documents/appellate-actual/a09-emergency-stay-response.md",
+      "output_path": "objects/a09-emergency-stay-response.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 84,
+      "title": "Response in Opposition to Emergency Stay"
+    },
+    {
+      "source_path": "documents/appellate-actual/a10-interim-stay-order.md",
+      "output_path": "objects/a10-interim-stay-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 90,
+      "title": "Interim Order Staying Production Through Disposition"
+    },
+    {
+      "source_path": "documents/appellate-actual/a11-appearances-disclosures.md",
+      "output_path": "objects/a11-appearances-disclosures.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 94,
+      "title": "Appearances and Corporate Disclosure Statements"
+    },
+    {
+      "source_path": "documents/appellate-actual/a12-answer-invitation-order.md",
+      "output_path": "objects/a12-answer-invitation-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 98,
+      "title": "Order Inviting Answer, Setting April 9 and April 13 Briefing, and Continuing Stay"
+    },
+    {
+      "source_path": "documents/appellate-actual/a13-answer-to-petition.md",
+      "output_path": "objects/a13-answer-to-petition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 102,
+      "title": "Answer to Petition for Writ of Mandamus"
+    },
+    {
+      "source_path": "documents/appellate-actual/a14-reply-in-support.md",
+      "output_path": "objects/a14-reply-in-support.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 116,
+      "title": "Reply in Support of Petition"
+    },
+    {
+      "source_path": "documents/appellate-actual/a15-expedited-argument-order.md",
+      "output_path": "objects/a15-expedited-argument-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 126,
+      "title": "Express Expedited Oral-Argument Order for April 21, 2026"
+    },
+    {
+      "source_path": "documents/appellate-actual/a16-oral-argument-minute.md",
+      "output_path": "objects/a16-oral-argument-minute.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 130,
+      "title": "Oral Argument Held Minute"
+    },
+    {
+      "source_path": "documents/appellate-actual/a17-published-opinion.md",
+      "output_path": "objects/a17-published-opinion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 132,
+      "title": "Fictional Published Opinion Granting Petition in Part"
+    },
+    {
+      "source_path": "documents/appellate-actual/a18-judgment.md",
+      "output_path": "objects/a18-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 150,
+      "title": "Judgment"
+    },
+    {
+      "source_path": "documents/appellate-actual/a19-final-disposition-transmittal.md",
+      "output_path": "objects/a19-final-disposition-transmittal.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 152,
+      "title": "Clerk Certificate Transmitting Final Disposition to the Trial Judge"
+    },
+    {
+      "source_path": "documents/appellate-branches/b01-defective-petition.md",
+      "output_path": "objects/b01-defective-petition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 154,
+      "title": "Never-Filed Defective Petition Missing Essential Materials, Trial-Judge Copy, and Respondent Service"
+    },
+    {
+      "source_path": "documents/appellate-branches/b02-deficiency-notice.md",
+      "output_path": "objects/b02-deficiency-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 164,
+      "title": "Never-Filed Clerk Deficiency Notice Setting a Two-Calendar-Day Cure Deadline"
+    },
+    {
+      "source_path": "documents/appellate-branches/b03-corrected-petition.md",
+      "output_path": "objects/b03-corrected-petition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 167,
+      "title": "Never-Filed Corrected Petition, Essential-Materials Index, and Service Certifications"
+    },
+    {
+      "source_path": "documents/appellate-branches/b04-conforming-incomplete-petition.md",
+      "output_path": "objects/b04-conforming-incomplete-petition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 185,
+      "title": "Never-Filed Formally Conforming but Substantively Incomplete Petition"
+    },
+    {
+      "source_path": "documents/appellate-branches/b05-summary-denial-order-judgment.md",
+      "output_path": "objects/b05-summary-denial-order-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 199,
+      "title": "Never-Filed Summary-Denial Order and Judgment Without Answer or Argument"
+    },
+    {
+      "source_path": "documents/appellate-branches/b06-summary-denial-transmittal.md",
+      "output_path": "objects/b06-summary-denial-transmittal.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 205,
+      "title": "Never-Filed Clerk Certificate Transmitting Summary-Denial Disposition to the Trial Judge"
+    }
+  ]
+}

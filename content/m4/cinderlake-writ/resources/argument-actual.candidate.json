@@ -295,7 +295,7 @@
         "question_id": "ca4m4.cinder.question.actual-production-document-review",
         "issue_id": "ca4m4.cinder.issue.seven-day-production",
         "topic_id": "workbench.topic.merits",
-        "prompt": "Which Rule 26 privilege and work-product questions remain document specific, and why can the court not order the complete memorandum and log produced solely from a categorical waiver premise?",
+        "prompt": "Which Rule 26 privilege and work-product questions remain document specific, and why may the court not compel the entire protected production—including the complete memorandum, twenty logged items, and attachments—solely from a categorical waiver premise?",
         "grounding": [
           {
             "grounding_id": "ca4m4.cinder.grounding.actual-production-review-rule26",

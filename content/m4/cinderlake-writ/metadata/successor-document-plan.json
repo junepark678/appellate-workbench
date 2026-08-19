@@ -80,7 +80,7 @@
     "district_reconsideration_denied": "2026-03-30",
     "district_stay_denied": "2026-04-01",
     "actual_petition_and_emergency_motion": "2026-04-01",
-    "actual_interim_stay": "2026-04-02",
+    "actual_interim_stay": "2026-04-01",
     "actual_answer_invitation": "2026-04-03",
     "actual_answer": "2026-04-09",
     "actual_reply": "2026-04-13",
@@ -90,10 +90,10 @@
     "actual_rule40_expiration": "2026-05-19",
     "actual_final_disposition_transmitted": "2026-05-05",
     "counterfactual_defective_petition_and_notice": "2026-04-01",
-    "counterfactual_exact_cure": "2026-04-02",
-    "counterfactual_conforming_petition_and_summary_denial": "2026-04-03",
-    "counterfactual_rule40_expiration": "2026-04-17",
-    "counterfactual_final_disposition_transmitted": "2026-04-03"
+    "counterfactual_exact_cure": "2026-04-01",
+    "counterfactual_conforming_petition_and_summary_denial": "2026-04-01",
+    "counterfactual_rule40_expiration": "2026-04-15",
+    "counterfactual_final_disposition_transmitted": "2026-04-01"
   },
   "docket_isolation": {
     "district_docket_id": "ca4m4.cinder.docket.district",
@@ -116,7 +116,7 @@
     "district_ruling": "The March 25 order equates the shared topic and announced remediation with disclosure of privileged advice, finds categorical subject-matter waiver, and orders the complete investigation files produced by April 1, seven calendar days later.",
     "actual_disposition": "Grant the writ in part; vacate the categorical-waiver and seven-day-production provisions; deny a blanket bar on related discovery; and remand for document-specific privilege, work-product, and discovery review.",
     "deficiency_contract": "The shared writ-petition route remains unbound. B01 omits essential materials, respondent service, and the trial-judge-copy certification. Exact B02 creates a case-specific two-calendar-day cure deadline, and exact B03 cures the identified defects before the deadline. The future trace ends live in submitted status.",
-    "accepted_branch_contract": "A01 and B04 are conforming accepted petition instances. B04 is substantively insufficient after acceptance because it omits the decisive letter and context; it is not a technical-deficiency reason branch. Full downstream filing-instance predicates distinguish A01, B03, and B04.",
+    "accepted_branch_contract": "A01 and B04 are conforming accepted petition instances. B04 includes the public August 21 letter, challenged March 25 order, and preservation orders required for technical acceptance, but is substantively insufficient because it omits the public memorandum and privilege-log counterparts and item-level comparative evidence needed to establish a clear and indisputable right. It is not a technical-deficiency reason branch. Full downstream filing-instance predicates distinguish A01, B03, and B04.",
     "answer_contract": "An answer is not due merely because a petition was accepted. Only exact A12 invites and schedules an answer, and only then may exact A13 be accepted.",
     "argument_contract": "Local Rule 21 ordinarily omits oral argument. Only exact A15 expressly orders expedited argument for April 21, and the argument-held operation requires that order, a matching schedule, and the reached date.",
     "emergency_contract": "Emergency relief is serialized before answer and merits operations. The pack makes no claim that the engine models parallel stay and merits tracks.",
@@ -966,7 +966,7 @@
       "never_filed": false,
       "sealed": false,
       "source_status": "planned",
-      "filed_on": "2026-04-02",
+      "filed_on": "2026-04-01",
       "docket_id": "ca4m4.cinder.docket.appellate",
       "actor_ids": [
         "ca4m4.cinder.actor.rhea-calder"
@@ -985,7 +985,7 @@
       "never_filed": false,
       "sealed": false,
       "source_status": "planned",
-      "filed_on": "2026-04-02",
+      "filed_on": "2026-04-01",
       "docket_id": "ca4m4.cinder.docket.appellate",
       "actor_ids": [
         "ca4m4.cinder.actor.composite-panel"
@@ -1214,7 +1214,7 @@
       "never_filed": true,
       "sealed": false,
       "source_status": "planned",
-      "filed_on": "2026-04-02",
+      "filed_on": "2026-04-01",
       "docket_id": "ca4m4.cinder.docket.counterfactual-deficiency",
       "actor_ids": [
         "ca4m4.cinder.actor.cinder-lake"
@@ -1233,7 +1233,7 @@
       "never_filed": true,
       "sealed": false,
       "source_status": "planned",
-      "filed_on": "2026-04-03",
+      "filed_on": "2026-04-01",
       "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
       "actor_ids": [
         "ca4m4.cinder.actor.cinder-lake"
@@ -1252,7 +1252,7 @@
       "never_filed": true,
       "sealed": false,
       "source_status": "planned",
-      "filed_on": "2026-04-03",
+      "filed_on": "2026-04-01",
       "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
       "actor_ids": [
         "ca4m4.cinder.actor.composite-panel"
@@ -1271,7 +1271,7 @@
       "never_filed": true,
       "sealed": false,
       "source_status": "planned",
-      "filed_on": "2026-04-03",
+      "filed_on": "2026-04-01",
       "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
       "actor_ids": [
         "ca4m4.cinder.actor.ca4-clerk"
