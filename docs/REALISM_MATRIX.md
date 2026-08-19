@@ -15,15 +15,23 @@ designation and does not satisfy the level-3 gate.
 
 | Case family | Procedure | Law | Deadlines / authority | Record | Consequences | Argument | Bench differentiation | Provenance | Review state |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| Employment retaliation | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
-| Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable successor level-2 evidence; qualified independent review pending |
-| Preliminary injunction / stay | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Post-trial JMOL | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Sealed FOIA | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Criminal sentencing / waiver | Criminal (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Immigration agency review | Agency (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
-| Privileged-discovery mandamus | Writ (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
+| Employment retaliation | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Bundled installable level-2 evidence complete; qualified independent review pending |
+| Rule 54(b) finality | Civil (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Bundled installable level-2 evidence complete; qualified independent review pending |
+| Preliminary injunction / stay | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Bundled installable level-2 evidence complete; qualified independent review pending |
+| Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Bundled installable level-2 evidence complete; qualified independent review pending |
+| Post-trial JMOL | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Bundled installable level-2 evidence complete; qualified independent review pending |
+| Sealed FOIA | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Bundled installable level-2 evidence complete; qualified independent review pending |
+| Criminal sentencing / waiver | Criminal (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Bundled installable level-2 evidence complete; qualified independent review pending |
+| Immigration agency review | Agency (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Bundled installable level-2 evidence complete; qualified independent review pending |
+| Privileged-discovery mandamus | Writ (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Bundled installable level-2 evidence complete; qualified independent review pending |
+
+The Linux pre-MVP artifact bundles all nine finalized v2 roots—Asterglen plus the eight M4
+families—alongside the three foundations and immutable Asterglen v0.1 compatibility predecessor.
+Each v2 root is exercised from an isolated four-revision catalog before and after relocation;
+Asterglen v0.2 remains the primary/default payload. Distribution in that exact 13-archive
+allowlist is technical installation evidence only. Every v2 review remains
+`independent_review_pending`; no bundled root is level 3 or gold, and the bundle is not an
+MVP-complete release.
 
 For each nonzero score, the case review file must link the exact authority version, automated
 trace, record-consistency report, reviewer identity or status, review date, uncertainty notes,

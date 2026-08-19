@@ -77,13 +77,16 @@ as an additional non-default payload; this does not make it level 3 or gold and 
 the nine-family MVP.
 
 The release packaging gate separately runs the installed and relocated executable with networking
-disabled where required. The bundle carries Asterglen v0.2, its three exact foundations, and the
-immutable v0.1 predecessor, plus Cinder Lake v1.2. Its ordinary smoke tests separately install and
-resolve the Asterglen and Cinder Lake four-pack closures while preserving Asterglen as the primary
-default. A deterministic compatibility flow uses v0.1 for one persisted transition and the shipped
-`appellate-pack template` for grounded oral/CAS plumbing. Generated starter archives remain outside
-the install prefix and cannot enter the exact six-archive allowlist. See `docs/RELEASE.md` for the
-precise evidence boundary.
+disabled where required. The pre-MVP Linux bundle carries all nine finalized v2 case roots, their
+three exact foundations, and the immutable Asterglen v0.1 predecessor: 13 archives in one closed
+allowlist. Asterglen v0.2 remains the primary/default payload. The gate gives each v2 root its own
+four-revision catalog and XDG state root, then requires the desktop smoke JSON to report that exact
+pack revision and case ID before and after relocation. A deterministic compatibility flow uses
+Asterglen v0.1 for one persisted transition and the shipped `appellate-pack template` for grounded
+oral/CAS plumbing. Generated starter archives remain outside the install prefix and cannot enter
+the 13-archive allowlist. The eight M4 roots remain level 2 with qualified independent review
+pending; bundling them does not make any root level 3 or gold and does not complete the MVP. See
+`docs/RELEASE.md` for the precise evidence boundary.
 
 Run the shell with the included fixture pack:
 

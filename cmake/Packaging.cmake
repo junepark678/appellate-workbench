@@ -6,22 +6,22 @@ if(CMAKE_VERSION VERSION_LESS 4.3)
     message(FATAL_ERROR "Linux archive packaging requires CMake 4.3 or newer")
 endif()
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
-    message(FATAL_ERROR "The MVP binary package is defined only for Linux x86_64")
+    message(FATAL_ERROR "The pre-MVP binary package is defined only for Linux x86_64")
 endif()
 if(CMAKE_CROSSCOMPILING)
-    message(FATAL_ERROR "The Linux MVP bundle must be built natively")
+    message(FATAL_ERROR "The Linux pre-MVP bundle must be built natively")
 endif()
 if(NOT QT6_IS_SHARED_LIBS_BUILD)
-    message(FATAL_ERROR "The Linux MVP bundle requires a shared Qt build")
+    message(FATAL_ERROR "The Linux pre-MVP bundle requires a shared Qt build")
 endif()
 if(Qt6_VERSION VERSION_LESS 6.10)
     message(FATAL_ERROR "Linux deployment requires Qt 6.10 or newer")
 endif()
 if(CMAKE_CONFIGURATION_TYPES OR NOT CMAKE_BUILD_TYPE STREQUAL "Release")
-    message(FATAL_ERROR "The Linux MVP bundle must use the single-config Release build type")
+    message(FATAL_ERROR "The Linux pre-MVP bundle must use the single-config Release build type")
 endif()
 if(APPELLATE_ENABLE_ASAN OR APPELLATE_ENABLE_UBSAN)
-    message(FATAL_ERROR "Sanitizer runtimes are forbidden in the Linux MVP bundle")
+    message(FATAL_ERROR "Sanitizer runtimes are forbidden in the Linux pre-MVP bundle")
 endif()
 find_program(APPELLATE_PATCHELF_EXECUTABLE NAMES patchelf REQUIRED)
 find_package(Git REQUIRED)
@@ -116,6 +116,34 @@ set(
     _appellate_cinderlake_writ_archive
     "${PROJECT_SOURCE_DIR}/content/m4/cinderlake-writ/us-ca4-m4-cinderlake-writ-1.2.0.awpack"
 )
+set(
+    _appellate_arm_agency_archive
+    "${PROJECT_SOURCE_DIR}/content/m4/arm-agency/us-ca4-m4-arm-agency-1.2.0.awpack"
+)
+set(
+    _appellate_benton_retaliation_archive
+    "${PROJECT_SOURCE_DIR}/content/m4/benton-retaliation/us-ca4-m4-benton-retaliation-1.2.0.awpack"
+)
+set(
+    _appellate_norvale_injunction_archive
+    "${PROJECT_SOURCE_DIR}/content/m4/norvale-injunction/us-ca4-m4-norvale-injunction-1.2.0.awpack"
+)
+set(
+    _appellate_ellison_immunity_archive
+    "${PROJECT_SOURCE_DIR}/content/m4/ellison-immunity/us-ca4-m4-ellison-immunity-1.2.0.awpack"
+)
+set(
+    _appellate_blueember_jmol_archive
+    "${PROJECT_SOURCE_DIR}/content/m4/blueember-jmol/us-ca4-m4-blueember-jmol-1.2.0.awpack"
+)
+set(
+    _appellate_opengrid_foia_archive
+    "${PROJECT_SOURCE_DIR}/content/m4/opengrid-foia/us-ca4-m4-opengrid-foia-1.2.0.awpack"
+)
+set(
+    _appellate_serrano_waiver_archive
+    "${PROJECT_SOURCE_DIR}/content/m4/serrano-waiver/us-ca4-m4-serrano-waiver-1.2.0.awpack"
+)
 
 set(APPELLATE_ASTERGLEN_V2_ARCHIVE_SHA256
     "10739c149a3bf2617d8af6dd131caee7ea6639a9d97e26cdf2974fa176c82819")
@@ -147,6 +175,41 @@ set(APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SHA256
 set(APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SIZE 2519053)
 set(APPELLATE_CINDERLAKE_WRIT_PACK_REVISION
     "020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c")
+set(APPELLATE_ARM_AGENCY_ARCHIVE_SHA256
+    "a150903c6c3332d8de582a8ef46e7fd1dd17cee0ac52c93c0ebaf51313cf54d2")
+set(APPELLATE_ARM_AGENCY_ARCHIVE_SIZE 3286508)
+set(APPELLATE_ARM_AGENCY_PACK_REVISION
+    "ae33933c7cf18f77e662eb302d563afd860e8e900bac8debb081b81b35404edb")
+set(APPELLATE_BENTON_RETALIATION_ARCHIVE_SHA256
+    "9515bdde1e3405e6e82488abd73314a31c33a2062f9e34b4cecdaaff8b634a05")
+set(APPELLATE_BENTON_RETALIATION_ARCHIVE_SIZE 3408701)
+set(APPELLATE_BENTON_RETALIATION_PACK_REVISION
+    "59467350af5f381ef429ecf210d38de5503d40fb2e9baf02f56b2ef5023ced28")
+set(APPELLATE_NORVALE_INJUNCTION_ARCHIVE_SHA256
+    "a4b993aa3cc6582d1d0f6ca9a7203109378f4f1c1b2e6ce32efbfe82b6a48e19")
+set(APPELLATE_NORVALE_INJUNCTION_ARCHIVE_SIZE 4744009)
+set(APPELLATE_NORVALE_INJUNCTION_PACK_REVISION
+    "a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f")
+set(APPELLATE_ELLISON_IMMUNITY_ARCHIVE_SHA256
+    "59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0")
+set(APPELLATE_ELLISON_IMMUNITY_ARCHIVE_SIZE 4230462)
+set(APPELLATE_ELLISON_IMMUNITY_PACK_REVISION
+    "c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0")
+set(APPELLATE_BLUEEMBER_JMOL_ARCHIVE_SHA256
+    "c6332ae33e351ccb27ed17b5576b147a47f9f5f0b44583365212b1781a288ed2")
+set(APPELLATE_BLUEEMBER_JMOL_ARCHIVE_SIZE 5326158)
+set(APPELLATE_BLUEEMBER_JMOL_PACK_REVISION
+    "08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec")
+set(APPELLATE_OPENGRID_FOIA_ARCHIVE_SHA256
+    "1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09")
+set(APPELLATE_OPENGRID_FOIA_ARCHIVE_SIZE 5244039)
+set(APPELLATE_OPENGRID_FOIA_PACK_REVISION
+    "9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5")
+set(APPELLATE_SERRANO_WAIVER_ARCHIVE_SHA256
+    "d76686cec2053f78334c73f1c3aac415b637e733f0494b527001368597a1c243")
+set(APPELLATE_SERRANO_WAIVER_ARCHIVE_SIZE 3453568)
+set(APPELLATE_SERRANO_WAIVER_PACK_REVISION
+    "9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344")
 
 function(_appellate_assert_release_archive archive expected_sha256 expected_size)
     if(NOT EXISTS "${archive}")
@@ -171,6 +234,13 @@ set(_appellate_release_pack_archives
     "${_appellate_bench_archive}"
     "${_appellate_asterglen_v1_archive}"
     "${_appellate_cinderlake_writ_archive}"
+    "${_appellate_arm_agency_archive}"
+    "${_appellate_benton_retaliation_archive}"
+    "${_appellate_norvale_injunction_archive}"
+    "${_appellate_ellison_immunity_archive}"
+    "${_appellate_blueember_jmol_archive}"
+    "${_appellate_opengrid_foia_archive}"
+    "${_appellate_serrano_waiver_archive}"
 )
 set_property(
     DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${_appellate_release_pack_archives}
@@ -204,6 +274,41 @@ _appellate_assert_release_archive(
     "${_appellate_cinderlake_writ_archive}"
     "${APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SHA256}"
     "${APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_arm_agency_archive}"
+    "${APPELLATE_ARM_AGENCY_ARCHIVE_SHA256}"
+    "${APPELLATE_ARM_AGENCY_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_benton_retaliation_archive}"
+    "${APPELLATE_BENTON_RETALIATION_ARCHIVE_SHA256}"
+    "${APPELLATE_BENTON_RETALIATION_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_norvale_injunction_archive}"
+    "${APPELLATE_NORVALE_INJUNCTION_ARCHIVE_SHA256}"
+    "${APPELLATE_NORVALE_INJUNCTION_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_ellison_immunity_archive}"
+    "${APPELLATE_ELLISON_IMMUNITY_ARCHIVE_SHA256}"
+    "${APPELLATE_ELLISON_IMMUNITY_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_blueember_jmol_archive}"
+    "${APPELLATE_BLUEEMBER_JMOL_ARCHIVE_SHA256}"
+    "${APPELLATE_BLUEEMBER_JMOL_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_opengrid_foia_archive}"
+    "${APPELLATE_OPENGRID_FOIA_ARCHIVE_SHA256}"
+    "${APPELLATE_OPENGRID_FOIA_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_serrano_waiver_archive}"
+    "${APPELLATE_SERRANO_WAIVER_ARCHIVE_SHA256}"
+    "${APPELLATE_SERRANO_WAIVER_ARCHIVE_SIZE}"
 )
 
 set(_appellate_release_generated "${PROJECT_BINARY_DIR}/release")
@@ -338,7 +443,7 @@ if(BUILD_TESTING)
         linux_bundle_smoke
         PROPERTIES
             LABELS "e2e;ui;local;packaging"
-            TIMEOUT 180
+            TIMEOUT 600
     )
 
     add_test(
@@ -356,6 +461,6 @@ if(BUILD_TESTING)
         linux_archive_smoke
         PROPERTIES
             LABELS "e2e;ui;local;packaging"
-            TIMEOUT 300
+            TIMEOUT 900
     )
 endif()

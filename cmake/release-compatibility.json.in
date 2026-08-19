@@ -74,6 +74,62 @@
       "archive_sha256": "@APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SHA256@",
       "archive_byte_size": @APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SIZE@,
       "path": "share/appellate-workbench/packs/us-ca4-m4-cinderlake-writ-1.2.0.awpack"
+    },
+    {
+      "pack_id": "us.ca4.m4.arm-agency",
+      "version": "1.2.0",
+      "revision_sha256": "@APPELLATE_ARM_AGENCY_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_ARM_AGENCY_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_ARM_AGENCY_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/us-ca4-m4-arm-agency-1.2.0.awpack"
+    },
+    {
+      "pack_id": "us.ca4.m4.benton-retaliation",
+      "version": "1.2.0",
+      "revision_sha256": "@APPELLATE_BENTON_RETALIATION_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_BENTON_RETALIATION_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_BENTON_RETALIATION_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/us-ca4-m4-benton-retaliation-1.2.0.awpack"
+    },
+    {
+      "pack_id": "us.ca4.m4.norvale-injunction",
+      "version": "1.2.0",
+      "revision_sha256": "@APPELLATE_NORVALE_INJUNCTION_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_NORVALE_INJUNCTION_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_NORVALE_INJUNCTION_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/us-ca4-m4-norvale-injunction-1.2.0.awpack"
+    },
+    {
+      "pack_id": "us.ca4.m4.ellison-immunity",
+      "version": "1.2.0",
+      "revision_sha256": "@APPELLATE_ELLISON_IMMUNITY_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_ELLISON_IMMUNITY_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_ELLISON_IMMUNITY_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/us-ca4-m4-ellison-immunity-1.2.0.awpack"
+    },
+    {
+      "pack_id": "us.ca4.m4.blueember-jmol",
+      "version": "1.2.0",
+      "revision_sha256": "@APPELLATE_BLUEEMBER_JMOL_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_BLUEEMBER_JMOL_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_BLUEEMBER_JMOL_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/us-ca4-m4-blueember-jmol-1.2.0.awpack"
+    },
+    {
+      "pack_id": "us.ca4.m4.opengrid-foia",
+      "version": "1.2.0",
+      "revision_sha256": "@APPELLATE_OPENGRID_FOIA_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_OPENGRID_FOIA_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_OPENGRID_FOIA_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/us-ca4-m4-opengrid-foia-1.2.0.awpack"
+    },
+    {
+      "pack_id": "us.ca4.m4.serrano-waiver",
+      "version": "1.2.0",
+      "revision_sha256": "@APPELLATE_SERRANO_WAIVER_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_SERRANO_WAIVER_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_SERRANO_WAIVER_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/us-ca4-m4-serrano-waiver-1.2.0.awpack"
     }
   ]
 }

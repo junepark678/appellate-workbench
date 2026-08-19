@@ -118,6 +118,13 @@ set(_ca4 "${_packs_root}/foundation-us-ca4-2026.03.23.awpack")
 set(_bench "${_packs_root}/foundation-us-ca4-fictional-bench-1.0.0.awpack")
 set(_asterglen_v1 "${_packs_root}/us-ca4-rule54b-asterglen-0.1.0.awpack")
 set(_cinder "${_packs_root}/us-ca4-m4-cinderlake-writ-1.2.0.awpack")
+set(_arm_agency "${_packs_root}/us-ca4-m4-arm-agency-1.2.0.awpack")
+set(_benton_retaliation "${_packs_root}/us-ca4-m4-benton-retaliation-1.2.0.awpack")
+set(_norvale_injunction "${_packs_root}/us-ca4-m4-norvale-injunction-1.2.0.awpack")
+set(_ellison_immunity "${_packs_root}/us-ca4-m4-ellison-immunity-1.2.0.awpack")
+set(_blueember_jmol "${_packs_root}/us-ca4-m4-blueember-jmol-1.2.0.awpack")
+set(_opengrid_foia "${_packs_root}/us-ca4-m4-opengrid-foia-1.2.0.awpack")
+set(_serrano_waiver "${_packs_root}/us-ca4-m4-serrano-waiver-1.2.0.awpack")
 set(_compatibility "${_prefix}/share/appellate-workbench/compatibility.json")
 foreach(_required IN ITEMS
         "${_desktop}"
@@ -128,6 +135,13 @@ foreach(_required IN ITEMS
         "${_bench}"
         "${_asterglen_v1}"
         "${_cinder}"
+        "${_arm_agency}"
+        "${_benton_retaliation}"
+        "${_norvale_injunction}"
+        "${_ellison_immunity}"
+        "${_blueember_jmol}"
+        "${_opengrid_foia}"
+        "${_serrano_waiver}"
         "${_compatibility}"
 )
     if(NOT EXISTS "${_required}")
@@ -165,6 +179,138 @@ set(_expected_cinder_version "1.2.0")
 set(_expected_cinder_revision "020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c")
 set(_expected_cinder_archive_sha "eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956")
 set(_expected_cinder_archive_size 2519053)
+set(_expected_arm_agency_pack_id "us.ca4.m4.arm-agency")
+set(_expected_arm_agency_version "1.2.0")
+set(_expected_arm_agency_revision "ae33933c7cf18f77e662eb302d563afd860e8e900bac8debb081b81b35404edb")
+set(_expected_arm_agency_archive_sha "a150903c6c3332d8de582a8ef46e7fd1dd17cee0ac52c93c0ebaf51313cf54d2")
+set(_expected_arm_agency_archive_size 3286508)
+set(_expected_benton_retaliation_pack_id "us.ca4.m4.benton-retaliation")
+set(_expected_benton_retaliation_version "1.2.0")
+set(_expected_benton_retaliation_revision "59467350af5f381ef429ecf210d38de5503d40fb2e9baf02f56b2ef5023ced28")
+set(_expected_benton_retaliation_archive_sha "9515bdde1e3405e6e82488abd73314a31c33a2062f9e34b4cecdaaff8b634a05")
+set(_expected_benton_retaliation_archive_size 3408701)
+set(_expected_norvale_injunction_pack_id "us.ca4.m4.norvale-injunction")
+set(_expected_norvale_injunction_version "1.2.0")
+set(_expected_norvale_injunction_revision "a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f")
+set(_expected_norvale_injunction_archive_sha "a4b993aa3cc6582d1d0f6ca9a7203109378f4f1c1b2e6ce32efbfe82b6a48e19")
+set(_expected_norvale_injunction_archive_size 4744009)
+set(_expected_ellison_immunity_pack_id "us.ca4.m4.ellison-immunity")
+set(_expected_ellison_immunity_version "1.2.0")
+set(_expected_ellison_immunity_revision "c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0")
+set(_expected_ellison_immunity_archive_sha "59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0")
+set(_expected_ellison_immunity_archive_size 4230462)
+set(_expected_blueember_jmol_pack_id "us.ca4.m4.blueember-jmol")
+set(_expected_blueember_jmol_version "1.2.0")
+set(_expected_blueember_jmol_revision "08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec")
+set(_expected_blueember_jmol_archive_sha "c6332ae33e351ccb27ed17b5576b147a47f9f5f0b44583365212b1781a288ed2")
+set(_expected_blueember_jmol_archive_size 5326158)
+set(_expected_opengrid_foia_pack_id "us.ca4.m4.opengrid-foia")
+set(_expected_opengrid_foia_version "1.2.0")
+set(_expected_opengrid_foia_revision "9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5")
+set(_expected_opengrid_foia_archive_sha "1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09")
+set(_expected_opengrid_foia_archive_size 5244039)
+set(_expected_serrano_waiver_pack_id "us.ca4.m4.serrano-waiver")
+set(_expected_serrano_waiver_version "1.2.0")
+set(_expected_serrano_waiver_revision "9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344")
+set(_expected_serrano_waiver_archive_sha "d76686cec2053f78334c73f1c3aac415b637e733f0494b527001368597a1c243")
+set(_expected_serrano_waiver_archive_size 3453568)
+
+set(_additional_case_keys
+    "cinderlake-writ"
+    "arm-agency"
+    "benton-retaliation"
+    "norvale-injunction"
+    "ellison-immunity"
+    "blueember-jmol"
+    "opengrid-foia"
+    "serrano-waiver"
+)
+set(_additional_case_labels
+    "Cinder Lake writ"
+    "A.R.M. agency review"
+    "Benton retaliation"
+    "Norvale injunction"
+    "Ellison immunity"
+    "Blue Ember JMOL"
+    "Open Grid FOIA"
+    "Serrano waiver"
+)
+set(_additional_case_archive_names
+    "us-ca4-m4-cinderlake-writ-1.2.0.awpack"
+    "us-ca4-m4-arm-agency-1.2.0.awpack"
+    "us-ca4-m4-benton-retaliation-1.2.0.awpack"
+    "us-ca4-m4-norvale-injunction-1.2.0.awpack"
+    "us-ca4-m4-ellison-immunity-1.2.0.awpack"
+    "us-ca4-m4-blueember-jmol-1.2.0.awpack"
+    "us-ca4-m4-opengrid-foia-1.2.0.awpack"
+    "us-ca4-m4-serrano-waiver-1.2.0.awpack"
+)
+set(_additional_case_pack_ids
+    "us.ca4.m4.cinderlake-writ"
+    "us.ca4.m4.arm-agency"
+    "us.ca4.m4.benton-retaliation"
+    "us.ca4.m4.norvale-injunction"
+    "us.ca4.m4.ellison-immunity"
+    "us.ca4.m4.blueember-jmol"
+    "us.ca4.m4.opengrid-foia"
+    "us.ca4.m4.serrano-waiver"
+)
+set(_additional_case_revisions
+    "020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c"
+    "ae33933c7cf18f77e662eb302d563afd860e8e900bac8debb081b81b35404edb"
+    "59467350af5f381ef429ecf210d38de5503d40fb2e9baf02f56b2ef5023ced28"
+    "a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f"
+    "c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0"
+    "08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec"
+    "9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5"
+    "9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344"
+)
+set(_additional_case_archive_shas
+    "eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956"
+    "a150903c6c3332d8de582a8ef46e7fd1dd17cee0ac52c93c0ebaf51313cf54d2"
+    "9515bdde1e3405e6e82488abd73314a31c33a2062f9e34b4cecdaaff8b634a05"
+    "a4b993aa3cc6582d1d0f6ca9a7203109378f4f1c1b2e6ce32efbfe82b6a48e19"
+    "59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0"
+    "c6332ae33e351ccb27ed17b5576b147a47f9f5f0b44583365212b1781a288ed2"
+    "1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09"
+    "d76686cec2053f78334c73f1c3aac415b637e733f0494b527001368597a1c243"
+)
+set(_additional_case_ids
+    "ca4m4.case.cinderlake-writ"
+    "ca4m4.case.arm-agency"
+    "ca4m4.case.benton-retaliation"
+    "ca4m4.case.norvale-injunction"
+    "ca4m4.case.ellison-immunity"
+    "ca4m4.case.blueember-jmol"
+    "ca4m4.case.opengrid-foia"
+    "ca4m4.case.serrano-waiver"
+)
+foreach(_metadata_list IN ITEMS
+        _additional_case_keys
+        _additional_case_labels
+        _additional_case_archive_names
+        _additional_case_pack_ids
+        _additional_case_revisions
+        _additional_case_archive_shas
+        _additional_case_ids
+)
+    list(LENGTH ${_metadata_list} _metadata_count)
+    if(NOT _metadata_count EQUAL 8)
+        message(FATAL_ERROR "Additional bundled-case metadata must contain exactly eight roots")
+    endif()
+endforeach()
+set(_expected_executed_root_tokens
+    "us.ca4.rule54b.asterglen|0.2.0|7e77bc0fbe02dc9e108681df73852859d6d0f577acdcb65fcfb7678eac78b728|ca4r54b.case.asterglen"
+    "us.ca4.m4.cinderlake-writ|1.2.0|020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c|ca4m4.case.cinderlake-writ"
+    "us.ca4.m4.arm-agency|1.2.0|ae33933c7cf18f77e662eb302d563afd860e8e900bac8debb081b81b35404edb|ca4m4.case.arm-agency"
+    "us.ca4.m4.benton-retaliation|1.2.0|59467350af5f381ef429ecf210d38de5503d40fb2e9baf02f56b2ef5023ced28|ca4m4.case.benton-retaliation"
+    "us.ca4.m4.norvale-injunction|1.2.0|a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f|ca4m4.case.norvale-injunction"
+    "us.ca4.m4.ellison-immunity|1.2.0|c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0|ca4m4.case.ellison-immunity"
+    "us.ca4.m4.blueember-jmol|1.2.0|08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec|ca4m4.case.blueember-jmol"
+    "us.ca4.m4.opengrid-foia|1.2.0|9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5|ca4m4.case.opengrid-foia"
+    "us.ca4.m4.serrano-waiver|1.2.0|9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344|ca4m4.case.serrano-waiver"
+)
+list(SORT _expected_executed_root_tokens)
 
 file(
     GLOB_RECURSE _installed_pack_archives
@@ -178,7 +324,14 @@ set(
     "share/appellate-workbench/packs/foundation-us-ca4-2026.03.23.awpack"
     "share/appellate-workbench/packs/foundation-us-ca4-fictional-bench-1.0.0.awpack"
     "share/appellate-workbench/packs/foundation-us-federal-2025.12.01.awpack"
+    "share/appellate-workbench/packs/us-ca4-m4-arm-agency-1.2.0.awpack"
+    "share/appellate-workbench/packs/us-ca4-m4-benton-retaliation-1.2.0.awpack"
+    "share/appellate-workbench/packs/us-ca4-m4-blueember-jmol-1.2.0.awpack"
     "share/appellate-workbench/packs/us-ca4-m4-cinderlake-writ-1.2.0.awpack"
+    "share/appellate-workbench/packs/us-ca4-m4-ellison-immunity-1.2.0.awpack"
+    "share/appellate-workbench/packs/us-ca4-m4-norvale-injunction-1.2.0.awpack"
+    "share/appellate-workbench/packs/us-ca4-m4-opengrid-foia-1.2.0.awpack"
+    "share/appellate-workbench/packs/us-ca4-m4-serrano-waiver-1.2.0.awpack"
     "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
     "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.2.0.awpack"
 )
@@ -198,7 +351,7 @@ string(JSON _compatibility_arch GET "${_compatibility_json}" platform architectu
 string(JSON _declared_glibc_floor GET "${_compatibility_json}" platform glibc_floor)
 string(JSON _declared_pack_count LENGTH "${_compatibility_json}" bundled_packs)
 if(NOT _compatibility_schema EQUAL 1 OR NOT _compatibility_os STREQUAL "linux" OR
-   NOT _compatibility_arch STREQUAL "x86_64" OR NOT _declared_pack_count EQUAL 6)
+   NOT _compatibility_arch STREQUAL "x86_64" OR NOT _declared_pack_count EQUAL 13)
     message(FATAL_ERROR "The installed compatibility manifest does not match the bundle")
 endif()
 
@@ -262,6 +415,55 @@ _appellate_assert_bundled_pack(
     "${_expected_cinder_archive_size}"
     "share/appellate-workbench/packs/us-ca4-m4-cinderlake-writ-1.2.0.awpack"
 )
+_appellate_assert_bundled_pack(
+    6 "${_arm_agency}"
+    "${_expected_arm_agency_pack_id}" "${_expected_arm_agency_version}"
+    "${_expected_arm_agency_revision}" "${_expected_arm_agency_archive_sha}"
+    "${_expected_arm_agency_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-m4-arm-agency-1.2.0.awpack"
+)
+_appellate_assert_bundled_pack(
+    7 "${_benton_retaliation}"
+    "${_expected_benton_retaliation_pack_id}" "${_expected_benton_retaliation_version}"
+    "${_expected_benton_retaliation_revision}" "${_expected_benton_retaliation_archive_sha}"
+    "${_expected_benton_retaliation_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-m4-benton-retaliation-1.2.0.awpack"
+)
+_appellate_assert_bundled_pack(
+    8 "${_norvale_injunction}"
+    "${_expected_norvale_injunction_pack_id}" "${_expected_norvale_injunction_version}"
+    "${_expected_norvale_injunction_revision}" "${_expected_norvale_injunction_archive_sha}"
+    "${_expected_norvale_injunction_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-m4-norvale-injunction-1.2.0.awpack"
+)
+_appellate_assert_bundled_pack(
+    9 "${_ellison_immunity}"
+    "${_expected_ellison_immunity_pack_id}" "${_expected_ellison_immunity_version}"
+    "${_expected_ellison_immunity_revision}" "${_expected_ellison_immunity_archive_sha}"
+    "${_expected_ellison_immunity_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-m4-ellison-immunity-1.2.0.awpack"
+)
+_appellate_assert_bundled_pack(
+    10 "${_blueember_jmol}"
+    "${_expected_blueember_jmol_pack_id}" "${_expected_blueember_jmol_version}"
+    "${_expected_blueember_jmol_revision}" "${_expected_blueember_jmol_archive_sha}"
+    "${_expected_blueember_jmol_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-m4-blueember-jmol-1.2.0.awpack"
+)
+_appellate_assert_bundled_pack(
+    11 "${_opengrid_foia}"
+    "${_expected_opengrid_foia_pack_id}" "${_expected_opengrid_foia_version}"
+    "${_expected_opengrid_foia_revision}" "${_expected_opengrid_foia_archive_sha}"
+    "${_expected_opengrid_foia_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-m4-opengrid-foia-1.2.0.awpack"
+)
+_appellate_assert_bundled_pack(
+    12 "${_serrano_waiver}"
+    "${_expected_serrano_waiver_pack_id}" "${_expected_serrano_waiver_version}"
+    "${_expected_serrano_waiver_revision}" "${_expected_serrano_waiver_archive_sha}"
+    "${_expected_serrano_waiver_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-m4-serrano-waiver-1.2.0.awpack"
+)
 
 execute_process(
     COMMAND "${_pack_cli}" validate "${_asterglen_v1}"
@@ -298,6 +500,90 @@ function(_appellate_assert_revision_json json label expected_id expected_version
     endif()
 endfunction()
 
+function(_appellate_assert_revision_pin_json json label expected_id expected_version
+         expected_revision)
+    string(JSON _field_count LENGTH "${json}")
+    if(NOT _field_count EQUAL 3)
+        message(FATAL_ERROR "${label} must be an exact three-field revision pin")
+    endif()
+    _appellate_assert_revision_json(
+        "${json}" "${label}" "${expected_id}" "${expected_version}" "${expected_revision}"
+    )
+endfunction()
+
+function(_appellate_assert_installed_dependencies json label expected_id dependency_order)
+    if(expected_id STREQUAL _expected_ca4_pack_id)
+        set(_expected_dependency_ids "${_expected_federal_pack_id}")
+        set(_expected_dependency_versions "${_expected_federal_version}")
+        set(_expected_dependency_revisions "${_expected_federal_revision}")
+    elseif(expected_id MATCHES "^us[.]ca4[.]")
+        if(dependency_order STREQUAL "install")
+            set(_expected_dependency_ids
+                "${_expected_federal_pack_id}"
+                "${_expected_ca4_pack_id}"
+                "${_expected_bench_pack_id}"
+            )
+            set(_expected_dependency_versions
+                "${_expected_federal_version}"
+                "${_expected_ca4_version}"
+                "${_expected_bench_version}"
+            )
+            set(_expected_dependency_revisions
+                "${_expected_federal_revision}"
+                "${_expected_ca4_revision}"
+                "${_expected_bench_revision}"
+            )
+        elseif(dependency_order STREQUAL "list")
+            set(_expected_dependency_ids
+                "${_expected_ca4_pack_id}"
+                "${_expected_bench_pack_id}"
+                "${_expected_federal_pack_id}"
+            )
+            set(_expected_dependency_versions
+                "${_expected_ca4_version}"
+                "${_expected_bench_version}"
+                "${_expected_federal_version}"
+            )
+            set(_expected_dependency_revisions
+                "${_expected_ca4_revision}"
+                "${_expected_bench_revision}"
+                "${_expected_federal_revision}"
+            )
+        else()
+            message(FATAL_ERROR "${label} has an unknown dependency-order contract")
+        endif()
+    elseif(expected_id STREQUAL _expected_bench_pack_id OR
+           expected_id STREQUAL _expected_federal_pack_id)
+        set(_expected_dependency_ids)
+        set(_expected_dependency_versions)
+        set(_expected_dependency_revisions)
+    else()
+        message(FATAL_ERROR "${label} has no declared exact dependency contract")
+    endif()
+
+    string(JSON _dependency_count LENGTH "${json}" dependencies)
+    list(LENGTH _expected_dependency_ids _expected_dependency_count)
+    if(NOT _dependency_count EQUAL _expected_dependency_count)
+        message(FATAL_ERROR "${label} dependency count differs")
+    endif()
+    if(_expected_dependency_count GREATER 0)
+        math(EXPR _last_dependency_index "${_expected_dependency_count} - 1")
+        foreach(_dependency_index RANGE 0 ${_last_dependency_index})
+            string(JSON _dependency GET "${json}" dependencies ${_dependency_index})
+            list(GET _expected_dependency_ids ${_dependency_index} _expected_dependency_id)
+            list(GET _expected_dependency_versions ${_dependency_index}
+                 _expected_dependency_version)
+            list(GET _expected_dependency_revisions ${_dependency_index}
+                 _expected_dependency_revision)
+            _appellate_assert_revision_pin_json(
+                "${_dependency}" "${label} dependency ${_dependency_index}"
+                "${_expected_dependency_id}" "${_expected_dependency_version}"
+                "${_expected_dependency_revision}"
+            )
+        endforeach()
+    endif()
+endfunction()
+
 function(_appellate_install_exact_archive pack_cli archive catalog installed_at expected_id
          expected_version expected_revision expected_archive_sha)
     execute_process(
@@ -314,18 +600,21 @@ function(_appellate_install_exact_archive pack_cli archive catalog installed_at 
         ERROR_VARIABLE _install_error
         TIMEOUT 60
     )
-    if(NOT _install_result EQUAL 0)
+    if(NOT _install_result EQUAL 0 OR NOT _install_error STREQUAL "")
         message(
             FATAL_ERROR
             "Exact bundled pack installation failed for ${archive}:\n"
             "${_install_output}\n${_install_error}"
         )
     endif()
+    string(JSON _install_field_count LENGTH "${_install_output}")
+    string(JSON _install_schema GET "${_install_output}" schema_version)
     string(JSON _install_status GET "${_install_output}" status)
     string(JSON _install_command GET "${_install_output}" command)
     string(JSON _install_archive_sha GET "${_install_output}" archive_sha256)
     string(JSON _installed_at GET "${_install_output}" installed_at_utc)
-    if(NOT _install_status STREQUAL "ok" OR NOT _install_command STREQUAL "install" OR
+    if(NOT _install_field_count EQUAL 9 OR NOT _install_schema EQUAL 1 OR
+       NOT _install_status STREQUAL "ok" OR NOT _install_command STREQUAL "install" OR
        NOT _install_archive_sha STREQUAL expected_archive_sha OR
        NOT _installed_at STREQUAL installed_at)
         message(FATAL_ERROR "Exact bundled pack installation evidence differs for ${archive}")
@@ -333,6 +622,9 @@ function(_appellate_install_exact_archive pack_cli archive catalog installed_at 
     _appellate_assert_revision_json(
         "${_install_output}" "Installed ${archive}"
         "${expected_id}" "${expected_version}" "${expected_revision}"
+    )
+    _appellate_assert_installed_dependencies(
+        "${_install_output}" "Installed ${archive}" "${expected_id}" "install"
     )
 endfunction()
 
@@ -375,18 +667,23 @@ function(_appellate_prepare_v2_catalog pack_cli federal ca4 bench asterglen_v2 c
         ERROR_VARIABLE _resolved_error
         TIMEOUT 60
     )
-    if(NOT _resolved_result EQUAL 0)
+    if(NOT _resolved_result EQUAL 0 OR NOT _resolved_error STREQUAL "")
         message(
             FATAL_ERROR
             "Exact bundled Asterglen v0.2 closure validation failed:\n"
             "${_resolved_output}\n${_resolved_error}"
         )
     endif()
+    string(JSON _resolved_field_count LENGTH "${_resolved_output}")
+    string(JSON _resolved_schema GET "${_resolved_output}" schema_version)
+    string(JSON _resolved_command GET "${_resolved_output}" command)
     string(JSON _resolved_status GET "${_resolved_output}" status)
     string(JSON _resolved_scope GET "${_resolved_output}" validation_scope)
     string(JSON _resolved_count GET "${_resolved_output}" resolved_revision_count)
     string(JSON _pin_count LENGTH "${_resolved_output}" revision_pins)
-    if(NOT _resolved_status STREQUAL "ok" OR
+    if(NOT _resolved_field_count EQUAL 9 OR NOT _resolved_schema EQUAL 1 OR
+       NOT _resolved_command STREQUAL "validate-resolved" OR
+       NOT _resolved_status STREQUAL "ok" OR
        NOT _resolved_scope STREQUAL "catalog_resolved" OR
        NOT _resolved_count EQUAL 4 OR NOT _pin_count EQUAL 4)
         message(FATAL_ERROR "Asterglen v0.2 resolved-closure evidence is incomplete")
@@ -419,16 +716,17 @@ function(_appellate_prepare_v2_catalog pack_cli federal ca4 bench asterglen_v2 c
         list(GET _expected_pin_ids ${_pin_index} _expected_pin_id)
         list(GET _expected_pin_versions ${_pin_index} _expected_pin_version)
         list(GET _expected_pin_revisions ${_pin_index} _expected_pin_revision)
-        _appellate_assert_revision_json(
+        _appellate_assert_revision_pin_json(
             "${_pin}" "Resolved Asterglen v0.2 pin ${_pin_index}"
             "${_expected_pin_id}" "${_expected_pin_version}" "${_expected_pin_revision}"
         )
     endforeach()
 endfunction()
 
-function(_appellate_prepare_cinder_catalog pack_cli federal ca4 bench cinder catalog)
+function(_appellate_prepare_case_catalog pack_cli federal ca4 bench case_archive catalog
+         label expected_id expected_version expected_revision expected_archive_sha)
     if(EXISTS "${catalog}")
-        message(FATAL_ERROR "Cinder release smoke catalog unexpectedly already exists: ${catalog}")
+        message(FATAL_ERROR "${label} release smoke catalog unexpectedly already exists: ${catalog}")
     endif()
     _appellate_install_exact_archive(
         "${pack_cli}" "${federal}" "${catalog}" "2026-08-19T00:00:00Z"
@@ -446,9 +744,9 @@ function(_appellate_prepare_cinder_catalog pack_cli federal ca4 bench cinder cat
         "${_expected_bench_revision}" "${_expected_bench_archive_sha}"
     )
     _appellate_install_exact_archive(
-        "${pack_cli}" "${cinder}" "${catalog}" "2026-08-19T00:00:03Z"
-        "${_expected_cinder_pack_id}" "${_expected_cinder_version}"
-        "${_expected_cinder_revision}" "${_expected_cinder_archive_sha}"
+        "${pack_cli}" "${case_archive}" "${catalog}" "2026-08-19T00:00:03Z"
+        "${expected_id}" "${expected_version}"
+        "${expected_revision}" "${expected_archive_sha}"
     )
 
     execute_process(
@@ -464,17 +762,77 @@ function(_appellate_prepare_cinder_catalog pack_cli federal ca4 bench cinder cat
         ERROR_VARIABLE _list_error
         TIMEOUT 60
     )
-    if(NOT _list_result EQUAL 0)
+    if(NOT _list_result EQUAL 0 OR NOT _list_error STREQUAL "")
         message(
             FATAL_ERROR
-            "Exact bundled Cinder catalog listing failed:\n${_list_output}\n${_list_error}"
+            "Exact bundled ${label} catalog listing failed:\n${_list_output}\n${_list_error}"
         )
     endif()
+    string(JSON _list_field_count LENGTH "${_list_output}")
+    string(JSON _list_schema GET "${_list_output}" schema_version)
+    string(JSON _list_command GET "${_list_output}" command)
     string(JSON _list_status GET "${_list_output}" status)
     string(JSON _list_count LENGTH "${_list_output}" packs)
-    if(NOT _list_status STREQUAL "ok" OR NOT _list_count EQUAL 4)
-        message(FATAL_ERROR "Cinder release smoke catalog does not contain exactly four revisions")
+    if(NOT _list_field_count EQUAL 4 OR NOT _list_schema EQUAL 1 OR
+       NOT _list_command STREQUAL "list" OR NOT _list_status STREQUAL "ok" OR
+       NOT _list_count EQUAL 4)
+        message(FATAL_ERROR "${label} release smoke catalog does not contain exactly four revisions")
     endif()
+    set(_expected_list_ids
+        "${_expected_ca4_pack_id}"
+        "${_expected_bench_pack_id}"
+        "${_expected_federal_pack_id}"
+        "${expected_id}"
+    )
+    set(_expected_list_versions
+        "${_expected_ca4_version}"
+        "${_expected_bench_version}"
+        "${_expected_federal_version}"
+        "${expected_version}"
+    )
+    set(_expected_list_revisions
+        "${_expected_ca4_revision}"
+        "${_expected_bench_revision}"
+        "${_expected_federal_revision}"
+        "${expected_revision}"
+    )
+    set(_expected_list_archive_shas
+        "${_expected_ca4_archive_sha}"
+        "${_expected_bench_archive_sha}"
+        "${_expected_federal_archive_sha}"
+        "${expected_archive_sha}"
+    )
+    set(_expected_list_installed_at
+        "2026-08-19T00:00:01Z"
+        "2026-08-19T00:00:02Z"
+        "2026-08-19T00:00:00Z"
+        "2026-08-19T00:00:03Z"
+    )
+    foreach(_list_index RANGE 0 3)
+        string(JSON _listed_pack GET "${_list_output}" packs ${_list_index})
+        string(JSON _listed_field_count LENGTH "${_listed_pack}")
+        string(JSON _listed_archive_sha GET "${_listed_pack}" archive_sha256)
+        string(JSON _listed_installed_at GET "${_listed_pack}" installed_at_utc)
+        list(GET _expected_list_ids ${_list_index} _expected_list_id)
+        list(GET _expected_list_versions ${_list_index} _expected_list_version)
+        list(GET _expected_list_revisions ${_list_index} _expected_list_revision)
+        list(GET _expected_list_archive_shas ${_list_index} _expected_list_archive_sha)
+        list(GET _expected_list_installed_at ${_list_index} _expected_list_install_time)
+        _appellate_assert_revision_json(
+            "${_listed_pack}" "Listed ${label} pin ${_list_index}"
+            "${_expected_list_id}" "${_expected_list_version}"
+            "${_expected_list_revision}"
+        )
+        _appellate_assert_installed_dependencies(
+            "${_listed_pack}" "Listed ${label} pin ${_list_index}"
+            "${_expected_list_id}" "list"
+        )
+        if(NOT _listed_field_count EQUAL 6 OR
+           NOT _listed_archive_sha STREQUAL _expected_list_archive_sha OR
+           NOT _listed_installed_at STREQUAL _expected_list_install_time)
+            message(FATAL_ERROR "Listed ${label} archive ${_list_index} evidence differs")
+        endif()
+    endforeach()
 
     execute_process(
         COMMAND
@@ -484,63 +842,135 @@ function(_appellate_prepare_cinder_catalog pack_cli federal ca4 bench cinder cat
             --unset=QT_PLUGIN_PATH
             --unset=QT_QPA_PLATFORM_PLUGIN_PATH
             "${pack_cli}" validate-resolved "${catalog}"
-            "${_expected_cinder_pack_id}" "${_expected_cinder_version}"
-            "${_expected_cinder_revision}"
+            "${expected_id}" "${expected_version}" "${expected_revision}"
         RESULT_VARIABLE _resolved_result
         OUTPUT_VARIABLE _resolved_output
         ERROR_VARIABLE _resolved_error
         TIMEOUT 60
     )
-    if(NOT _resolved_result EQUAL 0)
+    if(NOT _resolved_result EQUAL 0 OR NOT _resolved_error STREQUAL "")
         message(
             FATAL_ERROR
-            "Exact bundled Cinder closure validation failed:\n"
+            "Exact bundled ${label} closure validation failed:\n"
             "${_resolved_output}\n${_resolved_error}"
         )
     endif()
+    string(JSON _resolved_field_count LENGTH "${_resolved_output}")
+    string(JSON _resolved_schema GET "${_resolved_output}" schema_version)
+    string(JSON _resolved_command GET "${_resolved_output}" command)
     string(JSON _resolved_status GET "${_resolved_output}" status)
     string(JSON _resolved_scope GET "${_resolved_output}" validation_scope)
     string(JSON _resolved_count GET "${_resolved_output}" resolved_revision_count)
     string(JSON _pin_count LENGTH "${_resolved_output}" revision_pins)
-    if(NOT _resolved_status STREQUAL "ok" OR
+    if(NOT _resolved_field_count EQUAL 9 OR NOT _resolved_schema EQUAL 1 OR
+       NOT _resolved_command STREQUAL "validate-resolved" OR
+       NOT _resolved_status STREQUAL "ok" OR
        NOT _resolved_scope STREQUAL "catalog_resolved" OR
        NOT _resolved_count EQUAL 4 OR NOT _pin_count EQUAL 4)
-        message(FATAL_ERROR "Cinder resolved-closure evidence is incomplete")
+        message(FATAL_ERROR "${label} resolved-closure evidence is incomplete")
     endif()
     _appellate_assert_revision_json(
-        "${_resolved_output}" "Resolved Cinder root"
-        "${_expected_cinder_pack_id}" "${_expected_cinder_version}"
-        "${_expected_cinder_revision}"
+        "${_resolved_output}" "Resolved ${label} root"
+        "${expected_id}" "${expected_version}" "${expected_revision}"
     )
 
     set(_expected_pin_ids
         "${_expected_ca4_pack_id}"
         "${_expected_bench_pack_id}"
         "${_expected_federal_pack_id}"
-        "${_expected_cinder_pack_id}"
+        "${expected_id}"
     )
     set(_expected_pin_versions
         "${_expected_ca4_version}"
         "${_expected_bench_version}"
         "${_expected_federal_version}"
-        "${_expected_cinder_version}"
+        "${expected_version}"
     )
     set(_expected_pin_revisions
         "${_expected_ca4_revision}"
         "${_expected_bench_revision}"
         "${_expected_federal_revision}"
-        "${_expected_cinder_revision}"
+        "${expected_revision}"
     )
     foreach(_pin_index RANGE 0 3)
         string(JSON _pin GET "${_resolved_output}" revision_pins ${_pin_index})
         list(GET _expected_pin_ids ${_pin_index} _expected_pin_id)
         list(GET _expected_pin_versions ${_pin_index} _expected_pin_version)
         list(GET _expected_pin_revisions ${_pin_index} _expected_pin_revision)
-        _appellate_assert_revision_json(
-            "${_pin}" "Resolved Cinder pin ${_pin_index}"
+        _appellate_assert_revision_pin_json(
+            "${_pin}" "Resolved ${label} pin ${_pin_index}"
             "${_expected_pin_id}" "${_expected_pin_version}" "${_expected_pin_revision}"
         )
     endforeach()
+endfunction()
+
+function(_appellate_assert_desktop_smoke json label expected_id expected_version
+         expected_revision expected_case_id output_token)
+    string(JSON _field_count LENGTH "${json}")
+    string(JSON _schema GET "${json}" schema_version)
+    string(JSON _command GET "${json}" command)
+    string(JSON _status GET "${json}" status)
+    string(JSON _pack_id GET "${json}" pack_id)
+    string(JSON _version GET "${json}" version)
+    string(JSON _revision GET "${json}" revision_sha256)
+    string(JSON _case_count GET "${json}" case_count)
+    string(JSON _case_id_count LENGTH "${json}" case_ids)
+    string(JSON _case_id GET "${json}" case_ids 0)
+    if(NOT _field_count EQUAL 8 OR NOT _schema EQUAL 1 OR
+       NOT _command STREQUAL "smoke-test" OR NOT _status STREQUAL "ok" OR
+       NOT _pack_id STREQUAL expected_id OR NOT _version STREQUAL expected_version OR
+       NOT _revision STREQUAL expected_revision OR NOT _case_count EQUAL 1 OR
+       NOT _case_id_count EQUAL 1 OR NOT _case_id STREQUAL expected_case_id)
+        message(FATAL_ERROR "${label} desktop smoke identity or case closure differs")
+    endif()
+    set(
+        "${output_token}"
+        "${_pack_id}|${_version}|${_revision}|${_case_id}"
+        PARENT_SCOPE
+    )
+endfunction()
+
+function(_appellate_run_case_desktop_smoke desktop catalog archive state_name label
+         expected_id expected_version expected_revision expected_case_id output_token)
+    set(_state "${_root}/${state_name}")
+    set(_state_runtime "${_state}/runtime")
+    if(EXISTS "${_state}")
+        message(FATAL_ERROR "${label} desktop smoke state unexpectedly already exists: ${_state}")
+    endif()
+    file(MAKE_DIRECTORY "${_state_runtime}")
+    file(
+        CHMOD "${_state_runtime}"
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    )
+    execute_process(
+        COMMAND "${CMAKE_COMMAND}" -E env
+            --unset=LD_LIBRARY_PATH
+            --unset=LD_PRELOAD
+            --unset=QT_PLUGIN_PATH
+            --unset=QT_QPA_PLATFORM_PLUGIN_PATH
+            "QT_QPA_PLATFORM=offscreen"
+            "XDG_RUNTIME_DIR=${_state_runtime}"
+            "XDG_CONFIG_HOME=${_state}/config"
+            "XDG_DATA_HOME=${_state}/data"
+            "XDG_CACHE_HOME=${_state}/cache"
+            "${desktop}" --smoke-test --catalog "${catalog}" "${archive}"
+        RESULT_VARIABLE _desktop_result
+        OUTPUT_VARIABLE _desktop_output
+        ERROR_VARIABLE _desktop_error
+        TIMEOUT 120
+    )
+    if(NOT _desktop_result EQUAL 0 OR NOT _desktop_error STREQUAL "")
+        message(
+            FATAL_ERROR
+            "${label} desktop smoke failed:\n${_desktop_output}\n${_desktop_error}"
+        )
+    endif()
+    _appellate_assert_desktop_smoke(
+        "${_desktop_output}" "${label}"
+        "${expected_id}" "${expected_version}" "${expected_revision}"
+        "${expected_case_id}" _executed_root_token
+    )
+    set("${output_token}" "${_executed_root_token}" PARENT_SCOPE)
 endfunction()
 
 set(_expected_starter_pack_id "example.full.fictional")
@@ -782,10 +1212,17 @@ execute_process(
     RESULT_VARIABLE _desktop_result
     OUTPUT_VARIABLE _desktop_output
     ERROR_VARIABLE _desktop_error
+    TIMEOUT 120
 )
-if(NOT _desktop_result EQUAL 0)
+if(NOT _desktop_result EQUAL 0 OR NOT _desktop_error STREQUAL "")
     message(FATAL_ERROR "Installed desktop smoke failed:\n${_desktop_output}\n${_desktop_error}")
 endif()
+_appellate_assert_desktop_smoke(
+    "${_desktop_output}" "Installed Asterglen v0.2"
+    "${_expected_v2_pack_id}" "${_expected_v2_version}" "${_expected_v2_revision}"
+    "ca4r54b.case.asterglen" _installed_default_token
+)
+set(_installed_executed_root_tokens "${_installed_default_token}")
 
 _appellate_export_embedded_starter(
     "${_pack_cli}"
@@ -799,43 +1236,34 @@ _appellate_run_offline_e2e(
     "installed-offline-e2e"
 )
 
-set(_cinder_catalog "${_root}/cinder-catalog")
-set(_cinder_runtime "${_root}/cinder-runtime")
-file(MAKE_DIRECTORY "${_cinder_runtime}")
-file(
-    CHMOD "${_cinder_runtime}"
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-)
-_appellate_prepare_cinder_catalog(
-    "${_pack_cli}"
-    "${_federal}"
-    "${_ca4}"
-    "${_bench}"
-    "${_cinder}"
-    "${_cinder_catalog}"
-)
-execute_process(
-    COMMAND "${CMAKE_COMMAND}" -E env
-        --unset=LD_LIBRARY_PATH
-        --unset=LD_PRELOAD
-        --unset=QT_PLUGIN_PATH
-        --unset=QT_QPA_PLATFORM_PLUGIN_PATH
-        "QT_QPA_PLATFORM=offscreen"
-        "XDG_RUNTIME_DIR=${_cinder_runtime}"
-        "XDG_CONFIG_HOME=${_root}/cinder-config"
-        "XDG_DATA_HOME=${_root}/cinder-data"
-        "XDG_CACHE_HOME=${_root}/cinder-cache"
-        "${_desktop}" --smoke-test --catalog "${_cinder_catalog}" "${_cinder}"
-    RESULT_VARIABLE _cinder_desktop_result
-    OUTPUT_VARIABLE _cinder_desktop_output
-    ERROR_VARIABLE _cinder_desktop_error
-)
-if(NOT _cinder_desktop_result EQUAL 0)
-    message(
-        FATAL_ERROR
-        "Installed Cinder desktop smoke failed:\n"
-        "${_cinder_desktop_output}\n${_cinder_desktop_error}"
+foreach(_case_index RANGE 0 7)
+    list(GET _additional_case_keys ${_case_index} _case_key)
+    list(GET _additional_case_labels ${_case_index} _case_label)
+    list(GET _additional_case_archive_names ${_case_index} _case_archive_name)
+    list(GET _additional_case_pack_ids ${_case_index} _case_pack_id)
+    list(GET _additional_case_revisions ${_case_index} _case_revision)
+    list(GET _additional_case_archive_shas ${_case_index} _case_archive_sha)
+    list(GET _additional_case_ids ${_case_index} _case_id)
+    set(_case_archive "${_packs_root}/${_case_archive_name}")
+    set(_case_catalog "${_root}/installed-${_case_key}-catalog")
+    _appellate_prepare_case_catalog(
+        "${_pack_cli}" "${_federal}" "${_ca4}" "${_bench}"
+        "${_case_archive}" "${_case_catalog}" "${_case_label}"
+        "${_case_pack_id}" "1.2.0" "${_case_revision}" "${_case_archive_sha}"
     )
+    _appellate_run_case_desktop_smoke(
+        "${_desktop}" "${_case_catalog}" "${_case_archive}"
+        "installed-${_case_key}-desktop" "Installed ${_case_label}"
+        "${_case_pack_id}" "1.2.0" "${_case_revision}" "${_case_id}"
+        _installed_case_token
+    )
+    list(APPEND _installed_executed_root_tokens "${_installed_case_token}")
+endforeach()
+list(LENGTH _installed_executed_root_tokens _installed_executed_root_count)
+list(SORT _installed_executed_root_tokens)
+if(NOT _installed_executed_root_count EQUAL 9 OR
+   NOT _installed_executed_root_tokens STREQUAL _expected_executed_root_tokens)
+    message(FATAL_ERROR "Installed desktop smoke did not execute the exact nine-root token set")
 endif()
 
 file(RENAME "${_prefix}" "${_relocated}")
@@ -940,10 +1368,20 @@ execute_process(
     RESULT_VARIABLE _relocated_result
     OUTPUT_VARIABLE _relocated_output
     ERROR_VARIABLE _relocated_error
+    TIMEOUT 120
 )
 if(NOT _relocated_result EQUAL 0)
     message(FATAL_ERROR "Relocated desktop smoke failed:\n${_relocated_output}\n${_relocated_error}")
 endif()
+# QT_DEBUG_PLUGINS is enabled only for this relocated default smoke. Its stderr is accepted solely
+# as plugin-location evidence and is constrained to the relocated plugin tree below; every other
+# ordinary root smoke requires empty stderr.
+_appellate_assert_desktop_smoke(
+    "${_relocated_output}" "Relocated Asterglen v0.2"
+    "${_expected_v2_pack_id}" "${_expected_v2_version}" "${_expected_v2_revision}"
+    "ca4r54b.case.asterglen" _relocated_default_token
+)
+set(_relocated_executed_root_tokens "${_relocated_default_token}")
 _appellate_export_embedded_starter(
     "${_relocated_pack_cli}"
     "relocated-starter-export"
@@ -956,45 +1394,34 @@ _appellate_run_offline_e2e(
     "relocated-offline-e2e"
 )
 
-set(_relocated_cinder_catalog "${_root}/relocated-cinder-catalog")
-set(_relocated_cinder_runtime "${_root}/relocated-cinder-runtime")
-file(MAKE_DIRECTORY "${_relocated_cinder_runtime}")
-file(
-    CHMOD "${_relocated_cinder_runtime}"
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-)
-_appellate_prepare_cinder_catalog(
-    "${_relocated_pack_cli}"
-    "${_relocated_federal}"
-    "${_relocated_ca4}"
-    "${_relocated_bench}"
-    "${_relocated_cinder}"
-    "${_relocated_cinder_catalog}"
-)
-execute_process(
-    COMMAND "${CMAKE_COMMAND}" -E env
-        --unset=LD_LIBRARY_PATH
-        --unset=LD_PRELOAD
-        --unset=QT_PLUGIN_PATH
-        --unset=QT_QPA_PLATFORM_PLUGIN_PATH
-        "QT_QPA_PLATFORM=offscreen"
-        "XDG_RUNTIME_DIR=${_relocated_cinder_runtime}"
-        "XDG_CONFIG_HOME=${_root}/relocated-cinder-config"
-        "XDG_DATA_HOME=${_root}/relocated-cinder-data"
-        "XDG_CACHE_HOME=${_root}/relocated-cinder-cache"
-        "${_relocated_desktop}" --smoke-test
-        --catalog "${_relocated_cinder_catalog}"
-        "${_relocated_cinder}"
-    RESULT_VARIABLE _relocated_cinder_result
-    OUTPUT_VARIABLE _relocated_cinder_output
-    ERROR_VARIABLE _relocated_cinder_error
-)
-if(NOT _relocated_cinder_result EQUAL 0)
-    message(
-        FATAL_ERROR
-        "Relocated Cinder desktop smoke failed:\n"
-        "${_relocated_cinder_output}\n${_relocated_cinder_error}"
+foreach(_case_index RANGE 0 7)
+    list(GET _additional_case_keys ${_case_index} _case_key)
+    list(GET _additional_case_labels ${_case_index} _case_label)
+    list(GET _additional_case_archive_names ${_case_index} _case_archive_name)
+    list(GET _additional_case_pack_ids ${_case_index} _case_pack_id)
+    list(GET _additional_case_revisions ${_case_index} _case_revision)
+    list(GET _additional_case_archive_shas ${_case_index} _case_archive_sha)
+    list(GET _additional_case_ids ${_case_index} _case_id)
+    set(_case_archive "${_relocated_packs_root}/${_case_archive_name}")
+    set(_case_catalog "${_root}/relocated-${_case_key}-catalog")
+    _appellate_prepare_case_catalog(
+        "${_relocated_pack_cli}" "${_relocated_federal}" "${_relocated_ca4}"
+        "${_relocated_bench}" "${_case_archive}" "${_case_catalog}" "${_case_label}"
+        "${_case_pack_id}" "1.2.0" "${_case_revision}" "${_case_archive_sha}"
     )
+    _appellate_run_case_desktop_smoke(
+        "${_relocated_desktop}" "${_case_catalog}" "${_case_archive}"
+        "relocated-${_case_key}-desktop" "Relocated ${_case_label}"
+        "${_case_pack_id}" "1.2.0" "${_case_revision}" "${_case_id}"
+        _relocated_case_token
+    )
+    list(APPEND _relocated_executed_root_tokens "${_relocated_case_token}")
+endforeach()
+list(LENGTH _relocated_executed_root_tokens _relocated_executed_root_count)
+list(SORT _relocated_executed_root_tokens)
+if(NOT _relocated_executed_root_count EQUAL 9 OR
+   NOT _relocated_executed_root_tokens STREQUAL _expected_executed_root_tokens)
+    message(FATAL_ERROR "Relocated desktop smoke did not execute the exact nine-root token set")
 endif()
 string(FIND
     "${_relocated_error}"

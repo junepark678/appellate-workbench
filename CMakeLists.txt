@@ -44,7 +44,7 @@ endif()
 
 option(
     APPELLATE_ENABLE_LINUX_PACKAGING
-    "Configure the relocatable Linux x86_64 MVP archive and its install smoke test"
+    "Configure the relocatable Linux x86_64 pre-MVP archive and its install smoke test"
     OFF
 )
 if(APPELLATE_ENABLE_LINUX_PACKAGING)
