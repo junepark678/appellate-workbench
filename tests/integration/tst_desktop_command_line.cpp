@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
@@ -110,6 +111,21 @@ void DesktopCommandLineTest::smokeLoadsPackWithoutPersistentUserState() {
     QCOMPARE(result.exit_status, QProcess::NormalExit);
     QCOMPARE(result.exit_code, 0);
     QVERIFY2(result.standard_error.isEmpty(), result.standard_error.constData());
+    const QJsonObject expected{
+        {QStringLiteral("schema_version"), 1},
+        {QStringLiteral("command"), QStringLiteral("smoke-test")},
+        {QStringLiteral("status"), QStringLiteral("ok")},
+        {QStringLiteral("pack_id"), QStringLiteral("example.full.fictional")},
+        {QStringLiteral("version"), QStringLiteral("2.0.0")},
+        {QStringLiteral("revision_sha256"),
+         QStringLiteral("023008f685d42634a271a626d5df1eb770ee5a6141a1b199eaa6d9945c4f15ce")},
+        {QStringLiteral("case_count"), 1},
+        {QStringLiteral("case_ids"), QJsonArray{QStringLiteral("example.case.fictional")}},
+    };
+    QCOMPARE(result.standard_output, QJsonDocument(expected).toJson(QJsonDocument::Compact) + '\n');
+    const auto parsed = QJsonDocument::fromJson(result.standard_output);
+    QVERIFY(parsed.isObject());
+    QCOMPARE(parsed.object(), expected);
 }
 
 void DesktopCommandLineTest::smokeRejectsInvalidPack() {
@@ -124,6 +140,7 @@ void DesktopCommandLineTest::smokeRejectsInvalidPack() {
 
     QCOMPARE(result.exit_status, QProcess::NormalExit);
     QCOMPARE(result.exit_code, 2);
+    QVERIFY(result.standard_output.isEmpty());
     QCOMPARE(result.standard_error.trimmed(),
              QByteArrayLiteral(
                  "Pack source must be an authoring-pack directory or a regular .awpack archive"));

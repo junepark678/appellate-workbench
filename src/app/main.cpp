@@ -7,6 +7,9 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QDebug>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QString>
 #include <QTextStream>
 
@@ -123,6 +126,26 @@ int main(int argc, char* argv[]) {
         if (!pack_source.isEmpty() && window.currentRuntime() == nullptr) {
             qCritical().noquote() << QStringLiteral("Pack did not produce a runtime projection");
             return 3;
+        }
+        if (!pack_source.isEmpty()) {
+            const auto& runtime = *window.currentRuntime();
+            QJsonArray case_ids;
+            for (const auto& runtime_case : runtime.cases) {
+                case_ids.append(QString::fromStdString(runtime_case.definition.id.value));
+            }
+            const QJsonObject result{
+                {QStringLiteral("schema_version"), 1},
+                {QStringLiteral("command"), QStringLiteral("smoke-test")},
+                {QStringLiteral("status"), QStringLiteral("ok")},
+                {QStringLiteral("pack_id"), QString::fromStdString(runtime.revision.id.value)},
+                {QStringLiteral("version"), QString::fromStdString(runtime.revision.version)},
+                {QStringLiteral("revision_sha256"),
+                 QString::fromStdString(runtime.revision.digest)},
+                {QStringLiteral("case_count"), static_cast<int>(runtime.cases.size())},
+                {QStringLiteral("case_ids"), case_ids},
+            };
+            QTextStream output(stdout);
+            output << QJsonDocument(result).toJson(QJsonDocument::Compact) << Qt::endl;
         }
         return 0;
     }
