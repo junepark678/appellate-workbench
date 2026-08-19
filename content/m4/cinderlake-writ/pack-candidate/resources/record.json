@@ -1,0 +1,3675 @@
+{
+  "schema_version": 2,
+  "resource_kind": "record",
+  "resource_id": "ca4m4.cinder.record",
+  "caption": "In re Cinder Lake Health Network, Inc.",
+  "disclosure_policy": {
+    "policy_id": "ca4m4.cinder.record.policy.public-sealed-offline-twins",
+    "unauthorized_projection": "public_counterparts_only",
+    "authorized_projection": "public_and_authorized_sealed",
+    "sealed_asset_access": "session_event_grant_required"
+  },
+  "sealed_disclosures": [
+    {
+      "disclosure_id": "ca4m4.cinder.disclosure.lower-investigation-memorandum",
+      "sealed_entry_id": "ca4m4.cinder.record.entry.l09",
+      "public_entry_id": "ca4m4.cinder.record.entry.l08",
+      "motion_entry_id": "ca4m4.cinder.record.entry.l13",
+      "certificate_entry_id": "ca4m4.cinder.record.entry.l14",
+      "authorization_authority_id": "ca4m4.cinder.authority.ednc-lr79-2-sealed-documents",
+      "required_items": [
+        "motion",
+        "certificate",
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-01",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja67",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja55"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-02",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja68",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja56"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-waiver-analysis",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja69",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja57"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-04",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja70",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja58"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-05",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja71",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja59"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-source-communications",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja72",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja60"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-07",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja73",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja61"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-08",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja74",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja62"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-09",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja75",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja63"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-10",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja76",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja64"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-11",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja77",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja65"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-memorandum.page-12",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja78",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja66"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.cinder.disclosure.lower-privilege-log",
+      "sealed_entry_id": "ca4m4.cinder.record.entry.l11",
+      "public_entry_id": "ca4m4.cinder.record.entry.l10",
+      "motion_entry_id": "ca4m4.cinder.record.entry.l13",
+      "certificate_entry_id": "ca4m4.cinder.record.entry.l14",
+      "authorization_authority_id": "ca4m4.cinder.authority.ednc-lr79-2-sealed-documents",
+      "required_items": [
+        "motion",
+        "certificate",
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log.page-01",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja87",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja79"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log-categories",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja88",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja80"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log.page-03",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja89",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja81"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log.page-04",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja90",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja82"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log.page-05",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja91",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja83"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log.page-06",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja92",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja84"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log.page-07",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja93",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja85"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log.page-08",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.ja94",
+          "public_anchor_id": "ca4m4.cinder.anchor.ja86"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.cinder.disclosure.appellate-petition",
+      "sealed_entry_id": "ca4m4.cinder.record.entry.a05",
+      "public_entry_id": "ca4m4.cinder.record.entry.a01",
+      "motion_entry_id": "ca4m4.cinder.record.entry.a02",
+      "certificate_entry_id": "ca4m4.cinder.record.entry.a03",
+      "authorization_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+      "required_items": [
+        "motion",
+        "certificate",
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-01",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa30",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa1"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-02",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa31",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa2"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-03",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa32",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa3"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.actual-petition-waiver-statement",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa33",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa4"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-05",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa34",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa5"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-06",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa35",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa6"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-07",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa36",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa7"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-08",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa37",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa8"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-09",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa38",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa9"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.actual-petition-irreparable-disclosure",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa39",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa10"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-11",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa40",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa11"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-12",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa41",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa12"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-13",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa42",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa13"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-14",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa43",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa14"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-15",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa44",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa15"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-16",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa45",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa16"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-17",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa46",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa17"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-petition.page-18",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa47",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa18"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.cinder.disclosure.appellate-essential-record-appendix",
+      "sealed_entry_id": "ca4m4.cinder.record.entry.a07",
+      "public_entry_id": "ca4m4.cinder.record.entry.a06",
+      "motion_entry_id": "ca4m4.cinder.record.entry.a02",
+      "certificate_entry_id": "ca4m4.cinder.record.entry.a03",
+      "authorization_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+      "required_items": [
+        "motion",
+        "certificate",
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-01",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa62",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa48"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-02",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa63",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa49"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-03",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa64",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa50"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-04",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa65",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa51"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-05",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa66",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa52"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-06",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa67",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa53"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.actual-appendix-essential-order",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa68",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa54"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-08",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa69",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa55"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-09",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa70",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa56"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.actual-appendix-letter-context",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa71",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa57"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-11",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa72",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa58"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-12",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa73",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa59"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-13",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa74",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa60"
+        },
+        {
+          "stable_anchor_id": "ca4m4.cinder.anchor.stable.appellate-essential-record-appendix.page-14",
+          "sealed_anchor_id": "ca4m4.cinder.anchor.pa75",
+          "public_anchor_id": "ca4m4.cinder.anchor.pa61"
+        }
+      ]
+    }
+  ],
+  "dockets": [
+    {
+      "docket_id": "ca4m4.cinder.docket.district",
+      "docket_type": "district",
+      "court_ref": "United States District Court for the Eastern District of North Carolina",
+      "public_docket_number": "SYN-EDNC-25-CV-0882",
+      "caption": "Rhea Calder v. Cinder Lake Health Network, Inc."
+    },
+    {
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "docket_type": "original",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit",
+      "public_docket_number": "SYN-CA4-26-WR-4401",
+      "caption": "In re Cinder Lake Health Network, Inc."
+    },
+    {
+      "docket_id": "ca4m4.cinder.docket.counterfactual-deficiency",
+      "docket_type": "original",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit — isolated never-filed deficiency-and-cure counterfactual exercise docket",
+      "public_docket_number": "SYN-CA4-26-WR-4401-CF-DEFICIENCY-NEVER-FILED",
+      "caption": "In re Cinder Lake Health Network, Inc. — isolated never-filed deficiency-and-cure counterfactual branch"
+    },
+    {
+      "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
+      "docket_type": "original",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit — isolated never-filed summary-denial counterfactual exercise docket",
+      "public_docket_number": "SYN-CA4-26-WR-4401-CF-SUMMARY-DENIAL-NEVER-FILED",
+      "caption": "In re Cinder Lake Health Network, Inc. — isolated never-filed summary-denial counterfactual branch"
+    }
+  ],
+  "docket_entries": [
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "entry_number": 1,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L01",
+      "filed_on": "2025-12-03",
+      "title": "Complaint",
+      "actor": "Rhea Calder, fictional real party in interest",
+      "description": "Lower-record document L01: Complaint.",
+      "tags": [
+        "lower_record",
+        "pleading"
+      ],
+      "asset_path": "objects/l01-complaint.pdf",
+      "asset_sha256": "589d6f3cd704e6cfc5e8a8ff8a5a56d70e3486e8a124295b78826c4b8e1f7672",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l02",
+      "entry_number": 2,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L02",
+      "filed_on": "2025-12-12",
+      "title": "First Amended Complaint",
+      "actor": "Rhea Calder, fictional real party in interest",
+      "description": "Lower-record document L02: First Amended Complaint.",
+      "tags": [
+        "lower_record",
+        "pleading"
+      ],
+      "asset_path": "objects/l02-first-amended-complaint.pdf",
+      "asset_sha256": "9983c9b7732c752d75355697e9b745ff6b6d4d7d6456225abd9ad0cbd16e7b52",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "entry_number": 3,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L03",
+      "filed_on": "2025-12-22",
+      "title": "Answer",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L03: Answer.",
+      "tags": [
+        "lower_record",
+        "pleading"
+      ],
+      "asset_path": "objects/l03-answer.pdf",
+      "asset_sha256": "8bc3815db7672e258ea4167d448c83d1b1135d99b921c367d7db63d7f51e41a7",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l04",
+      "entry_number": 4,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L04",
+      "filed_on": "2026-01-05",
+      "title": "Rule 26(f) Report, ESI Protocol, and Privilege Protocol",
+      "actor": "Cinder Lake Health Network, Inc. (fictional) and Rhea Calder, fictional real party in interest",
+      "description": "Lower-record document L04: Rule 26(f) Report, ESI Protocol, and Privilege Protocol.",
+      "tags": [
+        "lower_record",
+        "protective_order_esi"
+      ],
+      "asset_path": "objects/l04-rule26f-esi-privilege-protocol.pdf",
+      "asset_sha256": "11cb750c31f292147f47070f2017e2608ac2ba4a53d48b3a269d91c603d9d816",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l05",
+      "entry_number": 5,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L05",
+      "filed_on": "2026-01-09",
+      "title": "Protective and Federal Rule of Evidence 502(d) Order",
+      "actor": "Fictional United States District Court for the Eastern District of North Carolina",
+      "description": "Lower-record document L05: Protective and Federal Rule of Evidence 502(d) Order.",
+      "tags": [
+        "lower_record",
+        "protective_order_esi"
+      ],
+      "asset_path": "objects/l05-protective-rule502d-order.pdf",
+      "asset_sha256": "d4b223a76ac531b14730b342564ce5352880f6c14184ba04c79d30c695766e21",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l06",
+      "entry_number": 6,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L06",
+      "filed_on": "2026-01-20",
+      "title": "Audit Intake, Investigation Charter, and Nonprivileged Chronology",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L06: Audit Intake, Investigation Charter, and Nonprivileged Chronology.",
+      "tags": [
+        "lower_record",
+        "audit_legal_communication"
+      ],
+      "asset_path": "objects/l06-audit-intake-charter-chronology.pdf",
+      "asset_sha256": "3878a729b8ac10338edb57e7e96154674154031778966890bfee0f820220f143",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l07",
+      "entry_number": 7,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L07",
+      "filed_on": "2026-01-22",
+      "title": "August 21, 2025 Compliance Response Letter — Public Exhibit and Alleged Waiver Trigger",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L07: August 21, 2025 Compliance Response Letter — Public Exhibit and Alleged Waiver Trigger.",
+      "tags": [
+        "lower_record",
+        "audit_legal_communication"
+      ],
+      "asset_path": "objects/l07-compliance-response-letter.pdf",
+      "asset_sha256": "0691b27423ea929928291188480ce31395f43d34f58cdd2a45f09124878acc1f",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "entry_number": 8,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L08",
+      "filed_on": "2026-02-26",
+      "title": "Public Redacted Outside-Counsel Investigation Memorandum — Exchanged Copy",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L08: Public Redacted Outside-Counsel Investigation Memorandum — Exchanged Copy.",
+      "tags": [
+        "lower_record",
+        "audit_legal_communication"
+      ],
+      "asset_path": "objects/l08-public-investigation-memorandum.pdf",
+      "asset_sha256": "5f3c9048a8afefe0ec670a8206b5d33af8a058212679b4490c56dbc903a0598b",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "entry_number": 9,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L09",
+      "filed_on": "2026-02-26",
+      "title": "Sealed Complete Outside-Counsel Investigation Memorandum — Outside-CM/ECF Exchanged Copy",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L09: Sealed Complete Outside-Counsel Investigation Memorandum — Outside-CM/ECF Exchanged Copy.",
+      "tags": [
+        "lower_record",
+        "audit_legal_communication"
+      ],
+      "asset_path": "objects/l09-sealed-investigation-memorandum.pdf",
+      "asset_sha256": "a8f1066a5591fd59faf7836d8e544716e73228d3f9679e3274f297d41feff8fa",
+      "page_count": 12,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l10",
+      "entry_number": 10,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L10",
+      "filed_on": "2026-02-26",
+      "title": "Public Redacted Privilege Log — Exchanged Copy",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L10: Public Redacted Privilege Log — Exchanged Copy.",
+      "tags": [
+        "lower_record",
+        "privilege_log"
+      ],
+      "asset_path": "objects/l10-public-privilege-log.pdf",
+      "asset_sha256": "4913387202f7ddca0642ea9765b53ed92608f6764b0baa0d0a2ae2861c397f5c",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l11",
+      "entry_number": 11,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L11",
+      "filed_on": "2026-02-26",
+      "title": "Sealed Complete Privilege Log — Outside-CM/ECF Exchanged Copy",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L11: Sealed Complete Privilege Log — Outside-CM/ECF Exchanged Copy.",
+      "tags": [
+        "lower_record",
+        "privilege_log"
+      ],
+      "asset_path": "objects/l11-sealed-privilege-log.pdf",
+      "asset_sha256": "964ec01f32659d2e51bb8463718dd3490b7c557d0e7a40d62258f65e9eb0d5d2",
+      "page_count": 8,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "entry_number": 12,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L12",
+      "filed_on": "2026-02-16",
+      "title": "Motion to Compel, Memorandum, Item-Specific Requests, and Conference Certification",
+      "actor": "Rhea Calder, fictional real party in interest",
+      "description": "Lower-record document L12: Motion to Compel, Memorandum, Item-Specific Requests, and Conference Certification.",
+      "tags": [
+        "lower_record",
+        "compel"
+      ],
+      "asset_path": "objects/l12-motion-to-compel.pdf",
+      "asset_sha256": "9770c626e04537db41a241af161ac997795c956d2d245baee91045a775dee9fc",
+      "page_count": 14,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "entry_number": 13,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L13",
+      "filed_on": "2026-02-26",
+      "title": "Opposition to Compel and Public Local Civil Rule 79.2 Motion to Seal Proposed Exhibits",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L13: Opposition to Compel and Public Local Civil Rule 79.2 Motion to Seal Proposed Exhibits.",
+      "tags": [
+        "lower_record",
+        "compel"
+      ],
+      "asset_path": "objects/l13-opposition-and-motion-to-seal.pdf",
+      "asset_sha256": "047e83dd6d5543659b16f07b9ae4b3dd36a5141e2bbf4b64000d13febe72e5fe",
+      "page_count": 14,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l14",
+      "entry_number": 14,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L14",
+      "filed_on": "2026-02-26",
+      "title": "Public Confidentiality, Access, Offline-Copy Provenance, and Outside-CM/ECF Service Certificate",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L14: Public Confidentiality, Access, Offline-Copy Provenance, and Outside-CM/ECF Service Certificate.",
+      "tags": [
+        "lower_record",
+        "compel"
+      ],
+      "asset_path": "objects/l14-confidentiality-service-certificate.pdf",
+      "asset_sha256": "3e6063946c82baccc9b7b725650a3c3167dc89436f1b649b1bcf34d2b87b91b4",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "entry_number": 15,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L15",
+      "filed_on": "2026-03-24",
+      "title": "Discovery Hearing Transcript",
+      "actor": "Fictional United States District Court for the Eastern District of North Carolina",
+      "description": "Lower-record document L15: Discovery Hearing Transcript.",
+      "tags": [
+        "lower_record",
+        "hearing_order"
+      ],
+      "asset_path": "objects/l15-discovery-hearing-transcript.pdf",
+      "asset_sha256": "5d414db4b62a40e381a618063ee14cbcfe7c6a4c67cffdf728f804c7b3840320",
+      "page_count": 16,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l16",
+      "entry_number": 16,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L16",
+      "filed_on": "2026-03-25",
+      "title": "Order Finding Categorical Subject-Matter Waiver and Compelling Production by April 1, 2026",
+      "actor": "Fictional United States District Court for the Eastern District of North Carolina",
+      "description": "Lower-record document L16: Order Finding Categorical Subject-Matter Waiver and Compelling Production by April 1, 2026.",
+      "tags": [
+        "lower_record",
+        "hearing_order"
+      ],
+      "asset_path": "objects/l16-waiver-production-order.pdf",
+      "asset_sha256": "69a2f1057295cce351bb812a728ffa69c7b34bc8f02ed9f4199e90a6ea981a8c",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "entry_number": 17,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L17",
+      "filed_on": "2026-03-26",
+      "title": "Motion to Reconsider or Vacate and for Interim Stay",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L17: Motion to Reconsider or Vacate and for Interim Stay.",
+      "tags": [
+        "lower_record",
+        "reconsideration"
+      ],
+      "asset_path": "objects/l17-reconsideration-and-stay-motion.pdf",
+      "asset_sha256": "6d4d9aedaf81176cdc66fb97c2456817c3b1f72834a2b86744db6ffef730f176",
+      "page_count": 9,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l18",
+      "entry_number": 18,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L18",
+      "filed_on": "2026-03-27",
+      "title": "Opposition to Reconsideration",
+      "actor": "Rhea Calder, fictional real party in interest",
+      "description": "Lower-record document L18: Opposition to Reconsideration.",
+      "tags": [
+        "lower_record",
+        "reconsideration"
+      ],
+      "asset_path": "objects/l18-reconsideration-opposition.pdf",
+      "asset_sha256": "a6da64514e79577636ec9b9684147f4f919bb0bf8faddf35c624ebde758fc2ed",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l19",
+      "entry_number": 19,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L19",
+      "filed_on": "2026-03-30",
+      "title": "Order Denying Reconsideration",
+      "actor": "Fictional United States District Court for the Eastern District of North Carolina",
+      "description": "Lower-record document L19: Order Denying Reconsideration.",
+      "tags": [
+        "lower_record",
+        "reconsideration"
+      ],
+      "asset_path": "objects/l19-reconsideration-order.pdf",
+      "asset_sha256": "6a63307732c4cb2c3447a4bab0f3786ee0db36e4fb62f3f895c5ee21fbd3fe60",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l20",
+      "entry_number": 20,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L20",
+      "filed_on": "2026-03-30",
+      "title": "Emergency Motion for District Stay Pending Mandamus",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Lower-record document L20: Emergency Motion for District Stay Pending Mandamus.",
+      "tags": [
+        "lower_record",
+        "stay"
+      ],
+      "asset_path": "objects/l20-district-stay-motion.pdf",
+      "asset_sha256": "b197f3f22cc2b7d2029f8efe3024681ca849bbd42b0ee3b17b5866c01c8a3500",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l21",
+      "entry_number": 21,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L21",
+      "filed_on": "2026-03-31",
+      "title": "Opposition to District Stay",
+      "actor": "Rhea Calder, fictional real party in interest",
+      "description": "Lower-record document L21: Opposition to District Stay.",
+      "tags": [
+        "lower_record",
+        "stay"
+      ],
+      "asset_path": "objects/l21-district-stay-opposition.pdf",
+      "asset_sha256": "f45ef6926597b259f2c47955ccc5163c639e46c727d518abf7825b88c54e06fd",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l22",
+      "entry_number": 22,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L22",
+      "filed_on": "2026-04-01",
+      "title": "Order Denying District Stay",
+      "actor": "Fictional United States District Court for the Eastern District of North Carolina",
+      "description": "Lower-record document L22: Order Denying District Stay.",
+      "tags": [
+        "lower_record",
+        "stay"
+      ],
+      "asset_path": "objects/l22-district-stay-order.pdf",
+      "asset_sha256": "d7662849b7c7d3abc90f3b1dc262beb11aa5cca12bf0d1d9339cb31000b63fcd",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.l23",
+      "entry_number": 23,
+      "docket_id": "ca4m4.cinder.docket.district",
+      "entry_label": "Lower Record L23",
+      "filed_on": "2026-04-01",
+      "title": "Certified District Docket Report and Public Sealing Notices",
+      "actor": "Fictional United States District Court for the Eastern District of North Carolina",
+      "description": "Lower-record document L23: Certified District Docket Report and Public Sealing Notices.",
+      "tags": [
+        "lower_record",
+        "district_docket"
+      ],
+      "asset_path": "objects/l23-district-docket-report.pdf",
+      "asset_sha256": "57c6895f544fbdde2952d9ad4d312390e6028e3b92003c15ba2774ed74e3e275",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "entry_number": 24,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A01",
+      "filed_on": "2026-04-01",
+      "title": "Public Redacted Petition for Writ of Mandamus",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Actual appellate document A01: Public Redacted Petition for Writ of Mandamus.",
+      "tags": [
+        "actual_appellate_docket",
+        "writ_petition"
+      ],
+      "asset_path": "objects/a01-public-writ-petition.pdf",
+      "asset_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a02",
+      "entry_number": 25,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A02",
+      "filed_on": "2026-04-01",
+      "title": "Public Motion to Seal and Continue Lower-Court Sealing",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Actual appellate document A02: Public Motion to Seal and Continue Lower-Court Sealing.",
+      "tags": [
+        "actual_appellate_docket",
+        "motion",
+        "sealed_filing_support"
+      ],
+      "asset_path": "objects/a02-motion-to-seal.pdf",
+      "asset_sha256": "5dd42325ca598740b44adb5ddd7af5f67c8f761680bdf65b7e2117d3cec008a3",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a03",
+      "entry_number": 26,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A03",
+      "filed_on": "2026-04-01",
+      "title": "Public Confidentiality Certificate and Access List",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Actual appellate document A03: Public Confidentiality Certificate and Access List.",
+      "tags": [
+        "actual_appellate_docket",
+        "motion",
+        "sealed_filing_support"
+      ],
+      "asset_path": "objects/a03-confidentiality-certificate.pdf",
+      "asset_sha256": "be1b224920d896e42b807e9c0e1d0f9039c73eaec24dcfb58870bfbd9a4e3fc7",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a04",
+      "entry_number": 27,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A04",
+      "filed_on": "2026-04-01",
+      "title": "Highly Sensitive Document Certificate — Ordinary Sealed Material, Not HSD",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Actual appellate document A04: Highly Sensitive Document Certificate — Ordinary Sealed Material, Not HSD.",
+      "tags": [
+        "actual_appellate_docket",
+        "motion",
+        "sealed_filing_support"
+      ],
+      "asset_path": "objects/a04-highly-sensitive-document-certificate.pdf",
+      "asset_sha256": "eb69bae6b9ae763555b916ed7e127b27453066738ed835369b59c930c07f128e",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "entry_number": 28,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A05",
+      "filed_on": "2026-04-01",
+      "title": "Sealed Petition for Writ of Mandamus",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Actual appellate document A05: Sealed Petition for Writ of Mandamus.",
+      "tags": [
+        "actual_appellate_docket",
+        "writ_petition"
+      ],
+      "asset_path": "objects/a05-sealed-writ-petition.pdf",
+      "asset_sha256": "fcff52593827f9a66d14030d9ce747b358386d409e50a567dfa9b82ab668e45c",
+      "page_count": 18,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "entry_number": 29,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A06",
+      "filed_on": "2026-04-01",
+      "title": "Public Essential-Record Appendix",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Actual appellate document A06: Public Essential-Record Appendix.",
+      "tags": [
+        "actual_appellate_docket",
+        "appendix"
+      ],
+      "asset_path": "objects/a06-public-essential-record-appendix.pdf",
+      "asset_sha256": "a6aee9f54bcec9633ebe50fe70a4d1106c6bea719aa991c9051bfdad19745771",
+      "page_count": 14,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "entry_number": 30,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A07",
+      "filed_on": "2026-04-01",
+      "title": "Sealed Essential-Record Appendix",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Actual appellate document A07: Sealed Essential-Record Appendix.",
+      "tags": [
+        "actual_appellate_docket",
+        "appendix"
+      ],
+      "asset_path": "objects/a07-sealed-essential-record-appendix.pdf",
+      "asset_sha256": "39d412518c57bbd6b570d10f66b17aec1f78cd8756c3954194ca6fa0c5744d78",
+      "page_count": 14,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a08",
+      "entry_number": 31,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A08",
+      "filed_on": "2026-04-01",
+      "title": "Emergency Motion for Immediate Administrative and Production Stay",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Actual appellate document A08: Emergency Motion for Immediate Administrative and Production Stay.",
+      "tags": [
+        "actual_appellate_docket",
+        "motion",
+        "emergency_relief"
+      ],
+      "asset_path": "objects/a08-emergency-stay-motion.pdf",
+      "asset_sha256": "9096f1c6216677ec8d9efb780a8ca7505ac171befaa733f69ae512ee7807d20a",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a09",
+      "entry_number": 32,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A09",
+      "filed_on": "2026-04-01",
+      "title": "Response in Opposition to Emergency Stay",
+      "actor": "Rhea Calder, fictional real party in interest",
+      "description": "Actual appellate document A09: Response in Opposition to Emergency Stay.",
+      "tags": [
+        "actual_appellate_docket",
+        "motion",
+        "motion_response",
+        "emergency_relief"
+      ],
+      "asset_path": "objects/a09-emergency-stay-response.pdf",
+      "asset_sha256": "4635f5dcff3ee72ee764b0ce4ed568b31b4fb87de5d18a0770e66603e6d14c80",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a10",
+      "entry_number": 33,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A10",
+      "filed_on": "2026-04-01",
+      "title": "Interim Order Staying Production Through Disposition",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual appellate document A10: Interim Order Staying Production Through Disposition.",
+      "tags": [
+        "actual_appellate_docket",
+        "court_order",
+        "emergency_relief"
+      ],
+      "asset_path": "objects/a10-interim-stay-order.pdf",
+      "asset_sha256": "94eb398c281008c6671f748e19c4d8678bb9be562b5d660091e17cbf77c5ec78",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a11",
+      "entry_number": 34,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A11",
+      "filed_on": "2026-04-02",
+      "title": "Appearances and Corporate Disclosure Statements",
+      "actor": "Cinder Lake Health Network, Inc. (fictional) and Rhea Calder, fictional real party in interest",
+      "description": "Actual appellate document A11: Appearances and Corporate Disclosure Statements.",
+      "tags": [
+        "actual_appellate_docket",
+        "appearance"
+      ],
+      "asset_path": "objects/a11-appearances-disclosures.pdf",
+      "asset_sha256": "e2c17a3a469cf994323e707a6814626a4e754f25aef6d2701e04b0832f81995a",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a12",
+      "entry_number": 35,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A12",
+      "filed_on": "2026-04-03",
+      "title": "Order Inviting Answer, Setting April 9 and April 13 Briefing, and Continuing Stay",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual appellate document A12: Order Inviting Answer, Setting April 9 and April 13 Briefing, and Continuing Stay.",
+      "tags": [
+        "actual_appellate_docket",
+        "court_order",
+        "writ_answer_order"
+      ],
+      "asset_path": "objects/a12-answer-invitation-order.pdf",
+      "asset_sha256": "60be0412a18a58623c982a7fa9db889c8934086819bb96049e51ef4f26478fdd",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "entry_number": 36,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A13",
+      "filed_on": "2026-04-09",
+      "title": "Answer to Petition for Writ of Mandamus",
+      "actor": "Rhea Calder, fictional real party in interest",
+      "description": "Actual appellate document A13: Answer to Petition for Writ of Mandamus.",
+      "tags": [
+        "actual_appellate_docket",
+        "writ_response"
+      ],
+      "asset_path": "objects/a13-answer-to-petition.pdf",
+      "asset_sha256": "cf0cc35b0930bb2adc5d36632c1fd977c410c59c2cb9bc18a90d6add3764fa1e",
+      "page_count": 14,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "entry_number": 37,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A14",
+      "filed_on": "2026-04-13",
+      "title": "Reply in Support of Petition",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Actual appellate document A14: Reply in Support of Petition.",
+      "tags": [
+        "actual_appellate_docket",
+        "motion",
+        "writ_reply"
+      ],
+      "asset_path": "objects/a14-reply-in-support.pdf",
+      "asset_sha256": "bfd7f2f46c5d503bbfb21f971ffa931061abb5de2636bf1cfb0c06d20aa6dceb",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a15",
+      "entry_number": 38,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A15",
+      "filed_on": "2026-04-14",
+      "title": "Express Expedited Oral-Argument Order for April 21, 2026",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual appellate document A15: Express Expedited Oral-Argument Order for April 21, 2026.",
+      "tags": [
+        "actual_appellate_docket",
+        "court_order",
+        "argument"
+      ],
+      "asset_path": "objects/a15-expedited-argument-order.pdf",
+      "asset_sha256": "4aad3248240a367f69eb77e85603d212b3b25fcc165a714fdbc1880cc80f1877",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a16",
+      "entry_number": 39,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A16",
+      "filed_on": "2026-04-21",
+      "title": "Oral Argument Held Minute",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A16: Oral Argument Held Minute.",
+      "tags": [
+        "actual_appellate_docket",
+        "argument"
+      ],
+      "asset_path": "objects/a16-oral-argument-minute.pdf",
+      "asset_sha256": "56b06d66c5177b474e1c1d28563d38cacb7a993e46bf4d8adac5e7c5f72f7a23",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "entry_number": 40,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A17",
+      "filed_on": "2026-05-05",
+      "title": "Fictional Published Opinion Granting Petition in Part",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual appellate document A17: Fictional Published Opinion Granting Petition in Part.",
+      "tags": [
+        "actual_appellate_docket",
+        "disposition"
+      ],
+      "asset_path": "objects/a17-published-opinion.pdf",
+      "asset_sha256": "91462891c1c7d883c883fc9c4a329ca8621f59c43c908462f8a8c24d30a36439",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a18",
+      "entry_number": 41,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A18",
+      "filed_on": "2026-05-05",
+      "title": "Judgment",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A18: Judgment.",
+      "tags": [
+        "actual_appellate_docket",
+        "disposition"
+      ],
+      "asset_path": "objects/a18-judgment.pdf",
+      "asset_sha256": "e94785c120ebc50d6c6171dfa3d5ad4ee0a27ae756e02111c52363be0263abbb",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.a19",
+      "entry_number": 42,
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "entry_label": "Actual Appellate A19",
+      "filed_on": "2026-05-05",
+      "title": "Clerk Certificate Transmitting Final Disposition to the Trial Judge",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A19: Clerk Certificate Transmitting Final Disposition to the Trial Judge.",
+      "tags": [
+        "actual_appellate_docket",
+        "final_disposition_transmittal"
+      ],
+      "asset_path": "objects/a19-final-disposition-transmittal.pdf",
+      "asset_sha256": "4377861990661e0dce74891056987c1e4fd3a592e971c3c6f5208db3b78ec144",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "entry_number": 43,
+      "docket_id": "ca4m4.cinder.docket.counterfactual-deficiency",
+      "entry_label": "Counterfactual Branch B01 — Never Filed",
+      "filed_on": "2026-04-01",
+      "title": "Never-Filed Defective Petition Missing Essential Materials, Trial-Judge Copy, and Respondent Service",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Counterfactual appellate document B01: Never-Filed Defective Petition Missing Essential Materials, Trial-Judge Copy, and Respondent Service. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "writ_petition",
+        "deficiency_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b01-defective-petition.pdf",
+      "asset_sha256": "18e0a9ecaf573a9f24e07d22716d8103010846ea8fe16a191e84ce8414ea93e9",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.b02",
+      "entry_number": 44,
+      "docket_id": "ca4m4.cinder.docket.counterfactual-deficiency",
+      "entry_label": "Counterfactual Branch B02 — Never Filed",
+      "filed_on": "2026-04-01",
+      "title": "Never-Filed Clerk Deficiency Notice Setting a Two-Calendar-Day Cure Deadline",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B02: Never-Filed Clerk Deficiency Notice Setting a Two-Calendar-Day Cure Deadline. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "deficiency_notice",
+        "deficiency_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b02-deficiency-notice.pdf",
+      "asset_sha256": "83dac37fbca804e7c452be9e50148a04d46db7fc062264c53c2e72e761f934c3",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "entry_number": 45,
+      "docket_id": "ca4m4.cinder.docket.counterfactual-deficiency",
+      "entry_label": "Counterfactual Branch B03 — Never Filed",
+      "filed_on": "2026-04-01",
+      "title": "Never-Filed Corrected Petition, Essential-Materials Index, and Service Certifications",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Counterfactual appellate document B03: Never-Filed Corrected Petition, Essential-Materials Index, and Service Certifications. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "writ_petition",
+        "deficiency_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b03-corrected-petition.pdf",
+      "asset_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "entry_number": 46,
+      "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
+      "entry_label": "Counterfactual Branch B04 — Never Filed",
+      "filed_on": "2026-04-01",
+      "title": "Never-Filed Formally Conforming but Substantively Incomplete Petition",
+      "actor": "Cinder Lake Health Network, Inc. (fictional)",
+      "description": "Counterfactual appellate document B04: Never-Filed Formally Conforming but Substantively Incomplete Petition. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "writ_petition",
+        "summary_denial_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b04-conforming-incomplete-petition.pdf",
+      "asset_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5",
+      "page_count": 14,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.b05",
+      "entry_number": 47,
+      "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
+      "entry_label": "Counterfactual Branch B05 — Never Filed",
+      "filed_on": "2026-04-01",
+      "title": "Never-Filed Summary-Denial Order and Judgment Without Answer or Argument",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual appellate document B05: Never-Filed Summary-Denial Order and Judgment Without Answer or Argument. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "disposition",
+        "summary_denial_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b05-summary-denial-order-judgment.pdf",
+      "asset_sha256": "4f93af454501e07ad4e7178575fe60d9006b77c55ac3bb36fc1544a002b06771",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.cinder.record.entry.b06",
+      "entry_number": 48,
+      "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
+      "entry_label": "Counterfactual Branch B06 — Never Filed",
+      "filed_on": "2026-04-01",
+      "title": "Never-Filed Clerk Certificate Transmitting Summary-Denial Disposition to the Trial Judge",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B06: Never-Filed Clerk Certificate Transmitting Summary-Denial Disposition to the Trial Judge. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "final_disposition_transmittal",
+        "summary_denial_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b06-summary-denial-transmittal.pdf",
+      "asset_sha256": "5b7e0e52ff8bd1b57bc80fe7c4881671648f192696aaf7e1e9f801ea74c2a28a",
+      "page_count": 2,
+      "sealed": false
+    }
+  ],
+  "page_anchors": [
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja1",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 1,
+      "citation_label": "JA1"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja2",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 2,
+      "citation_label": "JA2"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja3",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 3,
+      "citation_label": "JA3"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja4",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 4,
+      "citation_label": "JA4"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja5",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 5,
+      "citation_label": "JA5"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja6",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 6,
+      "citation_label": "JA6"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja7",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 7,
+      "citation_label": "JA7"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja8",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 8,
+      "citation_label": "JA8"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja9",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 9,
+      "citation_label": "JA9"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja10",
+      "entry_id": "ca4m4.cinder.record.entry.l01",
+      "page_number": 10,
+      "citation_label": "JA10"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja11",
+      "entry_id": "ca4m4.cinder.record.entry.l02",
+      "page_number": 1,
+      "citation_label": "JA11"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja12",
+      "entry_id": "ca4m4.cinder.record.entry.l02",
+      "page_number": 2,
+      "citation_label": "JA12"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja13",
+      "entry_id": "ca4m4.cinder.record.entry.l02",
+      "page_number": 3,
+      "citation_label": "JA13"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja14",
+      "entry_id": "ca4m4.cinder.record.entry.l02",
+      "page_number": 4,
+      "citation_label": "JA14"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja15",
+      "entry_id": "ca4m4.cinder.record.entry.l02",
+      "page_number": 5,
+      "citation_label": "JA15"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja16",
+      "entry_id": "ca4m4.cinder.record.entry.l02",
+      "page_number": 6,
+      "citation_label": "JA16"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja17",
+      "entry_id": "ca4m4.cinder.record.entry.l02",
+      "page_number": 7,
+      "citation_label": "JA17"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja18",
+      "entry_id": "ca4m4.cinder.record.entry.l02",
+      "page_number": 8,
+      "citation_label": "JA18"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja19",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 1,
+      "citation_label": "JA19"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja20",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 2,
+      "citation_label": "JA20"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja21",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 3,
+      "citation_label": "JA21"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja22",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 4,
+      "citation_label": "JA22"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja23",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 5,
+      "citation_label": "JA23"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja24",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 6,
+      "citation_label": "JA24"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja25",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 7,
+      "citation_label": "JA25"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja26",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 8,
+      "citation_label": "JA26"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja27",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 9,
+      "citation_label": "JA27"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja28",
+      "entry_id": "ca4m4.cinder.record.entry.l03",
+      "page_number": 10,
+      "citation_label": "JA28"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja29",
+      "entry_id": "ca4m4.cinder.record.entry.l04",
+      "page_number": 1,
+      "citation_label": "JA29"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja30",
+      "entry_id": "ca4m4.cinder.record.entry.l04",
+      "page_number": 2,
+      "citation_label": "JA30"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja31",
+      "entry_id": "ca4m4.cinder.record.entry.l04",
+      "page_number": 3,
+      "citation_label": "JA31"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja32",
+      "entry_id": "ca4m4.cinder.record.entry.l04",
+      "page_number": 4,
+      "citation_label": "JA32"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja33",
+      "entry_id": "ca4m4.cinder.record.entry.l04",
+      "page_number": 5,
+      "citation_label": "JA33"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja34",
+      "entry_id": "ca4m4.cinder.record.entry.l04",
+      "page_number": 6,
+      "citation_label": "JA34"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja35",
+      "entry_id": "ca4m4.cinder.record.entry.l04",
+      "page_number": 7,
+      "citation_label": "JA35"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja36",
+      "entry_id": "ca4m4.cinder.record.entry.l04",
+      "page_number": 8,
+      "citation_label": "JA36"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja37",
+      "entry_id": "ca4m4.cinder.record.entry.l05",
+      "page_number": 1,
+      "citation_label": "JA37"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja38",
+      "entry_id": "ca4m4.cinder.record.entry.l05",
+      "page_number": 2,
+      "citation_label": "JA38"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja39",
+      "entry_id": "ca4m4.cinder.record.entry.l05",
+      "page_number": 3,
+      "citation_label": "JA39"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja40",
+      "entry_id": "ca4m4.cinder.record.entry.l05",
+      "page_number": 4,
+      "citation_label": "JA40"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja41",
+      "entry_id": "ca4m4.cinder.record.entry.l05",
+      "page_number": 5,
+      "citation_label": "JA41"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja42",
+      "entry_id": "ca4m4.cinder.record.entry.l05",
+      "page_number": 6,
+      "citation_label": "JA42"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja43",
+      "entry_id": "ca4m4.cinder.record.entry.l06",
+      "page_number": 1,
+      "citation_label": "JA43"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja44",
+      "entry_id": "ca4m4.cinder.record.entry.l06",
+      "page_number": 2,
+      "citation_label": "JA44"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja45",
+      "entry_id": "ca4m4.cinder.record.entry.l06",
+      "page_number": 3,
+      "citation_label": "JA45"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja46",
+      "entry_id": "ca4m4.cinder.record.entry.l06",
+      "page_number": 4,
+      "citation_label": "JA46"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja47",
+      "entry_id": "ca4m4.cinder.record.entry.l06",
+      "page_number": 5,
+      "citation_label": "JA47"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja48",
+      "entry_id": "ca4m4.cinder.record.entry.l06",
+      "page_number": 6,
+      "citation_label": "JA48"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja49",
+      "entry_id": "ca4m4.cinder.record.entry.l06",
+      "page_number": 7,
+      "citation_label": "JA49"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja50",
+      "entry_id": "ca4m4.cinder.record.entry.l07",
+      "page_number": 1,
+      "citation_label": "JA50"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja51",
+      "entry_id": "ca4m4.cinder.record.entry.l07",
+      "page_number": 2,
+      "citation_label": "JA51"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja52",
+      "entry_id": "ca4m4.cinder.record.entry.l07",
+      "page_number": 3,
+      "citation_label": "JA52"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja53",
+      "entry_id": "ca4m4.cinder.record.entry.l07",
+      "page_number": 4,
+      "citation_label": "JA53"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja54",
+      "entry_id": "ca4m4.cinder.record.entry.l07",
+      "page_number": 5,
+      "citation_label": "JA54"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja55",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 1,
+      "citation_label": "JA55"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja56",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 2,
+      "citation_label": "JA56"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja57",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 3,
+      "citation_label": "JA57"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja58",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 4,
+      "citation_label": "JA58"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja59",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 5,
+      "citation_label": "JA59"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja60",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 6,
+      "citation_label": "JA60"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja61",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 7,
+      "citation_label": "JA61"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja62",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 8,
+      "citation_label": "JA62"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja63",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 9,
+      "citation_label": "JA63"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja64",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 10,
+      "citation_label": "JA64"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja65",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 11,
+      "citation_label": "JA65"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja66",
+      "entry_id": "ca4m4.cinder.record.entry.l08",
+      "page_number": 12,
+      "citation_label": "JA66"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja67",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 1,
+      "citation_label": "JA67"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja68",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 2,
+      "citation_label": "JA68"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja69",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 3,
+      "citation_label": "JA69"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja70",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 4,
+      "citation_label": "JA70"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja71",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 5,
+      "citation_label": "JA71"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja72",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 6,
+      "citation_label": "JA72"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja73",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 7,
+      "citation_label": "JA73"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja74",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 8,
+      "citation_label": "JA74"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja75",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 9,
+      "citation_label": "JA75"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja76",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 10,
+      "citation_label": "JA76"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja77",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 11,
+      "citation_label": "JA77"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja78",
+      "entry_id": "ca4m4.cinder.record.entry.l09",
+      "page_number": 12,
+      "citation_label": "JA78"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja79",
+      "entry_id": "ca4m4.cinder.record.entry.l10",
+      "page_number": 1,
+      "citation_label": "JA79"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja80",
+      "entry_id": "ca4m4.cinder.record.entry.l10",
+      "page_number": 2,
+      "citation_label": "JA80"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja81",
+      "entry_id": "ca4m4.cinder.record.entry.l10",
+      "page_number": 3,
+      "citation_label": "JA81"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja82",
+      "entry_id": "ca4m4.cinder.record.entry.l10",
+      "page_number": 4,
+      "citation_label": "JA82"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja83",
+      "entry_id": "ca4m4.cinder.record.entry.l10",
+      "page_number": 5,
+      "citation_label": "JA83"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja84",
+      "entry_id": "ca4m4.cinder.record.entry.l10",
+      "page_number": 6,
+      "citation_label": "JA84"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja85",
+      "entry_id": "ca4m4.cinder.record.entry.l10",
+      "page_number": 7,
+      "citation_label": "JA85"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja86",
+      "entry_id": "ca4m4.cinder.record.entry.l10",
+      "page_number": 8,
+      "citation_label": "JA86"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja87",
+      "entry_id": "ca4m4.cinder.record.entry.l11",
+      "page_number": 1,
+      "citation_label": "JA87"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja88",
+      "entry_id": "ca4m4.cinder.record.entry.l11",
+      "page_number": 2,
+      "citation_label": "JA88"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja89",
+      "entry_id": "ca4m4.cinder.record.entry.l11",
+      "page_number": 3,
+      "citation_label": "JA89"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja90",
+      "entry_id": "ca4m4.cinder.record.entry.l11",
+      "page_number": 4,
+      "citation_label": "JA90"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja91",
+      "entry_id": "ca4m4.cinder.record.entry.l11",
+      "page_number": 5,
+      "citation_label": "JA91"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja92",
+      "entry_id": "ca4m4.cinder.record.entry.l11",
+      "page_number": 6,
+      "citation_label": "JA92"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja93",
+      "entry_id": "ca4m4.cinder.record.entry.l11",
+      "page_number": 7,
+      "citation_label": "JA93"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja94",
+      "entry_id": "ca4m4.cinder.record.entry.l11",
+      "page_number": 8,
+      "citation_label": "JA94"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja95",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 1,
+      "citation_label": "JA95"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja96",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 2,
+      "citation_label": "JA96"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja97",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 3,
+      "citation_label": "JA97"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja98",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 4,
+      "citation_label": "JA98"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja99",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 5,
+      "citation_label": "JA99"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja100",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 6,
+      "citation_label": "JA100"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja101",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 7,
+      "citation_label": "JA101"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja102",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 8,
+      "citation_label": "JA102"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja103",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 9,
+      "citation_label": "JA103"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja104",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 10,
+      "citation_label": "JA104"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja105",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 11,
+      "citation_label": "JA105"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja106",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 12,
+      "citation_label": "JA106"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja107",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 13,
+      "citation_label": "JA107"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja108",
+      "entry_id": "ca4m4.cinder.record.entry.l12",
+      "page_number": 14,
+      "citation_label": "JA108"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja109",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 1,
+      "citation_label": "JA109"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja110",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 2,
+      "citation_label": "JA110"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja111",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 3,
+      "citation_label": "JA111"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja112",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 4,
+      "citation_label": "JA112"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja113",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 5,
+      "citation_label": "JA113"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja114",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 6,
+      "citation_label": "JA114"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja115",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 7,
+      "citation_label": "JA115"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja116",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 8,
+      "citation_label": "JA116"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja117",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 9,
+      "citation_label": "JA117"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja118",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 10,
+      "citation_label": "JA118"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja119",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 11,
+      "citation_label": "JA119"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja120",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 12,
+      "citation_label": "JA120"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja121",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 13,
+      "citation_label": "JA121"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja122",
+      "entry_id": "ca4m4.cinder.record.entry.l13",
+      "page_number": 14,
+      "citation_label": "JA122"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja123",
+      "entry_id": "ca4m4.cinder.record.entry.l14",
+      "page_number": 1,
+      "citation_label": "JA123"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja124",
+      "entry_id": "ca4m4.cinder.record.entry.l14",
+      "page_number": 2,
+      "citation_label": "JA124"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja125",
+      "entry_id": "ca4m4.cinder.record.entry.l14",
+      "page_number": 3,
+      "citation_label": "JA125"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja126",
+      "entry_id": "ca4m4.cinder.record.entry.l14",
+      "page_number": 4,
+      "citation_label": "JA126"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja127",
+      "entry_id": "ca4m4.cinder.record.entry.l14",
+      "page_number": 5,
+      "citation_label": "JA127"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja128",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 1,
+      "citation_label": "JA128"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja129",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 2,
+      "citation_label": "JA129"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja130",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 3,
+      "citation_label": "JA130"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja131",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 4,
+      "citation_label": "JA131"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja132",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 5,
+      "citation_label": "JA132"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja133",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 6,
+      "citation_label": "JA133"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja134",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 7,
+      "citation_label": "JA134"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja135",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 8,
+      "citation_label": "JA135"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja136",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 9,
+      "citation_label": "JA136"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja137",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 10,
+      "citation_label": "JA137"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja138",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 11,
+      "citation_label": "JA138"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja139",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 12,
+      "citation_label": "JA139"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja140",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 13,
+      "citation_label": "JA140"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja141",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 14,
+      "citation_label": "JA141"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja142",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 15,
+      "citation_label": "JA142"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja143",
+      "entry_id": "ca4m4.cinder.record.entry.l15",
+      "page_number": 16,
+      "citation_label": "JA143"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja144",
+      "entry_id": "ca4m4.cinder.record.entry.l16",
+      "page_number": 1,
+      "citation_label": "JA144"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja145",
+      "entry_id": "ca4m4.cinder.record.entry.l16",
+      "page_number": 2,
+      "citation_label": "JA145"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja146",
+      "entry_id": "ca4m4.cinder.record.entry.l16",
+      "page_number": 3,
+      "citation_label": "JA146"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja147",
+      "entry_id": "ca4m4.cinder.record.entry.l16",
+      "page_number": 4,
+      "citation_label": "JA147"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja148",
+      "entry_id": "ca4m4.cinder.record.entry.l16",
+      "page_number": 5,
+      "citation_label": "JA148"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja149",
+      "entry_id": "ca4m4.cinder.record.entry.l16",
+      "page_number": 6,
+      "citation_label": "JA149"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja150",
+      "entry_id": "ca4m4.cinder.record.entry.l16",
+      "page_number": 7,
+      "citation_label": "JA150"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja151",
+      "entry_id": "ca4m4.cinder.record.entry.l16",
+      "page_number": 8,
+      "citation_label": "JA151"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja152",
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "page_number": 1,
+      "citation_label": "JA152"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja153",
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "page_number": 2,
+      "citation_label": "JA153"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja154",
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "page_number": 3,
+      "citation_label": "JA154"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja155",
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "page_number": 4,
+      "citation_label": "JA155"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja156",
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "page_number": 5,
+      "citation_label": "JA156"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja157",
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "page_number": 6,
+      "citation_label": "JA157"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja158",
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "page_number": 7,
+      "citation_label": "JA158"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja159",
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "page_number": 8,
+      "citation_label": "JA159"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja160",
+      "entry_id": "ca4m4.cinder.record.entry.l17",
+      "page_number": 9,
+      "citation_label": "JA160"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja161",
+      "entry_id": "ca4m4.cinder.record.entry.l18",
+      "page_number": 1,
+      "citation_label": "JA161"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja162",
+      "entry_id": "ca4m4.cinder.record.entry.l18",
+      "page_number": 2,
+      "citation_label": "JA162"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja163",
+      "entry_id": "ca4m4.cinder.record.entry.l18",
+      "page_number": 3,
+      "citation_label": "JA163"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja164",
+      "entry_id": "ca4m4.cinder.record.entry.l18",
+      "page_number": 4,
+      "citation_label": "JA164"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja165",
+      "entry_id": "ca4m4.cinder.record.entry.l18",
+      "page_number": 5,
+      "citation_label": "JA165"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja166",
+      "entry_id": "ca4m4.cinder.record.entry.l18",
+      "page_number": 6,
+      "citation_label": "JA166"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja167",
+      "entry_id": "ca4m4.cinder.record.entry.l18",
+      "page_number": 7,
+      "citation_label": "JA167"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja168",
+      "entry_id": "ca4m4.cinder.record.entry.l19",
+      "page_number": 1,
+      "citation_label": "JA168"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja169",
+      "entry_id": "ca4m4.cinder.record.entry.l19",
+      "page_number": 2,
+      "citation_label": "JA169"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja170",
+      "entry_id": "ca4m4.cinder.record.entry.l19",
+      "page_number": 3,
+      "citation_label": "JA170"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja171",
+      "entry_id": "ca4m4.cinder.record.entry.l19",
+      "page_number": 4,
+      "citation_label": "JA171"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja172",
+      "entry_id": "ca4m4.cinder.record.entry.l19",
+      "page_number": 5,
+      "citation_label": "JA172"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja173",
+      "entry_id": "ca4m4.cinder.record.entry.l19",
+      "page_number": 6,
+      "citation_label": "JA173"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja174",
+      "entry_id": "ca4m4.cinder.record.entry.l20",
+      "page_number": 1,
+      "citation_label": "JA174"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja175",
+      "entry_id": "ca4m4.cinder.record.entry.l20",
+      "page_number": 2,
+      "citation_label": "JA175"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja176",
+      "entry_id": "ca4m4.cinder.record.entry.l20",
+      "page_number": 3,
+      "citation_label": "JA176"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja177",
+      "entry_id": "ca4m4.cinder.record.entry.l20",
+      "page_number": 4,
+      "citation_label": "JA177"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja178",
+      "entry_id": "ca4m4.cinder.record.entry.l20",
+      "page_number": 5,
+      "citation_label": "JA178"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja179",
+      "entry_id": "ca4m4.cinder.record.entry.l20",
+      "page_number": 6,
+      "citation_label": "JA179"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja180",
+      "entry_id": "ca4m4.cinder.record.entry.l20",
+      "page_number": 7,
+      "citation_label": "JA180"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja181",
+      "entry_id": "ca4m4.cinder.record.entry.l21",
+      "page_number": 1,
+      "citation_label": "JA181"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja182",
+      "entry_id": "ca4m4.cinder.record.entry.l21",
+      "page_number": 2,
+      "citation_label": "JA182"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja183",
+      "entry_id": "ca4m4.cinder.record.entry.l21",
+      "page_number": 3,
+      "citation_label": "JA183"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja184",
+      "entry_id": "ca4m4.cinder.record.entry.l21",
+      "page_number": 4,
+      "citation_label": "JA184"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja185",
+      "entry_id": "ca4m4.cinder.record.entry.l21",
+      "page_number": 5,
+      "citation_label": "JA185"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja186",
+      "entry_id": "ca4m4.cinder.record.entry.l22",
+      "page_number": 1,
+      "citation_label": "JA186"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja187",
+      "entry_id": "ca4m4.cinder.record.entry.l22",
+      "page_number": 2,
+      "citation_label": "JA187"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja188",
+      "entry_id": "ca4m4.cinder.record.entry.l22",
+      "page_number": 3,
+      "citation_label": "JA188"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja189",
+      "entry_id": "ca4m4.cinder.record.entry.l22",
+      "page_number": 4,
+      "citation_label": "JA189"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja190",
+      "entry_id": "ca4m4.cinder.record.entry.l23",
+      "page_number": 1,
+      "citation_label": "JA190"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja191",
+      "entry_id": "ca4m4.cinder.record.entry.l23",
+      "page_number": 2,
+      "citation_label": "JA191"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja192",
+      "entry_id": "ca4m4.cinder.record.entry.l23",
+      "page_number": 3,
+      "citation_label": "JA192"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja193",
+      "entry_id": "ca4m4.cinder.record.entry.l23",
+      "page_number": 4,
+      "citation_label": "JA193"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja194",
+      "entry_id": "ca4m4.cinder.record.entry.l23",
+      "page_number": 5,
+      "citation_label": "JA194"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja195",
+      "entry_id": "ca4m4.cinder.record.entry.l23",
+      "page_number": 6,
+      "citation_label": "JA195"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.ja196",
+      "entry_id": "ca4m4.cinder.record.entry.l23",
+      "page_number": 7,
+      "citation_label": "JA196"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa1",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 1,
+      "citation_label": "PA1"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa2",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 2,
+      "citation_label": "PA2"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa3",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 3,
+      "citation_label": "PA3"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa4",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 4,
+      "citation_label": "PA4"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa5",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 5,
+      "citation_label": "PA5"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa6",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 6,
+      "citation_label": "PA6"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa7",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 7,
+      "citation_label": "PA7"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa8",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 8,
+      "citation_label": "PA8"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa9",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 9,
+      "citation_label": "PA9"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa10",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 10,
+      "citation_label": "PA10"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa11",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 11,
+      "citation_label": "PA11"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa12",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 12,
+      "citation_label": "PA12"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa13",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 13,
+      "citation_label": "PA13"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa14",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 14,
+      "citation_label": "PA14"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa15",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 15,
+      "citation_label": "PA15"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa16",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 16,
+      "citation_label": "PA16"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa17",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 17,
+      "citation_label": "PA17"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa18",
+      "entry_id": "ca4m4.cinder.record.entry.a01",
+      "page_number": 18,
+      "citation_label": "PA18"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa19",
+      "entry_id": "ca4m4.cinder.record.entry.a02",
+      "page_number": 1,
+      "citation_label": "PA19"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa20",
+      "entry_id": "ca4m4.cinder.record.entry.a02",
+      "page_number": 2,
+      "citation_label": "PA20"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa21",
+      "entry_id": "ca4m4.cinder.record.entry.a02",
+      "page_number": 3,
+      "citation_label": "PA21"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa22",
+      "entry_id": "ca4m4.cinder.record.entry.a02",
+      "page_number": 4,
+      "citation_label": "PA22"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa23",
+      "entry_id": "ca4m4.cinder.record.entry.a02",
+      "page_number": 5,
+      "citation_label": "PA23"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa24",
+      "entry_id": "ca4m4.cinder.record.entry.a03",
+      "page_number": 1,
+      "citation_label": "PA24"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa25",
+      "entry_id": "ca4m4.cinder.record.entry.a03",
+      "page_number": 2,
+      "citation_label": "PA25"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa26",
+      "entry_id": "ca4m4.cinder.record.entry.a03",
+      "page_number": 3,
+      "citation_label": "PA26"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa27",
+      "entry_id": "ca4m4.cinder.record.entry.a03",
+      "page_number": 4,
+      "citation_label": "PA27"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa28",
+      "entry_id": "ca4m4.cinder.record.entry.a04",
+      "page_number": 1,
+      "citation_label": "PA28"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa29",
+      "entry_id": "ca4m4.cinder.record.entry.a04",
+      "page_number": 2,
+      "citation_label": "PA29"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa30",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 1,
+      "citation_label": "PA30"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa31",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 2,
+      "citation_label": "PA31"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa32",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 3,
+      "citation_label": "PA32"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa33",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 4,
+      "citation_label": "PA33"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa34",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 5,
+      "citation_label": "PA34"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa35",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 6,
+      "citation_label": "PA35"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa36",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 7,
+      "citation_label": "PA36"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa37",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 8,
+      "citation_label": "PA37"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa38",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 9,
+      "citation_label": "PA38"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa39",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 10,
+      "citation_label": "PA39"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa40",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 11,
+      "citation_label": "PA40"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa41",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 12,
+      "citation_label": "PA41"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa42",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 13,
+      "citation_label": "PA42"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa43",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 14,
+      "citation_label": "PA43"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa44",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 15,
+      "citation_label": "PA44"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa45",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 16,
+      "citation_label": "PA45"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa46",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 17,
+      "citation_label": "PA46"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa47",
+      "entry_id": "ca4m4.cinder.record.entry.a05",
+      "page_number": 18,
+      "citation_label": "PA47"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa48",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 1,
+      "citation_label": "PA48"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa49",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 2,
+      "citation_label": "PA49"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa50",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 3,
+      "citation_label": "PA50"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa51",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 4,
+      "citation_label": "PA51"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa52",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 5,
+      "citation_label": "PA52"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa53",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 6,
+      "citation_label": "PA53"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa54",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 7,
+      "citation_label": "PA54"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa55",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 8,
+      "citation_label": "PA55"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa56",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 9,
+      "citation_label": "PA56"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa57",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 10,
+      "citation_label": "PA57"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa58",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 11,
+      "citation_label": "PA58"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa59",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 12,
+      "citation_label": "PA59"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa60",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 13,
+      "citation_label": "PA60"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa61",
+      "entry_id": "ca4m4.cinder.record.entry.a06",
+      "page_number": 14,
+      "citation_label": "PA61"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa62",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 1,
+      "citation_label": "PA62"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa63",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 2,
+      "citation_label": "PA63"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa64",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 3,
+      "citation_label": "PA64"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa65",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 4,
+      "citation_label": "PA65"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa66",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 5,
+      "citation_label": "PA66"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa67",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 6,
+      "citation_label": "PA67"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa68",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 7,
+      "citation_label": "PA68"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa69",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 8,
+      "citation_label": "PA69"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa70",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 9,
+      "citation_label": "PA70"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa71",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 10,
+      "citation_label": "PA71"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa72",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 11,
+      "citation_label": "PA72"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa73",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 12,
+      "citation_label": "PA73"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa74",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 13,
+      "citation_label": "PA74"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa75",
+      "entry_id": "ca4m4.cinder.record.entry.a07",
+      "page_number": 14,
+      "citation_label": "PA75"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa76",
+      "entry_id": "ca4m4.cinder.record.entry.a08",
+      "page_number": 1,
+      "citation_label": "PA76"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa77",
+      "entry_id": "ca4m4.cinder.record.entry.a08",
+      "page_number": 2,
+      "citation_label": "PA77"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa78",
+      "entry_id": "ca4m4.cinder.record.entry.a08",
+      "page_number": 3,
+      "citation_label": "PA78"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa79",
+      "entry_id": "ca4m4.cinder.record.entry.a08",
+      "page_number": 4,
+      "citation_label": "PA79"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa80",
+      "entry_id": "ca4m4.cinder.record.entry.a08",
+      "page_number": 5,
+      "citation_label": "PA80"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa81",
+      "entry_id": "ca4m4.cinder.record.entry.a08",
+      "page_number": 6,
+      "citation_label": "PA81"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa82",
+      "entry_id": "ca4m4.cinder.record.entry.a08",
+      "page_number": 7,
+      "citation_label": "PA82"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa83",
+      "entry_id": "ca4m4.cinder.record.entry.a08",
+      "page_number": 8,
+      "citation_label": "PA83"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa84",
+      "entry_id": "ca4m4.cinder.record.entry.a09",
+      "page_number": 1,
+      "citation_label": "PA84"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa85",
+      "entry_id": "ca4m4.cinder.record.entry.a09",
+      "page_number": 2,
+      "citation_label": "PA85"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa86",
+      "entry_id": "ca4m4.cinder.record.entry.a09",
+      "page_number": 3,
+      "citation_label": "PA86"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa87",
+      "entry_id": "ca4m4.cinder.record.entry.a09",
+      "page_number": 4,
+      "citation_label": "PA87"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa88",
+      "entry_id": "ca4m4.cinder.record.entry.a09",
+      "page_number": 5,
+      "citation_label": "PA88"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa89",
+      "entry_id": "ca4m4.cinder.record.entry.a09",
+      "page_number": 6,
+      "citation_label": "PA89"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa90",
+      "entry_id": "ca4m4.cinder.record.entry.a10",
+      "page_number": 1,
+      "citation_label": "PA90"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa91",
+      "entry_id": "ca4m4.cinder.record.entry.a10",
+      "page_number": 2,
+      "citation_label": "PA91"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa92",
+      "entry_id": "ca4m4.cinder.record.entry.a10",
+      "page_number": 3,
+      "citation_label": "PA92"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa93",
+      "entry_id": "ca4m4.cinder.record.entry.a10",
+      "page_number": 4,
+      "citation_label": "PA93"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa94",
+      "entry_id": "ca4m4.cinder.record.entry.a11",
+      "page_number": 1,
+      "citation_label": "PA94"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa95",
+      "entry_id": "ca4m4.cinder.record.entry.a11",
+      "page_number": 2,
+      "citation_label": "PA95"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa96",
+      "entry_id": "ca4m4.cinder.record.entry.a11",
+      "page_number": 3,
+      "citation_label": "PA96"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa97",
+      "entry_id": "ca4m4.cinder.record.entry.a11",
+      "page_number": 4,
+      "citation_label": "PA97"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa98",
+      "entry_id": "ca4m4.cinder.record.entry.a12",
+      "page_number": 1,
+      "citation_label": "PA98"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa99",
+      "entry_id": "ca4m4.cinder.record.entry.a12",
+      "page_number": 2,
+      "citation_label": "PA99"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa100",
+      "entry_id": "ca4m4.cinder.record.entry.a12",
+      "page_number": 3,
+      "citation_label": "PA100"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa101",
+      "entry_id": "ca4m4.cinder.record.entry.a12",
+      "page_number": 4,
+      "citation_label": "PA101"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa102",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 1,
+      "citation_label": "PA102"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa103",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 2,
+      "citation_label": "PA103"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa104",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 3,
+      "citation_label": "PA104"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa105",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 4,
+      "citation_label": "PA105"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa106",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 5,
+      "citation_label": "PA106"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa107",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 6,
+      "citation_label": "PA107"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa108",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 7,
+      "citation_label": "PA108"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa109",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 8,
+      "citation_label": "PA109"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa110",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 9,
+      "citation_label": "PA110"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa111",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 10,
+      "citation_label": "PA111"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa112",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 11,
+      "citation_label": "PA112"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa113",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 12,
+      "citation_label": "PA113"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa114",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 13,
+      "citation_label": "PA114"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa115",
+      "entry_id": "ca4m4.cinder.record.entry.a13",
+      "page_number": 14,
+      "citation_label": "PA115"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa116",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 1,
+      "citation_label": "PA116"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa117",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 2,
+      "citation_label": "PA117"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa118",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 3,
+      "citation_label": "PA118"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa119",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 4,
+      "citation_label": "PA119"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa120",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 5,
+      "citation_label": "PA120"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa121",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 6,
+      "citation_label": "PA121"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa122",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 7,
+      "citation_label": "PA122"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa123",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 8,
+      "citation_label": "PA123"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa124",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 9,
+      "citation_label": "PA124"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa125",
+      "entry_id": "ca4m4.cinder.record.entry.a14",
+      "page_number": 10,
+      "citation_label": "PA125"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa126",
+      "entry_id": "ca4m4.cinder.record.entry.a15",
+      "page_number": 1,
+      "citation_label": "PA126"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa127",
+      "entry_id": "ca4m4.cinder.record.entry.a15",
+      "page_number": 2,
+      "citation_label": "PA127"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa128",
+      "entry_id": "ca4m4.cinder.record.entry.a15",
+      "page_number": 3,
+      "citation_label": "PA128"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa129",
+      "entry_id": "ca4m4.cinder.record.entry.a15",
+      "page_number": 4,
+      "citation_label": "PA129"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa130",
+      "entry_id": "ca4m4.cinder.record.entry.a16",
+      "page_number": 1,
+      "citation_label": "PA130"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa131",
+      "entry_id": "ca4m4.cinder.record.entry.a16",
+      "page_number": 2,
+      "citation_label": "PA131"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa132",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 1,
+      "citation_label": "PA132"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa133",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 2,
+      "citation_label": "PA133"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa134",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 3,
+      "citation_label": "PA134"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa135",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 4,
+      "citation_label": "PA135"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa136",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 5,
+      "citation_label": "PA136"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa137",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 6,
+      "citation_label": "PA137"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa138",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 7,
+      "citation_label": "PA138"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa139",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 8,
+      "citation_label": "PA139"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa140",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 9,
+      "citation_label": "PA140"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa141",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 10,
+      "citation_label": "PA141"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa142",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 11,
+      "citation_label": "PA142"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa143",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 12,
+      "citation_label": "PA143"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa144",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 13,
+      "citation_label": "PA144"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa145",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 14,
+      "citation_label": "PA145"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa146",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 15,
+      "citation_label": "PA146"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa147",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 16,
+      "citation_label": "PA147"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa148",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 17,
+      "citation_label": "PA148"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa149",
+      "entry_id": "ca4m4.cinder.record.entry.a17",
+      "page_number": 18,
+      "citation_label": "PA149"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa150",
+      "entry_id": "ca4m4.cinder.record.entry.a18",
+      "page_number": 1,
+      "citation_label": "PA150"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa151",
+      "entry_id": "ca4m4.cinder.record.entry.a18",
+      "page_number": 2,
+      "citation_label": "PA151"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa152",
+      "entry_id": "ca4m4.cinder.record.entry.a19",
+      "page_number": 1,
+      "citation_label": "PA152"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa153",
+      "entry_id": "ca4m4.cinder.record.entry.a19",
+      "page_number": 2,
+      "citation_label": "PA153"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa154",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 1,
+      "citation_label": "PA154"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa155",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 2,
+      "citation_label": "PA155"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa156",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 3,
+      "citation_label": "PA156"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa157",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 4,
+      "citation_label": "PA157"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa158",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 5,
+      "citation_label": "PA158"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa159",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 6,
+      "citation_label": "PA159"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa160",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 7,
+      "citation_label": "PA160"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa161",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 8,
+      "citation_label": "PA161"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa162",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 9,
+      "citation_label": "PA162"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa163",
+      "entry_id": "ca4m4.cinder.record.entry.b01",
+      "page_number": 10,
+      "citation_label": "PA163"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa164",
+      "entry_id": "ca4m4.cinder.record.entry.b02",
+      "page_number": 1,
+      "citation_label": "PA164"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa165",
+      "entry_id": "ca4m4.cinder.record.entry.b02",
+      "page_number": 2,
+      "citation_label": "PA165"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa166",
+      "entry_id": "ca4m4.cinder.record.entry.b02",
+      "page_number": 3,
+      "citation_label": "PA166"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa167",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 1,
+      "citation_label": "PA167"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa168",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 2,
+      "citation_label": "PA168"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa169",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 3,
+      "citation_label": "PA169"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa170",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 4,
+      "citation_label": "PA170"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa171",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 5,
+      "citation_label": "PA171"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa172",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 6,
+      "citation_label": "PA172"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa173",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 7,
+      "citation_label": "PA173"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa174",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 8,
+      "citation_label": "PA174"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa175",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 9,
+      "citation_label": "PA175"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa176",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 10,
+      "citation_label": "PA176"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa177",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 11,
+      "citation_label": "PA177"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa178",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 12,
+      "citation_label": "PA178"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa179",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 13,
+      "citation_label": "PA179"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa180",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 14,
+      "citation_label": "PA180"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa181",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 15,
+      "citation_label": "PA181"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa182",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 16,
+      "citation_label": "PA182"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa183",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 17,
+      "citation_label": "PA183"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa184",
+      "entry_id": "ca4m4.cinder.record.entry.b03",
+      "page_number": 18,
+      "citation_label": "PA184"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa185",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 1,
+      "citation_label": "PA185"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa186",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 2,
+      "citation_label": "PA186"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa187",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 3,
+      "citation_label": "PA187"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa188",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 4,
+      "citation_label": "PA188"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa189",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 5,
+      "citation_label": "PA189"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa190",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 6,
+      "citation_label": "PA190"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa191",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 7,
+      "citation_label": "PA191"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa192",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 8,
+      "citation_label": "PA192"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa193",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 9,
+      "citation_label": "PA193"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa194",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 10,
+      "citation_label": "PA194"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa195",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 11,
+      "citation_label": "PA195"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa196",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 12,
+      "citation_label": "PA196"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa197",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 13,
+      "citation_label": "PA197"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa198",
+      "entry_id": "ca4m4.cinder.record.entry.b04",
+      "page_number": 14,
+      "citation_label": "PA198"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa199",
+      "entry_id": "ca4m4.cinder.record.entry.b05",
+      "page_number": 1,
+      "citation_label": "PA199"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa200",
+      "entry_id": "ca4m4.cinder.record.entry.b05",
+      "page_number": 2,
+      "citation_label": "PA200"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa201",
+      "entry_id": "ca4m4.cinder.record.entry.b05",
+      "page_number": 3,
+      "citation_label": "PA201"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa202",
+      "entry_id": "ca4m4.cinder.record.entry.b05",
+      "page_number": 4,
+      "citation_label": "PA202"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa203",
+      "entry_id": "ca4m4.cinder.record.entry.b05",
+      "page_number": 5,
+      "citation_label": "PA203"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa204",
+      "entry_id": "ca4m4.cinder.record.entry.b05",
+      "page_number": 6,
+      "citation_label": "PA204"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa205",
+      "entry_id": "ca4m4.cinder.record.entry.b06",
+      "page_number": 1,
+      "citation_label": "PA205"
+    },
+    {
+      "anchor_id": "ca4m4.cinder.anchor.pa206",
+      "entry_id": "ca4m4.cinder.record.entry.b06",
+      "page_number": 2,
+      "citation_label": "PA206"
+    }
+  ]
+}
