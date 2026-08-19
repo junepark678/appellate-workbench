@@ -1,0 +1,451 @@
+{
+    "blobs": [
+        {
+            "byte_size": 61350,
+            "media_type": "application/pdf",
+            "path": "objects/a01-public-writ-petition.pdf",
+            "sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+            "byte_size": 33026,
+            "media_type": "application/pdf",
+            "path": "objects/a02-motion-to-seal.pdf",
+            "sha256": "5dd42325ca598740b44adb5ddd7af5f67c8f761680bdf65b7e2117d3cec008a3"
+        },
+        {
+            "byte_size": 31470,
+            "media_type": "application/pdf",
+            "path": "objects/a03-confidentiality-certificate.pdf",
+            "sha256": "be1b224920d896e42b807e9c0e1d0f9039c73eaec24dcfb58870bfbd9a4e3fc7"
+        },
+        {
+            "byte_size": 26797,
+            "media_type": "application/pdf",
+            "path": "objects/a04-highly-sensitive-document-certificate.pdf",
+            "sha256": "eb69bae6b9ae763555b916ed7e127b27453066738ed835369b59c930c07f128e"
+        },
+        {
+            "byte_size": 60035,
+            "media_type": "application/pdf",
+            "path": "objects/a05-sealed-writ-petition.pdf",
+            "sha256": "fcff52593827f9a66d14030d9ce747b358386d409e50a567dfa9b82ab668e45c"
+        },
+        {
+            "byte_size": 50788,
+            "media_type": "application/pdf",
+            "path": "objects/a06-public-essential-record-appendix.pdf",
+            "sha256": "a6aee9f54bcec9633ebe50fe70a4d1106c6bea719aa991c9051bfdad19745771"
+        },
+        {
+            "byte_size": 50818,
+            "media_type": "application/pdf",
+            "path": "objects/a07-sealed-essential-record-appendix.pdf",
+            "sha256": "39d412518c57bbd6b570d10f66b17aec1f78cd8756c3954194ca6fa0c5744d78"
+        },
+        {
+            "byte_size": 38737,
+            "media_type": "application/pdf",
+            "path": "objects/a08-emergency-stay-motion.pdf",
+            "sha256": "9096f1c6216677ec8d9efb780a8ca7505ac171befaa733f69ae512ee7807d20a"
+        },
+        {
+            "byte_size": 34875,
+            "media_type": "application/pdf",
+            "path": "objects/a09-emergency-stay-response.pdf",
+            "sha256": "4635f5dcff3ee72ee764b0ce4ed568b31b4fb87de5d18a0770e66603e6d14c80"
+        },
+        {
+            "byte_size": 30685,
+            "media_type": "application/pdf",
+            "path": "objects/a10-interim-stay-order.pdf",
+            "sha256": "94eb398c281008c6671f748e19c4d8678bb9be562b5d660091e17cbf77c5ec78"
+        },
+        {
+            "byte_size": 29739,
+            "media_type": "application/pdf",
+            "path": "objects/a11-appearances-disclosures.pdf",
+            "sha256": "e2c17a3a469cf994323e707a6814626a4e754f25aef6d2701e04b0832f81995a"
+        },
+        {
+            "byte_size": 30911,
+            "media_type": "application/pdf",
+            "path": "objects/a12-answer-invitation-order.pdf",
+            "sha256": "60be0412a18a58623c982a7fa9db889c8934086819bb96049e51ef4f26478fdd"
+        },
+        {
+            "byte_size": 51028,
+            "media_type": "application/pdf",
+            "path": "objects/a13-answer-to-petition.pdf",
+            "sha256": "cf0cc35b0930bb2adc5d36632c1fd977c410c59c2cb9bc18a90d6add3764fa1e"
+        },
+        {
+            "byte_size": 42870,
+            "media_type": "application/pdf",
+            "path": "objects/a14-reply-in-support.pdf",
+            "sha256": "bfd7f2f46c5d503bbfb21f971ffa931061abb5de2636bf1cfb0c06d20aa6dceb"
+        },
+        {
+            "byte_size": 31199,
+            "media_type": "application/pdf",
+            "path": "objects/a15-expedited-argument-order.pdf",
+            "sha256": "4aad3248240a367f69eb77e85603d212b3b25fcc165a714fdbc1880cc80f1877"
+        },
+        {
+            "byte_size": 26952,
+            "media_type": "application/pdf",
+            "path": "objects/a16-oral-argument-minute.pdf",
+            "sha256": "56b06d66c5177b474e1c1d28563d38cacb7a993e46bf4d8adac5e7c5f72f7a23"
+        },
+        {
+            "byte_size": 59065,
+            "media_type": "application/pdf",
+            "path": "objects/a17-published-opinion.pdf",
+            "sha256": "91462891c1c7d883c883fc9c4a329ca8621f59c43c908462f8a8c24d30a36439"
+        },
+        {
+            "byte_size": 26221,
+            "media_type": "application/pdf",
+            "path": "objects/a18-judgment.pdf",
+            "sha256": "e94785c120ebc50d6c6171dfa3d5ad4ee0a27ae756e02111c52363be0263abbb"
+        },
+        {
+            "byte_size": 27197,
+            "media_type": "application/pdf",
+            "path": "objects/a19-final-disposition-transmittal.pdf",
+            "sha256": "4377861990661e0dce74891056987c1e4fd3a592e971c3c6f5208db3b78ec144"
+        },
+        {
+            "byte_size": 42375,
+            "media_type": "application/pdf",
+            "path": "objects/b01-defective-petition.pdf",
+            "sha256": "18e0a9ecaf573a9f24e07d22716d8103010846ea8fe16a191e84ce8414ea93e9"
+        },
+        {
+            "byte_size": 28642,
+            "media_type": "application/pdf",
+            "path": "objects/b02-deficiency-notice.pdf",
+            "sha256": "83dac37fbca804e7c452be9e50148a04d46db7fc062264c53c2e72e761f934c3"
+        },
+        {
+            "byte_size": 58008,
+            "media_type": "application/pdf",
+            "path": "objects/b03-corrected-petition.pdf",
+            "sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+            "byte_size": 50501,
+            "media_type": "application/pdf",
+            "path": "objects/b04-conforming-incomplete-petition.pdf",
+            "sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+            "byte_size": 35315,
+            "media_type": "application/pdf",
+            "path": "objects/b05-summary-denial-order-judgment.pdf",
+            "sha256": "4f93af454501e07ad4e7178575fe60d9006b77c55ac3bb36fc1544a002b06771"
+        },
+        {
+            "byte_size": 27352,
+            "media_type": "application/pdf",
+            "path": "objects/b06-summary-denial-transmittal.pdf",
+            "sha256": "5b7e0e52ff8bd1b57bc80fe7c4881671648f192696aaf7e1e9f801ea74c2a28a"
+        },
+        {
+            "byte_size": 38539,
+            "media_type": "application/pdf",
+            "path": "objects/l01-complaint.pdf",
+            "sha256": "589d6f3cd704e6cfc5e8a8ff8a5a56d70e3486e8a124295b78826c4b8e1f7672"
+        },
+        {
+            "byte_size": 34895,
+            "media_type": "application/pdf",
+            "path": "objects/l02-first-amended-complaint.pdf",
+            "sha256": "9983c9b7732c752d75355697e9b745ff6b6d4d7d6456225abd9ad0cbd16e7b52"
+        },
+        {
+            "byte_size": 37661,
+            "media_type": "application/pdf",
+            "path": "objects/l03-answer.pdf",
+            "sha256": "8bc3815db7672e258ea4167d448c83d1b1135d99b921c367d7db63d7f51e41a7"
+        },
+        {
+            "byte_size": 35492,
+            "media_type": "application/pdf",
+            "path": "objects/l04-rule26f-esi-privilege-protocol.pdf",
+            "sha256": "11cb750c31f292147f47070f2017e2608ac2ba4a53d48b3a269d91c603d9d816"
+        },
+        {
+            "byte_size": 30607,
+            "media_type": "application/pdf",
+            "path": "objects/l05-protective-rule502d-order.pdf",
+            "sha256": "d4b223a76ac531b14730b342564ce5352880f6c14184ba04c79d30c695766e21"
+        },
+        {
+            "byte_size": 32539,
+            "media_type": "application/pdf",
+            "path": "objects/l06-audit-intake-charter-chronology.pdf",
+            "sha256": "3878a729b8ac10338edb57e7e96154674154031778966890bfee0f820220f143"
+        },
+        {
+            "byte_size": 29089,
+            "media_type": "application/pdf",
+            "path": "objects/l07-compliance-response-letter.pdf",
+            "sha256": "0691b27423ea929928291188480ce31395f43d34f58cdd2a45f09124878acc1f"
+        },
+        {
+            "byte_size": 42584,
+            "media_type": "application/pdf",
+            "path": "objects/l08-public-investigation-memorandum.pdf",
+            "sha256": "5f3c9048a8afefe0ec670a8206b5d33af8a058212679b4490c56dbc903a0598b"
+        },
+        {
+            "byte_size": 43503,
+            "media_type": "application/pdf",
+            "path": "objects/l09-sealed-investigation-memorandum.pdf",
+            "sha256": "a8f1066a5591fd59faf7836d8e544716e73228d3f9679e3274f297d41feff8fa"
+        },
+        {
+            "byte_size": 35515,
+            "media_type": "application/pdf",
+            "path": "objects/l10-public-privilege-log.pdf",
+            "sha256": "4913387202f7ddca0642ea9765b53ed92608f6764b0baa0d0a2ae2861c397f5c"
+        },
+        {
+            "byte_size": 35218,
+            "media_type": "application/pdf",
+            "path": "objects/l11-sealed-privilege-log.pdf",
+            "sha256": "964ec01f32659d2e51bb8463718dd3490b7c557d0e7a40d62258f65e9eb0d5d2"
+        },
+        {
+            "byte_size": 46006,
+            "media_type": "application/pdf",
+            "path": "objects/l12-motion-to-compel.pdf",
+            "sha256": "9770c626e04537db41a241af161ac997795c956d2d245baee91045a775dee9fc"
+        },
+        {
+            "byte_size": 46526,
+            "media_type": "application/pdf",
+            "path": "objects/l13-opposition-and-motion-to-seal.pdf",
+            "sha256": "047e83dd6d5543659b16f07b9ae4b3dd36a5141e2bbf4b64000d13febe72e5fe"
+        },
+        {
+            "byte_size": 27738,
+            "media_type": "application/pdf",
+            "path": "objects/l14-confidentiality-service-certificate.pdf",
+            "sha256": "3e6063946c82baccc9b7b725650a3c3167dc89436f1b649b1bcf34d2b87b91b4"
+        },
+        {
+            "byte_size": 49688,
+            "media_type": "application/pdf",
+            "path": "objects/l15-discovery-hearing-transcript.pdf",
+            "sha256": "5d414db4b62a40e381a618063ee14cbcfe7c6a4c67cffdf728f804c7b3840320"
+        },
+        {
+            "byte_size": 34499,
+            "media_type": "application/pdf",
+            "path": "objects/l16-waiver-production-order.pdf",
+            "sha256": "69a2f1057295cce351bb812a728ffa69c7b34bc8f02ed9f4199e90a6ea981a8c"
+        },
+        {
+            "byte_size": 35843,
+            "media_type": "application/pdf",
+            "path": "objects/l17-reconsideration-and-stay-motion.pdf",
+            "sha256": "6d4d9aedaf81176cdc66fb97c2456817c3b1f72834a2b86744db6ffef730f176"
+        },
+        {
+            "byte_size": 30323,
+            "media_type": "application/pdf",
+            "path": "objects/l18-reconsideration-opposition.pdf",
+            "sha256": "a6da64514e79577636ec9b9684147f4f919bb0bf8faddf35c624ebde758fc2ed"
+        },
+        {
+            "byte_size": 29119,
+            "media_type": "application/pdf",
+            "path": "objects/l19-reconsideration-order.pdf",
+            "sha256": "6a63307732c4cb2c3447a4bab0f3786ee0db36e4fb62f3f895c5ee21fbd3fe60"
+        },
+        {
+            "byte_size": 31496,
+            "media_type": "application/pdf",
+            "path": "objects/l20-district-stay-motion.pdf",
+            "sha256": "b197f3f22cc2b7d2029f8efe3024681ca849bbd42b0ee3b17b5866c01c8a3500"
+        },
+        {
+            "byte_size": 26659,
+            "media_type": "application/pdf",
+            "path": "objects/l21-district-stay-opposition.pdf",
+            "sha256": "f45ef6926597b259f2c47955ccc5163c639e46c727d518abf7825b88c54e06fd"
+        },
+        {
+            "byte_size": 25064,
+            "media_type": "application/pdf",
+            "path": "objects/l22-district-stay-order.pdf",
+            "sha256": "d7662849b7c7d3abc90f3b1dc262beb11aa5cca12bf0d1d9339cb31000b63fcd"
+        },
+        {
+            "byte_size": 33275,
+            "media_type": "application/pdf",
+            "path": "objects/l23-district-docket-report.pdf",
+            "sha256": "57c6895f544fbdde2952d9ad4d312390e6028e3b92003c15ba2774ed74e3e275"
+        }
+    ],
+    "contents": [
+        {
+            "id": "ca4m4.case.cinderlake-writ",
+            "kind": "case",
+            "path": "resources/case.json",
+            "schema_version": 2,
+            "sha256": "739dea362f65d3ff5bf9d5a9c90fa6d14437f9b1a6141ea4b35550fac6802cc8"
+        },
+        {
+            "id": "ca4m4.cinder.argument.actual-record",
+            "kind": "argument_config",
+            "path": "resources/argument-actual.json",
+            "schema_version": 2,
+            "sha256": "b6ff4404d140de641bcae080e65b7d94a4486f263834fa43a2828303baec5f21"
+        },
+        {
+            "id": "ca4m4.cinder.argument.summary-denial-counterfactual",
+            "kind": "argument_config",
+            "path": "resources/argument-counterfactual.json",
+            "schema_version": 2,
+            "sha256": "a9771f82c8b9348c5ab0b8c0667b32895484cb50d06399fa11b84ca886ce77a4"
+        },
+        {
+            "id": "ca4m4.cinder.authorities.case-specific",
+            "kind": "authority_set",
+            "path": "resources/authority-set.json",
+            "schema_version": 2,
+            "sha256": "b10d37068ac791ebe0f2620357be18735dc20fc9e52f056da2d39482cd9262c6"
+        },
+        {
+            "id": "ca4m4.cinder.bench.three-judge",
+            "kind": "bench_configuration",
+            "path": "resources/bench-configuration.json",
+            "schema_version": 2,
+            "sha256": "7a1010f1d5d470f9f440662f7ad39ac8c147ac80f674278bf1ca8cd6c31e48a2"
+        },
+        {
+            "id": "ca4m4.cinder.procedure.privilege-mandamus",
+            "kind": "procedure_profile",
+            "path": "resources/procedure-profile.json",
+            "schema_version": 2,
+            "sha256": "94dd07f95c62ced0ec6b8efa314f32bbfea48af7bafc0e669dbb9c8dce9f9380"
+        },
+        {
+            "id": "ca4m4.cinder.record",
+            "kind": "record",
+            "path": "resources/record.json",
+            "schema_version": 2,
+            "sha256": "dfd9e3e48cb97aeb5846ce8173143bd69192ea35127e07f40079ae3ce70f32e6"
+        },
+        {
+            "id": "ca4m4.cinder.workflow.privilege-mandamus",
+            "kind": "workflow",
+            "path": "resources/workflow.json",
+            "schema_version": 2,
+            "sha256": "337c0eb859c43ec1296a7e4cb0e595cb20bbb061265dd6ce86f02a5524851d60"
+        },
+        {
+            "id": "ca4m4.cinder.review.authoring-2026-08-19",
+            "kind": "realism_review",
+            "path": "resources/realism-review.json",
+            "schema_version": 2,
+            "sha256": "2ab0d10cef5e67e5dde3684de994d8c838bc566af8925c3686841f14cc82fad7"
+        }
+    ],
+    "dependencies": [
+        {
+            "pack_id": "foundation.us-federal",
+            "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9",
+            "version": "2025.12.01"
+        },
+        {
+            "pack_id": "foundation.us-ca4",
+            "sha256": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262",
+            "version": "2026.03.23"
+        },
+        {
+            "pack_id": "foundation.us-ca4-fictional-bench",
+            "sha256": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d",
+            "version": "1.0.0"
+        }
+    ],
+    "pack_id": "us.ca4.m4.cinderlake-writ",
+    "required_capabilities": [
+        {
+            "id": "workbench.pack.argument-date-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.canonical-authority",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.declarative-resources",
+            "version": 2
+        },
+        {
+            "id": "workbench.pack.dependent-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.event-date-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.grounded-questions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.named-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-disposition-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-document-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-legal-time-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.realism-evidence",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-filing-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-role-subsets",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.sealed-record-twins",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.static-deficiency-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.structured-disposition",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-instance-preconditions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-preconditions",
+            "version": 1
+        }
+    ],
+    "schema_version": 2,
+    "version": "1.2.0"
+}
