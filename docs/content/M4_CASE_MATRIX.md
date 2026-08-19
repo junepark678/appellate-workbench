@@ -1,7 +1,8 @@
 # M4 Fourth Circuit case matrix
 
-Checked against official primary sources on **2026-08-11**. This is an authoring contract, not
-legal advice or independent legal review.
+Common and non-Cinder sources were checked against official primary sources on **2026-08-11**.
+Cinder Lake's root-owned authority set has a separately frozen local authoring cutoff of
+**2026-08-19**. This is an authoring contract, not legal advice or independent legal review.
 
 ## Frozen breadth and evidence floor
 
@@ -98,6 +99,16 @@ mandate and the 35-command day-15 counterfactual ordinary mandate. The final nin
 install, workflow replay, and separate sealed-record runtime audit now form an installable
 criminal gold candidate. Qualified independent review remains pending.
 
+The frozen Cinder Lake source/render/record/core slice likewise leaves the 283-PDF breadth total
+unchanged. Its district record is 23 PDFs/196 JA pages, satisfying the 23-PDF/180-page floor. Its
+complete record is 48 PDFs/402 anchors after adding 19 actual appellate PDFs/153 PA pages and two
+separately docketed, never-filed counterfactual branches of three PDFs/31 PA pages and three
+PDFs/22 PA pages. Four public/sealed disclosure pairs close through 52 bijective mappings, with a
+44-entry/350-anchor public-default projection. The frozen workflow and three traces, final
+nine-resource/48-blob manifest, authored level-2 review, deterministic archive, exact
+four-revision resolved install, hostile workflow and sealed-record audits, and focused tests now
+form an installable level-2 writ gold candidate. Qualified independent review remains pending.
+
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
 records are fictional. Simulated docket numbers begin `SYN-`. Real courts, sovereigns, and
@@ -114,7 +125,8 @@ Each v2 root exact-pins:
 
 Facts, case-specific authorities, records/blobs, grounded questions, workflow deltas, and
 dispositions remain root-owned. No fact or record asset is shared across cases. Dependency
-resolution must satisfy issues #23–#28 before bulk authoring begins.
+resolution remains gated by the exact capability, version, and digest constraints established in
+issues #23–#28.
 
 Reusable fictional/composite profiles are Alder (clipped/direct), Rowan
 (technical/measured/Socratic), Vale (plain/measured), Fen (expansive/hypothetical), Quill
@@ -417,17 +429,59 @@ Slate presides with Alder and March.
 *In re Cinder Lake Health Network, Inc.* — `SYN-CA4-26-WR-4401`,
 `SYN-EDNC-25-CV-0882`. Alder presides with Vale and Fen.
 
-- **Wedge:** a compliance response letter is treated as broad subject-matter waiver, and the
-  district court orders privileged investigation files produced within seven days.
+- **Authority cutoff:** all 17 root-owned authority entries were checked against official sources
+  on `2026-08-19`. *In re Fluor* is identified as unpublished and nonprecedential and is used only
+  for its exact persuasive analogy.
+- **Wedge:** the August 21 pre-suit compliance letter reports remediation and outside-counsel
+  involvement without disclosing privileged communications; the March 25 order nevertheless
+  finds categorical subject-matter waiver and compels production within seven days. The January 9
+  Rule 502(d) order governs later disclosures and neither retroactively creates nor erases waiver
+  from the August 21 pre-suit letter.
 - **Record:** 3 pleading, 2 protective-order/ESI, 4 audit/legal-communication, 2 privilege-log,
-  3 compel, 2 hearing/order, 3 reconsideration, 3 stay, and 1 district-docket PDF.
-- **Consequences:** missing service or essential materials produces deficiency or summary denial;
-  an answer is not due unless ordered. Actual-record argument requires an express expedited-
-  argument order because Local Rule 21 ordinarily omits argument.
-- **Disposition:** grant in part; vacate categorical waiver/production provisions; deny a blanket
-  bar on related discovery; remand for document-specific review.
-- **Limits:** emergency parallel work and conditional summary-denial/answer branching need later
-  trusted capabilities.
+  3 compel, 2 hearing/order, 3 reconsideration, 3 stay, and 1 district-docket PDF, totaling
+  23 PDFs/196 JA pages. The actual appellate docket contains 19 PDFs/153 PA pages; the exact
+  deficiency-cure and summary-denial dockets contain 3/31 and 3/22 and never occurred on the
+  actual writ. Four synthetic public/sealed pairs close through 52 bijective stable-anchor
+  mappings. The default projection exposes 44 entries/350 anchors, each exact grant exposes one
+  sealed twin for 45 entries, and revocation restores 44; no PACER, CM/ECF, or real sealed filing
+  is accessed.
+- **Consequences:** the exact B01 omissions trigger the B02 notice and a static two-calendar-day
+  cure deadline; timely exact B03 cures to a live submitted endpoint. Separate B04 is accepted as
+  conforming and then receives substantive summary denial without an answer or argument. The
+  actual path serializes the emergency motion and response, interim stay, appearances, answer
+  invitation, April 9 answer and April 13 reply deadlines, answer, reply, expedited-argument
+  order, and April 21 argument.
+- **Disposition:** grant the writ in part; vacate the categorical-waiver and seven-day-production
+  provisions; deny a blanket bar on related discovery; remand for document-specific privilege,
+  work-product, and discovery review. Final dispositions are transmitted to the trial-court judge
+  on the judgment date under Rule 21(b)(7). The summary and actual Rule 40 deadlines are April 15
+  and May 19; an original proceeding has no mandate or `IssueMandate` operation here.
+- **Workflow and traces:** workflow
+  `337c0eb859c43ec1296a7e4cb0e595cb20bbb061265dd6ce86f02a5524851d60` has 15 stages,
+  45 operations, eight filing routes, 10 exact filing bindings, 10 document bindings, two
+  structured dispositions, and five deadlines. The actual, deficiency-cure, and summary-denial
+  traces contain 26/29, 4/6, and 6/7 commands/events. Their 36 commands/42 events cover all
+  37 non-reject operations; eight reject operations are hostile-tested rather than canonical
+  outcomes. The plan-order trace closure is
+  `e589e247823dd02b51a03069d3724a0e9f3827480be81a95ef750e665e4f6988`.
+- **Evidence:** manifest
+  `53b2f6769e5e294e8ada426357a1a5eb29e770a9715d9d75ee993b6fd4f5a0ad` closes nine resources,
+  48 blobs, 18 capabilities, and three exact dependencies. Review
+  `2ab0d10cef5e67e5dde3684de994d8c838bc566af8925c3686841f14cc82fad7` records level 2 in all
+  seven dimensions, 16 nonblocking uncertainties, and `independent_review_pending`; evidence
+  closure `f6f573db90136f950b34055f4ae9baa18c7b3135733ff1d803dc686da7463439`
+  contains 4/44/48/3/2/30 pack/resource/blob/trace/record-check/authority entries, 127 unique
+  non-pack evidence IDs, and dimension-reference counts 40/15/51/28/24/4/85. Final root
+  `020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c` exports as the
+  deterministic 2,519,053-byte archive
+  `eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956`. Focused-test commit
+  `b1fb8b898ceb23cf9c773b22c7f358c7c073243e` passed normal and
+  `TZ=UTC`/`LC_ALL=C.UTF-8` integration/UI runs 2/2 with zero skips.
+- **Limits:** exact identities, static deadlines, preconditions, legal times, document bindings,
+  and canonical traces implement only these frozen routes. The engine does not infer privilege,
+  waiver, sealing, cure, conformity, urgency, answer or argument need, mandamus entitlement, or
+  remedy scope from arbitrary filings or prose. B01–B06 remain isolated never-filed artifacts.
+  Automated evidence does not constitute qualified independent review or support level 3 or gold.
 
 ## Official source baseline
 
@@ -543,19 +597,35 @@ workflow, and sealed-record runtime audits. Focused-test commit
 2/2 with zero skips in 37.38s and 37.51s. This is installable level-2 evidence, not level 3 or
 gold; the isolated day-15 docket and PA156–PA196 cannot ground actual-history claims.
 
+The Cinder Lake `1.2.0` writ gold candidate records level 2 in every dimension with
+`independent_review_pending`. Its frozen 48-PDF/402-anchor corpus includes four public/sealed
+disclosure pairs and a 44-entry/350-anchor public-default projection. The
+15-stage/45-operation workflow and three traces close 36 commands, 42 events, all 37 non-reject
+operations, eight exact filing routes, 10 filing bindings, 10 court-document bindings, two
+dispositions, five deadlines, and no mandate. The 9/48/18/3 manifest binds an evidence envelope
+of 4/44/48/3/2/30 entries, 127 unique non-pack evidence IDs, and dimension-reference counts
+40/15/51/28/24/4/85. Exact root
+`020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c`, evidence closure
+`f6f573db90136f950b34055f4ae9baa18c7b3135733ff1d803dc686da7463439`, and archive
+`eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956` pass fresh resolved,
+canonical, hostile, and sealed-record runtime audits. Focused-test commit
+`b1fb8b898ceb23cf9c773b22c7f358c7c073243e` passed normal and
+`TZ=UTC`/`LC_ALL=C.UTF-8` integration/UI runs 2/2 with zero skips. This is installable level-2
+evidence, not level 3 or gold; qualified federal civil-discovery, privilege, Rule 502, mandamus,
+sealing, and appellate review remains pending.
+
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and
 appellate-privilege/writ reviewer. Open Grid's exact sealed/public record behavior and
 workflow/release evidence and focused tests are frozen; qualified independent FOIA/appellate
 review remains pending.
 
-After #23–#28 and the three shared foundations freeze, isolated root authoring may proceed in
-parallel without shared-file overlap:
+The completed root work used this frozen parallel allocation without shared-file overlap:
 
 - Benton + Asterglen + A.R.M.: 92 lower-tribunal/certified-record PDFs / 710 floor pages.
 - Ellison + Open Grid + Cinder Lake: 97 lower-tribunal/certified-record PDFs / 705 floor pages.
 - Norvale + Blue Ember + Serrano: 94 lower-tribunal/certified-record PDFs / 839 floor pages.
 
-Per-case commit boundaries are source/schema skeleton, record batch 1, record batch 2,
-workflow/adverse traces, disposition/argument/bench, and level-2 evidence. Only the integrator
-changes shared indexes or build registration.
+Per-case authoring used separate source/schema, record-batch, workflow/trace,
+disposition/argument/bench, and level-2-evidence boundaries. Shared indexes and build registration
+remained integrator-owned.

@@ -23,7 +23,7 @@ designation and does not satisfy the level-3 gate.
 | Sealed FOIA | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Criminal sentencing / waiver | Criminal (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Immigration agency review | Agency (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
-| Privileged-discovery mandamus | Writ (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
+| Privileged-discovery mandamus | Writ (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 
 For each nonzero score, the case review file must link the exact authority version, automated
 trace, record-consistency report, reviewer identity or status, review date, uncertainty notes,
@@ -176,3 +176,30 @@ passed. Focused-test commit `ba9e7558a44411bd709351f657a6b98407f86235` passed no
 `TZ=UTC` integration/UI runs 2/2 with zero skips in 37.38s and 37.51s. The review remains
 `independent_review_pending`; automated evidence does not substitute for qualified
 criminal-sentencing, waiver, allocution, Guidelines, and appellate-timing review.
+
+The Cinder Lake privilege-mandamus `1.2.0` root is the writ gold candidate, not the writ gold
+pack. Its exact level-2 corpus contains 23 district PDFs/196 JA pages, 19 actual appellate
+PDFs/153 PA pages, and two separately docketed, never-filed counterfactual branches of three
+PDFs/31 PA pages and three PDFs/22 PA pages, for 48 PDFs/402 anchors. Four public/sealed
+disclosure pairs close through 52 bijective mappings, with a 44-entry/350-anchor public-default
+projection. The 15-stage/45-operation workflow has eight routes, 10 exact filing bindings,
+10 bound court documents, two structured dispositions, five deadlines, 37 non-reject operations,
+eight reject operations, and no mandate operation. Its three canonical traces contain 26/29,
+4/6, and 6/7 commands/events; their 36 commands and 42 events cover all 37 non-reject operations
+and end at the actual terminal, live submitted deficiency-cure, and summary-denial terminal
+stages. Manifest `53b2f6769e5e294e8ada426357a1a5eb29e770a9715d9d75ee993b6fd4f5a0ad`
+closes nine resources, 48 blobs, 18 capabilities, and three exact dependencies. Review
+`2ab0d10cef5e67e5dde3684de994d8c838bc566af8925c3686841f14cc82fad7` binds evidence closure
+`f6f573db90136f950b34055f4ae9baa18c7b3135733ff1d803dc686da7463439`: four packs,
+44 non-review resources, 48 blobs, three traces, two record checks, 30 authorities, 127 unique
+non-pack evidence IDs, and dimension-reference counts 40/15/51/28/24/4/85. Exactly one
+successful authoring invocation produced root
+`020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c`; the deterministic
+2,519,053-byte archive is
+`eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956`. Fresh four-revision
+resolved validation, canonical and hostile workflow replay, and separate sealed-record runtime
+checks passed. Focused-test commit `b1fb8b898ceb23cf9c773b22c7f358c7c073243e` passed normal
+and `TZ=UTC`/`LC_ALL=C.UTF-8` integration/UI runs 2/2 with zero skips. The review remains
+`independent_review_pending`; automated evidence does not substitute for qualified federal
+civil-discovery, privilege, Rule 502, mandamus, sealing, and appellate review. This is installable
+level-2 evidence, not level 3 or gold.

@@ -21,8 +21,8 @@ The content target deliberately retains the useful breadth of the earlier protot
 - one implemented jurisdiction at launch: the U.S. Court of Appeals for the Fourth Circuit;
 - four proceeding profiles: civil appeal, criminal appeal, agency review, and original writ;
 - nine substantive synthetic case families with rich lower-tribunal records;
-- versioned data-only packs for future jurisdictions, procedures, cases, records, and bench
-  profiles without recompiling the application when existing engine capabilities suffice.
+- versioned data-only packs for jurisdictions, procedures, cases, records, and bench profiles, so
+  compatible content changes do not require recompiling the application.
 
 Judge profiles configure observable interaction—issue focus, directness, formality,
 interruptions, follow-ups, hypotheticals, and time management. The MVP ships only
@@ -49,14 +49,10 @@ cmake --build --preset dev
 ctest --preset dev
 ```
 
-Run the dedicated local desktop end-to-end test after building the development preset:
+Run the local desktop end-to-end suite after building the development preset:
 
 ```sh
-cmake --build --preset dev --target \
-  tst_oral_argument_desktop_e2e tst_main_window_local_sessions \
-  tst_desktop_command_line tst_m4_arm_agency_ui_e2e \
-  tst_m4_benton_retaliation_ui_e2e tst_asterglen_rule54b_v02 \
-  tst_asterglen_rule54b_v02_ui_e2e tst_local_folder_provider tst_object_transport
+cmake --build --preset dev
 ctest --preset e2e
 ```
 
@@ -64,6 +60,20 @@ The E2E preset runs the real Qt desktop shell offscreen against an exported and 
 fixture pack, local SQLite session storage, and content-addressed assets. It also exercises the
 encrypted local-folder provider from atomic publication through authenticated quarantine restore.
 It requires no server, cloud service, browser driver, account, or GitHub Actions runner.
+
+Build and run the focused Cinder Lake original-writ integration and UI coverage with:
+
+```sh
+cmake --build --preset dev --target \
+  tst_m4_cinderlake_writ tst_m4_cinderlake_writ_ui_e2e
+ctest --test-dir build/dev --output-on-failure \
+  -R '^m4_cinderlake_writ(_ui_e2e)?$'
+```
+
+Those tests export and install the exact four-pack resolved closure, replay the actual and two
+counterfactual histories, and exercise the public/sealed record projections. Cinder Lake is an
+installable level-2 writ gold candidate with qualified independent review pending; it is not part
+of the release bundle described below.
 
 The release packaging gate separately runs the installed and relocated executable with networking
 disabled where required. The bundle carries Asterglen v0.2, its three exact foundations, and the
@@ -116,5 +126,6 @@ and the accepted decisions:
 - [declarative pack trust boundary](docs/adr/0002-declarative-pack-trust-boundary.md);
 - [bench-profile boundary](docs/adr/0003-bench-profile-boundary.md).
 
-Content work is measured against the [frozen parity inventory](docs/PARITY_INVENTORY.md) and
+Content work is measured against the [frozen parity inventory](docs/PARITY_INVENTORY.md),
+[M4 Fourth Circuit case matrix](docs/content/M4_CASE_MATRIX.md), and
 [realism release matrix](docs/REALISM_MATRIX.md).
