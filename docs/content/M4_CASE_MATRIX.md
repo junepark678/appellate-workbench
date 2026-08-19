@@ -87,6 +87,17 @@ revocation, exact-closure denial, deferred per-open CAS verification, and snapsh
 Frozen focused integration/UI commit `f2192e7462f12faf58d67b297216fecedba53a28` passed normal
 and `TZ=UTC` runs 2/2 with zero skips.
 
+The frozen Serrano source/render/record/core slice also leaves the 283-PDF breadth total
+unchanged. Its lower-court record is 28 PDFs/260 JA pages, while its complete record is
+58 PDFs/456 pages after adding 20 actual appellate PDFs/155 PA pages and 10 separately docketed,
+never-filed counterfactual PDFs/41 PA pages. PA156–PA196 never occurred on the actual appeal.
+Eight public/sealed disclosure pairs close through 95 bijective page mappings. The frozen
+24-stage/79-operation workflow has exactly two canonical traces: the 51-command actual ordinary
+mandate and the 35-command day-15 counterfactual ordinary mandate. The final nine-resource,
+58-blob manifest, authored level-2 review, deterministic archive, exact four-revision resolved
+install, workflow replay, and separate sealed-record runtime audit now form an installable
+criminal gold candidate. Qualified independent review remains pending.
+
 Every brief proposition, oral-argument question, and disposition reason must resolve to a
 rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
 records are fictional. Simulated docket numbers begin `SYN-`. Real courts, sovereigns, and
@@ -325,15 +336,59 @@ LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan a
 Slate presides with Alder and March.
 
 - **Wedge:** a knowing waiver covers Guidelines calculation but expressly reserves complete
-  denial of allocution; Serrano also contests a section 3B1.1 enhancement.
+  denial of allocution; Serrano also contests the section 3B1.1(b) finding that he supervised
+  another participant.
 - **Record:** 4 charging/initial, 4 pre-plea, 4 plea/Rule 11, 4 PSR/objection, 4 sentencing
-  submission, 3 transcript/order, and 5 judgment/docket/initiation PDFs.
-- **Consequences:** a day-15 notice is nonjurisdictionally late; prompt government invocation
-  produces dismissal. The waiver motion dismisses only the enhancement target.
-- **Disposition:** dismiss the enhancement appeal under the waiver; vacate sentence and remand
-  for resentencing with allocution.
-- **Confidentiality boundary:** realistic PSR treatment must use and replay the implemented
-  `workbench.pack.sealed-record-twins@1` policy; the Serrano pack has not authored that evidence.
+  submission, 3 transcript/order, and 5 judgment/docket/initiation PDFs: 28 lower-record
+  PDFs/260 JA pages. The complete corpus adds 20 actual appellate PDFs/155 PA pages and 10
+  separately docketed, never-filed counterfactual PDFs/41 PA pages, for 58 PDFs/456 anchors.
+- **Argument:** the actual appeal tests waiver validity and scope, the express complete-denial
+  carve-out, whether counsel's advocacy can substitute for personal allocution, prejudice from
+  the unheard mitigation statement, and the proper remand. The isolated counterfactual tests a
+  district-clerk notice filed on day 15, a prompt limited remand, findings of neither excusable
+  neglect nor good cause, and prompt government invocation of Rule 4(b).
+- **Consequences:** the actual day-14 notice is timely. The valid waiver dismisses only the
+  enhancement target without deciding its merits; the allocution carve-out remains reviewable.
+  In the isolated branch, the first government substantive response combines Rule 4(b) and waiver,
+  but the court dismisses solely under Rule 4(b) without reaching waiver, role, or allocution.
+- **Disposition:** actual—leave the conviction intact, dismiss the enhancement appeal under the
+  waiver, vacate the sentence, and remand for full resentencing with allocution. Counterfactual—
+  dismiss the day-15 appeal under Rule 4(b) and issue the ordinary mandate without deciding any
+  merits issue.
+- **Confidentiality boundary:** eight equal-page public/sealed disclosure pairs close through
+  95 bijective mappings under `workbench.pack.sealed-record-twins@1`: four lower-record
+  PSR/objection/sentencing pairs and four appellate brief/PSR-volume pairs. The public-default
+  projection exposes 50 entries carrying 361 physical public anchors; the 95 mappings keep each
+  sealed page subject navigable through its public counterpart without exposing sealed bytes.
+  Each exact-document session grant exposes one sealed twin, and revocation returns to 50.
+  Filing and court-document bindings use only public entries. These synthetic controls do not
+  represent PACER, CM/ECF, Probation, or a real presentence report.
+- **Evidence status:** successor plan
+  `6125c3623ec484cae049961336cfd2b16571b7a77f748ccf4ac588af5d3fdbbd`, render inventory
+  `dd3dde8fd145b12f09eed6a97d3bfd85a36c2e18cac10c9916c156b83481d70b`, record
+  `ff91471c1fbde78ad6ef138a7cfc14358ea0ff985ccb58bb19f9c146f1785fb5`, and workflow
+  `b31e490d3fa460c0b1bff551fe937d8acae41b53f1a6cdf41549d3ac411585c2` bind the frozen corpus.
+  The workflow has 24 stages, 79 operations, 14 routes, 16 exact filing bindings, 13 bound court
+  documents, and 16 deadlines. Its two traces contain 86 commands and 86 events, cover all 79
+  operations, and exercise 16 same-ID filing rejection/recovery pairs.
+- **Authority cutoff:** Serrano's completed source and authority set is frozen as of
+  2026-08-19. Individual documents cite only authorities available on their source dates, and the
+  isolated day-15 branch cites neither *Hunter* nor *Melvin*.
+- **Release status:** manifest
+  `a1910f6d853371b2061ffa10e7271389a914e2e39172c544e3dff2221665f577` closes nine resources,
+  58 blobs, 17 capabilities, and three dependencies. Review
+  `d0521658fb7eb2ed8eb35c30293aaf5b86ca029257ac6cadef7e14b56557a57d` binds evidence closure
+  `052e54ec473a8a427f1cda0c004f02878955e46f4e2282c64385ed4e404eb955` over
+  4/44/58/2/2/44 packs/resources/blobs/traces/checks/authorities and 150 unique non-pack evidence
+  IDs. Root `9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344`
+  exports to the deterministic 3,453,568-byte archive
+  `d76686cec2053f78334c73f1c3aac415b637e733f0494b527001368597a1c243` and passes fresh resolved,
+  workflow, and sealed-record runtime audits. The `1.2.0` review remains level 2 and
+  `independent_review_pending`, so Serrano is the criminal gold candidate, not a gold pack.
+- **Limits:** the engine does not infer waiver scope, participant status, personal allocution,
+  prejudice, excusable neglect, good cause, or timeliness from arbitrary text. The
+  counterfactual docket and PA156–PA196 cannot ground the actual history or disposition, and
+  automated evidence does not substitute for qualified criminal-sentencing/appellate review.
 
 ### 8. A.R.M. agency review — `ca4m4.case.arm-agency`
 
@@ -470,6 +525,23 @@ the separate installed capability audit proves grant/revoke/CAS/snapshot behavio
 commit `f2192e7462f12faf58d67b297216fecedba53a28` passed normal and `TZ=UTC` integration/UI runs
 2/2 with zero skips. This is installable level-2 evidence, not level 3 or gold, and synthetic
 PA156–PA364 cannot ground actual-history claims.
+
+The Serrano `1.2.0` criminal gold candidate records level 2 in every dimension with
+`independent_review_pending`. Its frozen corpus contains 28 lower-record PDFs/260 JA pages,
+20 actual appellate PDFs/155 PA pages, and 10 separately docketed, never-filed counterfactual
+PDFs/41 PA pages, for 58 PDFs/456 anchors. Eight public/sealed disclosure pairs close through
+95 bijective mappings. The 24-stage/79-operation workflow and two traces close 86 commands and
+86 events, all 79 operations, 16 exact filing bindings, 13 court documents, 16 deadlines, and
+16 same-ID filing recoveries. The 9/58/17/3 manifest binds an evidence envelope of
+4/44/58/2/2/44 entries, 150 unique non-pack evidence IDs, and dimension-reference counts
+54/26/61/35/28/4/109. Exact root
+`9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344`, evidence closure
+`052e54ec473a8a427f1cda0c004f02878955e46f4e2282c64385ed4e404eb955`, and archive
+`d76686cec2053f78334c73f1c3aac415b637e733f0494b527001368597a1c243` pass fresh resolved,
+workflow, and sealed-record runtime audits. Focused-test commit
+`ba9e7558a44411bd709351f657a6b98407f86235` passed normal and `TZ=UTC` integration/UI runs
+2/2 with zero skips in 37.38s and 37.51s. This is installable level-2 evidence, not level 3 or
+gold; the isolated day-15 docket and PA156–PA196 cannot ground actual-history claims.
 
 The four gold candidates require, respectively, an appellate-finality reviewer, criminal
 sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and

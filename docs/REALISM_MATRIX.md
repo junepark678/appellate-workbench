@@ -21,7 +21,7 @@ designation and does not satisfy the level-3 gate.
 | Section 1983 qualified immunity | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Post-trial JMOL | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Sealed FOIA | Civil | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
-| Criminal sentencing / waiver | Criminal (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
+| Criminal sentencing / waiver | Criminal (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Installable level-2 evidence complete; qualified independent review pending |
 | Immigration agency review | Agency (gold candidate) | 2 | 2 | 2 | 2 | 2 | 2 | 2 | Authoring evidence complete; qualified independent review pending |
 | Privileged-discovery mandamus | Writ (gold) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Not authored |
 
@@ -150,3 +150,29 @@ cross-root denial, per-open CAS/PDF/page verification, and snapshot isolation. F
 `f2192e7462f12faf58d67b297216fecedba53a28` passed normal and `TZ=UTC` integration/UI runs
 2/2 with zero skips in 85.43 and 85.29 seconds. This is installable level-2 evidence, not
 qualified independent review, level 3, or gold.
+
+The Serrano waiver `1.2.0` root is the criminal gold candidate, not the criminal gold pack. Its
+exact level-2 corpus contains 28 lower-record PDFs/260 JA pages, 20 actual appellate PDFs/155 PA
+pages, and 10 separately docketed, never-filed counterfactual PDFs/41 PA pages, for 58 PDFs/456
+anchors. Eight public/sealed disclosure pairs close through 95 bijective mappings, with a
+50-entry/361-physical-anchor public-default projection; each exact grant exposes one sealed twin.
+The 24-stage/79-operation workflow has 14 routes, 16 exact filing bindings,
+13 bound court documents, and 16 deadlines. Its actual and day-15 counterfactual traces contain
+51 and 35 commands and the same respective event counts, cover all 79 operations, and exercise
+16 same-ID filing recoveries.
+
+Manifest `a1910f6d853371b2061ffa10e7271389a914e2e39172c544e3dff2221665f577`
+closes nine resources, 58 blobs, 17 capabilities, and three exact dependencies. Review
+`d0521658fb7eb2ed8eb35c30293aaf5b86ca029257ac6cadef7e14b56557a57d` binds evidence closure
+`052e54ec473a8a427f1cda0c004f02878955e46f4e2282c64385ed4e404eb955`: four packs,
+44 non-review resources, 58 blobs, two traces, two record checks, 44 authorities, 150 unique
+non-pack evidence IDs, and dimension-reference counts 54/26/61/35/28/4/109. Exactly one
+successful authoring invocation produced root
+`9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344`; the deterministic
+3,453,568-byte archive is
+`d76686cec2053f78334c73f1c3aac415b637e733f0494b527001368597a1c243`. Fresh four-revision
+resolved validation, full two-path workflow replay, and separate sealed-record runtime checks
+passed. Focused-test commit `ba9e7558a44411bd709351f657a6b98407f86235` passed normal and
+`TZ=UTC` integration/UI runs 2/2 with zero skips in 37.38s and 37.51s. The review remains
+`independent_review_pending`; automated evidence does not substitute for qualified
+criminal-sentencing, waiver, allocution, Guidelines, and appellate-timing review.
