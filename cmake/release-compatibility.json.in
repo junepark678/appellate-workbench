@@ -66,6 +66,14 @@
       "archive_sha256": "@APPELLATE_ASTERGLEN_V1_ARCHIVE_SHA256@",
       "archive_byte_size": @APPELLATE_ASTERGLEN_V1_ARCHIVE_SIZE@,
       "path": "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
+    },
+    {
+      "pack_id": "us.ca4.m4.cinderlake-writ",
+      "version": "1.2.0",
+      "revision_sha256": "@APPELLATE_CINDERLAKE_WRIT_PACK_REVISION@",
+      "archive_sha256": "@APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SHA256@",
+      "archive_byte_size": @APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SIZE@,
+      "path": "share/appellate-workbench/packs/us-ca4-m4-cinderlake-writ-1.2.0.awpack"
     }
   ]
 }

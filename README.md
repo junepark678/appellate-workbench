@@ -72,16 +72,18 @@ ctest --test-dir build/dev --output-on-failure \
 
 Those tests export and install the exact four-pack resolved closure, replay the actual and two
 counterfactual histories, and exercise the public/sealed record projections. Cinder Lake is an
-installable level-2 writ gold candidate with qualified independent review pending; it is not part
-of the release bundle described below.
+installable level-2 writ gold candidate with qualified independent review pending. It is bundled
+as an additional non-default payload; this does not make it level 3 or gold and does not complete
+the nine-family MVP.
 
 The release packaging gate separately runs the installed and relocated executable with networking
 disabled where required. The bundle carries Asterglen v0.2, its three exact foundations, and the
-immutable v0.1 predecessor. Its ordinary smoke test installs and resolves the v0.2 four-pack
-closure; a separate deterministic compatibility flow uses v0.1 for one persisted transition and
-the shipped `appellate-pack template` for grounded oral/CAS plumbing. Generated starter archives
-remain outside the install prefix and cannot enter the exact five-archive allowlist. See
-`docs/RELEASE.md` for the precise evidence boundary.
+immutable v0.1 predecessor, plus Cinder Lake v1.2. Its ordinary smoke tests separately install and
+resolve the Asterglen and Cinder Lake four-pack closures while preserving Asterglen as the primary
+default. A deterministic compatibility flow uses v0.1 for one persisted transition and the shipped
+`appellate-pack template` for grounded oral/CAS plumbing. Generated starter archives remain outside
+the install prefix and cannot enter the exact six-archive allowlist. See `docs/RELEASE.md` for the
+precise evidence boundary.
 
 Run the shell with the included fixture pack:
 

@@ -56,6 +56,7 @@ set(
     "share/appellate-workbench/packs/foundation-us-ca4-2026.03.23.awpack"
     "share/appellate-workbench/packs/foundation-us-ca4-fictional-bench-1.0.0.awpack"
     "share/appellate-workbench/packs/foundation-us-federal-2025.12.01.awpack"
+    "share/appellate-workbench/packs/us-ca4-m4-cinderlake-writ-1.2.0.awpack"
     "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
     "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.2.0.awpack"
 )

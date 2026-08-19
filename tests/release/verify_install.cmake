@@ -117,6 +117,7 @@ set(_federal "${_packs_root}/foundation-us-federal-2025.12.01.awpack")
 set(_ca4 "${_packs_root}/foundation-us-ca4-2026.03.23.awpack")
 set(_bench "${_packs_root}/foundation-us-ca4-fictional-bench-1.0.0.awpack")
 set(_asterglen_v1 "${_packs_root}/us-ca4-rule54b-asterglen-0.1.0.awpack")
+set(_cinder "${_packs_root}/us-ca4-m4-cinderlake-writ-1.2.0.awpack")
 set(_compatibility "${_prefix}/share/appellate-workbench/compatibility.json")
 foreach(_required IN ITEMS
         "${_desktop}"
@@ -126,6 +127,7 @@ foreach(_required IN ITEMS
         "${_ca4}"
         "${_bench}"
         "${_asterglen_v1}"
+        "${_cinder}"
         "${_compatibility}"
 )
     if(NOT EXISTS "${_required}")
@@ -158,6 +160,11 @@ set(_expected_v1_version "0.1.0")
 set(_expected_v1_revision "ff7a2e1195f9bd006e7df46c19675a3e07a4bd8975b1643a01adbc9cc4fd3424")
 set(_expected_v1_archive_sha "ce0ebffb92942e85e02658d11846af70ebb5fdc287f99a4c683a48f381e39227")
 set(_expected_v1_archive_size 729511)
+set(_expected_cinder_pack_id "us.ca4.m4.cinderlake-writ")
+set(_expected_cinder_version "1.2.0")
+set(_expected_cinder_revision "020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c")
+set(_expected_cinder_archive_sha "eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956")
+set(_expected_cinder_archive_size 2519053)
 
 file(
     GLOB_RECURSE _installed_pack_archives
@@ -171,6 +178,7 @@ set(
     "share/appellate-workbench/packs/foundation-us-ca4-2026.03.23.awpack"
     "share/appellate-workbench/packs/foundation-us-ca4-fictional-bench-1.0.0.awpack"
     "share/appellate-workbench/packs/foundation-us-federal-2025.12.01.awpack"
+    "share/appellate-workbench/packs/us-ca4-m4-cinderlake-writ-1.2.0.awpack"
     "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
     "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.2.0.awpack"
 )
@@ -190,7 +198,7 @@ string(JSON _compatibility_arch GET "${_compatibility_json}" platform architectu
 string(JSON _declared_glibc_floor GET "${_compatibility_json}" platform glibc_floor)
 string(JSON _declared_pack_count LENGTH "${_compatibility_json}" bundled_packs)
 if(NOT _compatibility_schema EQUAL 1 OR NOT _compatibility_os STREQUAL "linux" OR
-   NOT _compatibility_arch STREQUAL "x86_64" OR NOT _declared_pack_count EQUAL 5)
+   NOT _compatibility_arch STREQUAL "x86_64" OR NOT _declared_pack_count EQUAL 6)
     message(FATAL_ERROR "The installed compatibility manifest does not match the bundle")
 endif()
 
@@ -246,6 +254,13 @@ _appellate_assert_bundled_pack(
     "${_expected_v1_pack_id}" "${_expected_v1_version}" "${_expected_v1_revision}"
     "${_expected_v1_archive_sha}" "${_expected_v1_archive_size}"
     "share/appellate-workbench/packs/us-ca4-rule54b-asterglen-0.1.0.awpack"
+)
+_appellate_assert_bundled_pack(
+    5 "${_cinder}"
+    "${_expected_cinder_pack_id}" "${_expected_cinder_version}"
+    "${_expected_cinder_revision}" "${_expected_cinder_archive_sha}"
+    "${_expected_cinder_archive_size}"
+    "share/appellate-workbench/packs/us-ca4-m4-cinderlake-writ-1.2.0.awpack"
 )
 
 execute_process(
@@ -406,6 +421,123 @@ function(_appellate_prepare_v2_catalog pack_cli federal ca4 bench asterglen_v2 c
         list(GET _expected_pin_revisions ${_pin_index} _expected_pin_revision)
         _appellate_assert_revision_json(
             "${_pin}" "Resolved Asterglen v0.2 pin ${_pin_index}"
+            "${_expected_pin_id}" "${_expected_pin_version}" "${_expected_pin_revision}"
+        )
+    endforeach()
+endfunction()
+
+function(_appellate_prepare_cinder_catalog pack_cli federal ca4 bench cinder catalog)
+    if(EXISTS "${catalog}")
+        message(FATAL_ERROR "Cinder release smoke catalog unexpectedly already exists: ${catalog}")
+    endif()
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${federal}" "${catalog}" "2026-08-19T00:00:00Z"
+        "${_expected_federal_pack_id}" "${_expected_federal_version}"
+        "${_expected_federal_revision}" "${_expected_federal_archive_sha}"
+    )
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${ca4}" "${catalog}" "2026-08-19T00:00:01Z"
+        "${_expected_ca4_pack_id}" "${_expected_ca4_version}"
+        "${_expected_ca4_revision}" "${_expected_ca4_archive_sha}"
+    )
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${bench}" "${catalog}" "2026-08-19T00:00:02Z"
+        "${_expected_bench_pack_id}" "${_expected_bench_version}"
+        "${_expected_bench_revision}" "${_expected_bench_archive_sha}"
+    )
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${cinder}" "${catalog}" "2026-08-19T00:00:03Z"
+        "${_expected_cinder_pack_id}" "${_expected_cinder_version}"
+        "${_expected_cinder_revision}" "${_expected_cinder_archive_sha}"
+    )
+
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            --unset=LD_LIBRARY_PATH
+            --unset=LD_PRELOAD
+            --unset=QT_PLUGIN_PATH
+            --unset=QT_QPA_PLATFORM_PLUGIN_PATH
+            "${pack_cli}" list "${catalog}"
+        RESULT_VARIABLE _list_result
+        OUTPUT_VARIABLE _list_output
+        ERROR_VARIABLE _list_error
+        TIMEOUT 60
+    )
+    if(NOT _list_result EQUAL 0)
+        message(
+            FATAL_ERROR
+            "Exact bundled Cinder catalog listing failed:\n${_list_output}\n${_list_error}"
+        )
+    endif()
+    string(JSON _list_status GET "${_list_output}" status)
+    string(JSON _list_count LENGTH "${_list_output}" packs)
+    if(NOT _list_status STREQUAL "ok" OR NOT _list_count EQUAL 4)
+        message(FATAL_ERROR "Cinder release smoke catalog does not contain exactly four revisions")
+    endif()
+
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            --unset=LD_LIBRARY_PATH
+            --unset=LD_PRELOAD
+            --unset=QT_PLUGIN_PATH
+            --unset=QT_QPA_PLATFORM_PLUGIN_PATH
+            "${pack_cli}" validate-resolved "${catalog}"
+            "${_expected_cinder_pack_id}" "${_expected_cinder_version}"
+            "${_expected_cinder_revision}"
+        RESULT_VARIABLE _resolved_result
+        OUTPUT_VARIABLE _resolved_output
+        ERROR_VARIABLE _resolved_error
+        TIMEOUT 60
+    )
+    if(NOT _resolved_result EQUAL 0)
+        message(
+            FATAL_ERROR
+            "Exact bundled Cinder closure validation failed:\n"
+            "${_resolved_output}\n${_resolved_error}"
+        )
+    endif()
+    string(JSON _resolved_status GET "${_resolved_output}" status)
+    string(JSON _resolved_scope GET "${_resolved_output}" validation_scope)
+    string(JSON _resolved_count GET "${_resolved_output}" resolved_revision_count)
+    string(JSON _pin_count LENGTH "${_resolved_output}" revision_pins)
+    if(NOT _resolved_status STREQUAL "ok" OR
+       NOT _resolved_scope STREQUAL "catalog_resolved" OR
+       NOT _resolved_count EQUAL 4 OR NOT _pin_count EQUAL 4)
+        message(FATAL_ERROR "Cinder resolved-closure evidence is incomplete")
+    endif()
+    _appellate_assert_revision_json(
+        "${_resolved_output}" "Resolved Cinder root"
+        "${_expected_cinder_pack_id}" "${_expected_cinder_version}"
+        "${_expected_cinder_revision}"
+    )
+
+    set(_expected_pin_ids
+        "${_expected_ca4_pack_id}"
+        "${_expected_bench_pack_id}"
+        "${_expected_federal_pack_id}"
+        "${_expected_cinder_pack_id}"
+    )
+    set(_expected_pin_versions
+        "${_expected_ca4_version}"
+        "${_expected_bench_version}"
+        "${_expected_federal_version}"
+        "${_expected_cinder_version}"
+    )
+    set(_expected_pin_revisions
+        "${_expected_ca4_revision}"
+        "${_expected_bench_revision}"
+        "${_expected_federal_revision}"
+        "${_expected_cinder_revision}"
+    )
+    foreach(_pin_index RANGE 0 3)
+        string(JSON _pin GET "${_resolved_output}" revision_pins ${_pin_index})
+        list(GET _expected_pin_ids ${_pin_index} _expected_pin_id)
+        list(GET _expected_pin_versions ${_pin_index} _expected_pin_version)
+        list(GET _expected_pin_revisions ${_pin_index} _expected_pin_revision)
+        _appellate_assert_revision_json(
+            "${_pin}" "Resolved Cinder pin ${_pin_index}"
             "${_expected_pin_id}" "${_expected_pin_version}" "${_expected_pin_revision}"
         )
     endforeach()
@@ -667,6 +799,45 @@ _appellate_run_offline_e2e(
     "installed-offline-e2e"
 )
 
+set(_cinder_catalog "${_root}/cinder-catalog")
+set(_cinder_runtime "${_root}/cinder-runtime")
+file(MAKE_DIRECTORY "${_cinder_runtime}")
+file(
+    CHMOD "${_cinder_runtime}"
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+)
+_appellate_prepare_cinder_catalog(
+    "${_pack_cli}"
+    "${_federal}"
+    "${_ca4}"
+    "${_bench}"
+    "${_cinder}"
+    "${_cinder_catalog}"
+)
+execute_process(
+    COMMAND "${CMAKE_COMMAND}" -E env
+        --unset=LD_LIBRARY_PATH
+        --unset=LD_PRELOAD
+        --unset=QT_PLUGIN_PATH
+        --unset=QT_QPA_PLATFORM_PLUGIN_PATH
+        "QT_QPA_PLATFORM=offscreen"
+        "XDG_RUNTIME_DIR=${_cinder_runtime}"
+        "XDG_CONFIG_HOME=${_root}/cinder-config"
+        "XDG_DATA_HOME=${_root}/cinder-data"
+        "XDG_CACHE_HOME=${_root}/cinder-cache"
+        "${_desktop}" --smoke-test --catalog "${_cinder_catalog}" "${_cinder}"
+    RESULT_VARIABLE _cinder_desktop_result
+    OUTPUT_VARIABLE _cinder_desktop_output
+    ERROR_VARIABLE _cinder_desktop_error
+)
+if(NOT _cinder_desktop_result EQUAL 0)
+    message(
+        FATAL_ERROR
+        "Installed Cinder desktop smoke failed:\n"
+        "${_cinder_desktop_output}\n${_cinder_desktop_error}"
+    )
+endif()
+
 file(RENAME "${_prefix}" "${_relocated}")
 set(_relocated_desktop "${_relocated}/bin/Appellate Workbench")
 set(_relocated_pack_cli "${_relocated}/bin/appellate-pack")
@@ -683,6 +854,8 @@ set(_relocated_bench
     "${_relocated_packs_root}/foundation-us-ca4-fictional-bench-1.0.0.awpack")
 set(_relocated_asterglen_v1
     "${_relocated_packs_root}/us-ca4-rule54b-asterglen-0.1.0.awpack")
+set(_relocated_cinder
+    "${_relocated_packs_root}/us-ca4-m4-cinderlake-writ-1.2.0.awpack")
 foreach(_binary IN ITEMS
         "${_relocated_desktop}"
         "${_relocated_pack_cli}"
@@ -782,6 +955,47 @@ _appellate_run_offline_e2e(
     "${_relocated_starter_archive}"
     "relocated-offline-e2e"
 )
+
+set(_relocated_cinder_catalog "${_root}/relocated-cinder-catalog")
+set(_relocated_cinder_runtime "${_root}/relocated-cinder-runtime")
+file(MAKE_DIRECTORY "${_relocated_cinder_runtime}")
+file(
+    CHMOD "${_relocated_cinder_runtime}"
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+)
+_appellate_prepare_cinder_catalog(
+    "${_relocated_pack_cli}"
+    "${_relocated_federal}"
+    "${_relocated_ca4}"
+    "${_relocated_bench}"
+    "${_relocated_cinder}"
+    "${_relocated_cinder_catalog}"
+)
+execute_process(
+    COMMAND "${CMAKE_COMMAND}" -E env
+        --unset=LD_LIBRARY_PATH
+        --unset=LD_PRELOAD
+        --unset=QT_PLUGIN_PATH
+        --unset=QT_QPA_PLATFORM_PLUGIN_PATH
+        "QT_QPA_PLATFORM=offscreen"
+        "XDG_RUNTIME_DIR=${_relocated_cinder_runtime}"
+        "XDG_CONFIG_HOME=${_root}/relocated-cinder-config"
+        "XDG_DATA_HOME=${_root}/relocated-cinder-data"
+        "XDG_CACHE_HOME=${_root}/relocated-cinder-cache"
+        "${_relocated_desktop}" --smoke-test
+        --catalog "${_relocated_cinder_catalog}"
+        "${_relocated_cinder}"
+    RESULT_VARIABLE _relocated_cinder_result
+    OUTPUT_VARIABLE _relocated_cinder_output
+    ERROR_VARIABLE _relocated_cinder_error
+)
+if(NOT _relocated_cinder_result EQUAL 0)
+    message(
+        FATAL_ERROR
+        "Relocated Cinder desktop smoke failed:\n"
+        "${_relocated_cinder_output}\n${_relocated_cinder_error}"
+    )
+endif()
 string(FIND
     "${_relocated_error}"
     "${_relocated_library_root}/qt6/plugins/platforms/libqoffscreen.so"

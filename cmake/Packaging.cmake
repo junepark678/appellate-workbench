@@ -112,6 +112,10 @@ set(
     _appellate_asterglen_v1_archive
     "${PROJECT_SOURCE_DIR}/content/ca4-rule54b/us-ca4-rule54b-asterglen-0.1.0.awpack"
 )
+set(
+    _appellate_cinderlake_writ_archive
+    "${PROJECT_SOURCE_DIR}/content/m4/cinderlake-writ/us-ca4-m4-cinderlake-writ-1.2.0.awpack"
+)
 
 set(APPELLATE_ASTERGLEN_V2_ARCHIVE_SHA256
     "10739c149a3bf2617d8af6dd131caee7ea6639a9d97e26cdf2974fa176c82819")
@@ -138,6 +142,11 @@ set(APPELLATE_ASTERGLEN_V1_ARCHIVE_SHA256
 set(APPELLATE_ASTERGLEN_V1_ARCHIVE_SIZE 729511)
 set(APPELLATE_ASTERGLEN_V1_PACK_REVISION
     "ff7a2e1195f9bd006e7df46c19675a3e07a4bd8975b1643a01adbc9cc4fd3424")
+set(APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SHA256
+    "eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956")
+set(APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SIZE 2519053)
+set(APPELLATE_CINDERLAKE_WRIT_PACK_REVISION
+    "020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c")
 
 function(_appellate_assert_release_archive archive expected_sha256 expected_size)
     if(NOT EXISTS "${archive}")
@@ -161,6 +170,7 @@ set(_appellate_release_pack_archives
     "${_appellate_ca4_archive}"
     "${_appellate_bench_archive}"
     "${_appellate_asterglen_v1_archive}"
+    "${_appellate_cinderlake_writ_archive}"
 )
 set_property(
     DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${_appellate_release_pack_archives}
@@ -189,6 +199,11 @@ _appellate_assert_release_archive(
     "${_appellate_asterglen_v1_archive}"
     "${APPELLATE_ASTERGLEN_V1_ARCHIVE_SHA256}"
     "${APPELLATE_ASTERGLEN_V1_ARCHIVE_SIZE}"
+)
+_appellate_assert_release_archive(
+    "${_appellate_cinderlake_writ_archive}"
+    "${APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SHA256}"
+    "${APPELLATE_CINDERLAKE_WRIT_ARCHIVE_SIZE}"
 )
 
 set(_appellate_release_generated "${PROJECT_BINARY_DIR}/release")
