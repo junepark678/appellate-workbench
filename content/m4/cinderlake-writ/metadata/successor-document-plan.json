@@ -1,0 +1,1288 @@
+{
+  "schema_version": 1,
+  "pack_id": "us.ca4.m4.cinderlake-writ",
+  "successor_version": "1.2.0",
+  "case_id": "ca4m4.case.cinderlake-writ",
+  "source_cutoff": "2026-08-19",
+  "source_status": "planned",
+  "boundary": "original_writ_attorney_client_privilege_rule502_subject_matter_waiver_seven_day_production_and_public_sealed_offline_twins",
+  "dependencies": [
+    {
+      "pack_id": "foundation.us-federal",
+      "version": "2025.12.01",
+      "revision": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9"
+    },
+    {
+      "pack_id": "foundation.us-ca4",
+      "version": "2026.03.23",
+      "revision": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262"
+    },
+    {
+      "pack_id": "foundation.us-ca4-fictional-bench",
+      "version": "1.0.0",
+      "revision": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d"
+    }
+  ],
+  "resource_ids": {
+    "procedure_profile": "ca4m4.cinder.procedure.privilege-mandamus",
+    "workflow": "ca4m4.cinder.workflow.privilege-mandamus",
+    "record": "ca4m4.cinder.record",
+    "authority_set": "ca4m4.cinder.authorities.case-specific",
+    "bench_configuration": "ca4m4.cinder.bench.three-judge",
+    "argument_actual": "ca4m4.cinder.argument.actual-record",
+    "argument_counterfactual": "ca4m4.cinder.argument.summary-denial-counterfactual",
+    "realism_review": "ca4m4.cinder.review.authoring-2026-08-19"
+  },
+  "allocation": {
+    "lower_record": {
+      "document_count": 23,
+      "page_count": 196,
+      "minimum_page_count": 180
+    },
+    "actual_appellate": {
+      "document_count": 19,
+      "page_count": 153
+    },
+    "counterfactual_appellate": {
+      "document_count": 6,
+      "page_count": 53
+    },
+    "total": {
+      "document_count": 48,
+      "page_count": 402
+    }
+  },
+  "lower_record_category_counts": {
+    "pleading": 3,
+    "protective_order_esi": 2,
+    "audit_legal_communication": 4,
+    "privilege_log": 2,
+    "compel": 3,
+    "hearing_order": 2,
+    "reconsideration": 3,
+    "stay": 3,
+    "district_docket": 1
+  },
+  "frozen_chronology": {
+    "compliance_response_letter_created": "2025-08-21",
+    "district_complaint": "2025-12-03",
+    "district_answer": "2025-12-22",
+    "rule26f_report": "2026-01-05",
+    "protective_rule502d_order": "2026-01-09",
+    "investigation_memo_exchanged_outside_cmecf": "2026-01-29",
+    "privilege_log_exchanged_outside_cmecf": "2026-02-05",
+    "motion_to_compel": "2026-02-16",
+    "opposition_and_seal_motion": "2026-02-26",
+    "proposed_sealed_exhibits_provisionally_lodged": "2026-02-26",
+    "discovery_hearing": "2026-03-24",
+    "categorical_waiver_and_production_order": "2026-03-25",
+    "production_due": "2026-04-01",
+    "district_reconsideration_denied": "2026-03-30",
+    "district_stay_denied": "2026-04-01",
+    "actual_petition_and_emergency_motion": "2026-04-01",
+    "actual_interim_stay": "2026-04-02",
+    "actual_answer_invitation": "2026-04-03",
+    "actual_answer": "2026-04-09",
+    "actual_reply": "2026-04-13",
+    "actual_express_argument_order": "2026-04-14",
+    "actual_oral_argument": "2026-04-21",
+    "actual_opinion_and_judgment": "2026-05-05",
+    "actual_rule40_expiration": "2026-05-19",
+    "actual_final_disposition_transmitted": "2026-05-05",
+    "counterfactual_defective_petition_and_notice": "2026-04-01",
+    "counterfactual_exact_cure": "2026-04-02",
+    "counterfactual_conforming_petition_and_summary_denial": "2026-04-03",
+    "counterfactual_rule40_expiration": "2026-04-17",
+    "counterfactual_final_disposition_transmitted": "2026-04-03"
+  },
+  "docket_isolation": {
+    "district_docket_id": "ca4m4.cinder.docket.district",
+    "district_public_docket_number": "SYN-EDNC-25-CV-0882",
+    "actual_docket_id": "ca4m4.cinder.docket.appellate",
+    "actual_public_docket_number": "SYN-CA4-26-WR-4401",
+    "deficiency_docket_id": "ca4m4.cinder.docket.counterfactual-deficiency",
+    "deficiency_public_docket_number": "SYN-CA4-26-WR-4401-CF-DEFICIENCY-NEVER-FILED",
+    "summary_denial_docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
+    "summary_denial_public_docket_number": "SYN-CA4-26-WR-4401-CF-SUMMARY-DENIAL-NEVER-FILED",
+    "counterfactual_entries_never_occurred_on_actual_docket": true
+  },
+  "frozen_factual_contract": {
+    "synthetic_only": true,
+    "underlying_action": "Rhea Calder v. Cinder Lake Health Network, Inc., a fictional federal-question retaliation action under 31 U.S.C. § 3730(h); the writ materials make no merits conclusion on that claim.",
+    "privilege_governing_law": "Federal common-law privilege applies under Rule 501 because the frozen underlying action is federal-question litigation.",
+    "waiver_trigger": "Cinder Lake's August 21, 2025 pre-suit compliance response to a federal health-program oversight office states that outside counsel reviewed Calder's federal-program billing reports and that Cinder Lake adopted identified remedial measures, but it neither quotes nor summarizes counsel's communications, witness communications, mental impressions, or legal analysis. The same nonprivileged letter is later placed in the district record as public L07; the alleged Rule 502(a) predicate remains the August 21 disclosure to a federal office.",
+    "rule502d_boundary": "The January 9, 2026 Rule 502(d) order governs later litigation disclosures. It neither retroactively erases nor creates any waiver from the pre-suit August 21 letter.",
+    "lower_sealed_filing_contract": "The chronology preserves January 29 for the L08/L09 memorandum exchange and February 5 for the L10/L11 log exchange outside CM/ECF; neither exchange is an electronic court filing. All four documents use February 26 as filed_on because L13 and L14 then supply the public Local Civil Rule 79.2 motion, public notice/certificate, outside-CM/ECF service proof, offline-copy provenance, and provisional lodgment of the proposed sealed exhibits; L23 later records those public docket events.",
+    "district_ruling": "The March 25 order equates the shared topic and announced remediation with disclosure of privileged advice, finds categorical subject-matter waiver, and orders the complete investigation files produced by April 1, seven calendar days later.",
+    "actual_disposition": "Grant the writ in part; vacate the categorical-waiver and seven-day-production provisions; deny a blanket bar on related discovery; and remand for document-specific privilege, work-product, and discovery review.",
+    "deficiency_contract": "The shared writ-petition route remains unbound. B01 omits essential materials, respondent service, and the trial-judge-copy certification. Exact B02 creates a case-specific two-calendar-day cure deadline, and exact B03 cures the identified defects before the deadline. The future trace ends live in submitted status.",
+    "accepted_branch_contract": "A01 and B04 are conforming accepted petition instances. B04 is substantively insufficient after acceptance because it omits the decisive letter and context; it is not a technical-deficiency reason branch. Full downstream filing-instance predicates distinguish A01, B03, and B04.",
+    "answer_contract": "An answer is not due merely because a petition was accepted. Only exact A12 invites and schedules an answer, and only then may exact A13 be accepted.",
+    "argument_contract": "Local Rule 21 ordinarily omits oral argument. Only exact A15 expressly orders expedited argument for April 21, and the argument-held operation requires that order, a matching schedule, and the reached date.",
+    "emergency_contract": "Emergency relief is serialized before answer and merits operations. The pack makes no claim that the engine models parallel stay and merits tracks.",
+    "post_disposition_boundary": "Federal Rule of Appellate Procedure 21(b)(7) requires the clerk to send a copy of the final disposition to the trial-court judge. In the authored fictional record, the clerk transmits that copy on the judgment date. Rule 40 applies to original proceedings as other proceedings, while Fourth Circuit guidance states that no mandate issues in an original proceeding. Each terminal future workflow therefore closes by advancing the exact fourteen-day Rule 40 deadline after disposition, with no mandate or IssueMandate operation.",
+    "reasoning_boundary": "The workflow uses exact document and filing-instance predicates and does not infer legal sufficiency, privilege, waiver, or reason-sensitive deficiency logic from filing prose.",
+    "future_trace_contract": [
+      {
+        "trace_id": "ca4m4.cinder.trace.actual-through-rehearing-expiration",
+        "branch": "actual",
+        "terminal": true,
+        "outcome": "serialized emergency stay, exact answer order, answer, reply, express argument order, argument, partial grant, judgment, same-day clerk transmittal, and termination after the exact fourteen-day Rule 40 deadline reaches; no mandate or IssueMandate operation"
+      },
+      {
+        "trace_id": "ca4m4.cinder.trace.counterfactual-deficiency-cure",
+        "branch": "counterfactual_deficiency",
+        "terminal": false,
+        "outcome": "deficiency, exact timely cure, and live submitted endpoint"
+      },
+      {
+        "trace_id": "ca4m4.cinder.trace.counterfactual-summary-denial-through-rehearing-expiration",
+        "branch": "counterfactual_summary_denial",
+        "terminal": true,
+        "outcome": "conforming acceptance, substantive summary denial without answer or argument, judgment, same-day clerk transmittal, and termination after the exact fourteen-day Rule 40 deadline reaches; no mandate or IssueMandate operation"
+      }
+    ],
+    "source_authority_date_boundary": "Every fictional source document may cite only authority issued or effective by its own date. Later official compilations may verify unchanged preexisting statutory or rule text but do not license a fictional document to cite a later-issued authority. District sources before March 23, 2026 do not cite the March 23 Fourth Circuit rulebook. Appellate sources may cite that rulebook. In re Fluor is always labeled unpublished and nonprecedential and is used only for its exact persuasive seven-day production and no-disclosed-communication analogy."
+  },
+  "media_boundary": {
+    "non_pdf_media_included": false,
+    "reason": "The successor corpus is PDF-only. District sealed materials are modeled from provenance-verified offline paper copies available to an entitled fictional party; no workbench state represents PACER or CM/ECF access to a sealed or restricted document."
+  },
+  "render_status": "pending_render",
+  "capability_plan": [
+    "workbench.pack.declarative-resources@2",
+    "workbench.pack.canonical-authority@1",
+    "workbench.pack.structured-disposition@1",
+    "workbench.pack.workflow-preconditions@1",
+    "workbench.pack.static-deficiency-deadlines@1",
+    "workbench.pack.dependent-deadlines@1",
+    "workbench.pack.named-deadlines@1",
+    "workbench.pack.event-date-deadlines@1",
+    "workbench.pack.argument-date-guards@1",
+    "workbench.pack.grounded-questions@1",
+    "workbench.pack.realism-evidence@1",
+    "workbench.pack.route-role-subsets@1",
+    "workbench.pack.workflow-instance-preconditions@1",
+    "workbench.pack.operation-document-bindings@1",
+    "workbench.pack.operation-disposition-bindings@1",
+    "workbench.pack.route-filing-bindings@1",
+    "workbench.pack.operation-legal-time-guards@1",
+    "workbench.pack.sealed-record-twins@1"
+  ],
+  "citation_contract": {
+    "lower_record_prefix": "JA",
+    "lower_record_range": "JA1-JA196",
+    "appellate_prefix": "PA",
+    "actual_appellate_range": "PA1-PA153",
+    "counterfactual_branch_range": "PA154-PA206"
+  },
+  "sealed_record_twins": {
+    "policy_id": "ca4m4.cinder.record.policy.public-sealed-offline-twins",
+    "unauthorized_projection": "public_counterparts_only",
+    "authorized_projection": "public_and_authorized_sealed",
+    "sealed_asset_access": "session_event_grant_required",
+    "stable_anchor_mapping_count": 52,
+    "projection_counts": {
+      "public_default_entry_count": 44,
+      "public_default_anchor_count": 350,
+      "single_disclosure_grant_entry_count": 45,
+      "single_disclosure_grant_anchor_rule": "350 plus the selected disclosure's page count"
+    },
+    "mapping_rule": "Each page in every equal-page pair receives one record-unique stable logical anchor mapped to one public-redacted physical anchor and one sealed physical anchor. Case, issue, disposition, and question resources reference stable logical anchors for paired content.",
+    "referenced_stable_anchor_ids": [
+      "ca4m4.cinder.anchor.stable.lower-investigation-waiver-analysis",
+      "ca4m4.cinder.anchor.stable.lower-investigation-source-communications",
+      "ca4m4.cinder.anchor.stable.lower-privilege-log-categories",
+      "ca4m4.cinder.anchor.stable.actual-petition-waiver-statement",
+      "ca4m4.cinder.anchor.stable.actual-petition-irreparable-disclosure",
+      "ca4m4.cinder.anchor.stable.actual-appendix-essential-order",
+      "ca4m4.cinder.anchor.stable.actual-appendix-letter-context"
+    ],
+    "referenced_stable_anchor_bindings": [
+      {
+        "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-waiver-analysis",
+        "disclosure_id": "ca4m4.cinder.disclosure.lower-investigation-memorandum",
+        "page_offset": 3,
+        "public_anchor_id": "ca4m4.cinder.anchor.ja57",
+        "sealed_anchor_id": "ca4m4.cinder.anchor.ja69"
+      },
+      {
+        "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-source-communications",
+        "disclosure_id": "ca4m4.cinder.disclosure.lower-investigation-memorandum",
+        "page_offset": 6,
+        "public_anchor_id": "ca4m4.cinder.anchor.ja60",
+        "sealed_anchor_id": "ca4m4.cinder.anchor.ja72"
+      },
+      {
+        "stable_anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log-categories",
+        "disclosure_id": "ca4m4.cinder.disclosure.lower-privilege-log",
+        "page_offset": 2,
+        "public_anchor_id": "ca4m4.cinder.anchor.ja80",
+        "sealed_anchor_id": "ca4m4.cinder.anchor.ja88"
+      },
+      {
+        "stable_anchor_id": "ca4m4.cinder.anchor.stable.actual-petition-waiver-statement",
+        "disclosure_id": "ca4m4.cinder.disclosure.appellate-petition",
+        "page_offset": 4,
+        "public_anchor_id": "ca4m4.cinder.anchor.pa4",
+        "sealed_anchor_id": "ca4m4.cinder.anchor.pa33"
+      },
+      {
+        "stable_anchor_id": "ca4m4.cinder.anchor.stable.actual-petition-irreparable-disclosure",
+        "disclosure_id": "ca4m4.cinder.disclosure.appellate-petition",
+        "page_offset": 10,
+        "public_anchor_id": "ca4m4.cinder.anchor.pa10",
+        "sealed_anchor_id": "ca4m4.cinder.anchor.pa39"
+      },
+      {
+        "stable_anchor_id": "ca4m4.cinder.anchor.stable.actual-appendix-essential-order",
+        "disclosure_id": "ca4m4.cinder.disclosure.appellate-essential-record-appendix",
+        "page_offset": 7,
+        "public_anchor_id": "ca4m4.cinder.anchor.pa54",
+        "sealed_anchor_id": "ca4m4.cinder.anchor.pa68"
+      },
+      {
+        "stable_anchor_id": "ca4m4.cinder.anchor.stable.actual-appendix-letter-context",
+        "disclosure_id": "ca4m4.cinder.disclosure.appellate-essential-record-appendix",
+        "page_offset": 10,
+        "public_anchor_id": "ca4m4.cinder.anchor.pa57",
+        "sealed_anchor_id": "ca4m4.cinder.anchor.pa71"
+      }
+    ],
+    "remaining_stable_anchor_id_template": "For each disclosure page offset not listed above, use ca4m4.cinder.anchor.stable.<disclosure-suffix>.page-<two-digit-one-based-offset>; listed semantic IDs replace the template ID at their exact offsets.",
+    "verification_rule": "A workbench session grant is per disclosure and exact resolved pack closure. Revocation removes the sealed row and restores the public projection. Every authorized open independently verifies CAS path, size, digest, PDF readability, and page count before exposing a leased snapshot. For district material, the verified source is an entitled fictional party's offline paper copy obtained and served outside CM/ECF under Standing Order 25-SO-1; the grant never represents electronic court access.",
+    "required_items": [
+      "authorization_authority",
+      "public_counterpart_or_surrogate"
+    ],
+    "disclosures": [
+      {
+        "disclosure_id": "ca4m4.cinder.disclosure.lower-investigation-memorandum",
+        "public_code": "l08",
+        "sealed_code": "l09",
+        "motion_code": "l13",
+        "certificate_code": "l14",
+        "public_entry_id": "ca4m4.cinder.record.entry.l08",
+        "sealed_entry_id": "ca4m4.cinder.record.entry.l09",
+        "motion_entry_id": "ca4m4.cinder.record.entry.l13",
+        "certificate_entry_id": "ca4m4.cinder.record.entry.l14",
+        "authorization_authority_id": "ca4m4.cinder.authority.ednc-lr79-2-sealed-documents",
+        "supporting_authority_ids": [
+          "ca4m4.cinder.authority.ednc-so25-1-sealed-access"
+        ],
+        "required_items": [
+          "motion",
+          "certificate",
+          "redacted_counterpart"
+        ],
+        "page_count": 12,
+        "anchor_mapping_count": 12
+      },
+      {
+        "disclosure_id": "ca4m4.cinder.disclosure.lower-privilege-log",
+        "public_code": "l10",
+        "sealed_code": "l11",
+        "motion_code": "l13",
+        "certificate_code": "l14",
+        "public_entry_id": "ca4m4.cinder.record.entry.l10",
+        "sealed_entry_id": "ca4m4.cinder.record.entry.l11",
+        "motion_entry_id": "ca4m4.cinder.record.entry.l13",
+        "certificate_entry_id": "ca4m4.cinder.record.entry.l14",
+        "authorization_authority_id": "ca4m4.cinder.authority.ednc-lr79-2-sealed-documents",
+        "supporting_authority_ids": [
+          "ca4m4.cinder.authority.ednc-so25-1-sealed-access"
+        ],
+        "required_items": [
+          "motion",
+          "certificate",
+          "redacted_counterpart"
+        ],
+        "page_count": 8,
+        "anchor_mapping_count": 8
+      },
+      {
+        "disclosure_id": "ca4m4.cinder.disclosure.appellate-petition",
+        "public_code": "a01",
+        "sealed_code": "a05",
+        "motion_code": "a02",
+        "certificate_code": "a03",
+        "public_entry_id": "ca4m4.cinder.record.entry.a01",
+        "sealed_entry_id": "ca4m4.cinder.record.entry.a05",
+        "motion_entry_id": "ca4m4.cinder.record.entry.a02",
+        "certificate_entry_id": "ca4m4.cinder.record.entry.a03",
+        "authorization_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+        "supporting_authority_ids": [
+          "us.ca4.authority.sealed-materials-guide"
+        ],
+        "required_items": [
+          "motion",
+          "certificate",
+          "redacted_counterpart"
+        ],
+        "page_count": 18,
+        "anchor_mapping_count": 18
+      },
+      {
+        "disclosure_id": "ca4m4.cinder.disclosure.appellate-essential-record-appendix",
+        "public_code": "a06",
+        "sealed_code": "a07",
+        "motion_code": "a02",
+        "certificate_code": "a03",
+        "public_entry_id": "ca4m4.cinder.record.entry.a06",
+        "sealed_entry_id": "ca4m4.cinder.record.entry.a07",
+        "motion_entry_id": "ca4m4.cinder.record.entry.a02",
+        "certificate_entry_id": "ca4m4.cinder.record.entry.a03",
+        "authorization_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+        "supporting_authority_ids": [
+          "us.ca4.authority.sealed-materials-guide"
+        ],
+        "required_items": [
+          "motion",
+          "certificate",
+          "redacted_counterpart"
+        ],
+        "page_count": 14,
+        "anchor_mapping_count": 14
+      }
+    ]
+  },
+  "documents": [
+    {
+      "code": "l01",
+      "classification": "lower_record",
+      "record_category": "pleading",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2025-12-03",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.rhea-calder"
+      ],
+      "title": "Complaint",
+      "source_path": "documents/lower-record/l01-complaint.md",
+      "output_path": "objects/l01-complaint.pdf",
+      "page_count": 10,
+      "page_label_prefix": "JA",
+      "page_label_start": 1,
+      "page_label_end": 10
+    },
+    {
+      "code": "l02",
+      "classification": "lower_record",
+      "record_category": "pleading",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2025-12-12",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.rhea-calder"
+      ],
+      "title": "First Amended Complaint",
+      "source_path": "documents/lower-record/l02-first-amended-complaint.md",
+      "output_path": "objects/l02-first-amended-complaint.pdf",
+      "page_count": 8,
+      "page_label_prefix": "JA",
+      "page_label_start": 11,
+      "page_label_end": 18
+    },
+    {
+      "code": "l03",
+      "classification": "lower_record",
+      "record_category": "pleading",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2025-12-22",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Answer",
+      "source_path": "documents/lower-record/l03-answer.md",
+      "output_path": "objects/l03-answer.pdf",
+      "page_count": 10,
+      "page_label_prefix": "JA",
+      "page_label_start": 19,
+      "page_label_end": 28
+    },
+    {
+      "code": "l04",
+      "classification": "lower_record",
+      "record_category": "protective_order_esi",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-01-05",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake",
+        "ca4m4.cinder.actor.rhea-calder"
+      ],
+      "title": "Rule 26(f) Report, ESI Protocol, and Privilege Protocol",
+      "source_path": "documents/lower-record/l04-rule26f-esi-privilege-protocol.md",
+      "output_path": "objects/l04-rule26f-esi-privilege-protocol.pdf",
+      "page_count": 8,
+      "page_label_prefix": "JA",
+      "page_label_start": 29,
+      "page_label_end": 36
+    },
+    {
+      "code": "l05",
+      "classification": "lower_record",
+      "record_category": "protective_order_esi",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-01-09",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.district-court"
+      ],
+      "title": "Protective and Federal Rule of Evidence 502(d) Order",
+      "source_path": "documents/lower-record/l05-protective-rule502d-order.md",
+      "output_path": "objects/l05-protective-rule502d-order.pdf",
+      "page_count": 6,
+      "page_label_prefix": "JA",
+      "page_label_start": 37,
+      "page_label_end": 42
+    },
+    {
+      "code": "l06",
+      "classification": "lower_record",
+      "record_category": "audit_legal_communication",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-01-20",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Audit Intake, Investigation Charter, and Nonprivileged Chronology",
+      "source_path": "documents/lower-record/l06-audit-intake-charter-chronology.md",
+      "output_path": "objects/l06-audit-intake-charter-chronology.pdf",
+      "page_count": 7,
+      "page_label_prefix": "JA",
+      "page_label_start": 43,
+      "page_label_end": 49
+    },
+    {
+      "code": "l07",
+      "classification": "lower_record",
+      "record_category": "audit_legal_communication",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-01-22",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "August 21, 2025 Compliance Response Letter — Public Exhibit and Alleged Waiver Trigger",
+      "source_path": "documents/lower-record/l07-compliance-response-letter.md",
+      "output_path": "objects/l07-compliance-response-letter.pdf",
+      "page_count": 5,
+      "page_label_prefix": "JA",
+      "page_label_start": 50,
+      "page_label_end": 54
+    },
+    {
+      "code": "l08",
+      "classification": "lower_record",
+      "record_category": "audit_legal_communication",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-02-26",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Public Redacted Outside-Counsel Investigation Memorandum — Exchanged Copy",
+      "source_path": "documents/lower-record/l08-public-investigation-memorandum.md",
+      "output_path": "objects/l08-public-investigation-memorandum.pdf",
+      "page_count": 12,
+      "page_label_prefix": "JA",
+      "page_label_start": 55,
+      "page_label_end": 66
+    },
+    {
+      "code": "l09",
+      "classification": "lower_record",
+      "record_category": "audit_legal_communication",
+      "never_filed": false,
+      "sealed": true,
+      "source_status": "planned",
+      "filed_on": "2026-02-26",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Sealed Complete Outside-Counsel Investigation Memorandum — Outside-CM/ECF Exchanged Copy",
+      "source_path": "documents/lower-record/l09-sealed-investigation-memorandum.md",
+      "output_path": "objects/l09-sealed-investigation-memorandum.pdf",
+      "page_count": 12,
+      "page_label_prefix": "JA",
+      "page_label_start": 67,
+      "page_label_end": 78
+    },
+    {
+      "code": "l10",
+      "classification": "lower_record",
+      "record_category": "privilege_log",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-02-26",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Public Redacted Privilege Log — Exchanged Copy",
+      "source_path": "documents/lower-record/l10-public-privilege-log.md",
+      "output_path": "objects/l10-public-privilege-log.pdf",
+      "page_count": 8,
+      "page_label_prefix": "JA",
+      "page_label_start": 79,
+      "page_label_end": 86
+    },
+    {
+      "code": "l11",
+      "classification": "lower_record",
+      "record_category": "privilege_log",
+      "never_filed": false,
+      "sealed": true,
+      "source_status": "planned",
+      "filed_on": "2026-02-26",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Sealed Complete Privilege Log — Outside-CM/ECF Exchanged Copy",
+      "source_path": "documents/lower-record/l11-sealed-privilege-log.md",
+      "output_path": "objects/l11-sealed-privilege-log.pdf",
+      "page_count": 8,
+      "page_label_prefix": "JA",
+      "page_label_start": 87,
+      "page_label_end": 94
+    },
+    {
+      "code": "l12",
+      "classification": "lower_record",
+      "record_category": "compel",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-02-16",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.rhea-calder"
+      ],
+      "title": "Motion to Compel, Memorandum, Item-Specific Requests, and Conference Certification",
+      "source_path": "documents/lower-record/l12-motion-to-compel.md",
+      "output_path": "objects/l12-motion-to-compel.pdf",
+      "page_count": 14,
+      "page_label_prefix": "JA",
+      "page_label_start": 95,
+      "page_label_end": 108
+    },
+    {
+      "code": "l13",
+      "classification": "lower_record",
+      "record_category": "compel",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-02-26",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Opposition to Compel and Public Local Civil Rule 79.2 Motion to Seal Proposed Exhibits",
+      "source_path": "documents/lower-record/l13-opposition-and-motion-to-seal.md",
+      "output_path": "objects/l13-opposition-and-motion-to-seal.pdf",
+      "page_count": 14,
+      "page_label_prefix": "JA",
+      "page_label_start": 109,
+      "page_label_end": 122
+    },
+    {
+      "code": "l14",
+      "classification": "lower_record",
+      "record_category": "compel",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-02-26",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Public Confidentiality, Access, Offline-Copy Provenance, and Outside-CM/ECF Service Certificate",
+      "source_path": "documents/lower-record/l14-confidentiality-service-certificate.md",
+      "output_path": "objects/l14-confidentiality-service-certificate.pdf",
+      "page_count": 5,
+      "page_label_prefix": "JA",
+      "page_label_start": 123,
+      "page_label_end": 127
+    },
+    {
+      "code": "l15",
+      "classification": "lower_record",
+      "record_category": "hearing_order",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-03-24",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.district-court"
+      ],
+      "title": "Discovery Hearing Transcript",
+      "source_path": "documents/lower-record/l15-discovery-hearing-transcript.md",
+      "output_path": "objects/l15-discovery-hearing-transcript.pdf",
+      "page_count": 16,
+      "page_label_prefix": "JA",
+      "page_label_start": 128,
+      "page_label_end": 143
+    },
+    {
+      "code": "l16",
+      "classification": "lower_record",
+      "record_category": "hearing_order",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-03-25",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.district-court"
+      ],
+      "title": "Order Finding Categorical Subject-Matter Waiver and Compelling Production by April 1, 2026",
+      "source_path": "documents/lower-record/l16-waiver-production-order.md",
+      "output_path": "objects/l16-waiver-production-order.pdf",
+      "page_count": 8,
+      "page_label_prefix": "JA",
+      "page_label_start": 144,
+      "page_label_end": 151
+    },
+    {
+      "code": "l17",
+      "classification": "lower_record",
+      "record_category": "reconsideration",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-03-26",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Motion to Reconsider or Vacate and for Interim Stay",
+      "source_path": "documents/lower-record/l17-reconsideration-and-stay-motion.md",
+      "output_path": "objects/l17-reconsideration-and-stay-motion.pdf",
+      "page_count": 9,
+      "page_label_prefix": "JA",
+      "page_label_start": 152,
+      "page_label_end": 160
+    },
+    {
+      "code": "l18",
+      "classification": "lower_record",
+      "record_category": "reconsideration",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-03-27",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.rhea-calder"
+      ],
+      "title": "Opposition to Reconsideration",
+      "source_path": "documents/lower-record/l18-reconsideration-opposition.md",
+      "output_path": "objects/l18-reconsideration-opposition.pdf",
+      "page_count": 7,
+      "page_label_prefix": "JA",
+      "page_label_start": 161,
+      "page_label_end": 167
+    },
+    {
+      "code": "l19",
+      "classification": "lower_record",
+      "record_category": "reconsideration",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-03-30",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.district-court"
+      ],
+      "title": "Order Denying Reconsideration",
+      "source_path": "documents/lower-record/l19-reconsideration-order.md",
+      "output_path": "objects/l19-reconsideration-order.pdf",
+      "page_count": 6,
+      "page_label_prefix": "JA",
+      "page_label_start": 168,
+      "page_label_end": 173
+    },
+    {
+      "code": "l20",
+      "classification": "lower_record",
+      "record_category": "stay",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-03-30",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Emergency Motion for District Stay Pending Mandamus",
+      "source_path": "documents/lower-record/l20-district-stay-motion.md",
+      "output_path": "objects/l20-district-stay-motion.pdf",
+      "page_count": 7,
+      "page_label_prefix": "JA",
+      "page_label_start": 174,
+      "page_label_end": 180
+    },
+    {
+      "code": "l21",
+      "classification": "lower_record",
+      "record_category": "stay",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-03-31",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.rhea-calder"
+      ],
+      "title": "Opposition to District Stay",
+      "source_path": "documents/lower-record/l21-district-stay-opposition.md",
+      "output_path": "objects/l21-district-stay-opposition.pdf",
+      "page_count": 5,
+      "page_label_prefix": "JA",
+      "page_label_start": 181,
+      "page_label_end": 185
+    },
+    {
+      "code": "l22",
+      "classification": "lower_record",
+      "record_category": "stay",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.district-court"
+      ],
+      "title": "Order Denying District Stay",
+      "source_path": "documents/lower-record/l22-district-stay-order.md",
+      "output_path": "objects/l22-district-stay-order.pdf",
+      "page_count": 4,
+      "page_label_prefix": "JA",
+      "page_label_start": 186,
+      "page_label_end": 189
+    },
+    {
+      "code": "l23",
+      "classification": "lower_record",
+      "record_category": "district_docket",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.district",
+      "actor_ids": [
+        "ca4m4.cinder.actor.district-court"
+      ],
+      "title": "Certified District Docket Report and Public Sealing Notices",
+      "source_path": "documents/lower-record/l23-district-docket-report.md",
+      "output_path": "objects/l23-district-docket-report.pdf",
+      "page_count": 7,
+      "page_label_prefix": "JA",
+      "page_label_start": 190,
+      "page_label_end": 196
+    },
+    {
+      "code": "a01",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Public Redacted Petition for Writ of Mandamus",
+      "source_path": "documents/appellate-actual/a01-public-writ-petition.md",
+      "output_path": "objects/a01-public-writ-petition.pdf",
+      "page_count": 18,
+      "page_label_prefix": "PA",
+      "page_label_start": 1,
+      "page_label_end": 18
+    },
+    {
+      "code": "a02",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Public Motion to Seal and Continue Lower-Court Sealing",
+      "source_path": "documents/appellate-actual/a02-motion-to-seal.md",
+      "output_path": "objects/a02-motion-to-seal.pdf",
+      "page_count": 5,
+      "page_label_prefix": "PA",
+      "page_label_start": 19,
+      "page_label_end": 23
+    },
+    {
+      "code": "a03",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Public Confidentiality Certificate and Access List",
+      "source_path": "documents/appellate-actual/a03-confidentiality-certificate.md",
+      "output_path": "objects/a03-confidentiality-certificate.pdf",
+      "page_count": 4,
+      "page_label_prefix": "PA",
+      "page_label_start": 24,
+      "page_label_end": 27
+    },
+    {
+      "code": "a04",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Highly Sensitive Document Certificate — Ordinary Sealed Material, Not HSD",
+      "source_path": "documents/appellate-actual/a04-highly-sensitive-document-certificate.md",
+      "output_path": "objects/a04-highly-sensitive-document-certificate.pdf",
+      "page_count": 2,
+      "page_label_prefix": "PA",
+      "page_label_start": 28,
+      "page_label_end": 29
+    },
+    {
+      "code": "a05",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": true,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Sealed Petition for Writ of Mandamus",
+      "source_path": "documents/appellate-actual/a05-sealed-writ-petition.md",
+      "output_path": "objects/a05-sealed-writ-petition.pdf",
+      "page_count": 18,
+      "page_label_prefix": "PA",
+      "page_label_start": 30,
+      "page_label_end": 47
+    },
+    {
+      "code": "a06",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Public Essential-Record Appendix",
+      "source_path": "documents/appellate-actual/a06-public-essential-record-appendix.md",
+      "output_path": "objects/a06-public-essential-record-appendix.pdf",
+      "page_count": 14,
+      "page_label_prefix": "PA",
+      "page_label_start": 48,
+      "page_label_end": 61
+    },
+    {
+      "code": "a07",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": true,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Sealed Essential-Record Appendix",
+      "source_path": "documents/appellate-actual/a07-sealed-essential-record-appendix.md",
+      "output_path": "objects/a07-sealed-essential-record-appendix.pdf",
+      "page_count": 14,
+      "page_label_prefix": "PA",
+      "page_label_start": 62,
+      "page_label_end": 75
+    },
+    {
+      "code": "a08",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Emergency Motion for Immediate Administrative and Production Stay",
+      "source_path": "documents/appellate-actual/a08-emergency-stay-motion.md",
+      "output_path": "objects/a08-emergency-stay-motion.pdf",
+      "page_count": 8,
+      "page_label_prefix": "PA",
+      "page_label_start": 76,
+      "page_label_end": 83
+    },
+    {
+      "code": "a09",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-02",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.rhea-calder"
+      ],
+      "title": "Response in Opposition to Emergency Stay",
+      "source_path": "documents/appellate-actual/a09-emergency-stay-response.md",
+      "output_path": "objects/a09-emergency-stay-response.pdf",
+      "page_count": 6,
+      "page_label_prefix": "PA",
+      "page_label_start": 84,
+      "page_label_end": 89
+    },
+    {
+      "code": "a10",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-02",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.composite-panel"
+      ],
+      "title": "Interim Order Staying Production Through Disposition",
+      "source_path": "documents/appellate-actual/a10-interim-stay-order.md",
+      "output_path": "objects/a10-interim-stay-order.pdf",
+      "page_count": 4,
+      "page_label_prefix": "PA",
+      "page_label_start": 90,
+      "page_label_end": 93
+    },
+    {
+      "code": "a11",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-02",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake",
+        "ca4m4.cinder.actor.rhea-calder"
+      ],
+      "title": "Appearances and Corporate Disclosure Statements",
+      "source_path": "documents/appellate-actual/a11-appearances-disclosures.md",
+      "output_path": "objects/a11-appearances-disclosures.pdf",
+      "page_count": 4,
+      "page_label_prefix": "PA",
+      "page_label_start": 94,
+      "page_label_end": 97
+    },
+    {
+      "code": "a12",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-03",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.composite-panel"
+      ],
+      "title": "Order Inviting Answer, Setting April 9 and April 13 Briefing, and Continuing Stay",
+      "source_path": "documents/appellate-actual/a12-answer-invitation-order.md",
+      "output_path": "objects/a12-answer-invitation-order.pdf",
+      "page_count": 4,
+      "page_label_prefix": "PA",
+      "page_label_start": 98,
+      "page_label_end": 101
+    },
+    {
+      "code": "a13",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-09",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.rhea-calder"
+      ],
+      "title": "Answer to Petition for Writ of Mandamus",
+      "source_path": "documents/appellate-actual/a13-answer-to-petition.md",
+      "output_path": "objects/a13-answer-to-petition.pdf",
+      "page_count": 14,
+      "page_label_prefix": "PA",
+      "page_label_start": 102,
+      "page_label_end": 115
+    },
+    {
+      "code": "a14",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-13",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Reply in Support of Petition",
+      "source_path": "documents/appellate-actual/a14-reply-in-support.md",
+      "output_path": "objects/a14-reply-in-support.pdf",
+      "page_count": 10,
+      "page_label_prefix": "PA",
+      "page_label_start": 116,
+      "page_label_end": 125
+    },
+    {
+      "code": "a15",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-14",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.composite-panel"
+      ],
+      "title": "Express Expedited Oral-Argument Order for April 21, 2026",
+      "source_path": "documents/appellate-actual/a15-expedited-argument-order.md",
+      "output_path": "objects/a15-expedited-argument-order.pdf",
+      "page_count": 4,
+      "page_label_prefix": "PA",
+      "page_label_start": 126,
+      "page_label_end": 129
+    },
+    {
+      "code": "a16",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-21",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.ca4-clerk"
+      ],
+      "title": "Oral Argument Held Minute",
+      "source_path": "documents/appellate-actual/a16-oral-argument-minute.md",
+      "output_path": "objects/a16-oral-argument-minute.pdf",
+      "page_count": 2,
+      "page_label_prefix": "PA",
+      "page_label_start": 130,
+      "page_label_end": 131
+    },
+    {
+      "code": "a17",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-05-05",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.composite-panel"
+      ],
+      "title": "Fictional Published Opinion Granting Petition in Part",
+      "source_path": "documents/appellate-actual/a17-published-opinion.md",
+      "output_path": "objects/a17-published-opinion.pdf",
+      "page_count": 18,
+      "page_label_prefix": "PA",
+      "page_label_start": 132,
+      "page_label_end": 149
+    },
+    {
+      "code": "a18",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-05-05",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.ca4-clerk"
+      ],
+      "title": "Judgment",
+      "source_path": "documents/appellate-actual/a18-judgment.md",
+      "output_path": "objects/a18-judgment.pdf",
+      "page_count": 2,
+      "page_label_prefix": "PA",
+      "page_label_start": 150,
+      "page_label_end": 151
+    },
+    {
+      "code": "a19",
+      "classification": "actual_appellate",
+      "never_filed": false,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-05-05",
+      "docket_id": "ca4m4.cinder.docket.appellate",
+      "actor_ids": [
+        "ca4m4.cinder.actor.ca4-clerk"
+      ],
+      "title": "Clerk Certificate Transmitting Final Disposition to the Trial Judge",
+      "source_path": "documents/appellate-actual/a19-final-disposition-transmittal.md",
+      "output_path": "objects/a19-final-disposition-transmittal.pdf",
+      "page_count": 2,
+      "page_label_prefix": "PA",
+      "page_label_start": 152,
+      "page_label_end": 153
+    },
+    {
+      "code": "b01",
+      "classification": "counterfactual_appellate",
+      "never_filed": true,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.counterfactual-deficiency",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Never-Filed Defective Petition Missing Essential Materials, Trial-Judge Copy, and Respondent Service",
+      "source_path": "documents/appellate-branches/b01-defective-petition.md",
+      "output_path": "objects/b01-defective-petition.pdf",
+      "page_count": 10,
+      "page_label_prefix": "PA",
+      "page_label_start": 154,
+      "page_label_end": 163
+    },
+    {
+      "code": "b02",
+      "classification": "counterfactual_appellate",
+      "never_filed": true,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-01",
+      "docket_id": "ca4m4.cinder.docket.counterfactual-deficiency",
+      "actor_ids": [
+        "ca4m4.cinder.actor.ca4-clerk"
+      ],
+      "title": "Never-Filed Clerk Deficiency Notice Setting a Two-Calendar-Day Cure Deadline",
+      "source_path": "documents/appellate-branches/b02-deficiency-notice.md",
+      "output_path": "objects/b02-deficiency-notice.pdf",
+      "page_count": 3,
+      "page_label_prefix": "PA",
+      "page_label_start": 164,
+      "page_label_end": 166
+    },
+    {
+      "code": "b03",
+      "classification": "counterfactual_appellate",
+      "never_filed": true,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-02",
+      "docket_id": "ca4m4.cinder.docket.counterfactual-deficiency",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Never-Filed Corrected Petition, Essential-Materials Index, and Service Certifications",
+      "source_path": "documents/appellate-branches/b03-corrected-petition.md",
+      "output_path": "objects/b03-corrected-petition.pdf",
+      "page_count": 18,
+      "page_label_prefix": "PA",
+      "page_label_start": 167,
+      "page_label_end": 184
+    },
+    {
+      "code": "b04",
+      "classification": "counterfactual_appellate",
+      "never_filed": true,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-03",
+      "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
+      "actor_ids": [
+        "ca4m4.cinder.actor.cinder-lake"
+      ],
+      "title": "Never-Filed Formally Conforming but Substantively Incomplete Petition",
+      "source_path": "documents/appellate-branches/b04-conforming-incomplete-petition.md",
+      "output_path": "objects/b04-conforming-incomplete-petition.pdf",
+      "page_count": 14,
+      "page_label_prefix": "PA",
+      "page_label_start": 185,
+      "page_label_end": 198
+    },
+    {
+      "code": "b05",
+      "classification": "counterfactual_appellate",
+      "never_filed": true,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-03",
+      "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
+      "actor_ids": [
+        "ca4m4.cinder.actor.composite-panel"
+      ],
+      "title": "Never-Filed Summary-Denial Order and Judgment Without Answer or Argument",
+      "source_path": "documents/appellate-branches/b05-summary-denial-order-judgment.md",
+      "output_path": "objects/b05-summary-denial-order-judgment.pdf",
+      "page_count": 6,
+      "page_label_prefix": "PA",
+      "page_label_start": 199,
+      "page_label_end": 204
+    },
+    {
+      "code": "b06",
+      "classification": "counterfactual_appellate",
+      "never_filed": true,
+      "sealed": false,
+      "source_status": "planned",
+      "filed_on": "2026-04-03",
+      "docket_id": "ca4m4.cinder.docket.counterfactual-summary-denial",
+      "actor_ids": [
+        "ca4m4.cinder.actor.ca4-clerk"
+      ],
+      "title": "Never-Filed Clerk Certificate Transmitting Summary-Denial Disposition to the Trial Judge",
+      "source_path": "documents/appellate-branches/b06-summary-denial-transmittal.md",
+      "output_path": "objects/b06-summary-denial-transmittal.pdf",
+      "page_count": 2,
+      "page_label_prefix": "PA",
+      "page_label_start": 205,
+      "page_label_end": 206
+    }
+  ]
+}

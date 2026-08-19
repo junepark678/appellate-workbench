@@ -1,0 +1,238 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.cinder.argument.summary-denial-counterfactual",
+  "case_id": "ca4m4.case.cinderlake-writ",
+  "bench_configuration_id": "ca4m4.cinder.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.cinder.issue.petition-compliance",
+    "ca4m4.cinder.issue.mandamus-threshold"
+  ],
+  "grounded_question_bank": {
+    "mode": "counterfactual_training",
+    "grounding_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.cinder.issue.petition-compliance",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.governing-authority",
+          "workbench.topic.preservation",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.merits",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.cinder.question.counterfactual-compliance-defects",
+        "issue_id": "ca4m4.cinder.issue.petition-compliance",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Which exact petition fields, essential materials, service, and trial-judge-copy requirements are missing from B01, and why is B02 a technical-deficiency notice rather than a merits disposition?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-defects-frap21",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-21-extraordinary-writ"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-defects-frap25",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-25-filing-service"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-defects-petition",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa154"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-defects-notice",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa164"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.counterfactual-compliance-cure",
+        "issue_id": "ca4m4.cinder.issue.petition-compliance",
+        "topic_id": "workbench.topic.preservation",
+        "prompt": "How does B03 cure every defect identified by the exact B02 notice within its case-specific two-calendar-day deadline, and why does that cure produce only a live submitted endpoint?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-cure-frap21",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-21-extraordinary-writ"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-cure-notice",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa164"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-cure-petition",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa167"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-cure-service",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa184"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.counterfactual-compliance-conforming",
+        "issue_id": "ca4m4.cinder.issue.petition-compliance",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Why is B04 accepted as formally conforming even though it omits the decisive letter and context needed to carry the extraordinary-relief burden?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-conforming-local21",
+            "kind": "authority",
+            "authority_id": "us.ca4.authority.local-rule-21b-writs"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-conforming-frap21",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-21-extraordinary-writ"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-conforming-petition",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa185"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.counterfactual-compliance-engine-boundary",
+        "issue_id": "ca4m4.cinder.issue.petition-compliance",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "What exact filing-instance facts distinguish the cured and conforming branches, and what legal judgment does the workflow deliberately avoid inferring from the prose of either petition?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-boundary-local21",
+            "kind": "authority",
+            "authority_id": "us.ca4.authority.local-rule-21b-writs"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-boundary-cure",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa167"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-compliance-boundary-conforming",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa185"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.counterfactual-threshold-substantive-omission",
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Why does omitting the response letter and its surrounding context prevent B04 from showing a clear and indisputable right even though the petition satisfies technical filing requirements?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-omission-cheney",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.cheney-three-part-mandamus"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-omission-sky-angel",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.sky-angel-rule502-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-omission-petition",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa185"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.counterfactual-threshold-no-answer",
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Why may the court deny the conforming but substantively insufficient petition without inviting an answer, and why is no respondent filing due absent an exact response order?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-no-answer-frap21",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-21-extraordinary-writ"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-no-answer-local21",
+            "kind": "authority",
+            "authority_id": "us.ca4.authority.local-rule-21b-writs"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-no-answer-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa199"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.counterfactual-threshold-no-argument",
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why does summary denial require neither oral argument nor an argument-date transition when Local Rule 21 ordinarily submits an answered petition without argument and this petition was never answered?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-no-argument-local21",
+            "kind": "authority",
+            "authority_id": "us.ca4.authority.local-rule-21b-writs"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-no-argument-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa199"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-no-argument-judgment",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa204"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.counterfactual-threshold-terminal-timing",
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "What fourteen-day rehearing period follows the April 3 summary-denial judgment, why does no mandate issue in this original proceeding, and which exact clerk certificate records the authored same-day transmittal to the trial judge?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-terminal-frap40",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-40-rehearing"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-terminal-frap21",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-21-extraordinary-writ"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-terminal-judgment",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa204"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.counterfactual-threshold-terminal-transmittal",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa205"
+          }
+        ]
+      }
+    ]
+  }
+}

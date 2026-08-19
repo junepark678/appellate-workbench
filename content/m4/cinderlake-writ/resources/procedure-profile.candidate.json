@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "resource_kind": "procedure_profile",
+  "resource_id": "ca4m4.cinder.procedure.privilege-mandamus",
+  "court_id": "us.ca4.court.appeals",
+  "proceeding_type": "original_writ",
+  "actor_roles": [
+    "us.ca4.role.initiating-party",
+    "us.ca4.role.responding-party",
+    "us.ca4.role.court",
+    "ca4m4.cinder.role.originating-court"
+  ],
+  "filing_catalog_id": "us.ca4.filing-catalog.shared",
+  "workflow_id": "ca4m4.cinder.workflow.privilege-mandamus",
+  "authority_set_ids": [
+    "us.federal.authorities.appellate-rules",
+    "us.federal.authorities.civil-rules",
+    "us.ca4.authorities.local-procedure",
+    "ca4m4.cinder.authorities.case-specific"
+  ]
+}
