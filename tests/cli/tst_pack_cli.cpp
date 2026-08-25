@@ -44,6 +44,7 @@ class PackCliTest final : public QObject {
     void completePackLifecycle();
     void authorsRealismEvidenceDeterministically();
     void authorsMultiTraceRealismEvidenceDeterministically();
+    void mapsCatalogBusyWithoutMutatingTheLock();
     void rejectsInvalidArgumentsAndExistingTemplateDestination();
 };
 
@@ -1549,6 +1550,41 @@ void PackCliTest::authorsMultiTraceRealismEvidenceDeterministically() {
     QCOMPARE(readAll(review_path), authored_review_bytes);
     QCOMPARE(readAll(manifest_path), authored_manifest_bytes);
     QVERIFY(!QFileInfo::exists(transaction_path));
+}
+
+void PackCliTest::mapsCatalogBusyWithoutMutatingTheLock() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto catalog_root = QDir(temporary.path()).filePath(QStringLiteral("catalog"));
+    {
+        auto catalog = appellate::packs::PackCatalog::open(catalog_root);
+        QVERIFY2(catalog.has_value(), catalog ? "" : qPrintable(catalog.error().message));
+    }
+
+    const auto lock_path = QDir(catalog_root).filePath(QStringLiteral(".install.lock"));
+    QLockFile held_lock(lock_path);
+    QVERIFY(held_lock.tryLock());
+    const auto lock_bytes = readAll(lock_path);
+    QVERIFY(!lock_bytes.isEmpty());
+    const auto archives_before = QDir(QDir(catalog_root).filePath(QStringLiteral("archives")))
+                                     .entryList(QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot);
+    const auto blobs_before = QDir(QDir(catalog_root).filePath(QStringLiteral("blobs")))
+                                  .entryList(QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot);
+
+    const auto result = runPackCli({QStringLiteral("list"), catalog_root});
+    QCOMPARE(result.exit_code, static_cast<int>(ExitCode::OperationFailed));
+    QVERIFY(result.standard_output.isEmpty());
+    QCOMPARE(responseObject(result.standard_error).value(QStringLiteral("code")).toString(),
+             QStringLiteral("catalog_busy"));
+    QCOMPARE(readAll(lock_path), lock_bytes);
+    QCOMPARE(QDir(QDir(catalog_root).filePath(QStringLiteral("archives")))
+                 .entryList(QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot),
+             archives_before);
+    QCOMPARE(QDir(QDir(catalog_root).filePath(QStringLiteral("blobs")))
+                 .entryList(QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot),
+             blobs_before);
+    QVERIFY(
+        !QFileInfo::exists(QDir(catalog_root).filePath(QStringLiteral(".install.lock.rmlock"))));
 }
 
 void PackCliTest::rejectsInvalidArgumentsAndExistingTemplateDestination() {

@@ -66,6 +66,8 @@ target_link_libraries(
         appellate::project_sanitizers
         Qt6::Test
 )
+target_include_directories(tst_pack_catalog PRIVATE "${PROJECT_SOURCE_DIR}/src/packs/src")
+target_compile_definitions(tst_pack_catalog PRIVATE APPELLATE_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 target_compile_features(tst_pack_catalog PRIVATE cxx_std_26)
 add_test(NAME pack_catalog COMMAND tst_pack_catalog)
 
@@ -86,6 +88,10 @@ target_link_libraries(
 target_compile_definitions(
     tst_pack_dependency_resolution
     PRIVATE APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+)
+target_include_directories(
+    tst_pack_dependency_resolution
+    PRIVATE "${PROJECT_SOURCE_DIR}/src/packs/src"
 )
 target_compile_features(tst_pack_dependency_resolution PRIVATE cxx_std_26)
 add_test(NAME pack_dependency_resolution COMMAND tst_pack_dependency_resolution)

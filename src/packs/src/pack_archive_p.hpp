@@ -121,6 +121,10 @@ class SecureScratchContext final {
     ~SecureScratchContext();
 
     [[nodiscard]] bool isValid() const;
+    [[nodiscard]] const QString& absoluteParent() const noexcept;
+    [[nodiscard]] auto parentDescriptor() const -> std::expected<int, SecureScratchFailure>;
+    [[nodiscard]] auto validateRetainedControllers() const
+        -> std::expected<void, SecureScratchFailure>;
 
   private:
     struct Impl;
@@ -141,5 +145,10 @@ acquireSecureScratchContext(const SecureScratchHooks& hooks = {});
 [[nodiscard]] std::expected<LoadedPack, Error>
 importArchiveThroughSecureScratch(const QString& archive_path, PackArchiveLimits limits,
                                   PackValidationScope scope, const SecureScratchHooks& hooks);
+
+[[nodiscard]] std::expected<LoadedPack, Error>
+importArchiveThroughRetainedSecureScratch(const QString& archive_path, PackArchiveLimits limits,
+                                          PackValidationScope scope, SecureScratchContext& context,
+                                          const SecureScratchHooks& hooks = {});
 
 } // namespace appellate::packs::detail

@@ -97,6 +97,34 @@ SecureScratchContext& SecureScratchContext::operator=(SecureScratchContext&&) no
 SecureScratchContext::~SecureScratchContext() = default;
 bool SecureScratchContext::isValid() const { return impl_ != nullptr; }
 
+const QString& SecureScratchContext::absoluteParent() const noexcept {
+    static const QString empty;
+    return impl_ == nullptr ? empty : impl_->absolute_parent;
+}
+
+std::expected<int, SecureScratchFailure> SecureScratchContext::parentDescriptor() const {
+    if (impl_ == nullptr) {
+        return std::unexpected(SecureScratchFailure{
+            SecureScratchFailureCode::OperationalFailure,
+            QStringLiteral("Secure scratch context was consumed"),
+        });
+    }
+#if defined(Q_OS_LINUX)
+    if (impl_->controllers.empty() || impl_->controllers.back().descriptor.get() < 0) {
+        return std::unexpected(SecureScratchFailure{
+            SecureScratchFailureCode::OperationalFailure,
+            QStringLiteral("Secure scratch parent descriptor is unavailable"),
+        });
+    }
+    return impl_->controllers.back().descriptor.get();
+#else
+    return std::unexpected(SecureScratchFailure{
+        SecureScratchFailureCode::EnvironmentInfeasible,
+        QStringLiteral("Secure scratch parent descriptors require Linux"),
+    });
+#endif
+}
+
 } // namespace detail
 
 namespace {
@@ -977,6 +1005,83 @@ int closeArchiveOutput(archive* value, void* client_data) {
 
 namespace detail {
 
+std::expected<void, SecureScratchFailure>
+SecureScratchContext::validateRetainedControllers() const {
+    if (impl_ == nullptr) {
+        return std::unexpected(SecureScratchFailure{
+            SecureScratchFailureCode::OperationalFailure,
+            QStringLiteral("Secure scratch context was consumed"),
+        });
+    }
+#if !defined(Q_OS_LINUX)
+    return std::unexpected(SecureScratchFailure{
+        SecureScratchFailureCode::EnvironmentInfeasible,
+        QStringLiteral("Secure scratch controller validation requires Linux"),
+    });
+#else
+    if (impl_->controllers.empty()) {
+        return std::unexpected(SecureScratchFailure{
+            SecureScratchFailureCode::OperationalFailure,
+            QStringLiteral("Secure scratch controller chain is empty"),
+        });
+    }
+    for (std::size_t index = 0; index < impl_->controllers.size(); ++index) {
+        const auto& controller = impl_->controllers.at(index);
+        struct stat held{};
+        if (::fstat(controller.descriptor.get(), &held) != 0 ||
+            held.st_dev != controller.identity.st_dev ||
+            held.st_ino != controller.identity.st_ino ||
+            held.st_uid != controller.identity.st_uid ||
+            (held.st_mode & 07777) != (controller.identity.st_mode & 07777) ||
+            !scratchControllerPolicy(held)) {
+            return std::unexpected(SecureScratchFailure{
+                SecureScratchFailureCode::OperationalFailure,
+                QStringLiteral("Secure scratch retained controller changed"),
+            });
+        }
+        if (index != 0) {
+            struct stat named{};
+            if (::fstatat(impl_->controllers.at(index - 1U).descriptor.get(),
+                          controller.component.constData(), &named, AT_SYMLINK_NOFOLLOW) != 0 ||
+                named.st_dev != held.st_dev || named.st_ino != held.st_ino) {
+                return std::unexpected(SecureScratchFailure{
+                    SecureScratchFailureCode::OperationalFailure,
+                    QStringLiteral("Secure scratch retained controller binding changed"),
+                });
+            }
+        }
+        if (!scratchAclAbsent(controller.descriptor.get(), "system.posix_acl_access") ||
+            !scratchAclAbsent(controller.descriptor.get(), "system.posix_acl_default")) {
+            return std::unexpected(SecureScratchFailure{
+                SecureScratchFailureCode::OperationalFailure,
+                QStringLiteral("Secure scratch retained controller ACL changed"),
+            });
+        }
+        struct stat rebound{};
+        if (::fstat(controller.descriptor.get(), &rebound) != 0 ||
+            !sameScratchIdentity(rebound, controller.identity, false) ||
+            !scratchControllerPolicy(rebound)) {
+            return std::unexpected(SecureScratchFailure{
+                SecureScratchFailureCode::OperationalFailure,
+                QStringLiteral("Secure scratch retained controller changed during validation"),
+            });
+        }
+        if (index != 0) {
+            struct stat named{};
+            if (::fstatat(impl_->controllers.at(index - 1U).descriptor.get(),
+                          controller.component.constData(), &named, AT_SYMLINK_NOFOLLOW) != 0 ||
+                !sameScratchIdentity(named, controller.identity, false)) {
+                return std::unexpected(SecureScratchFailure{
+                    SecureScratchFailureCode::OperationalFailure,
+                    QStringLiteral("Secure scratch retained controller rebound"),
+                });
+            }
+        }
+    }
+    return {};
+#endif
+}
+
 bool isValidSecureScratchName(QByteArrayView name) {
     if (name.size() < static_cast<qsizetype>(secure_scratch_nonce_hex_characters + 2) ||
         name.size() > 64 || name == QByteArrayView(".") || name == QByteArrayView("..")) {
@@ -1196,8 +1301,8 @@ class SecureScratchWorkspace final {
         bool removed{};
     };
 
-    SecureScratchWorkspace(SecureScratchContext context, SecureScratchHooks hooks)
-        : context_(std::move(context)), hooks_(std::move(hooks)) {}
+    SecureScratchWorkspace(SecureScratchContext& context, SecureScratchHooks hooks)
+        : context_(context), hooks_(std::move(hooks)) {}
     SecureScratchWorkspace(const SecureScratchWorkspace&) = delete;
     SecureScratchWorkspace& operator=(const SecureScratchWorkspace&) = delete;
     ~SecureScratchWorkspace() {
@@ -1207,7 +1312,7 @@ class SecureScratchWorkspace final {
     }
 
     [[nodiscard]] static std::expected<std::unique_ptr<SecureScratchWorkspace>, Error>
-    create(SecureScratchContext context, const ZipInspection& inspection,
+    create(SecureScratchContext& context, const ZipInspection& inspection,
            const SecureScratchHooks& hooks) {
         if (!context.isValid()) {
             return fail(ErrorCode::CannotRead,
@@ -1215,7 +1320,7 @@ class SecureScratchWorkspace final {
         }
         std::unique_ptr<SecureScratchWorkspace> workspace;
         try {
-            workspace.reset(new SecureScratchWorkspace(std::move(context), hooks));
+            workspace.reset(new SecureScratchWorkspace(context, hooks));
         } catch (const std::bad_alloc&) {
             return fail(ErrorCode::CannotRead,
                         QStringLiteral("Cannot allocate secure scratch state"));
@@ -2258,46 +2363,7 @@ class SecureScratchWorkspace final {
     }
 
     [[nodiscard]] bool validateControllers() const {
-        const auto& controllers = context_.impl_->controllers;
-        for (std::size_t index = 0; index < controllers.size(); ++index) {
-            const auto& controller = controllers.at(index);
-            struct stat held{};
-            if (::fstat(controller.descriptor.get(), &held) != 0 ||
-                held.st_dev != controller.identity.st_dev ||
-                held.st_ino != controller.identity.st_ino ||
-                held.st_uid != controller.identity.st_uid ||
-                (held.st_mode & 07777) != (controller.identity.st_mode & 07777) ||
-                !scratchControllerPolicy(held)) {
-                return false;
-            }
-            if (index != 0) {
-                struct stat named{};
-                if (::fstatat(controllers.at(index - 1U).descriptor.get(),
-                              controller.component.constData(), &named, AT_SYMLINK_NOFOLLOW) != 0 ||
-                    named.st_dev != held.st_dev || named.st_ino != held.st_ino) {
-                    return false;
-                }
-            }
-            if (!scratchAclAbsent(controller.descriptor.get(), "system.posix_acl_access") ||
-                !scratchAclAbsent(controller.descriptor.get(), "system.posix_acl_default")) {
-                return false;
-            }
-            struct stat rebound{};
-            if (::fstat(controller.descriptor.get(), &rebound) != 0 ||
-                !sameScratchIdentity(rebound, controller.identity, false) ||
-                !scratchControllerPolicy(rebound)) {
-                return false;
-            }
-            if (index != 0) {
-                struct stat named{};
-                if (::fstatat(controllers.at(index - 1U).descriptor.get(),
-                              controller.component.constData(), &named, AT_SYMLINK_NOFOLLOW) != 0 ||
-                    !sameScratchIdentity(named, controller.identity, false)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return context_.validateRetainedControllers().has_value();
     }
 
     void markCleanupBlocked() {
@@ -2323,7 +2389,7 @@ class SecureScratchWorkspace final {
         return fail(ErrorCode::CannotRead, std::move(message));
     }
 
-    SecureScratchContext context_;
+    SecureScratchContext& context_;
     SecureScratchHooks hooks_;
     SecureScratchPlan plan_;
     std::vector<Entry> entries_;
@@ -2435,29 +2501,14 @@ class SecureScratchWorkspace final {
     }
     return {};
 }
-#endif
 
-std::expected<LoadedPack, Error>
-importArchiveThroughSecureScratch(const QString& archive_path, PackArchiveLimits limits,
-                                  PackValidationScope scope, const SecureScratchHooks& hooks) {
-    const auto inspection = inspectZip(archive_path, limits);
-    if (!inspection) {
-        return std::unexpected(inspection.error());
+[[nodiscard]] std::expected<LoadedPack, Error> importInspectedArchiveThroughRetainedSecureScratch(
+    const QString& archive_path, const ZipInspection& inspection, PackValidationScope scope,
+    SecureScratchContext& context, const SecureScratchHooks& hooks) {
+    if (!context.isValid()) {
+        return fail(ErrorCode::CannotRead, QStringLiteral("Secure scratch context was consumed"));
     }
-    const auto member_set = validateManifestMemberSet(archive_path, *inspection);
-    if (!member_set) {
-        return std::unexpected(member_set.error());
-    }
-    auto context = acquireSecureScratchContext(hooks);
-    if (!context) {
-        return fail(ErrorCode::CannotRead, context.error().message);
-    }
-#if !defined(Q_OS_LINUX)
-    static_cast<void>(scope);
-    return fail(ErrorCode::CannotRead,
-                QStringLiteral("Secure archive scratch is unavailable on this platform"));
-#else
-    auto workspace = SecureScratchWorkspace::create(std::move(*context), *inspection, hooks);
+    auto workspace = SecureScratchWorkspace::create(context, inspection, hooks);
     if (!workspace) {
         return std::unexpected(workspace.error());
     }
@@ -2466,7 +2517,7 @@ importArchiveThroughSecureScratch(const QString& archive_path, PackArchiveLimits
         const auto cleaned = (*workspace)->cleanup();
         return cleaned ? std::unexpected(original) : std::unexpected(cleaned.error());
     };
-    if (const auto extracted = extractArchiveSecure(archive_path, *inspection, **workspace);
+    if (const auto extracted = extractArchiveSecure(archive_path, inspection, **workspace);
         !extracted) {
         return cleanFailure(extracted.error());
     }
@@ -2490,6 +2541,56 @@ importArchiveThroughSecureScratch(const QString& archive_path, PackArchiveLimits
         return std::unexpected(cleaned.error());
     }
     return loaded;
+}
+#endif
+
+std::expected<LoadedPack, Error>
+importArchiveThroughSecureScratch(const QString& archive_path, PackArchiveLimits limits,
+                                  PackValidationScope scope, const SecureScratchHooks& hooks) {
+    const auto inspection = inspectZip(archive_path, limits);
+    if (!inspection) {
+        return std::unexpected(inspection.error());
+    }
+    const auto member_set = validateManifestMemberSet(archive_path, *inspection);
+    if (!member_set) {
+        return std::unexpected(member_set.error());
+    }
+    auto context = acquireSecureScratchContext(hooks);
+    if (!context) {
+        return fail(ErrorCode::CannotRead, context.error().message);
+    }
+#if !defined(Q_OS_LINUX)
+    static_cast<void>(scope);
+    return fail(ErrorCode::CannotRead,
+                QStringLiteral("Secure archive scratch is unavailable on this platform"));
+#else
+    return importInspectedArchiveThroughRetainedSecureScratch(archive_path, *inspection, scope,
+                                                              *context, hooks);
+#endif
+}
+
+std::expected<LoadedPack, Error>
+importArchiveThroughRetainedSecureScratch(const QString& archive_path, PackArchiveLimits limits,
+                                          PackValidationScope scope, SecureScratchContext& context,
+                                          const SecureScratchHooks& hooks) {
+    if (!context.isValid()) {
+        return fail(ErrorCode::CannotRead, QStringLiteral("Secure scratch context was consumed"));
+    }
+    const auto inspection = inspectZip(archive_path, limits);
+    if (!inspection) {
+        return std::unexpected(inspection.error());
+    }
+    const auto member_set = validateManifestMemberSet(archive_path, *inspection);
+    if (!member_set) {
+        return std::unexpected(member_set.error());
+    }
+#if !defined(Q_OS_LINUX)
+    static_cast<void>(scope);
+    return fail(ErrorCode::CannotRead,
+                QStringLiteral("Secure archive scratch is unavailable on this platform"));
+#else
+    return importInspectedArchiveThroughRetainedSecureScratch(archive_path, *inspection, scope,
+                                                              context, hooks);
 #endif
 }
 

@@ -13,10 +13,11 @@
 namespace appellate::packs {
 
 class PackCatalog;
+class PackCatalogSnapshot;
 
-// An exact, catalog-verified pack closure. Only PackCatalog can construct this type: callers
-// cannot accidentally present a partially resolved set, reorder it into override order, or omit
-// a transitive session pin.
+// An exact, catalog-verified pack closure. Only catalog implementations construct resolved packs.
+// Callers cannot accidentally present a partially resolved set, reorder it into override order, or
+// omit a transitive session pin.
 class ResolvedPack final {
   public:
     [[nodiscard]] const LoadedPack& root() const noexcept { return root_; }
@@ -58,6 +59,7 @@ class ResolvedPack final {
 
   private:
     friend class PackCatalog;
+    friend class PackCatalogSnapshot;
 
     ResolvedPack(LoadedPack root, std::vector<LoadedPack> dependencies_dependency_first,
                  std::vector<model::PackRevision> revisions_by_pack_id)

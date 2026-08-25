@@ -14,9 +14,18 @@
 
 namespace appellate::packs {
 
+namespace detail {
+enum class CatalogOperation;
+struct CatalogHooks;
+struct PackCatalogFactory;
+struct PackCatalogSnapshotFactory;
+} // namespace detail
+
 enum class CatalogErrorCode {
     InvalidConfiguration,
     CannotOpen,
+    CatalogBusy,
+    UninitializedCatalog,
     MigrationFailed,
     ArchiveInvalid,
     ImmutableConflict,
@@ -57,6 +66,32 @@ struct MaterializedBlob final {
     friend bool operator==(const MaterializedBlob&, const MaterializedBlob&) = default;
 };
 
+class PackCatalogSnapshot final {
+  public:
+    PackCatalogSnapshot(const PackCatalogSnapshot&) = delete;
+    PackCatalogSnapshot& operator=(const PackCatalogSnapshot&) = delete;
+    PackCatalogSnapshot(PackCatalogSnapshot&&) = delete;
+    PackCatalogSnapshot& operator=(PackCatalogSnapshot&&) = delete;
+    ~PackCatalogSnapshot();
+
+    [[nodiscard]] static auto openExisting(const QString& root_directory)
+        -> std::expected<std::unique_ptr<PackCatalogSnapshot>, CatalogError>;
+
+    [[nodiscard]] auto list() const -> std::expected<std::vector<InstalledPack>, CatalogError>;
+
+    [[nodiscard]] auto load(const model::PackId& id, const std::string& version) const
+        -> std::expected<LoadedPack, CatalogError>;
+
+    [[nodiscard]] auto loadResolved(const model::PackRevision& exact_root) const
+        -> std::expected<ResolvedPack, CatalogError>;
+
+  private:
+    friend struct detail::PackCatalogSnapshotFactory;
+    struct Impl;
+    explicit PackCatalogSnapshot(std::unique_ptr<Impl> state);
+    std::unique_ptr<Impl> impl_;
+};
+
 class PackCatalog final {
   public:
     PackCatalog(const PackCatalog&) = delete;
@@ -94,6 +129,8 @@ class PackCatalog final {
     [[nodiscard]] int schemaVersion() const;
 
   private:
+    friend struct detail::PackCatalogFactory;
+    friend struct detail::PackCatalogSnapshotFactory;
     friend auto authorRealismEvidence(const PackCatalog& catalog,
                                       const RealismEvidenceAuthoringInput& input)
         -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
@@ -101,17 +138,27 @@ class PackCatalog final {
                                       const RealismEvidenceTraceSetAuthoringInput& input)
         -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
 
+    struct Impl;
     PackCatalog(QString root_directory, QString connection_name);
+    PackCatalog(QString root_directory, QString connection_name, std::unique_ptr<Impl> state);
 
     [[nodiscard]] auto configure() -> std::expected<void, CatalogError>;
-    [[nodiscard]] auto migrate() -> std::expected<void, CatalogError>;
+    [[nodiscard]] auto migrate(const std::vector<LoadedPack>* admitted_archives,
+                               const detail::CatalogHooks& hooks, bool* commit_applied,
+                               bool* commit_ambiguous) -> std::expected<void, CatalogError>;
     [[nodiscard]] auto beginImmediate() -> std::expected<void, CatalogError>;
-    [[nodiscard]] auto commit() -> std::expected<void, CatalogError>;
+    [[nodiscard]] auto commit(bool* commit_applied, bool* commit_ambiguous)
+        -> std::expected<void, CatalogError>;
     [[nodiscard]] auto loadExactRevision(const model::PackRevision& exact_revision,
-                                         CatalogErrorCode missing_code) const
+                                         CatalogErrorCode missing_code,
+                                         detail::CatalogOperation catalog_operation) const
         -> std::expected<LoadedPack, CatalogError>;
     [[nodiscard]] auto resolveClosure(const model::PackRevision& exact_root,
                                       const LoadedPack* staged_root) const
+        -> std::expected<ResolvedPack, CatalogError>;
+    [[nodiscard]] auto resolveClosure(const model::PackRevision& exact_root,
+                                      const LoadedPack* staged_root,
+                                      detail::CatalogOperation catalog_operation) const
         -> std::expected<ResolvedPack, CatalogError>;
     void rollback();
     void closeConnection();
@@ -119,6 +166,7 @@ class PackCatalog final {
     QString root_directory_;
     QString connection_name_;
     QSqlDatabase database_;
+    std::unique_ptr<Impl> impl_;
 };
 
 } // namespace appellate::packs

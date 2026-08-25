@@ -772,6 +772,26 @@ API.
    catalog-local interprocess lock covers publication, commit, and cleanup so two installers
    cannot race that reference check.
 
+### Catalog admission and manual recovery
+
+Catalog admission fails closed on an unexpected `.awpack-*` or `.blob-*` staging file, a persistent
+`.install.lock` or `.install.lock.rmlock` artifact, an unreferenced `<sha256>.awpack`, or an
+unreferenced `blobs/<sha256>` object. A fresh catalog operation has no reliable provenance for such
+an object and never guesses that it is safe to delete.
+
+An administrator recovering one of these states must perform these steps in order:
+
+1. Stop all catalog processes.
+2. Preserve a forensic copy of the catalog and the artifact.
+3. Verify the digest object and every database reference, or, for a lock artifact, confirm that no
+   catalog process owns it.
+4. Remove only the confirmed orphan, and only after that verification.
+5. Fsync the affected directory.
+6. Retry catalog admission.
+
+The application performs no automatic catalog repair and no automatic persistent-lock eviction.
+This procedure does not imply a new recovery command.
+
 ## Authoring CLI
 
 `appellate-pack` is deliberately non-interactive and emits exactly one compact JSON object per

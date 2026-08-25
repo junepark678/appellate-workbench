@@ -7,6 +7,7 @@
 #include "appellate/storage/session_store.hpp"
 #include "installed_record_controller.hpp"
 #include "oral_argument_session_controller.hpp"
+#include "pack_catalog_p.hpp"
 #include "pack_cli.hpp"
 #include "record_workspace.hpp"
 #include "resolved_session_pins.hpp"
@@ -122,6 +123,7 @@ class PackDependencyResolutionTest final : public QObject {
     void rejectsWrongExactDigestForBlobStreaming();
     void serializesPublicationAcrossCatalogInstances();
     void rollsBackNewArchiveAndBlobAfterFinalizationFailure();
+    void preservesCommittedInstallAfterReportedFinalizationFailure();
 };
 
 [[nodiscard]] QByteArray sha256(const QByteArray& bytes) {
@@ -1005,14 +1007,17 @@ void PackDependencyResolutionTest::rejectsMissingTransitiveExactRevision() {
     QVERIFY(install(**catalog, temporary.path(), QStringLiteral("middle"), 2));
     QVERIFY(install(**catalog, temporary.path(), QStringLiteral("root"), 3));
 
+    catalog->reset();
+
     // This simulates catalog loss from an older/crashed installation. Direct rows in the
-    // verified middle archive still pin the leaf, so resolution must not silently truncate.
+    // verified middle archive still pin the leaf. B0b reverse admission rejects the incoherent
+    // database before exposing any new handle.
     QVERIFY(executeCatalogSql(
         catalog_root,
         QStringLiteral("DELETE FROM pack_revisions WHERE pack_id = 'test.missing.leaf'")));
-    const auto resolved = (*catalog)->loadResolved(*root);
-    QVERIFY(!resolved.has_value());
-    QCOMPARE(resolved.error().code, CatalogErrorCode::MissingDependency);
+    const auto reopened = PackCatalog::open(catalog_root);
+    QVERIFY(!reopened.has_value());
+    QCOMPARE(reopened.error().code, CatalogErrorCode::CorruptCatalog);
 }
 
 void PackDependencyResolutionTest::detectsDependencyRowsThatDifferFromArchive() {
@@ -1031,13 +1036,15 @@ void PackDependencyResolutionTest::detectsDependencyRowsThatDifferFromArchive() 
     QVERIFY(install(**catalog, temporary.path(), QStringLiteral("base"), 1));
     QVERIFY(install(**catalog, temporary.path(), QStringLiteral("root"), 2));
 
+    catalog->reset();
+
     QVERIFY(executeCatalogSql(
         catalog_root, QStringLiteral("UPDATE pack_dependencies SET dependency_digest = '%1' "
                                      "WHERE pack_id = 'test.dep.root'")
                           .arg(QString(64, u'a'))));
-    const auto resolved = (*catalog)->loadResolved(*root);
-    QVERIFY(!resolved.has_value());
-    QCOMPARE(resolved.error().code, CatalogErrorCode::CorruptCatalog);
+    const auto reopened = PackCatalog::open(catalog_root);
+    QVERIFY(!reopened.has_value());
+    QCOMPARE(reopened.error().code, CatalogErrorCode::CorruptCatalog);
 }
 
 void PackDependencyResolutionTest::capsClosureAt128Revisions() {
@@ -1064,6 +1071,19 @@ void PackDependencyResolutionTest::capsClosureAt128Revisions() {
         QVERIFY(initialized.has_value());
     }
     QVERIFY(seedCatalogWithoutResolution(catalog_root, temporary.path(), revisions));
+    const auto every_file = QDir::Files | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot;
+    const auto catalog_archives = QDir(catalog_root).filePath(QStringLiteral("archives"));
+    const auto catalog_blobs = QDir(catalog_root).filePath(QStringLiteral("blobs"));
+    const auto archive_names = QDir(catalog_archives).entryList({}, every_file, QDir::Name);
+    QCOMPARE(archive_names.size(), 129);
+    for (const auto& name : archive_names) {
+        QVERIFY(name.endsWith(QStringLiteral(".awpack")));
+        QCOMPARE(name.size(), 64 + qsizetype{7});
+    }
+    QVERIFY(QDir(catalog_blobs).entryList({}, every_file).empty());
+    QVERIFY(!QFileInfo::exists(QDir(catalog_root).filePath(QStringLiteral(".install.lock"))));
+    QVERIFY(
+        !QFileInfo::exists(QDir(catalog_root).filePath(QStringLiteral(".install.lock.rmlock"))));
     auto catalog = PackCatalog::open(catalog_root);
     QVERIFY(catalog.has_value());
     const auto accepted = (*catalog)->loadResolved(revisions.at(127).first);
@@ -2239,15 +2259,29 @@ void PackDependencyResolutionTest::serializesPublicationAcrossCatalogInstances()
 
     QLockFile competing_install(QDir(catalog_root).filePath(QStringLiteral(".install.lock")));
     QVERIFY(competing_install.tryLock());
+    const auto lock_path = QDir(catalog_root).filePath(QStringLiteral(".install.lock"));
+    const auto lock_bytes = readAll(lock_path);
+    QVERIFY(!lock_bytes.isEmpty());
+    const auto every_file = QDir::Files | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot;
+    const auto archives_before =
+        QDir((*catalog)->archivesDirectory()).entryList({}, every_file, QDir::Name);
+    const auto blobs_before =
+        QDir((*catalog)->blobObjectsDirectory()).entryList({}, every_file, QDir::Name);
     const auto blocked =
         (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("locked")),
                                    QStringLiteral("2026-08-11T00:00:01Z"));
     QVERIFY(!blocked.has_value());
-    QCOMPARE(blocked.error().code, CatalogErrorCode::CannotStoreArchive);
+    QCOMPARE(blocked.error().code, CatalogErrorCode::CatalogBusy);
+    QCOMPARE(readAll(lock_path), lock_bytes);
+    QCOMPARE(QDir((*catalog)->archivesDirectory()).entryList({}, every_file, QDir::Name),
+             archives_before);
+    QCOMPARE(QDir((*catalog)->blobObjectsDirectory()).entryList({}, every_file, QDir::Name),
+             blobs_before);
+    QVERIFY(
+        !QFileInfo::exists(QDir(catalog_root).filePath(QStringLiteral(".install.lock.rmlock"))));
     const auto listed = (*catalog)->list();
     QVERIFY(listed.has_value());
     QVERIFY(listed->empty());
-    const auto every_file = QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot;
     QVERIFY(QDir((*catalog)->archivesDirectory()).entryList({}, every_file).empty());
     QVERIFY(QDir((*catalog)->blobObjectsDirectory()).entryList({}, every_file).empty());
 
@@ -2267,33 +2301,175 @@ void PackDependencyResolutionTest::rollsBackNewArchiveAndBlobAfterFinalizationFa
                          QStringLiteral("test.rollback.root"), QByteArray("new durable objects"));
     QVERIFY(revision.has_value());
     const auto catalog_root = QDir(temporary.path()).filePath(QStringLiteral("catalog"));
-    auto catalog = PackCatalog::open(catalog_root);
-    QVERIFY(catalog.has_value());
-    QVERIFY(executeCatalogSql(
-        catalog_root,
-        QStringLiteral("CREATE TRIGGER reject_test_root BEFORE INSERT ON pack_revisions "
-                       "WHEN NEW.pack_id = 'test.rollback.root' BEGIN "
-                       "SELECT RAISE(FAIL, 'injected post-finalization failure'); END")));
+    {
+        auto initialized = PackCatalog::open(catalog_root);
+        QVERIFY(initialized.has_value());
+    }
+
+    auto scratch_context = appellate::packs::detail::acquireSecureScratchContext();
+    QVERIFY2(scratch_context.has_value(),
+             scratch_context ? "" : qPrintable(scratch_context.error().message));
+    appellate::packs::detail::CatalogReport report;
+    appellate::packs::detail::CatalogHooks hooks;
+    hooks.report = &report;
+    bool injected{};
+    hooks.inject = [&injected](const appellate::packs::detail::CatalogObservation& observation) {
+        if (!injected &&
+            observation.operation == appellate::packs::detail::CatalogOperation::InstallArchive &&
+            observation.event ==
+                appellate::packs::detail::CatalogEvent::TransactionCommitAttempted) {
+            injected = true;
+            return appellate::packs::detail::CatalogInjectedAction::FailBefore;
+        }
+        return appellate::packs::detail::CatalogInjectedAction::Continue;
+    };
+    auto catalog = appellate::packs::detail::PackCatalogFactory::open(
+        catalog_root, std::move(*scratch_context), std::move(hooks));
+    QVERIFY2(catalog.has_value(), catalog ? "" : qPrintable(catalog.error().message));
 
     const auto installed =
         (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("rollback")),
                                    QStringLiteral("2026-08-11T00:00:01Z"));
     QVERIFY(!installed.has_value());
-    QCOMPARE(installed.error().code, CatalogErrorCode::QueryFailed);
+    QCOMPARE(installed.error().code, CatalogErrorCode::CannotStoreArchive);
+    QVERIFY(injected);
     const auto listed = (*catalog)->list();
     QVERIFY(listed.has_value());
     QVERIFY(listed->empty());
 
-    const auto every_file = QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot;
+    const auto every_file = QDir::Files | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot;
     QVERIFY(QDir((*catalog)->archivesDirectory()).entryList({}, every_file).empty());
     QVERIFY(QDir((*catalog)->blobObjectsDirectory()).entryList({}, every_file).empty());
+    QVERIFY(!QFileInfo::exists(QDir(catalog_root).filePath(QStringLiteral(".install.lock"))));
+    QVERIFY(
+        !QFileInfo::exists(QDir(catalog_root).filePath(QStringLiteral(".install.lock.rmlock"))));
+    QVERIFY(report.remaining_ledger_paths.empty());
+    QVERIFY(!report.residue_identity_ambiguous);
 
-    QVERIFY(executeCatalogSql(catalog_root, QStringLiteral("DROP TRIGGER reject_test_root")));
+    const auto observed = [&report](appellate::packs::detail::CatalogEvent event) {
+        return std::ranges::any_of(
+            report.observations,
+            [event](const appellate::packs::detail::CatalogObservation& observation) {
+                return observation.operation ==
+                           appellate::packs::detail::CatalogOperation::InstallArchive &&
+                       observation.event == event;
+            });
+    };
+    QVERIFY(observed(appellate::packs::detail::CatalogEvent::TransactionCommitAttempted));
+    QVERIFY(observed(appellate::packs::detail::CatalogEvent::TransactionRolledBack));
+    QVERIFY(!observed(appellate::packs::detail::CatalogEvent::TransactionCommitted));
+
     const auto retried =
         (*catalog)->installArchive(archivePath(temporary.path(), QStringLiteral("rollback")),
                                    QStringLiteral("2026-08-11T00:00:02Z"));
-    QVERIFY(retried.has_value());
+    QVERIFY2(retried.has_value(), retried ? "" : qPrintable(retried.error().message));
     QCOMPARE(retried->revision, *revision);
+    QVERIFY(observed(appellate::packs::detail::CatalogEvent::TransactionCommitted));
+}
+
+void PackDependencyResolutionTest::preservesCommittedInstallAfterReportedFinalizationFailure() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto revision = buildBlobArchive(
+        temporary.path(), QStringLiteral("committed"), QStringLiteral("test.committed.root"),
+        QByteArray("objects durable before a reported post-commit failure"));
+    QVERIFY(revision.has_value());
+    const auto catalog_root = QDir(temporary.path()).filePath(QStringLiteral("catalog"));
+    {
+        auto initialized = PackCatalog::open(catalog_root);
+        QVERIFY(initialized.has_value());
+    }
+
+    auto scratch_context = appellate::packs::detail::acquireSecureScratchContext();
+    QVERIFY2(scratch_context.has_value(),
+             scratch_context ? "" : qPrintable(scratch_context.error().message));
+    appellate::packs::detail::CatalogReport report;
+    appellate::packs::detail::CatalogHooks hooks;
+    hooks.report = &report;
+    bool injected{};
+    hooks.inject = [&injected](const appellate::packs::detail::CatalogObservation& observation) {
+        if (!injected &&
+            observation.operation == appellate::packs::detail::CatalogOperation::InstallArchive &&
+            observation.event ==
+                appellate::packs::detail::CatalogEvent::TransactionCommitAttempted) {
+            injected = true;
+            return appellate::packs::detail::CatalogInjectedAction::FailAfter;
+        }
+        return appellate::packs::detail::CatalogInjectedAction::Continue;
+    };
+    auto catalog = appellate::packs::detail::PackCatalogFactory::open(
+        catalog_root, std::move(*scratch_context), std::move(hooks));
+    QVERIFY2(catalog.has_value(), catalog ? "" : qPrintable(catalog.error().message));
+
+    const auto original_time = QStringLiteral("2026-08-11T00:00:01Z");
+    const auto installed = (*catalog)->installArchive(
+        archivePath(temporary.path(), QStringLiteral("committed")), original_time);
+    QVERIFY(!installed.has_value());
+    QCOMPARE(installed.error().code, CatalogErrorCode::CannotStoreArchive);
+    QVERIFY(injected);
+
+    const auto observed = [&report](appellate::packs::detail::CatalogEvent event) {
+        return std::ranges::any_of(
+            report.observations,
+            [event](const appellate::packs::detail::CatalogObservation& observation) {
+                return observation.operation ==
+                           appellate::packs::detail::CatalogOperation::InstallArchive &&
+                       observation.event == event;
+            });
+    };
+    QVERIFY(observed(appellate::packs::detail::CatalogEvent::TransactionCommitAttempted));
+    QVERIFY(!observed(appellate::packs::detail::CatalogEvent::TransactionCommitted));
+    QVERIFY(!observed(appellate::packs::detail::CatalogEvent::TransactionRolledBack));
+
+    const auto archives_directory = (*catalog)->archivesDirectory();
+    const auto blobs_directory = (*catalog)->blobObjectsDirectory();
+    const auto archive_bytes = readAll(archivePath(temporary.path(), QStringLiteral("committed")));
+    const auto blob_bytes = readAll(
+        QDir(temporary.path()).filePath(QStringLiteral("sources/committed/objects/document.pdf")));
+    QVERIFY(!archive_bytes.isEmpty());
+    QVERIFY(!blob_bytes.isEmpty());
+    const auto expected_archive =
+        QString::fromLatin1(sha256(archive_bytes)) + QStringLiteral(".awpack");
+    const auto expected_blob = QString::fromLatin1(sha256(blob_bytes));
+    catalog->reset();
+
+    auto reopened = PackCatalog::open(catalog_root);
+    QVERIFY2(reopened.has_value(), reopened ? "" : qPrintable(reopened.error().message));
+    const auto listed_after_error = (*reopened)->list();
+    QVERIFY(listed_after_error.has_value());
+    QCOMPARE(listed_after_error->size(), std::size_t{1});
+    QCOMPARE(listed_after_error->front().revision, *revision);
+    QCOMPARE(listed_after_error->front().installed_at_utc, original_time);
+
+    const auto every_file = QDir::Files | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot;
+    QCOMPARE(QDir(archives_directory).entryList({}, every_file, QDir::Name),
+             QStringList{expected_archive});
+    QCOMPARE(QDir(blobs_directory).entryList({}, every_file, QDir::Name),
+             QStringList{expected_blob});
+    QCOMPARE(readAll(QDir(archives_directory).filePath(expected_archive)), archive_bytes);
+    QCOMPARE(readAll(QDir(blobs_directory).filePath(expected_blob)), blob_bytes);
+    QVERIFY(!QFileInfo::exists(QDir(catalog_root).filePath(QStringLiteral(".install.lock"))));
+    QVERIFY(
+        !QFileInfo::exists(QDir(catalog_root).filePath(QStringLiteral(".install.lock.rmlock"))));
+    QVERIFY(report.remaining_ledger_paths.empty());
+    QVERIFY(!report.residue_identity_ambiguous);
+
+    const auto retried =
+        (*reopened)->installArchive(archivePath(temporary.path(), QStringLiteral("committed")),
+                                    QStringLiteral("2026-08-11T00:00:02Z"));
+    QVERIFY2(retried.has_value(), retried ? "" : qPrintable(retried.error().message));
+    QCOMPARE(retried->revision, *revision);
+    QCOMPARE(retried->installed_at_utc, original_time);
+
+    const auto listed_after_retry = (*reopened)->list();
+    QVERIFY(listed_after_retry.has_value());
+    QCOMPARE(listed_after_retry->size(), std::size_t{1});
+    QCOMPARE(QDir(archives_directory).entryList({}, every_file, QDir::Name),
+             QStringList{expected_archive});
+    QCOMPARE(QDir(blobs_directory).entryList({}, every_file, QDir::Name),
+             QStringList{expected_blob});
+    QCOMPARE(readAll(QDir(archives_directory).filePath(expected_archive)), archive_bytes);
+    QCOMPARE(readAll(QDir(blobs_directory).filePath(expected_blob)), blob_bytes);
 }
 
 } // namespace

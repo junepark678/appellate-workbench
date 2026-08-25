@@ -3,6 +3,14 @@ qt_add_library(
     src/pack_archive.cpp
     src/pack_archive_p.hpp
     src/pack_catalog.cpp
+    src/pack_catalog_fingerprint.cpp
+    src/pack_catalog_fingerprint_p.hpp
+    src/pack_catalog_lock_p.cpp
+    src/pack_catalog_lock_p.hpp
+    src/pack_catalog_migrations_p.hpp
+    src/pack_catalog_p.hpp
+    src/pack_catalog_reverse_admission.cpp
+    src/pack_catalog_reverse_admission_p.hpp
     src/capability_registry.cpp
     src/pack_reader.cpp
     src/pack_version.cpp

@@ -124,6 +124,10 @@ constexpr auto output_schema_version = 1;
         return QStringLiteral("invalid_configuration");
     case packs::CatalogErrorCode::CannotOpen:
         return QStringLiteral("cannot_open_catalog");
+    case packs::CatalogErrorCode::CatalogBusy:
+        return QStringLiteral("catalog_busy");
+    case packs::CatalogErrorCode::UninitializedCatalog:
+        return QStringLiteral("uninitialized_catalog");
     case packs::CatalogErrorCode::MigrationFailed:
         return QStringLiteral("catalog_migration_failed");
     case packs::CatalogErrorCode::ArchiveInvalid:

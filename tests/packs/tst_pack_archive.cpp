@@ -566,6 +566,7 @@ void PackArchiveTest::importsArchivesThroughSecureScratch() {
     using appellate::packs::PackArchiveLimits;
     using appellate::packs::PackValidationScope;
     using appellate::packs::detail::acquireSecureScratchContext;
+    using appellate::packs::detail::importArchiveThroughRetainedSecureScratch;
     using appellate::packs::detail::importArchiveThroughSecureScratch;
     using appellate::packs::detail::isValidSecureScratchName;
     using appellate::packs::detail::SecureScratchCleanupOutcome;
@@ -678,6 +679,102 @@ void PackArchiveTest::importsArchivesThroughSecureScratch() {
         QCOMPARE(actual.graph_state, expected.graph_state);
     };
     compare_loaded_pack(*imported, *source_pack);
+
+    QTemporaryDir retained_parent;
+    QVERIFY(retained_parent.isValid());
+    const auto retained_baseline = directoryEntries(retained_parent.path());
+    int retained_temp_path_calls = 0;
+    std::vector<SecureScratchObservation> retained_observations;
+    SecureScratchHooks retained_hooks;
+    retained_hooks.temp_path_provider = [&] {
+        ++retained_temp_path_calls;
+        return retained_parent.path();
+    };
+    retained_hooks.name_source = [](std::size_t attempt) { return scratchName(attempt, 6); };
+    retained_hooks.observe = [&](const auto& observation) {
+        retained_observations.push_back(observation);
+    };
+    auto retained_context = acquireSecureScratchContext(retained_hooks);
+    QVERIFY2(retained_context.has_value(),
+             retained_context ? "" : qPrintable(retained_context.error().message));
+    QCOMPARE(retained_temp_path_calls, 1);
+    QCOMPARE(retained_context->absoluteParent(), QDir::cleanPath(retained_parent.path()));
+    const auto retained_parent_descriptor = retained_context->parentDescriptor();
+    QVERIFY(retained_parent_descriptor.has_value());
+    struct stat retained_parent_before{};
+    QVERIFY(::fstat(*retained_parent_descriptor, &retained_parent_before) == 0);
+    QVERIFY(retained_context->validateRetainedControllers().has_value());
+    const auto retained_controller_opens =
+        std::ranges::count(retained_observations, SecureScratchEvent::ControllerOpened,
+                           &SecureScratchObservation::event);
+
+    const auto retained_first = importArchiveThroughRetainedSecureScratch(
+        archive_path, PackArchiveLimits{}, PackValidationScope::Standalone, *retained_context,
+        retained_hooks);
+    QVERIFY2(retained_first.has_value(),
+             retained_first ? "" : qPrintable(retained_first.error().message));
+    compare_loaded_pack(*retained_first, *source_pack);
+    QVERIFY(retained_context->isValid());
+    QVERIFY(retained_context->validateRetainedControllers().has_value());
+
+    const auto retained_second = importArchiveThroughRetainedSecureScratch(
+        archive_path, PackArchiveLimits{}, PackValidationScope::Standalone, *retained_context,
+        retained_hooks);
+    QVERIFY2(retained_second.has_value(),
+             retained_second ? "" : qPrintable(retained_second.error().message));
+    compare_loaded_pack(*retained_second, *source_pack);
+    QCOMPARE(retained_temp_path_calls, 1);
+    QCOMPARE(std::ranges::count(retained_observations, SecureScratchEvent::TempPathCaptured,
+                                &SecureScratchObservation::event),
+             1);
+    QCOMPARE(std::ranges::count(retained_observations, SecureScratchEvent::ControllerOpened,
+                                &SecureScratchObservation::event),
+             retained_controller_opens);
+    const auto retained_parent_after = retained_context->parentDescriptor();
+    QVERIFY(retained_parent_after.has_value());
+    QCOMPARE(*retained_parent_after, *retained_parent_descriptor);
+    struct stat retained_parent_rebound{};
+    QVERIFY(::fstat(*retained_parent_after, &retained_parent_rebound) == 0);
+    QCOMPARE(retained_parent_rebound.st_dev, retained_parent_before.st_dev);
+    QCOMPARE(retained_parent_rebound.st_ino, retained_parent_before.st_ino);
+    QCOMPARE(directoryEntries(retained_parent.path()), retained_baseline);
+
+    QTemporaryDir moved_parent;
+    QVERIFY(moved_parent.isValid());
+    int moved_temp_path_calls = 0;
+    std::vector<SecureScratchObservation> moved_observations;
+    SecureScratchHooks moved_hooks;
+    moved_hooks.temp_path_provider = [&] {
+        ++moved_temp_path_calls;
+        return moved_parent.path();
+    };
+    moved_hooks.name_source = [](std::size_t attempt) { return scratchName(attempt, 7); };
+    moved_hooks.observe = [&](const auto& observation) {
+        moved_observations.push_back(observation);
+    };
+    auto moved_context = acquireSecureScratchContext(moved_hooks);
+    QVERIFY2(moved_context.has_value(),
+             moved_context ? "" : qPrintable(moved_context.error().message));
+    auto retained_owner = std::move(*moved_context);
+    QVERIFY(retained_owner.isValid());
+    QVERIFY(!moved_context->isValid());
+    QVERIFY(moved_context->absoluteParent().isEmpty());
+    QVERIFY(!moved_context->parentDescriptor().has_value());
+    QVERIFY(!moved_context->validateRetainedControllers().has_value());
+    moved_observations.clear();
+    const auto moved_temp_path_calls_before_import = moved_temp_path_calls;
+    const auto missing_archive =
+        QDir(archive_root.path()).filePath(QStringLiteral("must-not-be-opened.awpack"));
+    QVERIFY(!QFileInfo::exists(missing_archive));
+    const auto moved_from_import = importArchiveThroughRetainedSecureScratch(
+        missing_archive, PackArchiveLimits{}, PackValidationScope::Standalone, *moved_context,
+        moved_hooks);
+    QVERIFY(!moved_from_import.has_value());
+    QCOMPARE(moved_from_import.error().code, ErrorCode::CannotRead);
+    QVERIFY(moved_from_import.error().message.contains(QStringLiteral("consumed")));
+    QCOMPARE(moved_temp_path_calls, moved_temp_path_calls_before_import);
+    QVERIFY(moved_observations.empty());
+    QCOMPARE(directoryEntries(moved_parent.path()), QSet<QString>{});
 
     int captured_events = 0;
     int reader_events = 0;
