@@ -24,6 +24,49 @@ Version 1 rejects compression, ZIP64, comments, encryption, extra fields, links,
 entries, and hidden bytes between members. Readers enforce bounded member count, per-member
 size, and total size before staging any declared regular file.
 
+### Secure archive-import scratch
+
+`PackArchive::importArchive` retains its existing public API and error enum. Each import captures
+`QDir::tempPath()` exactly once and converts that value to one lossless, immutable absolute scratch-
+parent spelling. It descriptor-walks and retains the complete controller chain: every controller is
+owned by the current effective UID or UID 0, every group- or other-writable controller is sticky,
+and each child below a sticky controller is owned by the current effective UID or UID 0. Access
+ACLs must be absent from every retained inode and default ACLs must be absent from every directory.
+Names are rebound immediately to the retained inode before use; retained descriptors, not a later
+ambient pathname lookup, remain authoritative.
+
+Before creating anything, import proves native feasibility for the captured root, the actual
+scratch-control layout, and every ZIP member. A complete encoded absolute path including its NUL is
+at most 4,096 bytes (4,095 payload bytes), each component is 1–255 encoded bytes, and the complete
+chain below `/` is at most 128 components. A portable archive member remains at most 240 native
+ASCII bytes, and its descendants remain subject to the complete-chain component limit. Scratch
+control uses at most eight generated or fixed components below the retained parent; each is 1–64
+native ASCII bytes, uses only `[a-z0-9._-]`, is neither `.` nor `..`, and contains no separator.
+Feasibility reserves eight worst-case 64-byte control components plus the terminating NUL, but the
+member check uses the actual zero-to-eight-component layout. Production-generated names contain a
+private family tag and a 128-bit lowercase-hex nonce. Exclusive name selection is bounded to 128
+`EEXIST` attempts: 127 collisions followed by a unique name succeeds, while 128 collisions fail.
+
+Every scratch directory and regular file is created exclusively and descriptor-relatively through
+the retained chain, then normalized independently of the process umask to exact mode 0700 or 0600,
+respectively. Writes use retained file descriptors; completed files and affected retained
+directories are fsynced. When Qt or the ordinary pack reader requires an absolute child spelling,
+import supplies only an immutable spelling that has just been rebound to the retained inode. It does
+not recapture the temporary directory, reopen the controller chain through an ambient path, fall
+back to the current working directory, or try another unretained temporary location.
+
+Unsafe or uninspectable ownership, sticky-bit, ACL, binding, native-feasibility, creation, I/O,
+fsync, collision-exhaustion, or checked-cleanup failures return the existing
+`ErrorCode::CannotRead`. Archive-member portability or extraction-target infeasibility continues to
+use the existing unsafe/invalid-archive result. On every reportable success or failure path, import
+explicitly inventories the private workspace, removes only tracked entries still bound to their
+retained identities in reverse order, fsyncs the affected directories, and verifies absence. It
+never deletes an unverified replacement, unexpected entry, or ambiguous residue; such residue is
+preserved for manual diagnosis and the cleanup failure is reportable as `CannotRead`. A defensive
+void destructor repeats only that cautious, bounded, best-effort cleanup and may report through
+existing diagnostics when available, but cannot promise a checked result. Normal success and
+ordinary failure leave no scratch residue.
+
 Every version-1 manifest has a `blobs` array, including packs that declare no blobs. A blob
 descriptor has exactly `path`, `media_type`, `byte_size`, and `sha256`; version 1 accepts only
 `application/pdf`. Content and blob paths share one portable, non-overlapping namespace, with at

@@ -50,8 +50,10 @@ target_link_libraries(
 )
 target_compile_definitions(
     tst_pack_archive
-    PRIVATE APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+    PRIVATE APPELLATE_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
+            APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
 )
+target_include_directories(tst_pack_archive PRIVATE "${PROJECT_SOURCE_DIR}/src/packs/src")
 target_compile_features(tst_pack_archive PRIVATE cxx_std_26)
 add_test(NAME pack_archive COMMAND tst_pack_archive)
 

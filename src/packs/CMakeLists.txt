@@ -1,6 +1,7 @@
 qt_add_library(
     appellate_packs STATIC
     src/pack_archive.cpp
+    src/pack_archive_p.hpp
     src/pack_catalog.cpp
     src/capability_registry.cpp
     src/pack_reader.cpp
