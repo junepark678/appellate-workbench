@@ -3,17 +3,21 @@
 #include "appellate/model/pack_id.hpp"
 
 #include <QByteArray>
+#include <QDate>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QString>
 
 #include <cstddef>
 #include <expected>
+#include <optional>
 #include <string_view>
 
 namespace appellate::packs {
 
 class PackCatalog;
+class PackCatalogSnapshot;
+enum class CatalogErrorCode;
 
 enum class RealismEvidenceAuthoringErrorCode {
     InvalidInput,
@@ -87,6 +91,66 @@ struct AuthoredRealismEvidence final {
     RealismEvidenceCounts counts;
 };
 
+enum class IndependentReviewErrorCode {
+    InvalidInput,
+    InvalidReviewSource,
+    InvalidHandoff,
+    InvalidDeclaration,
+    InvalidIndependentReviewPack,
+    CatalogFailure,
+    ImmutableConflict,
+};
+
+struct IndependentReviewError final {
+    IndependentReviewErrorCode code{};
+    QString message;
+    std::optional<CatalogErrorCode> catalog_code;
+
+    friend bool operator==(const IndependentReviewError&, const IndependentReviewError&) = default;
+};
+
+struct IndependentReviewPrepareInput final {
+    model::PackRevision subject_revision;
+    QString case_id;
+    QDate current_utc_date;
+};
+
+// Pure deterministic output. Publishing these bytes and applying filesystem policy belongs to the
+// CLI layer; this builder does not write a directory or mutate the snapshot's source catalog.
+struct PreparedIndependentReview final {
+    model::PackRevision subject_revision;
+    QString case_id;
+    QString source_review_resource_id;
+    QString closure_digest;
+    QString handoff_digest;
+    QJsonObject handoff;
+    QJsonObject declaration_template;
+    QByteArray handoff_bytes;
+    QByteArray declaration_template_bytes;
+    RealismEvidenceCounts counts;
+};
+
+struct IndependentReviewFinalizeInput final {
+    QByteArray handoff_bytes;
+    QByteArray declaration_template_bytes;
+    QByteArray completed_declaration_bytes;
+    QDate current_utc_date;
+};
+
+struct FinalizedIndependentReview final {
+    model::PackRevision revision;
+    model::PackRevision dependency_revision;
+    QString case_id;
+    QString review_resource_id;
+    QString review_sha256;
+    QString closure_digest;
+    QString handoff_digest;
+    QJsonObject review_document;
+    QJsonObject manifest;
+    QByteArray review_bytes;
+    QByteArray manifest_bytes;
+};
+
 [[nodiscard]] auto authorRealismEvidence(const PackCatalog& catalog,
                                          const RealismEvidenceAuthoringInput& input)
     -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
@@ -94,5 +158,13 @@ struct AuthoredRealismEvidence final {
 [[nodiscard]] auto authorRealismEvidence(const PackCatalog& catalog,
                                          const RealismEvidenceTraceSetAuthoringInput& input)
     -> std::expected<AuthoredRealismEvidence, RealismEvidenceAuthoringError>;
+
+[[nodiscard]] auto prepareIndependentReview(const PackCatalogSnapshot& snapshot,
+                                            const IndependentReviewPrepareInput& input)
+    -> std::expected<PreparedIndependentReview, IndependentReviewError>;
+
+[[nodiscard]] auto finalizeIndependentReview(const PackCatalogSnapshot& snapshot,
+                                             const IndependentReviewFinalizeInput& input)
+    -> std::expected<FinalizedIndependentReview, IndependentReviewError>;
 
 } // namespace appellate::packs

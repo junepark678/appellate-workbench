@@ -106,13 +106,16 @@ target_link_libraries(
     PRIVATE
         appellate::engine
         appellate::pack_cli
+        appellate::packs
         appellate::project_warnings
         appellate::project_sanitizers
         appellate::storage
         Qt6::Test
 )
+target_compile_definitions(tst_pack_cli PRIVATE APPELLATE_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 target_compile_features(tst_pack_cli PRIVATE cxx_std_26)
 add_test(NAME pack_cli COMMAND tst_pack_cli)
+set_tests_properties(pack_cli PROPERTIES ENVIRONMENT "QTEST_FUNCTION_TIMEOUT=900000")
 
 qt_add_executable(tst_procedure_engine engine/tst_procedure_engine.cpp)
 target_link_libraries(

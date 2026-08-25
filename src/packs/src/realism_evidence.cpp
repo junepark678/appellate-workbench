@@ -4,6 +4,7 @@
 #include "appellate/engine/workflow_engine.hpp"
 #include "appellate/model/authority_ref.hpp"
 #include "appellate/packs/pack_catalog.hpp"
+#include "appellate/packs/pack_version.hpp"
 #include "appellate/packs/realism_evidence_authoring.hpp"
 #include "appellate/packs/schema_validator.hpp"
 #include "appellate/storage/workflow_codec.hpp"
@@ -26,6 +27,7 @@
 #include <algorithm>
 #include <array>
 #include <cerrno>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <functional>
@@ -2641,6 +2643,1173 @@ authorRealismEvidence(const PackCatalog& catalog,
             static_cast<std::size_t>(authority_values.size()),
         },
     };
+}
+
+namespace {
+
+constexpr qsizetype maximum_handoff_bytes = 16 * 1024 * 1024;
+constexpr qsizetype maximum_declaration_template_bytes = 1024 * 1024;
+constexpr qsizetype maximum_completed_declaration_bytes = 2 * 1024 * 1024;
+
+[[nodiscard]] auto independentFailure(IndependentReviewErrorCode code, QString message)
+    -> std::unexpected<IndependentReviewError> {
+    return std::unexpected(IndependentReviewError{code, std::move(message), std::nullopt});
+}
+
+[[nodiscard]] auto independentCatalogFailure(const CatalogError& error)
+    -> std::unexpected<IndependentReviewError> {
+    return std::unexpected(IndependentReviewError{IndependentReviewErrorCode::CatalogFailure,
+                                                  error.message, error.code});
+}
+
+[[nodiscard]] bool isLowercaseSha256(const QString& value) {
+    static const QRegularExpression pattern(QStringLiteral("^[a-f0-9]{64}$"));
+    return pattern.match(value).hasMatch();
+}
+
+[[nodiscard]] bool isExactInteger(const QJsonValue& value, int minimum, int maximum) {
+    if (!value.isDouble()) {
+        return false;
+    }
+    const auto number = value.toDouble();
+    return std::isfinite(number) && number >= static_cast<double>(minimum) &&
+           number <= static_cast<double>(maximum) && std::trunc(number) == number;
+}
+
+[[nodiscard]] bool isAscii(const QString& value) {
+    return std::ranges::all_of(value, [](QChar unit) { return unit.unicode() <= 0x7fU; });
+}
+
+[[nodiscard]] QJsonObject declarationTemplate() {
+    QJsonObject dimensions;
+    for (const auto* dimension_name : dimension_names) {
+        dimensions.insert(QString::fromLatin1(dimension_name), QJsonValue::Null);
+    }
+    return QJsonObject{
+        {QStringLiteral("declaration_kind"), QStringLiteral("independent_realism_review")},
+        {QStringLiteral("dimensions"), dimensions},
+        {QStringLiteral("handoff_digest"), QJsonValue::Null},
+        {QStringLiteral("known_uncertainty"), QJsonValue::Null},
+        {QStringLiteral("review_pack_id"), QJsonValue::Null},
+        {QStringLiteral("review_pack_version"), QJsonValue::Null},
+        {QStringLiteral("review_resource_id"), QJsonValue::Null},
+        {QStringLiteral("review_state"), QJsonValue::Null},
+        {QStringLiteral("reviewed_on"), QJsonValue::Null},
+        {QStringLiteral("reviewer"),
+         QJsonObject{
+             {QStringLiteral("affiliation"), QJsonValue::Null},
+             {QStringLiteral("display_name"), QJsonValue::Null},
+             {QStringLiteral("qualification"), QJsonValue::Null},
+             {QStringLiteral("reviewer_id"), QJsonValue::Null},
+         }},
+        {QStringLiteral("reviewer_reference"), QJsonValue::Null},
+        {QStringLiteral("schema_version"), 1},
+    };
+}
+
+[[nodiscard]] QString independentHandoffDigest(const QJsonObject& payload) {
+    const auto compact = QJsonDocument(payload).toJson(QJsonDocument::Compact);
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QStringLiteral("appellate-workbench-independent-realism-review-handoff-v1"));
+    addUint64(hash, 1);
+    addFrame(hash, QStringLiteral("independent_realism_review"));
+    addFrame(hash, QByteArrayView(compact));
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+struct DetachedMechanicalContext final {
+    model::PackRevision subject_revision;
+    QString case_id;
+    QString source_review_resource_id;
+    QString source_review_path;
+    QString source_review_sha256;
+    QString source_reviewed_on;
+    QJsonObject source_dimensions;
+    QJsonArray source_uncertainty;
+    QJsonObject mechanical_evidence;
+    QHash<QString, QSet<QString>> complete_dimension_groups;
+    QSet<QString> subject_pack_ids;
+    QSet<QString> subject_resource_ids;
+    bool has_argument_configuration{};
+    bool has_bench_configuration{};
+    bool has_judge_profile{};
+    RealismEvidenceCounts counts;
+};
+
+[[nodiscard]] auto reconstructDetachedMechanicalContext(const ResolvedPack& resolved,
+                                                        const QString& requested_case_id,
+                                                        const QDate& current_utc_date,
+                                                        IndependentReviewErrorCode failure_code)
+    -> std::expected<DetachedMechanicalContext, IndependentReviewError> {
+    const auto invalid = [failure_code](QString message) {
+        return independentFailure(failure_code, std::move(message));
+    };
+    const auto& root = resolved.root();
+    if (!current_utc_date.isValid() || root.manifest_schema_version != 2 ||
+        requested_case_id.isEmpty() || !hasCapability(root, "workbench.pack.realism-evidence", 1)) {
+        return invalid(QStringLiteral("The subject root is not eligible for detached review"));
+    }
+
+    qsizetype root_case_count = 0;
+    for (const auto& resource : root.resources) {
+        if (resource.descriptor.kind == model::ResourceKind::Case &&
+            QString::fromStdString(resource.descriptor.id) == requested_case_id) {
+            ++root_case_count;
+        }
+    }
+    if (root_case_count != 1) {
+        return invalid(QStringLiteral("The requested case is not owned exactly once by the root"));
+    }
+
+    std::vector<const LoadedPack*> dependencies;
+    dependencies.reserve(resolved.dependenciesDependencyFirst().size());
+    for (const auto& dependency : resolved.dependenciesDependencyFirst()) {
+        dependencies.push_back(&dependency);
+    }
+    if (const auto validated = PackReader::validateResolvedGraph(
+            root, std::span<const LoadedPack* const>(dependencies));
+        !validated) {
+        return invalid(
+            QStringLiteral("The resolved subject is invalid: %1").arg(validated.error().message));
+    }
+
+    std::vector<const ValidatedResource*> reviews;
+    for (const auto& resource : root.resources) {
+        if (resource.descriptor.kind == model::ResourceKind::RealismReview &&
+            resource.descriptor.schema_version == 2 &&
+            resource.document.value(QStringLiteral("case_id")).toString() == requested_case_id) {
+            reviews.push_back(&resource);
+        }
+    }
+    if (reviews.size() != 1) {
+        return invalid(QStringLiteral("The subject root must own exactly one schema-2 review for "
+                                      "the requested case"));
+    }
+    const auto& review = *reviews.front();
+    const auto review_state = review.document.value(QStringLiteral("review_state")).toString();
+    const auto reviewed_on = review.document.value(QStringLiteral("reviewed_on")).toString();
+    const auto parsed_reviewed_on = QDate::fromString(reviewed_on, Qt::ISODate);
+    if (review_state != QStringLiteral("independent_review_pending") ||
+        !parsed_reviewed_on.isValid() || parsed_reviewed_on.toString(Qt::ISODate) != reviewed_on ||
+        parsed_reviewed_on > current_utc_date ||
+        !review.document.value(QStringLiteral("evidence")).isObject()) {
+        return invalid(QStringLiteral("The source review is not a complete, current pending "
+                                      "independent-review source"));
+    }
+
+    const auto dimensions = review.document.value(QStringLiteral("dimensions")).toObject();
+    if (!hasExactKeys(dimensions,
+                      {"procedural_law", "deadlines_authority", "record_consistency",
+                       "consequences", "oral_argument", "bench_differentiation", "provenance"})) {
+        return invalid(QStringLiteral("The source review dimensions have an invalid shape"));
+    }
+    for (const auto* dimension_name : dimension_names) {
+        if (!isExactInteger(dimensions.value(QString::fromLatin1(dimension_name)), 0, 2)) {
+            return invalid(QStringLiteral("The source review dimensions must be integers from 0 "
+                                          "through 2"));
+        }
+    }
+    const auto uncertainty_value = review.document.value(QStringLiteral("known_uncertainty"));
+    if (!uncertainty_value.isArray() ||
+        !std::ranges::all_of(uncertainty_value.toArray(),
+                             [](const QJsonValue& value) { return value.isObject(); })) {
+        return invalid(QStringLiteral("The source review must use typed uncertainty objects"));
+    }
+
+    const auto evidence = review.document.value(QStringLiteral("evidence")).toObject();
+    const auto source_traces = evidence.value(QStringLiteral("traces")).toArray();
+    if (source_traces.isEmpty() || source_traces.size() > maximum_authoring_trace_count) {
+        return invalid(QStringLiteral("The source review must contain from 1 through 256 traces"));
+    }
+    std::optional<std::pair<QString, QString>> previous_trace_key;
+    QSet<QString> trace_evidence_refs;
+    for (const auto& value : source_traces) {
+        if (!value.isObject()) {
+            return invalid(QStringLiteral("The source trace array is invalid"));
+        }
+        const auto source_trace = value.toObject();
+        const auto key = std::pair{source_trace.value(QStringLiteral("trace_id")).toString(),
+                                   source_trace.value(QStringLiteral("evidence_id")).toString()};
+        if (source_trace.value(QStringLiteral("engine_revision")).toString() !=
+                multiTraceAuthoringEngineRevision() ||
+            key.first.isEmpty() || key.second.isEmpty() ||
+            (previous_trace_key.has_value() && !(previous_trace_key.value() < key))) {
+            return invalid(QStringLiteral("The source traces are not in the strict production-"
+                                          "multi order"));
+        }
+        previous_trace_key = key;
+        trace_evidence_refs.insert(key.second);
+    }
+    if (trace_evidence_refs.size() != source_traces.size()) {
+        return invalid(QStringLiteral("The source trace evidence IDs are not unique"));
+    }
+
+    std::vector<const LoadedPack*> all_packs = dependencies;
+    all_packs.push_back(&root);
+    const auto closure_result = buildSubjectClosure(review, requested_case_id, all_packs);
+    if (!closure_result || closure_result->case_owner != &root) {
+        return invalid(!closure_result
+                           ? QStringLiteral("Cannot reconstruct the source closure: %1")
+                                 .arg(closure_result.error().message)
+                           : QStringLiteral("The requested case is not rooted in the subject"));
+    }
+    auto closure = *closure_result;
+    if (closure.subject_packs_dependency_first.size() > maximum_detached_subject_revision_count) {
+        return invalid(QStringLiteral("The source closure leaves no detached revision headroom"));
+    }
+    std::size_t descriptor_count = 0;
+    for (const auto* pack : closure.subject_packs_dependency_first) {
+        if (pack->resources.size() > maximum_detached_subject_descriptor_count - descriptor_count) {
+            return invalid(
+                QStringLiteral("The source closure leaves no detached descriptor headroom"));
+        }
+        descriptor_count += pack->resources.size();
+        if (pack->blobs.size() > maximum_detached_subject_descriptor_count - descriptor_count) {
+            return invalid(
+                QStringLiteral("The source closure leaves no detached descriptor headroom"));
+        }
+        descriptor_count += pack->blobs.size();
+    }
+
+    const auto profile_result = buildAuthoringEvidenceProfile(closure, requested_case_id);
+    if (!profile_result) {
+        return invalid(QStringLiteral("Cannot reconstruct the source evidence profile: %1")
+                           .arg(profile_result.error()));
+    }
+    const auto& profile = *profile_result;
+
+    QJsonArray pack_values;
+    for (const auto& binding : closure.pack_bindings) {
+        pack_values.push_back(packBindingObject(binding));
+    }
+    QHash<QString, QString> resource_evidence_by_id;
+    QJsonArray resource_values;
+    for (auto& binding : closure.resource_bindings) {
+        binding.evidence_id =
+            evidenceId(QStringLiteral("resource"),
+                       {binding.owner_pack_id, binding.owner_pack_version, binding.resource_id,
+                        binding.resource_kind, QString::number(binding.schema_version),
+                        binding.path, binding.sha256});
+        resource_evidence_by_id.insert(binding.resource_id, binding.evidence_id);
+        resource_values.push_back(resourceBindingObject(binding));
+    }
+    QHash<QString, QString> blob_evidence_by_owner_path;
+    QJsonArray blob_values;
+    for (auto& binding : closure.blob_bindings) {
+        binding.evidence_id =
+            evidenceId(QStringLiteral("blob"),
+                       {binding.owner_pack_id, binding.owner_pack_version, binding.path,
+                        binding.media_type, QString::number(binding.byte_size), binding.sha256});
+        blob_evidence_by_owner_path.insert(binding.owner_pack_id + u'\n' + binding.path,
+                                           binding.evidence_id);
+        blob_values.push_back(blobBindingObject(binding));
+    }
+
+    const auto projected = loadRuntimePackForEvidence(*closure.case_owner,
+                                                      closure.subject_packs_dependency_first, true);
+    if (!projected) {
+        return invalid(QStringLiteral("The exact subject cannot be projected for independent trace "
+                                      "replay: %1")
+                           .arg(QString::fromStdString(projected.error().message)));
+    }
+    const auto runtime_case = std::ranges::find(
+        projected->cases, requested_case_id.toStdString(),
+        [](const RuntimeCase& candidate) { return candidate.definition.id.value; });
+    if (runtime_case == projected->cases.end()) {
+        return invalid(QStringLiteral("The reviewed case is absent from the runtime projection"));
+    }
+    QJsonArray normalized_source_traces;
+    QJsonArray detached_traces;
+    trace_evidence_refs.clear();
+    for (const auto& value : source_traces) {
+        const auto source_trace = value.toObject();
+        const auto normalized =
+            normalizeExecutedTrace(review, requested_case_id, source_trace, *runtime_case);
+        if (!normalized || *normalized != source_trace) {
+            return invalid(
+                !normalized ? QStringLiteral("A source trace cannot be independently replayed: %1")
+                                  .arg(normalized.error().message)
+                            : QStringLiteral("A source trace is not replay-normalized"));
+        }
+        normalized_source_traces.push_back(*normalized);
+        trace_evidence_refs.insert(normalized->value(QStringLiteral("evidence_id")).toString());
+        auto detached_trace = *normalized;
+        detached_trace.insert(QStringLiteral("engine_revision"), detachedReviewEngineRevision());
+        detached_trace.insert(QStringLiteral("digest"),
+                              traceDigest(requested_case_id, detached_trace));
+        detached_traces.push_back(detached_trace);
+    }
+
+    QSet<QString> record_blob_refs;
+    const auto record_id =
+        closure.case_resource->document.value(QStringLiteral("record_id")).toString();
+    const auto record = closure.resources_by_id.find(record_id.toStdString());
+    if (record == closure.resources_by_id.end() ||
+        record->second.resource->descriptor.kind != model::ResourceKind::Record) {
+        return invalid(QStringLiteral("The reviewed record is absent from the source closure"));
+    }
+    const ResourceBinding record_binding{
+        {},
+        QString::fromStdString(record->second.owner->revision.id.value),
+        QString::fromStdString(record->second.owner->revision.version),
+        QString::fromStdString(record->second.resource->descriptor.id),
+        kindName(record->second.resource->descriptor.kind),
+        record->second.resource->descriptor.schema_version,
+        QString::fromStdString(record->second.resource->descriptor.path),
+        QString::fromStdString(record->second.resource->descriptor.sha256),
+    };
+    std::vector<BlobBinding> record_blobs;
+    for (const auto& entry :
+         record->second.resource->document.value(QStringLiteral("docket_entries")).toArray()) {
+        const auto path = entry.toObject().value(QStringLiteral("asset_path")).toString();
+        const auto blob = closure.blobs_by_owner_path.find(record->second.owner->revision.id.value +
+                                                           '\n' + path.toStdString());
+        if (blob == closure.blobs_by_owner_path.end()) {
+            return invalid(QStringLiteral("A reviewed record asset is absent from the source "
+                                          "closure"));
+        }
+        record_blobs.push_back(blob->second);
+        const auto reference = blob_evidence_by_owner_path.value(
+            QString::fromStdString(record->second.owner->revision.id.value) + u'\n' + path);
+        if (!reference.isEmpty()) {
+            record_blob_refs.insert(reference);
+        }
+    }
+    const auto make_record_check = [&](const QString& kind, std::vector<BlobBinding> blobs) {
+        QJsonObject check{
+            {QStringLiteral("evidence_id"),
+             evidenceId(QStringLiteral("record-check"), {requested_case_id, kind})},
+            {QStringLiteral("check_id"), recordCheckId(kind, requested_case_id)},
+            {QStringLiteral("record_id"), record_id},
+            {QStringLiteral("check_kind"), kind},
+        };
+        check.insert(QStringLiteral("digest"),
+                     recordCheckDigest(requested_case_id, check, record_binding, std::move(blobs)));
+        return check;
+    };
+    const auto asset_check = make_record_check(QStringLiteral("asset_resolution"), record_blobs);
+    const auto anchor_check = make_record_check(QStringLiteral("page_anchor_resolution"), {});
+    const QJsonArray record_checks{asset_check, anchor_check};
+    const QSet<QString> record_check_refs{
+        asset_check.value(QStringLiteral("evidence_id")).toString(),
+        anchor_check.value(QStringLiteral("evidence_id")).toString(),
+    };
+
+    QJsonArray authority_values;
+    QHash<QString, QString> authority_evidence_by_id;
+    auto authority_ids = profile.all_authority_ids.values();
+    std::ranges::sort(authority_ids);
+    for (const auto& authority_id : authority_ids) {
+        const auto binding_id =
+            evidenceId(QStringLiteral("authority"), {requested_case_id, authority_id});
+        authority_evidence_by_id.insert(authority_id, binding_id);
+        authority_values.push_back(QJsonObject{
+            {QStringLiteral("evidence_id"), binding_id},
+            {QStringLiteral("authority_id"), authority_id},
+        });
+    }
+    const AuthoringEvidenceBindings bindings{
+        resource_evidence_by_id, authority_evidence_by_id, record_blob_refs,
+        record_check_refs,       trace_evidence_refs,
+    };
+    const auto complete_groups = authoringDimensionGroups(profile, bindings);
+    QJsonObject complete_dimension_evidence;
+    QJsonObject source_dimension_evidence;
+    for (const auto* dimension_name : dimension_names) {
+        const auto key = QString::fromLatin1(dimension_name);
+        const auto complete = complete_groups.value(key);
+        if (complete.size() > maximum_dimension_evidence_reference_count) {
+            return invalid(QStringLiteral("The latent %1 evidence partition exceeds 512 "
+                                          "references")
+                               .arg(key));
+        }
+        auto conditioned = complete;
+        if (dimensions.value(key).toInt() == 0) {
+            conditioned.clear();
+        } else if (conditioned.isEmpty()) {
+            return invalid(
+                QStringLiteral("The source %1 evidence partition is not exact").arg(key));
+        }
+        complete_dimension_evidence.insert(key, sortedReferences(complete));
+        source_dimension_evidence.insert(key, sortedReferences(conditioned));
+    }
+
+    const auto rebuilt_closure_digest = closureDigest(
+        requested_case_id, closure.pack_bindings, closure.resource_bindings, closure.blob_bindings);
+    const QJsonObject rebuilt_source_evidence{
+        {QStringLiteral("authorities"), authority_values},
+        {QStringLiteral("blobs"), blob_values},
+        {QStringLiteral("closure_digest"), rebuilt_closure_digest},
+        {QStringLiteral("dimension_evidence"), source_dimension_evidence},
+        {QStringLiteral("packs"), pack_values},
+        {QStringLiteral("record_checks"), record_checks},
+        {QStringLiteral("resources"), resource_values},
+        {QStringLiteral("traces"), normalized_source_traces},
+    };
+    if (rebuilt_source_evidence != evidence) {
+        return invalid(QStringLiteral("The source evidence differs from the independent canonical "
+                                      "catalog reconstruction"));
+    }
+    QJsonObject mechanical_evidence{
+        {QStringLiteral("authorities"), authority_values},
+        {QStringLiteral("blobs"), blob_values},
+        {QStringLiteral("closure_digest"), rebuilt_closure_digest},
+        {QStringLiteral("dimension_evidence"), complete_dimension_evidence},
+        {QStringLiteral("packs"), pack_values},
+        {QStringLiteral("record_checks"), record_checks},
+        {QStringLiteral("resources"), resource_values},
+        {QStringLiteral("traces"), detached_traces},
+    };
+
+    DetachedMechanicalContext context{
+        root.revision,
+        requested_case_id,
+        QString::fromStdString(review.descriptor.id),
+        QString::fromStdString(review.descriptor.path),
+        QString::fromStdString(review.descriptor.sha256),
+        reviewed_on,
+        dimensions,
+        uncertainty_value.toArray(),
+        std::move(mechanical_evidence),
+        complete_groups,
+        {},
+        {},
+        !profile.argument_resource_ids.isEmpty(),
+        !profile.bench_resource_ids.isEmpty(),
+        !profile.judge_resource_ids.isEmpty(),
+        RealismEvidenceCounts{
+            static_cast<std::size_t>(evidence.value(QStringLiteral("packs")).toArray().size()),
+            static_cast<std::size_t>(evidence.value(QStringLiteral("resources")).toArray().size()),
+            static_cast<std::size_t>(evidence.value(QStringLiteral("blobs")).toArray().size()),
+            static_cast<std::size_t>(source_traces.size()),
+            static_cast<std::size_t>(
+                evidence.value(QStringLiteral("record_checks")).toArray().size()),
+            static_cast<std::size_t>(
+                evidence.value(QStringLiteral("authorities")).toArray().size()),
+        },
+    };
+    for (const auto& revision : resolved.revisionsByPackId()) {
+        context.subject_pack_ids.insert(QString::fromStdString(revision.id.value));
+    }
+    for (const auto* pack : all_packs) {
+        for (const auto& resource : pack->resources) {
+            context.subject_resource_ids.insert(QString::fromStdString(resource.descriptor.id));
+        }
+    }
+    return context;
+}
+
+struct IndependentReviewClaims final {
+    QString review_pack_id;
+    QString review_pack_version;
+    QString review_resource_id;
+    QJsonObject dimensions;
+    QJsonArray known_uncertainty;
+    QString reviewed_on;
+    QJsonObject reviewer;
+    QString reviewer_reference;
+};
+
+[[nodiscard]] auto buildDetachedReviewPack(const ResolvedPack& subject,
+                                           const DetachedMechanicalContext& context,
+                                           const IndependentReviewClaims& claims,
+                                           IndependentReviewErrorCode failure_code)
+    -> std::expected<FinalizedIndependentReview, IndependentReviewError> {
+    const auto invalid = [failure_code](QString message) {
+        return independentFailure(failure_code, std::move(message));
+    };
+
+    auto evidence = context.mechanical_evidence;
+    auto dimension_evidence = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+    for (const auto* dimension_name : dimension_names) {
+        const auto key = QString::fromLatin1(dimension_name);
+        if (claims.dimensions.value(key).toInt() == 0) {
+            dimension_evidence.insert(key, QJsonArray{});
+        }
+    }
+    evidence.insert(QStringLiteral("dimension_evidence"), dimension_evidence);
+
+    auto final_reviewer = claims.reviewer;
+    if (final_reviewer.value(QStringLiteral("affiliation")).isNull()) {
+        final_reviewer.remove(QStringLiteral("affiliation"));
+    }
+    const QJsonObject review_document{
+        {QStringLiteral("case_id"), context.case_id},
+        {QStringLiteral("dimensions"), claims.dimensions},
+        {QStringLiteral("evidence"), evidence},
+        {QStringLiteral("known_uncertainty"), claims.known_uncertainty},
+        {QStringLiteral("resource_id"), claims.review_resource_id},
+        {QStringLiteral("resource_kind"), QStringLiteral("realism_review")},
+        {QStringLiteral("review_state"), QStringLiteral("independently_reviewed")},
+        {QStringLiteral("reviewed_on"), claims.reviewed_on},
+        {QStringLiteral("reviewer"), final_reviewer},
+        {QStringLiteral("reviewer_reference"), claims.reviewer_reference},
+        {QStringLiteral("schema_version"), 2},
+    };
+
+    const auto validator = SchemaValidator::fromBundledSchemas(2);
+    if (!validator) {
+        return invalid(QStringLiteral("Cannot load the schema-2 validator: %1")
+                           .arg(validator.error().message));
+    }
+    if (const auto validated =
+            validator->validate(QStringLiteral("realism-review.schema.json"), review_document);
+        !validated) {
+        return invalid(QStringLiteral("The generated detached review is invalid: %1")
+                           .arg(validated.error().message));
+    }
+    const auto review_bytes = serializedObject(review_document);
+    if (review_bytes.size() > maximum_authoring_review_bytes) {
+        return invalid(QStringLiteral("The generated detached review exceeds 8 MiB"));
+    }
+    const auto parsed_review = SchemaValidator::parseObject(
+        QByteArrayView(review_bytes), QStringLiteral("resources/realism-review.json"),
+        JsonLimits{64, 200'000});
+    if (!parsed_review || *parsed_review != review_document ||
+        !hasOnlyUnicodeScalars(*parsed_review)) {
+        return invalid(QStringLiteral("The generated detached review does not pass the ordinary "
+                                      "JSON boundary"));
+    }
+    const auto review_sha256 = sha256(QByteArrayView(review_bytes));
+
+    const QJsonObject manifest{
+        {QStringLiteral("blobs"), QJsonArray{}},
+        {QStringLiteral("contents"),
+         QJsonArray{QJsonObject{
+             {QStringLiteral("id"), claims.review_resource_id},
+             {QStringLiteral("kind"), QStringLiteral("realism_review")},
+             {QStringLiteral("path"), QStringLiteral("resources/realism-review.json")},
+             {QStringLiteral("schema_version"), 2},
+             {QStringLiteral("sha256"), review_sha256},
+         }}},
+        {QStringLiteral("dependencies"),
+         QJsonArray{QJsonObject{
+             {QStringLiteral("pack_id"), QString::fromStdString(context.subject_revision.id.value)},
+             {QStringLiteral("sha256"), QString::fromStdString(context.subject_revision.digest)},
+             {QStringLiteral("version"), QString::fromStdString(context.subject_revision.version)},
+         }}},
+        {QStringLiteral("pack_id"), claims.review_pack_id},
+        {QStringLiteral("required_capabilities"),
+         QJsonArray{
+             QJsonObject{
+                 {QStringLiteral("id"), QStringLiteral("workbench.pack.declarative-resources")},
+                 {QStringLiteral("version"), 2}},
+             QJsonObject{{QStringLiteral("id"), QStringLiteral("workbench.pack.realism-evidence")},
+                         {QStringLiteral("version"), 1}},
+         }},
+        {QStringLiteral("schema_version"), 2},
+        {QStringLiteral("version"), claims.review_pack_version},
+    };
+    if (const auto validated =
+            validator->validate(QStringLiteral("manifest.schema.json"), manifest);
+        !validated) {
+        return invalid(QStringLiteral("The generated detached manifest is invalid: %1")
+                           .arg(validated.error().message));
+    }
+    const auto manifest_bytes = serializedObject(manifest);
+    if (manifest_bytes.size() > maximum_authoring_manifest_bytes) {
+        return invalid(QStringLiteral("The generated detached manifest exceeds 1 MiB"));
+    }
+    const auto parsed_manifest = SchemaValidator::parseObject(QByteArrayView(manifest_bytes),
+                                                              QStringLiteral("manifest.json"));
+    if (!parsed_manifest || *parsed_manifest != manifest) {
+        return invalid(QStringLiteral("The generated detached manifest does not pass the ordinary "
+                                      "JSON boundary"));
+    }
+
+    LoadedPack detached{
+        2,
+        model::PackRevision{model::PackId{claims.review_pack_id.toStdString()},
+                            claims.review_pack_version.toStdString(),
+                            {}},
+        std::vector<model::RequiredCapability>{
+            model::RequiredCapability{"workbench.pack.declarative-resources", 2},
+            model::RequiredCapability{"workbench.pack.realism-evidence", 1},
+        },
+        std::vector<model::PackDependency>{model::PackDependency{context.subject_revision}},
+        std::vector<ValidatedResource>{ValidatedResource{
+            model::DeclarativeResource{
+                model::ResourceKind::RealismReview, claims.review_resource_id.toStdString(), 2,
+                "resources/realism-review.json", review_sha256.toStdString()},
+            review_document,
+        }},
+        {},
+        {},
+        PackGraphState::DeferredReferences,
+    };
+    detached.revision.digest = recomputedPackRevisionDigest(detached).toStdString();
+
+    std::vector<const LoadedPack*> dependency_first;
+    dependency_first.reserve(subject.dependenciesDependencyFirst().size() + 1U);
+    for (const auto& dependency : subject.dependenciesDependencyFirst()) {
+        dependency_first.push_back(&dependency);
+    }
+    dependency_first.push_back(&subject.root());
+    if (const auto validated = PackReader::validateResolvedGraph(
+            detached, std::span<const LoadedPack* const>(dependency_first));
+        !validated) {
+        return invalid(QStringLiteral("The generated detached pack fails resolved validation: %1")
+                           .arg(validated.error().message));
+    }
+
+    return FinalizedIndependentReview{
+        detached.revision,
+        context.subject_revision,
+        context.case_id,
+        claims.review_resource_id,
+        review_sha256,
+        context.mechanical_evidence.value(QStringLiteral("closure_digest")).toString(),
+        {},
+        review_document,
+        manifest,
+        review_bytes,
+        manifest_bytes,
+    };
+}
+
+[[nodiscard]] const std::vector<QString>& minimumNamespacedIdCandidates() {
+    static const auto candidates = [] {
+        constexpr std::string_view alphabet{"-.0123456789abcdefghijklmnopqrstuvwxyz"};
+        std::vector<QString> result;
+        result.reserve(10'000);
+        std::string candidate;
+        std::function<void(std::size_t)> append;
+        for (std::size_t length = 3; result.size() < 10'000; ++length) {
+            candidate.assign(length, '-');
+            append = [&](std::size_t offset) {
+                if (result.size() >= 10'000) {
+                    return;
+                }
+                if (offset == candidate.size()) {
+                    const auto value = QString::fromLatin1(candidate);
+                    if (isNamespacedId(value) && value.toUtf8().size() <= 128) {
+                        result.push_back(value);
+                    }
+                    return;
+                }
+                for (const auto character : alphabet) {
+                    candidate.at(offset) = character;
+                    append(offset + 1U);
+                    if (result.size() >= 10'000) {
+                        return;
+                    }
+                }
+            };
+            append(0);
+        }
+        return result;
+    }();
+    return candidates;
+}
+
+[[nodiscard]] std::optional<QString> firstAvailableMinimumId(const QSet<QString>& occupied,
+                                                             std::size_t maximum_candidates) {
+    const auto& candidates = minimumNamespacedIdCandidates();
+    const auto inspected = std::min(maximum_candidates, candidates.size());
+    for (std::size_t index = 0; index < inspected; ++index) {
+        if (!occupied.contains(candidates.at(index))) {
+            return candidates.at(index);
+        }
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto validateMinimumDetachedPack(const ResolvedPack& subject,
+                                               const DetachedMechanicalContext& context,
+                                               IndependentReviewErrorCode failure_code)
+    -> std::expected<void, IndependentReviewError> {
+    const auto pack_id = firstAvailableMinimumId(context.subject_pack_ids, 128);
+    const auto resource_id = firstAvailableMinimumId(context.subject_resource_ids, 10'000);
+    if (!pack_id || !resource_id) {
+        return independentFailure(failure_code,
+                                  QStringLiteral("Cannot allocate minimum detached feasibility "
+                                                 "identifiers within the bounded search"));
+    }
+    QJsonObject dimensions;
+    for (const auto* dimension_name : dimension_names) {
+        dimensions.insert(QString::fromLatin1(dimension_name), 0);
+    }
+    const IndependentReviewClaims claims{
+        *pack_id,
+        QStringLiteral("0.0.0"),
+        *resource_id,
+        dimensions,
+        {},
+        context.source_reviewed_on,
+        QJsonObject{
+            {QStringLiteral("affiliation"), QJsonValue::Null},
+            {QStringLiteral("display_name"), QStringLiteral("x")},
+            {QStringLiteral("qualification"), QStringLiteral("x")},
+            {QStringLiteral("reviewer_id"), QStringLiteral("a.a")},
+        },
+        QStringLiteral("x"),
+    };
+    const auto built = buildDetachedReviewPack(subject, context, claims, failure_code);
+    if (!built) {
+        return std::unexpected(built.error());
+    }
+    return {};
+}
+
+[[nodiscard]] auto composePreparedIndependentReview(const DetachedMechanicalContext& context)
+    -> std::expected<PreparedIndependentReview, IndependentReviewError> {
+    const auto declaration_template = declarationTemplate();
+    const auto template_bytes = serializedObject(declaration_template);
+    if (template_bytes.size() > maximum_declaration_template_bytes) {
+        return independentFailure(IndependentReviewErrorCode::InvalidReviewSource,
+                                  QStringLiteral("The declaration template exceeds 1 MiB"));
+    }
+    const auto parsed_template = SchemaValidator::parseObject(
+        QByteArrayView(template_bytes), QStringLiteral("review-declaration.template.json"),
+        JsonLimits{32, 4'096});
+    if (!parsed_template || *parsed_template != declaration_template) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidReviewSource,
+            QStringLiteral("The declaration template does not pass its JSON boundary"));
+    }
+    const auto template_sha256 = sha256(QByteArrayView(template_bytes));
+    const QJsonObject source_review{
+        {QStringLiteral("dimensions"), context.source_dimensions},
+        {QStringLiteral("known_uncertainty"), context.source_uncertainty},
+        {QStringLiteral("path"), context.source_review_path},
+        {QStringLiteral("resource_id"), context.source_review_resource_id},
+        {QStringLiteral("resource_kind"), QStringLiteral("realism_review")},
+        {QStringLiteral("review_state"), QStringLiteral("independent_review_pending")},
+        {QStringLiteral("reviewed_on"), context.source_reviewed_on},
+        {QStringLiteral("schema_version"), 2},
+        {QStringLiteral("sha256"), context.source_review_sha256},
+    };
+    const QJsonObject subject_revision{
+        {QStringLiteral("digest"), QString::fromStdString(context.subject_revision.digest)},
+        {QStringLiteral("pack_id"), QString::fromStdString(context.subject_revision.id.value)},
+        {QStringLiteral("version"), QString::fromStdString(context.subject_revision.version)},
+    };
+    const QJsonObject payload{
+        {QStringLiteral("case_id"), context.case_id},
+        {QStringLiteral("declaration_template_sha256"), template_sha256},
+        {QStringLiteral("mechanical_evidence"), context.mechanical_evidence},
+        {QStringLiteral("mechanical_trace_revision"), detachedReviewEngineRevision()},
+        {QStringLiteral("source_review"), source_review},
+        {QStringLiteral("subject_revision"), subject_revision},
+    };
+    const auto handoff_digest = independentHandoffDigest(payload);
+    const QJsonObject handoff{
+        {QStringLiteral("handoff_digest"), handoff_digest},
+        {QStringLiteral("handoff_kind"), QStringLiteral("independent_realism_review")},
+        {QStringLiteral("payload"), payload},
+        {QStringLiteral("schema_version"), 1},
+    };
+    const auto handoff_bytes = serializedObject(handoff);
+    if (handoff_bytes.size() > maximum_handoff_bytes) {
+        return independentFailure(IndependentReviewErrorCode::InvalidReviewSource,
+                                  QStringLiteral("The deterministic handoff exceeds 16 MiB"));
+    }
+    const auto parsed_handoff = SchemaValidator::parseObject(
+        QByteArrayView(handoff_bytes), QStringLiteral("handoff.json"), JsonLimits{64, 500'000});
+    if (!parsed_handoff || *parsed_handoff != handoff) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidReviewSource,
+            QStringLiteral("The deterministic handoff does not pass its JSON boundary"));
+    }
+    return PreparedIndependentReview{
+        context.subject_revision,
+        context.case_id,
+        context.source_review_resource_id,
+        context.mechanical_evidence.value(QStringLiteral("closure_digest")).toString(),
+        handoff_digest,
+        handoff,
+        declaration_template,
+        handoff_bytes,
+        template_bytes,
+        context.counts,
+    };
+}
+
+[[nodiscard]] auto parseIndependentObject(const QByteArray& bytes, qsizetype maximum_bytes,
+                                          JsonLimits limits, QStringView name,
+                                          IndependentReviewErrorCode failure_code,
+                                          bool require_canonical)
+    -> std::expected<QJsonObject, IndependentReviewError> {
+    if (bytes.isEmpty() || bytes.size() > maximum_bytes) {
+        return independentFailure(
+            failure_code,
+            QStringLiteral("%1 is empty or exceeds its byte limit").arg(name.toString()));
+    }
+    const auto decoded = QString::fromUtf8(bytes.constData(), bytes.size());
+    if (decoded.toUtf8() != bytes) {
+        return independentFailure(failure_code,
+                                  QStringLiteral("%1 is not valid UTF-8").arg(name.toString()));
+    }
+    const auto parsed = SchemaValidator::parseObject(QByteArrayView(bytes), name, limits);
+    if (!parsed || !hasOnlyUnicodeScalars(*parsed)) {
+        return independentFailure(
+            failure_code,
+            !parsed
+                ? QStringLiteral("%1 is invalid: %2").arg(name.toString(), parsed.error().message)
+                : QStringLiteral("%1 contains a non-scalar string").arg(name.toString()));
+    }
+    if (require_canonical && serializedObject(*parsed) != bytes) {
+        return independentFailure(
+            failure_code,
+            QStringLiteral("%1 is not in the canonical indented form").arg(name.toString()));
+    }
+    return *parsed;
+}
+
+[[nodiscard]] auto validateIndependentReviewClaims(const QJsonObject& declaration,
+                                                   const DetachedMechanicalContext& context,
+                                                   const QString& expected_handoff_digest,
+                                                   const QDate& current_utc_date)
+    -> std::expected<IndependentReviewClaims, IndependentReviewError> {
+    const auto invalid = [](QString message) {
+        return independentFailure(IndependentReviewErrorCode::InvalidDeclaration,
+                                  std::move(message));
+    };
+    if (!hasOnlyUnicodeScalars(declaration) ||
+        !hasExactKeys(declaration, {"declaration_kind", "dimensions", "handoff_digest",
+                                    "known_uncertainty", "review_pack_id", "review_pack_version",
+                                    "review_resource_id", "review_state", "reviewed_on", "reviewer",
+                                    "reviewer_reference", "schema_version"}) ||
+        !isExactInteger(declaration.value(QStringLiteral("schema_version")), 1, 1) ||
+        declaration.value(QStringLiteral("declaration_kind")).toString() !=
+            QStringLiteral("independent_realism_review") ||
+        declaration.value(QStringLiteral("handoff_digest")).toString() != expected_handoff_digest) {
+        return invalid(QStringLiteral("The completed declaration has the wrong closed shape, "
+                                      "kind, schema, or handoff association"));
+    }
+
+    const auto review_pack_id_value = declaration.value(QStringLiteral("review_pack_id"));
+    const auto review_pack_version_value = declaration.value(QStringLiteral("review_pack_version"));
+    const auto review_resource_id_value = declaration.value(QStringLiteral("review_resource_id"));
+    if (!review_pack_id_value.isString() || !review_pack_version_value.isString() ||
+        !review_resource_id_value.isString()) {
+        return invalid(QStringLiteral("The completed declaration identities must be strings"));
+    }
+    const auto review_pack_id = review_pack_id_value.toString();
+    const auto review_pack_version = review_pack_version_value.toString();
+    const auto review_resource_id = review_resource_id_value.toString();
+    const auto pack_id_bytes = review_pack_id.toUtf8();
+    const auto resource_id_bytes = review_resource_id.toUtf8();
+    if (!isNamespacedId(review_pack_id) || pack_id_bytes.size() < 3 || pack_id_bytes.size() > 128 ||
+        context.subject_pack_ids.contains(review_pack_id) ||
+        !isValidPackVersion(review_pack_version, 2) || review_pack_version.toUtf8().size() < 5 ||
+        review_pack_version.toUtf8().size() > 128 || !isAscii(review_resource_id) ||
+        !isNamespacedId(review_resource_id) || resource_id_bytes.size() < 3 ||
+        resource_id_bytes.size() > 128 ||
+        context.subject_resource_ids.contains(review_resource_id)) {
+        return invalid(QStringLiteral("The completed declaration pack or resource identity is "
+                                      "invalid or collides with the subject"));
+    }
+    if (!declaration.value(QStringLiteral("review_state")).isString() ||
+        declaration.value(QStringLiteral("review_state")).toString() !=
+            QStringLiteral("independently_reviewed")) {
+        return invalid(QStringLiteral("The completed declaration review state is invalid"));
+    }
+
+    const auto reviewed_on_value = declaration.value(QStringLiteral("reviewed_on"));
+    const auto reviewed_on = reviewed_on_value.toString();
+    const auto parsed_reviewed_on = QDate::fromString(reviewed_on, Qt::ISODate);
+    const auto source_date = QDate::fromString(context.source_reviewed_on, Qt::ISODate);
+    if (!reviewed_on_value.isString() || !parsed_reviewed_on.isValid() ||
+        parsed_reviewed_on.toString(Qt::ISODate) != reviewed_on ||
+        parsed_reviewed_on < source_date || parsed_reviewed_on > current_utc_date) {
+        return invalid(QStringLiteral("The completed declaration review date is outside the "
+                                      "source/current UTC bounds"));
+    }
+
+    const auto reference_value = declaration.value(QStringLiteral("reviewer_reference"));
+    if (!reference_value.isString() || !isTrimStableUtf8Text(reference_value.toString(), 512)) {
+        return invalid(QStringLiteral("The completed reviewer reference is invalid"));
+    }
+    const auto reviewer_value = declaration.value(QStringLiteral("reviewer"));
+    if (!reviewer_value.isObject()) {
+        return invalid(QStringLiteral("The completed reviewer metadata is required"));
+    }
+    const auto reviewer = reviewer_value.toObject();
+    if (!hasExactKeys(reviewer, {"affiliation", "display_name", "qualification", "reviewer_id"})) {
+        return invalid(QStringLiteral("The completed reviewer metadata is not closed"));
+    }
+    const auto reviewer_id = reviewer.value(QStringLiteral("reviewer_id"));
+    const auto display_name = reviewer.value(QStringLiteral("display_name"));
+    const auto qualification = reviewer.value(QStringLiteral("qualification"));
+    const auto affiliation = reviewer.value(QStringLiteral("affiliation"));
+    if (!reviewer_id.isString() || !isNamespacedId(reviewer_id.toString()) ||
+        reviewer_id.toString().toUtf8().size() < 3 ||
+        reviewer_id.toString().toUtf8().size() > 160 || !display_name.isString() ||
+        !isTrimStableUtf8Text(display_name.toString(), 240) || !qualification.isString() ||
+        !isTrimStableUtf8Text(qualification.toString(), 1'024) ||
+        (!affiliation.isNull() &&
+         (!affiliation.isString() || !isTrimStableUtf8Text(affiliation.toString(), 240)))) {
+        return invalid(QStringLiteral("The completed reviewer metadata violates its ID or UTF-8 "
+                                      "text bounds"));
+    }
+
+    const auto dimensions_value = declaration.value(QStringLiteral("dimensions"));
+    if (!dimensions_value.isObject()) {
+        return invalid(QStringLiteral("The completed dimensions object is required"));
+    }
+    const auto dimensions = dimensions_value.toObject();
+    if (!hasExactKeys(dimensions,
+                      {"procedural_law", "deadlines_authority", "record_consistency",
+                       "consequences", "oral_argument", "bench_differentiation", "provenance"})) {
+        return invalid(QStringLiteral("The completed dimensions object is not closed"));
+    }
+    for (const auto* dimension_name : dimension_names) {
+        const auto key = QString::fromLatin1(dimension_name);
+        if (!isExactInteger(dimensions.value(key), 0, 3) ||
+            (dimensions.value(key).toInt() != 0 &&
+             context.complete_dimension_groups.value(key).isEmpty())) {
+            return invalid(QStringLiteral("The completed %1 score is invalid or lacks mechanical "
+                                          "support")
+                               .arg(key));
+        }
+    }
+    if (dimensions.value(QStringLiteral("oral_argument")).toInt() > 0 &&
+        !context.has_argument_configuration) {
+        return invalid(QStringLiteral("A nonzero oral-argument score lacks a case-targeted "
+                                      "argument configuration"));
+    }
+    if (dimensions.value(QStringLiteral("bench_differentiation")).toInt() > 0 &&
+        (!context.has_bench_configuration || !context.has_judge_profile)) {
+        return invalid(QStringLiteral("A nonzero bench-differentiation score lacks its bench or "
+                                      "judge prerequisite"));
+    }
+
+    const auto uncertainty_value = declaration.value(QStringLiteral("known_uncertainty"));
+    if (!uncertainty_value.isArray() || uncertainty_value.toArray().size() > 256) {
+        return invalid(QStringLiteral("Completed uncertainties must be an array of at most 256 "
+                                      "typed items"));
+    }
+    QSet<QString> uncertainty_ids;
+    for (const auto& value : uncertainty_value.toArray()) {
+        if (!value.isObject()) {
+            return invalid(QStringLiteral("Every completed uncertainty must be an object"));
+        }
+        const auto uncertainty = value.toObject();
+        const auto blocking_value = uncertainty.value(QStringLiteral("blocking"));
+        const auto blocking = blocking_value.isBool() && blocking_value.toBool();
+        const auto has_remediation = uncertainty.contains(QStringLiteral("remediation_issue"));
+        if (!blocking_value.isBool() ||
+            (!has_remediation &&
+             !hasExactKeys(uncertainty, {"blocking", "summary", "uncertainty_id"})) ||
+            (has_remediation && !hasExactKeys(uncertainty, {"blocking", "remediation_issue",
+                                                            "summary", "uncertainty_id"})) ||
+            blocking != has_remediation) {
+            return invalid(QStringLiteral("A completed uncertainty has the wrong closed shape"));
+        }
+        const auto id = uncertainty.value(QStringLiteral("uncertainty_id"));
+        const auto summary = uncertainty.value(QStringLiteral("summary"));
+        if (!id.isString() || !isNamespacedId(id.toString()) ||
+            id.toString().toUtf8().size() > 160 || uncertainty_ids.contains(id.toString()) ||
+            !summary.isString() || !isTrimStableUtf8Text(summary.toString(), 2'048)) {
+            return invalid(QStringLiteral("A completed uncertainty ID or summary is invalid"));
+        }
+        uncertainty_ids.insert(id.toString());
+        if (blocking) {
+            const auto remediation = uncertainty.value(QStringLiteral("remediation_issue"));
+            const auto remediation_bytes = remediation.toString().toUtf8();
+            if (!remediation.isString() ||
+                !model::isCanonicalAuthoritySourceUrl(
+                    std::string_view(remediation_bytes.constData(),
+                                     static_cast<std::size_t>(remediation_bytes.size())))) {
+                return invalid(QStringLiteral("A blocking uncertainty remediation issue is not a "
+                                              "canonical HTTPS URL"));
+            }
+        }
+    }
+
+    return IndependentReviewClaims{
+        review_pack_id, review_pack_version,         review_resource_id,
+        dimensions,     uncertainty_value.toArray(), reviewed_on,
+        reviewer,       reference_value.toString(),
+    };
+}
+
+} // namespace
+
+std::expected<PreparedIndependentReview, IndependentReviewError>
+prepareIndependentReview(const PackCatalogSnapshot& snapshot,
+                         const IndependentReviewPrepareInput& input) {
+    const auto pack_id = QString::fromStdString(input.subject_revision.id.value);
+    const auto version = QString::fromStdString(input.subject_revision.version);
+    const auto digest = QString::fromStdString(input.subject_revision.digest);
+    if (!input.current_utc_date.isValid() || !isNamespacedId(pack_id) ||
+        pack_id.toUtf8().size() > 128 || !isValidPackVersion(version, 2) ||
+        !isLowercaseSha256(digest) || !isNamespacedId(input.case_id)) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidInput,
+            QStringLiteral("Prepare requires a valid captured UTC date, exact schema-2 subject "
+                           "revision, and case ID"));
+    }
+    const auto resolved = snapshot.loadResolved(input.subject_revision);
+    if (!resolved) {
+        return independentCatalogFailure(resolved.error());
+    }
+    const auto context =
+        reconstructDetachedMechanicalContext(*resolved, input.case_id, input.current_utc_date,
+                                             IndependentReviewErrorCode::InvalidReviewSource);
+    if (!context) {
+        return std::unexpected(context.error());
+    }
+    if (const auto feasible = validateMinimumDetachedPack(
+            *resolved, *context, IndependentReviewErrorCode::InvalidReviewSource);
+        !feasible) {
+        return std::unexpected(feasible.error());
+    }
+
+    const auto first = composePreparedIndependentReview(*context);
+    if (!first) {
+        return std::unexpected(first.error());
+    }
+    const auto second = composePreparedIndependentReview(*context);
+    if (!second || first->handoff_bytes != second->handoff_bytes ||
+        first->declaration_template_bytes != second->declaration_template_bytes ||
+        first->handoff_digest != second->handoff_digest || first->counts != second->counts) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidReviewSource,
+            QStringLiteral("The prepare builder did not reproduce byte-identical output"));
+    }
+    return *first;
+}
+
+std::expected<FinalizedIndependentReview, IndependentReviewError>
+finalizeIndependentReview(const PackCatalogSnapshot& snapshot,
+                          const IndependentReviewFinalizeInput& input) {
+    if (!input.current_utc_date.isValid()) {
+        return independentFailure(IndependentReviewErrorCode::InvalidInput,
+                                  QStringLiteral("Finalize requires a valid captured UTC date"));
+    }
+    const auto handoff = parseIndependentObject(
+        input.handoff_bytes, maximum_handoff_bytes, JsonLimits{64, 500'000},
+        QStringLiteral("handoff.json"), IndependentReviewErrorCode::InvalidHandoff, true);
+    if (!handoff) {
+        return std::unexpected(handoff.error());
+    }
+    const auto parsed_template = parseIndependentObject(
+        input.declaration_template_bytes, maximum_declaration_template_bytes, JsonLimits{32, 4'096},
+        QStringLiteral("review-declaration.template.json"),
+        IndependentReviewErrorCode::InvalidHandoff, true);
+    if (!parsed_template) {
+        return std::unexpected(parsed_template.error());
+    }
+    const auto declaration = parseIndependentObject(
+        input.completed_declaration_bytes, maximum_completed_declaration_bytes,
+        JsonLimits{32, 4'096}, QStringLiteral("completed declaration"),
+        IndependentReviewErrorCode::InvalidDeclaration, false);
+    if (!declaration) {
+        return std::unexpected(declaration.error());
+    }
+
+    if (*parsed_template != declarationTemplate() ||
+        !hasExactKeys(*handoff, {"handoff_digest", "handoff_kind", "payload", "schema_version"}) ||
+        !isExactInteger(handoff->value(QStringLiteral("schema_version")), 1, 1) ||
+        handoff->value(QStringLiteral("handoff_kind")).toString() !=
+            QStringLiteral("independent_realism_review") ||
+        !handoff->value(QStringLiteral("payload")).isObject() ||
+        !handoff->value(QStringLiteral("handoff_digest")).isString() ||
+        !isLowercaseSha256(handoff->value(QStringLiteral("handoff_digest")).toString())) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidHandoff,
+            QStringLiteral("The handoff or declaration template has the wrong closed shape"));
+    }
+    const auto payload = handoff->value(QStringLiteral("payload")).toObject();
+    const auto template_sha256 = sha256(QByteArrayView(input.declaration_template_bytes));
+    if (!hasExactKeys(payload,
+                      {"case_id", "declaration_template_sha256", "mechanical_evidence",
+                       "mechanical_trace_revision", "source_review", "subject_revision"}) ||
+        !payload.value(QStringLiteral("case_id")).isString() ||
+        !payload.value(QStringLiteral("declaration_template_sha256")).isString() ||
+        !payload.value(QStringLiteral("mechanical_evidence")).isObject() ||
+        !payload.value(QStringLiteral("mechanical_trace_revision")).isString() ||
+        !payload.value(QStringLiteral("source_review")).isObject() ||
+        !payload.value(QStringLiteral("subject_revision")).isObject() ||
+        payload.value(QStringLiteral("declaration_template_sha256")).toString() !=
+            template_sha256 ||
+        payload.value(QStringLiteral("mechanical_trace_revision")).toString() !=
+            detachedReviewEngineRevision() ||
+        independentHandoffDigest(payload) !=
+            handoff->value(QStringLiteral("handoff_digest")).toString()) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidHandoff,
+            QStringLiteral("The handoff payload shape or association digest is invalid"));
+    }
+    const auto subject_value = payload.value(QStringLiteral("subject_revision")).toObject();
+    const auto pack_id = subject_value.value(QStringLiteral("pack_id")).toString();
+    const auto version = subject_value.value(QStringLiteral("version")).toString();
+    const auto case_id = payload.value(QStringLiteral("case_id")).toString();
+    if (!hasExactKeys(subject_value, {"digest", "pack_id", "version"}) ||
+        !subject_value.value(QStringLiteral("digest")).isString() ||
+        !subject_value.value(QStringLiteral("pack_id")).isString() ||
+        !subject_value.value(QStringLiteral("version")).isString() || !isNamespacedId(pack_id) ||
+        pack_id.toUtf8().size() > 128 || !isValidPackVersion(version, 2) ||
+        !isNamespacedId(case_id) ||
+        !isLowercaseSha256(subject_value.value(QStringLiteral("digest")).toString())) {
+        return independentFailure(IndependentReviewErrorCode::InvalidHandoff,
+                                  QStringLiteral("The handoff subject revision is invalid"));
+    }
+    const model::PackRevision subject_revision{
+        model::PackId{pack_id.toStdString()},
+        version.toStdString(),
+        subject_value.value(QStringLiteral("digest")).toString().toStdString(),
+    };
+    const auto resolved = snapshot.loadResolved(subject_revision);
+    if (!resolved) {
+        return independentCatalogFailure(resolved.error());
+    }
+    const auto context = reconstructDetachedMechanicalContext(
+        *resolved, case_id, input.current_utc_date, IndependentReviewErrorCode::InvalidHandoff);
+    if (!context) {
+        return std::unexpected(context.error());
+    }
+    if (const auto feasible = validateMinimumDetachedPack(
+            *resolved, *context, IndependentReviewErrorCode::InvalidHandoff);
+        !feasible) {
+        return std::unexpected(feasible.error());
+    }
+    const auto rebuilt = composePreparedIndependentReview(*context);
+    if (!rebuilt || rebuilt->handoff_bytes != input.handoff_bytes ||
+        rebuilt->declaration_template_bytes != input.declaration_template_bytes) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidHandoff,
+            !rebuilt ? QStringLiteral("The handoff cannot be independently reconstructed: %1")
+                           .arg(rebuilt.error().message)
+                     : QStringLiteral("The handoff differs from the current exact subject"));
+    }
+
+    const auto claims = validateIndependentReviewClaims(
+        *declaration, *context, rebuilt->handoff_digest, input.current_utc_date);
+    if (!claims) {
+        return std::unexpected(claims.error());
+    }
+    const auto first = buildDetachedReviewPack(
+        *resolved, *context, *claims, IndependentReviewErrorCode::InvalidIndependentReviewPack);
+    if (!first) {
+        return std::unexpected(first.error());
+    }
+    const auto second = buildDetachedReviewPack(
+        *resolved, *context, *claims, IndependentReviewErrorCode::InvalidIndependentReviewPack);
+    if (!second || first->review_bytes != second->review_bytes ||
+        first->manifest_bytes != second->manifest_bytes || first->revision != second->revision) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidIndependentReviewPack,
+            QStringLiteral("The finalize builder did not reproduce byte-identical output"));
+    }
+
+    const auto installed = snapshot.load(first->revision.id, first->revision.version);
+    if (installed && installed->revision.digest != first->revision.digest) {
+        return independentFailure(
+            IndependentReviewErrorCode::ImmutableConflict,
+            QStringLiteral("The catalog already contains a different immutable revision for %1 "
+                           "%2")
+                .arg(QString::fromStdString(first->revision.id.value),
+                     QString::fromStdString(first->revision.version)));
+    }
+    if (!installed && installed.error().code != CatalogErrorCode::NotFound) {
+        return independentCatalogFailure(installed.error());
+    }
+    auto result = *first;
+    result.handoff_digest = rebuilt->handoff_digest;
+    return result;
 }
 
 } // namespace appellate::packs

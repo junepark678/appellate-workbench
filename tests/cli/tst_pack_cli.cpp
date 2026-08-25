@@ -1,6 +1,7 @@
 #include "pack_cli.hpp"
 
 #include "appellate/engine/workflow_engine.hpp"
+#include "appellate/packs/pack_archive.hpp"
 #include "appellate/packs/pack_catalog.hpp"
 #include "appellate/packs/pack_reader.hpp"
 #include "appellate/packs/realism_evidence_authoring.hpp"
@@ -9,6 +10,7 @@
 
 #include <QCryptographicHash>
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
@@ -18,6 +20,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -25,6 +28,7 @@
 #include <optional>
 #include <span>
 #include <thread>
+#include <vector>
 
 #if defined(Q_OS_UNIX)
 #include <sys/wait.h>
@@ -44,6 +48,8 @@ class PackCliTest final : public QObject {
     void completePackLifecycle();
     void authorsRealismEvidenceDeterministically();
     void authorsMultiTraceRealismEvidenceDeterministically();
+    void preparesIndependentReviewDeterministically();
+    void finalizesIndependentReviewDeterministically();
     void mapsCatalogBusyWithoutMutatingTheLock();
     void rejectsInvalidArgumentsAndExistingTemplateDestination();
 };
@@ -102,6 +108,66 @@ void addFrame(QCryptographicHash& hash, const QString& value) {
     const auto bytes = value.toUtf8();
     addUint64(hash, static_cast<std::uint64_t>(bytes.size()));
     hash.addData(QByteArrayView(bytes));
+}
+
+void addFrame(QCryptographicHash& hash, QByteArrayView value) {
+    addUint64(hash, static_cast<std::uint64_t>(value.size()));
+    hash.addData(value);
+}
+
+[[nodiscard]] QString independentHandoffDigest(const QJsonObject& payload) {
+    const auto compact = QJsonDocument(payload).toJson(QJsonDocument::Compact);
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QStringLiteral("appellate-workbench-independent-realism-review-handoff-v1"));
+    addUint64(hash, 1);
+    addFrame(hash, QStringLiteral("independent_realism_review"));
+    addFrame(hash, QByteArrayView(compact));
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] QString independentTraceDigest(const QString& case_id, const QJsonObject& trace) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QStringLiteral("appellate-workbench-executed-trace-evidence-v1"));
+    addFrame(hash, case_id);
+    addFrame(hash, trace.value(QStringLiteral("evidence_id")).toString());
+    addFrame(hash, trace.value(QStringLiteral("trace_id")).toString());
+    addFrame(hash, trace.value(QStringLiteral("workflow_id")).toString());
+    addFrame(hash, trace.value(QStringLiteral("engine_revision")).toString());
+    addUint64(hash,
+              static_cast<std::uint64_t>(trace.value(QStringLiteral("command_count")).toInt()));
+    addUint64(hash, static_cast<std::uint64_t>(trace.value(QStringLiteral("event_count")).toInt()));
+    addFrame(hash, trace.value(QStringLiteral("journal_sha256")).toString());
+    const auto operation_ids = trace.value(QStringLiteral("operation_ids")).toArray();
+    addUint64(hash, static_cast<std::uint64_t>(operation_ids.size()));
+    for (const auto& operation_id : operation_ids) {
+        addFrame(hash, operation_id.toString());
+    }
+    addFrame(hash, trace.value(QStringLiteral("terminal_stage_id")).toString());
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] bool writeNew(const QString& path, const QByteArray& bytes) {
+    QFile file(path);
+    return file.open(QIODevice::WriteOnly | QIODevice::NewOnly) &&
+           file.write(bytes) == bytes.size() && file.flush();
+}
+
+[[nodiscard]] bool copyTree(const QString& source, const QString& destination) {
+    const QDir source_directory(source);
+    if (!source_directory.exists() || !QDir{}.mkpath(destination)) {
+        return false;
+    }
+    QDirIterator iterator(source, QDir::Files | QDir::NoSymLinks, QDirIterator::Subdirectories);
+    while (iterator.hasNext()) {
+        const auto source_path = iterator.next();
+        const auto destination_path =
+            QDir(destination).filePath(source_directory.relativeFilePath(source_path));
+        if (!QDir{}.mkpath(QFileInfo(destination_path).absolutePath()) ||
+            !QFile::copy(source_path, destination_path)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void addResourceDescriptor(QCryptographicHash& hash, const QJsonObject& resource) {
@@ -362,6 +428,219 @@ executedTrace(const appellate::packs::RuntimeCase& runtime_case, const QString& 
     }
     manifest.insert(QStringLiteral("contents"), contents);
     return overwriteAll(manifest_path, jsonBytes(manifest));
+}
+
+struct IndependentReviewFixture final {
+    const char* slug;
+    const char* archive_relative_path;
+    const char* archive_sha256;
+    const char* pack_id;
+    const char* version;
+    const char* revision;
+    const char* case_id;
+    const char* review_id;
+    const char* reviewed_on;
+    int trace_count;
+};
+
+constexpr std::array independent_review_fixtures{
+    IndependentReviewFixture{
+        "asterglen",
+        "content/ca4-rule54b/us-ca4-rule54b-asterglen-0.2.0.awpack",
+        "10739c149a3bf2617d8af6dd131caee7ea6639a9d97e26cdf2974fa176c82819",
+        "us.ca4.rule54b.asterglen",
+        "0.2.0",
+        "7e77bc0fbe02dc9e108681df73852859d6d0f577acdcb65fcfb7678eac78b728",
+        "ca4r54b.case.asterglen",
+        "ca4r54b.review.authoring-2026-08-12",
+        "2026-08-12",
+        8,
+    },
+    IndependentReviewFixture{
+        "cinderlake",
+        "content/m4/cinderlake-writ/us-ca4-m4-cinderlake-writ-1.2.0.awpack",
+        "eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956",
+        "us.ca4.m4.cinderlake-writ",
+        "1.2.0",
+        "020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c",
+        "ca4m4.case.cinderlake-writ",
+        "ca4m4.cinder.review.authoring-2026-08-19",
+        "2026-08-19",
+        3,
+    },
+    IndependentReviewFixture{
+        "arm-agency",
+        "content/m4/arm-agency/us-ca4-m4-arm-agency-1.2.0.awpack",
+        "a150903c6c3332d8de582a8ef46e7fd1dd17cee0ac52c93c0ebaf51313cf54d2",
+        "us.ca4.m4.arm-agency",
+        "1.2.0",
+        "ae33933c7cf18f77e662eb302d563afd860e8e900bac8debb081b81b35404edb",
+        "ca4m4.case.arm-agency",
+        "ca4m4.arm.review.authoring-2026-08-12",
+        "2026-08-12",
+        7,
+    },
+    IndependentReviewFixture{
+        "benton-retaliation",
+        "content/m4/benton-retaliation/us-ca4-m4-benton-retaliation-1.2.0.awpack",
+        "9515bdde1e3405e6e82488abd73314a31c33a2062f9e34b4cecdaaff8b634a05",
+        "us.ca4.m4.benton-retaliation",
+        "1.2.0",
+        "59467350af5f381ef429ecf210d38de5503d40fb2e9baf02f56b2ef5023ced28",
+        "ca4m4.case.benton-retaliation",
+        "ca4m4.benton.review.authoring-2026-08-12",
+        "2026-08-12",
+        7,
+    },
+    IndependentReviewFixture{
+        "norvale-injunction",
+        "content/m4/norvale-injunction/us-ca4-m4-norvale-injunction-1.2.0.awpack",
+        "a4b993aa3cc6582d1d0f6ca9a7203109378f4f1c1b2e6ce32efbfe82b6a48e19",
+        "us.ca4.m4.norvale-injunction",
+        "1.2.0",
+        "a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f",
+        "ca4m4.case.norvale-injunction",
+        "ca4m4.norvale.review.authoring-2026-08-12",
+        "2026-08-12",
+        9,
+    },
+    IndependentReviewFixture{
+        "ellison-immunity",
+        "content/m4/ellison-immunity/us-ca4-m4-ellison-immunity-1.2.0.awpack",
+        "59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0",
+        "us.ca4.m4.ellison-immunity",
+        "1.2.0",
+        "c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0",
+        "ca4m4.case.ellison-immunity",
+        "ca4m4.ellison.review.authoring-2026-08-12",
+        "2026-08-12",
+        6,
+    },
+    IndependentReviewFixture{
+        "blueember-jmol",
+        "content/m4/blueember-jmol/us-ca4-m4-blueember-jmol-1.2.0.awpack",
+        "c6332ae33e351ccb27ed17b5576b147a47f9f5f0b44583365212b1781a288ed2",
+        "us.ca4.m4.blueember-jmol",
+        "1.2.0",
+        "08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec",
+        "ca4m4.case.blueember-jmol",
+        "ca4m4.blueember.review.authoring-2026-08-19",
+        "2026-08-19",
+        6,
+    },
+    IndependentReviewFixture{
+        "opengrid-foia",
+        "content/m4/opengrid-foia/us-ca4-m4-opengrid-foia-1.2.0.awpack",
+        "1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09",
+        "us.ca4.m4.opengrid-foia",
+        "1.2.0",
+        "9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5",
+        "ca4m4.case.opengrid-foia",
+        "ca4m4.opengrid.review.authoring-2026-08-19",
+        "2026-08-19",
+        5,
+    },
+    IndependentReviewFixture{
+        "serrano-waiver",
+        "content/m4/serrano-waiver/us-ca4-m4-serrano-waiver-1.2.0.awpack",
+        "d76686cec2053f78334c73f1c3aac415b637e733f0494b527001368597a1c243",
+        "us.ca4.m4.serrano-waiver",
+        "1.2.0",
+        "9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344",
+        "ca4m4.case.serrano-waiver",
+        "ca4m4.serrano.review.authoring-2026-08-19",
+        "2026-08-19",
+        2,
+    },
+};
+
+[[nodiscard]] QString sourcePath(const char* relative_path) {
+    return QDir(QStringLiteral(APPELLATE_SOURCE_DIR)).filePath(QString::fromLatin1(relative_path));
+}
+
+struct IndependentReviewDependencyFixture final {
+    const char* archive_relative_path;
+    const char* pack_id;
+    const char* version;
+    const char* revision;
+};
+
+constexpr std::array independent_review_dependency_fixtures{
+    IndependentReviewDependencyFixture{
+        "content/foundations/us-federal/foundation-us-federal-2025.12.01.awpack",
+        "foundation.us-federal",
+        "2025.12.01",
+        "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9",
+    },
+    IndependentReviewDependencyFixture{
+        "content/foundations/us-ca4/foundation-us-ca4-2026.03.23.awpack",
+        "foundation.us-ca4",
+        "2026.03.23",
+        "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262",
+    },
+    IndependentReviewDependencyFixture{
+        "content/foundations/us-ca4-fictional-bench/"
+        "foundation-us-ca4-fictional-bench-1.0.0.awpack",
+        "foundation.us-ca4-fictional-bench",
+        "1.0.0",
+        "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d",
+    },
+};
+
+[[nodiscard]] std::array<QString, 3> independentReviewDependencyArchives() {
+    std::array<QString, 3> archives;
+    std::ranges::transform(
+        independent_review_dependency_fixtures, archives.begin(),
+        [](const auto& fixture) { return sourcePath(fixture.archive_relative_path); });
+    return archives;
+}
+
+[[nodiscard]] QJsonObject
+completedIndependentDeclaration(const appellate::packs::PreparedIndependentReview& prepared,
+                                const QString& slug, const QString& resource_id = {},
+                                const QJsonValue& affiliation = QJsonValue::Null) {
+    auto declaration = prepared.declaration_template;
+    QJsonObject dimensions;
+    for (const auto& name :
+         {QStringLiteral("procedural_law"), QStringLiteral("deadlines_authority"),
+          QStringLiteral("record_consistency"), QStringLiteral("consequences"),
+          QStringLiteral("oral_argument"), QStringLiteral("bench_differentiation"),
+          QStringLiteral("provenance")}) {
+        dimensions.insert(name, 2);
+    }
+    declaration.insert(QStringLiteral("dimensions"), dimensions);
+    declaration.insert(QStringLiteral("handoff_digest"), prepared.handoff_digest);
+    declaration.insert(QStringLiteral("known_uncertainty"), QJsonArray{});
+    declaration.insert(QStringLiteral("review_pack_id"),
+                       QStringLiteral("test.detached-review.%1").arg(slug));
+    declaration.insert(QStringLiteral("review_pack_version"), QStringLiteral("2026.08.20"));
+    declaration.insert(QStringLiteral("review_resource_id"),
+                       resource_id.isEmpty()
+                           ? QStringLiteral("test.detached-review.resource.%1").arg(slug)
+                           : resource_id);
+    declaration.insert(QStringLiteral("review_state"), QStringLiteral("independently_reviewed"));
+    declaration.insert(QStringLiteral("reviewed_on"), QStringLiteral("2026-08-20"));
+    declaration.insert(
+        QStringLiteral("reviewer"),
+        QJsonObject{
+            {QStringLiteral("affiliation"), affiliation},
+            {QStringLiteral("display_name"), QStringLiteral("TEST-ONLY synthetic reviewer")},
+            {QStringLiteral("qualification"),
+             QStringLiteral("TEST-ONLY fixture; no human independent review was performed")},
+            {QStringLiteral("reviewer_id"), QStringLiteral("test.detached-review.reviewer")},
+        });
+    declaration.insert(QStringLiteral("reviewer_reference"),
+                       QStringLiteral("TEST-ONLY deterministic builder fixture"));
+    return declaration;
+}
+
+[[nodiscard]] const appellate::packs::ValidatedResource*
+findReview(const appellate::packs::LoadedPack& pack, const QString& resource_id) {
+    const auto found = std::ranges::find_if(pack.resources, [&](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview &&
+               QString::fromStdString(resource.descriptor.id) == resource_id;
+    });
+    return found == pack.resources.end() ? nullptr : &*found;
 }
 
 void PackCliTest::completePackLifecycle() {
@@ -1550,6 +1829,439 @@ void PackCliTest::authorsMultiTraceRealismEvidenceDeterministically() {
     QCOMPARE(readAll(review_path), authored_review_bytes);
     QCOMPARE(readAll(manifest_path), authored_manifest_bytes);
     QVERIFY(!QFileInfo::exists(transaction_path));
+}
+
+void PackCliTest::preparesIndependentReviewDeterministically() {
+    using appellate::model::PackId;
+    using appellate::model::PackRevision;
+    using appellate::packs::IndependentReviewFinalizeInput;
+    using appellate::packs::IndependentReviewPrepareInput;
+    using appellate::packs::PackArchive;
+    using appellate::packs::PackCatalog;
+    using appellate::packs::PackCatalogSnapshot;
+    using appellate::packs::PackValidationScope;
+
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto catalog_path = QDir(temporary.path()).filePath(QStringLiteral("shared-catalog"));
+    auto opened_catalog = PackCatalog::open(catalog_path);
+    QVERIFY2(opened_catalog.has_value(),
+             opened_catalog ? "" : opened_catalog.error().message.toUtf8().constData());
+    auto catalog = std::move(*opened_catalog);
+    const auto dependency_archives = independentReviewDependencyArchives();
+    for (std::size_t index = 0; index < dependency_archives.size(); ++index) {
+        const auto installed = catalog->installArchive(dependency_archives.at(index),
+                                                       QStringLiteral("2026-08-20T00:00:00Z"));
+        QVERIFY2(installed.has_value(),
+                 installed ? "" : installed.error().message.toUtf8().constData());
+        const auto& fixture = independent_review_dependency_fixtures.at(index);
+        QCOMPARE(QString::fromStdString(installed->revision.id.value),
+                 QString::fromLatin1(fixture.pack_id));
+        QCOMPARE(QString::fromStdString(installed->revision.version),
+                 QString::fromLatin1(fixture.version));
+        QCOMPARE(QString::fromStdString(installed->revision.digest),
+                 QString::fromLatin1(fixture.revision));
+    }
+    for (const auto& fixture : independent_review_fixtures) {
+        const auto archive = sourcePath(fixture.archive_relative_path);
+        QCOMPARE(sha256(readAll(archive)), QString::fromLatin1(fixture.archive_sha256));
+        const auto installed =
+            catalog->installArchive(archive, QStringLiteral("2026-08-20T00:00:00Z"));
+        QVERIFY2(installed.has_value(),
+                 installed ? "" : installed.error().message.toUtf8().constData());
+        QCOMPARE(installed->archive_sha256, QString::fromLatin1(fixture.archive_sha256));
+        QCOMPARE(QString::fromStdString(installed->revision.digest),
+                 QString::fromLatin1(fixture.revision));
+    }
+    catalog.reset();
+
+    auto opened_snapshot = PackCatalogSnapshot::openExisting(catalog_path);
+    QVERIFY2(opened_snapshot.has_value(),
+             opened_snapshot ? "" : opened_snapshot.error().message.toUtf8().constData());
+    auto snapshot = std::move(*opened_snapshot);
+    const auto list_before = snapshot->list();
+    QVERIFY(list_before.has_value());
+    QCOMPARE(list_before->size(), std::size_t{12});
+    const auto captured_date = QDate(2026, 8, 20);
+
+    for (const auto& fixture : independent_review_fixtures) {
+        const auto subject_revision =
+            PackRevision{PackId{fixture.pack_id}, fixture.version, fixture.revision};
+        const auto subject = snapshot->loadResolved(subject_revision);
+        QVERIFY2(subject.has_value(), subject ? "" : subject.error().message.toUtf8().constData());
+        const auto* source_review =
+            findReview(subject->root(), QString::fromLatin1(fixture.review_id));
+        QVERIFY(source_review != nullptr);
+        QCOMPARE(source_review->document.value(QStringLiteral("review_state")).toString(),
+                 QStringLiteral("independent_review_pending"));
+        QCOMPARE(source_review->document.value(QStringLiteral("reviewed_on")).toString(),
+                 QString::fromLatin1(fixture.reviewed_on));
+        const auto source_dimensions =
+            source_review->document.value(QStringLiteral("dimensions")).toObject();
+        for (const auto& score : source_dimensions) {
+            QCOMPARE(score.toInt(), 2);
+        }
+        const auto source_traces = source_review->document.value(QStringLiteral("evidence"))
+                                       .toObject()
+                                       .value(QStringLiteral("traces"))
+                                       .toArray();
+        QCOMPARE(source_traces.size(), fixture.trace_count);
+
+        const IndependentReviewPrepareInput prepare_input{
+            subject_revision, QString::fromLatin1(fixture.case_id), captured_date};
+        const auto prepared_a =
+            appellate::packs::prepareIndependentReview(*snapshot, prepare_input);
+        QVERIFY2(prepared_a.has_value(),
+                 prepared_a ? "" : prepared_a.error().message.toUtf8().constData());
+        const auto prepared_b =
+            appellate::packs::prepareIndependentReview(*snapshot, prepare_input);
+        QVERIFY2(prepared_b.has_value(),
+                 prepared_b ? "" : prepared_b.error().message.toUtf8().constData());
+        QCOMPARE(prepared_a->handoff_bytes, prepared_b->handoff_bytes);
+        QCOMPARE(prepared_a->declaration_template_bytes, prepared_b->declaration_template_bytes);
+        QCOMPARE(prepared_a->handoff_digest, prepared_b->handoff_digest);
+        const auto handoff_payload =
+            prepared_a->handoff.value(QStringLiteral("payload")).toObject();
+        QCOMPARE(prepared_a->handoff_digest, independentHandoffDigest(handoff_payload));
+        QCOMPARE(prepared_a->handoff.value(QStringLiteral("handoff_digest")).toString(),
+                 prepared_a->handoff_digest);
+        QCOMPARE(handoff_payload.value(QStringLiteral("declaration_template_sha256")).toString(),
+                 sha256(prepared_a->declaration_template_bytes));
+        QCOMPARE(
+            sha256(prepared_a->declaration_template_bytes),
+            QStringLiteral("c3749adae144b712301688c86ab5f1d519bcab0b887aecc0a3bde8314409004b"));
+        QCOMPARE(prepared_a->source_review_resource_id, QString::fromLatin1(fixture.review_id));
+        QCOMPARE(prepared_a->counts.traces, static_cast<std::size_t>(fixture.trace_count));
+
+        const auto detached_traces = prepared_a->handoff.value(QStringLiteral("payload"))
+                                         .toObject()
+                                         .value(QStringLiteral("mechanical_evidence"))
+                                         .toObject()
+                                         .value(QStringLiteral("traces"))
+                                         .toArray();
+        QCOMPARE(detached_traces.size(), source_traces.size());
+        for (qsizetype index = 0; index < source_traces.size(); ++index) {
+            auto expected = source_traces.at(index).toObject();
+            expected.insert(QStringLiteral("engine_revision"),
+                            QStringLiteral("appellate.realism-evidence.detached-review-replay.v1"));
+            expected.insert(QStringLiteral("digest"),
+                            independentTraceDigest(QString::fromLatin1(fixture.case_id), expected));
+            QCOMPARE(detached_traces.at(index).toObject(), expected);
+        }
+
+        const auto declaration =
+            completedIndependentDeclaration(*prepared_a, QString::fromLatin1(fixture.slug));
+        const IndependentReviewFinalizeInput finalize_input{
+            prepared_a->handoff_bytes,
+            prepared_a->declaration_template_bytes,
+            jsonBytes(declaration),
+            captured_date,
+        };
+        const auto finalized_a =
+            appellate::packs::finalizeIndependentReview(*snapshot, finalize_input);
+        QVERIFY2(finalized_a.has_value(),
+                 finalized_a ? "" : finalized_a.error().message.toUtf8().constData());
+        const auto finalized_b =
+            appellate::packs::finalizeIndependentReview(*snapshot, finalize_input);
+        QVERIFY2(finalized_b.has_value(),
+                 finalized_b ? "" : finalized_b.error().message.toUtf8().constData());
+        QCOMPARE(finalized_a->manifest_bytes, finalized_b->manifest_bytes);
+        QCOMPARE(finalized_a->review_bytes, finalized_b->review_bytes);
+        QVERIFY(finalized_a->revision == finalized_b->revision);
+        QCOMPARE(finalized_a->review_document.value(QStringLiteral("review_state")).toString(),
+                 QStringLiteral("independently_reviewed"));
+        QCOMPARE(finalized_a->review_document.value(QStringLiteral("evidence"))
+                     .toObject()
+                     .value(QStringLiteral("traces"))
+                     .toArray(),
+                 detached_traces);
+
+        const auto pack_directory =
+            QDir(temporary.path())
+                .filePath(QStringLiteral("detached-%1").arg(QString::fromLatin1(fixture.slug)));
+        QVERIFY(QDir{}.mkpath(QDir(pack_directory).filePath(QStringLiteral("resources"))));
+        QVERIFY(writeNew(QDir(pack_directory).filePath(QStringLiteral("manifest.json")),
+                         finalized_a->manifest_bytes));
+        QVERIFY(
+            writeNew(QDir(pack_directory).filePath(QStringLiteral("resources/realism-review.json")),
+                     finalized_a->review_bytes));
+        const auto ordinary = appellate::packs::PackReader::readDirectory(
+            pack_directory, PackValidationScope::ResolvedClosure);
+        QVERIFY2(ordinary.has_value(),
+                 ordinary ? "" : ordinary.error().message.toUtf8().constData());
+        QVERIFY(ordinary->revision == finalized_a->revision);
+        std::vector<const appellate::packs::LoadedPack*> dependencies;
+        for (const auto& dependency : subject->dependenciesDependencyFirst()) {
+            dependencies.push_back(&dependency);
+        }
+        dependencies.push_back(&subject->root());
+        const auto graph = appellate::packs::PackReader::validateResolvedGraph(
+            *ordinary, std::span<const appellate::packs::LoadedPack* const>(dependencies));
+        QVERIFY2(graph.has_value(), graph ? "" : graph.error().message.toUtf8().constData());
+
+        const auto verification_catalog_path =
+            QDir(temporary.path())
+                .filePath(QStringLiteral("verification-%1").arg(QString::fromLatin1(fixture.slug)));
+        auto opened_verification = PackCatalog::open(verification_catalog_path);
+        QVERIFY(opened_verification.has_value());
+        auto verification = std::move(*opened_verification);
+        for (const auto& archive : dependency_archives) {
+            QVERIFY(verification->installArchive(archive, QStringLiteral("2026-08-20T00:00:00Z"))
+                        .has_value());
+        }
+        QVERIFY(verification
+                    ->installArchive(sourcePath(fixture.archive_relative_path),
+                                     QStringLiteral("2026-08-20T00:00:00Z"))
+                    .has_value());
+        const auto detached_archive =
+            QDir(temporary.path())
+                .filePath(
+                    QStringLiteral("detached-%1.awpack").arg(QString::fromLatin1(fixture.slug)));
+        const auto exported = PackArchive::exportDirectory(pack_directory, detached_archive, {},
+                                                           PackValidationScope::ResolvedClosure);
+        QVERIFY(exported.has_value());
+        QVERIFY(*exported == finalized_a->revision);
+        QVERIFY(
+            verification->installArchive(detached_archive, QStringLiteral("2026-08-20T00:00:00Z"))
+                .has_value());
+        const auto installed_closure = verification->loadResolved(finalized_a->revision);
+        QVERIFY(installed_closure.has_value());
+        QCOMPARE(installed_closure->revisionsByPackId().size(), std::size_t{5});
+    }
+
+    const auto list_after = snapshot->list();
+    QVERIFY(list_after.has_value());
+    QCOMPARE(*list_after, *list_before);
+}
+
+void PackCliTest::finalizesIndependentReviewDeterministically() {
+    using appellate::model::PackId;
+    using appellate::model::PackRevision;
+    using appellate::packs::IndependentReviewErrorCode;
+    using appellate::packs::IndependentReviewFinalizeInput;
+    using appellate::packs::IndependentReviewPrepareInput;
+    using appellate::packs::PackArchive;
+    using appellate::packs::PackCatalog;
+    using appellate::packs::PackCatalogSnapshot;
+
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto catalog_path = QDir(temporary.path()).filePath(QStringLiteral("catalog"));
+    auto opened_catalog = PackCatalog::open(catalog_path);
+    QVERIFY(opened_catalog.has_value());
+    auto catalog = std::move(*opened_catalog);
+    for (const auto& archive : independentReviewDependencyArchives()) {
+        QVERIFY(
+            catalog->installArchive(archive, QStringLiteral("2026-08-20T00:00:00Z")).has_value());
+    }
+    const auto& fixture = independent_review_fixtures.back();
+    const auto score_zero_pack = QDir(temporary.path()).filePath(QStringLiteral("score-zero-pack"));
+    QVERIFY(copyTree(sourcePath("content/m4/serrano-waiver/pack-candidate"), score_zero_pack));
+    const auto source_review_path = QStringLiteral("resources/realism-review.json");
+    auto score_zero_review =
+        responseObject(readAll(QDir(score_zero_pack).filePath(source_review_path)));
+    QVERIFY(!score_zero_review.isEmpty());
+    auto source_dimensions = score_zero_review.value(QStringLiteral("dimensions")).toObject();
+    source_dimensions.insert(QStringLiteral("provenance"), 0);
+    score_zero_review.insert(QStringLiteral("dimensions"), source_dimensions);
+    auto source_evidence = score_zero_review.value(QStringLiteral("evidence")).toObject();
+    auto source_dimension_evidence =
+        source_evidence.value(QStringLiteral("dimension_evidence")).toObject();
+    const auto latent_provenance =
+        source_dimension_evidence.value(QStringLiteral("provenance")).toArray();
+    QVERIFY(!latent_provenance.isEmpty());
+    source_dimension_evidence.insert(QStringLiteral("provenance"), QJsonArray{});
+    source_evidence.insert(QStringLiteral("dimension_evidence"), source_dimension_evidence);
+    score_zero_review.insert(QStringLiteral("evidence"), source_evidence);
+    QVERIFY(replaceResourceAndDigest(score_zero_pack, source_review_path,
+                                     QString::fromLatin1(fixture.review_id), score_zero_review));
+    const auto score_zero_archive =
+        QDir(temporary.path()).filePath(QStringLiteral("score-zero-source.awpack"));
+    const auto score_zero_revision =
+        PackArchive::exportDirectory(score_zero_pack, score_zero_archive, {},
+                                     appellate::packs::PackValidationScope::ResolvedClosure);
+    QVERIFY2(score_zero_revision.has_value(),
+             score_zero_revision ? "" : score_zero_revision.error().message.toUtf8().constData());
+    const auto installed_source =
+        catalog->installArchive(score_zero_archive, QStringLiteral("2026-08-20T00:00:00Z"));
+    QVERIFY2(installed_source.has_value(),
+             installed_source ? "" : installed_source.error().message.toUtf8().constData());
+    QVERIFY(installed_source->revision == *score_zero_revision);
+    catalog.reset();
+
+    auto opened_snapshot = PackCatalogSnapshot::openExisting(catalog_path);
+    QVERIFY(opened_snapshot.has_value());
+    auto snapshot = std::move(*opened_snapshot);
+    const PackRevision subject_revision = *score_zero_revision;
+    const auto prepare_input = IndependentReviewPrepareInput{
+        subject_revision, QString::fromLatin1(fixture.case_id), QDate(2026, 8, 20)};
+    const auto prepared = appellate::packs::prepareIndependentReview(*snapshot, prepare_input);
+    QVERIFY2(prepared.has_value(), prepared ? "" : prepared.error().message.toUtf8().constData());
+
+    const auto prefix = QStringLiteral("test.detached-review.resource.boundary.");
+    const auto resource_id_128 = prefix + QString(128 - prefix.toUtf8().size(), u'r');
+    QCOMPARE(resource_id_128.toUtf8().size(), 128);
+    auto declaration = completedIndependentDeclaration(
+        *prepared, QStringLiteral("serrano-boundary"), resource_id_128);
+    auto dimensions = declaration.value(QStringLiteral("dimensions")).toObject();
+    dimensions.insert(QStringLiteral("provenance"), 3);
+    dimensions.insert(QStringLiteral("consequences"), 0);
+    declaration.insert(QStringLiteral("dimensions"), dimensions);
+    declaration.insert(
+        QStringLiteral("known_uncertainty"),
+        QJsonArray{
+            QJsonObject{
+                {QStringLiteral("blocking"), false},
+                {QStringLiteral("summary"), QStringLiteral("TEST-ONLY nonblocking uncertainty")},
+                {QStringLiteral("uncertainty_id"),
+                 QStringLiteral("test.detached-review.uncertainty.nonblocking")},
+            },
+            QJsonObject{
+                {QStringLiteral("blocking"), true},
+                {QStringLiteral("remediation_issue"),
+                 QStringLiteral("https://example.invalid/review/ISSUE%20ONE")},
+                {QStringLiteral("summary"), QStringLiteral("TEST-ONLY blocking uncertainty")},
+                {QStringLiteral("uncertainty_id"),
+                 QStringLiteral("test.detached-review.uncertainty.blocking")},
+            },
+        });
+    const IndependentReviewFinalizeInput finalize_input{
+        prepared->handoff_bytes,
+        prepared->declaration_template_bytes,
+        jsonBytes(declaration),
+        QDate(2026, 8, 20),
+    };
+    const auto finalized_a = appellate::packs::finalizeIndependentReview(*snapshot, finalize_input);
+    QVERIFY2(finalized_a.has_value(),
+             finalized_a ? "" : finalized_a.error().message.toUtf8().constData());
+    const auto finalized_b = appellate::packs::finalizeIndependentReview(*snapshot, finalize_input);
+    QVERIFY(finalized_b.has_value());
+    QCOMPARE(finalized_a->manifest_bytes, finalized_b->manifest_bytes);
+    QCOMPARE(finalized_a->review_bytes, finalized_b->review_bytes);
+    QVERIFY(finalized_a->revision == finalized_b->revision);
+    QCOMPARE(finalized_a->review_resource_id, resource_id_128);
+    const auto complete_groups = prepared->handoff.value(QStringLiteral("payload"))
+                                     .toObject()
+                                     .value(QStringLiteral("mechanical_evidence"))
+                                     .toObject()
+                                     .value(QStringLiteral("dimension_evidence"))
+                                     .toObject();
+    QCOMPARE(complete_groups.value(QStringLiteral("provenance")).toArray(), latent_provenance);
+    const auto final_groups = finalized_a->review_document.value(QStringLiteral("evidence"))
+                                  .toObject()
+                                  .value(QStringLiteral("dimension_evidence"))
+                                  .toObject();
+    QVERIFY(!complete_groups.value(QStringLiteral("provenance")).toArray().isEmpty());
+    QCOMPARE(final_groups.value(QStringLiteral("provenance")).toArray(),
+             complete_groups.value(QStringLiteral("provenance")).toArray());
+    QVERIFY(final_groups.value(QStringLiteral("consequences")).toArray().isEmpty());
+    const auto reviewer = finalized_a->review_document.value(QStringLiteral("reviewer")).toObject();
+    QVERIFY(!reviewer.contains(QStringLiteral("affiliation")));
+    QCOMPARE(finalized_a->review_document.value(QStringLiteral("known_uncertainty")).toArray(),
+             declaration.value(QStringLiteral("known_uncertainty")).toArray());
+
+    auto affiliated_declaration = declaration;
+    affiliated_declaration.insert(QStringLiteral("review_pack_id"),
+                                  QStringLiteral("test.detached-review.serrano-affiliated"));
+    affiliated_declaration.insert(
+        QStringLiteral("review_resource_id"),
+        QStringLiteral("test.detached-review.resource.serrano-affiliated"));
+    auto affiliated_reviewer = affiliated_declaration.value(QStringLiteral("reviewer")).toObject();
+    affiliated_reviewer.insert(QStringLiteral("affiliation"),
+                               QStringLiteral("TEST-ONLY fixture affiliation"));
+    affiliated_declaration.insert(QStringLiteral("reviewer"), affiliated_reviewer);
+    auto affiliated_input = finalize_input;
+    affiliated_input.completed_declaration_bytes = jsonBytes(affiliated_declaration);
+    const auto affiliated =
+        appellate::packs::finalizeIndependentReview(*snapshot, affiliated_input);
+    QVERIFY(affiliated.has_value());
+    const auto final_affiliated_reviewer =
+        affiliated->review_document.value(QStringLiteral("reviewer")).toObject();
+    QCOMPARE(final_affiliated_reviewer.size(), 4);
+    QCOMPARE(final_affiliated_reviewer.value(QStringLiteral("affiliation")).toString(),
+             QStringLiteral("TEST-ONLY fixture affiliation"));
+
+    const auto too_early = appellate::packs::prepareIndependentReview(
+        *snapshot, IndependentReviewPrepareInput{
+                       subject_revision, QString::fromLatin1(fixture.case_id), QDate(2026, 8, 18)});
+    QVERIFY(!too_early.has_value());
+    QCOMPARE(too_early.error().code, IndependentReviewErrorCode::InvalidReviewSource);
+
+    auto wrong_association = declaration;
+    wrong_association.insert(QStringLiteral("handoff_digest"), QString(64, u'0'));
+    auto wrong_association_input = finalize_input;
+    wrong_association_input.completed_declaration_bytes = jsonBytes(wrong_association);
+    const auto rejected_association =
+        appellate::packs::finalizeIndependentReview(*snapshot, wrong_association_input);
+    QVERIFY(!rejected_association.has_value());
+    QCOMPARE(rejected_association.error().code, IndependentReviewErrorCode::InvalidDeclaration);
+
+    auto oversized_id = declaration;
+    oversized_id.insert(QStringLiteral("review_resource_id"), resource_id_128 + u'r');
+    auto oversized_input = finalize_input;
+    oversized_input.completed_declaration_bytes = jsonBytes(oversized_id);
+    const auto rejected_id =
+        appellate::packs::finalizeIndependentReview(*snapshot, oversized_input);
+    QVERIFY(!rejected_id.has_value());
+    QCOMPARE(rejected_id.error().code, IndependentReviewErrorCode::InvalidDeclaration);
+
+    auto tampered_handoff = prepared->handoff;
+    tampered_handoff.insert(QStringLiteral("handoff_digest"), QString(64, u'0'));
+    auto tampered_input = finalize_input;
+    tampered_input.handoff_bytes = jsonBytes(tampered_handoff);
+    const auto rejected_handoff =
+        appellate::packs::finalizeIndependentReview(*snapshot, tampered_input);
+    QVERIFY(!rejected_handoff.has_value());
+    QCOMPARE(rejected_handoff.error().code, IndependentReviewErrorCode::InvalidHandoff);
+
+    auto invalid_template_payload = prepared->handoff.value(QStringLiteral("payload")).toObject();
+    invalid_template_payload.insert(QStringLiteral("declaration_template_sha256"),
+                                    QString(64, u'0'));
+    auto missing_subject =
+        invalid_template_payload.value(QStringLiteral("subject_revision")).toObject();
+    missing_subject.insert(QStringLiteral("digest"), QString(64, u'0'));
+    invalid_template_payload.insert(QStringLiteral("subject_revision"), missing_subject);
+    auto invalid_template_handoff = prepared->handoff;
+    invalid_template_handoff.insert(QStringLiteral("payload"), invalid_template_payload);
+    invalid_template_handoff.insert(QStringLiteral("handoff_digest"),
+                                    independentHandoffDigest(invalid_template_payload));
+    auto invalid_template_input = finalize_input;
+    invalid_template_input.handoff_bytes = jsonBytes(invalid_template_handoff);
+    const auto rejected_template =
+        appellate::packs::finalizeIndependentReview(*snapshot, invalid_template_input);
+    QVERIFY(!rejected_template.has_value());
+    QCOMPARE(rejected_template.error().code, IndependentReviewErrorCode::InvalidHandoff);
+
+    auto invalid_revision_payload = prepared->handoff.value(QStringLiteral("payload")).toObject();
+    invalid_revision_payload.insert(QStringLiteral("mechanical_trace_revision"),
+                                    QStringLiteral("test.invalid.detached-revision"));
+    invalid_revision_payload.insert(QStringLiteral("subject_revision"), missing_subject);
+    auto invalid_revision_handoff = prepared->handoff;
+    invalid_revision_handoff.insert(QStringLiteral("payload"), invalid_revision_payload);
+    invalid_revision_handoff.insert(QStringLiteral("handoff_digest"),
+                                    independentHandoffDigest(invalid_revision_payload));
+    auto invalid_revision_input = finalize_input;
+    invalid_revision_input.handoff_bytes = jsonBytes(invalid_revision_handoff);
+    const auto rejected_revision =
+        appellate::packs::finalizeIndependentReview(*snapshot, invalid_revision_input);
+    QVERIFY(!rejected_revision.has_value());
+    QCOMPARE(rejected_revision.error().code, IndependentReviewErrorCode::InvalidHandoff);
+
+    auto invalid_subject_payload = prepared->handoff.value(QStringLiteral("payload")).toObject();
+    auto invalid_subject =
+        invalid_subject_payload.value(QStringLiteral("subject_revision")).toObject();
+    invalid_subject.insert(QStringLiteral("pack_id"), QStringLiteral("not_namespaced"));
+    invalid_subject_payload.insert(QStringLiteral("subject_revision"), invalid_subject);
+    auto invalid_subject_handoff = prepared->handoff;
+    invalid_subject_handoff.insert(QStringLiteral("payload"), invalid_subject_payload);
+    invalid_subject_handoff.insert(QStringLiteral("handoff_digest"),
+                                   independentHandoffDigest(invalid_subject_payload));
+    auto invalid_subject_input = finalize_input;
+    invalid_subject_input.handoff_bytes = jsonBytes(invalid_subject_handoff);
+    const auto rejected_subject =
+        appellate::packs::finalizeIndependentReview(*snapshot, invalid_subject_input);
+    QVERIFY(!rejected_subject.has_value());
+    QCOMPARE(rejected_subject.error().code, IndependentReviewErrorCode::InvalidHandoff);
 }
 
 void PackCliTest::mapsCatalogBusyWithoutMutatingTheLock() {
