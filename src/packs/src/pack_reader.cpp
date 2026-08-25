@@ -4403,6 +4403,9 @@ readDirectoryImpl(const QString& directory, PackValidationScope scope,
                 return resource.descriptor.kind == model::ResourceKind::RealismReview &&
                        QString::fromStdString(resource.descriptor.id) == *authoring_review_id;
             });
+            std::erase_if(evidence_root.required_capabilities, [](const auto& capability) {
+                return capability.id == "workbench.pack.realism-evidence";
+            });
             evidence_result =
                 validateRealismEvidence(evidence_root, std::span<const LoadedPack* const>{});
         } else {

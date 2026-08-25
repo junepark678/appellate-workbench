@@ -2330,6 +2330,9 @@ authorRealismEvidence(const PackCatalog& catalog,
     std::erase_if(baseline_root.resources, [&](const ValidatedResource& resource) {
         return QString::fromStdString(resource.descriptor.id) == input.review_resource_id;
     });
+    std::erase_if(baseline_root.required_capabilities, [](const auto& capability) {
+        return capability.id == "workbench.pack.realism-evidence";
+    });
     const auto baseline = catalog.resolveClosure(baseline_root.revision, &baseline_root);
     if (!baseline) {
         return catalogFailure(baseline.error());
