@@ -583,6 +583,11 @@ void InstalledRecordWorkspaceTest::defersInstalledSealedCasAndReopensOffline() {
     const auto archive =
         QDir(fixture.catalog->archivesDirectory())
             .filePath(fixture.installed.archive_sha256 + QStringLiteral(".awpack"));
+    QFile archive_input(archive);
+    QVERIFY(archive_input.open(QIODevice::ReadOnly));
+    const auto archive_bytes = archive_input.readAll();
+    archive_input.close();
+    QCOMPARE(sha256(archive_bytes), fixture.installed.archive_sha256);
     QVERIFY(QFile::remove(archive));
     QVERIFY(QFile::remove(sealed_object));
 
@@ -643,6 +648,11 @@ void InstalledRecordWorkspaceTest::defersInstalledSealedCasAndReopensOffline() {
     QVERIFY(workspace.openDocketEntry(QStringLiteral("example.record.entry-one")).has_value());
 
     QVERIFY(writeBytes(sealed_object, sealed_bytes));
+    const auto incomplete_catalog =
+        workspace.navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"));
+    QVERIFY(!incomplete_catalog.has_value());
+    QCOMPARE(incomplete_catalog.error().code, ui::RecordWorkspaceErrorCode::PdfLoadFailed);
+    QVERIFY(writeBytes(archive, archive_bytes));
     QVERIFY(
         workspace.navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable")).has_value());
     QCOMPARE(workspace.currentDocumentId(), QStringLiteral("example.record.psr-sealed"));

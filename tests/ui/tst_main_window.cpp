@@ -789,6 +789,12 @@ void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
         QVERIFY(restored.open(QIODevice::WriteOnly | QIODevice::Truncate));
         QCOMPARE(restored.write(sealed_bytes), static_cast<qint64>(sealed_bytes.size()));
         restored.close();
+        const auto incomplete_catalog =
+            workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"));
+        QVERIFY(!incomplete_catalog.has_value());
+        QCOMPARE(incomplete_catalog.error().code,
+                 appellate::ui::RecordWorkspaceErrorCode::PdfLoadFailed);
+        QVERIFY(QFile::copy(archive_path, installed_archive_path));
         QVERIFY(workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"))
                     .has_value());
         QCOMPARE(workspace->currentDocumentId(), QStringLiteral("example.record.psr-sealed"));
@@ -866,7 +872,6 @@ void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
         restored.close();
         QVERIFY(workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"))
                     .has_value());
-        QVERIFY(QFile::copy(archive_path, installed_archive_path));
     }
 
     QCOMPARE(provider->created_sessions.size(), std::size_t{1});
