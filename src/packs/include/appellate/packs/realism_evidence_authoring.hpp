@@ -26,6 +26,8 @@ inline constexpr std::string_view realism_evidence_authoring_engine_revision{
     "appellate.realism-evidence.codec-replay.v1"};
 inline constexpr std::string_view realism_evidence_multi_trace_authoring_engine_revision{
     "appellate.realism-evidence.codec-replay-multi.v1"};
+inline constexpr std::string_view realism_evidence_detached_review_engine_revision{
+    "appellate.realism-evidence.detached-review-replay.v1"};
 
 struct RealismEvidenceAuthoringError final {
     RealismEvidenceAuthoringErrorCode code{};

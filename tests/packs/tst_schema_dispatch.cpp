@@ -1,3 +1,4 @@
+#include "../../src/packs/src/runtime_pack_internal.hpp"
 #include "appellate/engine/workflow_engine.hpp"
 #include "appellate/packs/pack_reader.hpp"
 #include "appellate/packs/runtime_pack.hpp"
@@ -12,6 +13,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSet>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -62,6 +64,9 @@ class SchemaDispatchTest final : public QObject {
     void validatesExactRealismEvidenceAndReviewExclusion();
     void rejectsTamperedAndIncompleteRealismEvidence();
     void enforcesDetachedIndependentReviewOwnership();
+    void enforcesDetachedIndependentReviewHumanShape();
+    void enforcesCodeOwnedRealismScorePrerequisites();
+    void enforcesCodeOwnedRealismUnicodeScalars();
     void rejectsUnsupportedKindVersions();
     void rejectsV1V2CrossInterpretation();
     void validatesSharedWorkflowCapabilitySchemas();
@@ -731,12 +736,11 @@ realismEventHeader(const appellate::model::WorkflowEvent& event) {
 }
 
 [[nodiscard]] std::optional<QJsonObject>
-executedFixtureTrace(const appellate::packs::LoadedPack& case_owner) {
-    const auto runtime = appellate::packs::loadRuntimePack(case_owner);
-    if (!runtime || runtime->cases.empty()) {
+executedFixtureTrace(const appellate::packs::RuntimePack& runtime) {
+    if (runtime.cases.empty()) {
         return std::nullopt;
     }
-    const auto& runtime_case = runtime->cases.front();
+    const auto& runtime_case = runtime.cases.front();
     const auto court_date = appellate::model::LegalDate{
         std::chrono::year{2026} / std::chrono::month{1} / std::chrono::day{4}};
     const appellate::model::WorkflowState initial_state{
@@ -827,6 +831,98 @@ executedFixtureTrace(const appellate::packs::LoadedPack& case_owner) {
     return trace;
 }
 
+[[nodiscard]] std::optional<QJsonObject>
+executedFixtureTrace(const appellate::packs::LoadedPack& case_owner) {
+    const auto runtime = appellate::packs::loadRuntimePack(case_owner);
+    return runtime ? executedFixtureTrace(*runtime) : std::nullopt;
+}
+
+[[nodiscard]] std::optional<QJsonObject>
+replayFirstTraceCommand(const QJsonObject& source_trace,
+                        const appellate::packs::RuntimeCase& runtime_case, const QString& case_id) {
+    const auto source_journal = source_trace.value(QStringLiteral("journal")).toArray();
+    if (source_journal.isEmpty()) {
+        return std::nullopt;
+    }
+    const auto source_entry = source_journal.first().toObject();
+    const auto command_bytes = QByteArray::fromBase64(
+        source_entry.value(QStringLiteral("command_base64")).toString().toLatin1());
+    const auto command = appellate::storage::decodeWorkflowCommand(QByteArrayView(command_bytes));
+    if (!command) {
+        return std::nullopt;
+    }
+    const auto& header = std::visit(
+        [](const auto& concrete) -> const appellate::model::WorkflowCommandHeader& {
+            return concrete.header;
+        },
+        *command);
+    const appellate::model::WorkflowState initial_state{
+        header.session_id,
+        runtime_case.workflow.id,
+        runtime_case.workflow.initial_stage_id,
+        std::uint64_t{1},
+        std::nullopt,
+        {},
+        {},
+        {},
+        {},
+        {},
+        false,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+    };
+    const auto events = appellate::engine::decideWorkflow(
+        runtime_case.workflow, runtime_case.definition, initial_state, *command);
+    if (!events || events->empty()) {
+        return std::nullopt;
+    }
+    const std::vector journal{appellate::model::WorkflowJournalEntry{*command, *events}};
+    const auto replayed = appellate::engine::replayWorkflow(
+        runtime_case.workflow, runtime_case.definition, initial_state, journal);
+    if (!replayed) {
+        return std::nullopt;
+    }
+
+    QCryptographicHash journal_hash(QCryptographicHash::Sha256);
+    addFrame(journal_hash, QStringLiteral("appellate-workbench-executed-workflow-journal-v1"));
+    addUint64(journal_hash, 1);
+    addFrame(journal_hash, QByteArrayView(command_bytes));
+    addUint64(journal_hash, events->size());
+    QJsonArray encoded_events;
+    QJsonArray operation_ids;
+    for (const auto& event : *events) {
+        const auto event_bytes = appellate::storage::encodeWorkflowEvent(event);
+        if (!event_bytes) {
+            return std::nullopt;
+        }
+        addFrame(journal_hash, QByteArrayView(*event_bytes));
+        encoded_events.push_back(QString::fromLatin1(event_bytes->toBase64()));
+        operation_ids.push_back(
+            QString::fromStdString(realismEventHeader(event).operation_id.value));
+    }
+    QJsonObject trace{
+        {QStringLiteral("evidence_id"), QStringLiteral("test.detached.evidence.different-trace")},
+        {QStringLiteral("trace_id"), QStringLiteral("test.detached.trace.different-case")},
+        {QStringLiteral("workflow_id"), QString::fromStdString(runtime_case.workflow.id.value)},
+        {QStringLiteral("engine_revision"), QStringLiteral("test.manual.realism-profile")},
+        {QStringLiteral("command_count"), 1},
+        {QStringLiteral("event_count"), static_cast<qint64>(events->size())},
+        {QStringLiteral("journal_sha256"), QString::fromLatin1(journal_hash.result().toHex())},
+        {QStringLiteral("journal"),
+         QJsonArray{QJsonObject{
+             {QStringLiteral("command_base64"), QString::fromLatin1(command_bytes.toBase64())},
+             {QStringLiteral("events_base64"), encoded_events},
+         }}},
+        {QStringLiteral("operation_ids"), operation_ids},
+        {QStringLiteral("terminal_stage_id"),
+         QString::fromStdString(replayed->current_stage_id.value)},
+    };
+    trace.insert(QStringLiteral("digest"), realismTraceDigest(case_id, trace));
+    return trace;
+}
+
 [[nodiscard]] std::optional<QString> realismJournalDigest(const QJsonArray& journal) {
     QCryptographicHash hash(QCryptographicHash::Sha256);
     addFrame(hash, QStringLiteral("appellate-workbench-executed-workflow-journal-v1"));
@@ -900,6 +996,84 @@ executedFixtureTrace(const appellate::packs::LoadedPack& case_owner) {
         return QStringLiteral("workflow");
     }
     return {};
+}
+
+[[nodiscard]] QString testPackRevisionDigest(const appellate::packs::LoadedPack& pack) {
+    auto capabilities = pack.required_capabilities;
+    auto dependencies = pack.dependencies;
+    std::vector<const appellate::packs::ValidatedResource*> resources;
+    resources.reserve(pack.resources.size());
+    for (const auto& resource : pack.resources) {
+        resources.push_back(&resource);
+    }
+    auto blobs = pack.blobs;
+    std::ranges::sort(capabilities, {}, &appellate::model::RequiredCapability::id);
+    std::ranges::sort(dependencies, [](const auto& left, const auto& right) {
+        return std::tie(left.revision.id.value, left.revision.version, left.revision.digest) <
+               std::tie(right.revision.id.value, right.revision.version, right.revision.digest);
+    });
+    std::ranges::sort(resources, [](const auto* left, const auto* right) {
+        return std::tie(left->descriptor.id, left->descriptor.kind, left->descriptor.path) <
+               std::tie(right->descriptor.id, right->descriptor.kind, right->descriptor.path);
+    });
+    std::ranges::sort(blobs, [](const auto& left, const auto& right) {
+        return std::tie(left.path, left.media_type, left.byte_size, left.sha256) <
+               std::tie(right.path, right.media_type, right.byte_size, right.sha256);
+    });
+
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QStringLiteral("appellate-workbench-pack-revision-v2"));
+    addUint64(hash, pack.manifest_schema_version);
+    addFrame(hash, QString::fromStdString(pack.revision.id.value));
+    addFrame(hash, QString::fromStdString(pack.revision.version));
+    addUint64(hash, capabilities.size());
+    for (const auto& capability : capabilities) {
+        addFrame(hash, QString::fromStdString(capability.id));
+        addUint64(hash, capability.version);
+    }
+    addUint64(hash, dependencies.size());
+    for (const auto& dependency : dependencies) {
+        addFrame(hash, QString::fromStdString(dependency.revision.id.value));
+        addFrame(hash, QString::fromStdString(dependency.revision.version));
+        addFrame(hash, QString::fromStdString(dependency.revision.digest));
+    }
+    addUint64(hash, resources.size());
+    for (const auto* resource : resources) {
+        addFrame(hash, QString::fromStdString(resource->descriptor.id));
+        addFrame(hash, resourceKindName(resource->descriptor.kind));
+        addUint64(hash, resource->descriptor.schema_version);
+        addFrame(hash, QString::fromStdString(resource->descriptor.path));
+        addFrame(hash, QString::fromStdString(resource->descriptor.sha256));
+    }
+    addUint64(hash, blobs.size());
+    for (const auto& blob : blobs) {
+        addFrame(hash, QString::fromStdString(blob.path));
+        addFrame(hash, QString::fromStdString(blob.media_type));
+        addUint64(hash, blob.byte_size);
+        addFrame(hash, QString::fromStdString(blob.sha256));
+    }
+    return QString::fromLatin1(hash.result().toHex());
+}
+
+[[nodiscard]] QByteArray serializedReviewObject(const QJsonObject& object) {
+    auto bytes = QJsonDocument(object).toJson(QJsonDocument::Indented);
+    if (!bytes.endsWith('\n')) {
+        bytes.push_back('\n');
+    }
+    return bytes;
+}
+
+[[nodiscard]] QString sha256Bytes(QByteArrayView bytes) {
+    return QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex());
+}
+
+void refreshResourceDigest(appellate::packs::ValidatedResource& resource) {
+    resource.descriptor.sha256 =
+        sha256Bytes(serializedReviewObject(resource.document)).toLatin1().toStdString();
+}
+
+void refreshPackRevision(appellate::packs::LoadedPack& pack) {
+    pack.revision.digest = testPackRevisionDigest(pack).toLatin1().toStdString();
 }
 
 [[nodiscard]] QJsonObject realismPackBinding(const appellate::packs::LoadedPack& pack) {
@@ -1146,6 +1320,10 @@ buildRealismReview(const appellate::packs::ValidatedResource& source_review,
 }
 
 [[nodiscard]] bool prepareRealismEvidencePack(const QString& root) {
+    auto staged = PackReader::readDirectory(root);
+    if (!staged) {
+        return false;
+    }
     if (!mutateManifest(root, [](QJsonObject& manifest) {
             auto capabilities = manifest.value(QStringLiteral("required_capabilities")).toArray();
             capabilities.push_back(QJsonObject{
@@ -1154,10 +1332,6 @@ buildRealismReview(const appellate::packs::ValidatedResource& source_review,
             });
             manifest.insert(QStringLiteral("required_capabilities"), capabilities);
         })) {
-        return false;
-    }
-    const auto staged = PackReader::readDirectory(root);
-    if (!staged) {
         return false;
     }
     const auto case_resource = std::ranges::find_if(staged->resources, [](const auto& resource) {
@@ -1195,10 +1369,27 @@ buildRealismReview(const appellate::packs::ValidatedResource& source_review,
         },
     };
     const std::array<const appellate::packs::LoadedPack*, 1> subject_packs{&*staged};
-    const auto document = buildRealismReview(review, *staged, subject_packs, false);
+    auto document = buildRealismReview(review, *staged, subject_packs, false);
     if (!document) {
         return false;
     }
+    auto evidence = document->value(QStringLiteral("evidence")).toObject();
+    auto packs = evidence.value(QStringLiteral("packs")).toArray();
+    auto pack = packs.first().toObject();
+    auto capabilities = pack.value(QStringLiteral("required_capabilities")).toArray();
+    capabilities.push_back(QJsonObject{
+        {QStringLiteral("id"), QStringLiteral("workbench.pack.realism-evidence")},
+        {QStringLiteral("version"), 1},
+    });
+    pack.insert(QStringLiteral("required_capabilities"), capabilities);
+    packs.replace(0, pack);
+    evidence.insert(QStringLiteral("packs"), packs);
+    evidence.insert(QStringLiteral("closure_digest"),
+                    realismClosureDigest(document->value(QStringLiteral("case_id")).toString(),
+                                         packs,
+                                         evidence.value(QStringLiteral("resources")).toArray(),
+                                         evidence.value(QStringLiteral("blobs")).toArray()));
+    document->insert(QStringLiteral("evidence"), evidence);
     const auto bytes = QJsonDocument(*document).toJson(QJsonDocument::Compact);
     if (!writeBytes(QDir(root).filePath(review_path), bytes)) {
         return false;
@@ -1216,6 +1407,486 @@ buildRealismReview(const appellate::packs::ValidatedResource& source_review,
         });
         manifest.insert(QStringLiteral("contents"), contents);
     });
+}
+
+struct StrictDetachedFixture final {
+    appellate::packs::LoadedPack federal;
+    appellate::packs::LoadedPack ca4;
+    appellate::packs::LoadedPack bench;
+    appellate::packs::LoadedPack subject;
+    appellate::packs::LoadedPack detached;
+};
+
+[[nodiscard]] QString contentPath(const QString& relative_path) {
+    const auto content_root =
+        QDir::cleanPath(QStringLiteral(APPELLATE_GOLD_PACK) + QStringLiteral("/../.."));
+    return QDir(content_root).filePath(relative_path);
+}
+
+[[nodiscard]] std::optional<StrictDetachedFixture> strictDetachedFixture() {
+    auto federal =
+        PackReader::readDirectory(contentPath(QStringLiteral("foundations/us-federal/pack")));
+    auto ca4 = PackReader::readDirectory(contentPath(QStringLiteral("foundations/us-ca4/pack")),
+                                         appellate::packs::PackValidationScope::ResolvedClosure);
+    auto bench = PackReader::readDirectory(
+        contentPath(QStringLiteral("foundations/us-ca4-fictional-bench/pack")));
+    auto subject =
+        PackReader::readDirectory(contentPath(QStringLiteral("m4/cinderlake-writ/pack-candidate")),
+                                  appellate::packs::PackValidationScope::ResolvedClosure);
+    if (!federal || !ca4 || !bench || !subject) {
+        return std::nullopt;
+    }
+    const std::array<const appellate::packs::LoadedPack*, 1> ca4_dependencies{&*federal};
+    if (!PackReader::validateResolvedGraph(*ca4, ca4_dependencies)) {
+        return std::nullopt;
+    }
+    const std::array<const appellate::packs::LoadedPack*, 3> subject_dependencies{&*federal, &*ca4,
+                                                                                  &*bench};
+    if (!PackReader::validateResolvedGraph(*subject, subject_dependencies)) {
+        return std::nullopt;
+    }
+
+    const auto source_review = std::ranges::find_if(subject->resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+    });
+    if (source_review == subject->resources.end()) {
+        return std::nullopt;
+    }
+    auto document = source_review->document;
+    const auto detached_resource_id = QStringLiteral("test.detached.review");
+    document.insert(QStringLiteral("resource_id"), detached_resource_id);
+    document.insert(QStringLiteral("review_state"), QStringLiteral("independently_reviewed"));
+    document.insert(QStringLiteral("reviewed_on"), QStringLiteral("2099-12-31"));
+    document.insert(QStringLiteral("reviewer_reference"),
+                    QStringLiteral("TEST-ONLY independent review declaration"));
+    document.insert(
+        QStringLiteral("reviewer"),
+        QJsonObject{
+            {QStringLiteral("reviewer_id"), QStringLiteral("test.detached.reviewer")},
+            {QStringLiteral("display_name"), QStringLiteral("TEST-ONLY Reviewer")},
+            {QStringLiteral("qualification"),
+             QStringLiteral("TEST-ONLY fixture; no human independent review was performed")},
+        });
+    auto dimensions = document.value(QStringLiteral("dimensions")).toObject();
+    for (const auto* name :
+         {"procedural_law", "deadlines_authority", "record_consistency", "consequences",
+          "oral_argument", "bench_differentiation", "provenance"}) {
+        dimensions.insert(QLatin1StringView(name), 3);
+    }
+    document.insert(QStringLiteral("dimensions"), dimensions);
+    auto evidence = document.value(QStringLiteral("evidence")).toObject();
+    auto traces = evidence.value(QStringLiteral("traces")).toArray();
+    const auto case_id = document.value(QStringLiteral("case_id")).toString();
+    for (qsizetype index = 0; index < traces.size(); ++index) {
+        auto trace = traces.at(index).toObject();
+        trace.insert(QStringLiteral("engine_revision"),
+                     QStringLiteral("appellate.realism-evidence.detached-review-replay.v1"));
+        trace.insert(QStringLiteral("digest"), realismTraceDigest(case_id, trace));
+        traces.replace(index, trace);
+    }
+    evidence.insert(QStringLiteral("traces"), traces);
+    document.insert(QStringLiteral("evidence"), evidence);
+
+    auto descriptor = source_review->descriptor;
+    descriptor.id = detached_resource_id.toStdString();
+    descriptor.path = "resources/realism-review.json";
+    descriptor.sha256 = sha256Bytes(serializedReviewObject(document)).toLatin1().toStdString();
+    appellate::packs::LoadedPack detached{
+        2,
+        appellate::model::PackRevision{appellate::model::PackId{"test.detached.pack"}, "1.0.0", {}},
+        {
+            appellate::model::RequiredCapability{"workbench.pack.declarative-resources", 2},
+            appellate::model::RequiredCapability{"workbench.pack.realism-evidence", 1},
+        },
+        {appellate::model::PackDependency{subject->revision}},
+        {appellate::packs::ValidatedResource{std::move(descriptor), std::move(document)}},
+        {},
+        {},
+        appellate::packs::PackGraphState::DeferredReferences,
+    };
+    refreshPackRevision(detached);
+    return StrictDetachedFixture{std::move(*federal), std::move(*ca4), std::move(*bench),
+                                 std::move(*subject), std::move(detached)};
+}
+
+[[nodiscard]] std::expected<void, appellate::packs::Error> validateStrictDetached(
+    const StrictDetachedFixture& fixture,
+    const appellate::packs::LoadedPack* subject_override = nullptr,
+    const appellate::packs::LoadedPack* detached_override = nullptr,
+    std::span<const appellate::packs::LoadedPack* const> additional_subject_packs = {}) {
+    const auto* subject = subject_override == nullptr ? &fixture.subject : subject_override;
+    const auto* detached = detached_override == nullptr ? &fixture.detached : detached_override;
+    std::optional<appellate::packs::LoadedPack> repaired_detached;
+    if (detached->resources.size() == 1 &&
+        detached->resources.front().descriptor.sha256 != std::string(64, '0')) {
+        repaired_detached = *detached;
+        refreshResourceDigest(repaired_detached->resources.front());
+        refreshPackRevision(*repaired_detached);
+        detached = &*repaired_detached;
+    }
+    std::vector<const appellate::packs::LoadedPack*> closure{&fixture.federal, &fixture.ca4,
+                                                             &fixture.bench};
+    closure.insert(closure.end(), additional_subject_packs.begin(), additional_subject_packs.end());
+    closure.push_back(subject);
+    return PackReader::validateResolvedGraph(*detached, closure);
+}
+
+[[nodiscard]] appellate::packs::ValidatedResource*
+firstRealismReview(appellate::packs::LoadedPack& pack) {
+    const auto found = std::ranges::find_if(pack.resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+    });
+    return found == pack.resources.end() ? nullptr : &*found;
+}
+
+[[nodiscard]] bool setReviewTraceProfile(appellate::packs::ValidatedResource& review,
+                                         const QString& engine_revision, bool keep_first_only) {
+    auto evidence = review.document.value(QStringLiteral("evidence")).toObject();
+    auto traces = evidence.value(QStringLiteral("traces")).toArray();
+    if (traces.isEmpty()) {
+        return false;
+    }
+    QSet<QString> removed_trace_refs;
+    if (keep_first_only) {
+        for (qsizetype index = 1; index < traces.size(); ++index) {
+            removed_trace_refs.insert(
+                traces.at(index).toObject().value(QStringLiteral("evidence_id")).toString());
+        }
+        traces = QJsonArray{traces.first()};
+    }
+    const auto case_id = review.document.value(QStringLiteral("case_id")).toString();
+    for (qsizetype index = 0; index < traces.size(); ++index) {
+        auto trace = traces.at(index).toObject();
+        trace.insert(QStringLiteral("engine_revision"), engine_revision);
+        trace.insert(QStringLiteral("digest"), realismTraceDigest(case_id, trace));
+        traces.replace(index, trace);
+    }
+    evidence.insert(QStringLiteral("traces"), traces);
+    if (keep_first_only) {
+        auto groups = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+        for (const auto& key : groups.keys()) {
+            QJsonArray filtered;
+            for (const auto& value : groups.value(key).toArray()) {
+                if (!removed_trace_refs.contains(value.toString())) {
+                    filtered.push_back(value);
+                }
+            }
+            groups.insert(key, filtered);
+        }
+        evidence.insert(QStringLiteral("dimension_evidence"), groups);
+        auto dimensions = review.document.value(QStringLiteral("dimensions")).toObject();
+        for (const auto& key : dimensions.keys()) {
+            dimensions.insert(key, 1);
+        }
+        review.document.insert(QStringLiteral("dimensions"), dimensions);
+    }
+    review.document.insert(QStringLiteral("evidence"), evidence);
+    return true;
+}
+
+[[nodiscard]] bool mutateFirstTraceCommandField(appellate::packs::ValidatedResource& review,
+                                                const QString& field_value) {
+    auto evidence = review.document.value(QStringLiteral("evidence")).toObject();
+    auto traces = evidence.value(QStringLiteral("traces")).toArray();
+    if (traces.isEmpty()) {
+        return false;
+    }
+    auto trace = traces.first().toObject();
+    auto journal = trace.value(QStringLiteral("journal")).toArray();
+    if (journal.isEmpty()) {
+        return false;
+    }
+    auto entry = journal.first().toObject();
+    const auto command_bytes =
+        QByteArray::fromBase64(entry.value(QStringLiteral("command_base64")).toString().toLatin1());
+    auto command = QJsonDocument::fromJson(command_bytes).object();
+    auto payload = command.value(QStringLiteral("payload")).toObject();
+    auto fields = payload.value(QStringLiteral("fields")).toArray();
+    if (fields.isEmpty()) {
+        return false;
+    }
+    auto field = fields.first().toObject();
+    field.insert(QStringLiteral("value"), field_value);
+    fields.replace(0, field);
+    payload.insert(QStringLiteral("fields"), fields);
+    command.insert(QStringLiteral("payload"), payload);
+    entry.insert(
+        QStringLiteral("command_base64"),
+        QString::fromLatin1(QJsonDocument(command).toJson(QJsonDocument::Compact).toBase64()));
+    journal.replace(0, entry);
+    const auto journal_digest = realismJournalDigest(journal);
+    if (!journal_digest) {
+        return false;
+    }
+    trace.insert(QStringLiteral("journal"), journal);
+    trace.insert(QStringLiteral("journal_sha256"), *journal_digest);
+    trace.insert(
+        QStringLiteral("digest"),
+        realismTraceDigest(review.document.value(QStringLiteral("case_id")).toString(), trace));
+    traces.replace(0, trace);
+    evidence.insert(QStringLiteral("traces"), traces);
+    review.document.insert(QStringLiteral("evidence"), evidence);
+    return true;
+}
+
+[[nodiscard]] bool mutateFirstTraceEventProposition(appellate::packs::ValidatedResource& review,
+                                                    const QString& proposition) {
+    auto evidence = review.document.value(QStringLiteral("evidence")).toObject();
+    auto traces = evidence.value(QStringLiteral("traces")).toArray();
+    if (traces.isEmpty()) {
+        return false;
+    }
+    auto trace = traces.first().toObject();
+    auto journal = trace.value(QStringLiteral("journal")).toArray();
+    if (journal.isEmpty()) {
+        return false;
+    }
+    auto entry = journal.first().toObject();
+    auto encoded_events = entry.value(QStringLiteral("events_base64")).toArray();
+    if (encoded_events.isEmpty()) {
+        return false;
+    }
+    const auto event_bytes = QByteArray::fromBase64(encoded_events.first().toString().toLatin1());
+    auto event = QJsonDocument::fromJson(event_bytes).object();
+    auto payload = event.value(QStringLiteral("payload")).toObject();
+    auto authority = payload.value(QStringLiteral("authority")).toObject();
+    auto primary = authority.value(QStringLiteral("primary")).toObject();
+    if (!primary.contains(QStringLiteral("proposition"))) {
+        return false;
+    }
+    primary.insert(QStringLiteral("proposition"), proposition);
+    authority.insert(QStringLiteral("primary"), primary);
+    payload.insert(QStringLiteral("authority"), authority);
+    event.insert(QStringLiteral("payload"), payload);
+    encoded_events.replace(
+        0, QString::fromLatin1(QJsonDocument(event).toJson(QJsonDocument::Compact).toBase64()));
+    entry.insert(QStringLiteral("events_base64"), encoded_events);
+    journal.replace(0, entry);
+    const auto journal_digest = realismJournalDigest(journal);
+    if (!journal_digest) {
+        return false;
+    }
+    trace.insert(QStringLiteral("journal"), journal);
+    trace.insert(QStringLiteral("journal_sha256"), *journal_digest);
+    trace.insert(
+        QStringLiteral("digest"),
+        realismTraceDigest(review.document.value(QStringLiteral("case_id")).toString(), trace));
+    traces.replace(0, trace);
+    evidence.insert(QStringLiteral("traces"), traces);
+    review.document.insert(QStringLiteral("evidence"), evidence);
+    return true;
+}
+
+void replayDetachedTracesFromSource(const appellate::packs::ValidatedResource& source,
+                                    appellate::packs::ValidatedResource& detached) {
+    const auto source_traces = source.document.value(QStringLiteral("evidence"))
+                                   .toObject()
+                                   .value(QStringLiteral("traces"))
+                                   .toArray();
+    QJsonArray detached_traces;
+    const auto case_id = detached.document.value(QStringLiteral("case_id")).toString();
+    for (const auto& value : source_traces) {
+        auto trace = value.toObject();
+        trace.insert(QStringLiteral("engine_revision"),
+                     QStringLiteral("appellate.realism-evidence.detached-review-replay.v1"));
+        trace.insert(QStringLiteral("digest"), realismTraceDigest(case_id, trace));
+        detached_traces.push_back(trace);
+    }
+    auto evidence = detached.document.value(QStringLiteral("evidence")).toObject();
+    evidence.insert(QStringLiteral("traces"), detached_traces);
+    detached.document.insert(QStringLiteral("evidence"), evidence);
+}
+
+[[nodiscard]] QSet<QString> removeSubjectResources(
+    appellate::packs::LoadedPack& subject,
+    const std::function<bool(const appellate::packs::ValidatedResource&)>& should_remove) {
+    QSet<QString> removed;
+    std::erase_if(subject.resources, [&](const auto& resource) {
+        if (!should_remove(resource)) {
+            return false;
+        }
+        removed.insert(QString::fromStdString(resource.descriptor.id));
+        return true;
+    });
+    return removed;
+}
+
+void repairReviewAfterRemovedResources(appellate::packs::ValidatedResource& review,
+                                       const QSet<QString>& removed_resource_ids) {
+    auto evidence = review.document.value(QStringLiteral("evidence")).toObject();
+    auto resources = evidence.value(QStringLiteral("resources")).toArray();
+    QSet<QString> removed_evidence_ids;
+    QJsonArray retained_resources;
+    for (const auto& value : resources) {
+        const auto binding = value.toObject();
+        if (removed_resource_ids.contains(
+                binding.value(QStringLiteral("resource_id")).toString())) {
+            removed_evidence_ids.insert(binding.value(QStringLiteral("evidence_id")).toString());
+        } else {
+            retained_resources.push_back(binding);
+        }
+    }
+    evidence.insert(QStringLiteral("resources"), retained_resources);
+
+    auto groups = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+    for (const auto& key : groups.keys()) {
+        QJsonArray retained;
+        for (const auto& value : groups.value(key).toArray()) {
+            if (!removed_evidence_ids.contains(value.toString())) {
+                retained.push_back(value);
+            }
+        }
+        groups.insert(key, retained);
+    }
+    evidence.insert(QStringLiteral("dimension_evidence"), groups);
+    evidence.insert(
+        QStringLiteral("closure_digest"),
+        realismClosureDigest(review.document.value(QStringLiteral("case_id")).toString(),
+                             evidence.value(QStringLiteral("packs")).toArray(), retained_resources,
+                             evidence.value(QStringLiteral("blobs")).toArray()));
+    review.document.insert(QStringLiteral("evidence"), evidence);
+}
+
+[[nodiscard]] QString codeOwnedEvidenceId(const QString& category,
+                                          std::initializer_list<QString> identity) {
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    addFrame(hash, QStringLiteral("appellate-workbench-realism-authoring-evidence-id-v1"));
+    addFrame(hash, category);
+    addUint64(hash, identity.size());
+    for (const auto& value : identity) {
+        addFrame(hash, value);
+    }
+    return QStringLiteral("workbench.evidence.%1.%2")
+        .arg(category, QString::fromLatin1(hash.result().toHex()));
+}
+
+struct TestRealismClosureBindings final {
+    QJsonArray packs;
+    QJsonArray resources;
+    QJsonArray blobs;
+};
+
+[[nodiscard]] TestRealismClosureBindings
+testRealismClosureBindings(std::span<const appellate::packs::LoadedPack* const> subject_packs) {
+    TestRealismClosureBindings bindings;
+    for (const auto* pack : subject_packs) {
+        bindings.packs.push_back(realismPackBinding(*pack));
+        for (const auto& resource : pack->resources) {
+            if (resource.descriptor.kind == appellate::model::ResourceKind::RealismReview) {
+                continue;
+            }
+            const auto owner_id = QString::fromStdString(pack->revision.id.value);
+            const auto owner_version = QString::fromStdString(pack->revision.version);
+            const auto resource_id = QString::fromStdString(resource.descriptor.id);
+            const auto kind = resourceKindName(resource.descriptor.kind);
+            const auto schema_version = QString::number(resource.descriptor.schema_version);
+            const auto path = QString::fromStdString(resource.descriptor.path);
+            const auto digest = QString::fromStdString(resource.descriptor.sha256);
+            bindings.resources.push_back(QJsonObject{
+                {QStringLiteral("evidence_id"),
+                 codeOwnedEvidenceId(
+                     QStringLiteral("resource"),
+                     {owner_id, owner_version, resource_id, kind, schema_version, path, digest})},
+                {QStringLiteral("owner_pack_id"), owner_id},
+                {QStringLiteral("owner_pack_version"), owner_version},
+                {QStringLiteral("resource_id"), resource_id},
+                {QStringLiteral("resource_kind"), kind},
+                {QStringLiteral("schema_version"),
+                 static_cast<qint64>(resource.descriptor.schema_version)},
+                {QStringLiteral("path"), path},
+                {QStringLiteral("sha256"), digest},
+            });
+        }
+        for (const auto& blob : pack->blobs) {
+            const auto owner_id = QString::fromStdString(pack->revision.id.value);
+            const auto owner_version = QString::fromStdString(pack->revision.version);
+            const auto path = QString::fromStdString(blob.path);
+            const auto media_type = QString::fromStdString(blob.media_type);
+            const auto byte_size = QString::number(static_cast<qulonglong>(blob.byte_size));
+            const auto digest = QString::fromStdString(blob.sha256);
+            bindings.blobs.push_back(QJsonObject{
+                {QStringLiteral("evidence_id"),
+                 codeOwnedEvidenceId(QStringLiteral("blob"), {owner_id, owner_version, path,
+                                                              media_type, byte_size, digest})},
+                {QStringLiteral("owner_pack_id"), owner_id},
+                {QStringLiteral("owner_pack_version"), owner_version},
+                {QStringLiteral("path"), path},
+                {QStringLiteral("media_type"), media_type},
+                {QStringLiteral("byte_size"), static_cast<qint64>(blob.byte_size)},
+                {QStringLiteral("sha256"), digest},
+            });
+        }
+    }
+    return bindings;
+}
+
+void applyRealismClosureBindings(appellate::packs::ValidatedResource& review,
+                                 const TestRealismClosureBindings& bindings) {
+    auto evidence = review.document.value(QStringLiteral("evidence")).toObject();
+    evidence.insert(QStringLiteral("packs"), bindings.packs);
+    evidence.insert(QStringLiteral("resources"), bindings.resources);
+    evidence.insert(QStringLiteral("blobs"), bindings.blobs);
+    evidence.insert(
+        QStringLiteral("closure_digest"),
+        realismClosureDigest(review.document.value(QStringLiteral("case_id")).toString(),
+                             bindings.packs, bindings.resources, bindings.blobs));
+    review.document.insert(QStringLiteral("evidence"), evidence);
+}
+
+void setReviewDimension(appellate::packs::ValidatedResource& review, const QString& dimension,
+                        int score, bool require_generic_reference = false) {
+    auto dimensions = review.document.value(QStringLiteral("dimensions")).toObject();
+    dimensions.insert(dimension, score);
+    review.document.insert(QStringLiteral("dimensions"), dimensions);
+
+    auto evidence = review.document.value(QStringLiteral("evidence")).toObject();
+    auto groups = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+    if (score == 0) {
+        groups.insert(dimension, QJsonArray{});
+    } else if (require_generic_reference && groups.value(dimension).toArray().isEmpty()) {
+        const auto resources = evidence.value(QStringLiteral("resources")).toArray();
+        const auto record = std::ranges::find_if(resources, [](const QJsonValue& value) {
+            return value.toObject().value(QStringLiteral("resource_kind")).toString() ==
+                   QStringLiteral("record");
+        });
+        if (record != resources.end()) {
+            groups.insert(dimension,
+                          QJsonArray{record->toObject().value(QStringLiteral("evidence_id"))});
+        }
+    }
+    evidence.insert(QStringLiteral("dimension_evidence"), groups);
+    review.document.insert(QStringLiteral("evidence"), evidence);
+}
+
+void refreshStrictDetachedFixture(StrictDetachedFixture& fixture) {
+    auto* source_review = firstRealismReview(fixture.subject);
+    Q_ASSERT(source_review != nullptr);
+    refreshResourceDigest(*source_review);
+    refreshPackRevision(fixture.subject);
+    fixture.detached.dependencies = {appellate::model::PackDependency{fixture.subject.revision}};
+    refreshResourceDigest(fixture.detached.resources.front());
+    refreshPackRevision(fixture.detached);
+}
+
+void rebuildStrictDetachedSubjectClosure(
+    StrictDetachedFixture& fixture,
+    std::span<const appellate::packs::LoadedPack* const> additional_subject_packs) {
+    std::vector<const appellate::packs::LoadedPack*> subject_packs{&fixture.federal, &fixture.ca4,
+                                                                   &fixture.bench};
+    subject_packs.insert(subject_packs.end(), additional_subject_packs.begin(),
+                         additional_subject_packs.end());
+    subject_packs.push_back(&fixture.subject);
+    const auto bindings = testRealismClosureBindings(subject_packs);
+    auto* source = firstRealismReview(fixture.subject);
+    Q_ASSERT(source != nullptr);
+    applyRealismClosureBindings(*source, bindings);
+    applyRealismClosureBindings(fixture.detached.resources.front(), bindings);
+    refreshStrictDetachedFixture(fixture);
+}
+
+void useManualTraceProfile(appellate::packs::ValidatedResource& review) {
+    static_cast<void>(
+        setReviewTraceProfile(review, QStringLiteral("test.manual.realism-profile"), false));
 }
 
 void SchemaDispatchTest::preservesPinnedV1Digests() {
@@ -4426,7 +5097,7 @@ void SchemaDispatchTest::rejectsTamperedAndIncompleteRealismEvidence() {
              appellate::packs::RuntimePackErrorCode::InvalidPack);
 }
 
-void SchemaDispatchTest::enforcesDetachedIndependentReviewOwnership() {
+void validatesManualDetachedReviewCompatibility() {
     QTemporaryDir pack;
     QVERIFY(pack.isValid());
     QVERIFY(copyTree(fixture(QStringLiteral("full-resource-pack-v2")), pack.path()));
@@ -4442,6 +5113,9 @@ void SchemaDispatchTest::enforcesDetachedIndependentReviewOwnership() {
     const auto detached_resource = *source_review;
     std::erase_if(subject.resources, [](const auto& resource) {
         return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+    });
+    std::erase_if(subject.required_capabilities, [](const auto& capability) {
+        return capability.id == "workbench.pack.realism-evidence";
     });
     subject.revision.id.value = "example.subject.detached";
     subject.revision.version = "2.1.0";
@@ -4557,6 +5231,1587 @@ void SchemaDispatchTest::enforcesDetachedIndependentReviewOwnership() {
         PackReader::validateResolvedGraph(stale_topology, subject_closure);
     QVERIFY(!topology_mismatch.has_value());
     QCOMPARE(topology_mismatch.error().code, ErrorCode::CrossReferenceFailure);
+}
+
+void SchemaDispatchTest::enforcesDetachedIndependentReviewOwnership() {
+    validatesManualDetachedReviewCompatibility();
+
+    auto fixture = strictDetachedFixture();
+    QVERIFY(fixture.has_value());
+    const auto valid = validateStrictDetached(*fixture);
+    QVERIFY2(valid.has_value(), valid ? "" : qPrintable(valid.error().message));
+
+    auto schema_one_owner = fixture->detached;
+    schema_one_owner.manifest_schema_version = 1;
+    refreshPackRevision(schema_one_owner);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &schema_one_owner).has_value());
+
+    auto empty_owner = fixture->detached;
+    empty_owner.resources.clear();
+    refreshPackRevision(empty_owner);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &empty_owner).has_value());
+
+    auto extra_dependency = fixture->detached;
+    extra_dependency.dependencies.push_back(
+        appellate::model::PackDependency{fixture->federal.revision});
+    refreshPackRevision(extra_dependency);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &extra_dependency).has_value());
+
+    auto wrong_kind = fixture->detached;
+    wrong_kind.resources.front().descriptor.kind = appellate::model::ResourceKind::Form;
+    refreshPackRevision(wrong_kind);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &wrong_kind).has_value());
+
+    auto wrong_schema = fixture->detached;
+    wrong_schema.resources.front().descriptor.schema_version = 1;
+    refreshPackRevision(wrong_schema);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &wrong_schema).has_value());
+
+    auto wrong_id = fixture->detached;
+    wrong_id.resources.front().descriptor.id = "test.detached.wrong-id";
+    refreshPackRevision(wrong_id);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &wrong_id).has_value());
+
+    auto reused_source_id = fixture->detached;
+    const auto source_id =
+        QString::fromStdString(firstRealismReview(fixture->subject)->descriptor.id);
+    reused_source_id.resources.front().descriptor.id = source_id.toStdString();
+    reused_source_id.resources.front().document.insert(QStringLiteral("resource_id"), source_id);
+    refreshResourceDigest(reused_source_id.resources.front());
+    refreshPackRevision(reused_source_id);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &reused_source_id).has_value());
+
+    auto wrong_pin = fixture->detached;
+    wrong_pin.dependencies.front().revision.digest = std::string(64, '0');
+    const auto wrong_exact_revision = validateStrictDetached(*fixture, nullptr, &wrong_pin);
+    QVERIFY(!wrong_exact_revision.has_value());
+    QCOMPARE(wrong_exact_revision.error().code, ErrorCode::CrossReferenceFailure);
+
+    auto missing_pin = fixture->detached;
+    missing_pin.dependencies.clear();
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &missing_pin).has_value());
+
+    auto transitive_pin = fixture->detached;
+    transitive_pin.dependencies = {appellate::model::PackDependency{fixture->ca4.revision}};
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &transitive_pin).has_value());
+
+    auto extra_capability = fixture->detached;
+    extra_capability.required_capabilities.push_back(
+        appellate::model::RequiredCapability{"workbench.pack.canonical-authority", 1});
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &extra_capability).has_value());
+
+    auto missing_capability = fixture->detached;
+    missing_capability.required_capabilities.pop_back();
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &missing_capability).has_value());
+
+    auto reordered_capabilities = fixture->detached;
+    std::ranges::reverse(reordered_capabilities.required_capabilities);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &reordered_capabilities).has_value());
+
+    auto wrong_path = fixture->detached;
+    wrong_path.resources.front().descriptor.path = "resources/other-review.json";
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &wrong_path).has_value());
+
+    auto wrong_descriptor_digest = fixture->detached;
+    wrong_descriptor_digest.resources.front().descriptor.sha256 = std::string(64, '0');
+    refreshPackRevision(wrong_descriptor_digest);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &wrong_descriptor_digest).has_value());
+
+    auto extra_resource = fixture->detached;
+    auto duplicate = extra_resource.resources.front();
+    duplicate.descriptor.id = "test.detached.extra-review";
+    duplicate.document.insert(QStringLiteral("resource_id"),
+                              QStringLiteral("test.detached.extra-review"));
+    extra_resource.resources.push_back(std::move(duplicate));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &extra_resource).has_value());
+
+    auto with_blob = fixture->detached;
+    with_blob.blobs.push_back(appellate::model::BlobDescriptor{
+        "objects/test.pdf", "application/pdf", 1, std::string(64, '1')});
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &with_blob).has_value());
+
+    auto wrong_state = fixture->detached;
+    wrong_state.resources.front().document.insert(QStringLiteral("review_state"),
+                                                  QStringLiteral("independent_review_pending"));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &wrong_state).has_value());
+
+    auto mixed_trace_profile = fixture->detached;
+    auto mixed_document = mixed_trace_profile.resources.front().document;
+    auto mixed_evidence = mixed_document.value(QStringLiteral("evidence")).toObject();
+    auto mixed_traces = mixed_evidence.value(QStringLiteral("traces")).toArray();
+    auto mixed_trace = mixed_traces.first().toObject();
+    mixed_trace.insert(QStringLiteral("engine_revision"),
+                       QStringLiteral("appellate.realism-evidence.codec-replay-multi.v1"));
+    mixed_trace.insert(
+        QStringLiteral("digest"),
+        realismTraceDigest(mixed_document.value(QStringLiteral("case_id")).toString(),
+                           mixed_trace));
+    mixed_traces.replace(0, mixed_trace);
+    mixed_evidence.insert(QStringLiteral("traces"), mixed_traces);
+    mixed_document.insert(QStringLiteral("evidence"), mixed_evidence);
+    mixed_trace_profile.resources.front().document = mixed_document;
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &mixed_trace_profile).has_value());
+
+    auto stale_trace = fixture->detached;
+    auto stale_document = stale_trace.resources.front().document;
+    auto stale_evidence = stale_document.value(QStringLiteral("evidence")).toObject();
+    auto stale_traces = stale_evidence.value(QStringLiteral("traces")).toArray();
+    auto stale_first = stale_traces.first().toObject();
+    stale_first.insert(QStringLiteral("terminal_stage_id"), QStringLiteral("test.stage.other"));
+    stale_first.insert(
+        QStringLiteral("digest"),
+        realismTraceDigest(stale_document.value(QStringLiteral("case_id")).toString(),
+                           stale_first));
+    stale_traces.replace(0, stale_first);
+    stale_evidence.insert(QStringLiteral("traces"), stale_traces);
+    stale_document.insert(QStringLiteral("evidence"), stale_evidence);
+    stale_trace.resources.front().document = stale_document;
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &stale_trace).has_value());
+
+    auto stale_operation = fixture->detached;
+    auto stale_operation_document = stale_operation.resources.front().document;
+    auto stale_operation_evidence =
+        stale_operation_document.value(QStringLiteral("evidence")).toObject();
+    auto stale_operation_traces =
+        stale_operation_evidence.value(QStringLiteral("traces")).toArray();
+    auto stale_operation_trace = stale_operation_traces.first().toObject();
+    auto operation_ids = stale_operation_trace.value(QStringLiteral("operation_ids")).toArray();
+    operation_ids.replace(0, QStringLiteral("test.detached.operation.wrong"));
+    stale_operation_trace.insert(QStringLiteral("operation_ids"), operation_ids);
+    stale_operation_traces.replace(0, stale_operation_trace);
+    stale_operation_evidence.insert(QStringLiteral("traces"), stale_operation_traces);
+    stale_operation_document.insert(QStringLiteral("evidence"), stale_operation_evidence);
+    stale_operation.resources.front().document = stale_operation_document;
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &stale_operation).has_value());
+
+    auto earlier_date = fixture->detached;
+    earlier_date.resources.front().document.insert(QStringLiteral("reviewed_on"),
+                                                   QStringLiteral("2026-08-18"));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &earlier_date).has_value());
+
+    auto no_source_review = fixture->subject;
+    std::erase_if(no_source_review.resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+    });
+    QVERIFY(!validateStrictDetached(*fixture, &no_source_review).has_value());
+
+    auto duplicate_source_review = fixture->subject;
+    auto* source_review = firstRealismReview(duplicate_source_review);
+    QVERIFY(source_review != nullptr);
+    auto second_source = *source_review;
+    second_source.descriptor.id = "test.source.second-review";
+    second_source.document.insert(QStringLiteral("resource_id"),
+                                  QStringLiteral("test.source.second-review"));
+    duplicate_source_review.resources.push_back(std::move(second_source));
+    QVERIFY(!validateStrictDetached(*fixture, &duplicate_source_review).has_value());
+
+    auto different_case_positive = *fixture;
+    const auto original_case =
+        std::ranges::find_if(different_case_positive.subject.resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Case;
+        });
+    const auto original_argument =
+        std::ranges::find_if(different_case_positive.subject.resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::ArgumentConfig;
+        });
+    QVERIFY(original_case != different_case_positive.subject.resources.end());
+    QVERIFY(original_argument != different_case_positive.subject.resources.end());
+    const auto different_case_id = QStringLiteral("aa.test.detached.case.different");
+    auto cloned_case = *original_case;
+    cloned_case.descriptor.id = different_case_id.toStdString();
+    cloned_case.descriptor.path = "resources/test-different-case.json";
+    cloned_case.document.insert(QStringLiteral("resource_id"), different_case_id);
+    refreshDispositionDigests(cloned_case.document);
+    refreshResourceDigest(cloned_case);
+    auto cloned_argument = *original_argument;
+    const auto cloned_argument_id = QStringLiteral("test.detached.argument.different");
+    cloned_argument.descriptor.id = cloned_argument_id.toStdString();
+    cloned_argument.descriptor.path = "resources/test-different-argument.json";
+    cloned_argument.document.insert(QStringLiteral("resource_id"), cloned_argument_id);
+    cloned_argument.document.insert(QStringLiteral("case_id"), different_case_id);
+    cloned_argument.document.remove(QStringLiteral("grounded_question_bank"));
+    refreshResourceDigest(cloned_argument);
+    different_case_positive.subject.resources.insert(
+        different_case_positive.subject.resources.begin(), std::move(cloned_argument));
+    different_case_positive.subject.resources.insert(
+        different_case_positive.subject.resources.begin(), std::move(cloned_case));
+    rebuildStrictDetachedSubjectClosure(different_case_positive, {});
+
+    const auto different_review_id = QStringLiteral("test.detached.review.different-case");
+    appellate::packs::ValidatedResource different_case_review{
+        appellate::model::DeclarativeResource{
+            appellate::model::ResourceKind::RealismReview,
+            different_review_id.toStdString(),
+            2,
+            "resources/test-different-realism-review.json",
+            {},
+        },
+        QJsonObject{
+            {QStringLiteral("schema_version"), 2},
+            {QStringLiteral("resource_kind"), QStringLiteral("realism_review")},
+            {QStringLiteral("resource_id"), different_review_id},
+            {QStringLiteral("case_id"), different_case_id},
+            {QStringLiteral("review_state"), QStringLiteral("self_reviewed")},
+            {QStringLiteral("dimensions"),
+             QJsonObject{
+                 {QStringLiteral("procedural_law"), 2},
+                 {QStringLiteral("deadlines_authority"), 2},
+                 {QStringLiteral("record_consistency"), 2},
+                 {QStringLiteral("consequences"), 2},
+                 {QStringLiteral("oral_argument"), 2},
+                 {QStringLiteral("bench_differentiation"), 2},
+                 {QStringLiteral("provenance"), 2},
+             }},
+            {QStringLiteral("known_uncertainty"), QJsonArray{}},
+        },
+    };
+    const std::array<const appellate::packs::LoadedPack*, 4> replay_dependencies{
+        &different_case_positive.federal, &different_case_positive.ca4,
+        &different_case_positive.bench, &different_case_positive.subject};
+    const auto replay_runtime = appellate::packs::loadRuntimePackForEvidence(
+        different_case_positive.subject, replay_dependencies, true);
+    QVERIFY2(replay_runtime.has_value(),
+             replay_runtime ? "" : replay_runtime.error().message.c_str());
+    QVERIFY(!replay_runtime->cases.empty());
+    QCOMPARE(QString::fromStdString(replay_runtime->cases.front().definition.id.value),
+             different_case_id);
+    const auto source_trace = firstRealismReview(different_case_positive.subject)
+                                  ->document.value(QStringLiteral("evidence"))
+                                  .toObject()
+                                  .value(QStringLiteral("traces"))
+                                  .toArray()
+                                  .first()
+                                  .toObject();
+    const auto different_trace_value =
+        replayFirstTraceCommand(source_trace, replay_runtime->cases.front(), different_case_id);
+    QVERIFY(different_trace_value.has_value());
+    auto different_trace = *different_trace_value;
+    different_case_review.document.insert(
+        QStringLiteral("evidence"),
+        QJsonObject{{QStringLiteral("traces"), QJsonArray{different_trace}}});
+    const std::array<const appellate::packs::LoadedPack*, 4> different_subject_closure{
+        &different_case_positive.federal, &different_case_positive.ca4,
+        &different_case_positive.bench, &different_case_positive.subject};
+    const auto different_review_document = buildRealismReview(
+        different_case_review, different_case_positive.subject, different_subject_closure, false);
+    QVERIFY(different_review_document.has_value());
+    different_case_review.document = *different_review_document;
+    auto different_evidence =
+        different_case_review.document.value(QStringLiteral("evidence")).toObject();
+    auto different_authorities = different_evidence.value(QStringLiteral("authorities")).toArray();
+    QString first_authority_evidence_id;
+    for (qsizetype index = 0; index < different_authorities.size(); ++index) {
+        auto authority = different_authorities.at(index).toObject();
+        const auto evidence_id =
+            QStringLiteral("test.detached.evidence.different-authority.%1").arg(index);
+        authority.insert(QStringLiteral("evidence_id"), evidence_id);
+        different_authorities.replace(index, authority);
+        if (index == 0) {
+            first_authority_evidence_id = evidence_id;
+        }
+    }
+    QVERIFY(!first_authority_evidence_id.isEmpty());
+    auto different_groups =
+        different_evidence.value(QStringLiteral("dimension_evidence")).toObject();
+    for (const auto& key : different_groups.keys()) {
+        auto references = different_groups.value(key).toArray();
+        for (qsizetype index = 0; index < references.size(); ++index) {
+            if (references.at(index).toString() == QStringLiteral("example.evidence.authority-1")) {
+                references.replace(index, first_authority_evidence_id);
+            } else if (references.at(index).toString() ==
+                       QStringLiteral("example.evidence.trace-1")) {
+                references.replace(index,
+                                   different_trace.value(QStringLiteral("evidence_id")).toString());
+            }
+        }
+        different_groups.insert(key, references);
+    }
+    different_evidence.insert(QStringLiteral("authorities"), different_authorities);
+    different_evidence.insert(QStringLiteral("dimension_evidence"), different_groups);
+    different_case_review.document.insert(QStringLiteral("evidence"), different_evidence);
+    refreshResourceDigest(different_case_review);
+    different_case_positive.subject.resources.push_back(std::move(different_case_review));
+    refreshStrictDetachedFixture(different_case_positive);
+    const std::array<const appellate::packs::LoadedPack*, 3> different_dependencies{
+        &different_case_positive.federal, &different_case_positive.ca4,
+        &different_case_positive.bench};
+    const auto different_subject_result =
+        PackReader::validateResolvedGraph(different_case_positive.subject, different_dependencies);
+    QVERIFY2(different_subject_result.has_value(),
+             different_subject_result ? "" : qPrintable(different_subject_result.error().message));
+    const auto different_detached_result = validateStrictDetached(different_case_positive);
+    QVERIFY2(different_detached_result.has_value(),
+             different_detached_result ? ""
+                                       : qPrintable(different_detached_result.error().message));
+
+    auto different_case_only = different_case_positive;
+    const auto reviewed_case_id =
+        fixture->detached.resources.front().document.value(QStringLiteral("case_id")).toString();
+    std::erase_if(different_case_only.subject.resources, [&](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::RealismReview &&
+               resource.document.value(QStringLiteral("case_id")).toString() == reviewed_case_id;
+    });
+    refreshPackRevision(different_case_only.subject);
+    different_case_only.detached.dependencies = {
+        appellate::model::PackDependency{different_case_only.subject.revision}};
+    refreshPackRevision(different_case_only.detached);
+    const auto different_case_only_subject =
+        PackReader::validateResolvedGraph(different_case_only.subject, different_dependencies);
+    QVERIFY2(different_case_only_subject.has_value(),
+             different_case_only_subject ? ""
+                                         : qPrintable(different_case_only_subject.error().message));
+    QVERIFY(!validateStrictDetached(different_case_only).has_value());
+
+    const auto validate_subject = [](const StrictDetachedFixture& candidate,
+                                     const appellate::packs::LoadedPack& subject) {
+        const std::array<const appellate::packs::LoadedPack*, 3> dependencies{
+            &candidate.federal, &candidate.ca4, &candidate.bench};
+        return PackReader::validateResolvedGraph(subject, dependencies);
+    };
+
+    auto source_wrong_state = *fixture;
+    auto* changed_source = firstRealismReview(source_wrong_state.subject);
+    QVERIFY(changed_source != nullptr);
+    changed_source->document.insert(QStringLiteral("review_state"),
+                                    QStringLiteral("self_reviewed"));
+    refreshStrictDetachedFixture(source_wrong_state);
+    QVERIFY(validate_subject(source_wrong_state, source_wrong_state.subject).has_value());
+    QVERIFY(!validateStrictDetached(source_wrong_state).has_value());
+
+    auto source_wrong_profile = *fixture;
+    changed_source = firstRealismReview(source_wrong_profile.subject);
+    QVERIFY(changed_source != nullptr);
+    useManualTraceProfile(*changed_source);
+    refreshStrictDetachedFixture(source_wrong_profile);
+    QVERIFY(validate_subject(source_wrong_profile, source_wrong_profile.subject).has_value());
+    QVERIFY(!validateStrictDetached(source_wrong_profile).has_value());
+
+    const auto add_trace_reference = [](appellate::packs::ValidatedResource& review,
+                                        const QString& existing_id, const QString& added_id) {
+        auto evidence = review.document.value(QStringLiteral("evidence")).toObject();
+        auto groups = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+        for (const auto& key : groups.keys()) {
+            auto references = groups.value(key).toArray();
+            if (references.contains(existing_id)) {
+                references.push_back(added_id);
+                groups.insert(key, references);
+            }
+        }
+        evidence.insert(QStringLiteral("dimension_evidence"), groups);
+        review.document.insert(QStringLiteral("evidence"), evidence);
+    };
+    const auto remove_trace_reference = [](appellate::packs::ValidatedResource& review,
+                                           const QString& removed_id) {
+        auto evidence = review.document.value(QStringLiteral("evidence")).toObject();
+        auto groups = evidence.value(QStringLiteral("dimension_evidence")).toObject();
+        for (const auto& key : groups.keys()) {
+            QJsonArray retained;
+            for (const auto& value : groups.value(key).toArray()) {
+                if (value.toString() != removed_id) {
+                    retained.push_back(value);
+                }
+            }
+            groups.insert(key, retained);
+        }
+        evidence.insert(QStringLiteral("dimension_evidence"), groups);
+        review.document.insert(QStringLiteral("evidence"), evidence);
+    };
+
+    auto added_source_trace = *fixture;
+    changed_source = firstRealismReview(added_source_trace.subject);
+    QVERIFY(changed_source != nullptr);
+    auto changed_evidence = changed_source->document.value(QStringLiteral("evidence")).toObject();
+    auto changed_traces = changed_evidence.value(QStringLiteral("traces")).toArray();
+    auto added_trace = changed_traces.last().toObject();
+    const auto copied_trace_id = added_trace.value(QStringLiteral("evidence_id")).toString();
+    const auto added_trace_id = QStringLiteral("test.detached.evidence.added-trace");
+    added_trace.insert(QStringLiteral("evidence_id"), added_trace_id);
+    added_trace.insert(QStringLiteral("trace_id"),
+                       QStringLiteral("test.detached.trace.added-trace"));
+    added_trace.insert(
+        QStringLiteral("digest"),
+        realismTraceDigest(changed_source->document.value(QStringLiteral("case_id")).toString(),
+                           added_trace));
+    changed_traces.push_back(added_trace);
+    changed_evidence.insert(QStringLiteral("traces"), changed_traces);
+    changed_source->document.insert(QStringLiteral("evidence"), changed_evidence);
+    add_trace_reference(*changed_source, copied_trace_id, added_trace_id);
+    refreshStrictDetachedFixture(added_source_trace);
+    QVERIFY(validate_subject(added_source_trace, added_source_trace.subject).has_value());
+    QVERIFY(!validateStrictDetached(added_source_trace).has_value());
+
+    auto dropped_source_trace = *fixture;
+    changed_source = firstRealismReview(dropped_source_trace.subject);
+    QVERIFY(changed_source != nullptr);
+    changed_evidence = changed_source->document.value(QStringLiteral("evidence")).toObject();
+    changed_traces = changed_evidence.value(QStringLiteral("traces")).toArray();
+    const auto dropped_trace_id =
+        changed_traces.first().toObject().value(QStringLiteral("evidence_id")).toString();
+    changed_traces.removeFirst();
+    changed_evidence.insert(QStringLiteral("traces"), changed_traces);
+    changed_source->document.insert(QStringLiteral("evidence"), changed_evidence);
+    remove_trace_reference(*changed_source, dropped_trace_id);
+    refreshStrictDetachedFixture(dropped_source_trace);
+    QVERIFY(validate_subject(dropped_source_trace, dropped_source_trace.subject).has_value());
+    QVERIFY(!validateStrictDetached(dropped_source_trace).has_value());
+
+    auto reordered_source_traces = *fixture;
+    changed_source = firstRealismReview(reordered_source_traces.subject);
+    QVERIFY(changed_source != nullptr);
+    changed_evidence = changed_source->document.value(QStringLiteral("evidence")).toObject();
+    changed_traces = changed_evidence.value(QStringLiteral("traces")).toArray();
+    QJsonArray reversed_traces;
+    for (qsizetype index = changed_traces.size(); index > 0; --index) {
+        reversed_traces.push_back(changed_traces.at(index - 1));
+    }
+    changed_traces = reversed_traces;
+    changed_evidence.insert(QStringLiteral("traces"), changed_traces);
+    changed_source->document.insert(QStringLiteral("evidence"), changed_evidence);
+    refreshStrictDetachedFixture(reordered_source_traces);
+    QVERIFY(validate_subject(reordered_source_traces, reordered_source_traces.subject).has_value());
+    QVERIFY(!validateStrictDetached(reordered_source_traces).has_value());
+
+    auto changed_source_field = *fixture;
+    changed_source = firstRealismReview(changed_source_field.subject);
+    QVERIFY(changed_source != nullptr);
+    changed_evidence = changed_source->document.value(QStringLiteral("evidence")).toObject();
+    changed_traces = changed_evidence.value(QStringLiteral("traces")).toArray();
+    auto changed_trace = changed_traces.last().toObject();
+    const auto old_evidence_id = changed_trace.value(QStringLiteral("evidence_id")).toString();
+    const auto new_evidence_id = QStringLiteral("test.detached.evidence.changed-field");
+    changed_trace.insert(QStringLiteral("evidence_id"), new_evidence_id);
+    changed_trace.insert(
+        QStringLiteral("digest"),
+        realismTraceDigest(changed_source->document.value(QStringLiteral("case_id")).toString(),
+                           changed_trace));
+    changed_traces.replace(changed_traces.size() - 1, changed_trace);
+    changed_evidence.insert(QStringLiteral("traces"), changed_traces);
+    changed_source->document.insert(QStringLiteral("evidence"), changed_evidence);
+    remove_trace_reference(*changed_source, old_evidence_id);
+    add_trace_reference(
+        *changed_source,
+        changed_traces.first().toObject().value(QStringLiteral("evidence_id")).toString(),
+        new_evidence_id);
+    refreshStrictDetachedFixture(changed_source_field);
+    QVERIFY(validate_subject(changed_source_field, changed_source_field.subject).has_value());
+    QVERIFY(!validateStrictDetached(changed_source_field).has_value());
+
+    auto changed_source_journal = *fixture;
+    changed_source = firstRealismReview(changed_source_journal.subject);
+    QVERIFY(changed_source != nullptr);
+    QVERIFY(mutateFirstTraceCommandField(*changed_source,
+                                         QStringLiteral("TEST-ONLY changed source journal")));
+    refreshStrictDetachedFixture(changed_source_journal);
+    QVERIFY(validate_subject(changed_source_journal, changed_source_journal.subject).has_value());
+    QVERIFY(!validateStrictDetached(changed_source_journal).has_value());
+
+    auto changed_closure = fixture->detached;
+    auto changed_closure_document = changed_closure.resources.front().document;
+    auto changed_closure_evidence =
+        changed_closure_document.value(QStringLiteral("evidence")).toObject();
+    changed_closure_evidence.insert(QStringLiteral("closure_digest"), QString(64, u'0'));
+    changed_closure_document.insert(QStringLiteral("evidence"), changed_closure_evidence);
+    changed_closure.resources.front().document = changed_closure_document;
+    refreshResourceDigest(changed_closure.resources.front());
+    refreshPackRevision(changed_closure);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &changed_closure).has_value());
+
+    for (const auto& array_name :
+         {QStringLiteral("resources"), QStringLiteral("blobs"), QStringLiteral("authorities"),
+          QStringLiteral("record_checks")}) {
+        auto changed_binding = fixture->detached;
+        auto document = changed_binding.resources.front().document;
+        auto binding_evidence = document.value(QStringLiteral("evidence")).toObject();
+        auto values = binding_evidence.value(array_name).toArray();
+        QVERIFY(!values.isEmpty());
+        auto value = values.first().toObject();
+        const auto binding_old_evidence_id = value.value(QStringLiteral("evidence_id")).toString();
+        QString replacement_evidence_id;
+        if (array_name == QStringLiteral("authorities")) {
+            replacement_evidence_id = QStringLiteral("test.detached.evidence.wrong-authority");
+            value.insert(QStringLiteral("evidence_id"), replacement_evidence_id);
+        } else if (array_name == QStringLiteral("record_checks")) {
+            value.insert(QStringLiteral("digest"), QString(64, u'0'));
+        } else if (array_name == QStringLiteral("resources")) {
+            replacement_evidence_id = QStringLiteral("test.detached.evidence.wrong-resource");
+            value.insert(QStringLiteral("evidence_id"), replacement_evidence_id);
+        } else {
+            value.insert(QStringLiteral("sha256"), QString(64, u'0'));
+        }
+        values.replace(0, value);
+        binding_evidence.insert(array_name, values);
+        if (!replacement_evidence_id.isEmpty()) {
+            auto groups = binding_evidence.value(QStringLiteral("dimension_evidence")).toObject();
+            for (const auto& key : groups.keys()) {
+                auto references = groups.value(key).toArray();
+                for (qsizetype index = 0; index < references.size(); ++index) {
+                    if (references.at(index).toString() == binding_old_evidence_id) {
+                        references.replace(index, replacement_evidence_id);
+                    }
+                }
+                groups.insert(key, references);
+            }
+            binding_evidence.insert(QStringLiteral("dimension_evidence"), groups);
+        }
+        if (array_name == QStringLiteral("resources")) {
+            binding_evidence.insert(
+                QStringLiteral("closure_digest"),
+                realismClosureDigest(document.value(QStringLiteral("case_id")).toString(),
+                                     binding_evidence.value(QStringLiteral("packs")).toArray(),
+                                     values,
+                                     binding_evidence.value(QStringLiteral("blobs")).toArray()));
+        }
+        document.insert(QStringLiteral("evidence"), binding_evidence);
+        changed_binding.resources.front().document = document;
+        refreshResourceDigest(changed_binding.resources.front());
+        refreshPackRevision(changed_binding);
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &changed_binding).has_value());
+    }
+
+    auto changed_partition = fixture->detached;
+    auto changed_partition_document = changed_partition.resources.front().document;
+    auto changed_partition_evidence =
+        changed_partition_document.value(QStringLiteral("evidence")).toObject();
+    auto changed_groups =
+        changed_partition_evidence.value(QStringLiteral("dimension_evidence")).toObject();
+    auto deadline_references =
+        changed_groups.value(QStringLiteral("deadlines_authority")).toArray();
+    QString unrelated_reference;
+    for (const auto& value :
+         changed_partition_evidence.value(QStringLiteral("resources")).toArray()) {
+        const auto candidate = value.toObject().value(QStringLiteral("evidence_id")).toString();
+        if (!deadline_references.contains(candidate)) {
+            unrelated_reference = candidate;
+            break;
+        }
+    }
+    QVERIFY(!unrelated_reference.isEmpty());
+    deadline_references.push_back(unrelated_reference);
+    changed_groups.insert(QStringLiteral("deadlines_authority"), deadline_references);
+    changed_partition_evidence.insert(QStringLiteral("dimension_evidence"), changed_groups);
+    changed_partition_document.insert(QStringLiteral("evidence"), changed_partition_evidence);
+    changed_partition.resources.front().document = changed_partition_document;
+    refreshResourceDigest(changed_partition.resources.front());
+    refreshPackRevision(changed_partition);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &changed_partition).has_value());
+
+    const auto exercise_revision_boundary = [&](int filler_count, bool expect_success) {
+        auto candidate = *fixture;
+        std::vector<appellate::packs::LoadedPack> fillers;
+        fillers.reserve(static_cast<std::size_t>(filler_count));
+        for (int index = 0; index < filler_count; ++index) {
+            appellate::packs::LoadedPack filler{
+                2,
+                appellate::model::PackRevision{
+                    appellate::model::PackId{
+                        QStringLiteral("test.detached.boundary-pack.%1").arg(index).toStdString()},
+                    "1.0.0",
+                    {}},
+                {appellate::model::RequiredCapability{"workbench.pack.declarative-resources", 2}},
+                {},
+                {},
+                {},
+                {},
+                appellate::packs::PackGraphState::StandaloneValidated,
+            };
+            refreshPackRevision(filler);
+            fillers.push_back(std::move(filler));
+        }
+        std::vector<const appellate::packs::LoadedPack*> additional;
+        additional.reserve(fillers.size());
+        for (const auto& filler : fillers) {
+            additional.push_back(&filler);
+            candidate.subject.dependencies.push_back(
+                appellate::model::PackDependency{filler.revision});
+        }
+        rebuildStrictDetachedSubjectClosure(candidate, additional);
+        QCOMPARE(additional.size() + 4U, static_cast<std::size_t>(filler_count + 4));
+        const auto result = validateStrictDetached(candidate, nullptr, nullptr, additional);
+        if (expect_success) {
+            QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error().message));
+        } else {
+            QVERIFY(!result.has_value());
+        }
+    };
+    exercise_revision_boundary(123, true);
+    exercise_revision_boundary(124, false);
+
+    const auto exercise_descriptor_boundary = [&](std::size_t target_count, bool expect_success) {
+        auto candidate = *fixture;
+        const auto baseline_count =
+            candidate.federal.resources.size() + candidate.federal.blobs.size() +
+            candidate.ca4.resources.size() + candidate.ca4.blobs.size() +
+            candidate.bench.resources.size() + candidate.bench.blobs.size() +
+            candidate.subject.resources.size() + candidate.subject.blobs.size();
+        QVERIFY(target_count >= baseline_count);
+        const auto filler_count = target_count - baseline_count;
+        appellate::packs::LoadedPack filler{
+            2,
+            appellate::model::PackRevision{
+                appellate::model::PackId{"test.detached.descriptor-boundary"}, "1.0.0", {}},
+            {
+                appellate::model::RequiredCapability{"workbench.pack.declarative-resources", 2},
+                appellate::model::RequiredCapability{"workbench.pack.judge-profile", 2},
+                appellate::model::RequiredCapability{"workbench.pack.voice-style", 2},
+            },
+            {},
+            {},
+            {},
+            {},
+            appellate::packs::PackGraphState::StandaloneValidated,
+        };
+        const appellate::packs::ValidatedResource* judge_prototype = nullptr;
+        const appellate::model::JudgeProfile* typed_judge_prototype = nullptr;
+        for (const auto* pack :
+             {&candidate.federal, &candidate.ca4, &candidate.bench, &candidate.subject}) {
+            const auto judge = std::ranges::find_if(pack->resources, [](const auto& resource) {
+                return resource.descriptor.kind == appellate::model::ResourceKind::JudgeProfile;
+            });
+            if (judge != pack->resources.end()) {
+                judge_prototype = &*judge;
+                const auto typed =
+                    std::ranges::find(pack->judge_profiles, judge->descriptor.id,
+                                      [](const auto& profile) { return profile.id; });
+                if (typed != pack->judge_profiles.end()) {
+                    typed_judge_prototype = &*typed;
+                }
+                break;
+            }
+        }
+        QVERIFY(judge_prototype != nullptr);
+        QVERIFY(typed_judge_prototype != nullptr);
+        filler.resources.reserve(filler_count);
+        filler.judge_profiles.reserve(filler_count);
+        for (std::size_t index = 0; index < filler_count; ++index) {
+            auto judge = *judge_prototype;
+            const auto resource_id =
+                QStringLiteral("test.detached.judge.%1").arg(index, 5, 10, QChar{u'0'});
+            judge.descriptor.id = resource_id.toStdString();
+            judge.descriptor.path = QStringLiteral("resources/filler-judge-%1.json")
+                                        .arg(index, 5, 10, QChar{u'0'})
+                                        .toStdString();
+            judge.document.insert(QStringLiteral("resource_id"), resource_id);
+            refreshResourceDigest(judge);
+            filler.resources.push_back(std::move(judge));
+            auto typed_judge = *typed_judge_prototype;
+            typed_judge.id = resource_id.toStdString();
+            filler.judge_profiles.push_back(std::move(typed_judge));
+        }
+        refreshPackRevision(filler);
+        candidate.subject.dependencies.push_back(appellate::model::PackDependency{filler.revision});
+        const std::array<const appellate::packs::LoadedPack*, 1> additional{&filler};
+        rebuildStrictDetachedSubjectClosure(candidate, additional);
+        QCOMPARE(baseline_count + filler.resources.size(), target_count);
+        const auto result = validateStrictDetached(candidate, nullptr, nullptr, additional);
+        if (expect_success) {
+            QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error().message));
+        } else {
+            QVERIFY(!result.has_value());
+        }
+    };
+    exercise_descriptor_boundary(9'999, true);
+    exercise_descriptor_boundary(10'000, false);
+
+    const auto exercise_latent_boundary = [&](qsizetype target_size, bool expect_success) {
+        auto candidate = *fixture;
+        auto authority_set =
+            std::ranges::find_if(candidate.subject.resources, [](const auto& item) {
+                return item.descriptor.kind == appellate::model::ResourceKind::AuthoritySet;
+            });
+        auto record = std::ranges::find_if(candidate.subject.resources, [](const auto& item) {
+            return item.descriptor.kind == appellate::model::ResourceKind::Record;
+        });
+        QVERIFY(authority_set != candidate.subject.resources.end());
+        QVERIFY(record != candidate.subject.resources.end());
+        auto authorities = authority_set->document.value(QStringLiteral("authorities")).toArray();
+        QVERIFY(!authorities.isEmpty());
+        const auto prototype = authorities.first().toObject();
+
+        auto* source = firstRealismReview(candidate.subject);
+        QVERIFY(source != nullptr);
+        auto source_evidence = source->document.value(QStringLiteral("evidence")).toObject();
+        auto source_groups = source_evidence.value(QStringLiteral("dimension_evidence")).toObject();
+        auto provenance = source_groups.value(QStringLiteral("provenance")).toArray();
+        QVERIFY(target_size >= provenance.size());
+        auto authority_bindings = source_evidence.value(QStringLiteral("authorities")).toArray();
+        QJsonArray record_authority_ids;
+        const auto case_id = source->document.value(QStringLiteral("case_id")).toString();
+        for (qsizetype index = provenance.size(); index < target_size; ++index) {
+            const auto authority_id = QStringLiteral("zztest.detached.authority.%1").arg(index);
+            auto authority = prototype;
+            authority.insert(QStringLiteral("authority_id"), authority_id);
+            authorities.push_back(authority);
+            record_authority_ids.push_back(authority_id);
+            const auto evidence_id =
+                codeOwnedEvidenceId(QStringLiteral("authority"), {case_id, authority_id});
+            authority_bindings.push_back(QJsonObject{
+                {QStringLiteral("evidence_id"), evidence_id},
+                {QStringLiteral("authority_id"), authority_id},
+            });
+            provenance.push_back(evidence_id);
+        }
+        authority_set->document.insert(QStringLiteral("authorities"), authorities);
+        record->document.insert(QStringLiteral("authority_ids"), record_authority_ids);
+        auto provenance_values = provenance.toVariantList();
+        std::ranges::sort(provenance_values, {},
+                          [](const QVariant& value) { return value.toString(); });
+        provenance = QJsonArray::fromVariantList(provenance_values);
+        source_groups.insert(QStringLiteral("provenance"), QJsonArray{});
+        source_evidence.insert(QStringLiteral("dimension_evidence"), source_groups);
+        source_evidence.insert(QStringLiteral("authorities"), authority_bindings);
+        source->document.insert(QStringLiteral("evidence"), source_evidence);
+        auto source_dimensions = source->document.value(QStringLiteral("dimensions")).toObject();
+        source_dimensions.insert(QStringLiteral("provenance"), 0);
+        source->document.insert(QStringLiteral("dimensions"), source_dimensions);
+
+        auto detached_evidence = candidate.detached.resources.front()
+                                     .document.value(QStringLiteral("evidence"))
+                                     .toObject();
+        detached_evidence.insert(QStringLiteral("dimension_evidence"), source_groups);
+        detached_evidence.insert(QStringLiteral("authorities"), authority_bindings);
+        candidate.detached.resources.front().document.insert(QStringLiteral("evidence"),
+                                                             detached_evidence);
+        auto detached_dimensions = candidate.detached.resources.front()
+                                       .document.value(QStringLiteral("dimensions"))
+                                       .toObject();
+        detached_dimensions.insert(QStringLiteral("provenance"), 0);
+        candidate.detached.resources.front().document.insert(QStringLiteral("dimensions"),
+                                                             detached_dimensions);
+        refreshStrictDetachedFixture(candidate);
+        QCOMPARE(provenance.size(), target_size);
+        const std::array<const appellate::packs::LoadedPack*, 3> dependencies{
+            &candidate.federal, &candidate.ca4, &candidate.bench};
+        const auto source_result =
+            PackReader::validateResolvedGraph(candidate.subject, dependencies);
+        QVERIFY2(source_result.has_value(),
+                 source_result ? "" : qPrintable(source_result.error().message));
+        const auto result = validateStrictDetached(candidate);
+        if (expect_success) {
+            QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error().message));
+        } else {
+            QVERIFY(!result.has_value());
+        }
+    };
+    exercise_latent_boundary(512, true);
+    exercise_latent_boundary(513, false);
+}
+
+void SchemaDispatchTest::enforcesDetachedIndependentReviewHumanShape() {
+    auto fixture = strictDetachedFixture();
+    QVERIFY(fixture.has_value());
+    const auto multibyte_boundary = [](qsizetype maximum_bytes, bool overflow) {
+        QString value(static_cast<qsizetype>(maximum_bytes / 2 - 1), QChar{0x00E9});
+        value.append(QString(overflow ? 3 : 2, u'x'));
+        return value;
+    };
+    const auto with_reviewer_field = [](const appellate::packs::LoadedPack& source,
+                                        const QString& key, const QJsonValue& value) {
+        auto result = source;
+        auto reviewer =
+            result.resources.front().document.value(QStringLiteral("reviewer")).toObject();
+        reviewer.insert(key, value);
+        result.resources.front().document.insert(QStringLiteral("reviewer"), reviewer);
+        return result;
+    };
+    const auto with_uncertainty_field = [](const appellate::packs::LoadedPack& source,
+                                           const QString& key, const QJsonValue& value) {
+        auto result = source;
+        auto uncertainties =
+            result.resources.front().document.value(QStringLiteral("known_uncertainty")).toArray();
+        auto uncertainty = uncertainties.first().toObject();
+        uncertainty.insert(key, value);
+        uncertainties.replace(0, uncertainty);
+        result.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                 uncertainties);
+        return result;
+    };
+
+    auto affiliation = fixture->detached;
+    auto affiliation_reviewer =
+        affiliation.resources.front().document.value(QStringLiteral("reviewer")).toObject();
+    affiliation_reviewer.insert(QStringLiteral("affiliation"),
+                                QStringLiteral("TEST-ONLY affiliation"));
+    affiliation.resources.front().document.insert(QStringLiteral("reviewer"), affiliation_reviewer);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &affiliation).has_value());
+
+    auto exact_reference = fixture->detached;
+    exact_reference.resources.front().document.insert(QStringLiteral("reviewer_reference"),
+                                                      QString(512, u'r'));
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &exact_reference).has_value());
+    exact_reference.resources.front().document.insert(QStringLiteral("reviewer_reference"),
+                                                      QString(513, u'r'));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &exact_reference).has_value());
+
+    auto multibyte_reference = fixture->detached;
+    multibyte_reference.resources.front().document.insert(QStringLiteral("reviewer_reference"),
+                                                          multibyte_boundary(512, false));
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &multibyte_reference).has_value());
+    multibyte_reference.resources.front().document.insert(QStringLiteral("reviewer_reference"),
+                                                          multibyte_boundary(512, true));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &multibyte_reference).has_value());
+
+    auto empty_reference = fixture->detached;
+    empty_reference.resources.front().document.insert(QStringLiteral("reviewer_reference"),
+                                                      QString{});
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &empty_reference).has_value());
+
+    auto whitespace_reference = fixture->detached;
+    whitespace_reference.resources.front().document.insert(QStringLiteral("reviewer_reference"),
+                                                           QStringLiteral(" leading whitespace"));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &whitespace_reference).has_value());
+
+    for (const auto& invalid_reference :
+         {QStringLiteral("trailing whitespace "), QStringLiteral(" \t\n")}) {
+        auto candidate = fixture->detached;
+        candidate.resources.front().document.insert(QStringLiteral("reviewer_reference"),
+                                                    invalid_reference);
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &candidate).has_value());
+    }
+    for (const auto& invalid_reference : {QJsonValue{QJsonValue::Undefined}, QJsonValue{7}}) {
+        auto candidate = fixture->detached;
+        if (invalid_reference.isUndefined()) {
+            candidate.resources.front().document.remove(QStringLiteral("reviewer_reference"));
+        } else {
+            candidate.resources.front().document.insert(QStringLiteral("reviewer_reference"),
+                                                        invalid_reference);
+        }
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &candidate).has_value());
+    }
+
+    auto overlong_name = fixture->detached;
+    auto reviewer =
+        overlong_name.resources.front().document.value(QStringLiteral("reviewer")).toObject();
+    reviewer.insert(QStringLiteral("display_name"), QString(241, u'n'));
+    overlong_name.resources.front().document.insert(QStringLiteral("reviewer"), reviewer);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &overlong_name).has_value());
+
+    auto display_boundary = with_reviewer_field(fixture->detached, QStringLiteral("display_name"),
+                                                multibyte_boundary(240, false));
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &display_boundary).has_value());
+    display_boundary = with_reviewer_field(fixture->detached, QStringLiteral("display_name"),
+                                           multibyte_boundary(240, true));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &display_boundary).has_value());
+
+    auto qualification_boundary = with_reviewer_field(
+        fixture->detached, QStringLiteral("qualification"), multibyte_boundary(1'024, false));
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &qualification_boundary).has_value());
+    qualification_boundary = with_reviewer_field(fixture->detached, QStringLiteral("qualification"),
+                                                 multibyte_boundary(1'024, true));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &qualification_boundary).has_value());
+
+    auto affiliation_boundary = with_reviewer_field(
+        fixture->detached, QStringLiteral("affiliation"), multibyte_boundary(240, false));
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &affiliation_boundary).has_value());
+    affiliation_boundary = with_reviewer_field(fixture->detached, QStringLiteral("affiliation"),
+                                               multibyte_boundary(240, true));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &affiliation_boundary).has_value());
+
+    for (const auto& field : {QStringLiteral("display_name"), QStringLiteral("qualification"),
+                              QStringLiteral("affiliation")}) {
+        for (const auto& invalid_text : {QString{}, QStringLiteral(" padded"),
+                                         QStringLiteral("padded "), QStringLiteral(" \t\n")}) {
+            const auto invalid = with_reviewer_field(fixture->detached, field, invalid_text);
+            QVERIFY(!validateStrictDetached(*fixture, nullptr, &invalid).has_value());
+        }
+    }
+
+    auto invalid_reviewer_id = with_reviewer_field(fixture->detached, QStringLiteral("reviewer_id"),
+                                                   QStringLiteral("Invalid Reviewer"));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &invalid_reviewer_id).has_value());
+
+    auto reviewer_id_boundary = with_reviewer_field(
+        fixture->detached, QStringLiteral("reviewer_id"), QStringLiteral("a.b"));
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &reviewer_id_boundary).has_value());
+    reviewer_id_boundary = with_reviewer_field(fixture->detached, QStringLiteral("reviewer_id"),
+                                               QStringLiteral("a.") + QString(158, u'b'));
+    QCOMPARE(reviewer_id_boundary.resources.front()
+                 .document.value(QStringLiteral("reviewer"))
+                 .toObject()
+                 .value(QStringLiteral("reviewer_id"))
+                 .toString()
+                 .toUtf8()
+                 .size(),
+             160);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &reviewer_id_boundary).has_value());
+    reviewer_id_boundary = with_reviewer_field(fixture->detached, QStringLiteral("reviewer_id"),
+                                               QStringLiteral("a.") + QString(159, u'b'));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &reviewer_id_boundary).has_value());
+
+    for (const auto& field : {QStringLiteral("reviewer_id"), QStringLiteral("display_name"),
+                              QStringLiteral("qualification")}) {
+        auto missing = fixture->detached;
+        reviewer = missing.resources.front().document.value(QStringLiteral("reviewer")).toObject();
+        reviewer.remove(field);
+        missing.resources.front().document.insert(QStringLiteral("reviewer"), reviewer);
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &missing).has_value());
+
+        const auto wrong_type = with_reviewer_field(fixture->detached, field, 7);
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &wrong_type).has_value());
+    }
+
+    for (const auto& invalid_reviewer : {QJsonValue{QJsonValue::Undefined}, QJsonValue{7}}) {
+        auto candidate = fixture->detached;
+        if (invalid_reviewer.isUndefined()) {
+            candidate.resources.front().document.remove(QStringLiteral("reviewer"));
+        } else {
+            candidate.resources.front().document.insert(QStringLiteral("reviewer"),
+                                                        invalid_reviewer);
+        }
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &candidate).has_value());
+    }
+
+    auto extra_reviewer_key = fixture->detached;
+    reviewer =
+        extra_reviewer_key.resources.front().document.value(QStringLiteral("reviewer")).toObject();
+    reviewer.insert(QStringLiteral("extra"), QStringLiteral("forbidden"));
+    extra_reviewer_key.resources.front().document.insert(QStringLiteral("reviewer"), reviewer);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &extra_reviewer_key).has_value());
+
+    auto null_affiliation = fixture->detached;
+    reviewer =
+        null_affiliation.resources.front().document.value(QStringLiteral("reviewer")).toObject();
+    reviewer.insert(QStringLiteral("affiliation"), QJsonValue::Null);
+    null_affiliation.resources.front().document.insert(QStringLiteral("reviewer"), reviewer);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &null_affiliation).has_value());
+
+    auto no_uncertainty = fixture->detached;
+    no_uncertainty.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                     QJsonArray{});
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &no_uncertainty).has_value());
+
+    for (const auto& invalid_uncertainties : {QJsonValue{7}, QJsonValue{QJsonObject{}}}) {
+        auto candidate = fixture->detached;
+        candidate.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                    invalid_uncertainties);
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &candidate).has_value());
+    }
+    auto nonobject_uncertainty = fixture->detached;
+    nonobject_uncertainty.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                            QJsonArray{QStringLiteral("legacy")});
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &nonobject_uncertainty).has_value());
+
+    auto invalid_uncertainty_shape = fixture->detached;
+    auto invalid_uncertainties = invalid_uncertainty_shape.resources.front()
+                                     .document.value(QStringLiteral("known_uncertainty"))
+                                     .toArray();
+    auto invalid_uncertainty = invalid_uncertainties.first().toObject();
+    invalid_uncertainty.insert(QStringLiteral("extra"), true);
+    invalid_uncertainties.replace(0, invalid_uncertainty);
+    invalid_uncertainty_shape.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                                invalid_uncertainties);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &invalid_uncertainty_shape).has_value());
+
+    auto invalid_uncertainty_id = fixture->detached;
+    invalid_uncertainties = invalid_uncertainty_id.resources.front()
+                                .document.value(QStringLiteral("known_uncertainty"))
+                                .toArray();
+    invalid_uncertainty = invalid_uncertainties.first().toObject();
+    invalid_uncertainty.insert(QStringLiteral("uncertainty_id"), QStringLiteral("invalid id"));
+    invalid_uncertainties.replace(0, invalid_uncertainty);
+    invalid_uncertainty_id.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                             invalid_uncertainties);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &invalid_uncertainty_id).has_value());
+
+    auto uncertainty_id_boundary = with_uncertainty_field(
+        fixture->detached, QStringLiteral("uncertainty_id"), QStringLiteral("a.b"));
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &uncertainty_id_boundary).has_value());
+    uncertainty_id_boundary =
+        with_uncertainty_field(fixture->detached, QStringLiteral("uncertainty_id"),
+                               QStringLiteral("a.") + QString(158, u'b'));
+    QCOMPARE(uncertainty_id_boundary.resources.front()
+                 .document.value(QStringLiteral("known_uncertainty"))
+                 .toArray()
+                 .first()
+                 .toObject()
+                 .value(QStringLiteral("uncertainty_id"))
+                 .toString()
+                 .toUtf8()
+                 .size(),
+             160);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &uncertainty_id_boundary).has_value());
+    uncertainty_id_boundary =
+        with_uncertainty_field(fixture->detached, QStringLiteral("uncertainty_id"),
+                               QStringLiteral("a.") + QString(159, u'b'));
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &uncertainty_id_boundary).has_value());
+
+    for (const auto& field : {QStringLiteral("uncertainty_id"), QStringLiteral("summary"),
+                              QStringLiteral("blocking")}) {
+        auto missing = fixture->detached;
+        auto values =
+            missing.resources.front().document.value(QStringLiteral("known_uncertainty")).toArray();
+        auto item = values.first().toObject();
+        item.remove(field);
+        values.replace(0, item);
+        missing.resources.front().document.insert(QStringLiteral("known_uncertainty"), values);
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &missing).has_value());
+
+        const auto wrong_type = with_uncertainty_field(
+            fixture->detached, field,
+            field == QStringLiteral("blocking") ? QJsonValue{7} : QJsonValue{true});
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &wrong_type).has_value());
+    }
+
+    auto duplicate_uncertainty = fixture->detached;
+    auto duplicate_uncertainties = duplicate_uncertainty.resources.front()
+                                       .document.value(QStringLiteral("known_uncertainty"))
+                                       .toArray();
+    duplicate_uncertainties.push_back(duplicate_uncertainties.first());
+    duplicate_uncertainty.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                            duplicate_uncertainties);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &duplicate_uncertainty).has_value());
+
+    for (const auto& summary : {QString{}, QStringLiteral(" padded"), QStringLiteral("padded "),
+                                QStringLiteral(" \t\n")}) {
+        auto invalid_summary = fixture->detached;
+        auto values = invalid_summary.resources.front()
+                          .document.value(QStringLiteral("known_uncertainty"))
+                          .toArray();
+        auto item = values.first().toObject();
+        item.insert(QStringLiteral("summary"), summary);
+        values.replace(0, item);
+        invalid_summary.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                          values);
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &invalid_summary).has_value());
+    }
+
+    auto summary_boundary = fixture->detached;
+    auto summary_values = summary_boundary.resources.front()
+                              .document.value(QStringLiteral("known_uncertainty"))
+                              .toArray();
+    auto summary_item = summary_values.first().toObject();
+    summary_item.insert(QStringLiteral("summary"), multibyte_boundary(2'048, false));
+    summary_values.replace(0, summary_item);
+    summary_boundary.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                       summary_values);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &summary_boundary).has_value());
+    summary_item.insert(QStringLiteral("summary"), multibyte_boundary(2'048, true));
+    summary_values.replace(0, summary_item);
+    summary_boundary.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                       summary_values);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &summary_boundary).has_value());
+
+    auto blocking = fixture->detached;
+    auto uncertainties =
+        blocking.resources.front().document.value(QStringLiteral("known_uncertainty")).toArray();
+    auto first = uncertainties.first().toObject();
+    first.insert(QStringLiteral("blocking"), true);
+    first.insert(QStringLiteral("remediation_issue"),
+                 QStringLiteral("https://example.invalid/review/%2Fissue"));
+    uncertainties.replace(0, first);
+    blocking.resources.front().document.insert(QStringLiteral("known_uncertainty"), uncertainties);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &blocking).has_value());
+
+    auto canonical_query = blocking;
+    uncertainties = canonical_query.resources.front()
+                        .document.value(QStringLiteral("known_uncertainty"))
+                        .toArray();
+    first = uncertainties.first().toObject();
+    first.insert(QStringLiteral("remediation_issue"),
+                 QStringLiteral("https://example.invalid/review?next=%3A%2F"));
+    uncertainties.replace(0, first);
+    canonical_query.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                      uncertainties);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &canonical_query).has_value());
+
+    const auto remediation_prefix = QStringLiteral("https://example.invalid/");
+    QCOMPARE(remediation_prefix.toUtf8().size(), 24);
+    auto remediation_boundary = blocking;
+    uncertainties = remediation_boundary.resources.front()
+                        .document.value(QStringLiteral("known_uncertainty"))
+                        .toArray();
+    first = uncertainties.first().toObject();
+    first.insert(QStringLiteral("remediation_issue"), remediation_prefix + QString(2'024, u'x'));
+    uncertainties.replace(0, first);
+    remediation_boundary.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                           uncertainties);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &remediation_boundary).has_value());
+    first.insert(QStringLiteral("remediation_issue"), remediation_prefix + QString(2'025, u'x'));
+    uncertainties.replace(0, first);
+    remediation_boundary.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                           uncertainties);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &remediation_boundary).has_value());
+
+    auto missing_remediation = blocking;
+    uncertainties = missing_remediation.resources.front()
+                        .document.value(QStringLiteral("known_uncertainty"))
+                        .toArray();
+    first = uncertainties.first().toObject();
+    first.remove(QStringLiteral("remediation_issue"));
+    uncertainties.replace(0, first);
+    missing_remediation.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                          uncertainties);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &missing_remediation).has_value());
+
+    auto nonblocking_remediation = fixture->detached;
+    uncertainties = nonblocking_remediation.resources.front()
+                        .document.value(QStringLiteral("known_uncertainty"))
+                        .toArray();
+    first = uncertainties.first().toObject();
+    first.insert(QStringLiteral("remediation_issue"),
+                 QStringLiteral("https://example.invalid/review"));
+    uncertainties.replace(0, first);
+    nonblocking_remediation.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                              uncertainties);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &nonblocking_remediation).has_value());
+
+    auto noncanonical_remediation = blocking;
+    uncertainties = noncanonical_remediation.resources.front()
+                        .document.value(QStringLiteral("known_uncertainty"))
+                        .toArray();
+    first = uncertainties.first().toObject();
+    first.insert(QStringLiteral("remediation_issue"),
+                 QStringLiteral("https://example.invalid/review/%2fissue"));
+    uncertainties.replace(0, first);
+    noncanonical_remediation.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                               uncertainties);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &noncanonical_remediation).has_value());
+
+    for (const auto& invalid_url : {
+             QStringLiteral("http://example.invalid/review"),
+             QStringLiteral("https://user@example.invalid/review"),
+             QStringLiteral("https://example.invalid:443/review"),
+             QStringLiteral("https://example.invalid/review#fragment"),
+             QStringLiteral("https://Example.invalid/review"),
+             QStringLiteral("https://example.invalid/review/%GG"),
+             QStringLiteral("https://example.invalid/review with-space"),
+             QStringLiteral("https://example.invalid/r\u00E9view"),
+         }) {
+        auto invalid_remediation = blocking;
+        auto values = invalid_remediation.resources.front()
+                          .document.value(QStringLiteral("known_uncertainty"))
+                          .toArray();
+        auto item = values.first().toObject();
+        item.insert(QStringLiteral("remediation_issue"), invalid_url);
+        values.replace(0, item);
+        invalid_remediation.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                              values);
+        QVERIFY(!validateStrictDetached(*fixture, nullptr, &invalid_remediation).has_value());
+    }
+
+    auto wrong_remediation_type = blocking;
+    uncertainties = wrong_remediation_type.resources.front()
+                        .document.value(QStringLiteral("known_uncertainty"))
+                        .toArray();
+    first = uncertainties.first().toObject();
+    first.insert(QStringLiteral("remediation_issue"), 7);
+    uncertainties.replace(0, first);
+    wrong_remediation_type.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                             uncertainties);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &wrong_remediation_type).has_value());
+
+    auto maximum_uncertainty = fixture->detached;
+    QJsonArray maximum_uncertainties;
+    for (int index = 0; index < 256; ++index) {
+        maximum_uncertainties.push_back(QJsonObject{
+            {QStringLiteral("uncertainty_id"), QStringLiteral("test.uncertainty.%1").arg(index)},
+            {QStringLiteral("summary"), QStringLiteral("TEST-ONLY uncertainty")},
+            {QStringLiteral("blocking"), false},
+        });
+    }
+    maximum_uncertainty.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                          maximum_uncertainties);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &maximum_uncertainty).has_value());
+    maximum_uncertainties.push_back(QJsonObject{
+        {QStringLiteral("uncertainty_id"), QStringLiteral("test.uncertainty.overflow")},
+        {QStringLiteral("summary"), QStringLiteral("TEST-ONLY uncertainty")},
+        {QStringLiteral("blocking"), false},
+    });
+    maximum_uncertainty.resources.front().document.insert(QStringLiteral("known_uncertainty"),
+                                                          maximum_uncertainties);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &maximum_uncertainty).has_value());
+}
+
+void SchemaDispatchTest::enforcesCodeOwnedRealismScorePrerequisites() {
+    const auto baseline = strictDetachedFixture();
+    QVERIFY(baseline.has_value());
+    const auto validate_subject = [](const StrictDetachedFixture& fixture,
+                                     const appellate::packs::LoadedPack& subject) {
+        const std::array<const appellate::packs::LoadedPack*, 3> dependencies{
+            &fixture.federal, &fixture.ca4, &fixture.bench};
+        return PackReader::validateResolvedGraph(subject, dependencies);
+    };
+    const auto expect_targeted_failure = [](const auto& result, const QString& needle) {
+        return !result.has_value() && result.error().message.contains(needle);
+    };
+
+    QVERIFY(validate_subject(*baseline, baseline->subject).has_value());
+    QVERIFY(validateStrictDetached(*baseline).has_value());
+
+    auto ordinary_runtime_subject =
+        PackReader::readDirectory(fixture(QStringLiteral("full-resource-pack-v2")));
+    QVERIFY(ordinary_runtime_subject.has_value());
+    std::erase_if(ordinary_runtime_subject->resources, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::ArgumentConfig ||
+               resource.descriptor.kind == appellate::model::ResourceKind::RealismReview;
+    });
+    const auto ordinary_runtime_result =
+        appellate::packs::loadRuntimePack(*ordinary_runtime_subject);
+    QVERIFY(!ordinary_runtime_result.has_value());
+    QCOMPARE(ordinary_runtime_result.error().code,
+             appellate::packs::RuntimePackErrorCode::MissingArgumentConfiguration);
+
+    auto single_positive = baseline->subject;
+    auto* single_review = firstRealismReview(single_positive);
+    QVERIFY(single_review != nullptr);
+    QVERIFY(setReviewTraceProfile(
+        *single_review, QStringLiteral("appellate.realism-evidence.codec-replay.v1"), true));
+    refreshResourceDigest(*single_review);
+    refreshPackRevision(single_positive);
+    QVERIFY(validate_subject(*baseline, single_positive).has_value());
+
+    auto no_prerequisites = *baseline;
+    const auto removed = removeSubjectResources(no_prerequisites.subject, [](const auto& resource) {
+        return resource.descriptor.kind == appellate::model::ResourceKind::ArgumentConfig;
+    });
+    QVERIFY(!removed.isEmpty());
+    auto* no_prerequisite_source = firstRealismReview(no_prerequisites.subject);
+    QVERIFY(no_prerequisite_source != nullptr);
+    repairReviewAfterRemovedResources(*no_prerequisite_source, removed);
+    repairReviewAfterRemovedResources(no_prerequisites.detached.resources.front(), removed);
+    for (const auto& dimension :
+         {QStringLiteral("oral_argument"), QStringLiteral("bench_differentiation")}) {
+        setReviewDimension(*no_prerequisite_source, dimension, 0);
+        setReviewDimension(no_prerequisites.detached.resources.front(), dimension, 0);
+    }
+    refreshStrictDetachedFixture(no_prerequisites);
+
+    const auto zero_multi_result = validate_subject(no_prerequisites, no_prerequisites.subject);
+    QVERIFY2(zero_multi_result.has_value(),
+             zero_multi_result ? "" : qPrintable(zero_multi_result.error().message));
+    QVERIFY(validateStrictDetached(no_prerequisites).has_value());
+    auto single_zero = no_prerequisites.subject;
+    single_review = firstRealismReview(single_zero);
+    QVERIFY(single_review != nullptr);
+    QVERIFY(setReviewTraceProfile(
+        *single_review, QStringLiteral("appellate.realism-evidence.codec-replay.v1"), true));
+    setReviewDimension(*single_review, QStringLiteral("oral_argument"), 0);
+    setReviewDimension(*single_review, QStringLiteral("bench_differentiation"), 0);
+    refreshResourceDigest(*single_review);
+    refreshPackRevision(single_zero);
+    QVERIFY(validate_subject(no_prerequisites, single_zero).has_value());
+
+    auto manual_missing_arguments = no_prerequisites.subject;
+    auto* manual_review = firstRealismReview(manual_missing_arguments);
+    QVERIFY(manual_review != nullptr);
+    useManualTraceProfile(*manual_review);
+    refreshResourceDigest(*manual_review);
+    refreshPackRevision(manual_missing_arguments);
+    const auto manual_missing_result = validate_subject(no_prerequisites, manual_missing_arguments);
+    QVERIFY(expect_targeted_failure(manual_missing_result,
+                                    QStringLiteral("no oral-argument configuration")));
+
+    for (const auto& dimension :
+         {QStringLiteral("oral_argument"), QStringLiteral("bench_differentiation")}) {
+        auto missing_multi = no_prerequisites.subject;
+        auto* review = firstRealismReview(missing_multi);
+        QVERIFY(review != nullptr);
+        setReviewDimension(*review, dimension, 2, true);
+        refreshResourceDigest(*review);
+        refreshPackRevision(missing_multi);
+        const auto multi_result = validate_subject(no_prerequisites, missing_multi);
+        QVERIFY(expect_targeted_failure(multi_result,
+                                        dimension == QStringLiteral("oral_argument")
+                                            ? QStringLiteral("case-targeted argument configuration")
+                                            : QStringLiteral("bench and judge profiles")));
+
+        auto missing_single = missing_multi;
+        review = firstRealismReview(missing_single);
+        QVERIFY(review != nullptr);
+        QVERIFY(setReviewTraceProfile(
+            *review, QStringLiteral("appellate.realism-evidence.codec-replay.v1"), true));
+        setReviewDimension(*review, QStringLiteral("oral_argument"), 0);
+        setReviewDimension(*review, QStringLiteral("bench_differentiation"), 0);
+        setReviewDimension(*review, dimension, 1, true);
+        refreshResourceDigest(*review);
+        refreshPackRevision(missing_single);
+        const auto single_result = validate_subject(no_prerequisites, missing_single);
+        QVERIFY(expect_targeted_failure(single_result,
+                                        dimension == QStringLiteral("oral_argument")
+                                            ? QStringLiteral("case-targeted argument configuration")
+                                            : QStringLiteral("bench and judge profiles")));
+
+        auto missing_detached = no_prerequisites;
+        setReviewDimension(missing_detached.detached.resources.front(), dimension, 3, true);
+        refreshStrictDetachedFixture(missing_detached);
+        const auto detached_result = validateStrictDetached(missing_detached);
+        QVERIFY(expect_targeted_failure(detached_result,
+                                        dimension == QStringLiteral("oral_argument")
+                                            ? QStringLiteral("case-targeted argument configuration")
+                                            : QStringLiteral("bench and judge profiles")));
+    }
+
+    auto missing_bench_resource = no_prerequisites;
+    const auto removed_bench =
+        removeSubjectResources(missing_bench_resource.subject, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::BenchConfiguration;
+        });
+    QVERIFY(!removed_bench.isEmpty());
+    auto* missing_bench_source = firstRealismReview(missing_bench_resource.subject);
+    QVERIFY(missing_bench_source != nullptr);
+    repairReviewAfterRemovedResources(*missing_bench_source, removed_bench);
+    repairReviewAfterRemovedResources(missing_bench_resource.detached.resources.front(),
+                                      removed_bench);
+    setReviewDimension(missing_bench_resource.detached.resources.front(),
+                       QStringLiteral("bench_differentiation"), 3, true);
+    refreshStrictDetachedFixture(missing_bench_resource);
+    QVERIFY(expect_targeted_failure(validateStrictDetached(missing_bench_resource),
+                                    QStringLiteral("bench and judge profiles")));
+}
+
+void SchemaDispatchTest::enforcesCodeOwnedRealismUnicodeScalars() {
+    const auto fixture = strictDetachedFixture();
+    QVERIFY(fixture.has_value());
+    const std::array<const appellate::packs::LoadedPack*, 3> subject_dependencies{
+        &fixture->federal, &fixture->ca4, &fixture->bench};
+    const QString lone_high{QChar{0xD800}};
+    const QString lone_low{QChar{0xDC00}};
+    QString supplementary;
+    supplementary.append(QChar{0xD83D});
+    supplementary.append(QChar{0xDE00});
+
+    const auto set_summary = [](appellate::packs::ValidatedResource& review,
+                                const QString& summary) {
+        auto uncertainties = review.document.value(QStringLiteral("known_uncertainty")).toArray();
+        auto first = uncertainties.first().toObject();
+        first.insert(QStringLiteral("summary"), summary);
+        uncertainties.replace(0, first);
+        review.document.insert(QStringLiteral("known_uncertainty"), uncertainties);
+    };
+
+    auto multi_high = fixture->subject;
+    auto* review = firstRealismReview(multi_high);
+    QVERIFY(review != nullptr);
+    set_summary(*review, QStringLiteral("TEST-ONLY ") + lone_high);
+    QVERIFY(!PackReader::validateResolvedGraph(multi_high, subject_dependencies).has_value());
+
+    auto multi_low = fixture->subject;
+    review = firstRealismReview(multi_low);
+    QVERIFY(review != nullptr);
+    set_summary(*review, QStringLiteral("TEST-ONLY ") + lone_low);
+    QVERIFY(!PackReader::validateResolvedGraph(multi_low, subject_dependencies).has_value());
+
+    auto multi_pair = fixture->subject;
+    review = firstRealismReview(multi_pair);
+    QVERIFY(review != nullptr);
+    set_summary(*review, QStringLiteral("TEST-ONLY ") + supplementary);
+    QVERIFY(PackReader::validateResolvedGraph(multi_pair, subject_dependencies).has_value());
+
+    auto single_high = fixture->subject;
+    review = firstRealismReview(single_high);
+    QVERIFY(review != nullptr);
+    QVERIFY(setReviewTraceProfile(
+        *review, QStringLiteral("appellate.realism-evidence.codec-replay.v1"), true));
+    set_summary(*review, QStringLiteral("TEST-ONLY ") + lone_high);
+    QVERIFY(!PackReader::validateResolvedGraph(single_high, subject_dependencies).has_value());
+
+    auto detached_high = fixture->detached;
+    auto reviewer =
+        detached_high.resources.front().document.value(QStringLiteral("reviewer")).toObject();
+    reviewer.insert(QStringLiteral("display_name"), QStringLiteral("TEST-ONLY ") + lone_high);
+    detached_high.resources.front().document.insert(QStringLiteral("reviewer"), reviewer);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &detached_high).has_value());
+
+    auto detached_low = fixture->detached;
+    reviewer = detached_low.resources.front().document.value(QStringLiteral("reviewer")).toObject();
+    reviewer.insert(QStringLiteral("display_name"), QStringLiteral("TEST-ONLY ") + lone_low);
+    detached_low.resources.front().document.insert(QStringLiteral("reviewer"), reviewer);
+    QVERIFY(!validateStrictDetached(*fixture, nullptr, &detached_low).has_value());
+
+    auto detached_pair = fixture->detached;
+    reviewer =
+        detached_pair.resources.front().document.value(QStringLiteral("reviewer")).toObject();
+    reviewer.insert(QStringLiteral("display_name"), QStringLiteral("TEST-ONLY ") + supplementary);
+    detached_pair.resources.front().document.insert(QStringLiteral("reviewer"), reviewer);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &detached_pair).has_value());
+
+    const auto require_document_scalar_failure = [](const auto& result) {
+        return !result.has_value() && result.error().message.contains(QStringLiteral(
+                                          "Unicode-scalar object keys and string values"));
+    };
+    for (const auto& invalid_scalar : {lone_high, lone_low}) {
+        const auto invalid_key = QStringLiteral("test.") + invalid_scalar;
+
+        auto multi_key = fixture->subject;
+        review = firstRealismReview(multi_key);
+        QVERIFY(review != nullptr);
+        review->document.insert(invalid_key, true);
+        QVERIFY(require_document_scalar_failure(
+            PackReader::validateResolvedGraph(multi_key, subject_dependencies)));
+
+        auto single_key = fixture->subject;
+        review = firstRealismReview(single_key);
+        QVERIFY(review != nullptr);
+        QVERIFY(setReviewTraceProfile(
+            *review, QStringLiteral("appellate.realism-evidence.codec-replay.v1"), true));
+        review->document.insert(invalid_key, true);
+        QVERIFY(require_document_scalar_failure(
+            PackReader::validateResolvedGraph(single_key, subject_dependencies)));
+
+        auto detached_key = fixture->detached;
+        detached_key.resources.front().document.insert(invalid_key, true);
+        QVERIFY(require_document_scalar_failure(
+            validateStrictDetached(*fixture, nullptr, &detached_key)));
+    }
+
+    const auto supplementary_key = QStringLiteral("test.") + supplementary;
+    auto multi_key_pair = fixture->subject;
+    review = firstRealismReview(multi_key_pair);
+    QVERIFY(review != nullptr);
+    review->document.insert(supplementary_key, true);
+    QVERIFY(PackReader::validateResolvedGraph(multi_key_pair, subject_dependencies).has_value());
+
+    auto single_key_pair = fixture->subject;
+    review = firstRealismReview(single_key_pair);
+    QVERIFY(review != nullptr);
+    QVERIFY(setReviewTraceProfile(
+        *review, QStringLiteral("appellate.realism-evidence.codec-replay.v1"), true));
+    review->document.insert(supplementary_key, true);
+    QVERIFY(PackReader::validateResolvedGraph(single_key_pair, subject_dependencies).has_value());
+
+    auto detached_key_pair = fixture->detached;
+    detached_key_pair.resources.front().document.insert(supplementary_key, true);
+    QVERIFY(validateStrictDetached(*fixture, nullptr, &detached_key_pair).has_value());
+
+    const auto require_scalar_journal_failure = [](const auto& result) {
+        return !result.has_value() &&
+               result.error().message.contains(QStringLiteral("canonical journal JSON contains a "
+                                                              "non-scalar"));
+    };
+    for (const auto& invalid_scalar : {lone_high, lone_low}) {
+        auto multi_journal = fixture->subject;
+        review = firstRealismReview(multi_journal);
+        QVERIFY(review != nullptr);
+        QVERIFY(
+            mutateFirstTraceCommandField(*review, QStringLiteral("TEST-ONLY ") + invalid_scalar));
+        refreshResourceDigest(*review);
+        refreshPackRevision(multi_journal);
+        QVERIFY(require_scalar_journal_failure(
+            PackReader::validateResolvedGraph(multi_journal, subject_dependencies)));
+
+        auto single_journal = fixture->subject;
+        review = firstRealismReview(single_journal);
+        QVERIFY(review != nullptr);
+        QVERIFY(setReviewTraceProfile(
+            *review, QStringLiteral("appellate.realism-evidence.codec-replay.v1"), true));
+        QVERIFY(
+            mutateFirstTraceCommandField(*review, QStringLiteral("TEST-ONLY ") + invalid_scalar));
+        refreshResourceDigest(*review);
+        refreshPackRevision(single_journal);
+        QVERIFY(require_scalar_journal_failure(
+            PackReader::validateResolvedGraph(single_journal, subject_dependencies)));
+
+        auto detached_journal = *fixture;
+        QVERIFY(mutateFirstTraceCommandField(detached_journal.detached.resources.front(),
+                                             QStringLiteral("TEST-ONLY ") + invalid_scalar));
+        refreshResourceDigest(detached_journal.detached.resources.front());
+        refreshPackRevision(detached_journal.detached);
+        QVERIFY(require_scalar_journal_failure(validateStrictDetached(detached_journal)));
+
+        auto multi_event = fixture->subject;
+        review = firstRealismReview(multi_event);
+        QVERIFY(review != nullptr);
+        QVERIFY(mutateFirstTraceEventProposition(*review,
+                                                 QStringLiteral("TEST-ONLY ") + invalid_scalar));
+        refreshResourceDigest(*review);
+        refreshPackRevision(multi_event);
+        QVERIFY(require_scalar_journal_failure(
+            PackReader::validateResolvedGraph(multi_event, subject_dependencies)));
+
+        auto single_event = fixture->subject;
+        review = firstRealismReview(single_event);
+        QVERIFY(review != nullptr);
+        QVERIFY(setReviewTraceProfile(
+            *review, QStringLiteral("appellate.realism-evidence.codec-replay.v1"), true));
+        QVERIFY(mutateFirstTraceEventProposition(*review,
+                                                 QStringLiteral("TEST-ONLY ") + invalid_scalar));
+        refreshResourceDigest(*review);
+        refreshPackRevision(single_event);
+        QVERIFY(require_scalar_journal_failure(
+            PackReader::validateResolvedGraph(single_event, subject_dependencies)));
+
+        auto detached_event = *fixture;
+        QVERIFY(mutateFirstTraceEventProposition(detached_event.detached.resources.front(),
+                                                 QStringLiteral("TEST-ONLY ") + invalid_scalar));
+        refreshResourceDigest(detached_event.detached.resources.front());
+        refreshPackRevision(detached_event.detached);
+        QVERIFY(require_scalar_journal_failure(validateStrictDetached(detached_event)));
+    }
+
+    auto multi_journal_pair = fixture->subject;
+    review = firstRealismReview(multi_journal_pair);
+    QVERIFY(review != nullptr);
+    QVERIFY(mutateFirstTraceCommandField(*review, QStringLiteral("TEST-ONLY ") + supplementary));
+    refreshResourceDigest(*review);
+    refreshPackRevision(multi_journal_pair);
+    QVERIFY(
+        PackReader::validateResolvedGraph(multi_journal_pair, subject_dependencies).has_value());
+
+    auto single_journal_pair = fixture->subject;
+    review = firstRealismReview(single_journal_pair);
+    QVERIFY(review != nullptr);
+    QVERIFY(setReviewTraceProfile(
+        *review, QStringLiteral("appellate.realism-evidence.codec-replay.v1"), true));
+    QVERIFY(mutateFirstTraceCommandField(*review, QStringLiteral("TEST-ONLY ") + supplementary));
+    refreshResourceDigest(*review);
+    refreshPackRevision(single_journal_pair);
+    QVERIFY(
+        PackReader::validateResolvedGraph(single_journal_pair, subject_dependencies).has_value());
+
+    auto detached_journal_pair = *fixture;
+    auto* paired_source = firstRealismReview(detached_journal_pair.subject);
+    QVERIFY(paired_source != nullptr);
+    QVERIFY(
+        mutateFirstTraceCommandField(*paired_source, QStringLiteral("TEST-ONLY ") + supplementary));
+    replayDetachedTracesFromSource(*paired_source,
+                                   detached_journal_pair.detached.resources.front());
+    refreshStrictDetachedFixture(detached_journal_pair);
+    QVERIFY(validateStrictDetached(detached_journal_pair).has_value());
+
+    auto manual = fixture->subject;
+    review = firstRealismReview(manual);
+    QVERIFY(review != nullptr);
+    QVERIFY(setReviewTraceProfile(*review, QStringLiteral("test.manual.realism-profile"), false));
+    set_summary(*review, QStringLiteral("TEST-ONLY ") + lone_high);
+    QVERIFY(PackReader::validateResolvedGraph(manual, subject_dependencies).has_value());
+
+    auto manual_key = fixture->subject;
+    review = firstRealismReview(manual_key);
+    QVERIFY(review != nullptr);
+    useManualTraceProfile(*review);
+    review->document.insert(QStringLiteral("test.") + lone_low, true);
+    QVERIFY(PackReader::validateResolvedGraph(manual_key, subject_dependencies).has_value());
+
+    auto near_miss_unknown = fixture->subject;
+    review = firstRealismReview(near_miss_unknown);
+    QVERIFY(review != nullptr);
+    QVERIFY(setReviewTraceProfile(
+        *review, QStringLiteral("appellate.realism-evidence.codec-replay.v1-near-miss"), false));
+    set_summary(*review, QStringLiteral("TEST-ONLY ") + lone_low);
+    review->document.insert(QStringLiteral("test.") + lone_high, true);
+    QVERIFY(PackReader::validateResolvedGraph(near_miss_unknown, subject_dependencies).has_value());
+
+    auto manual_journal = fixture->subject;
+    review = firstRealismReview(manual_journal);
+    QVERIFY(review != nullptr);
+    useManualTraceProfile(*review);
+    QVERIFY(mutateFirstTraceCommandField(*review, QStringLiteral("TEST-ONLY ") + lone_high));
+    const auto manual_journal_result =
+        PackReader::validateResolvedGraph(manual_journal, subject_dependencies);
+    QVERIFY(!manual_journal_result.has_value());
+    QVERIFY(!manual_journal_result.error().message.contains(
+        QStringLiteral("canonical journal JSON contains a non-scalar")));
+
+    auto unknown_journal = fixture->subject;
+    review = firstRealismReview(unknown_journal);
+    QVERIFY(review != nullptr);
+    QVERIFY(setReviewTraceProfile(
+        *review, QStringLiteral("appellate.realism-evidence.codec-replay.v1-near-miss"), false));
+    QVERIFY(mutateFirstTraceEventProposition(*review, QStringLiteral("TEST-ONLY ") + lone_low));
+    const auto unknown_journal_result =
+        PackReader::validateResolvedGraph(unknown_journal, subject_dependencies);
+    QVERIFY(!unknown_journal_result.has_value());
+    QVERIFY(!unknown_journal_result.error().message.contains(
+        QStringLiteral("canonical journal JSON contains a non-scalar")));
 }
 
 void SchemaDispatchTest::rejectsUnsupportedKindVersions() {

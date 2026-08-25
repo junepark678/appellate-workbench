@@ -4421,7 +4421,7 @@ parseArgument(const ValidatedResource& resource, const ResourceIndex& index,
 [[nodiscard]] Result<RuntimeCase>
 assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
              const std::vector<const ValidatedResource*>& arguments,
-             const model::PackRevision& root_revision) {
+             const model::PackRevision& root_revision, bool allow_missing_arguments) {
     auto parsed_case = parseCase(resource, index);
     if (!parsed_case) {
         return std::unexpected(parsed_case.error());
@@ -4811,7 +4811,7 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
                             " authored judgment operation binds a non-authored plan");
         }
     }
-    if (arguments.empty()) {
+    if (arguments.empty() && !allow_missing_arguments) {
         return fail(RuntimePackErrorCode::MissingArgumentConfiguration,
                     "case " + parsed_case->definition.id.value +
                         " has no oral-argument configuration");
@@ -4847,7 +4847,8 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
 }
 
 [[nodiscard]] Result<RuntimePack> projectRuntimePack(const LoadedPack& pack,
-                                                     const ResourceIndex& index) {
+                                                     const ResourceIndex& index,
+                                                     bool allow_missing_arguments) {
     std::vector<const ValidatedResource*> cases;
     std::unordered_map<std::string, std::vector<const ValidatedResource*>> arguments_by_case;
     for (const auto& resource : pack.resources) {
@@ -4892,7 +4893,8 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
         const auto found = arguments_by_case.find(resource->descriptor.id);
         const std::vector<const ValidatedResource*> no_arguments;
         const auto& arguments = found == arguments_by_case.end() ? no_arguments : found->second;
-        auto runtime_case = assembleCase(*resource, index, arguments, pack.revision);
+        auto runtime_case =
+            assembleCase(*resource, index, arguments, pack.revision, allow_missing_arguments);
         if (!runtime_case) {
             return std::unexpected(runtime_case.error());
         }
@@ -4905,7 +4907,8 @@ assembleCase(const ValidatedResource& resource, const ResourceIndex& index,
 
 std::expected<RuntimePack, RuntimePackError>
 loadRuntimePackForEvidence(const LoadedPack& case_owner,
-                           std::span<const LoadedPack* const> subject_dependency_first) {
+                           std::span<const LoadedPack* const> subject_dependency_first,
+                           bool allow_missing_arguments) {
     if (subject_dependency_first.empty() || subject_dependency_first.back() != &case_owner) {
         return fail(RuntimePackErrorCode::InvalidPack,
                     "realism evidence subject closure does not end with its case owner");
@@ -4914,7 +4917,7 @@ loadRuntimePackForEvidence(const LoadedPack& case_owner,
     if (!index) {
         return std::unexpected(index.error());
     }
-    return projectRuntimePack(case_owner, *index);
+    return projectRuntimePack(case_owner, *index, allow_missing_arguments);
 }
 
 std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& pack) {
@@ -4931,7 +4934,7 @@ std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const LoadedPack& p
     if (!index) {
         return std::unexpected(index.error());
     }
-    return projectRuntimePack(pack, *index);
+    return projectRuntimePack(pack, *index, false);
 }
 
 std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const ResolvedPack& pack) {
@@ -4945,7 +4948,7 @@ std::expected<RuntimePack, RuntimePackError> loadRuntimePack(const ResolvedPack&
     if (!index) {
         return std::unexpected(index.error());
     }
-    return projectRuntimePack(pack.root(), *index);
+    return projectRuntimePack(pack.root(), *index, false);
 }
 
 } // namespace appellate::packs

@@ -9,9 +9,11 @@ namespace appellate::packs {
 
 // Projects an already graph-validated exact subject closure for evidence replay. Unlike the
 // public entry points, this deliberately accepts a dependency-owned root because a detached
-// review pack does not own the case it reviews.
+// review pack does not own the case it reviews. Code-owned evidence validation may also defer the
+// oral-argument prerequisite until it can inspect the review's score.
 [[nodiscard]] std::expected<RuntimePack, RuntimePackError>
 loadRuntimePackForEvidence(const LoadedPack& case_owner,
-                           std::span<const LoadedPack* const> subject_dependency_first);
+                           std::span<const LoadedPack* const> subject_dependency_first,
+                           bool allow_missing_arguments);
 
 } // namespace appellate::packs

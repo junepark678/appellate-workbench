@@ -161,13 +161,64 @@ consequences partitions. Each dimension may bind at most 512 unique evidence ref
 leaves capacity for all 256 traces plus the mandatory non-trace references in an authorable
 subject closure.
 
-Manual and independently authored reviews retain the ordinary score-2/3 contract when they do not
-claim either authoring profile. Resource and blob bindings cover the complete review-excluded case
-closure. Authority bindings are the exact union of canonical authorities actually referenced by
-the selected case, selected workflow operations, record and case-specific oral resources, plus
-only filing-catalog entries whose filing types occur in that workflow's routes. Each dimension
-uses its relevant authority partition, and every authority remains within the selected procedure's
-exact authority-set scope.
+The validator recognizes exactly three code-owned realism profiles:
+`appellate.realism-evidence.codec-replay.v1`,
+`appellate.realism-evidence.codec-replay-multi.v1`, and
+`appellate.realism-evidence.detached-review-replay.v1`. For every schema-version-2 review claiming
+one of them, resolved validation recursively checks the complete decoded review object: every
+object key and string value must be a Unicode-scalar sequence, so every UTF-16 high surrogate must
+be immediately paired with a low surrogate and a lone low surrogate is invalid. This is a scalar
+rule, not a blanket NUL or control-character prohibition. Manual and unknown profiles retain their
+existing behavior.
+Before codec replay, the canonical base64-decoded command and event JSON is subject to the same
+recursive key-and-string scalar check.
+
+All three code-owned profiles share persistent score prerequisites. A nonzero `oral_argument`
+score requires at least one `argument_config` targeting the reviewed case. A nonzero
+`bench_differentiation` score independently requires both a referenced `bench_configuration` and a
+referenced `judge_profile`. Score-zero dimensions are exempt. Single- and multi-trace reviews use
+their owner closure; detached reviews use the directly pinned subject closure.
+
+The detached profile is a strict resolved-graph contract. Every trace must use
+`appellate.realism-evidence.detached-review-replay.v1`, and the review state must be
+`independently_reviewed`. Its schema-version-2 owner contains exactly that one schema-version-2
+`realism_review` resource at `resources/realism-review.json`; the descriptor ID equals the document
+`resource_id`, and normal pack reading binds the descriptor digest to the exact review bytes. The
+owner has zero blobs, exactly one direct dependency pin on the reviewed case owner's exact ID,
+version, and revision digest, and exactly the ordered capabilities
+`workbench.pack.declarative-resources@2` then `workbench.pack.realism-evidence@1`.
+
+That subject root owns exactly one schema-version-2 review for the same case. It must be
+`independent_review_pending` and use the uniform production-multi profile with its trace array
+already ordered by `(trace_id, evidence_id)`. The detached array preserves the source count, order,
+IDs, workflow, canonical journal, counts, journal digest, operation IDs, and terminal stage; only
+the fixed detached engine revision and its recomputed trace digest differ. The detached
+`reviewed_on` is canonical and cannot precede the source date. This persistent lower bound is
+clock-free.
+
+Detached human metadata is also persistent. `reviewer_reference` is nonempty, unchanged by
+trimming, and at most 512 UTF-8 bytes. `reviewer.reviewer_id` is a common namespaced ID of 3–160
+bytes; `display_name` is at most 240 UTF-8 bytes; `qualification` is at most 1,024 UTF-8 bytes; and
+optional nonempty `affiliation` is at most 240 UTF-8 bytes. Those text fields are Unicode-scalar and
+unchanged by trimming. Reviewer and uncertainty objects have closed shapes; there are at most 256
+uncertainties with unique common namespaced IDs of 3–160 bytes and nonempty, trim-stable summaries
+of at most 2,048 UTF-8 bytes. `remediation_issue` is present exactly for blocking uncertainties and
+must satisfy `model::isCanonicalAuthoritySourceUrl`. The subject closure is limited to 127 revisions
+and 9,999 combined resource-plus-blob descriptors before the detached owner is added. Closure
+bindings, deterministic evidence and record-check IDs, authority scope, and complete latent
+dimension partitions are independently reconstructed from that subject; every complete partition
+remains at most 512 references even when a final score of zero makes its declared group empty. The
+detached profile may use schema scores through 3.
+
+Manual and independently authored reviews retain the ordinary score-2/3 contract when they claim
+none of these three code-owned profiles. Resource and blob bindings cover the complete
+review-excluded case closure. Authority bindings are the exact union of canonical authorities
+actually referenced by the selected case, selected workflow operations, record and case-specific
+oral resources, plus only filing-catalog entries whose filing types occur in that workflow's
+routes. Each dimension uses its relevant authority partition, and every authority remains within
+the selected procedure's exact authority-set scope. Removing a code-owned profile label and
+recomputing hashes creates a different manual artifact; it is not a valid mutation of the generated
+revision or proof of its provenance.
 
 The trace input supplies `evidence_id`, `trace_id`, `workflow_id`, and the canonical command/event
 `journal`. The command inserts the code-owned engine revision
