@@ -266,6 +266,35 @@ void appendLittleEndian32(QByteArray& bytes, std::uint32_t value) {
     }
     return std::nullopt;
 }
+
+[[nodiscard]] std::optional<QString>
+subordinateNamespaceFailure(const QString& unshare, uid_t subordinate_uid, uid_t subordinate_gid) {
+    QProcess process;
+    process.start(unshare,
+                  {QStringLiteral("--user"), QStringLiteral("--map-users"),
+                   QStringLiteral("0:%1:1").arg(::geteuid()), QStringLiteral("--map-users"),
+                   QStringLiteral("1:%1:1").arg(subordinate_uid), QStringLiteral("--map-groups"),
+                   QStringLiteral("0:%1:1").arg(::getegid()), QStringLiteral("--map-groups"),
+                   QStringLiteral("1:%1:1").arg(subordinate_gid), QStringLiteral("--setgid"),
+                   QStringLiteral("1"), QStringLiteral("--setuid"), QStringLiteral("1"),
+                   QStringLiteral("/bin/true")});
+    if (!process.waitForStarted()) {
+        return process.errorString();
+    }
+    if (!process.waitForFinished()) {
+        process.kill();
+        static_cast<void>(process.waitForFinished());
+        return QStringLiteral("unshare capability probe timed out");
+    }
+    if (process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0) {
+        return std::nullopt;
+    }
+    const auto diagnostic = QString::fromLocal8Bit(process.readAllStandardError()).trimmed();
+    if (!diagnostic.isEmpty()) {
+        return diagnostic;
+    }
+    return QStringLiteral("unshare capability probe exited with status %1").arg(process.exitCode());
+}
 #endif
 
 class PackArchiveTest final : public QObject {
@@ -1046,6 +1075,11 @@ void PackArchiveTest::importsArchivesThroughSecureScratch() {
         if (unshare.isEmpty() || !subordinate_uid.has_value() || !subordinate_gid.has_value()) {
             qWarning("Second-UID sticky-controller rename row skipped explicitly: subordinate user "
                      "namespace mappings are unavailable");
+        } else if (const auto namespace_failure =
+                       subordinateNamespaceFailure(unshare, *subordinate_uid, *subordinate_gid);
+                   namespace_failure.has_value()) {
+            qWarning("Second-UID sticky-controller rename row skipped explicitly: %s",
+                     qPrintable(*namespace_failure));
         } else {
             bool rename_attempted = false;
             bool rename_denied = false;
@@ -1119,6 +1153,11 @@ void PackArchiveTest::importsArchivesThroughSecureScratch() {
         if (unshare.isEmpty() || !subordinate_uid.has_value() || !subordinate_gid.has_value()) {
             qWarning("Wrong-owner controller row skipped explicitly: subordinate user namespace "
                      "mappings are unavailable");
+        } else if (const auto namespace_failure =
+                       subordinateNamespaceFailure(unshare, *subordinate_uid, *subordinate_gid);
+                   namespace_failure.has_value()) {
+            qWarning("Wrong-owner controller row skipped explicitly: %s",
+                     qPrintable(*namespace_failure));
         } else {
             QTemporaryDir wrong_owner_controller;
             QVERIFY(wrong_owner_controller.isValid());
