@@ -81,24 +81,29 @@ jobs:
             "aqtinstall==3.3.0" \
             "py7zr==1.0.0" \
             "setuptools==80.9.0"
-          "$RUNNER_TEMP/aqt/bin/aqt" install-qt \
-            linux \
-            desktop \
-            6.11.1 \
-            linux_gcc_64 \
-            --outputdir "$RUNNER_TEMP/Qt" \
-            --modules qtpdf
+          (
+            cd "$RUNNER_TEMP"
+            "$RUNNER_TEMP/aqt/bin/aqt" install-qt \
+              linux \
+              desktop \
+              6.11.1 \
+              linux_gcc_64 \
+              --outputdir "$RUNNER_TEMP/Qt" \
+              --modules qtpdf
+          )
 
           qt_root="$RUNNER_TEMP/Qt/6.11.1/gcc_64"
           test -x "$qt_root/bin/qmake"
+          test -f "$qt_root/lib/cmake/Qt6/Qt6Config.cmake"
           printf '%s\n' "$qt_root/bin" >> "$GITHUB_PATH"
           printf '%s\n' \
-            "CMAKE_PREFIX_PATH=$qt_root" \
+            "CMAKE_PREFIX_PATH=$qt_root${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" \
             "LD_LIBRARY_PATH=$qt_root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
             "PKG_CONFIG_PATH=$qt_root/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}" \
             "QML2_IMPORT_PATH=$qt_root/qml" \
             "QT_PLUGIN_PATH=$qt_root/plugins" \
             "QT_ROOT_DIR=$qt_root" \
+            "Qt6_DIR=$qt_root/lib/cmake/Qt6" \
             >> "$GITHUB_ENV"
 
       - name: Report toolchain
