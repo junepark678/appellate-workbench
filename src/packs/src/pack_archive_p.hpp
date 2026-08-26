@@ -17,6 +17,11 @@
 
 namespace appellate::packs::detail {
 
+class CatalogOperandContext;
+struct CatalogOpenAttempt;
+struct PackCatalogFactory;
+struct PackCatalogSnapshotFactory;
+
 enum class SecureScratchEvent {
     TempPathCaptured,
     ControllerOpened,
@@ -127,12 +132,21 @@ class SecureScratchContext final {
         -> std::expected<void, SecureScratchFailure>;
 
   private:
+    struct Attachment {
+        virtual ~Attachment() = default;
+    };
+
     struct Impl;
     explicit SecureScratchContext(std::unique_ptr<Impl> state);
     std::unique_ptr<Impl> impl_;
+    std::unique_ptr<Attachment> catalog_attempt_;
 
     friend std::expected<SecureScratchContext, SecureScratchFailure>
     acquireSecureScratchContext(const SecureScratchHooks& hooks);
+    friend class CatalogOperandContext;
+    friend struct CatalogOpenAttempt;
+    friend struct PackCatalogFactory;
+    friend struct PackCatalogSnapshotFactory;
     friend class SecureScratchWorkspace;
 };
 

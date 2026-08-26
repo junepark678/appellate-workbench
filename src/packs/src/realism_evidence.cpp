@@ -3625,6 +3625,112 @@ struct IndependentReviewClaims final {
     };
 }
 
+struct ValidatedIndependentReviewHandoff final {
+    ResolvedPack subject;
+    DetachedMechanicalContext context;
+    PreparedIndependentReview rebuilt;
+};
+
+[[nodiscard]] auto validateIndependentReviewHandoff(const PackCatalogSnapshot& snapshot,
+                                                    const QByteArray& handoff_bytes,
+                                                    const QByteArray& declaration_template_bytes,
+                                                    const QDate& current_utc_date)
+    -> std::expected<ValidatedIndependentReviewHandoff, IndependentReviewError> {
+    const auto handoff = parseIndependentObject(
+        handoff_bytes, maximum_handoff_bytes, JsonLimits{64, 500'000},
+        QStringLiteral("handoff.json"), IndependentReviewErrorCode::InvalidHandoff, true);
+    if (!handoff) {
+        return std::unexpected(handoff.error());
+    }
+    const auto parsed_template = parseIndependentObject(
+        declaration_template_bytes, maximum_declaration_template_bytes, JsonLimits{32, 4'096},
+        QStringLiteral("review-declaration.template.json"),
+        IndependentReviewErrorCode::InvalidHandoff, true);
+    if (!parsed_template) {
+        return std::unexpected(parsed_template.error());
+    }
+    if (*parsed_template != declarationTemplate() ||
+        !hasExactKeys(*handoff, {"handoff_digest", "handoff_kind", "payload", "schema_version"}) ||
+        !isExactInteger(handoff->value(QStringLiteral("schema_version")), 1, 1) ||
+        handoff->value(QStringLiteral("handoff_kind")).toString() !=
+            QStringLiteral("independent_realism_review") ||
+        !handoff->value(QStringLiteral("payload")).isObject() ||
+        !handoff->value(QStringLiteral("handoff_digest")).isString() ||
+        !isLowercaseSha256(handoff->value(QStringLiteral("handoff_digest")).toString())) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidHandoff,
+            QStringLiteral("The handoff or declaration template has the wrong closed shape"));
+    }
+    const auto payload = handoff->value(QStringLiteral("payload")).toObject();
+    const auto template_sha256 = sha256(QByteArrayView(declaration_template_bytes));
+    if (!hasExactKeys(payload,
+                      {"case_id", "declaration_template_sha256", "mechanical_evidence",
+                       "mechanical_trace_revision", "source_review", "subject_revision"}) ||
+        !payload.value(QStringLiteral("case_id")).isString() ||
+        !payload.value(QStringLiteral("declaration_template_sha256")).isString() ||
+        !payload.value(QStringLiteral("mechanical_evidence")).isObject() ||
+        !payload.value(QStringLiteral("mechanical_trace_revision")).isString() ||
+        !payload.value(QStringLiteral("source_review")).isObject() ||
+        !payload.value(QStringLiteral("subject_revision")).isObject() ||
+        payload.value(QStringLiteral("declaration_template_sha256")).toString() !=
+            template_sha256 ||
+        payload.value(QStringLiteral("mechanical_trace_revision")).toString() !=
+            detachedReviewEngineRevision() ||
+        independentHandoffDigest(payload) !=
+            handoff->value(QStringLiteral("handoff_digest")).toString()) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidHandoff,
+            QStringLiteral("The handoff payload shape or association digest is invalid"));
+    }
+    const auto subject_value = payload.value(QStringLiteral("subject_revision")).toObject();
+    const auto pack_id = subject_value.value(QStringLiteral("pack_id")).toString();
+    const auto version = subject_value.value(QStringLiteral("version")).toString();
+    const auto case_id = payload.value(QStringLiteral("case_id")).toString();
+    if (!hasExactKeys(subject_value, {"digest", "pack_id", "version"}) ||
+        !subject_value.value(QStringLiteral("digest")).isString() ||
+        !subject_value.value(QStringLiteral("pack_id")).isString() ||
+        !subject_value.value(QStringLiteral("version")).isString() || !isNamespacedId(pack_id) ||
+        pack_id.toUtf8().size() > 128 || !isValidPackVersion(version, 2) ||
+        !isNamespacedId(case_id) ||
+        !isLowercaseSha256(subject_value.value(QStringLiteral("digest")).toString())) {
+        return independentFailure(IndependentReviewErrorCode::InvalidHandoff,
+                                  QStringLiteral("The handoff subject revision is invalid"));
+    }
+    const model::PackRevision subject_revision{
+        model::PackId{pack_id.toStdString()},
+        version.toStdString(),
+        subject_value.value(QStringLiteral("digest")).toString().toStdString(),
+    };
+    auto resolved = snapshot.loadResolved(subject_revision);
+    if (!resolved) {
+        return independentCatalogFailure(resolved.error());
+    }
+    auto context = reconstructDetachedMechanicalContext(*resolved, case_id, current_utc_date,
+                                                        IndependentReviewErrorCode::InvalidHandoff);
+    if (!context) {
+        return std::unexpected(context.error());
+    }
+    if (const auto feasible = validateMinimumDetachedPack(
+            *resolved, *context, IndependentReviewErrorCode::InvalidHandoff);
+        !feasible) {
+        return std::unexpected(feasible.error());
+    }
+    auto rebuilt = composePreparedIndependentReview(*context);
+    if (!rebuilt || rebuilt->handoff_bytes != handoff_bytes ||
+        rebuilt->declaration_template_bytes != declaration_template_bytes) {
+        return independentFailure(
+            IndependentReviewErrorCode::InvalidHandoff,
+            !rebuilt ? QStringLiteral("The handoff cannot be independently reconstructed: %1")
+                           .arg(rebuilt.error().message)
+                     : QStringLiteral("The handoff differs from the current exact subject"));
+    }
+    return ValidatedIndependentReviewHandoff{
+        std::move(*resolved),
+        std::move(*context),
+        std::move(*rebuilt),
+    };
+}
+
 } // namespace
 
 std::expected<PreparedIndependentReview, IndependentReviewError>
@@ -3672,6 +3778,26 @@ prepareIndependentReview(const PackCatalogSnapshot& snapshot,
     return *first;
 }
 
+namespace detail {
+
+std::expected<void, IndependentReviewError> validatePreparedIndependentReview(
+    const PackCatalogSnapshot& snapshot, const QByteArray& handoff_bytes,
+    const QByteArray& declaration_template_bytes, const QDate& current_utc_date) {
+    if (!current_utc_date.isValid()) {
+        return independentFailure(IndependentReviewErrorCode::InvalidInput,
+                                  QStringLiteral("Staged validation requires a valid captured UTC "
+                                                 "date"));
+    }
+    const auto validated = validateIndependentReviewHandoff(
+        snapshot, handoff_bytes, declaration_template_bytes, current_utc_date);
+    if (!validated) {
+        return std::unexpected(validated.error());
+    }
+    return {};
+}
+
+} // namespace detail
+
 std::expected<FinalizedIndependentReview, IndependentReviewError>
 finalizeIndependentReview(const PackCatalogSnapshot& snapshot,
                           const IndependentReviewFinalizeInput& input) {
@@ -3679,18 +3805,10 @@ finalizeIndependentReview(const PackCatalogSnapshot& snapshot,
         return independentFailure(IndependentReviewErrorCode::InvalidInput,
                                   QStringLiteral("Finalize requires a valid captured UTC date"));
     }
-    const auto handoff = parseIndependentObject(
-        input.handoff_bytes, maximum_handoff_bytes, JsonLimits{64, 500'000},
-        QStringLiteral("handoff.json"), IndependentReviewErrorCode::InvalidHandoff, true);
-    if (!handoff) {
-        return std::unexpected(handoff.error());
-    }
-    const auto parsed_template = parseIndependentObject(
-        input.declaration_template_bytes, maximum_declaration_template_bytes, JsonLimits{32, 4'096},
-        QStringLiteral("review-declaration.template.json"),
-        IndependentReviewErrorCode::InvalidHandoff, true);
-    if (!parsed_template) {
-        return std::unexpected(parsed_template.error());
+    auto validated = validateIndependentReviewHandoff(
+        snapshot, input.handoff_bytes, input.declaration_template_bytes, input.current_utc_date);
+    if (!validated) {
+        return std::unexpected(validated.error());
     }
     const auto declaration = parseIndependentObject(
         input.completed_declaration_bytes, maximum_completed_declaration_bytes,
@@ -3700,94 +3818,21 @@ finalizeIndependentReview(const PackCatalogSnapshot& snapshot,
         return std::unexpected(declaration.error());
     }
 
-    if (*parsed_template != declarationTemplate() ||
-        !hasExactKeys(*handoff, {"handoff_digest", "handoff_kind", "payload", "schema_version"}) ||
-        !isExactInteger(handoff->value(QStringLiteral("schema_version")), 1, 1) ||
-        handoff->value(QStringLiteral("handoff_kind")).toString() !=
-            QStringLiteral("independent_realism_review") ||
-        !handoff->value(QStringLiteral("payload")).isObject() ||
-        !handoff->value(QStringLiteral("handoff_digest")).isString() ||
-        !isLowercaseSha256(handoff->value(QStringLiteral("handoff_digest")).toString())) {
-        return independentFailure(
-            IndependentReviewErrorCode::InvalidHandoff,
-            QStringLiteral("The handoff or declaration template has the wrong closed shape"));
-    }
-    const auto payload = handoff->value(QStringLiteral("payload")).toObject();
-    const auto template_sha256 = sha256(QByteArrayView(input.declaration_template_bytes));
-    if (!hasExactKeys(payload,
-                      {"case_id", "declaration_template_sha256", "mechanical_evidence",
-                       "mechanical_trace_revision", "source_review", "subject_revision"}) ||
-        !payload.value(QStringLiteral("case_id")).isString() ||
-        !payload.value(QStringLiteral("declaration_template_sha256")).isString() ||
-        !payload.value(QStringLiteral("mechanical_evidence")).isObject() ||
-        !payload.value(QStringLiteral("mechanical_trace_revision")).isString() ||
-        !payload.value(QStringLiteral("source_review")).isObject() ||
-        !payload.value(QStringLiteral("subject_revision")).isObject() ||
-        payload.value(QStringLiteral("declaration_template_sha256")).toString() !=
-            template_sha256 ||
-        payload.value(QStringLiteral("mechanical_trace_revision")).toString() !=
-            detachedReviewEngineRevision() ||
-        independentHandoffDigest(payload) !=
-            handoff->value(QStringLiteral("handoff_digest")).toString()) {
-        return independentFailure(
-            IndependentReviewErrorCode::InvalidHandoff,
-            QStringLiteral("The handoff payload shape or association digest is invalid"));
-    }
-    const auto subject_value = payload.value(QStringLiteral("subject_revision")).toObject();
-    const auto pack_id = subject_value.value(QStringLiteral("pack_id")).toString();
-    const auto version = subject_value.value(QStringLiteral("version")).toString();
-    const auto case_id = payload.value(QStringLiteral("case_id")).toString();
-    if (!hasExactKeys(subject_value, {"digest", "pack_id", "version"}) ||
-        !subject_value.value(QStringLiteral("digest")).isString() ||
-        !subject_value.value(QStringLiteral("pack_id")).isString() ||
-        !subject_value.value(QStringLiteral("version")).isString() || !isNamespacedId(pack_id) ||
-        pack_id.toUtf8().size() > 128 || !isValidPackVersion(version, 2) ||
-        !isNamespacedId(case_id) ||
-        !isLowercaseSha256(subject_value.value(QStringLiteral("digest")).toString())) {
-        return independentFailure(IndependentReviewErrorCode::InvalidHandoff,
-                                  QStringLiteral("The handoff subject revision is invalid"));
-    }
-    const model::PackRevision subject_revision{
-        model::PackId{pack_id.toStdString()},
-        version.toStdString(),
-        subject_value.value(QStringLiteral("digest")).toString().toStdString(),
-    };
-    const auto resolved = snapshot.loadResolved(subject_revision);
-    if (!resolved) {
-        return independentCatalogFailure(resolved.error());
-    }
-    const auto context = reconstructDetachedMechanicalContext(
-        *resolved, case_id, input.current_utc_date, IndependentReviewErrorCode::InvalidHandoff);
-    if (!context) {
-        return std::unexpected(context.error());
-    }
-    if (const auto feasible = validateMinimumDetachedPack(
-            *resolved, *context, IndependentReviewErrorCode::InvalidHandoff);
-        !feasible) {
-        return std::unexpected(feasible.error());
-    }
-    const auto rebuilt = composePreparedIndependentReview(*context);
-    if (!rebuilt || rebuilt->handoff_bytes != input.handoff_bytes ||
-        rebuilt->declaration_template_bytes != input.declaration_template_bytes) {
-        return independentFailure(
-            IndependentReviewErrorCode::InvalidHandoff,
-            !rebuilt ? QStringLiteral("The handoff cannot be independently reconstructed: %1")
-                           .arg(rebuilt.error().message)
-                     : QStringLiteral("The handoff differs from the current exact subject"));
-    }
-
-    const auto claims = validateIndependentReviewClaims(
-        *declaration, *context, rebuilt->handoff_digest, input.current_utc_date);
+    const auto claims =
+        validateIndependentReviewClaims(*declaration, validated->context,
+                                        validated->rebuilt.handoff_digest, input.current_utc_date);
     if (!claims) {
         return std::unexpected(claims.error());
     }
-    const auto first = buildDetachedReviewPack(
-        *resolved, *context, *claims, IndependentReviewErrorCode::InvalidIndependentReviewPack);
+    const auto first =
+        buildDetachedReviewPack(validated->subject, validated->context, *claims,
+                                IndependentReviewErrorCode::InvalidIndependentReviewPack);
     if (!first) {
         return std::unexpected(first.error());
     }
-    const auto second = buildDetachedReviewPack(
-        *resolved, *context, *claims, IndependentReviewErrorCode::InvalidIndependentReviewPack);
+    const auto second =
+        buildDetachedReviewPack(validated->subject, validated->context, *claims,
+                                IndependentReviewErrorCode::InvalidIndependentReviewPack);
     if (!second || first->review_bytes != second->review_bytes ||
         first->manifest_bytes != second->manifest_bytes || first->revision != second->revision) {
         return independentFailure(
@@ -3808,7 +3853,7 @@ finalizeIndependentReview(const PackCatalogSnapshot& snapshot,
         return independentCatalogFailure(installed.error());
     }
     auto result = *first;
-    result.handoff_digest = rebuilt->handoff_digest;
+    result.handoff_digest = validated->rebuilt.handoff_digest;
     return result;
 }
 

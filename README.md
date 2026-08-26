@@ -76,15 +76,17 @@ installable level-2 writ gold candidate with qualified independent review pendin
 as an additional non-default payload; this does not make it level 3 or gold and does not complete
 the nine-family MVP.
 
-The release packaging gate separately runs the installed and relocated executable with networking
-disabled where required. The pre-MVP Linux bundle carries all nine finalized v2 case roots, their
+The release packaging gate separately runs the installed and relocated executable under the
+ordinary release-runner identity so hardened scratch admission can verify the retained absolute
+controller chain. The distinct offline clean-system gate in `docs/RELEASE.md` records
+network-disabled evidence. The pre-MVP Linux bundle carries all nine finalized v2 case roots, their
 three exact foundations, and the immutable Asterglen v0.1 predecessor: 13 archives in one closed
-allowlist. Asterglen v0.2 remains the primary/default payload. The gate gives each v2 root its own
-four-revision catalog and XDG state root, then requires the desktop smoke JSON to report that exact
-pack revision and case ID before and after relocation. A deterministic compatibility flow uses
-Asterglen v0.1 for one persisted transition and the shipped `appellate-pack template` for grounded
-oral/CAS plumbing. Generated starter archives remain outside the install prefix and cannot enter
-the 13-archive allowlist. The eight M4 roots remain level 2 with qualified independent review
+allowlist. Asterglen v0.2 remains the primary/default payload. The packaging gate gives each v2 root
+its own four-revision catalog and XDG state root, then requires the desktop smoke JSON to report that
+exact pack revision and case ID before and after relocation. A deterministic compatibility flow
+uses Asterglen v0.1 for one persisted transition and the shipped `appellate-pack template` for
+grounded oral/CAS plumbing. Generated starter archives remain outside the install prefix and cannot
+enter the 13-archive allowlist. The eight M4 roots remain level 2 with qualified independent review
 pending; bundling them does not make any root level 3 or gold and does not complete the MVP. See
 `docs/RELEASE.md` for the precise evidence boundary.
 
@@ -119,6 +121,22 @@ For an explicit 1-256 trace production-authoring bundle (scores 0-2), use the se
 ./build/dev/src/cli/appellate-pack author-realism-evidence-multi /tmp/my-appellate-pack \
   /tmp/appellate-pack-catalog my.pack.review /tmp/canonical-trace-set.json
 ```
+
+To coordinate a detached independent realism review of an eligible production-multi subject,
+prepare a closed handoff and later finalize the completed declaration into a new review-only pack:
+
+```sh
+./build/dev/src/cli/appellate-pack prepare-independent-review \
+  /tmp/appellate-pack-catalog <subject-pack-id> <subject-version> <subject-digest> \
+  <case-id> /tmp/new-review-handoff
+./build/dev/src/cli/appellate-pack finalize-independent-review \
+  /tmp/new-review-handoff /tmp/completed-review-declaration.json \
+  /tmp/appellate-pack-catalog /tmp/new-detached-review-pack
+```
+
+These commands neither archive nor install the detached pack and do not mutate the subject catalog.
+Follow the [detached independent-review operator guide](docs/INDEPENDENT_REVIEW.md) for declaration,
+publication, recovery, `export-deferred`, installation, and resolved-validation requirements.
 
 The CLI emits one compact, schema-versioned JSON object to stdout on success and stderr on
 failure. `template` never overwrites an existing destination. See the

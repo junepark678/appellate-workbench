@@ -1,15 +1,393 @@
-if(NOT DEFINED APPELLATE_INSTALL_LIBDIR OR
+if(NOT DEFINED APPELLATE_INSTALL_LIBDIR OR NOT DEFINED APPELLATE_SOURCE_DIR OR
    (NOT DEFINED APPELLATE_BUILD_DIR AND NOT DEFINED APPELLATE_BUNDLE_PREFIX))
     message(
         FATAL_ERROR
-        "APPELLATE_INSTALL_LIBDIR and either APPELLATE_BUILD_DIR or "
+        "APPELLATE_INSTALL_LIBDIR, APPELLATE_SOURCE_DIR, and either APPELLATE_BUILD_DIR or "
         "APPELLATE_BUNDLE_PREFIX are required"
     )
 endif()
 
+if(POLICY CMP0009)
+    cmake_policy(SET CMP0009 NEW)
+endif()
+
+get_filename_component(_appellate_source_root "${APPELLATE_SOURCE_DIR}" ABSOLUTE)
+set(
+    _appellate_expected_documentation_files
+    "README.md"
+    "docs/APPELLATE_EVENT_CATALOG.md"
+    "docs/ARCHITECTURE.md"
+    "docs/INDEPENDENT_REVIEW.md"
+    "docs/PARITY_INVENTORY.md"
+    "docs/PRODUCT.md"
+    "docs/REALISM_MATRIX.md"
+    "docs/RELEASE.md"
+    "docs/adr/0001-native-offline-mvp.md"
+    "docs/adr/0002-declarative-pack-trust-boundary.md"
+    "docs/adr/0003-bench-profile-boundary.md"
+    "docs/content/M4_CASE_MATRIX.md"
+    "docs/spec/PACKS.md"
+)
+list(SORT _appellate_expected_documentation_files)
+set(
+    _appellate_expected_documentation_directories
+    "docs"
+    "docs/adr"
+    "docs/content"
+    "docs/spec"
+)
+set(
+    _appellate_expected_documentation_entries
+    ${_appellate_expected_documentation_files}
+    ${_appellate_expected_documentation_directories}
+)
+list(SORT _appellate_expected_documentation_entries)
+
+function(_appellate_assert_documentation_tree prefix label)
+    set(_documentation_root "${prefix}/share/doc/appellate-workbench")
+    foreach(_directory IN ITEMS
+            "${prefix}"
+            "${prefix}/share"
+            "${prefix}/share/doc"
+            "${_documentation_root}"
+            "${_documentation_root}/docs"
+            "${_documentation_root}/docs/adr"
+            "${_documentation_root}/docs/content"
+            "${_documentation_root}/docs/spec"
+    )
+        if(IS_SYMLINK "${_directory}" OR NOT IS_DIRECTORY "${_directory}")
+            message(FATAL_ERROR "${label} documentation component is not an ordinary directory: ${_directory}")
+        endif()
+    endforeach()
+
+    file(
+        GLOB_RECURSE _actual_documentation_entries
+        LIST_DIRECTORIES TRUE
+        RELATIVE "${_documentation_root}"
+        "${_documentation_root}/*"
+    )
+    list(SORT _actual_documentation_entries)
+    if(NOT _actual_documentation_entries STREQUAL _appellate_expected_documentation_entries)
+        message(
+            FATAL_ERROR
+            "${label} documentation tree differs from the exact nonflattened allowlist: "
+            "${_actual_documentation_entries}"
+        )
+    endif()
+
+    set(_observed_local_link_edges)
+    foreach(_relative_path IN LISTS _appellate_expected_documentation_files)
+        set(_installed_file "${_documentation_root}/${_relative_path}")
+        set(_source_file "${_appellate_source_root}/${_relative_path}")
+        if(NOT EXISTS "${_source_file}" OR IS_SYMLINK "${_installed_file}" OR
+           NOT EXISTS "${_installed_file}" OR IS_DIRECTORY "${_installed_file}")
+            message(FATAL_ERROR "${label} documentation file is missing, linked, or nonregular: ${_relative_path}")
+        endif()
+        execute_process(
+            COMMAND
+                "${CMAKE_COMMAND}" -E env "LC_ALL=C"
+                "${_appellate_stat}" --format=%F -- "${_installed_file}"
+            RESULT_VARIABLE _stat_result
+            OUTPUT_VARIABLE _file_type
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+        if(NOT _stat_result EQUAL 0 OR NOT _file_type STREQUAL "regular file")
+            message(FATAL_ERROR "${label} documentation member is not a regular file: ${_relative_path}")
+        endif()
+        execute_process(
+            COMMAND "${CMAKE_COMMAND}" -E compare_files "${_installed_file}" "${_source_file}"
+            RESULT_VARIABLE _compare_result
+        )
+        if(NOT _compare_result EQUAL 0)
+            message(FATAL_ERROR "${label} documentation bytes differ from source: ${_relative_path}")
+        endif()
+
+        file(READ "${_installed_file}" _markdown)
+        string(REGEX REPLACE "[ \t\r\n]+" " " _normalized_markdown "${_markdown}")
+        if(_relative_path STREQUAL "docs/INDEPENDENT_REVIEW.md")
+            set(
+                _required_independent_review_literals
+                "appellate-pack prepare-independent-review <catalog> <subject-pack-id> <subject-version> <subject-digest> <case-id> <new-handoff-directory>"
+                "appellate-pack finalize-independent-review <handoff-directory> <completed-declaration-json> <catalog> <new-pack-directory>"
+                "Its `reviewed_on` date cannot be later than the one current UTC calendar date captured by preparation."
+                "Archive, install, and resolve-check the finalized directory as separate operations. The prepare/finalize commands perform none of these steps:"
+                "They are not a cryptographic signature or proof of reviewer identity."
+                "Neither a prepared handoff nor a finalized review directory is, by itself, evidence that a case is gold, release-ready, or MVP-complete."
+                "there is no automatic catalog repair or persistent-lock eviction."
+                "It provides neither a cryptographic declaration signature nor a persisted provenance capability."
+            )
+            foreach(_required_literal IN LISTS _required_independent_review_literals)
+                string(FIND "${_normalized_markdown}" "${_required_literal}" _literal_index)
+                if(_literal_index EQUAL -1)
+                    message(
+                        FATAL_ERROR
+                        "${label} independent-review documentation omits required text: "
+                        "${_required_literal}"
+                    )
+                endif()
+            endforeach()
+            set(_publication_step_previous -1)
+            foreach(_publication_step IN ITEMS
+                    "appellate-pack export-deferred <new-pack-directory> <new-awpack>"
+                    "appellate-pack install <new-awpack> <verification-catalog>"
+                    "appellate-pack validate-resolved <verification-catalog> <review-pack-id> <review-pack-version> <review-pack-digest>"
+            )
+                string(FIND "${_normalized_markdown}" "${_publication_step}" _publication_step_index)
+                if(_publication_step_index LESS_EQUAL _publication_step_previous)
+                    message(
+                        FATAL_ERROR
+                        "${label} independent-review publication procedure is missing or out of order: "
+                        "${_publication_step}"
+                    )
+                endif()
+                set(_publication_step_previous ${_publication_step_index})
+            endforeach()
+        elseif(_relative_path STREQUAL "docs/spec/PACKS.md")
+            set(
+                _required_packs_literals
+                "appellate-pack prepare-independent-review <catalog> <subject-pack-id> <subject-version> <subject-digest> <case-id> <new-handoff-directory>"
+                "appellate-pack finalize-independent-review <handoff-directory> <completed-declaration-json> <catalog> <new-pack-directory>"
+                "The source `reviewed_on` cannot be later than the one current UTC calendar date captured by preparation."
+                "Reviewer identity and qualification are attributable metadata, not a cryptographic signature or identity proof."
+                "Neither command overwrites or repairs an existing path, installs or archives a pack, changes the source root or catalog, performs network access, or establishes gold, release-ready, or MVP-complete status."
+                "A finalized directory is separately archived with `export-deferred`, installed with `install` after its exact subject closure, and checked with `validate-resolved`."
+                "The application performs no automatic catalog repair and no automatic persistent-lock eviction."
+            )
+            foreach(_required_literal IN LISTS _required_packs_literals)
+                string(FIND "${_normalized_markdown}" "${_required_literal}" _literal_index)
+                if(_literal_index EQUAL -1)
+                    message(
+                        FATAL_ERROR
+                        "${label} pack documentation omits required independent-review text: "
+                        "${_required_literal}"
+                    )
+                endif()
+            endforeach()
+        endif()
+        string(REGEX MATCHALL "\\[[^]]*\\]\\([^)]+\\)" _markdown_links "${_markdown}")
+        get_filename_component(_document_directory "${_installed_file}" DIRECTORY)
+        foreach(_markdown_link IN LISTS _markdown_links)
+            string(REGEX REPLACE "^.*\\]\\(([^)]+)\\)$" "\\1" _link_target "${_markdown_link}")
+            if(_link_target MATCHES "^<([^>]+)>$")
+                set(_link_target "${CMAKE_MATCH_1}")
+            endif()
+            if(_link_target MATCHES "^[A-Za-z][A-Za-z0-9+.-]*:" OR
+               _link_target MATCHES "^//" OR _link_target MATCHES "^#")
+                continue()
+            endif()
+            string(REGEX REPLACE "[#?].*$" "" _link_path "${_link_target}")
+            if(_link_path STREQUAL "" OR _link_path MATCHES "^/")
+                message(FATAL_ERROR "${label} documentation has an invalid local link: ${_relative_path} -> ${_link_target}")
+            endif()
+            set(_resolved_target "${_link_path}")
+            cmake_path(
+                ABSOLUTE_PATH _resolved_target
+                BASE_DIRECTORY "${_document_directory}"
+                NORMALIZE
+            )
+            cmake_path(
+                RELATIVE_PATH _resolved_target
+                BASE_DIRECTORY "${_documentation_root}"
+                OUTPUT_VARIABLE _relative_target
+            )
+            if(_relative_target MATCHES "^([.][.](/|$))" OR
+               NOT _relative_target IN_LIST _appellate_expected_documentation_files)
+                message(
+                    FATAL_ERROR
+                    "${label} documentation link escapes or targets a nonallowlisted file: "
+                    "${_relative_path} -> ${_link_target}"
+                )
+            endif()
+            list(APPEND _observed_local_link_edges "${_relative_path}|${_relative_target}")
+        endforeach()
+    endforeach()
+    foreach(_required_link_edge IN ITEMS
+            "README.md|docs/INDEPENDENT_REVIEW.md"
+            "README.md|docs/spec/PACKS.md"
+            "docs/INDEPENDENT_REVIEW.md|docs/spec/PACKS.md"
+            "docs/spec/PACKS.md|docs/INDEPENDENT_REVIEW.md"
+            "docs/RELEASE.md|docs/INDEPENDENT_REVIEW.md"
+    )
+        if(NOT _required_link_edge IN_LIST _observed_local_link_edges)
+            message(
+                FATAL_ERROR
+                "${label} documentation omits mandatory local link edge: ${_required_link_edge}"
+            )
+        endif()
+    endforeach()
+endfunction()
+
+function(_appellate_assert_independent_review_wrong_arity pack_cli label)
+    foreach(_command IN ITEMS prepare-independent-review finalize-independent-review)
+        execute_process(
+            COMMAND "${pack_cli}" "${_command}"
+            RESULT_VARIABLE _result
+            OUTPUT_VARIABLE _stdout
+            ERROR_VARIABLE _stderr
+        )
+        if(NOT _result EQUAL 2 OR NOT _stdout STREQUAL "")
+            message(
+                FATAL_ERROR
+                "${label} ${_command} wrong-arity gate did not return exit 2 with empty stdout: "
+                "stdout=${_stdout}; stderr=${_stderr}"
+            )
+        endif()
+        string(JSON _field_count LENGTH "${_stderr}")
+        string(JSON _code_type TYPE "${_stderr}" code)
+        string(JSON _code GET "${_stderr}" code)
+        string(JSON _command_type TYPE "${_stderr}" command)
+        string(JSON _reported_command GET "${_stderr}" command)
+        string(JSON _message_type TYPE "${_stderr}" message)
+        string(JSON _message GET "${_stderr}" message)
+        string(JSON _schema_version_type TYPE "${_stderr}" schema_version)
+        string(JSON _schema_version GET "${_stderr}" schema_version)
+        string(JSON _status_type TYPE "${_stderr}" status)
+        string(JSON _status GET "${_stderr}" status)
+        string(REGEX MATCHALL "\n" _stderr_newlines "${_stderr}")
+        list(LENGTH _stderr_newlines _newline_count)
+        string(
+            REGEX MATCH
+            "^\\{\"code\":\"invalid_arguments\",\"command\":\"${_command}\",\"message\":\".*\",\"schema_version\":1,\"status\":\"error\"\\}\n$"
+            _compact_envelope
+            "${_stderr}"
+        )
+        if(NOT _field_count EQUAL 5 OR NOT _code_type STREQUAL "STRING" OR
+           NOT _code STREQUAL "invalid_arguments" OR NOT _command_type STREQUAL "STRING" OR
+           NOT _reported_command STREQUAL _command OR NOT _message_type STREQUAL "STRING" OR
+           _message STREQUAL "" OR NOT _schema_version_type STREQUAL "NUMBER" OR
+           NOT _schema_version EQUAL 1 OR NOT _status_type STREQUAL "STRING" OR
+           NOT _status STREQUAL "error" OR NOT _newline_count EQUAL 1 OR
+           _compact_envelope STREQUAL "" OR _stderr MATCHES "\r")
+            message(FATAL_ERROR "${label} ${_command} wrong-arity JSON envelope differs: ${_stderr}")
+        endif()
+    endforeach()
+endfunction()
+
 find_program(_appellate_ldd NAMES ldd REQUIRED)
 find_program(_appellate_readelf NAMES readelf REQUIRED)
-find_program(_appellate_unshare NAMES unshare REQUIRED)
+find_program(_appellate_id NAMES id REQUIRED)
+find_program(_appellate_stat NAMES stat REQUIRED)
+
+execute_process(
+    COMMAND "${_appellate_id}" -u
+    RESULT_VARIABLE _euid_result
+    OUTPUT_VARIABLE _appellate_effective_uid
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+if(NOT _euid_result EQUAL 0 OR NOT _appellate_effective_uid MATCHES "^[0-9]+$")
+    message(FATAL_ERROR "Cannot determine the effective UID for release verification")
+endif()
+
+function(_appellate_assert_private_directory path label)
+    if(IS_SYMLINK "${path}" OR NOT IS_DIRECTORY "${path}")
+        message(FATAL_ERROR "${label} is not an ordinary directory: ${path}")
+    endif()
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E env "LC_ALL=C"
+            "${_appellate_stat}" "--format=%F|%u|%a" -- "${path}"
+        RESULT_VARIABLE _stat_result
+        OUTPUT_VARIABLE _stat_output
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    set(_expected "directory|${_appellate_effective_uid}|700")
+    if(NOT _stat_result EQUAL 0 OR NOT _stat_output STREQUAL _expected)
+        message(FATAL_ERROR "${label} does not have exact directory ownership/mode: ${_stat_output}")
+    endif()
+endfunction()
+
+function(_appellate_assert_private_file path label)
+    if(IS_SYMLINK "${path}" OR NOT EXISTS "${path}" OR IS_DIRECTORY "${path}")
+        message(FATAL_ERROR "${label} is not an ordinary file: ${path}")
+    endif()
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E env "LC_ALL=C"
+            "${_appellate_stat}" "--format=%F|%u|%a|%h" -- "${path}"
+        RESULT_VARIABLE _stat_result
+        OUTPUT_VARIABLE _stat_output
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    set(_expected "regular file|${_appellate_effective_uid}|600|1")
+    if(NOT _stat_result EQUAL 0 OR NOT _stat_output STREQUAL _expected)
+        message(FATAL_ERROR "${label} does not have exact file ownership/mode/link count: ${_stat_output}")
+    endif()
+endfunction()
+
+function(_appellate_capture_tree_fingerprint root label output_variable)
+    if(IS_SYMLINK "${root}" OR NOT IS_DIRECTORY "${root}")
+        message(FATAL_ERROR "${label} fingerprint root is not an ordinary directory: ${root}")
+    endif()
+    file(
+        GLOB_RECURSE _entries
+        LIST_DIRECTORIES TRUE
+        RELATIVE "${root}"
+        "${root}/*"
+    )
+    list(SORT _entries)
+    set(_fingerprint_material "")
+    foreach(_entry IN LISTS _entries)
+        set(_path "${root}/${_entry}")
+        if(IS_SYMLINK "${_path}")
+            message(FATAL_ERROR "${label} fingerprint encountered a symlink: ${_entry}")
+        elseif(IS_DIRECTORY "${_path}")
+            execute_process(
+                COMMAND
+                    "${CMAKE_COMMAND}" -E env "LC_ALL=C"
+                    "${_appellate_stat}" "--format=%F|%u|%a" -- "${_path}"
+                RESULT_VARIABLE _stat_result
+                OUTPUT_VARIABLE _metadata
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+            )
+            if(NOT _stat_result EQUAL 0 OR NOT _metadata MATCHES "^directory[|]")
+                message(FATAL_ERROR "${label} cannot fingerprint directory: ${_entry}")
+            endif()
+            string(APPEND _fingerprint_material "D|${_entry}|${_metadata}\n")
+        else()
+            execute_process(
+                COMMAND
+                    "${CMAKE_COMMAND}" -E env "LC_ALL=C"
+                    "${_appellate_stat}" "--format=%F|%u|%a|%h" -- "${_path}"
+                RESULT_VARIABLE _stat_result
+                OUTPUT_VARIABLE _metadata
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+            )
+            if(NOT _stat_result EQUAL 0 OR NOT _metadata MATCHES "^regular file[|]")
+                message(FATAL_ERROR "${label} cannot fingerprint regular file: ${_entry}")
+            endif()
+            file(SIZE "${_path}" _size)
+            file(SHA256 "${_path}" _sha256)
+            string(APPEND _fingerprint_material "F|${_entry}|${_metadata}|${_size}|${_sha256}\n")
+        endif()
+    endforeach()
+    string(SHA256 _fingerprint "${_fingerprint_material}")
+    set("${output_variable}" "${_fingerprint}" PARENT_SCOPE)
+endfunction()
+
+function(_appellate_assert_no_transient_residue root label)
+    if(NOT IS_DIRECTORY "${root}")
+        message(FATAL_ERROR "${label} residue root is missing: ${root}")
+    endif()
+    file(
+        GLOB_RECURSE _entries
+        LIST_DIRECTORIES TRUE
+        RELATIVE "${root}"
+        "${root}/*"
+    )
+    foreach(_entry IN LISTS _entries)
+        if(_entry MATCHES "(^|/)[.]install[.]lock($|[.]rmlock$)" OR
+           _entry MATCHES "(^|/)[.]awpack-" OR _entry MATCHES "(^|/)[.]blob-" OR
+           _entry MATCHES "(^|/)[.][^/]+[.]appellate-independent-review-")
+            message(FATAL_ERROR "${label} retained transient residue: ${_entry}")
+        endif()
+    endforeach()
+endfunction()
 
 function(_appellate_assert_dependency_closure binary prefix)
     execute_process(
@@ -82,11 +460,31 @@ endfunction()
 
 if(DEFINED APPELLATE_BUNDLE_PREFIX)
     get_filename_component(_prefix "${APPELLATE_BUNDLE_PREFIX}" ABSOLUTE)
-    get_filename_component(_root "${_prefix}" DIRECTORY)
+    if(NOT DEFINED APPELLATE_VERIFIER_ROOT)
+        message(FATAL_ERROR "APPELLATE_VERIFIER_ROOT is required with APPELLATE_BUNDLE_PREFIX")
+    endif()
+    get_filename_component(_root "${APPELLATE_VERIFIER_ROOT}" ABSOLUTE)
+    get_filename_component(_prefix_parent "${_prefix}" DIRECTORY)
+    if(NOT _prefix_parent STREQUAL _root)
+        message(FATAL_ERROR "The bundle prefix must be an immediate child of the verifier root")
+    endif()
 else()
     string(RANDOM LENGTH 12 ALPHABET 0123456789abcdef _suffix)
     set(_root "${APPELLATE_BUILD_DIR}/install-smoke-${_suffix}")
     set(_prefix "${_root}/installed")
+    if(EXISTS "${_root}")
+        message(FATAL_ERROR "Random install verifier root unexpectedly already exists")
+    endif()
+    file(MAKE_DIRECTORY "${_root}")
+    file(WRITE "${_root}/.appellate-install-verifier-root" "appellate-install-verifier-root\n")
+endif()
+if(_root STREQUAL "/" OR _root STREQUAL "" OR
+   NOT EXISTS "${_root}/.appellate-install-verifier-root")
+    message(FATAL_ERROR "The install verifier root is not sentinel-controlled")
+endif()
+file(READ "${_root}/.appellate-install-verifier-root" _verifier_root_sentinel)
+if(NOT _verifier_root_sentinel STREQUAL "appellate-install-verifier-root\n")
+    message(FATAL_ERROR "The install verifier root sentinel differs")
 endif()
 set(_relocated "${_root}/relocated")
 set(_runtime "${_root}/runtime")
@@ -126,6 +524,8 @@ set(_blueember_jmol "${_packs_root}/us-ca4-m4-blueember-jmol-1.2.0.awpack")
 set(_opengrid_foia "${_packs_root}/us-ca4-m4-opengrid-foia-1.2.0.awpack")
 set(_serrano_waiver "${_packs_root}/us-ca4-m4-serrano-waiver-1.2.0.awpack")
 set(_compatibility "${_prefix}/share/appellate-workbench/compatibility.json")
+_appellate_assert_documentation_tree("${_prefix}" "Installed")
+_appellate_assert_independent_review_wrong_arity("${_pack_cli}" "Installed")
 foreach(_required IN ITEMS
         "${_desktop}"
         "${_pack_cli}"
@@ -586,6 +986,10 @@ endfunction()
 
 function(_appellate_install_exact_archive pack_cli archive catalog installed_at expected_id
          expected_version expected_revision expected_archive_sha)
+    set(_scratch_environment)
+    if(DEFINED _appellate_pack_tmpdir AND NOT _appellate_pack_tmpdir STREQUAL "")
+        list(APPEND _scratch_environment "TMPDIR=${_appellate_pack_tmpdir}")
+    endif()
     execute_process(
         COMMAND
             "${CMAKE_COMMAND}" -E env
@@ -593,6 +997,7 @@ function(_appellate_install_exact_archive pack_cli archive catalog installed_at 
             --unset=LD_PRELOAD
             --unset=QT_PLUGIN_PATH
             --unset=QT_QPA_PLATFORM_PLUGIN_PATH
+            ${_scratch_environment}
             "${pack_cli}" install "${archive}" "${catalog}"
             --installed-at "${installed_at}"
         RESULT_VARIABLE _install_result
@@ -904,6 +1309,696 @@ function(_appellate_prepare_case_catalog pack_cli federal ca4 bench case_archive
     endforeach()
 endfunction()
 
+function(_appellate_run_pack_success pack_cli label output_variable)
+    set(_scratch_environment)
+    if(DEFINED _appellate_pack_tmpdir AND NOT _appellate_pack_tmpdir STREQUAL "")
+        list(APPEND _scratch_environment "TMPDIR=${_appellate_pack_tmpdir}")
+    endif()
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            --unset=LD_LIBRARY_PATH
+            --unset=LD_PRELOAD
+            --unset=QT_PLUGIN_PATH
+            --unset=QT_QPA_PLATFORM_PLUGIN_PATH
+            ${_scratch_environment}
+            "${pack_cli}" ${ARGN}
+        RESULT_VARIABLE _result
+        OUTPUT_VARIABLE _output
+        ERROR_VARIABLE _error
+        TIMEOUT 180
+    )
+    if(NOT _result EQUAL 0 OR NOT _error STREQUAL "")
+        message(FATAL_ERROR "${label} failed:\n${_output}\n${_error}")
+    endif()
+    set("${output_variable}" "${_output}" PARENT_SCOPE)
+endfunction()
+
+function(_appellate_assert_success_envelope json command expected_field_count label)
+    string(JSON _field_count LENGTH "${json}")
+    string(JSON _schema_type TYPE "${json}" schema_version)
+    string(JSON _schema GET "${json}" schema_version)
+    string(JSON _status_type TYPE "${json}" status)
+    string(JSON _status GET "${json}" status)
+    string(JSON _command_type TYPE "${json}" command)
+    string(JSON _reported_command GET "${json}" command)
+    string(REGEX MATCHALL "\n" _newlines "${json}")
+    list(LENGTH _newlines _newline_count)
+    if(NOT _field_count EQUAL expected_field_count OR NOT _schema_type STREQUAL "NUMBER" OR
+       NOT _schema EQUAL 1 OR NOT _status_type STREQUAL "STRING" OR
+       NOT _status STREQUAL "ok" OR NOT _command_type STREQUAL "STRING" OR
+       NOT _reported_command STREQUAL command OR NOT _newline_count EQUAL 1 OR
+       NOT json MATCHES "^\\{" OR NOT json MATCHES "\\}\n$" OR json MATCHES "\r")
+        message(FATAL_ERROR "${label} success envelope differs: ${json}")
+    endif()
+endfunction()
+
+function(_appellate_run_serrano_independent_review
+         pack_cli federal ca4 bench serrano source_catalog flow_root label output_identity)
+    set(_subject_pack_id "${_expected_serrano_waiver_pack_id}")
+    set(_subject_version "${_expected_serrano_waiver_version}")
+    set(_subject_revision "${_expected_serrano_waiver_revision}")
+    set(_subject_case_id "ca4m4.case.serrano-waiver")
+    set(_expected_source_review_id "ca4m4.serrano.review.authoring-2026-08-19")
+    set(_detached_pack_id "test.detached-review.release-serrano")
+    set(_detached_version "2026.08.19")
+    set(_detached_resource_id "test.detached-review.resource.release-serrano")
+
+    if(EXISTS "${flow_root}")
+        message(FATAL_ERROR "${label} detached-review verifier root already exists: ${flow_root}")
+    endif()
+    file(MAKE_DIRECTORY "${flow_root}")
+    file(
+        CHMOD "${flow_root}"
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    )
+    set(_appellate_pack_tmpdir "${flow_root}/secure-scratch-parent")
+    file(MAKE_DIRECTORY "${_appellate_pack_tmpdir}")
+    file(
+        CHMOD "${_appellate_pack_tmpdir}"
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    )
+
+    set(_bundled_archives "${federal}" "${ca4}" "${bench}" "${serrano}")
+    set(
+        _expected_archive_shas
+        "${_expected_federal_archive_sha}"
+        "${_expected_ca4_archive_sha}"
+        "${_expected_bench_archive_sha}"
+        "${_expected_serrano_waiver_archive_sha}"
+    )
+    foreach(_archive_index RANGE 0 3)
+        list(GET _bundled_archives ${_archive_index} _archive)
+        list(GET _expected_archive_shas ${_archive_index} _expected_archive_sha)
+        file(SHA256 "${_archive}" _archive_sha)
+        if(NOT _archive_sha STREQUAL _expected_archive_sha)
+            message(FATAL_ERROR "${label} bundled input archive changed before review flow: ${_archive}")
+        endif()
+    endforeach()
+    _appellate_capture_tree_fingerprint(
+        "${source_catalog}" "${label} source catalog before prepare" _source_catalog_before
+    )
+
+    set(_handoff_directory "${flow_root}/handoff")
+    _appellate_run_pack_success(
+        "${pack_cli}" "${label} prepare-independent-review" _prepare_output
+        prepare-independent-review
+        "${source_catalog}" "${_subject_pack_id}" "${_subject_version}"
+        "${_subject_revision}" "${_subject_case_id}" "${_handoff_directory}"
+    )
+    _appellate_assert_success_envelope(
+        "${_prepare_output}" "prepare-independent-review" 11 "${label} prepare"
+    )
+    if(NOT _prepare_output MATCHES "^\\{\"case_id\":\"ca4m4[.]case[.]serrano-waiver\",")
+        message(FATAL_ERROR "${label} prepare output is not exact compact key order")
+    endif()
+
+    string(JSON _prepare_case_id GET "${_prepare_output}" case_id)
+    string(JSON _prepare_closure_digest GET "${_prepare_output}" closure_digest)
+    string(JSON _prepare_handoff_digest GET "${_prepare_output}" handoff_digest)
+    string(JSON _prepare_trace_revision GET "${_prepare_output}" mechanical_trace_revision)
+    string(JSON _prepare_review_id GET "${_prepare_output}" source_review_resource_id)
+    string(JSON _prepare_file_count LENGTH "${_prepare_output}" files)
+    string(JSON _prepare_file_0 GET "${_prepare_output}" files 0)
+    string(JSON _prepare_file_1 GET "${_prepare_output}" files 1)
+    string(JSON _prepare_subject GET "${_prepare_output}" subject_revision)
+    string(JSON _prepare_count_fields LENGTH "${_prepare_output}" evidence_counts)
+    string(LENGTH "${_prepare_closure_digest}" _closure_digest_length)
+    string(LENGTH "${_prepare_handoff_digest}" _handoff_digest_length)
+    if(NOT _prepare_case_id STREQUAL _subject_case_id OR
+       NOT _prepare_trace_revision STREQUAL
+           "appellate.realism-evidence.detached-review-replay.v1" OR
+       NOT _prepare_review_id STREQUAL _expected_source_review_id OR
+       NOT _prepare_file_count EQUAL 2 OR
+       NOT _prepare_file_0 STREQUAL "handoff.json" OR
+       NOT _prepare_file_1 STREQUAL "review-declaration.template.json" OR
+       NOT _prepare_count_fields EQUAL 6 OR NOT _closure_digest_length EQUAL 64 OR
+       NOT _prepare_closure_digest MATCHES "^[0-9a-f]+$" OR
+       NOT _handoff_digest_length EQUAL 64 OR
+       NOT _prepare_handoff_digest MATCHES "^[0-9a-f]+$")
+        message(FATAL_ERROR "${label} prepare success fields differ")
+    endif()
+    _appellate_assert_revision_pin_json(
+        "${_prepare_subject}" "${label} prepared subject"
+        "${_subject_pack_id}" "${_subject_version}" "${_subject_revision}"
+    )
+
+    file(
+        GLOB _handoff_entries
+        LIST_DIRECTORIES TRUE
+        RELATIVE "${_handoff_directory}"
+        "${_handoff_directory}/*"
+    )
+    list(SORT _handoff_entries)
+    set(_expected_handoff_entries "handoff.json" "review-declaration.template.json")
+    if(NOT _handoff_entries STREQUAL _expected_handoff_entries)
+        message(FATAL_ERROR "${label} handoff inventory differs: ${_handoff_entries}")
+    endif()
+    set(_handoff_file "${_handoff_directory}/handoff.json")
+    set(_template_file "${_handoff_directory}/review-declaration.template.json")
+    _appellate_assert_private_directory("${_handoff_directory}" "${label} handoff directory")
+    _appellate_assert_private_file("${_handoff_file}" "${label} handoff.json")
+    _appellate_assert_private_file("${_template_file}" "${label} declaration template")
+    file(SHA256 "${_template_file}" _template_sha)
+    if(NOT _template_sha STREQUAL
+       "c3749adae144b712301688c86ab5f1d519bcab0b887aecc0a3bde8314409004b")
+        message(FATAL_ERROR "${label} declaration template bytes differ")
+    endif()
+    file(SHA256 "${_handoff_file}" _handoff_sha)
+    file(SIZE "${_handoff_file}" _handoff_size)
+    file(SIZE "${_template_file}" _template_size)
+    file(READ "${_handoff_file}" _handoff_json)
+    file(READ "${_template_file}" _template_json)
+    if(NOT _handoff_json MATCHES "^\\{\n    \"" OR NOT _handoff_json MATCHES "\\}\n$" OR
+       NOT _template_json MATCHES "^\\{\n    \"" OR NOT _template_json MATCHES "\\}\n$")
+        message(FATAL_ERROR "${label} generated handoff/template are not exact indented JSON files")
+    endif()
+
+    string(JSON _handoff_field_count LENGTH "${_handoff_json}")
+    string(JSON _handoff_schema GET "${_handoff_json}" schema_version)
+    string(JSON _handoff_kind GET "${_handoff_json}" handoff_kind)
+    string(JSON _handoff_digest GET "${_handoff_json}" handoff_digest)
+    string(JSON _payload_field_count LENGTH "${_handoff_json}" payload)
+    string(JSON _payload_case GET "${_handoff_json}" payload case_id)
+    string(JSON _payload_template_sha GET "${_handoff_json}" payload declaration_template_sha256)
+    string(JSON _payload_trace_revision GET "${_handoff_json}" payload mechanical_trace_revision)
+    string(JSON _handoff_subject GET "${_handoff_json}" payload subject_revision)
+    string(JSON _source_review_field_count LENGTH "${_handoff_json}" payload source_review)
+    string(JSON _handoff_source_review_id GET "${_handoff_json}" payload source_review resource_id)
+    string(JSON _source_review_kind GET "${_handoff_json}" payload source_review resource_kind)
+    string(JSON _source_review_state GET "${_handoff_json}" payload source_review review_state)
+    string(JSON _source_review_date GET "${_handoff_json}" payload source_review reviewed_on)
+    string(JSON _source_review_path GET "${_handoff_json}" payload source_review path)
+    string(JSON _mechanical_field_count LENGTH "${_handoff_json}" payload mechanical_evidence)
+    string(JSON _mechanical_closure GET "${_handoff_json}" payload mechanical_evidence closure_digest)
+    if(NOT _handoff_field_count EQUAL 4 OR NOT _handoff_schema EQUAL 1 OR
+       NOT _handoff_kind STREQUAL "independent_realism_review" OR
+       NOT _handoff_digest STREQUAL _prepare_handoff_digest OR
+       NOT _payload_field_count EQUAL 6 OR NOT _payload_case STREQUAL _subject_case_id OR
+       NOT _payload_template_sha STREQUAL _template_sha OR
+       NOT _payload_trace_revision STREQUAL _prepare_trace_revision OR
+       NOT _source_review_field_count EQUAL 9 OR
+       NOT _handoff_source_review_id STREQUAL _expected_source_review_id OR
+       NOT _source_review_kind STREQUAL "realism_review" OR
+       NOT _source_review_state STREQUAL "independent_review_pending" OR
+       NOT _source_review_date STREQUAL "2026-08-19" OR
+       NOT _source_review_path STREQUAL "resources/realism-review.json" OR
+       NOT _mechanical_field_count EQUAL 8 OR
+       NOT _mechanical_closure STREQUAL _prepare_closure_digest)
+        message(FATAL_ERROR "${label} handoff payload differs")
+    endif()
+    _appellate_assert_revision_pin_json(
+        "${_handoff_subject}" "${label} handoff subject"
+        "${_subject_pack_id}" "${_subject_version}" "${_subject_revision}"
+    )
+
+    foreach(_count_name IN ITEMS authorities blobs packs record_checks resources traces)
+        string(JSON _reported_count GET "${_prepare_output}" evidence_counts ${_count_name})
+        string(JSON _reported_count_type TYPE "${_prepare_output}" evidence_counts ${_count_name})
+        string(JSON _actual_count LENGTH "${_handoff_json}" payload mechanical_evidence ${_count_name})
+        if(NOT _reported_count_type STREQUAL "NUMBER" OR
+           NOT _reported_count EQUAL _actual_count OR _reported_count LESS 0)
+            message(FATAL_ERROR "${label} prepare evidence count differs for ${_count_name}")
+        endif()
+    endforeach()
+    foreach(_count_name IN ITEMS authorities blobs packs record_checks resources traces)
+        string(
+            JSON _prepare_count_${_count_name}
+            GET "${_prepare_output}" evidence_counts ${_count_name}
+        )
+    endforeach()
+    string(CONCAT _expected_prepare_output
+        "{\"case_id\":\"${_subject_case_id}\","
+        "\"closure_digest\":\"${_prepare_closure_digest}\","
+        "\"command\":\"prepare-independent-review\","
+        "\"evidence_counts\":{"
+        "\"authorities\":${_prepare_count_authorities},"
+        "\"blobs\":${_prepare_count_blobs},"
+        "\"packs\":${_prepare_count_packs},"
+        "\"record_checks\":${_prepare_count_record_checks},"
+        "\"resources\":${_prepare_count_resources},"
+        "\"traces\":${_prepare_count_traces}},"
+        "\"files\":[\"handoff.json\",\"review-declaration.template.json\"],"
+        "\"handoff_digest\":\"${_prepare_handoff_digest}\","
+        "\"mechanical_trace_revision\":"
+        "\"appellate.realism-evidence.detached-review-replay.v1\","
+        "\"schema_version\":1,"
+        "\"source_review_resource_id\":\"${_expected_source_review_id}\","
+        "\"status\":\"ok\","
+        "\"subject_revision\":{"
+        "\"digest\":\"${_subject_revision}\","
+        "\"pack_id\":\"${_subject_pack_id}\","
+        "\"version\":\"${_subject_version}\"}}\n"
+    )
+    if(NOT _prepare_output STREQUAL _expected_prepare_output)
+        message(FATAL_ERROR "${label} prepare compact success bytes differ")
+    endif()
+    string(JSON _trace_count LENGTH "${_handoff_json}" payload mechanical_evidence traces)
+    if(NOT _trace_count EQUAL 2)
+        message(FATAL_ERROR "${label} Serrano handoff must contain exactly two traces")
+    endif()
+    foreach(_trace_index RANGE 0 1)
+        string(JSON _trace_revision GET "${_handoff_json}" payload mechanical_evidence traces
+               ${_trace_index} engine_revision)
+        if(NOT _trace_revision STREQUAL _prepare_trace_revision)
+            message(FATAL_ERROR "${label} detached trace revision differs at ${_trace_index}")
+        endif()
+    endforeach()
+
+    string(JSON _template_field_count LENGTH "${_template_json}")
+    string(JSON _template_schema GET "${_template_json}" schema_version)
+    string(JSON _template_kind GET "${_template_json}" declaration_kind)
+    string(JSON _template_dimension_count LENGTH "${_template_json}" dimensions)
+    string(JSON _template_reviewer_count LENGTH "${_template_json}" reviewer)
+    if(NOT _template_field_count EQUAL 12 OR NOT _template_schema EQUAL 1 OR
+       NOT _template_kind STREQUAL "independent_realism_review" OR
+       NOT _template_dimension_count EQUAL 7 OR NOT _template_reviewer_count EQUAL 4)
+        message(FATAL_ERROR "${label} declaration template shape differs")
+    endif()
+    foreach(_null_field IN ITEMS handoff_digest known_uncertainty review_pack_id
+            review_pack_version review_resource_id review_state reviewed_on reviewer_reference)
+        string(JSON _null_type TYPE "${_template_json}" ${_null_field})
+        if(NOT _null_type STREQUAL "NULL")
+            message(FATAL_ERROR "${label} declaration template field is not null: ${_null_field}")
+        endif()
+    endforeach()
+    foreach(_dimension IN ITEMS bench_differentiation consequences deadlines_authority oral_argument
+            procedural_law provenance record_consistency)
+        string(JSON _null_type TYPE "${_template_json}" dimensions ${_dimension})
+        if(NOT _null_type STREQUAL "NULL")
+            message(FATAL_ERROR "${label} declaration template dimension is not null: ${_dimension}")
+        endif()
+    endforeach()
+    foreach(_reviewer_field IN ITEMS affiliation display_name qualification reviewer_id)
+        string(JSON _null_type TYPE "${_template_json}" reviewer ${_reviewer_field})
+        if(NOT _null_type STREQUAL "NULL")
+            message(FATAL_ERROR "${label} declaration template reviewer field is not null: ${_reviewer_field}")
+        endif()
+    endforeach()
+
+    set(_declaration_file "${flow_root}/completed-declaration.json")
+    string(CONCAT _declaration_json
+        "{\n"
+        "    \"declaration_kind\": \"independent_realism_review\",\n"
+        "    \"dimensions\": {\n"
+        "        \"bench_differentiation\": 2,\n"
+        "        \"consequences\": 2,\n"
+        "        \"deadlines_authority\": 2,\n"
+        "        \"oral_argument\": 2,\n"
+        "        \"procedural_law\": 2,\n"
+        "        \"provenance\": 2,\n"
+        "        \"record_consistency\": 2\n"
+        "    },\n"
+        "    \"handoff_digest\": \"${_prepare_handoff_digest}\",\n"
+        "    \"known_uncertainty\": [],\n"
+        "    \"review_pack_id\": \"${_detached_pack_id}\",\n"
+        "    \"review_pack_version\": \"${_detached_version}\",\n"
+        "    \"review_resource_id\": \"${_detached_resource_id}\",\n"
+        "    \"review_state\": \"independently_reviewed\",\n"
+        "    \"reviewed_on\": \"2026-08-19\",\n"
+        "    \"reviewer\": {\n"
+        "        \"affiliation\": null,\n"
+        "        \"display_name\": \"TEST-ONLY release verifier reviewer\",\n"
+        "        \"qualification\": \"TEST-ONLY fixture: no human independent review was performed\",\n"
+        "        \"reviewer_id\": \"test.detached-review.reviewer\"\n"
+        "    },\n"
+        "    \"reviewer_reference\": \"TEST-ONLY release packaging verifier\",\n"
+        "    \"schema_version\": 1\n"
+        "}\n"
+    )
+    file(WRITE "${_declaration_file}" "${_declaration_json}")
+    file(
+        CHMOD "${_declaration_file}"
+        PERMISSIONS OWNER_READ OWNER_WRITE
+    )
+
+    set(_pack_directory "${flow_root}/detached-pack")
+    _appellate_run_pack_success(
+        "${pack_cli}" "${label} finalize-independent-review" _finalize_output
+        finalize-independent-review
+        "${_handoff_directory}" "${_declaration_file}" "${source_catalog}" "${_pack_directory}"
+    )
+    _appellate_assert_success_envelope(
+        "${_finalize_output}" "finalize-independent-review" 13 "${label} finalize"
+    )
+    if(NOT _finalize_output MATCHES "^\\{\"case_id\":\"ca4m4[.]case[.]serrano-waiver\",")
+        message(FATAL_ERROR "${label} finalize output is not exact compact key order")
+    endif()
+
+    string(JSON _final_case_id GET "${_finalize_output}" case_id)
+    string(JSON _final_closure_digest GET "${_finalize_output}" closure_digest)
+    string(JSON _dependency_revision GET "${_finalize_output}" dependency_revision)
+    string(JSON _detached_revision GET "${_finalize_output}" digest)
+    string(JSON _final_file_count LENGTH "${_finalize_output}" files)
+    string(JSON _final_file_0 GET "${_finalize_output}" files 0)
+    string(JSON _final_file_1 GET "${_finalize_output}" files 1)
+    string(JSON _final_handoff_digest GET "${_finalize_output}" handoff_digest)
+    string(JSON _final_pack_id GET "${_finalize_output}" pack_id)
+    string(JSON _final_resource_id GET "${_finalize_output}" review_resource_id)
+    string(JSON _final_review_sha GET "${_finalize_output}" review_sha256)
+    string(JSON _final_version GET "${_finalize_output}" version)
+    string(LENGTH "${_detached_revision}" _detached_revision_length)
+    string(LENGTH "${_final_review_sha}" _review_sha_length)
+    if(NOT _final_case_id STREQUAL _subject_case_id OR
+       NOT _final_closure_digest STREQUAL _prepare_closure_digest OR
+       NOT _final_file_count EQUAL 2 OR NOT _final_file_0 STREQUAL "manifest.json" OR
+       NOT _final_file_1 STREQUAL "resources/realism-review.json" OR
+       NOT _final_handoff_digest STREQUAL _prepare_handoff_digest OR
+       NOT _final_pack_id STREQUAL _detached_pack_id OR
+       NOT _final_resource_id STREQUAL _detached_resource_id OR
+       NOT _final_version STREQUAL _detached_version OR NOT _detached_revision_length EQUAL 64 OR
+       NOT _detached_revision MATCHES "^[0-9a-f]+$" OR NOT _review_sha_length EQUAL 64 OR
+       NOT _final_review_sha MATCHES "^[0-9a-f]+$")
+        message(FATAL_ERROR "${label} finalize success fields differ")
+    endif()
+    _appellate_assert_revision_pin_json(
+        "${_dependency_revision}" "${label} detached dependency"
+        "${_subject_pack_id}" "${_subject_version}" "${_subject_revision}"
+    )
+    string(CONCAT _expected_finalize_output
+        "{\"case_id\":\"${_subject_case_id}\","
+        "\"closure_digest\":\"${_prepare_closure_digest}\","
+        "\"command\":\"finalize-independent-review\","
+        "\"dependency_revision\":{"
+        "\"digest\":\"${_subject_revision}\","
+        "\"pack_id\":\"${_subject_pack_id}\","
+        "\"version\":\"${_subject_version}\"},"
+        "\"digest\":\"${_detached_revision}\","
+        "\"files\":[\"manifest.json\",\"resources/realism-review.json\"],"
+        "\"handoff_digest\":\"${_prepare_handoff_digest}\","
+        "\"pack_id\":\"${_detached_pack_id}\","
+        "\"review_resource_id\":\"${_detached_resource_id}\","
+        "\"review_sha256\":\"${_final_review_sha}\","
+        "\"schema_version\":1,"
+        "\"status\":\"ok\","
+        "\"version\":\"${_detached_version}\"}\n"
+    )
+    if(NOT _finalize_output STREQUAL _expected_finalize_output)
+        message(FATAL_ERROR "${label} finalize compact success bytes differ")
+    endif()
+
+    file(
+        GLOB_RECURSE _pack_entries
+        LIST_DIRECTORIES TRUE
+        RELATIVE "${_pack_directory}"
+        "${_pack_directory}/*"
+    )
+    list(SORT _pack_entries)
+    set(_expected_pack_entries "manifest.json" "resources" "resources/realism-review.json")
+    if(NOT _pack_entries STREQUAL _expected_pack_entries)
+        message(FATAL_ERROR "${label} detached pack inventory differs: ${_pack_entries}")
+    endif()
+    set(_manifest_file "${_pack_directory}/manifest.json")
+    set(_review_file "${_pack_directory}/resources/realism-review.json")
+    _appellate_assert_private_directory("${_pack_directory}" "${label} detached pack root")
+    _appellate_assert_private_directory("${_pack_directory}/resources" "${label} resources directory")
+    _appellate_assert_private_file("${_manifest_file}" "${label} manifest.json")
+    _appellate_assert_private_file("${_review_file}" "${label} realism review")
+    file(SHA256 "${_manifest_file}" _manifest_sha)
+    file(SHA256 "${_review_file}" _review_sha)
+    file(SIZE "${_manifest_file}" _manifest_size)
+    file(SIZE "${_review_file}" _review_size)
+    if(NOT _review_sha STREQUAL _final_review_sha)
+        message(FATAL_ERROR "${label} review bytes do not match finalize response")
+    endif()
+    file(READ "${_manifest_file}" _manifest_json)
+    file(READ "${_review_file}" _review_json)
+    if(NOT _manifest_json MATCHES "^\\{\n    \"" OR NOT _manifest_json MATCHES "\\}\n$" OR
+       NOT _review_json MATCHES "^\\{\n    \"" OR NOT _review_json MATCHES "\\}\n$")
+        message(FATAL_ERROR "${label} finalized members are not exact indented JSON files")
+    endif()
+
+    string(JSON _manifest_fields LENGTH "${_manifest_json}")
+    string(JSON _manifest_schema GET "${_manifest_json}" schema_version)
+    string(JSON _manifest_pack_id GET "${_manifest_json}" pack_id)
+    string(JSON _manifest_version GET "${_manifest_json}" version)
+    string(JSON _manifest_blob_count LENGTH "${_manifest_json}" blobs)
+    string(JSON _manifest_content_count LENGTH "${_manifest_json}" contents)
+    string(JSON _manifest_dependency_count LENGTH "${_manifest_json}" dependencies)
+    string(JSON _manifest_capability_count LENGTH "${_manifest_json}" required_capabilities)
+    string(JSON _content_fields LENGTH "${_manifest_json}" contents 0)
+    string(JSON _content_id GET "${_manifest_json}" contents 0 id)
+    string(JSON _content_kind GET "${_manifest_json}" contents 0 kind)
+    string(JSON _content_path GET "${_manifest_json}" contents 0 path)
+    string(JSON _content_schema GET "${_manifest_json}" contents 0 schema_version)
+    string(JSON _content_sha GET "${_manifest_json}" contents 0 sha256)
+    string(JSON _manifest_dependency GET "${_manifest_json}" dependencies 0)
+    string(JSON _manifest_dependency_fields LENGTH "${_manifest_dependency}")
+    string(JSON _manifest_dependency_id GET "${_manifest_dependency}" pack_id)
+    string(JSON _manifest_dependency_version GET "${_manifest_dependency}" version)
+    string(JSON _manifest_dependency_sha GET "${_manifest_dependency}" sha256)
+    string(JSON _capability_0_id GET "${_manifest_json}" required_capabilities 0 id)
+    string(JSON _capability_0_version GET "${_manifest_json}" required_capabilities 0 version)
+    string(JSON _capability_1_id GET "${_manifest_json}" required_capabilities 1 id)
+    string(JSON _capability_1_version GET "${_manifest_json}" required_capabilities 1 version)
+    if(NOT _manifest_fields EQUAL 7 OR NOT _manifest_schema EQUAL 2 OR
+       NOT _manifest_pack_id STREQUAL _detached_pack_id OR
+       NOT _manifest_version STREQUAL _detached_version OR NOT _manifest_blob_count EQUAL 0 OR
+       NOT _manifest_content_count EQUAL 1 OR NOT _manifest_dependency_count EQUAL 1 OR
+       NOT _manifest_capability_count EQUAL 2 OR NOT _content_fields EQUAL 5 OR
+       NOT _content_id STREQUAL _detached_resource_id OR NOT _content_kind STREQUAL "realism_review" OR
+       NOT _content_path STREQUAL "resources/realism-review.json" OR NOT _content_schema EQUAL 2 OR
+       NOT _content_sha STREQUAL _review_sha OR
+       NOT _manifest_dependency_fields EQUAL 3 OR
+       NOT _manifest_dependency_id STREQUAL _subject_pack_id OR
+       NOT _manifest_dependency_version STREQUAL _subject_version OR
+       NOT _manifest_dependency_sha STREQUAL _subject_revision OR
+       NOT _capability_0_id STREQUAL "workbench.pack.declarative-resources" OR
+       NOT _capability_0_version EQUAL 2 OR
+       NOT _capability_1_id STREQUAL "workbench.pack.realism-evidence" OR
+       NOT _capability_1_version EQUAL 1)
+        message(FATAL_ERROR "${label} final manifest differs")
+    endif()
+    string(JSON _review_fields LENGTH "${_review_json}")
+    string(JSON _review_schema GET "${_review_json}" schema_version)
+    string(JSON _review_case GET "${_review_json}" case_id)
+    string(JSON _review_resource_id GET "${_review_json}" resource_id)
+    string(JSON _review_kind GET "${_review_json}" resource_kind)
+    string(JSON _review_state GET "${_review_json}" review_state)
+    string(JSON _review_date GET "${_review_json}" reviewed_on)
+    string(JSON _review_reference GET "${_review_json}" reviewer_reference)
+    string(JSON _uncertainty_count LENGTH "${_review_json}" known_uncertainty)
+    string(JSON _reviewer_fields LENGTH "${_review_json}" reviewer)
+    string(JSON _reviewer_id GET "${_review_json}" reviewer reviewer_id)
+    string(JSON _reviewer_name GET "${_review_json}" reviewer display_name)
+    string(JSON _reviewer_qualification GET "${_review_json}" reviewer qualification)
+    string(JSON _final_evidence GET "${_review_json}" evidence)
+    string(JSON _handoff_evidence GET "${_handoff_json}" payload mechanical_evidence)
+    if(NOT _review_fields EQUAL 11 OR NOT _review_schema EQUAL 2 OR
+       NOT _review_case STREQUAL _subject_case_id OR
+       NOT _review_resource_id STREQUAL _detached_resource_id OR
+       NOT _review_kind STREQUAL "realism_review" OR
+       NOT _review_state STREQUAL "independently_reviewed" OR
+       NOT _review_date STREQUAL "2026-08-19" OR
+       NOT _review_reference STREQUAL "TEST-ONLY release packaging verifier" OR
+       NOT _uncertainty_count EQUAL 0 OR NOT _reviewer_fields EQUAL 3 OR
+       NOT _reviewer_id STREQUAL "test.detached-review.reviewer" OR
+       NOT _reviewer_name STREQUAL "TEST-ONLY release verifier reviewer" OR
+       NOT _reviewer_qualification STREQUAL
+           "TEST-ONLY fixture: no human independent review was performed" OR
+       NOT _final_evidence STREQUAL _handoff_evidence)
+        message(FATAL_ERROR "${label} final review differs from declaration/handoff")
+    endif()
+    foreach(_dimension IN ITEMS bench_differentiation consequences deadlines_authority oral_argument
+            procedural_law provenance record_consistency)
+        string(JSON _score_type TYPE "${_review_json}" dimensions ${_dimension})
+        string(JSON _score GET "${_review_json}" dimensions ${_dimension})
+        string(JSON _evidence_count LENGTH "${_review_json}" evidence dimension_evidence ${_dimension})
+        if(NOT _score_type STREQUAL "NUMBER" OR NOT _score EQUAL 2 OR
+           NOT _evidence_count GREATER 0)
+            message(FATAL_ERROR "${label} final dimension differs: ${_dimension}")
+        endif()
+    endforeach()
+
+    set(_detached_archive_a "${flow_root}/detached-a.awpack")
+    set(_detached_archive_b "${flow_root}/detached-b.awpack")
+    _appellate_run_pack_success(
+        "${pack_cli}" "${label} first deferred export" _export_output_a
+        export-deferred "${_pack_directory}" "${_detached_archive_a}"
+    )
+    _appellate_run_pack_success(
+        "${pack_cli}" "${label} second deferred export" _export_output_b
+        export-deferred "${_pack_directory}" "${_detached_archive_b}"
+    )
+    _appellate_assert_success_envelope(
+        "${_export_output_a}" "export-deferred" 9 "${label} deferred export"
+    )
+    if(NOT _export_output_a STREQUAL _export_output_b)
+        message(FATAL_ERROR "${label} repeated deferred-export stdout differs")
+    endif()
+    string(JSON _export_scope GET "${_export_output_a}" validation_scope)
+    string(JSON _export_resolved_type TYPE "${_export_output_a}" resolved)
+    string(JSON _export_resolved GET "${_export_output_a}" resolved)
+    string(JSON _export_notice GET "${_export_output_a}" notice)
+    _appellate_assert_revision_json(
+        "${_export_output_a}" "${label} deferred export"
+        "${_detached_pack_id}" "${_detached_version}" "${_detached_revision}"
+    )
+    if(NOT _export_scope STREQUAL "deferred_references" OR
+       NOT _export_resolved_type STREQUAL "BOOLEAN" OR _export_resolved OR
+       NOT _export_notice STREQUAL
+           "Archive references remain deferred until catalog resolution")
+        message(FATAL_ERROR "${label} deferred export evidence differs")
+    endif()
+    file(SHA256 "${_detached_archive_a}" _detached_archive_sha_a)
+    file(SHA256 "${_detached_archive_b}" _detached_archive_sha_b)
+    file(SIZE "${_detached_archive_a}" _detached_archive_size_a)
+    file(SIZE "${_detached_archive_b}" _detached_archive_size_b)
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E compare_files
+            "${_detached_archive_a}" "${_detached_archive_b}"
+        RESULT_VARIABLE _detached_archive_compare_result
+    )
+    if(NOT _detached_archive_compare_result EQUAL 0)
+        message(FATAL_ERROR "${label} repeated deferred archives are not byte-identical")
+    endif()
+    if(NOT _detached_archive_sha_a STREQUAL _detached_archive_sha_b OR
+       NOT _detached_archive_size_a EQUAL _detached_archive_size_b)
+        message(FATAL_ERROR "${label} repeated deferred archive bytes differ")
+    endif()
+
+    set(_verification_catalog "${flow_root}/verification-catalog")
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${federal}" "${_verification_catalog}" "2026-08-19T01:00:00Z"
+        "${_expected_federal_pack_id}" "${_expected_federal_version}"
+        "${_expected_federal_revision}" "${_expected_federal_archive_sha}"
+    )
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${ca4}" "${_verification_catalog}" "2026-08-19T01:00:01Z"
+        "${_expected_ca4_pack_id}" "${_expected_ca4_version}"
+        "${_expected_ca4_revision}" "${_expected_ca4_archive_sha}"
+    )
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${bench}" "${_verification_catalog}" "2026-08-19T01:00:02Z"
+        "${_expected_bench_pack_id}" "${_expected_bench_version}"
+        "${_expected_bench_revision}" "${_expected_bench_archive_sha}"
+    )
+    _appellate_install_exact_archive(
+        "${pack_cli}" "${serrano}" "${_verification_catalog}" "2026-08-19T01:00:03Z"
+        "${_subject_pack_id}" "${_subject_version}" "${_subject_revision}"
+        "${_expected_serrano_waiver_archive_sha}"
+    )
+    _appellate_run_pack_success(
+        "${pack_cli}" "${label} detached archive install" _detached_install_output
+        install "${_detached_archive_a}" "${_verification_catalog}"
+        --installed-at "2026-08-19T01:00:04Z"
+    )
+    _appellate_assert_success_envelope(
+        "${_detached_install_output}" "install" 9 "${label} detached install"
+    )
+    string(JSON _installed_archive_sha GET "${_detached_install_output}" archive_sha256)
+    string(JSON _installed_at GET "${_detached_install_output}" installed_at_utc)
+    string(JSON _installed_dependency_count LENGTH "${_detached_install_output}" dependencies)
+    string(JSON _installed_dependency GET "${_detached_install_output}" dependencies 0)
+    _appellate_assert_revision_json(
+        "${_detached_install_output}" "${label} installed detached review"
+        "${_detached_pack_id}" "${_detached_version}" "${_detached_revision}"
+    )
+    if(NOT _installed_archive_sha STREQUAL _detached_archive_sha_a OR
+       NOT _installed_at STREQUAL "2026-08-19T01:00:04Z" OR
+       NOT _installed_dependency_count EQUAL 1)
+        message(FATAL_ERROR "${label} detached install evidence differs")
+    endif()
+    _appellate_assert_revision_pin_json(
+        "${_installed_dependency}" "${label} installed detached dependency"
+        "${_subject_pack_id}" "${_subject_version}" "${_subject_revision}"
+    )
+
+    _appellate_run_pack_success(
+        "${pack_cli}" "${label} detached resolved validation" _resolved_output
+        validate-resolved "${_verification_catalog}"
+        "${_detached_pack_id}" "${_detached_version}" "${_detached_revision}"
+    )
+    _appellate_assert_success_envelope(
+        "${_resolved_output}" "validate-resolved" 9 "${label} detached resolved validation"
+    )
+    string(JSON _resolved_scope GET "${_resolved_output}" validation_scope)
+    string(JSON _resolved_count GET "${_resolved_output}" resolved_revision_count)
+    string(JSON _resolved_pin_count LENGTH "${_resolved_output}" revision_pins)
+    _appellate_assert_revision_json(
+        "${_resolved_output}" "${label} resolved detached review"
+        "${_detached_pack_id}" "${_detached_version}" "${_detached_revision}"
+    )
+    if(NOT _resolved_scope STREQUAL "catalog_resolved" OR NOT _resolved_count EQUAL 5 OR
+       NOT _resolved_pin_count EQUAL 5)
+        message(FATAL_ERROR "${label} detached resolved closure differs")
+    endif()
+    set(
+        _resolved_expected_ids
+        "${_expected_ca4_pack_id}"
+        "${_expected_bench_pack_id}"
+        "${_expected_federal_pack_id}"
+        "${_detached_pack_id}"
+        "${_subject_pack_id}"
+    )
+    set(
+        _resolved_expected_versions
+        "${_expected_ca4_version}"
+        "${_expected_bench_version}"
+        "${_expected_federal_version}"
+        "${_detached_version}"
+        "${_subject_version}"
+    )
+    set(
+        _resolved_expected_revisions
+        "${_expected_ca4_revision}"
+        "${_expected_bench_revision}"
+        "${_expected_federal_revision}"
+        "${_detached_revision}"
+        "${_subject_revision}"
+    )
+    foreach(_pin_index RANGE 0 4)
+        string(JSON _pin GET "${_resolved_output}" revision_pins ${_pin_index})
+        list(GET _resolved_expected_ids ${_pin_index} _pin_id)
+        list(GET _resolved_expected_versions ${_pin_index} _pin_version)
+        list(GET _resolved_expected_revisions ${_pin_index} _pin_revision)
+        _appellate_assert_revision_pin_json(
+            "${_pin}" "${label} detached closure pin ${_pin_index}"
+            "${_pin_id}" "${_pin_version}" "${_pin_revision}"
+        )
+    endforeach()
+
+    _appellate_capture_tree_fingerprint(
+        "${source_catalog}" "${label} source catalog after finalize" _source_catalog_after
+    )
+    if(NOT _source_catalog_after STREQUAL _source_catalog_before)
+        message(FATAL_ERROR "${label} source catalog bytes or inventory changed")
+    endif()
+    foreach(_archive_index RANGE 0 3)
+        list(GET _bundled_archives ${_archive_index} _archive)
+        list(GET _expected_archive_shas ${_archive_index} _expected_archive_sha)
+        file(SHA256 "${_archive}" _archive_sha)
+        if(NOT _archive_sha STREQUAL _expected_archive_sha)
+            message(FATAL_ERROR "${label} bundled input archive changed after review flow: ${_archive}")
+        endif()
+    endforeach()
+    _appellate_assert_no_transient_residue("${source_catalog}" "${label} source catalog")
+    _appellate_assert_no_transient_residue("${_verification_catalog}" "${label} verification catalog")
+    _appellate_assert_no_transient_residue("${flow_root}" "${label} review flow")
+    file(
+        GLOB _secure_scratch_residue
+        LIST_DIRECTORIES TRUE
+        RELATIVE "${_appellate_pack_tmpdir}"
+        "${_appellate_pack_tmpdir}/*"
+    )
+    if(_secure_scratch_residue)
+        message(FATAL_ERROR "${label} retained secure scratch residue: ${_secure_scratch_residue}")
+    endif()
+
+    string(SHA256 _prepare_output_sha "${_prepare_output}")
+    string(SHA256 _finalize_output_sha "${_finalize_output}")
+    string(SHA256 _export_output_sha "${_export_output_a}")
+    string(CONCAT _identity_material
+        "${_prepare_output_sha}|${_finalize_output_sha}|${_export_output_sha}|"
+        "${_handoff_sha}|${_handoff_size}|${_template_sha}|${_template_size}|"
+        "${_manifest_sha}|${_manifest_size}|${_review_sha}|${_review_size}|"
+        "${_detached_archive_sha_a}|${_detached_archive_size_a}|${_detached_revision}"
+    )
+    string(SHA256 _identity "${_identity_material}")
+    set("${output_identity}" "${_identity}" PARENT_SCOPE)
+endfunction()
+
 function(_appellate_assert_desktop_smoke json label expected_id expected_version
          expected_revision expected_case_id output_token)
     string(JSON _field_count LENGTH "${json}")
@@ -999,7 +2094,6 @@ function(_appellate_export_embedded_starter pack_cli state_name output_variable)
     )
     execute_process(
         COMMAND
-            "${_appellate_unshare}" --user --map-root-user --net
             "${CMAKE_COMMAND}" -E env
             --unset=LD_LIBRARY_PATH
             --unset=LD_PRELOAD
@@ -1018,13 +2112,12 @@ function(_appellate_export_embedded_starter pack_cli state_name output_variable)
     if(NOT _template_result EQUAL 0)
         message(
             FATAL_ERROR
-            "Network-isolated shipped starter extraction failed:\n"
+            "Shipped starter extraction failed:\n"
             "${_template_output}\n${_template_error}"
         )
     endif()
     execute_process(
         COMMAND
-            "${_appellate_unshare}" --user --map-root-user --net
             "${CMAKE_COMMAND}" -E env
             --unset=LD_LIBRARY_PATH
             --unset=LD_PRELOAD
@@ -1043,13 +2136,12 @@ function(_appellate_export_embedded_starter pack_cli state_name output_variable)
     if(NOT _export_result EQUAL 0)
         message(
             FATAL_ERROR
-            "Network-isolated shipped starter export failed:\n"
+            "Shipped starter export failed:\n"
             "${_export_output}\n${_export_error}"
         )
     endif()
     execute_process(
         COMMAND
-            "${_appellate_unshare}" --user --map-root-user --net
             "${CMAKE_COMMAND}" -E env
             --unset=LD_LIBRARY_PATH
             --unset=LD_PRELOAD
@@ -1065,7 +2157,7 @@ function(_appellate_export_embedded_starter pack_cli state_name output_variable)
     if(NOT _starter_result EQUAL 0)
         message(
             FATAL_ERROR
-            "Network-isolated shipped starter validation failed:\n"
+            "Shipped starter validation failed:\n"
             "${_starter_output}\n${_starter_error}"
         )
     endif()
@@ -1094,7 +2186,6 @@ function(_appellate_run_offline_e2e desktop workflow_pack grounded_pack state_na
     )
     execute_process(
         COMMAND
-            "${_appellate_unshare}" --user --map-root-user --net
             "${CMAKE_COMMAND}" -E env
             --unset=LD_LIBRARY_PATH
             --unset=LD_PRELOAD
@@ -1119,7 +2210,7 @@ function(_appellate_run_offline_e2e desktop workflow_pack grounded_pack state_na
     if(NOT _offline_result EQUAL 0)
         message(
             FATAL_ERROR
-            "Network-isolated installed offline E2E failed:\n"
+            "Installed offline E2E failed:\n"
             "${_offline_output}\n${_offline_error}"
         )
     endif()
@@ -1265,6 +2356,13 @@ if(NOT _installed_executed_root_count EQUAL 9 OR
    NOT _installed_executed_root_tokens STREQUAL _expected_executed_root_tokens)
     message(FATAL_ERROR "Installed desktop smoke did not execute the exact nine-root token set")
 endif()
+_appellate_run_serrano_independent_review(
+    "${_pack_cli}" "${_federal}" "${_ca4}" "${_bench}" "${_serrano_waiver}"
+    "${_root}/installed-serrano-waiver-catalog"
+    "${_root}/installed-detached-review-flow"
+    "Installed Serrano detached review"
+    _installed_detached_review_identity
+)
 
 file(RENAME "${_prefix}" "${_relocated}")
 set(_relocated_desktop "${_relocated}/bin/Appellate Workbench")
@@ -1284,6 +2382,8 @@ set(_relocated_asterglen_v1
     "${_relocated_packs_root}/us-ca4-rule54b-asterglen-0.1.0.awpack")
 set(_relocated_cinder
     "${_relocated_packs_root}/us-ca4-m4-cinderlake-writ-1.2.0.awpack")
+_appellate_assert_documentation_tree("${_relocated}" "Relocated")
+_appellate_assert_independent_review_wrong_arity("${_relocated_pack_cli}" "Relocated")
 foreach(_binary IN ITEMS
         "${_relocated_desktop}"
         "${_relocated_pack_cli}"
@@ -1423,6 +2523,18 @@ if(NOT _relocated_executed_root_count EQUAL 9 OR
    NOT _relocated_executed_root_tokens STREQUAL _expected_executed_root_tokens)
     message(FATAL_ERROR "Relocated desktop smoke did not execute the exact nine-root token set")
 endif()
+_appellate_run_serrano_independent_review(
+    "${_relocated_pack_cli}" "${_relocated_federal}" "${_relocated_ca4}"
+    "${_relocated_bench}"
+    "${_relocated_packs_root}/us-ca4-m4-serrano-waiver-1.2.0.awpack"
+    "${_root}/relocated-serrano-waiver-catalog"
+    "${_root}/relocated-detached-review-flow"
+    "Relocated Serrano detached review"
+    _relocated_detached_review_identity
+)
+if(NOT _relocated_detached_review_identity STREQUAL _installed_detached_review_identity)
+    message(FATAL_ERROR "Installed and relocated detached-review stdout/artifact bytes differ")
+endif()
 string(FIND
     "${_relocated_error}"
     "${_relocated_library_root}/qt6/plugins/platforms/libqoffscreen.so"
@@ -1444,6 +2556,10 @@ if(_offscreen_plugin_index LESS 0)
     message(FATAL_ERROR "Relocated desktop did not load only the bundled offscreen plugin")
 endif()
 
+file(READ "${_root}/.appellate-install-verifier-root" _verifier_root_sentinel)
+if(NOT _verifier_root_sentinel STREQUAL "appellate-install-verifier-root\n")
+    message(FATAL_ERROR "Refusing to remove an install verifier root without its exact sentinel")
+endif()
 file(REMOVE_RECURSE "${_root}")
 if(EXISTS "${_root}")
     message(FATAL_ERROR "Temporary install tree could not be removed")

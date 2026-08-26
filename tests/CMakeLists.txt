@@ -72,6 +72,25 @@ target_compile_features(tst_pack_catalog PRIVATE cxx_std_26)
 add_test(NAME pack_catalog COMMAND tst_pack_catalog)
 
 qt_add_executable(
+    tst_pack_catalog_protected_inputs
+    packs/tst_pack_catalog_protected_inputs.cpp
+)
+target_link_libraries(
+    tst_pack_catalog_protected_inputs
+    PRIVATE
+        appellate::packs
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_include_directories(
+    tst_pack_catalog_protected_inputs
+    PRIVATE "${PROJECT_SOURCE_DIR}/src/packs/src"
+)
+target_compile_features(tst_pack_catalog_protected_inputs PRIVATE cxx_std_26)
+add_test(NAME pack_catalog_protected_inputs COMMAND tst_pack_catalog_protected_inputs)
+
+qt_add_executable(
     tst_pack_dependency_resolution
     packs/tst_pack_dependency_resolution.cpp
 )
@@ -116,6 +135,25 @@ target_compile_definitions(tst_pack_cli PRIVATE APPELLATE_SOURCE_DIR="${PROJECT_
 target_compile_features(tst_pack_cli PRIVATE cxx_std_26)
 add_test(NAME pack_cli COMMAND tst_pack_cli)
 set_tests_properties(pack_cli PROPERTIES ENVIRONMENT "QTEST_FUNCTION_TIMEOUT=900000")
+
+qt_add_executable(
+    tst_independent_review_publisher
+    cli/tst_independent_review_publisher.cpp
+)
+target_link_libraries(
+    tst_independent_review_publisher
+    PRIVATE
+        appellate::pack_cli
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_include_directories(
+    tst_independent_review_publisher
+    PRIVATE "${PROJECT_SOURCE_DIR}/src/cli"
+)
+target_compile_features(tst_independent_review_publisher PRIVATE cxx_std_26)
+add_test(NAME independent_review_publisher COMMAND tst_independent_review_publisher)
 
 qt_add_executable(tst_procedure_engine engine/tst_procedure_engine.cpp)
 target_link_libraries(

@@ -1,4 +1,8 @@
+#include "independent_review_publisher_p.hpp"
 #include "pack_cli.hpp"
+#include "pack_cli_p.hpp"
+
+#include "../../src/packs/src/pack_catalog_p.hpp"
 
 #include "appellate/engine/workflow_engine.hpp"
 #include "appellate/packs/pack_archive.hpp"
@@ -6,6 +10,7 @@
 #include "appellate/packs/pack_reader.hpp"
 #include "appellate/packs/realism_evidence_authoring.hpp"
 #include "appellate/packs/runtime_pack.hpp"
+#include "appellate/packs/schema_validator.hpp"
 #include "appellate/storage/workflow_codec.hpp"
 
 #include <QCryptographicHash>
@@ -17,21 +22,27 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLockFile>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QUuid>
 
 #include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <expected>
 #include <optional>
 #include <span>
 #include <thread>
 #include <vector>
 
 #if defined(Q_OS_UNIX)
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <unistd.h>
 #endif
 
@@ -49,7 +60,10 @@ class PackCliTest final : public QObject {
     void authorsRealismEvidenceDeterministically();
     void authorsMultiTraceRealismEvidenceDeterministically();
     void preparesIndependentReviewDeterministically();
+    void finalizesInterchangeableIndependentReviewHandoffs();
     void finalizesIndependentReviewDeterministically();
+    void enforcesIndependentReviewBoundaries_data();
+    void enforcesIndependentReviewBoundaries();
     void mapsCatalogBusyWithoutMutatingTheLock();
     void rejectsInvalidArgumentsAndExistingTemplateDestination();
 };
@@ -73,6 +87,24 @@ void requireSuccess(const RunResult& result, const QString& command) {
     QCOMPARE(response.value(QStringLiteral("command")).toString(), command);
 }
 
+void requireCommandError(const RunResult& result, ExitCode exit_code, const QString& code,
+                         const QString& command) {
+    QCOMPARE(result.exit_code, static_cast<int>(exit_code));
+    QVERIFY(result.standard_output.isEmpty());
+    QVERIFY(result.standard_error.endsWith('\n'));
+    const auto response = responseObject(result.standard_error);
+    QCOMPARE(
+        response.keys(),
+        QStringList({QStringLiteral("code"), QStringLiteral("command"), QStringLiteral("message"),
+                     QStringLiteral("schema_version"), QStringLiteral("status")}));
+    QCOMPARE(response.value(QStringLiteral("code")).toString(), code);
+    QCOMPARE(response.value(QStringLiteral("command")).toString(), command);
+    QVERIFY(!response.value(QStringLiteral("message")).toString().isEmpty());
+    QCOMPARE(response.value(QStringLiteral("schema_version")).toInt(), 1);
+    QCOMPARE(response.value(QStringLiteral("status")).toString(), QStringLiteral("error"));
+    QCOMPARE(result.standard_error, QJsonDocument(response).toJson(QJsonDocument::Compact) + '\n');
+}
+
 [[nodiscard]] QByteArray readAll(const QString& path) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -80,6 +112,17 @@ void requireSuccess(const RunResult& result, const QString& command) {
     }
     return file.readAll();
 }
+
+#if defined(Q_OS_LINUX)
+void requireNativeMetadata(const QString& path, mode_t type, mode_t mode, nlink_t link_count) {
+    struct stat status{};
+    QCOMPARE(::lstat(QFile::encodeName(path).constData(), &status), 0);
+    QCOMPARE(status.st_mode & S_IFMT, type);
+    QCOMPARE(status.st_mode & 07777, mode);
+    QCOMPARE(status.st_uid, ::geteuid());
+    QCOMPARE(status.st_nlink, link_count);
+}
+#endif
 
 [[nodiscard]] bool overwriteAll(const QString& path, const QByteArray& bytes) {
     QFile file(path);
@@ -90,6 +133,71 @@ void requireSuccess(const RunResult& result, const QString& command) {
 [[nodiscard]] QByteArray jsonBytes(const QJsonObject& object) {
     return QJsonDocument(object).toJson(QJsonDocument::Indented);
 }
+
+[[nodiscard]] QByteArray nestedJsonObject(qsizetype nested_edges) {
+    QByteArray bytes("{}");
+    for (qsizetype index = 0; index < nested_edges; ++index) {
+        bytes.prepend("{\"nested\":");
+        bytes.append('}');
+    }
+    return bytes;
+}
+
+[[nodiscard]] QByteArray jsonObjectWithValueCount(qsizetype value_count) {
+    if (value_count < 2) {
+        return {};
+    }
+    QByteArray bytes("{\"values\":[");
+    bytes.reserve(12 + (value_count - 2) * 5);
+    for (qsizetype index = 0; index < value_count - 2; ++index) {
+        if (index != 0) {
+            bytes.append(',');
+        }
+        bytes.append("null");
+    }
+    bytes.append("]}");
+    return bytes;
+}
+
+#if defined(Q_OS_LINUX)
+[[nodiscard]] QByteArray paddedJsonObject(qsizetype byte_count) {
+    QByteArray bytes("{}");
+    if (byte_count >= bytes.size()) {
+        bytes.append(QByteArray(byte_count - bytes.size(), ' '));
+    }
+    return bytes;
+}
+
+[[nodiscard]] QByteArray paddedJsonBytes(QByteArray bytes, qsizetype byte_count) {
+    if (byte_count >= bytes.size()) {
+        bytes.append(QByteArray(byte_count - bytes.size(), ' '));
+    }
+    return bytes;
+}
+
+class ScopedTimeZone final {
+  public:
+    ScopedTimeZone() : was_set_(qEnvironmentVariableIsSet("TZ")), original_(qgetenv("TZ")) {}
+
+    ~ScopedTimeZone() {
+        if (was_set_) {
+            qputenv("TZ", original_);
+        } else {
+            qunsetenv("TZ");
+        }
+        ::tzset();
+    }
+
+    void set(const QByteArray& value) {
+        qputenv("TZ", value);
+        ::tzset();
+    }
+
+  private:
+    bool was_set_{};
+    QByteArray original_;
+};
+#endif
 
 [[nodiscard]] QString sha256(const QByteArray& bytes) {
     return QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex());
@@ -2029,9 +2137,290 @@ void PackCliTest::preparesIndependentReviewDeterministically() {
         QCOMPARE(installed_closure->revisionsByPackId().size(), std::size_t{5});
     }
 
+#if defined(Q_OS_LINUX)
+    const auto& cli_fixture = independent_review_fixtures.back();
+    const PackRevision cli_subject{PackId{cli_fixture.pack_id}, cli_fixture.version,
+                                   cli_fixture.revision};
+    const IndependentReviewPrepareInput cli_input{
+        cli_subject, QString::fromLatin1(cli_fixture.case_id), captured_date};
+    const auto expected_cli = appellate::packs::prepareIndependentReview(*snapshot, cli_input);
+    QVERIFY(expected_cli.has_value());
+    const auto handoff_a = QDir(temporary.path()).filePath(QStringLiteral("cli-handoff-a"));
+    const auto handoff_b = QDir(temporary.path()).filePath(QStringLiteral("cli-handoff-b"));
+    int provider_calls = 0;
+    const auto provider = [&provider_calls, captured_date] {
+        ++provider_calls;
+        return captured_date;
+    };
+    const auto cli_arguments = [&](const QString& destination) {
+        return QStringList{
+            QStringLiteral("prepare-independent-review"),
+            catalog_path,
+            QString::fromLatin1(cli_fixture.pack_id),
+            QString::fromLatin1(cli_fixture.version),
+            QString::fromLatin1(cli_fixture.revision),
+            QString::fromLatin1(cli_fixture.case_id),
+            destination,
+        };
+    };
+    const auto prepared_cli_a =
+        appellate::cli::detail::runPackCli(cli_arguments(handoff_a), provider);
+    const auto prepared_cli_b =
+        appellate::cli::detail::runPackCli(cli_arguments(handoff_b), provider);
+    requireSuccess(prepared_cli_a, QStringLiteral("prepare-independent-review"));
+    requireSuccess(prepared_cli_b, QStringLiteral("prepare-independent-review"));
+    QCOMPARE(provider_calls, 2);
+    QCOMPARE(prepared_cli_a.standard_output, prepared_cli_b.standard_output);
+    const auto response = responseObject(prepared_cli_a.standard_output);
+    QCOMPARE(
+        response.keys(),
+        QStringList({QStringLiteral("case_id"), QStringLiteral("closure_digest"),
+                     QStringLiteral("command"), QStringLiteral("evidence_counts"),
+                     QStringLiteral("files"), QStringLiteral("handoff_digest"),
+                     QStringLiteral("mechanical_trace_revision"), QStringLiteral("schema_version"),
+                     QStringLiteral("source_review_resource_id"), QStringLiteral("status"),
+                     QStringLiteral("subject_revision")}));
+    QCOMPARE(response.value(QStringLiteral("files")).toArray(),
+             QJsonArray({QStringLiteral("handoff.json"),
+                         QStringLiteral("review-declaration.template.json")}));
+    QCOMPARE(response.value(QStringLiteral("subject_revision")).toObject(),
+             QJsonObject({{QStringLiteral("digest"), QString::fromLatin1(cli_fixture.revision)},
+                          {QStringLiteral("pack_id"), QString::fromLatin1(cli_fixture.pack_id)},
+                          {QStringLiteral("version"), QString::fromLatin1(cli_fixture.version)}}));
+    const QJsonObject expected_cli_response{
+        {QStringLiteral("case_id"), expected_cli->case_id},
+        {QStringLiteral("closure_digest"), expected_cli->closure_digest},
+        {QStringLiteral("command"), QStringLiteral("prepare-independent-review")},
+        {QStringLiteral("evidence_counts"),
+         QJsonObject{
+             {QStringLiteral("authorities"), static_cast<qint64>(expected_cli->counts.authorities)},
+             {QStringLiteral("blobs"), static_cast<qint64>(expected_cli->counts.blobs)},
+             {QStringLiteral("packs"), static_cast<qint64>(expected_cli->counts.packs)},
+             {QStringLiteral("record_checks"),
+              static_cast<qint64>(expected_cli->counts.record_checks)},
+             {QStringLiteral("resources"), static_cast<qint64>(expected_cli->counts.resources)},
+             {QStringLiteral("traces"), static_cast<qint64>(expected_cli->counts.traces)},
+         }},
+        {QStringLiteral("files"), QJsonArray{QStringLiteral("handoff.json"),
+                                             QStringLiteral("review-declaration.template.json")}},
+        {QStringLiteral("handoff_digest"), expected_cli->handoff_digest},
+        {QStringLiteral("mechanical_trace_revision"),
+         QStringLiteral("appellate.realism-evidence.detached-review-replay.v1")},
+        {QStringLiteral("schema_version"), 1},
+        {QStringLiteral("source_review_resource_id"), expected_cli->source_review_resource_id},
+        {QStringLiteral("status"), QStringLiteral("ok")},
+        {QStringLiteral("subject_revision"),
+         QJsonObject{
+             {QStringLiteral("digest"),
+              QString::fromStdString(expected_cli->subject_revision.digest)},
+             {QStringLiteral("pack_id"),
+              QString::fromStdString(expected_cli->subject_revision.id.value)},
+             {QStringLiteral("version"),
+              QString::fromStdString(expected_cli->subject_revision.version)},
+         }},
+    };
+    QCOMPARE(prepared_cli_a.standard_output,
+             QJsonDocument(expected_cli_response).toJson(QJsonDocument::Compact) + '\n');
+    const QStringList expected_inventory{QStringLiteral("handoff.json"),
+                                         QStringLiteral("review-declaration.template.json")};
+    for (const auto& directory : {handoff_a, handoff_b}) {
+        QCOMPARE(QDir(directory).entryList(QDir::AllEntries | QDir::Hidden | QDir::System |
+                                               QDir::NoDotAndDotDot,
+                                           QDir::Name),
+                 expected_inventory);
+        requireNativeMetadata(directory, S_IFDIR, 0700, 2);
+        requireNativeMetadata(QDir(directory).filePath(QStringLiteral("handoff.json")), S_IFREG,
+                              0600, 1);
+        requireNativeMetadata(
+            QDir(directory).filePath(QStringLiteral("review-declaration.template.json")), S_IFREG,
+            0600, 1);
+        QCOMPARE(readAll(QDir(directory).filePath(QStringLiteral("handoff.json"))),
+                 expected_cli->handoff_bytes);
+        QCOMPARE(
+            readAll(QDir(directory).filePath(QStringLiteral("review-declaration.template.json"))),
+            expected_cli->declaration_template_bytes);
+        const auto reopened =
+            appellate::cli::detail::readIndependentReviewHandoffDirectory(directory);
+        QVERIFY(reopened.has_value());
+        QCOMPARE(reopened->handoff_bytes, expected_cli->handoff_bytes);
+        QCOMPARE(reopened->declaration_template_bytes, expected_cli->declaration_template_bytes);
+        QCOMPARE(reopened->protected_entry_count, std::size_t{2});
+    }
+    QCOMPARE(readAll(QDir(handoff_a).filePath(QStringLiteral("handoff.json"))),
+             readAll(QDir(handoff_b).filePath(QStringLiteral("handoff.json"))));
+    QCOMPARE(readAll(QDir(handoff_a).filePath(QStringLiteral("review-declaration.template.json"))),
+             readAll(QDir(handoff_b).filePath(QStringLiteral("review-declaration.template.json"))));
+    const auto staging_residue =
+        QDir(temporary.path())
+            .entryList({QStringLiteral(".cli-handoff-*.appellate-independent-review-*")},
+                       QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot);
+    QVERIFY(staging_residue.isEmpty());
+#endif
+
     const auto list_after = snapshot->list();
     QVERIFY(list_after.has_value());
     QCOMPARE(*list_after, *list_before);
+}
+
+void PackCliTest::finalizesInterchangeableIndependentReviewHandoffs() {
+#if defined(Q_OS_LINUX)
+    using appellate::model::PackId;
+    using appellate::model::PackRevision;
+    using appellate::packs::IndependentReviewPrepareInput;
+    using appellate::packs::PackArchive;
+    using appellate::packs::PackCatalog;
+    using appellate::packs::PackCatalogSnapshot;
+    using appellate::packs::PackReader;
+    using appellate::packs::PackValidationScope;
+
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto catalog_path = QDir(temporary.path()).filePath(QStringLiteral("catalog"));
+    auto opened_catalog = PackCatalog::open(catalog_path);
+    QVERIFY2(opened_catalog.has_value(),
+             opened_catalog ? "" : opened_catalog.error().message.toUtf8().constData());
+    auto catalog = std::move(*opened_catalog);
+    for (const auto& archive : independentReviewDependencyArchives()) {
+        const auto installed =
+            catalog->installArchive(archive, QStringLiteral("2026-08-20T00:00:00Z"));
+        QVERIFY2(installed.has_value(),
+                 installed ? "" : installed.error().message.toUtf8().constData());
+    }
+    const auto& fixture = independent_review_fixtures.back();
+    const auto installed_subject = catalog->installArchive(
+        sourcePath(fixture.archive_relative_path), QStringLiteral("2026-08-20T00:00:00Z"));
+    QVERIFY2(installed_subject.has_value(),
+             installed_subject ? "" : installed_subject.error().message.toUtf8().constData());
+    const PackRevision subject{PackId{fixture.pack_id}, fixture.version, fixture.revision};
+    QVERIFY(installed_subject->revision == subject);
+    catalog.reset();
+
+    auto opened_snapshot = PackCatalogSnapshot::openExisting(catalog_path);
+    QVERIFY2(opened_snapshot.has_value(),
+             opened_snapshot ? "" : opened_snapshot.error().message.toUtf8().constData());
+    auto snapshot = std::move(*opened_snapshot);
+    const auto prepared = appellate::packs::prepareIndependentReview(
+        *snapshot, IndependentReviewPrepareInput{subject, QString::fromLatin1(fixture.case_id),
+                                                 QDate(2026, 8, 20)});
+    QVERIFY2(prepared.has_value(), prepared ? "" : prepared.error().message.toUtf8().constData());
+
+    const auto handoff_a = QDir(temporary.path()).filePath(QStringLiteral("handoff-a"));
+    const auto handoff_b = QDir(temporary.path()).filePath(QStringLiteral("handoff-b"));
+    const auto prepare_arguments = [&](const QString& destination) {
+        return QStringList{
+            QStringLiteral("prepare-independent-review"),
+            catalog_path,
+            QString::fromLatin1(fixture.pack_id),
+            QString::fromLatin1(fixture.version),
+            QString::fromLatin1(fixture.revision),
+            QString::fromLatin1(fixture.case_id),
+            destination,
+        };
+    };
+    int provider_calls = 0;
+    const auto provider = [&provider_calls] {
+        ++provider_calls;
+        return QDate(2026, 8, 20);
+    };
+    const auto prepared_a =
+        appellate::cli::detail::runPackCli(prepare_arguments(handoff_a), provider);
+    const auto prepared_b =
+        appellate::cli::detail::runPackCli(prepare_arguments(handoff_b), provider);
+    requireSuccess(prepared_a, QStringLiteral("prepare-independent-review"));
+    requireSuccess(prepared_b, QStringLiteral("prepare-independent-review"));
+    QCOMPARE(provider_calls, 2);
+    QCOMPARE(prepared_a.standard_output, prepared_b.standard_output);
+    QCOMPARE(readAll(QDir(handoff_a).filePath(QStringLiteral("handoff.json"))),
+             prepared->handoff_bytes);
+    QCOMPARE(readAll(QDir(handoff_b).filePath(QStringLiteral("handoff.json"))),
+             prepared->handoff_bytes);
+    QCOMPARE(readAll(QDir(handoff_a).filePath(QStringLiteral("review-declaration.template.json"))),
+             prepared->declaration_template_bytes);
+    QCOMPARE(readAll(QDir(handoff_b).filePath(QStringLiteral("review-declaration.template.json"))),
+             prepared->declaration_template_bytes);
+
+    const auto declaration =
+        completedIndependentDeclaration(*prepared, QStringLiteral("interchangeable"));
+    const auto declaration_path =
+        QDir(temporary.path()).filePath(QStringLiteral("declaration.json"));
+    QVERIFY(writeNew(declaration_path, jsonBytes(declaration)));
+    const auto final_a = QDir(temporary.path()).filePath(QStringLiteral("final-a"));
+    const auto final_b = QDir(temporary.path()).filePath(QStringLiteral("final-b"));
+    const auto finalize_arguments = [&](const QString& handoff, const QString& destination) {
+        return QStringList{QStringLiteral("finalize-independent-review"), handoff, declaration_path,
+                           catalog_path, destination};
+    };
+    const auto finalized_a =
+        appellate::cli::detail::runPackCli(finalize_arguments(handoff_a, final_a), provider);
+    const auto finalized_b =
+        appellate::cli::detail::runPackCli(finalize_arguments(handoff_b, final_b), provider);
+    requireSuccess(finalized_a, QStringLiteral("finalize-independent-review"));
+    requireSuccess(finalized_b, QStringLiteral("finalize-independent-review"));
+    QCOMPARE(provider_calls, 4);
+    QCOMPARE(finalized_a.standard_output, finalized_b.standard_output);
+    QCOMPARE(readAll(QDir(final_a).filePath(QStringLiteral("manifest.json"))),
+             readAll(QDir(final_b).filePath(QStringLiteral("manifest.json"))));
+    QCOMPARE(readAll(QDir(final_a).filePath(QStringLiteral("resources/realism-review.json"))),
+             readAll(QDir(final_b).filePath(QStringLiteral("resources/realism-review.json"))));
+
+    const auto loaded_a = PackReader::readDirectory(final_a, PackValidationScope::ResolvedClosure);
+    const auto loaded_b = PackReader::readDirectory(final_b, PackValidationScope::ResolvedClosure);
+    QVERIFY2(loaded_a.has_value(), loaded_a ? "" : loaded_a.error().message.toUtf8().constData());
+    QVERIFY2(loaded_b.has_value(), loaded_b ? "" : loaded_b.error().message.toUtf8().constData());
+    QVERIFY(loaded_a->revision == loaded_b->revision);
+    const auto resolved_subject = snapshot->loadResolved(subject);
+    QVERIFY2(resolved_subject.has_value(),
+             resolved_subject ? "" : resolved_subject.error().message.toUtf8().constData());
+    std::vector<const appellate::packs::LoadedPack*> dependencies;
+    for (const auto& dependency : resolved_subject->dependenciesDependencyFirst()) {
+        dependencies.push_back(&dependency);
+    }
+    dependencies.push_back(&resolved_subject->root());
+    const auto graph_a = PackReader::validateResolvedGraph(
+        *loaded_a, std::span<const appellate::packs::LoadedPack* const>(dependencies));
+    const auto graph_b = PackReader::validateResolvedGraph(
+        *loaded_b, std::span<const appellate::packs::LoadedPack* const>(dependencies));
+    QVERIFY2(graph_a.has_value(), graph_a ? "" : graph_a.error().message.toUtf8().constData());
+    QVERIFY2(graph_b.has_value(), graph_b ? "" : graph_b.error().message.toUtf8().constData());
+
+    const auto archive_a = QDir(temporary.path()).filePath(QStringLiteral("final-a.awpack"));
+    const auto archive_b = QDir(temporary.path()).filePath(QStringLiteral("final-b.awpack"));
+    const auto exported_a =
+        PackArchive::exportDirectory(final_a, archive_a, {}, PackValidationScope::ResolvedClosure);
+    const auto exported_b =
+        PackArchive::exportDirectory(final_b, archive_b, {}, PackValidationScope::ResolvedClosure);
+    QVERIFY2(exported_a.has_value(),
+             exported_a ? "" : exported_a.error().message.toUtf8().constData());
+    QVERIFY2(exported_b.has_value(),
+             exported_b ? "" : exported_b.error().message.toUtf8().constData());
+    QVERIFY(*exported_a == loaded_a->revision);
+    QVERIFY(*exported_b == loaded_b->revision);
+    QCOMPARE(readAll(archive_a), readAll(archive_b));
+
+    const auto verification_path =
+        QDir(temporary.path()).filePath(QStringLiteral("verification-catalog"));
+    auto opened_verification = PackCatalog::open(verification_path);
+    QVERIFY2(opened_verification.has_value(),
+             opened_verification ? "" : opened_verification.error().message.toUtf8().constData());
+    auto verification = std::move(*opened_verification);
+    for (const auto& archive : independentReviewDependencyArchives()) {
+        QVERIFY(verification->installArchive(archive, QStringLiteral("2026-08-20T00:00:00Z"))
+                    .has_value());
+    }
+    QVERIFY(verification
+                ->installArchive(sourcePath(fixture.archive_relative_path),
+                                 QStringLiteral("2026-08-20T00:00:00Z"))
+                .has_value());
+    const auto installed_final =
+        verification->installArchive(archive_a, QStringLiteral("2026-08-20T00:00:01Z"));
+    QVERIFY2(installed_final.has_value(),
+             installed_final ? "" : installed_final.error().message.toUtf8().constData());
+    QVERIFY(installed_final->revision == *exported_a);
+    const auto installed_closure = verification->loadResolved(*exported_a);
+    QVERIFY2(installed_closure.has_value(),
+             installed_closure ? "" : installed_closure.error().message.toUtf8().constData());
+    QCOMPARE(installed_closure->revisionsByPackId().size(), std::size_t{5});
+#endif
 }
 
 void PackCliTest::finalizesIndependentReviewDeterministically() {
@@ -2160,6 +2549,132 @@ void PackCliTest::finalizesIndependentReviewDeterministically() {
     QCOMPARE(finalized_a->review_document.value(QStringLiteral("known_uncertainty")).toArray(),
              declaration.value(QStringLiteral("known_uncertainty")).toArray());
 
+#if defined(Q_OS_LINUX)
+    const auto cli_handoff =
+        QDir(temporary.path()).filePath(QStringLiteral("cli-score-zero-handoff"));
+    const auto declaration_path =
+        QDir(temporary.path()).filePath(QStringLiteral("completed-declaration.json"));
+    const auto cli_pack_a = QDir(temporary.path()).filePath(QStringLiteral("cli-detached-a"));
+    const auto cli_pack_b = QDir(temporary.path()).filePath(QStringLiteral("cli-detached-b"));
+    int provider_calls = 0;
+    const auto provider = [&provider_calls] {
+        ++provider_calls;
+        return QDate(2026, 8, 20);
+    };
+    const auto cli_prepare = appellate::cli::detail::runPackCli(
+        {QStringLiteral("prepare-independent-review"), catalog_path,
+         QString::fromStdString(subject_revision.id.value),
+         QString::fromStdString(subject_revision.version),
+         QString::fromStdString(subject_revision.digest), QString::fromLatin1(fixture.case_id),
+         cli_handoff},
+        provider);
+    requireSuccess(cli_prepare, QStringLiteral("prepare-independent-review"));
+    QCOMPARE(readAll(QDir(cli_handoff).filePath(QStringLiteral("handoff.json"))),
+             prepared->handoff_bytes);
+    QCOMPARE(
+        readAll(QDir(cli_handoff).filePath(QStringLiteral("review-declaration.template.json"))),
+        prepared->declaration_template_bytes);
+    const auto declaration_bytes = jsonBytes(declaration);
+    QVERIFY(writeNew(declaration_path, declaration_bytes));
+    const auto reread_declaration =
+        appellate::cli::detail::readIndependentReviewDeclaration(declaration_path);
+    QVERIFY(reread_declaration.has_value());
+    QCOMPARE(*reread_declaration, declaration_bytes);
+    const auto finalize_arguments = [&](const QString& destination) {
+        return QStringList{QStringLiteral("finalize-independent-review"), cli_handoff,
+                           declaration_path, catalog_path, destination};
+    };
+    const auto finalized_cli_a =
+        appellate::cli::detail::runPackCli(finalize_arguments(cli_pack_a), provider);
+    const auto finalized_cli_b =
+        appellate::cli::detail::runPackCli(finalize_arguments(cli_pack_b), provider);
+    requireSuccess(finalized_cli_a, QStringLiteral("finalize-independent-review"));
+    requireSuccess(finalized_cli_b, QStringLiteral("finalize-independent-review"));
+    QCOMPARE(provider_calls, 3);
+    QCOMPARE(finalized_cli_a.standard_output, finalized_cli_b.standard_output);
+    const auto response = responseObject(finalized_cli_a.standard_output);
+    QCOMPARE(response.keys(),
+             QStringList({QStringLiteral("case_id"), QStringLiteral("closure_digest"),
+                          QStringLiteral("command"), QStringLiteral("dependency_revision"),
+                          QStringLiteral("digest"), QStringLiteral("files"),
+                          QStringLiteral("handoff_digest"), QStringLiteral("pack_id"),
+                          QStringLiteral("review_resource_id"), QStringLiteral("review_sha256"),
+                          QStringLiteral("schema_version"), QStringLiteral("status"),
+                          QStringLiteral("version")}));
+    QCOMPARE(response.value(QStringLiteral("files")).toArray(),
+             QJsonArray({QStringLiteral("manifest.json"),
+                         QStringLiteral("resources/realism-review.json")}));
+    QCOMPARE(response.value(QStringLiteral("digest")).toString(),
+             QString::fromStdString(finalized_a->revision.digest));
+    QCOMPARE(response.value(QStringLiteral("pack_id")).toString(),
+             QString::fromStdString(finalized_a->revision.id.value));
+    QCOMPARE(response.value(QStringLiteral("version")).toString(),
+             QString::fromStdString(finalized_a->revision.version));
+    const QJsonObject expected_cli_response{
+        {QStringLiteral("case_id"), finalized_a->case_id},
+        {QStringLiteral("closure_digest"), finalized_a->closure_digest},
+        {QStringLiteral("command"), QStringLiteral("finalize-independent-review")},
+        {QStringLiteral("dependency_revision"),
+         QJsonObject{
+             {QStringLiteral("digest"),
+              QString::fromStdString(finalized_a->dependency_revision.digest)},
+             {QStringLiteral("pack_id"),
+              QString::fromStdString(finalized_a->dependency_revision.id.value)},
+             {QStringLiteral("version"),
+              QString::fromStdString(finalized_a->dependency_revision.version)},
+         }},
+        {QStringLiteral("digest"), QString::fromStdString(finalized_a->revision.digest)},
+        {QStringLiteral("files"), QJsonArray{QStringLiteral("manifest.json"),
+                                             QStringLiteral("resources/realism-review.json")}},
+        {QStringLiteral("handoff_digest"), finalized_a->handoff_digest},
+        {QStringLiteral("pack_id"), QString::fromStdString(finalized_a->revision.id.value)},
+        {QStringLiteral("review_resource_id"), finalized_a->review_resource_id},
+        {QStringLiteral("review_sha256"), finalized_a->review_sha256},
+        {QStringLiteral("schema_version"), 1},
+        {QStringLiteral("status"), QStringLiteral("ok")},
+        {QStringLiteral("version"), QString::fromStdString(finalized_a->revision.version)},
+    };
+    QCOMPARE(finalized_cli_a.standard_output,
+             QJsonDocument(expected_cli_response).toJson(QJsonDocument::Compact) + '\n');
+    const QStringList root_inventory{QStringLiteral("manifest.json"), QStringLiteral("resources")};
+    for (const auto& directory : {cli_pack_a, cli_pack_b}) {
+        QCOMPARE(QDir(directory).entryList(QDir::AllEntries | QDir::Hidden | QDir::System |
+                                               QDir::NoDotAndDotDot,
+                                           QDir::Name),
+                 root_inventory);
+        QCOMPARE(
+            QDir(QDir(directory).filePath(QStringLiteral("resources")))
+                .entryList(QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot,
+                           QDir::Name),
+            QStringList{QStringLiteral("realism-review.json")});
+        requireNativeMetadata(directory, S_IFDIR, 0700, 3);
+        requireNativeMetadata(QDir(directory).filePath(QStringLiteral("resources")), S_IFDIR, 0700,
+                              2);
+        requireNativeMetadata(QDir(directory).filePath(QStringLiteral("manifest.json")), S_IFREG,
+                              0600, 1);
+        requireNativeMetadata(
+            QDir(directory).filePath(QStringLiteral("resources/realism-review.json")), S_IFREG,
+            0600, 1);
+        QCOMPARE(readAll(QDir(directory).filePath(QStringLiteral("manifest.json"))),
+                 finalized_a->manifest_bytes);
+        QCOMPARE(readAll(QDir(directory).filePath(QStringLiteral("resources/realism-review.json"))),
+                 finalized_a->review_bytes);
+        const auto ordinary = appellate::packs::PackReader::readDirectory(
+            directory, appellate::packs::PackValidationScope::ResolvedClosure);
+        QVERIFY(ordinary.has_value());
+        QVERIFY(ordinary->revision == finalized_a->revision);
+    }
+    QCOMPARE(readAll(QDir(cli_pack_a).filePath(QStringLiteral("manifest.json"))),
+             readAll(QDir(cli_pack_b).filePath(QStringLiteral("manifest.json"))));
+    QCOMPARE(readAll(QDir(cli_pack_a).filePath(QStringLiteral("resources/realism-review.json"))),
+             readAll(QDir(cli_pack_b).filePath(QStringLiteral("resources/realism-review.json"))));
+    const auto staging_residue =
+        QDir(temporary.path())
+            .entryList({QStringLiteral(".cli-*.appellate-independent-review-*")},
+                       QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot);
+    QVERIFY(staging_residue.isEmpty());
+#endif
+
     auto affiliated_declaration = declaration;
     affiliated_declaration.insert(QStringLiteral("review_pack_id"),
                                   QStringLiteral("test.detached-review.serrano-affiliated"));
@@ -2264,6 +2779,2049 @@ void PackCliTest::finalizesIndependentReviewDeterministically() {
     QCOMPARE(rejected_subject.error().code, IndependentReviewErrorCode::InvalidHandoff);
 }
 
+void PackCliTest::enforcesIndependentReviewBoundaries_data() {
+    QTest::addColumn<int>("boundary_mode");
+    QTest::newRow("core") << 0;
+    QTest::newRow("descriptor-9999") << 1;
+    QTest::newRow("descriptor-10000") << 2;
+}
+
+void PackCliTest::enforcesIndependentReviewBoundaries() {
+    QFETCH(int, boundary_mode);
+    static_cast<void>(boundary_mode);
+    using appellate::cli::detail::IndependentReviewArtifactKind;
+    using appellate::cli::detail::IndependentReviewPublicationErrorCode;
+    using appellate::packs::ErrorCode;
+    using appellate::packs::JsonLimits;
+    using appellate::packs::SchemaValidator;
+    using appellate::packs::detail::CatalogOperandFailureCode;
+
+    struct ParserBoundary final {
+        QString name;
+        JsonLimits limits;
+    };
+    const std::array parser_boundaries{
+        ParserBoundary{QStringLiteral("handoff.json"), JsonLimits{64, 500'000}},
+        ParserBoundary{QStringLiteral("review-declaration.template.json"), JsonLimits{32, 4'096}},
+        ParserBoundary{QStringLiteral("completed declaration"), JsonLimits{32, 4'096}},
+        ParserBoundary{QStringLiteral("resources/realism-review.json"), JsonLimits{64, 200'000}},
+    };
+    for (const auto& boundary : parser_boundaries) {
+        const auto exact_depth = SchemaValidator::parseObject(
+            nestedJsonObject(boundary.limits.maximum_depth), boundary.name, boundary.limits);
+        QVERIFY2(exact_depth.has_value(),
+                 exact_depth ? "" : exact_depth.error().message.toUtf8().constData());
+        const auto excessive_depth = SchemaValidator::parseObject(
+            nestedJsonObject(boundary.limits.maximum_depth + 1), boundary.name, boundary.limits);
+        QVERIFY(!excessive_depth.has_value());
+        QCOMPARE(excessive_depth.error().code, ErrorCode::InvalidJson);
+        QVERIFY(excessive_depth.error().message.contains(
+            QStringLiteral("Maximum nesting depth exceeded")));
+
+        const auto exact_values =
+            SchemaValidator::parseObject(jsonObjectWithValueCount(boundary.limits.maximum_values),
+                                         boundary.name, boundary.limits);
+        QVERIFY2(exact_values.has_value(),
+                 exact_values ? "" : exact_values.error().message.toUtf8().constData());
+        const auto excessive_values = SchemaValidator::parseObject(
+            jsonObjectWithValueCount(boundary.limits.maximum_values + 1), boundary.name,
+            boundary.limits);
+        QVERIFY(!excessive_values.has_value());
+        QCOMPARE(excessive_values.error().code, ErrorCode::InvalidJson);
+        QVERIFY(excessive_values.error().message.contains(
+            QStringLiteral("Maximum JSON value count exceeded")));
+    }
+
+    struct StrictParserCase final {
+        QByteArray bytes;
+        ErrorCode code;
+    };
+    const std::array strict_parser_cases{
+        StrictParserCase{QByteArrayLiteral("{\"key\":1,\"key\":2}"), ErrorCode::DuplicateJsonKey},
+        StrictParserCase{QByteArrayLiteral("{\"nested\":{\"key\":1,\"key\":2}}"),
+                         ErrorCode::DuplicateJsonKey},
+        StrictParserCase{QByteArrayLiteral("{}{}"), ErrorCode::InvalidJson},
+        StrictParserCase{QByteArrayLiteral("{} trailing"), ErrorCode::InvalidJson},
+    };
+    for (const auto& parser_case : strict_parser_cases) {
+        const auto parsed = SchemaValidator::parseObject(
+            parser_case.bytes, QStringLiteral("strict independent-review representative"),
+            JsonLimits{64, 500'000});
+        QVERIFY(!parsed.has_value());
+        QCOMPARE(parsed.error().code, parser_case.code);
+    }
+
+    const auto prepare_arguments = [](const QString& catalog, const QString& destination) {
+        return QStringList{
+            QStringLiteral("prepare-independent-review"),
+            catalog,
+            QStringLiteral("test.subject"),
+            QStringLiteral("1.0.0"),
+            QString(64, u'0'),
+            QStringLiteral("test.case"),
+            destination,
+        };
+    };
+    const auto finalize_arguments = [](const QString& handoff, const QString& declaration,
+                                       const QString& catalog, const QString& destination) {
+        return QStringList{QStringLiteral("finalize-independent-review"), handoff, declaration,
+                           catalog, destination};
+    };
+
+    int provider_calls = 0;
+    const auto provider = [&provider_calls] {
+        ++provider_calls;
+        return QDate(2026, 8, 20);
+    };
+    const auto expect_invalid_arguments = [&](const QStringList& arguments,
+                                              const QString& command) {
+        const auto calls_before = provider_calls;
+        const auto result = appellate::cli::detail::runPackCli(arguments, provider);
+        requireCommandError(result, ExitCode::InvalidArguments, QStringLiteral("invalid_arguments"),
+                            command);
+        QCOMPARE(provider_calls, calls_before);
+    };
+
+    const auto missing_command = appellate::cli::detail::runPackCli({}, provider);
+    QCOMPARE(missing_command.exit_code, static_cast<int>(ExitCode::InvalidArguments));
+    QVERIFY(missing_command.standard_output.isEmpty());
+    const auto missing_command_error = responseObject(missing_command.standard_error);
+    QCOMPARE(missing_command_error.keys(),
+             QStringList({QStringLiteral("code"), QStringLiteral("message"),
+                          QStringLiteral("schema_version"), QStringLiteral("status")}));
+    QCOMPARE(missing_command_error.value(QStringLiteral("code")).toString(),
+             QStringLiteral("invalid_arguments"));
+    QCOMPARE(missing_command_error.value(QStringLiteral("schema_version")).toInt(), 1);
+    QCOMPARE(missing_command_error.value(QStringLiteral("status")).toString(),
+             QStringLiteral("error"));
+    QCOMPARE(missing_command.standard_error,
+             QJsonDocument(missing_command_error).toJson(QJsonDocument::Compact) + '\n');
+    QCOMPARE(provider_calls, 0);
+
+    for (qsizetype size = 1; size <= 8; ++size) {
+        if (size == 7) {
+            continue;
+        }
+        QStringList arguments(size, QStringLiteral("operand"));
+        arguments.front() = QStringLiteral("prepare-independent-review");
+        expect_invalid_arguments(arguments, QStringLiteral("prepare-independent-review"));
+    }
+    for (qsizetype size = 1; size <= 7; ++size) {
+        if (size == 5) {
+            continue;
+        }
+        QStringList arguments(size, QStringLiteral("operand"));
+        arguments.front() = QStringLiteral("finalize-independent-review");
+        expect_invalid_arguments(arguments, QStringLiteral("finalize-independent-review"));
+    }
+    expect_invalid_arguments({QStringLiteral("not-an-independent-review-command")},
+                             QStringLiteral("not-an-independent-review-command"));
+
+    const auto valid_prepare =
+        prepare_arguments(QStringLiteral("catalog"), QStringLiteral("new-handoff"));
+    for (qsizetype index = 1; index < valid_prepare.size(); ++index) {
+        auto arguments = valid_prepare;
+        arguments[index] = {};
+        expect_invalid_arguments(arguments, QStringLiteral("prepare-independent-review"));
+    }
+    const auto valid_finalize =
+        finalize_arguments(QStringLiteral("handoff"), QStringLiteral("declaration.json"),
+                           QStringLiteral("catalog"), QStringLiteral("new-pack"));
+    for (qsizetype index = 1; index < valid_finalize.size(); ++index) {
+        auto arguments = valid_finalize;
+        arguments[index] = {};
+        expect_invalid_arguments(arguments, QStringLiteral("finalize-independent-review"));
+    }
+
+    const std::array invalid_path_fragments{
+        QString(1, QChar::Null),
+        QString(1, QChar{0xd800}),
+        QString(1, QChar{0xdc00}),
+        QString(1, QChar::ReplacementCharacter),
+    };
+    for (const auto& fragment : invalid_path_fragments) {
+        const auto invalid_path = QStringLiteral("invalid") + fragment + QStringLiteral("path");
+        for (const auto index : {1, 6}) {
+            auto arguments = valid_prepare;
+            arguments[index] = invalid_path;
+            expect_invalid_arguments(arguments, QStringLiteral("prepare-independent-review"));
+        }
+        for (const auto index : {1, 2, 3, 4}) {
+            auto arguments = valid_finalize;
+            arguments[index] = invalid_path;
+            expect_invalid_arguments(arguments, QStringLiteral("finalize-independent-review"));
+        }
+    }
+    QCOMPARE(provider_calls, 0);
+
+    const auto repeated_path = [](qsizetype count) {
+        return QStringList(count, QStringLiteral("p")).join(u'/');
+    };
+    const auto absolute_ascii_path = [](qsizetype byte_size) {
+        QStringList components;
+        auto remaining = byte_size - 1;
+        while (remaining > 255) {
+            components.push_back(QString(255, u'p'));
+            remaining -= 256;
+        }
+        components.push_back(QString(remaining, u'p'));
+        return QStringLiteral("/") + components.join(u'/');
+    };
+    const auto exact_native_path = absolute_ascii_path(4'095);
+    const auto oversized_native_path = absolute_ascii_path(4'096);
+    QCOMPARE(QFile::encodeName(exact_native_path).size(), 4'095);
+    QCOMPARE(QFile::encodeName(oversized_native_path).size(), 4'096);
+    QVERIFY(appellate::cli::detail::validateIndependentReviewPathSpelling(exact_native_path, false)
+                .has_value());
+    QVERIFY(
+        !appellate::cli::detail::validateIndependentReviewPathSpelling(oversized_native_path, false)
+             .has_value());
+    QVERIFY(appellate::cli::detail::validateIndependentReviewPathSpelling(QString(255, u'p'), false)
+                .has_value());
+    QVERIFY(
+        !appellate::cli::detail::validateIndependentReviewPathSpelling(QString(256, u'p'), false)
+             .has_value());
+    QVERIFY(appellate::cli::detail::validateIndependentReviewPathSpelling(repeated_path(128), false)
+                .has_value());
+    QVERIFY(
+        !appellate::cli::detail::validateIndependentReviewPathSpelling(repeated_path(129), false)
+             .has_value());
+    for (const auto kind : {IndependentReviewArtifactKind::PreparedHandoff,
+                            IndependentReviewArtifactKind::FinalizedPack}) {
+        QVERIFY(appellate::cli::detail::validateIndependentReviewDestinationPath(QString(218, u'd'),
+                                                                                 kind)
+                    .has_value());
+        const auto rejected = appellate::cli::detail::validateIndependentReviewDestinationPath(
+            QString(219, u'd'), kind);
+        QVERIFY(!rejected.has_value());
+        QCOMPARE(rejected.error().code, IndependentReviewPublicationErrorCode::InvalidArguments);
+    }
+    QVERIFY(appellate::cli::detail::validateIndependentReviewDestinationPath(
+                repeated_path(127), IndependentReviewArtifactKind::PreparedHandoff)
+                .has_value());
+    QVERIFY(!appellate::cli::detail::validateIndependentReviewDestinationPath(
+                 repeated_path(128), IndependentReviewArtifactKind::PreparedHandoff)
+                 .has_value());
+    QVERIFY(appellate::cli::detail::validateIndependentReviewDestinationPath(
+                repeated_path(126), IndependentReviewArtifactKind::FinalizedPack)
+                .has_value());
+    QVERIFY(!appellate::cli::detail::validateIndependentReviewDestinationPath(
+                 repeated_path(127), IndependentReviewArtifactKind::FinalizedPack)
+                 .has_value());
+    QVERIFY(appellate::cli::detail::validateIndependentReviewHandoffPath(repeated_path(127))
+                .has_value());
+    QVERIFY(!appellate::cli::detail::validateIndependentReviewHandoffPath(repeated_path(128))
+                 .has_value());
+    QVERIFY(appellate::packs::detail::validateCatalogOperandSpelling(QStringLiteral("/") +
+                                                                     repeated_path(126))
+                .has_value());
+    const auto oversized_catalog_spelling =
+        appellate::packs::detail::validateCatalogOperandSpelling(QStringLiteral("/") +
+                                                                 repeated_path(127));
+    QVERIFY(!oversized_catalog_spelling.has_value());
+    QCOMPARE(oversized_catalog_spelling.error().code, CatalogOperandFailureCode::InvalidArguments);
+
+    int invalid_date_calls = 0;
+    const auto invalid_date_provider = [&invalid_date_calls] {
+        ++invalid_date_calls;
+        return QDate{};
+    };
+    const auto expect_date_gate = [&](const QStringList& arguments, const QString& command) {
+        const auto calls_before = invalid_date_calls;
+        const auto result = appellate::cli::detail::runPackCli(arguments, invalid_date_provider);
+        requireCommandError(result, ExitCode::OperationFailed,
+                            QStringLiteral("invalid_configuration"), command);
+        QCOMPARE(invalid_date_calls, calls_before + 1);
+    };
+    const auto expect_path_gate = [&](const QStringList& arguments, const QString& command) {
+        const auto calls_before = invalid_date_calls;
+        const auto result = appellate::cli::detail::runPackCli(arguments, invalid_date_provider);
+        requireCommandError(result, ExitCode::InvalidArguments, QStringLiteral("invalid_arguments"),
+                            command);
+        QCOMPARE(invalid_date_calls, calls_before);
+    };
+
+    expect_date_gate(prepare_arguments(QStringLiteral("catalog"), QString(218, u'd')),
+                     QStringLiteral("prepare-independent-review"));
+    expect_path_gate(prepare_arguments(QStringLiteral("catalog"), QString(219, u'd')),
+                     QStringLiteral("prepare-independent-review"));
+    expect_date_gate(prepare_arguments(QStringLiteral("catalog"), repeated_path(127)),
+                     QStringLiteral("prepare-independent-review"));
+    expect_path_gate(prepare_arguments(QStringLiteral("catalog"), repeated_path(128)),
+                     QStringLiteral("prepare-independent-review"));
+    expect_date_gate(
+        prepare_arguments(QStringLiteral("/") + repeated_path(126), QStringLiteral("new-handoff")),
+        QStringLiteral("prepare-independent-review"));
+    expect_path_gate(
+        prepare_arguments(QStringLiteral("/") + repeated_path(127), QStringLiteral("new-handoff")),
+        QStringLiteral("prepare-independent-review"));
+
+    expect_date_gate(finalize_arguments(QStringLiteral("handoff"), QString(255, u'p'),
+                                        QStringLiteral("catalog"), QStringLiteral("new-pack")),
+                     QStringLiteral("finalize-independent-review"));
+    expect_path_gate(finalize_arguments(QStringLiteral("handoff"), QString(256, u'p'),
+                                        QStringLiteral("catalog"), QStringLiteral("new-pack")),
+                     QStringLiteral("finalize-independent-review"));
+    expect_date_gate(finalize_arguments(QStringLiteral("handoff"), exact_native_path,
+                                        QStringLiteral("catalog"), QStringLiteral("new-pack")),
+                     QStringLiteral("finalize-independent-review"));
+    expect_path_gate(finalize_arguments(QStringLiteral("handoff"), oversized_native_path,
+                                        QStringLiteral("catalog"), QStringLiteral("new-pack")),
+                     QStringLiteral("finalize-independent-review"));
+    expect_date_gate(finalize_arguments(QStringLiteral("handoff"), repeated_path(128),
+                                        QStringLiteral("catalog"), QStringLiteral("new-pack")),
+                     QStringLiteral("finalize-independent-review"));
+    expect_path_gate(finalize_arguments(QStringLiteral("handoff"), repeated_path(129),
+                                        QStringLiteral("catalog"), QStringLiteral("new-pack")),
+                     QStringLiteral("finalize-independent-review"));
+    expect_date_gate(finalize_arguments(repeated_path(127), QStringLiteral("declaration.json"),
+                                        QStringLiteral("catalog"), QStringLiteral("new-pack")),
+                     QStringLiteral("finalize-independent-review"));
+    expect_path_gate(finalize_arguments(repeated_path(128), QStringLiteral("declaration.json"),
+                                        QStringLiteral("catalog"), QStringLiteral("new-pack")),
+                     QStringLiteral("finalize-independent-review"));
+    expect_date_gate(finalize_arguments(QStringLiteral("handoff"),
+                                        QStringLiteral("declaration.json"),
+                                        QStringLiteral("catalog"), repeated_path(126)),
+                     QStringLiteral("finalize-independent-review"));
+    expect_path_gate(finalize_arguments(QStringLiteral("handoff"),
+                                        QStringLiteral("declaration.json"),
+                                        QStringLiteral("catalog"), repeated_path(127)),
+                     QStringLiteral("finalize-independent-review"));
+    expect_date_gate(finalize_arguments(QStringLiteral("handoff"),
+                                        QStringLiteral("declaration-검증.json"),
+                                        QStringLiteral("catalog"), QStringLiteral("new-pack")),
+                     QStringLiteral("finalize-independent-review"));
+
+#if defined(Q_OS_LINUX)
+    QTemporaryDir relative_environment;
+    QVERIFY(relative_environment.isValid());
+    auto deep_current_directory = relative_environment.path();
+    const auto base_component_count =
+        deep_current_directory.sliced(1).split(u'/', Qt::SkipEmptyParts).size();
+    QVERIFY(base_component_count < 126);
+    for (qsizetype index = base_component_count; index < 126; ++index) {
+        deep_current_directory =
+            QDir(deep_current_directory).filePath(QStringLiteral("d%1").arg(index));
+    }
+    QVERIFY(QDir{}.mkpath(deep_current_directory));
+    const auto original_current_directory = QDir::currentPath();
+    QVERIFY(QDir::setCurrent(deep_current_directory));
+    const auto catalog_spelling =
+        appellate::packs::detail::validateCatalogOperandSpelling(QStringLiteral("catalog"));
+    const auto retained_catalog =
+        appellate::packs::detail::retainCatalogOperand(QStringLiteral("catalog"));
+    int relative_provider_calls = 0;
+    const auto relative_result = appellate::cli::detail::runPackCli(
+        prepare_arguments(QStringLiteral("catalog"), QStringLiteral("new-handoff")),
+        [&relative_provider_calls] {
+            ++relative_provider_calls;
+            return QDate(2026, 8, 20);
+        });
+    const auto restored_current_directory = QDir::setCurrent(original_current_directory);
+    QVERIFY(restored_current_directory);
+    QVERIFY(catalog_spelling.has_value());
+    QVERIFY(!retained_catalog.has_value());
+    QCOMPARE(retained_catalog.error().code, CatalogOperandFailureCode::UnsupportedEnvironment);
+    QCOMPARE(relative_provider_calls, 1);
+    requireCommandError(relative_result, ExitCode::OperationFailed,
+                        QStringLiteral("unsupported_authoring_platform"),
+                        QStringLiteral("prepare-independent-review"));
+    QVERIFY(!QFileInfo::exists(QDir(deep_current_directory).filePath(QStringLiteral("catalog"))));
+    QVERIFY(
+        !QFileInfo::exists(QDir(deep_current_directory).filePath(QStringLiteral("new-handoff"))));
+
+    QTemporaryDir input_root;
+    QVERIFY(input_root.isValid());
+    const auto handoff_directory =
+        QDir(input_root.path()).filePath(QStringLiteral("valid-handoff"));
+    QVERIFY(QDir{}.mkpath(handoff_directory));
+    const auto handoff_path = QDir(handoff_directory).filePath(QStringLiteral("handoff.json"));
+    const auto template_path =
+        QDir(handoff_directory).filePath(QStringLiteral("review-declaration.template.json"));
+    const auto declaration_path =
+        QDir(input_root.path()).filePath(QStringLiteral("completed-declaration.json"));
+    const auto empty_catalog = QDir(input_root.path()).filePath(QStringLiteral("empty-catalog"));
+    const auto absent_catalog = QDir(input_root.path()).filePath(QStringLiteral("absent-catalog"));
+    QVERIFY(QDir{}.mkpath(empty_catalog));
+    QVERIFY(writeNew(handoff_path, QByteArray("{}\n")));
+    QVERIFY(writeNew(template_path, QByteArray("{}\n")));
+    QVERIFY(writeNew(declaration_path, QByteArray("{}\n")));
+
+    const auto direct_handoff =
+        appellate::cli::detail::readIndependentReviewHandoffDirectory(handoff_directory);
+    QVERIFY(direct_handoff.has_value());
+    QCOMPARE(direct_handoff->handoff_bytes, QByteArray("{}\n"));
+    QCOMPARE(direct_handoff->declaration_template_bytes, QByteArray("{}\n"));
+    QCOMPARE(direct_handoff->protected_entry_count, std::size_t{2});
+    const auto direct_declaration =
+        appellate::cli::detail::readIndependentReviewDeclaration(declaration_path);
+    QVERIFY(direct_declaration.has_value());
+    QCOMPARE(*direct_declaration, QByteArray("{}\n"));
+
+    int input_provider_calls = 0;
+    int destination_sequence = 0;
+    const auto input_provider = [&input_provider_calls] {
+        ++input_provider_calls;
+        return input_provider_calls == 1 ? QDate(2026, 8, 20) : QDate(2026, 8, 21);
+    };
+    struct InputRun final {
+        RunResult result;
+        QString destination;
+        int provider_calls_before{};
+    };
+    const auto run_input = [&](const QString& handoff, const QString& declaration,
+                               const QString& catalog) {
+        const auto destination =
+            QDir(input_root.path())
+                .filePath(QStringLiteral("unused-destination-%1").arg(destination_sequence++));
+        const auto calls_before = input_provider_calls;
+        const auto result = appellate::cli::detail::runPackCli(
+            finalize_arguments(handoff, declaration, catalog, destination), input_provider);
+        return InputRun{result, destination, calls_before};
+    };
+    const auto expect_input_error = [&](const QString& handoff, const QString& declaration,
+                                        const QString& code) {
+        const auto run = run_input(handoff, declaration, empty_catalog);
+        QCOMPARE(input_provider_calls, run.provider_calls_before + 1);
+        QVERIFY(!QFileInfo::exists(run.destination));
+        requireCommandError(run.result, ExitCode::InvalidPack, code,
+                            QStringLiteral("finalize-independent-review"));
+    };
+    const auto expect_catalog_gate = [&] {
+        const auto run = run_input(handoff_directory, declaration_path, empty_catalog);
+        QCOMPARE(input_provider_calls, run.provider_calls_before + 1);
+        QVERIFY(!QFileInfo::exists(run.destination));
+        requireCommandError(run.result, ExitCode::OperationFailed,
+                            QStringLiteral("uninitialized_catalog"),
+                            QStringLiteral("finalize-independent-review"));
+    };
+    const auto missing_catalog_run = run_input(handoff_directory, declaration_path, absent_catalog);
+    QCOMPARE(input_provider_calls, missing_catalog_run.provider_calls_before + 1);
+    QVERIFY(!QFileInfo::exists(missing_catalog_run.destination));
+    requireCommandError(missing_catalog_run.result, ExitCode::OperationFailed,
+                        QStringLiteral("cannot_open_catalog"),
+                        QStringLiteral("finalize-independent-review"));
+    QVERIFY(!QFileInfo::exists(absent_catalog));
+
+    expect_input_error(QDir(input_root.path()).filePath(QStringLiteral("missing-handoff")),
+                       declaration_path, QStringLiteral("invalid_handoff"));
+    const auto extra_path = QDir(handoff_directory).filePath(QStringLiteral("extra.json"));
+    QVERIFY(writeNew(extra_path, QByteArray("{}\n")));
+    expect_input_error(handoff_directory, declaration_path, QStringLiteral("invalid_handoff"));
+    QVERIFY(QFile::remove(extra_path));
+
+    const auto saved_template = readAll(template_path);
+    QVERIFY(QFile::remove(template_path));
+    expect_input_error(handoff_directory, declaration_path, QStringLiteral("invalid_handoff"));
+    QVERIFY(writeNew(template_path, saved_template));
+
+    const auto symlink_handoff =
+        QDir(input_root.path()).filePath(QStringLiteral("symlink-handoff"));
+    QVERIFY(QDir{}.mkpath(symlink_handoff));
+    QVERIFY(writeNew(QDir(symlink_handoff).filePath(QStringLiteral("handoff.json")),
+                     QByteArray("{}\n")));
+    QCOMPARE(
+        ::symlink(
+            QFile::encodeName(template_path).constData(),
+            QFile::encodeName(
+                QDir(symlink_handoff).filePath(QStringLiteral("review-declaration.template.json")))
+                .constData()),
+        0);
+    const auto rejected_symlink_handoff =
+        appellate::cli::detail::readIndependentReviewHandoffDirectory(symlink_handoff);
+    QVERIFY(!rejected_symlink_handoff.has_value());
+    QCOMPARE(rejected_symlink_handoff.error().code,
+             IndependentReviewPublicationErrorCode::InvalidStagedArtifact);
+    expect_input_error(symlink_handoff, declaration_path, QStringLiteral("invalid_handoff"));
+
+    const auto hardlink_handoff =
+        QDir(input_root.path()).filePath(QStringLiteral("hardlink-handoff"));
+    QVERIFY(QDir{}.mkpath(hardlink_handoff));
+    QVERIFY(writeNew(QDir(hardlink_handoff).filePath(QStringLiteral("handoff.json")),
+                     QByteArray("{}\n")));
+    const auto hardlink_source =
+        QDir(input_root.path()).filePath(QStringLiteral("template-hardlink-source"));
+    QVERIFY(writeNew(hardlink_source, QByteArray("{}\n")));
+    QCOMPARE(
+        ::link(
+            QFile::encodeName(hardlink_source).constData(),
+            QFile::encodeName(
+                QDir(hardlink_handoff).filePath(QStringLiteral("review-declaration.template.json")))
+                .constData()),
+        0);
+    const auto rejected_hardlink_handoff =
+        appellate::cli::detail::readIndependentReviewHandoffDirectory(hardlink_handoff);
+    QVERIFY(!rejected_hardlink_handoff.has_value());
+    QCOMPARE(rejected_hardlink_handoff.error().code,
+             IndependentReviewPublicationErrorCode::InvalidStagedArtifact);
+    expect_input_error(hardlink_handoff, declaration_path, QStringLiteral("invalid_handoff"));
+
+    expect_input_error(handoff_directory,
+                       QDir(input_root.path()).filePath(QStringLiteral("missing-declaration.json")),
+                       QStringLiteral("invalid_declaration"));
+    const auto declaration_directory =
+        QDir(input_root.path()).filePath(QStringLiteral("declaration-directory"));
+    QVERIFY(QDir{}.mkpath(declaration_directory));
+    expect_input_error(handoff_directory, declaration_directory,
+                       QStringLiteral("invalid_declaration"));
+    const auto declaration_symlink =
+        QDir(input_root.path()).filePath(QStringLiteral("declaration-symlink.json"));
+    QCOMPARE(::symlink(QFile::encodeName(declaration_path).constData(),
+                       QFile::encodeName(declaration_symlink).constData()),
+             0);
+    const auto rejected_declaration_symlink =
+        appellate::cli::detail::readIndependentReviewDeclaration(declaration_symlink);
+    QVERIFY(!rejected_declaration_symlink.has_value());
+    QCOMPARE(rejected_declaration_symlink.error().code,
+             IndependentReviewPublicationErrorCode::InvalidStagedArtifact);
+    expect_input_error(handoff_directory, declaration_symlink,
+                       QStringLiteral("invalid_declaration"));
+    const auto declaration_hardlink =
+        QDir(input_root.path()).filePath(QStringLiteral("declaration-hardlink.json"));
+    QCOMPARE(::link(QFile::encodeName(declaration_path).constData(),
+                    QFile::encodeName(declaration_hardlink).constData()),
+             0);
+    const auto rejected_declaration_hardlink =
+        appellate::cli::detail::readIndependentReviewDeclaration(declaration_hardlink);
+    QVERIFY(!rejected_declaration_hardlink.has_value());
+    QCOMPARE(rejected_declaration_hardlink.error().code,
+             IndependentReviewPublicationErrorCode::InvalidStagedArtifact);
+    expect_input_error(handoff_directory, declaration_hardlink,
+                       QStringLiteral("invalid_declaration"));
+    QVERIFY(QFile::remove(declaration_hardlink));
+
+    QCOMPARE(::chmod(QFile::encodeName(declaration_path).constData(), 0444), 0);
+    QVERIFY(appellate::cli::detail::readIndependentReviewDeclaration(declaration_path).has_value());
+    expect_catalog_gate();
+    QCOMPARE(::chmod(QFile::encodeName(declaration_path).constData(), 0644), 0);
+    QVERIFY(appellate::cli::detail::readIndependentReviewDeclaration(declaration_path).has_value());
+    expect_catalog_gate();
+
+    constexpr qsizetype maximum_handoff_bytes = 16 * 1024 * 1024;
+    constexpr qsizetype maximum_template_bytes = 1024 * 1024;
+    constexpr qsizetype maximum_declaration_bytes = 2 * 1024 * 1024;
+    QVERIFY(overwriteAll(handoff_path, QByteArray(maximum_handoff_bytes, ' ')));
+    QVERIFY(appellate::cli::detail::readIndependentReviewHandoffDirectory(handoff_directory)
+                .has_value());
+    expect_catalog_gate();
+    QVERIFY(overwriteAll(handoff_path, QByteArray(maximum_handoff_bytes + 1, ' ')));
+    const auto rejected_oversized_handoff =
+        appellate::cli::detail::readIndependentReviewHandoffDirectory(handoff_directory);
+    QVERIFY(!rejected_oversized_handoff.has_value());
+    QCOMPARE(rejected_oversized_handoff.error().code,
+             IndependentReviewPublicationErrorCode::InvalidStagedArtifact);
+    expect_input_error(handoff_directory, declaration_path, QStringLiteral("invalid_handoff"));
+    QVERIFY(overwriteAll(handoff_path, QByteArray("{}\n")));
+
+    QVERIFY(overwriteAll(template_path, QByteArray(maximum_template_bytes, ' ')));
+    QVERIFY(appellate::cli::detail::readIndependentReviewHandoffDirectory(handoff_directory)
+                .has_value());
+    expect_catalog_gate();
+    QVERIFY(overwriteAll(template_path, QByteArray(maximum_template_bytes + 1, ' ')));
+    const auto rejected_oversized_template =
+        appellate::cli::detail::readIndependentReviewHandoffDirectory(handoff_directory);
+    QVERIFY(!rejected_oversized_template.has_value());
+    QCOMPARE(rejected_oversized_template.error().code,
+             IndependentReviewPublicationErrorCode::InvalidStagedArtifact);
+    expect_input_error(handoff_directory, declaration_path, QStringLiteral("invalid_handoff"));
+    QVERIFY(overwriteAll(template_path, QByteArray("{}\n")));
+
+    QVERIFY(overwriteAll(declaration_path, QByteArray(maximum_declaration_bytes, ' ')));
+    QVERIFY(appellate::cli::detail::readIndependentReviewDeclaration(declaration_path).has_value());
+    expect_catalog_gate();
+    QVERIFY(overwriteAll(declaration_path, QByteArray(maximum_declaration_bytes + 1, ' ')));
+    const auto rejected_oversized_declaration =
+        appellate::cli::detail::readIndependentReviewDeclaration(declaration_path);
+    QVERIFY(!rejected_oversized_declaration.has_value());
+    QCOMPARE(rejected_oversized_declaration.error().code,
+             IndependentReviewPublicationErrorCode::InvalidStagedArtifact);
+    expect_input_error(handoff_directory, declaration_path, QStringLiteral("invalid_declaration"));
+
+    using appellate::model::PackId;
+    using appellate::model::PackRevision;
+    using appellate::packs::IndependentReviewErrorCode;
+    using appellate::packs::IndependentReviewFinalizeInput;
+    using appellate::packs::IndependentReviewPrepareInput;
+    using appellate::packs::PackArchive;
+    using appellate::packs::PackCatalog;
+    using appellate::packs::PackCatalogSnapshot;
+    using appellate::packs::PackReader;
+    using appellate::packs::PackValidationScope;
+
+    QTemporaryDir semantic_root;
+    QVERIFY(semantic_root.isValid());
+    const auto semantic_catalog_path =
+        QDir(semantic_root.path()).filePath(QStringLiteral("catalog"));
+    auto opened_semantic_catalog = PackCatalog::open(semantic_catalog_path);
+    QVERIFY2(opened_semantic_catalog.has_value(),
+             opened_semantic_catalog
+                 ? ""
+                 : opened_semantic_catalog.error().message.toUtf8().constData());
+    auto semantic_catalog = std::move(*opened_semantic_catalog);
+    for (const auto& archive : independentReviewDependencyArchives()) {
+        const auto installed =
+            semantic_catalog->installArchive(archive, QStringLiteral("2026-08-20T00:00:00Z"));
+        QVERIFY2(installed.has_value(),
+                 installed ? "" : installed.error().message.toUtf8().constData());
+    }
+    const auto& semantic_fixture = independent_review_fixtures.back();
+    const auto installed_subject = semantic_catalog->installArchive(
+        sourcePath(semantic_fixture.archive_relative_path), QStringLiteral("2026-08-20T00:00:00Z"));
+    QVERIFY2(installed_subject.has_value(),
+             installed_subject ? "" : installed_subject.error().message.toUtf8().constData());
+    const PackRevision semantic_subject{PackId{semantic_fixture.pack_id}, semantic_fixture.version,
+                                        semantic_fixture.revision};
+    QVERIFY(installed_subject->revision == semantic_subject);
+
+    const auto boundary_template_directory =
+        QDir(semantic_root.path()).filePath(QStringLiteral("boundary-template"));
+    requireSuccess(runPackCli({QStringLiteral("template"), boundary_template_directory}),
+                   QStringLiteral("template"));
+    const auto boundary_template = PackReader::readDirectory(boundary_template_directory);
+    QVERIFY2(boundary_template.has_value(),
+             boundary_template ? "" : boundary_template.error().message.toUtf8().constData());
+    const auto boundary_traces = executedTraces(*boundary_template, 257);
+    QVERIFY(boundary_traces.has_value());
+    QCOMPARE(boundary_traces->size(), 257);
+    const auto empty_trace_authoring = appellate::packs::authorRealismEvidence(
+        *semantic_catalog,
+        appellate::packs::RealismEvidenceTraceSetAuthoringInput{
+            boundary_template_directory,
+            QStringLiteral("test.boundary.review.empty"),
+            {},
+            appellate::packs::RealismEvidenceTraceSetProfile::MultiTraceProductionV1});
+    QVERIFY(!empty_trace_authoring.has_value());
+    QCOMPARE(empty_trace_authoring.error().code,
+             appellate::packs::RealismEvidenceAuthoringErrorCode::InvalidInput);
+    const auto excessive_trace_authoring = appellate::packs::authorRealismEvidence(
+        *semantic_catalog,
+        appellate::packs::RealismEvidenceTraceSetAuthoringInput{
+            boundary_template_directory, QStringLiteral("test.boundary.review.excessive"),
+            *boundary_traces,
+            appellate::packs::RealismEvidenceTraceSetProfile::MultiTraceProductionV1});
+    QVERIFY(!excessive_trace_authoring.has_value());
+    QCOMPARE(excessive_trace_authoring.error().code,
+             appellate::packs::RealismEvidenceAuthoringErrorCode::InvalidInput);
+
+    const auto judge_prototype =
+        std::ranges::find_if(boundary_template->resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::JudgeProfile;
+        });
+    QVERIFY(judge_prototype != boundary_template->resources.end());
+    const auto record_prototype =
+        std::ranges::find_if(boundary_template->resources, [](const auto& resource) {
+            return resource.descriptor.kind == appellate::model::ResourceKind::Record;
+        });
+    QVERIFY(record_prototype != boundary_template->resources.end());
+
+    const auto export_boundary_directory =
+        [&](const QString& fixture_root, const QString& directory,
+            const QString& slug) -> std::expected<PackRevision, QString> {
+        const auto archive = QDir(fixture_root).filePath(QStringLiteral("%1.awpack").arg(slug));
+        const auto exported = PackArchive::exportDirectory(directory, archive, {},
+                                                           PackValidationScope::ResolvedClosure);
+        if (!exported) {
+            return std::unexpected(
+                QStringLiteral("Cannot export %1: %2").arg(slug, exported.error().message));
+        }
+        return *exported;
+    };
+    const auto install_boundary_directory =
+        [&](PackCatalog& catalog, const QString& fixture_root, const QString& directory,
+            const QString& slug) -> std::expected<PackRevision, QString> {
+        const auto exported = export_boundary_directory(fixture_root, directory, slug);
+        if (!exported) {
+            return std::unexpected(exported.error());
+        }
+        const auto archive = QDir(fixture_root).filePath(QStringLiteral("%1.awpack").arg(slug));
+        const auto installed =
+            catalog.installArchive(archive, QStringLiteral("2026-08-20T00:00:00Z"));
+        if (!installed) {
+            return std::unexpected(
+                QStringLiteral("Cannot install %1: %2").arg(slug, installed.error().message));
+        }
+        if (installed->revision != *exported) {
+            return std::unexpected(QStringLiteral("Installed revision differs for %1").arg(slug));
+        }
+        return *exported;
+    };
+
+    const auto build_filler = [&](PackCatalog* catalog, const QString& fixture_root,
+                                  const QString& slug, qsizetype resource_count,
+                                  qsizetype blob_count =
+                                      0) -> std::expected<PackRevision, QString> {
+        const auto directory = QDir(fixture_root).filePath(QStringLiteral("fixture-%1").arg(slug));
+        if (!QDir{}.mkpath(directory) ||
+            (resource_count > 0 &&
+             !QDir{}.mkpath(QDir(directory).filePath(QStringLiteral("resources")))) ||
+            (blob_count > 0 &&
+             !QDir{}.mkpath(QDir(directory).filePath(QStringLiteral("objects"))))) {
+            return std::unexpected(QStringLiteral("Cannot create filler %1").arg(slug));
+        }
+        const QByteArray blob_bytes("%PDF-1.7\n%%EOF\n");
+        const auto blob_digest = sha256(blob_bytes);
+        QJsonArray contents;
+        for (qsizetype index = 0; index < resource_count; ++index) {
+            const auto is_blob_record = blob_count > 0 && index == 0;
+            auto document = is_blob_record ? record_prototype->document : judge_prototype->document;
+            const auto resource_id = is_blob_record
+                                         ? QStringLiteral("test.boundary.record.%1").arg(slug)
+                                         : QStringLiteral("test.boundary.judge.%1.j%2")
+                                               .arg(slug)
+                                               .arg(index, 5, 10, u'0');
+            const auto path = is_blob_record
+                                  ? QStringLiteral("resources/record.json")
+                                  : QStringLiteral("resources/j%1.json").arg(index, 5, 10, u'0');
+            document.insert(QStringLiteral("resource_id"), resource_id);
+            if (is_blob_record) {
+                auto dockets = document.value(QStringLiteral("dockets")).toArray();
+                for (qsizetype docket_index = 0; docket_index < dockets.size(); ++docket_index) {
+                    auto docket = dockets.at(docket_index).toObject();
+                    docket.remove(QStringLiteral("court_id"));
+                    dockets.replace(docket_index, docket);
+                }
+                document.insert(QStringLiteral("dockets"), dockets);
+                const auto prototype_entries =
+                    record_prototype->document.value(QStringLiteral("docket_entries")).toArray();
+                if (prototype_entries.isEmpty()) {
+                    return std::unexpected(
+                        QStringLiteral("Filler record prototype has no docket entry"));
+                }
+                const auto prototype_entry = prototype_entries.first().toObject();
+                QJsonArray entries;
+                for (qsizetype blob_index = 0; blob_index < blob_count; ++blob_index) {
+                    auto entry = prototype_entry;
+                    entry.remove(QStringLiteral("parent_entry_id"));
+                    entry.remove(QStringLiteral("relationship"));
+                    entry.insert(QStringLiteral("entry_id"),
+                                 QStringLiteral("test.boundary.entry.%1.e%2")
+                                     .arg(slug)
+                                     .arg(blob_index, 5, 10, u'0'));
+                    entry.insert(QStringLiteral("entry_number"), blob_index + 1);
+                    entry.insert(QStringLiteral("entry_label"),
+                                 QStringLiteral("BOUNDARY-%1").arg(blob_index, 5, 10, u'0'));
+                    entry.insert(QStringLiteral("asset_path"),
+                                 QStringLiteral("objects/b%1.pdf").arg(blob_index, 5, 10, u'0'));
+                    entry.insert(QStringLiteral("asset_sha256"), blob_digest);
+                    entries.push_back(entry);
+                }
+                document.insert(QStringLiteral("docket_entries"), entries);
+                document.insert(QStringLiteral("page_anchors"), QJsonArray{});
+            }
+            const auto bytes = QJsonDocument(document).toJson(QJsonDocument::Compact);
+            if (!writeNew(QDir(directory).filePath(path), bytes)) {
+                return std::unexpected(
+                    QStringLiteral("Cannot write filler %1 resource %2").arg(slug).arg(index));
+            }
+            contents.push_back(QJsonObject{
+                {QStringLiteral("id"), resource_id},
+                {QStringLiteral("kind"),
+                 is_blob_record ? QStringLiteral("record") : QStringLiteral("judge_profile")},
+                {QStringLiteral("schema_version"), 2},
+                {QStringLiteral("path"), path},
+                {QStringLiteral("sha256"), sha256(bytes)},
+            });
+        }
+        QJsonArray blobs;
+        for (qsizetype index = 0; index < blob_count; ++index) {
+            const auto path = QStringLiteral("objects/b%1.pdf").arg(index, 5, 10, u'0');
+            if (!writeNew(QDir(directory).filePath(path), blob_bytes)) {
+                return std::unexpected(
+                    QStringLiteral("Cannot write filler %1 blob %2").arg(slug).arg(index));
+            }
+            blobs.push_back(QJsonObject{
+                {QStringLiteral("path"), path},
+                {QStringLiteral("media_type"), QStringLiteral("application/pdf")},
+                {QStringLiteral("byte_size"), blob_bytes.size()},
+                {QStringLiteral("sha256"), blob_digest},
+            });
+        }
+        QJsonArray capabilities{
+            QJsonObject{
+                {QStringLiteral("id"), QStringLiteral("workbench.pack.declarative-resources")},
+                {QStringLiteral("version"), 2},
+            },
+        };
+        if (resource_count > (blob_count > 0 ? 1 : 0)) {
+            capabilities.push_back(QJsonObject{
+                {QStringLiteral("id"), QStringLiteral("workbench.pack.judge-profile")},
+                {QStringLiteral("version"), 2},
+            });
+            capabilities.push_back(QJsonObject{
+                {QStringLiteral("id"), QStringLiteral("workbench.pack.voice-style")},
+                {QStringLiteral("version"), 2},
+            });
+        }
+        const QJsonObject manifest{
+            {QStringLiteral("schema_version"), 2},
+            {QStringLiteral("pack_id"), QStringLiteral("test.boundary.pack.%1").arg(slug)},
+            {QStringLiteral("version"), QStringLiteral("1.0.0")},
+            {QStringLiteral("required_capabilities"), capabilities},
+            {QStringLiteral("dependencies"), QJsonArray{}},
+            {QStringLiteral("blobs"), blobs},
+            {QStringLiteral("contents"), contents},
+        };
+        if (!writeNew(QDir(directory).filePath(QStringLiteral("manifest.json")),
+                      jsonBytes(manifest))) {
+            return std::unexpected(QStringLiteral("Cannot write filler %1 manifest").arg(slug));
+        }
+        return catalog != nullptr
+                   ? install_boundary_directory(*catalog, fixture_root, directory, slug)
+                   : export_boundary_directory(fixture_root, directory, slug);
+    };
+
+    struct BoundarySubject final {
+        QString slug;
+        PackRevision revision;
+        QString case_id;
+        QString review_id;
+    };
+    const auto build_subject =
+        [&](PackCatalog& catalog, const QString& fixture_root, const QString& slug,
+            const QJsonArray& traces, const std::vector<PackRevision>& dependencies,
+            qsizetype additional_latent_blobs = 0,
+            bool zero_provenance = false) -> std::expected<BoundarySubject, QString> {
+        const auto directory = QDir(fixture_root).filePath(QStringLiteral("subject-%1").arg(slug));
+        if (!copyTree(boundary_template_directory, directory)) {
+            return std::unexpected(QStringLiteral("Cannot copy subject %1").arg(slug));
+        }
+        const auto manifest_path = QDir(directory).filePath(QStringLiteral("manifest.json"));
+        auto manifest = responseObject(readAll(manifest_path));
+        if (manifest.isEmpty()) {
+            return std::unexpected(QStringLiteral("Cannot read subject %1 manifest").arg(slug));
+        }
+        manifest.insert(QStringLiteral("pack_id"),
+                        QStringLiteral("test.boundary.subject.%1").arg(slug));
+        manifest.insert(QStringLiteral("version"), QStringLiteral("1.0.0"));
+        QJsonArray dependency_values;
+        for (const auto& revision : dependencies) {
+            dependency_values.push_back(QJsonObject{
+                {QStringLiteral("pack_id"), QString::fromStdString(revision.id.value)},
+                {QStringLiteral("version"), QString::fromStdString(revision.version)},
+                {QStringLiteral("sha256"), QString::fromStdString(revision.digest)},
+            });
+        }
+        manifest.insert(QStringLiteral("dependencies"), dependency_values);
+        if (!overwriteAll(manifest_path, jsonBytes(manifest))) {
+            return std::unexpected(QStringLiteral("Cannot update subject %1 manifest").arg(slug));
+        }
+
+        if (additional_latent_blobs > 0) {
+            auto record_document = record_prototype->document;
+            auto entries = record_document.value(QStringLiteral("docket_entries")).toArray();
+            auto blobs = manifest.value(QStringLiteral("blobs")).toArray();
+            if (entries.isEmpty() || blobs.isEmpty()) {
+                return std::unexpected(
+                    QStringLiteral("Subject %1 record/blob prototype is empty").arg(slug));
+            }
+            const auto entry_prototype = entries.first().toObject();
+            const auto blob_prototype = blobs.first().toObject();
+            const auto prototype_path = blob_prototype.value(QStringLiteral("path")).toString();
+            for (qsizetype index = 0; index < additional_latent_blobs; ++index) {
+                const auto blob_path =
+                    QStringLiteral("objects/latent-%1.pdf").arg(index, 4, 10, u'0');
+                if (!QFile::copy(QDir(directory).filePath(prototype_path),
+                                 QDir(directory).filePath(blob_path))) {
+                    return std::unexpected(QStringLiteral("Cannot copy subject %1 latent blob %2")
+                                               .arg(slug)
+                                               .arg(index));
+                }
+                auto blob = blob_prototype;
+                blob.insert(QStringLiteral("path"), blob_path);
+                blobs.push_back(blob);
+
+                auto entry = entry_prototype;
+                entry.insert(QStringLiteral("entry_id"),
+                             QStringLiteral("test.boundary.record.%1.e%2")
+                                 .arg(slug)
+                                 .arg(index, 4, 10, u'0'));
+                entry.insert(QStringLiteral("entry_number"), 10'000 + index);
+                entry.insert(QStringLiteral("entry_label"),
+                             QStringLiteral("LATENT-%1").arg(index, 4, 10, u'0'));
+                entry.insert(QStringLiteral("asset_path"), blob_path);
+                entries.push_back(entry);
+            }
+            manifest.insert(QStringLiteral("blobs"), blobs);
+            if (!overwriteAll(manifest_path, jsonBytes(manifest))) {
+                return std::unexpected(
+                    QStringLiteral("Cannot update subject %1 blob manifest").arg(slug));
+            }
+            record_document.insert(QStringLiteral("docket_entries"), entries);
+            if (!replaceResourceAndDigest(
+                    directory, QString::fromStdString(record_prototype->descriptor.path),
+                    QString::fromStdString(record_prototype->descriptor.id), record_document)) {
+                return std::unexpected(
+                    QStringLiteral("Cannot augment subject %1 record blobs").arg(slug));
+            }
+        }
+
+        QJsonObject dimensions;
+        for (const auto& name :
+             {QStringLiteral("procedural_law"), QStringLiteral("deadlines_authority"),
+              QStringLiteral("record_consistency"), QStringLiteral("consequences"),
+              QStringLiteral("oral_argument"), QStringLiteral("bench_differentiation"),
+              QStringLiteral("provenance")}) {
+            dimensions.insert(name,
+                              name == QStringLiteral("provenance") && zero_provenance ? 0 : 2);
+        }
+        const auto review_id = QStringLiteral("test.boundary.review.%1").arg(slug);
+        const QJsonObject scaffold{
+            {QStringLiteral("schema_version"), 2},
+            {QStringLiteral("resource_kind"), QStringLiteral("realism_review")},
+            {QStringLiteral("resource_id"), review_id},
+            {QStringLiteral("case_id"), QStringLiteral("example.case.fictional")},
+            {QStringLiteral("review_state"), QStringLiteral("independent_review_pending")},
+            {QStringLiteral("reviewed_on"), QStringLiteral("2026-08-20")},
+            {QStringLiteral("reviewer_reference"), QStringLiteral("TEST-ONLY boundary source")},
+            {QStringLiteral("reviewer"),
+             QJsonObject{
+                 {QStringLiteral("reviewer_id"), QStringLiteral("test.boundary.source-reviewer")},
+                 {QStringLiteral("display_name"), QStringLiteral("TEST-ONLY source reviewer")},
+                 {QStringLiteral("qualification"), QStringLiteral("Synthetic boundary fixture")},
+                 {QStringLiteral("affiliation"), QStringLiteral("TEST-ONLY fixture project")},
+             }},
+            {QStringLiteral("dimensions"), dimensions},
+            {QStringLiteral("known_uncertainty"), QJsonArray{}},
+        };
+        if (!attachRealismScaffold(directory, scaffold)) {
+            return std::unexpected(QStringLiteral("Cannot scaffold subject %1").arg(slug));
+        }
+        const auto authored = appellate::packs::authorRealismEvidence(
+            catalog, appellate::packs::RealismEvidenceTraceSetAuthoringInput{
+                         directory, review_id, traces,
+                         appellate::packs::RealismEvidenceTraceSetProfile::MultiTraceProductionV1});
+        if (!authored) {
+            return std::unexpected(
+                QStringLiteral("Cannot author subject %1: %2").arg(slug, authored.error().message));
+        }
+        if (!overwriteAll(QDir(directory).filePath(authored->review_path),
+                          authored->review_bytes) ||
+            !overwriteAll(manifest_path, authored->manifest_bytes)) {
+            return std::unexpected(QStringLiteral("Cannot publish subject %1 bytes").arg(slug));
+        }
+        const auto revision = install_boundary_directory(catalog, fixture_root, directory,
+                                                         QStringLiteral("source-%1").arg(slug));
+        if (!revision) {
+            return std::unexpected(revision.error());
+        }
+        if (*revision != authored->root_revision) {
+            return std::unexpected(QStringLiteral("Authored revision differs for %1").arg(slug));
+        }
+        return BoundarySubject{slug, *revision, QStringLiteral("example.case.fictional"),
+                               review_id};
+    };
+
+    const QJsonArray one_trace{boundary_traces->first()};
+    QJsonArray traces_256;
+    for (qsizetype index = 255; index >= 0; --index) {
+        traces_256.push_back(boundary_traces->at(index));
+    }
+    const auto trace_one_subject = build_subject(*semantic_catalog, semantic_root.path(),
+                                                 QStringLiteral("trace-1"), one_trace, {});
+    QVERIFY2(trace_one_subject.has_value(),
+             trace_one_subject ? "" : trace_one_subject.error().toUtf8().constData());
+    const auto loaded_trace_one = semantic_catalog->loadResolved(trace_one_subject->revision);
+    QVERIFY2(loaded_trace_one.has_value(),
+             loaded_trace_one ? "" : loaded_trace_one.error().message.toUtf8().constData());
+    const auto* trace_one_review =
+        findReview(loaded_trace_one->root(), trace_one_subject->review_id);
+    QVERIFY(trace_one_review != nullptr);
+    const auto base_provenance = trace_one_review->document.value(QStringLiteral("evidence"))
+                                     .toObject()
+                                     .value(QStringLiteral("dimension_evidence"))
+                                     .toObject()
+                                     .value(QStringLiteral("provenance"))
+                                     .toArray()
+                                     .size();
+    QVERIFY(base_provenance > 0);
+    QVERIFY(base_provenance < 512);
+
+    const auto trace_256_subject = build_subject(*semantic_catalog, semantic_root.path(),
+                                                 QStringLiteral("trace-256"), traces_256, {});
+    QVERIFY2(trace_256_subject.has_value(),
+             trace_256_subject ? "" : trace_256_subject.error().toUtf8().constData());
+    const auto latent_512_subject =
+        build_subject(*semantic_catalog, semantic_root.path(), QStringLiteral("latent-512"),
+                      one_trace, {}, 512 - base_provenance, true);
+    QVERIFY2(latent_512_subject.has_value(),
+             latent_512_subject ? "" : latent_512_subject.error().toUtf8().constData());
+    const auto latent_513_subject =
+        build_subject(*semantic_catalog, semantic_root.path(), QStringLiteral("latent-513"),
+                      one_trace, {}, 513 - base_provenance, true);
+    QVERIFY2(latent_513_subject.has_value(),
+             latent_513_subject ? "" : latent_513_subject.error().toUtf8().constData());
+
+    semantic_catalog.reset();
+
+    auto opened_semantic_snapshot = PackCatalogSnapshot::openExisting(semantic_catalog_path);
+    QVERIFY2(opened_semantic_snapshot.has_value(),
+             opened_semantic_snapshot
+                 ? ""
+                 : opened_semantic_snapshot.error().message.toUtf8().constData());
+    auto semantic_snapshot = std::move(*opened_semantic_snapshot);
+
+    struct SeedArchive final {
+        PackRevision revision;
+        QString path;
+    };
+    const auto empty_blob_set_digest = [](const PackRevision& revision) {
+        QCryptographicHash hash(QCryptographicHash::Sha256);
+        addFrame(hash, QStringLiteral("appellate-workbench-catalog-blob-set-v1"));
+        addFrame(hash, QString::fromStdString(revision.id.value));
+        addFrame(hash, QString::fromStdString(revision.version));
+        addFrame(hash, QString::fromStdString(revision.digest));
+        addUint64(hash, 0);
+        return QString::fromLatin1(hash.result().toHex());
+    };
+    const auto seed_zero_blob_archives =
+        [&](const QString& catalog_root,
+            const std::vector<SeedArchive>& archives) -> std::expected<void, QString> {
+        const auto connection_name = QStringLiteral("independent-boundary-seed-%1")
+                                         .arg(QUuid::createUuid().toString(QUuid::Id128));
+        bool succeeded = true;
+        {
+            auto database = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connection_name);
+            database.setDatabaseName(QDir(catalog_root).filePath(QStringLiteral("catalog.sqlite")));
+            succeeded = database.open();
+            QSqlQuery foreign_keys(database);
+            succeeded = succeeded && foreign_keys.exec(QStringLiteral("PRAGMA foreign_keys = ON"));
+            QSqlQuery transaction(database);
+            succeeded = succeeded && transaction.exec(QStringLiteral("BEGIN IMMEDIATE"));
+            for (const auto& archive : archives) {
+                if (!succeeded) {
+                    break;
+                }
+                const auto archive_bytes = readAll(archive.path);
+                const auto archive_sha = sha256(archive_bytes);
+                const auto destination =
+                    QDir(catalog_root)
+                        .filePath(QStringLiteral("archives/%1.awpack").arg(archive_sha));
+                if (archive_bytes.isEmpty() ||
+                    (!QFileInfo::exists(destination) && !QFile::copy(archive.path, destination))) {
+                    succeeded = false;
+                    break;
+                }
+                QSqlQuery pack(database);
+                pack.prepare(QStringLiteral(
+                    "INSERT INTO pack_revisions(pack_id, version, digest, archive_sha256, "
+                    "installed_at_utc) VALUES(?, ?, ?, ?, ?)"));
+                pack.addBindValue(QString::fromStdString(archive.revision.id.value));
+                pack.addBindValue(QString::fromStdString(archive.revision.version));
+                pack.addBindValue(QString::fromStdString(archive.revision.digest));
+                pack.addBindValue(archive_sha);
+                pack.addBindValue(QStringLiteral("2026-08-20T00:00:00Z"));
+                succeeded = pack.exec();
+                QSqlQuery blob_set(database);
+                blob_set.prepare(QStringLiteral(
+                    "INSERT INTO pack_blob_sets(pack_id, version, blob_count, descriptor_sha256) "
+                    "VALUES(?, ?, 0, ?)"));
+                blob_set.addBindValue(QString::fromStdString(archive.revision.id.value));
+                blob_set.addBindValue(QString::fromStdString(archive.revision.version));
+                blob_set.addBindValue(empty_blob_set_digest(archive.revision));
+                succeeded = succeeded && blob_set.exec();
+            }
+            QSqlQuery finish(database);
+            succeeded = succeeded && finish.exec(QStringLiteral("COMMIT"));
+            if (!succeeded) {
+                QSqlQuery rollback(database);
+                static_cast<void>(rollback.exec(QStringLiteral("ROLLBACK")));
+            }
+            database.close();
+        }
+        QSqlDatabase::removeDatabase(connection_name);
+        if (!succeeded) {
+            return std::unexpected(QStringLiteral("Cannot bulk-seed revision boundary catalog"));
+        }
+        return {};
+    };
+
+    QTemporaryDir revision_root;
+    QVERIFY(revision_root.isValid());
+    const auto revision_catalog_path =
+        QDir(revision_root.path()).filePath(QStringLiteral("catalog"));
+    {
+        auto initialized = PackCatalog::open(revision_catalog_path);
+        QVERIFY2(initialized.has_value(),
+                 initialized ? "" : initialized.error().message.toUtf8().constData());
+    }
+    std::vector<PackRevision> revision_fillers;
+    std::vector<SeedArchive> revision_seed_archives;
+    revision_fillers.reserve(127);
+    revision_seed_archives.reserve(127);
+    for (qsizetype index = 0; index < 127; ++index) {
+        const auto slug = QStringLiteral("revision-filler-%1").arg(index, 3, 10, u'0');
+        const auto filler = build_filler(nullptr, revision_root.path(), slug, 1);
+        QVERIFY2(filler.has_value(), filler ? "" : filler.error().toUtf8().constData());
+        revision_fillers.push_back(*filler);
+        revision_seed_archives.push_back(SeedArchive{
+            *filler, QDir(revision_root.path()).filePath(QStringLiteral("%1.awpack").arg(slug))});
+    }
+    const auto seeded_revisions =
+        seed_zero_blob_archives(revision_catalog_path, revision_seed_archives);
+    QVERIFY2(seeded_revisions.has_value(),
+             seeded_revisions ? "" : seeded_revisions.error().toUtf8().constData());
+    auto opened_revision_catalog = PackCatalog::open(revision_catalog_path);
+    QVERIFY2(opened_revision_catalog.has_value(),
+             opened_revision_catalog
+                 ? ""
+                 : opened_revision_catalog.error().message.toUtf8().constData());
+    auto revision_catalog = std::move(*opened_revision_catalog);
+    const std::vector<PackRevision> revisions_126(revision_fillers.begin(),
+                                                  revision_fillers.begin() + 126);
+    const auto revision_127_subject =
+        build_subject(*revision_catalog, revision_root.path(), QStringLiteral("revisions-127"),
+                      one_trace, revisions_126);
+    QVERIFY2(revision_127_subject.has_value(),
+             revision_127_subject ? "" : revision_127_subject.error().toUtf8().constData());
+    const auto revision_128_subject =
+        build_subject(*revision_catalog, revision_root.path(), QStringLiteral("revisions-128"),
+                      one_trace, revision_fillers);
+    QVERIFY2(revision_128_subject.has_value(),
+             revision_128_subject ? "" : revision_128_subject.error().toUtf8().constData());
+    revision_catalog.reset();
+    auto opened_revision_snapshot = PackCatalogSnapshot::openExisting(revision_catalog_path);
+    QVERIFY2(opened_revision_snapshot.has_value(),
+             opened_revision_snapshot
+                 ? ""
+                 : opened_revision_snapshot.error().message.toUtf8().constData());
+    auto revision_snapshot = std::move(*opened_revision_snapshot);
+
+    QTemporaryDir descriptor_root;
+    QVERIFY(descriptor_root.isValid());
+    const auto descriptor_catalog_path =
+        QDir(descriptor_root.path()).filePath(QStringLiteral("catalog"));
+    auto opened_descriptor_catalog = PackCatalog::open(descriptor_catalog_path);
+    QVERIFY2(opened_descriptor_catalog.has_value(),
+             opened_descriptor_catalog
+                 ? ""
+                 : opened_descriptor_catalog.error().message.toUtf8().constData());
+    auto descriptor_catalog = std::move(*opened_descriptor_catalog);
+    const auto subject_descriptor_count = static_cast<qsizetype>(
+        boundary_template->resources.size() + 1U + boundary_template->blobs.size());
+    QVERIFY(subject_descriptor_count < 9'999);
+    std::optional<BoundarySubject> descriptor_subject;
+    if (boundary_mode != 0) {
+        std::vector<PackRevision> descriptor_fillers;
+        descriptor_fillers.reserve(5);
+        auto remaining_descriptors = 9'999 - subject_descriptor_count;
+        for (qsizetype index = 0; index < 4; ++index) {
+            const auto filler_count = remaining_descriptors / (4 - index);
+            const auto filler =
+                build_filler(descriptor_catalog.get(), descriptor_root.path(),
+                             QStringLiteral("descriptor-large-%1").arg(index), 1, filler_count - 1);
+            QVERIFY2(filler.has_value(), filler ? "" : filler.error().toUtf8().constData());
+            descriptor_fillers.push_back(*filler);
+            remaining_descriptors -= filler_count;
+        }
+        QCOMPARE(remaining_descriptors, qsizetype{0});
+        if (boundary_mode == 2) {
+            const auto descriptor_plus_one =
+                build_filler(descriptor_catalog.get(), descriptor_root.path(),
+                             QStringLiteral("descriptor-plus-one"), 1);
+            QVERIFY2(descriptor_plus_one.has_value(),
+                     descriptor_plus_one ? "" : descriptor_plus_one.error().toUtf8().constData());
+            descriptor_fillers.push_back(*descriptor_plus_one);
+        }
+        const auto built = build_subject(*descriptor_catalog, descriptor_root.path(),
+                                         boundary_mode == 2 ? QStringLiteral("descriptors-10000")
+                                                            : QStringLiteral("descriptors-9999"),
+                                         one_trace, descriptor_fillers);
+        QVERIFY2(built.has_value(), built ? "" : built.error().toUtf8().constData());
+        descriptor_subject = *built;
+    }
+    descriptor_catalog.reset();
+    auto opened_descriptor_snapshot = PackCatalogSnapshot::openExisting(descriptor_catalog_path);
+    QVERIFY2(opened_descriptor_snapshot.has_value(),
+             opened_descriptor_snapshot
+                 ? ""
+                 : opened_descriptor_snapshot.error().message.toUtf8().constData());
+    auto descriptor_snapshot = std::move(*opened_descriptor_snapshot);
+
+    const auto boundary_descriptor_count = [](const appellate::packs::ResolvedPack& resolved) {
+        std::size_t count = resolved.root().resources.size() + resolved.root().blobs.size();
+        for (const auto& dependency : resolved.dependenciesDependencyFirst()) {
+            count += dependency.resources.size() + dependency.blobs.size();
+        }
+        return count;
+    };
+    const auto exercise_boundary_success =
+        [&](PackCatalogSnapshot& boundary_snapshot, const QString& boundary_catalog_path,
+            const QString& boundary_root, const BoundarySubject& subject,
+            qsizetype expected_trace_count, std::size_t expected_revision_count = 0,
+            std::size_t expected_descriptor_count = 0,
+            qsizetype expected_latent_provenance = -1) -> void {
+        const auto resolved = boundary_snapshot.loadResolved(subject.revision);
+        QVERIFY2(resolved.has_value(),
+                 resolved ? "" : resolved.error().message.toUtf8().constData());
+        if (expected_revision_count != 0) {
+            QCOMPARE(resolved->revisionsByPackId().size(), expected_revision_count);
+        }
+        if (expected_descriptor_count != 0) {
+            QCOMPARE(boundary_descriptor_count(*resolved), expected_descriptor_count);
+        }
+        const auto* source_review = findReview(resolved->root(), subject.review_id);
+        QVERIFY(source_review != nullptr);
+        const auto source_evidence =
+            source_review->document.value(QStringLiteral("evidence")).toObject();
+        const auto source_traces = source_evidence.value(QStringLiteral("traces")).toArray();
+        QCOMPARE(source_traces.size(), expected_trace_count);
+        std::optional<std::pair<QString, QString>> previous_trace_key;
+        for (const auto& value : source_traces) {
+            const auto trace = value.toObject();
+            const auto key = std::pair{trace.value(QStringLiteral("trace_id")).toString(),
+                                       trace.value(QStringLiteral("evidence_id")).toString()};
+            QVERIFY(!previous_trace_key.has_value() || *previous_trace_key < key);
+            previous_trace_key = key;
+            QCOMPARE(trace.value(QStringLiteral("engine_revision")).toString(),
+                     QStringLiteral("appellate.realism-evidence.codec-replay-multi.v1"));
+        }
+        if (expected_latent_provenance >= 0) {
+            QCOMPARE(source_review->document.value(QStringLiteral("dimensions"))
+                         .toObject()
+                         .value(QStringLiteral("provenance"))
+                         .toInt(),
+                     0);
+            QVERIFY(source_evidence.value(QStringLiteral("dimension_evidence"))
+                        .toObject()
+                        .value(QStringLiteral("provenance"))
+                        .toArray()
+                        .isEmpty());
+        }
+
+        const auto prepared_boundary = appellate::packs::prepareIndependentReview(
+            boundary_snapshot,
+            IndependentReviewPrepareInput{subject.revision, subject.case_id, QDate(2026, 8, 20)});
+        QVERIFY2(prepared_boundary.has_value(),
+                 prepared_boundary ? "" : prepared_boundary.error().message.toUtf8().constData());
+        QCOMPARE(prepared_boundary->counts.traces, static_cast<std::size_t>(expected_trace_count));
+        if (expected_revision_count != 0) {
+            QCOMPARE(prepared_boundary->counts.packs, expected_revision_count);
+        }
+        const auto mechanical_evidence = prepared_boundary->handoff.value(QStringLiteral("payload"))
+                                             .toObject()
+                                             .value(QStringLiteral("mechanical_evidence"))
+                                             .toObject();
+        const auto detached_traces = mechanical_evidence.value(QStringLiteral("traces")).toArray();
+        QCOMPARE(detached_traces.size(), expected_trace_count);
+        for (qsizetype index = 0; index < source_traces.size(); ++index) {
+            const auto source_trace = source_traces.at(index).toObject();
+            auto expected_trace = source_trace;
+            expected_trace.insert(
+                QStringLiteral("engine_revision"),
+                QStringLiteral("appellate.realism-evidence.detached-review-replay.v1"));
+            expected_trace.insert(QStringLiteral("digest"),
+                                  independentTraceDigest(subject.case_id, expected_trace));
+            const auto detached_trace = detached_traces.at(index).toObject();
+            QCOMPARE(detached_trace, expected_trace);
+            QCOMPARE(detached_trace.value(QStringLiteral("evidence_id")),
+                     source_trace.value(QStringLiteral("evidence_id")));
+            QCOMPARE(detached_trace.value(QStringLiteral("trace_id")),
+                     source_trace.value(QStringLiteral("trace_id")));
+            QCOMPARE(detached_trace.value(QStringLiteral("journal")),
+                     source_trace.value(QStringLiteral("journal")));
+        }
+        if (expected_latent_provenance >= 0) {
+            QCOMPARE(mechanical_evidence.value(QStringLiteral("dimension_evidence"))
+                         .toObject()
+                         .value(QStringLiteral("provenance"))
+                         .toArray()
+                         .size(),
+                     expected_latent_provenance);
+        }
+
+        const auto boundary_declaration =
+            completedIndependentDeclaration(*prepared_boundary, subject.slug);
+        const IndependentReviewFinalizeInput boundary_finalize_input{
+            prepared_boundary->handoff_bytes,
+            prepared_boundary->declaration_template_bytes,
+            jsonBytes(boundary_declaration),
+            QDate(2026, 8, 20),
+        };
+        const auto finalized_boundary =
+            appellate::packs::finalizeIndependentReview(boundary_snapshot, boundary_finalize_input);
+        QVERIFY2(finalized_boundary.has_value(),
+                 finalized_boundary ? "" : finalized_boundary.error().message.toUtf8().constData());
+        QVERIFY(finalized_boundary->dependency_revision == subject.revision);
+        QCOMPARE(finalized_boundary->review_document.value(QStringLiteral("evidence"))
+                     .toObject()
+                     .value(QStringLiteral("traces"))
+                     .toArray(),
+                 detached_traces);
+        if (expected_latent_provenance >= 0) {
+            QCOMPARE(finalized_boundary->review_document.value(QStringLiteral("evidence"))
+                         .toObject()
+                         .value(QStringLiteral("dimension_evidence"))
+                         .toObject()
+                         .value(QStringLiteral("provenance"))
+                         .toArray()
+                         .size(),
+                     expected_latent_provenance);
+        }
+
+        const auto cli_handoff =
+            QDir(boundary_root).filePath(QStringLiteral("boundary-handoff-%1").arg(subject.slug));
+        const auto cli_declaration =
+            QDir(boundary_root)
+                .filePath(QStringLiteral("boundary-declaration-%1.json").arg(subject.slug));
+        const auto cli_final =
+            QDir(boundary_root).filePath(QStringLiteral("boundary-final-%1").arg(subject.slug));
+        int prepare_calls = 0;
+        const auto cli_prepare = appellate::cli::detail::runPackCli(
+            {QStringLiteral("prepare-independent-review"), boundary_catalog_path,
+             QString::fromStdString(subject.revision.id.value),
+             QString::fromStdString(subject.revision.version),
+             QString::fromStdString(subject.revision.digest), subject.case_id, cli_handoff},
+            [&prepare_calls] {
+                ++prepare_calls;
+                return QDate(2026, 8, 20);
+            });
+        requireSuccess(cli_prepare, QStringLiteral("prepare-independent-review"));
+        QCOMPARE(prepare_calls, 1);
+        QCOMPARE(responseObject(cli_prepare.standard_output)
+                     .value(QStringLiteral("evidence_counts"))
+                     .toObject()
+                     .value(QStringLiteral("traces"))
+                     .toInt(),
+                 expected_trace_count);
+        QCOMPARE(readAll(QDir(cli_handoff).filePath(QStringLiteral("handoff.json"))),
+                 prepared_boundary->handoff_bytes);
+        QCOMPARE(
+            readAll(QDir(cli_handoff).filePath(QStringLiteral("review-declaration.template.json"))),
+            prepared_boundary->declaration_template_bytes);
+        QVERIFY(writeNew(cli_declaration, jsonBytes(boundary_declaration)));
+        int finalize_calls = 0;
+        const auto cli_finalize = appellate::cli::detail::runPackCli(
+            finalize_arguments(cli_handoff, cli_declaration, boundary_catalog_path, cli_final),
+            [&finalize_calls] {
+                ++finalize_calls;
+                return QDate(2026, 8, 20);
+            });
+        requireSuccess(cli_finalize, QStringLiteral("finalize-independent-review"));
+        QCOMPARE(finalize_calls, 1);
+        QCOMPARE(readAll(QDir(cli_final).filePath(QStringLiteral("manifest.json"))),
+                 finalized_boundary->manifest_bytes);
+        QCOMPARE(readAll(QDir(cli_final).filePath(QStringLiteral("resources/realism-review.json"))),
+                 finalized_boundary->review_bytes);
+    };
+
+    const auto exercise_boundary_rejection =
+        [&](PackCatalogSnapshot& boundary_snapshot, const QString& boundary_catalog_path,
+            const QString& boundary_root, const BoundarySubject& subject,
+            const QString& message_fragment, std::size_t expected_revision_count = 0,
+            std::size_t expected_descriptor_count = 0) -> void {
+        const auto resolved = boundary_snapshot.loadResolved(subject.revision);
+        QVERIFY2(resolved.has_value(),
+                 resolved ? "" : resolved.error().message.toUtf8().constData());
+        if (expected_revision_count != 0) {
+            QCOMPARE(resolved->revisionsByPackId().size(), expected_revision_count);
+        }
+        if (expected_descriptor_count != 0) {
+            QCOMPARE(boundary_descriptor_count(*resolved), expected_descriptor_count);
+        }
+        const auto rejected = appellate::packs::prepareIndependentReview(
+            boundary_snapshot,
+            IndependentReviewPrepareInput{subject.revision, subject.case_id, QDate(2026, 8, 20)});
+        QVERIFY(!rejected.has_value());
+        QCOMPARE(rejected.error().code, IndependentReviewErrorCode::InvalidReviewSource);
+        QVERIFY2(rejected.error().message.contains(message_fragment),
+                 rejected.error().message.toUtf8().constData());
+
+        const auto destination =
+            QDir(boundary_root).filePath(QStringLiteral("boundary-rejected-%1").arg(subject.slug));
+        int rejection_provider_calls = 0;
+        const auto cli_rejected = appellate::cli::detail::runPackCli(
+            {QStringLiteral("prepare-independent-review"), boundary_catalog_path,
+             QString::fromStdString(subject.revision.id.value),
+             QString::fromStdString(subject.revision.version),
+             QString::fromStdString(subject.revision.digest), subject.case_id, destination},
+            [&rejection_provider_calls] {
+                ++rejection_provider_calls;
+                return QDate(2026, 8, 20);
+            });
+        QCOMPARE(rejection_provider_calls, 1);
+        QVERIFY(!QFileInfo::exists(destination));
+        requireCommandError(cli_rejected, ExitCode::InvalidPack,
+                            QStringLiteral("invalid_review_source"),
+                            QStringLiteral("prepare-independent-review"));
+        QVERIFY(responseObject(cli_rejected.standard_error)
+                    .value(QStringLiteral("message"))
+                    .toString()
+                    .contains(message_fragment));
+    };
+
+    if (boundary_mode == 2) {
+        QVERIFY(descriptor_subject.has_value());
+        exercise_boundary_rejection(*descriptor_snapshot, descriptor_catalog_path,
+                                    descriptor_root.path(), *descriptor_subject,
+                                    QStringLiteral("descriptor headroom"), 6, 10'000);
+        return;
+    }
+    if (boundary_mode == 1) {
+        QVERIFY(descriptor_subject.has_value());
+        exercise_boundary_success(*descriptor_snapshot, descriptor_catalog_path,
+                                  descriptor_root.path(), *descriptor_subject, 1, 5, 9'999);
+        return;
+    }
+
+    exercise_boundary_success(*semantic_snapshot, semantic_catalog_path, semantic_root.path(),
+                              *trace_one_subject, 1);
+    exercise_boundary_success(*semantic_snapshot, semantic_catalog_path, semantic_root.path(),
+                              *trace_256_subject, 256);
+    exercise_boundary_success(*semantic_snapshot, semantic_catalog_path, semantic_root.path(),
+                              *latent_512_subject, 1, 0, 0, 512);
+    exercise_boundary_rejection(*semantic_snapshot, semantic_catalog_path, semantic_root.path(),
+                                *latent_513_subject, QStringLiteral("exceeds 512 references"));
+    exercise_boundary_success(*revision_snapshot, revision_catalog_path, revision_root.path(),
+                              *revision_127_subject, 1, 127,
+                              static_cast<std::size_t>(subject_descriptor_count + 126));
+    exercise_boundary_rejection(*revision_snapshot, revision_catalog_path, revision_root.path(),
+                                *revision_128_subject, QStringLiteral("revision headroom"), 128,
+                                static_cast<std::size_t>(subject_descriptor_count + 127));
+    const auto prepared = appellate::packs::prepareIndependentReview(
+        *semantic_snapshot,
+        IndependentReviewPrepareInput{
+            semantic_subject, QString::fromLatin1(semantic_fixture.case_id), QDate(2026, 8, 20)});
+    QVERIFY2(prepared.has_value(), prepared ? "" : prepared.error().message.toUtf8().constData());
+    auto declaration = completedIndependentDeclaration(*prepared, QStringLiteral("boundary"));
+    const IndependentReviewFinalizeInput baseline_input{
+        prepared->handoff_bytes,
+        prepared->declaration_template_bytes,
+        jsonBytes(declaration),
+        QDate(2026, 8, 20),
+    };
+    const auto baseline =
+        appellate::packs::finalizeIndependentReview(*semantic_snapshot, baseline_input);
+    QVERIFY2(baseline.has_value(), baseline ? "" : baseline.error().message.toUtf8().constData());
+
+    const auto require_finalize_error = [&](const IndependentReviewFinalizeInput& input,
+                                            IndependentReviewErrorCode code,
+                                            const QString& message_fragment = {}) -> void {
+        const auto finalized =
+            appellate::packs::finalizeIndependentReview(*semantic_snapshot, input);
+        QVERIFY(!finalized.has_value());
+        QCOMPARE(finalized.error().code, code);
+        if (!message_fragment.isEmpty()) {
+            QVERIFY2(finalized.error().message.contains(message_fragment),
+                     finalized.error().message.toUtf8().constData());
+        }
+    };
+    QCOMPARE(baseline->review_document.value(QStringLiteral("reviewed_on")).toString(),
+             QStringLiteral("2026-08-20"));
+    auto source_date_declaration = declaration;
+    source_date_declaration.insert(QStringLiteral("reviewed_on"),
+                                   QString::fromLatin1(semantic_fixture.reviewed_on));
+    auto source_date_input = baseline_input;
+    source_date_input.completed_declaration_bytes = jsonBytes(source_date_declaration);
+    const auto source_date_final =
+        appellate::packs::finalizeIndependentReview(*semantic_snapshot, source_date_input);
+    QVERIFY2(source_date_final.has_value(),
+             source_date_final ? "" : source_date_final.error().message.toUtf8().constData());
+    QCOMPARE(source_date_final->review_document.value(QStringLiteral("reviewed_on")).toString(),
+             QString::fromLatin1(semantic_fixture.reviewed_on));
+    auto future_date_declaration = declaration;
+    future_date_declaration.insert(QStringLiteral("reviewed_on"), QStringLiteral("2026-08-21"));
+    auto future_date_input = baseline_input;
+    future_date_input.completed_declaration_bytes = jsonBytes(future_date_declaration);
+    require_finalize_error(future_date_input, IndependentReviewErrorCode::InvalidDeclaration,
+                           QStringLiteral("source/current UTC bounds"));
+
+    const std::array<QByteArray, 7> strict_artifact_cases{
+        QByteArrayLiteral("{\"key\":1,\"key\":2}"),
+        QByteArrayLiteral("{\"nested\":{\"key\":1,\"key\":2}}"),
+        QByteArray("{\"text\":\"") + QByteArray::fromHex("c328") + QByteArrayLiteral("\"}"),
+        QByteArrayLiteral("{}{}"),
+        QByteArrayLiteral("{\"text\":\"\\ud800\"}"),
+        QByteArrayLiteral("{\"text\":\"\\udc00\"}"),
+        QByteArrayLiteral("{\"nested\":{\"\\ud800\":1}}"),
+    };
+    for (const auto& bytes : strict_artifact_cases) {
+        auto handoff_input = baseline_input;
+        handoff_input.handoff_bytes = bytes;
+        require_finalize_error(handoff_input, IndependentReviewErrorCode::InvalidHandoff);
+
+        auto template_input = baseline_input;
+        template_input.declaration_template_bytes = bytes;
+        require_finalize_error(template_input, IndependentReviewErrorCode::InvalidHandoff);
+
+        auto declaration_input = baseline_input;
+        declaration_input.completed_declaration_bytes = bytes;
+        require_finalize_error(declaration_input, IndependentReviewErrorCode::InvalidDeclaration);
+    }
+
+    auto noncanonical_handoff = baseline_input;
+    noncanonical_handoff.handoff_bytes.append(' ');
+    require_finalize_error(noncanonical_handoff, IndependentReviewErrorCode::InvalidHandoff,
+                           QStringLiteral("canonical"));
+    noncanonical_handoff.handoff_bytes =
+        QJsonDocument(prepared->handoff).toJson(QJsonDocument::Compact);
+    require_finalize_error(noncanonical_handoff, IndependentReviewErrorCode::InvalidHandoff,
+                           QStringLiteral("canonical"));
+
+    auto noncanonical_template = baseline_input;
+    noncanonical_template.declaration_template_bytes.append(' ');
+    require_finalize_error(noncanonical_template, IndependentReviewErrorCode::InvalidHandoff,
+                           QStringLiteral("canonical"));
+    noncanonical_template.declaration_template_bytes =
+        QJsonDocument(prepared->declaration_template).toJson(QJsonDocument::Compact);
+    require_finalize_error(noncanonical_template, IndependentReviewErrorCode::InvalidHandoff,
+                           QStringLiteral("canonical"));
+
+    auto compact_declaration_input = baseline_input;
+    compact_declaration_input.completed_declaration_bytes =
+        QJsonDocument(declaration).toJson(QJsonDocument::Compact);
+    const auto compact_declaration =
+        appellate::packs::finalizeIndependentReview(*semantic_snapshot, compact_declaration_input);
+    QVERIFY2(compact_declaration.has_value(),
+             compact_declaration ? "" : compact_declaration.error().message.toUtf8().constData());
+    QCOMPARE(compact_declaration->review_bytes, baseline->review_bytes);
+
+    auto scalar_declaration = declaration;
+    scalar_declaration.insert(QStringLiteral("reviewer_reference"),
+                              QStringLiteral("TEST-ONLY scalar marker"));
+    auto scalar_declaration_bytes =
+        QJsonDocument(scalar_declaration).toJson(QJsonDocument::Compact);
+    QVERIFY(scalar_declaration_bytes.contains("TEST-ONLY scalar marker"));
+    scalar_declaration_bytes.replace("TEST-ONLY scalar marker", "TEST-ONLY scalar \\ud83d\\ude00");
+    auto scalar_input = baseline_input;
+    scalar_input.completed_declaration_bytes = scalar_declaration_bytes;
+    const auto scalar_final =
+        appellate::packs::finalizeIndependentReview(*semantic_snapshot, scalar_input);
+    QVERIFY2(scalar_final.has_value(),
+             scalar_final ? "" : scalar_final.error().message.toUtf8().constData());
+    const auto supplementary_text = QString::fromUtf8("TEST-ONLY scalar \xf0\x9f\x98\x80");
+    QCOMPARE(scalar_final->review_document.value(QStringLiteral("reviewer_reference")).toString(),
+             supplementary_text);
+    QVERIFY(scalar_final->review_bytes.contains("\xf0\x9f\x98\x80"));
+
+    auto exact_handoff_input = baseline_input;
+    exact_handoff_input.handoff_bytes =
+        paddedJsonBytes(prepared->handoff_bytes, maximum_handoff_bytes);
+    require_finalize_error(exact_handoff_input, IndependentReviewErrorCode::InvalidHandoff,
+                           QStringLiteral("canonical"));
+    exact_handoff_input.handoff_bytes =
+        paddedJsonBytes(prepared->handoff_bytes, maximum_handoff_bytes + 1);
+    require_finalize_error(exact_handoff_input, IndependentReviewErrorCode::InvalidHandoff,
+                           QStringLiteral("exceeds"));
+
+    auto exact_template_input = baseline_input;
+    exact_template_input.declaration_template_bytes =
+        paddedJsonBytes(prepared->declaration_template_bytes, maximum_template_bytes);
+    require_finalize_error(exact_template_input, IndependentReviewErrorCode::InvalidHandoff,
+                           QStringLiteral("canonical"));
+    exact_template_input.declaration_template_bytes =
+        paddedJsonBytes(prepared->declaration_template_bytes, maximum_template_bytes + 1);
+    require_finalize_error(exact_template_input, IndependentReviewErrorCode::InvalidHandoff,
+                           QStringLiteral("exceeds"));
+
+    auto exact_declaration_input = baseline_input;
+    exact_declaration_input.completed_declaration_bytes =
+        paddedJsonBytes(jsonBytes(declaration), maximum_declaration_bytes);
+    const auto exact_declaration =
+        appellate::packs::finalizeIndependentReview(*semantic_snapshot, exact_declaration_input);
+    QVERIFY2(exact_declaration.has_value(),
+             exact_declaration ? "" : exact_declaration.error().message.toUtf8().constData());
+    QCOMPARE(exact_declaration->review_bytes, baseline->review_bytes);
+    exact_declaration_input.completed_declaration_bytes =
+        paddedJsonBytes(jsonBytes(declaration), maximum_declaration_bytes + 1);
+    require_finalize_error(exact_declaration_input, IndependentReviewErrorCode::InvalidDeclaration,
+                           QStringLiteral("exceeds"));
+
+    const auto uncertainties = [](qsizetype count) {
+        QJsonArray values;
+        for (qsizetype index = 0; index < count; ++index) {
+            values.push_back(QJsonObject{
+                {QStringLiteral("blocking"), false},
+                {QStringLiteral("summary"), QStringLiteral("x")},
+                {QStringLiteral("uncertainty_id"),
+                 QStringLiteral("test.detached-review.uncertainty.u%1").arg(index, 3, 10, u'0')},
+            });
+        }
+        return values;
+    };
+    QCOMPARE(baseline->review_document.value(QStringLiteral("known_uncertainty")).toArray().size(),
+             0);
+    auto declaration_256 = declaration;
+    declaration_256.insert(QStringLiteral("known_uncertainty"), uncertainties(256));
+    auto input_256 = baseline_input;
+    input_256.completed_declaration_bytes = jsonBytes(declaration_256);
+    const auto finalized_256 =
+        appellate::packs::finalizeIndependentReview(*semantic_snapshot, input_256);
+    QVERIFY2(finalized_256.has_value(),
+             finalized_256 ? "" : finalized_256.error().message.toUtf8().constData());
+    QCOMPARE(finalized_256->review_document.value(QStringLiteral("known_uncertainty")).toArray(),
+             uncertainties(256));
+    auto declaration_257 = declaration;
+    declaration_257.insert(QStringLiteral("known_uncertainty"), uncertainties(257));
+    auto input_257 = baseline_input;
+    input_257.completed_declaration_bytes = jsonBytes(declaration_257);
+    require_finalize_error(input_257, IndependentReviewErrorCode::InvalidDeclaration);
+
+    const auto write_final_pack = [](const QString& directory,
+                                     const appellate::packs::FinalizedIndependentReview& final) {
+        return QDir{}.mkpath(QDir(directory).filePath(QStringLiteral("resources"))) &&
+               writeNew(QDir(directory).filePath(QStringLiteral("manifest.json")),
+                        final.manifest_bytes) &&
+               writeNew(QDir(directory).filePath(QStringLiteral("resources/realism-review.json")),
+                        final.review_bytes);
+    };
+    const auto natural_pack_path =
+        QDir(semantic_root.path()).filePath(QStringLiteral("natural-final-pack"));
+    QVERIFY(write_final_pack(natural_pack_path, *baseline));
+    const auto natural_pack =
+        PackReader::readDirectory(natural_pack_path, PackValidationScope::ResolvedClosure);
+    QVERIFY2(natural_pack.has_value(),
+             natural_pack ? "" : natural_pack.error().message.toUtf8().constData());
+
+    const auto uncertainty_pack_path =
+        QDir(semantic_root.path()).filePath(QStringLiteral("uncertainty-final-pack"));
+    QVERIFY(write_final_pack(uncertainty_pack_path, *finalized_256));
+    const auto uncertainty_pack =
+        PackReader::readDirectory(uncertainty_pack_path, PackValidationScope::ResolvedClosure);
+    QVERIFY2(uncertainty_pack.has_value(),
+             uncertainty_pack ? "" : uncertainty_pack.error().message.toUtf8().constData());
+    const auto resolved_subject = semantic_snapshot->loadResolved(semantic_subject);
+    QVERIFY2(resolved_subject.has_value(),
+             resolved_subject ? "" : resolved_subject.error().message.toUtf8().constData());
+    std::vector<const appellate::packs::LoadedPack*> final_dependencies;
+    for (const auto& dependency : resolved_subject->dependenciesDependencyFirst()) {
+        final_dependencies.push_back(&dependency);
+    }
+    final_dependencies.push_back(&resolved_subject->root());
+    const auto resolved_final = PackReader::validateResolvedGraph(
+        *uncertainty_pack,
+        std::span<const appellate::packs::LoadedPack* const>(final_dependencies));
+    QVERIFY2(resolved_final.has_value(),
+             resolved_final ? "" : resolved_final.error().message.toUtf8().constData());
+
+    const auto raw_pack_path =
+        QDir(semantic_root.path()).filePath(QStringLiteral("raw-final-pack"));
+    QVERIFY(write_final_pack(raw_pack_path, *baseline));
+    const auto write_raw_review = [&](const QByteArray& bytes) {
+        if (!overwriteAll(
+                QDir(raw_pack_path).filePath(QStringLiteral("resources/realism-review.json")),
+                bytes)) {
+            return false;
+        }
+        auto manifest = baseline->manifest;
+        auto contents = manifest.value(QStringLiteral("contents")).toArray();
+        qsizetype matches = 0;
+        for (qsizetype index = 0; index < contents.size(); ++index) {
+            auto descriptor = contents.at(index).toObject();
+            if (descriptor.value(QStringLiteral("id")).toString() != baseline->review_resource_id) {
+                continue;
+            }
+            ++matches;
+            descriptor.insert(QStringLiteral("sha256"), sha256(bytes));
+            contents.replace(index, descriptor);
+        }
+        manifest.insert(QStringLiteral("contents"), contents);
+        return matches == 1 &&
+               overwriteAll(QDir(raw_pack_path).filePath(QStringLiteral("manifest.json")),
+                            jsonBytes(manifest));
+    };
+    const auto read_raw_review = [&] {
+        return PackReader::readDirectory(raw_pack_path, PackValidationScope::ResolvedClosure);
+    };
+    constexpr qsizetype maximum_final_review_bytes = 8 * 1024 * 1024;
+    QVERIFY(write_raw_review(paddedJsonObject(maximum_final_review_bytes)));
+    const auto exact_final_bytes = read_raw_review();
+    QVERIFY(!exact_final_bytes.has_value());
+    QCOMPARE(exact_final_bytes.error().code, ErrorCode::SchemaViolation);
+    QVERIFY(write_raw_review(paddedJsonObject(maximum_final_review_bytes + 1)));
+    const auto excessive_final_bytes = read_raw_review();
+    QVERIFY(!excessive_final_bytes.has_value());
+    QCOMPARE(excessive_final_bytes.error().code, ErrorCode::ResourceTooLarge);
+
+    QVERIFY(write_raw_review(nestedJsonObject(64)));
+    const auto exact_final_depth = read_raw_review();
+    QVERIFY(!exact_final_depth.has_value());
+    QCOMPARE(exact_final_depth.error().code, ErrorCode::SchemaViolation);
+    QVERIFY(write_raw_review(nestedJsonObject(65)));
+    const auto excessive_final_depth = read_raw_review();
+    QVERIFY(!excessive_final_depth.has_value());
+    QCOMPARE(excessive_final_depth.error().code, ErrorCode::InvalidJson);
+
+    QVERIFY(write_raw_review(jsonObjectWithValueCount(200'000)));
+    const auto exact_final_values = read_raw_review();
+    QVERIFY(!exact_final_values.has_value());
+    QCOMPARE(exact_final_values.error().code, ErrorCode::SchemaViolation);
+    QVERIFY(write_raw_review(jsonObjectWithValueCount(200'001)));
+    const auto excessive_final_values = read_raw_review();
+    QVERIFY(!excessive_final_values.has_value());
+    QCOMPARE(excessive_final_values.error().code, ErrorCode::InvalidJson);
+
+    const auto exported_uncertainty_archive =
+        QDir(semantic_root.path()).filePath(QStringLiteral("uncertainty-final.awpack"));
+    const auto exported_uncertainty =
+        PackArchive::exportDirectory(uncertainty_pack_path, exported_uncertainty_archive, {},
+                                     PackValidationScope::ResolvedClosure);
+    QVERIFY2(exported_uncertainty.has_value(),
+             exported_uncertainty ? "" : exported_uncertainty.error().message.toUtf8().constData());
+    QVERIFY(*exported_uncertainty == finalized_256->revision);
+
+    const auto cli_handoff_path =
+        QDir(semantic_root.path()).filePath(QStringLiteral("clock-handoff"));
+    const auto cli_declaration_path =
+        QDir(semantic_root.path()).filePath(QStringLiteral("clock-declaration.json"));
+    const auto cli_final_path =
+        QDir(semantic_root.path()).filePath(QStringLiteral("clock-final-pack"));
+    ScopedTimeZone hostile_time_zone;
+    hostile_time_zone.set(QByteArrayLiteral("Pacific/Kiritimati"));
+    int prepare_clock_calls = 0;
+    const auto hostile_prepare = appellate::cli::detail::runPackCli(
+        {QStringLiteral("prepare-independent-review"), semantic_catalog_path,
+         QString::fromLatin1(semantic_fixture.pack_id),
+         QString::fromLatin1(semantic_fixture.version),
+         QString::fromLatin1(semantic_fixture.revision),
+         QString::fromLatin1(semantic_fixture.case_id), cli_handoff_path},
+        [&prepare_clock_calls] {
+            ++prepare_clock_calls;
+            return prepare_clock_calls == 1 ? QDate(2026, 8, 20) : QDate(2026, 8, 18);
+        });
+    requireSuccess(hostile_prepare, QStringLiteral("prepare-independent-review"));
+    QCOMPARE(prepare_clock_calls, 1);
+    QVERIFY(writeNew(cli_declaration_path, jsonBytes(declaration)));
+    int finalize_clock_calls = 0;
+    const auto hostile_finalize = appellate::cli::detail::runPackCli(
+        finalize_arguments(cli_handoff_path, cli_declaration_path, semantic_catalog_path,
+                           cli_final_path),
+        [&finalize_clock_calls] {
+            ++finalize_clock_calls;
+            return finalize_clock_calls == 1 ? QDate(2026, 8, 20) : QDate(2026, 8, 18);
+        });
+    requireSuccess(hostile_finalize, QStringLiteral("finalize-independent-review"));
+    QCOMPARE(finalize_clock_calls, 1);
+    QCOMPARE(readAll(QDir(cli_final_path).filePath(QStringLiteral("manifest.json"))),
+             baseline->manifest_bytes);
+    QCOMPARE(
+        readAll(QDir(cli_final_path).filePath(QStringLiteral("resources/realism-review.json"))),
+        baseline->review_bytes);
+
+    struct RawStagedOverflow final {
+        QString slug;
+        QByteArray review_bytes;
+    };
+    const std::array raw_staged_overflows{
+        RawStagedOverflow{QStringLiteral("bytes"),
+                          paddedJsonObject(maximum_final_review_bytes + 1)},
+        RawStagedOverflow{QStringLiteral("depth"), nestedJsonObject(65)},
+        RawStagedOverflow{QStringLiteral("values"), jsonObjectWithValueCount(200'001)},
+    };
+    for (const auto& overflow : raw_staged_overflows) {
+        const auto destination =
+            QDir(semantic_root.path())
+                .filePath(QStringLiteral("raw-staged-%1-rejected").arg(overflow.slug));
+        bool members_replaced = false;
+        int replacement_calls = 0;
+        int raw_clock_calls = 0;
+        appellate::cli::detail::IndependentReviewPublisherReport publisher_report;
+        appellate::cli::detail::IndependentReviewCliHooks cli_hooks;
+        cli_hooks.replace_finalized_publication_members =
+            [&baseline, &members_replaced, &overflow,
+             &replacement_calls](QByteArray& manifest_bytes, QByteArray& review_bytes) {
+                ++replacement_calls;
+                QJsonParseError error;
+                auto document = QJsonDocument::fromJson(manifest_bytes, &error);
+                if (error.error != QJsonParseError::NoError || !document.isObject()) {
+                    return;
+                }
+                auto manifest = document.object();
+                auto contents = manifest.value(QStringLiteral("contents")).toArray();
+                qsizetype matches = 0;
+                for (qsizetype index = 0; index < contents.size(); ++index) {
+                    auto descriptor = contents.at(index).toObject();
+                    if (descriptor.value(QStringLiteral("id")).toString() !=
+                        baseline->review_resource_id) {
+                        continue;
+                    }
+                    ++matches;
+                    descriptor.insert(QStringLiteral("sha256"), sha256(overflow.review_bytes));
+                    contents.replace(index, descriptor);
+                }
+                if (matches != 1) {
+                    return;
+                }
+                manifest.insert(QStringLiteral("contents"), contents);
+                manifest_bytes = jsonBytes(manifest);
+                review_bytes = overflow.review_bytes;
+                members_replaced = true;
+            };
+        cli_hooks.publisher.report = &publisher_report;
+        if (overflow.review_bytes.size() > maximum_final_review_bytes) {
+            cli_hooks.publisher.injected_final_review_byte_limit = overflow.review_bytes.size();
+        }
+
+        const auto rejected = appellate::cli::detail::runPackCli(
+            finalize_arguments(cli_handoff_path, cli_declaration_path, semantic_catalog_path,
+                               destination),
+            [&raw_clock_calls] {
+                ++raw_clock_calls;
+                return QDate(2026, 8, 20);
+            },
+            cli_hooks);
+
+        QCOMPARE(raw_clock_calls, 1);
+        QCOMPARE(replacement_calls, 1);
+        QVERIFY(members_replaced);
+        requireCommandError(rejected, ExitCode::InvalidPack,
+                            QStringLiteral("invalid_independent_review_pack"),
+                            QStringLiteral("finalize-independent-review"));
+        QVERIFY(!publisher_report.staging_path.isEmpty());
+        QVERIFY(!QFileInfo::exists(publisher_report.staging_path));
+        QVERIFY(publisher_report.remaining_ledger_paths.isEmpty());
+        QVERIFY(!QFileInfo::exists(destination));
+        QVERIFY(std::ranges::any_of(
+            publisher_report.observations,
+            [](const appellate::cli::detail::IndependentReviewPublisherObservation& observation) {
+                return observation.event ==
+                       appellate::cli::detail::IndependentReviewPublisherEvent::
+                           BeforeStagedValidation;
+            }));
+        QVERIFY(std::ranges::any_of(
+            publisher_report.observations,
+            [](const appellate::cli::detail::IndependentReviewPublisherObservation& observation) {
+                return observation.event ==
+                       appellate::cli::detail::IndependentReviewPublisherEvent::CleanupRemoved;
+            }));
+    }
+
+    const auto future_cli_destination =
+        QDir(semantic_root.path()).filePath(QStringLiteral("clock-future-rejected"));
+    QVERIFY(overwriteAll(cli_declaration_path, jsonBytes(future_date_declaration)));
+    int future_clock_calls = 0;
+    const auto future_clock_rejected = appellate::cli::detail::runPackCli(
+        finalize_arguments(cli_handoff_path, cli_declaration_path, semantic_catalog_path,
+                           future_cli_destination),
+        [&future_clock_calls] {
+            ++future_clock_calls;
+            return future_clock_calls == 1 ? QDate(2026, 8, 20) : QDate(2026, 8, 21);
+        });
+    QCOMPARE(future_clock_calls, 1);
+    QVERIFY(!QFileInfo::exists(future_cli_destination));
+    requireCommandError(future_clock_rejected, ExitCode::InvalidPack,
+                        QStringLiteral("invalid_declaration"),
+                        QStringLiteral("finalize-independent-review"));
+    QVERIFY(overwriteAll(cli_declaration_path, jsonBytes(declaration)));
+
+    int rejected_cli_sequence = 0;
+    const auto expect_cli_input_rejection = [&](const QString& code) {
+        const auto destination =
+            QDir(semantic_root.path())
+                .filePath(QStringLiteral("rejected-cli-%1").arg(rejected_cli_sequence++));
+        int calls = 0;
+        const auto rejected = appellate::cli::detail::runPackCli(
+            finalize_arguments(cli_handoff_path, cli_declaration_path, semantic_catalog_path,
+                               destination),
+            [&calls] {
+                ++calls;
+                return QDate(2026, 8, 20);
+            });
+        QCOMPARE(calls, 1);
+        QVERIFY(!QFileInfo::exists(destination));
+        requireCommandError(rejected, ExitCode::InvalidPack, code,
+                            QStringLiteral("finalize-independent-review"));
+    };
+    const auto cli_handoff_file = QDir(cli_handoff_path).filePath(QStringLiteral("handoff.json"));
+    const auto cli_template_file =
+        QDir(cli_handoff_path).filePath(QStringLiteral("review-declaration.template.json"));
+    const auto saved_cli_handoff = readAll(cli_handoff_file);
+    const auto saved_cli_template = readAll(cli_template_file);
+    QVERIFY(overwriteAll(cli_handoff_file, saved_cli_handoff + ' '));
+    expect_cli_input_rejection(QStringLiteral("invalid_handoff"));
+    QVERIFY(overwriteAll(cli_handoff_file, saved_cli_handoff));
+    QVERIFY(overwriteAll(cli_template_file, QByteArrayLiteral("{\"x\":1,\"x\":2}")));
+    expect_cli_input_rejection(QStringLiteral("invalid_handoff"));
+    QVERIFY(overwriteAll(cli_template_file, saved_cli_template));
+    QVERIFY(overwriteAll(cli_declaration_path,
+                         QByteArrayLiteral("{\"reviewer_reference\":\"\\ud800\"}")));
+    expect_cli_input_rejection(QStringLiteral("invalid_declaration"));
+    QVERIFY(overwriteAll(cli_declaration_path, jsonBytes(declaration)));
+
+    auto snapshot_expected_declaration =
+        completedIndependentDeclaration(*prepared, QStringLiteral("snapshot-conflict"));
+    snapshot_expected_declaration.insert(
+        QStringLiteral("reviewer_reference"),
+        QStringLiteral("TEST-ONLY expected held-snapshot publication"));
+    auto snapshot_conflicting_declaration = snapshot_expected_declaration;
+    snapshot_conflicting_declaration.insert(
+        QStringLiteral("reviewer_reference"),
+        QStringLiteral("TEST-ONLY post-snapshot conflicting publication"));
+    auto snapshot_expected_input = baseline_input;
+    snapshot_expected_input.completed_declaration_bytes = jsonBytes(snapshot_expected_declaration);
+    auto snapshot_conflicting_input = baseline_input;
+    snapshot_conflicting_input.completed_declaration_bytes =
+        jsonBytes(snapshot_conflicting_declaration);
+    const auto snapshot_expected =
+        appellate::packs::finalizeIndependentReview(*semantic_snapshot, snapshot_expected_input);
+    const auto snapshot_conflicting =
+        appellate::packs::finalizeIndependentReview(*semantic_snapshot, snapshot_conflicting_input);
+    QVERIFY2(snapshot_expected.has_value(),
+             snapshot_expected ? "" : snapshot_expected.error().message.toUtf8().constData());
+    QVERIFY2(snapshot_conflicting.has_value(),
+             snapshot_conflicting ? "" : snapshot_conflicting.error().message.toUtf8().constData());
+    QVERIFY(snapshot_expected->revision.id == snapshot_conflicting->revision.id);
+    QCOMPARE(snapshot_expected->revision.version, snapshot_conflicting->revision.version);
+    QVERIFY(snapshot_expected->revision.digest != snapshot_conflicting->revision.digest);
+
+    const auto conflicting_pack_path =
+        QDir(semantic_root.path()).filePath(QStringLiteral("snapshot-conflicting-pack"));
+    QVERIFY(write_final_pack(conflicting_pack_path, *snapshot_conflicting));
+    const auto conflicting_archive =
+        QDir(semantic_root.path()).filePath(QStringLiteral("snapshot-conflicting.awpack"));
+    const auto exported_conflicting = PackArchive::exportDirectory(
+        conflicting_pack_path, conflicting_archive, {}, PackValidationScope::ResolvedClosure);
+    QVERIFY2(exported_conflicting.has_value(),
+             exported_conflicting ? "" : exported_conflicting.error().message.toUtf8().constData());
+    QVERIFY(*exported_conflicting == snapshot_conflicting->revision);
+    auto opened_live_catalog = PackCatalog::open(semantic_catalog_path);
+    QVERIFY2(opened_live_catalog.has_value(),
+             opened_live_catalog ? "" : opened_live_catalog.error().message.toUtf8().constData());
+    auto live_catalog = std::move(*opened_live_catalog);
+    const auto installed_conflicting =
+        live_catalog->installArchive(conflicting_archive, QStringLiteral("2026-08-20T00:00:00Z"));
+    QVERIFY2(installed_conflicting.has_value(),
+             installed_conflicting ? ""
+                                   : installed_conflicting.error().message.toUtf8().constData());
+    QVERIFY(installed_conflicting->revision == snapshot_conflicting->revision);
+
+    const auto rebuilt_after_conflict =
+        appellate::packs::finalizeIndependentReview(*semantic_snapshot, snapshot_expected_input);
+    QVERIFY2(rebuilt_after_conflict.has_value(),
+             rebuilt_after_conflict ? ""
+                                    : rebuilt_after_conflict.error().message.toUtf8().constData());
+    QVERIFY(rebuilt_after_conflict->revision == snapshot_expected->revision);
+    QCOMPARE(rebuilt_after_conflict->manifest_bytes, snapshot_expected->manifest_bytes);
+    QCOMPARE(rebuilt_after_conflict->review_bytes, snapshot_expected->review_bytes);
+
+    const auto protected_inputs =
+        appellate::packs::detail::inspectProtectedCatalogInputs(*semantic_snapshot);
+    QVERIFY2(protected_inputs.has_value(),
+             protected_inputs ? "" : protected_inputs.error().message.toUtf8().constData());
+    std::vector<appellate::cli::detail::IndependentReviewProtectedDirectory>
+        publisher_protected_directories;
+    publisher_protected_directories.reserve(protected_inputs->directories.size());
+    for (const auto& directory : protected_inputs->directories) {
+        publisher_protected_directories.push_back({directory.device, directory.inode});
+    }
+    const auto held_snapshot_destination =
+        QDir(semantic_root.path()).filePath(QStringLiteral("held-snapshot-final"));
+    appellate::cli::detail::IndependentReviewPublicationRequest held_snapshot_request{
+        IndependentReviewArtifactKind::FinalizedPack,
+        held_snapshot_destination,
+        std::move(publisher_protected_directories),
+        protected_inputs->aggregate_entry_count,
+        {},
+        {
+            {QStringLiteral("manifest.json"), snapshot_expected->manifest_bytes},
+            {QStringLiteral("resources/realism-review.json"), snapshot_expected->review_bytes},
+        },
+        [&](const QString& staging_root)
+            -> std::expected<void, appellate::cli::detail::IndependentReviewStagedValidationError> {
+            const auto staged =
+                PackReader::readDirectory(staging_root, PackValidationScope::ResolvedClosure);
+            if (!staged) {
+                return std::unexpected(
+                    appellate::cli::detail::IndependentReviewStagedValidationError{
+                        staged.error().message});
+            }
+            const auto graph = PackReader::validateResolvedGraph(
+                *staged, std::span<const appellate::packs::LoadedPack* const>(final_dependencies));
+            if (!graph) {
+                return std::unexpected(
+                    appellate::cli::detail::IndependentReviewStagedValidationError{
+                        graph.error().message});
+            }
+            const auto rebuilt = appellate::packs::finalizeIndependentReview(
+                *semantic_snapshot, snapshot_expected_input);
+            if (!rebuilt || rebuilt->revision != snapshot_expected->revision ||
+                rebuilt->manifest_bytes != snapshot_expected->manifest_bytes ||
+                rebuilt->review_bytes != snapshot_expected->review_bytes) {
+                return std::unexpected(
+                    appellate::cli::detail::IndependentReviewStagedValidationError{
+                        rebuilt ? QStringLiteral("Held-snapshot output changed")
+                                : rebuilt.error().message,
+                        appellate::cli::detail::IndependentReviewStagedValidationErrorCode::
+                            PublicationMismatch});
+            }
+            return {};
+        },
+    };
+    const auto published_held_snapshot =
+        appellate::cli::detail::publishIndependentReviewArtifacts(held_snapshot_request);
+    QVERIFY2(published_held_snapshot.has_value(),
+             published_held_snapshot
+                 ? ""
+                 : published_held_snapshot.error().message.toUtf8().constData());
+    QCOMPARE(readAll(QDir(held_snapshot_destination).filePath(QStringLiteral("manifest.json"))),
+             snapshot_expected->manifest_bytes);
+    QCOMPARE(readAll(QDir(held_snapshot_destination)
+                         .filePath(QStringLiteral("resources/realism-review.json"))),
+             snapshot_expected->review_bytes);
+    const auto expected_archive =
+        QDir(semantic_root.path()).filePath(QStringLiteral("snapshot-expected.awpack"));
+    const auto exported_expected = PackArchive::exportDirectory(
+        held_snapshot_destination, expected_archive, {}, PackValidationScope::ResolvedClosure);
+    QVERIFY2(exported_expected.has_value(),
+             exported_expected ? "" : exported_expected.error().message.toUtf8().constData());
+    QVERIFY(*exported_expected == snapshot_expected->revision);
+    const auto normal_install_conflict =
+        live_catalog->installArchive(expected_archive, QStringLiteral("2026-08-20T00:00:01Z"));
+    QVERIFY(!normal_install_conflict.has_value());
+    QCOMPARE(normal_install_conflict.error().code,
+             appellate::packs::CatalogErrorCode::ImmutableConflict);
+    live_catalog.reset();
+
+    semantic_snapshot.reset();
+    auto reopened_semantic_catalog = PackCatalog::open(semantic_catalog_path);
+    QVERIFY2(reopened_semantic_catalog.has_value(),
+             reopened_semantic_catalog
+                 ? ""
+                 : reopened_semantic_catalog.error().message.toUtf8().constData());
+    const auto installed_uncertainty =
+        (*reopened_semantic_catalog)
+            ->installArchive(exported_uncertainty_archive, QStringLiteral("2026-08-20T00:00:00Z"));
+    QVERIFY2(installed_uncertainty.has_value(),
+             installed_uncertainty ? ""
+                                   : installed_uncertainty.error().message.toUtf8().constData());
+    QVERIFY(installed_uncertainty->revision == finalized_256->revision);
+    (*reopened_semantic_catalog).reset();
+    auto opened_exact_snapshot = PackCatalogSnapshot::openExisting(semantic_catalog_path);
+    QVERIFY2(opened_exact_snapshot.has_value(),
+             opened_exact_snapshot ? ""
+                                   : opened_exact_snapshot.error().message.toUtf8().constData());
+    auto exact_snapshot = std::move(*opened_exact_snapshot);
+    const auto exact_preexisting =
+        appellate::packs::finalizeIndependentReview(*exact_snapshot, input_256);
+    QVERIFY2(exact_preexisting.has_value(),
+             exact_preexisting ? "" : exact_preexisting.error().message.toUtf8().constData());
+    QVERIFY(exact_preexisting->revision == finalized_256->revision);
+    QCOMPARE(exact_preexisting->manifest_bytes, finalized_256->manifest_bytes);
+    QCOMPARE(exact_preexisting->review_bytes, finalized_256->review_bytes);
+    const auto loaded_uncertainty = exact_snapshot->loadResolved(finalized_256->revision);
+    QVERIFY2(loaded_uncertainty.has_value(),
+             loaded_uncertainty ? "" : loaded_uncertainty.error().message.toUtf8().constData());
+    const auto* loaded_review =
+        findReview(loaded_uncertainty->root(), finalized_256->review_resource_id);
+    QVERIFY(loaded_review != nullptr);
+    QCOMPARE(loaded_review->document.value(QStringLiteral("known_uncertainty")).toArray(),
+             uncertainties(256));
+    QVERIFY(QDir(semantic_root.path())
+                .entryList({QStringLiteral(".*.appellate-independent-review-*")},
+                           QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot)
+                .isEmpty());
+
+    const auto staging_residue =
+        QDir(input_root.path())
+            .entryList({QStringLiteral(".*.appellate-independent-review-*")},
+                       QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot);
+    QVERIFY(staging_residue.isEmpty());
+    QVERIFY(QDir(empty_catalog)
+                .entryList(QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot)
+                .isEmpty());
+#endif
+}
+
 void PackCliTest::mapsCatalogBusyWithoutMutatingTheLock() {
     QTemporaryDir temporary;
     QVERIFY(temporary.isValid());
@@ -2300,6 +4858,46 @@ void PackCliTest::mapsCatalogBusyWithoutMutatingTheLock() {
 }
 
 void PackCliTest::rejectsInvalidArgumentsAndExistingTemplateDestination() {
+    int provider_calls = 0;
+    const auto counting_provider = [&provider_calls] {
+        ++provider_calls;
+        return QDate(2026, 8, 20);
+    };
+    const auto wrong_prepare = appellate::cli::detail::runPackCli(
+        {QStringLiteral("prepare-independent-review")}, counting_provider);
+    QCOMPARE(wrong_prepare.exit_code, static_cast<int>(ExitCode::InvalidArguments));
+    QCOMPARE(
+        responseObject(wrong_prepare.standard_error).value(QStringLiteral("command")).toString(),
+        QStringLiteral("prepare-independent-review"));
+    const auto unrelated =
+        appellate::cli::detail::runPackCli({QStringLiteral("not-a-command")}, counting_provider);
+    QCOMPARE(unrelated.exit_code, static_cast<int>(ExitCode::InvalidArguments));
+    QCOMPARE(provider_calls, 0);
+
+    const auto repeated_path = [](qsizetype count) {
+        return QStringLiteral("/") + QStringList(count, QStringLiteral("a")).join(u'/');
+    };
+    const auto deep_catalog = appellate::cli::detail::runPackCli(
+        {QStringLiteral("prepare-independent-review"), repeated_path(127),
+         QStringLiteral("test.subject"), QStringLiteral("1.0.0"), QString(64, u'0'),
+         QStringLiteral("test.case"), QStringLiteral("new-handoff")},
+        counting_provider);
+    QCOMPARE(deep_catalog.exit_code, static_cast<int>(ExitCode::InvalidArguments));
+    const auto deep_handoff = appellate::cli::detail::runPackCli(
+        {QStringLiteral("finalize-independent-review"), repeated_path(128),
+         QStringLiteral("completed.json"), QStringLiteral("catalog"), QStringLiteral("new-pack")},
+        counting_provider);
+    QCOMPARE(deep_handoff.exit_code, static_cast<int>(ExitCode::InvalidArguments));
+    QCOMPARE(provider_calls, 0);
+    QVERIFY(appellate::cli::detail::validateIndependentReviewDestinationPath(
+                QString(218, u'd'),
+                appellate::cli::detail::IndependentReviewArtifactKind::PreparedHandoff)
+                .has_value());
+    QVERIFY(!appellate::cli::detail::validateIndependentReviewDestinationPath(
+                 QString(219, u'd'),
+                 appellate::cli::detail::IndependentReviewArtifactKind::PreparedHandoff)
+                 .has_value());
+
     const auto missing = runPackCli({});
     QCOMPARE(missing.exit_code, static_cast<int>(ExitCode::InvalidArguments));
     QVERIFY(missing.standard_output.isEmpty());
@@ -2317,6 +4915,36 @@ void PackCliTest::rejectsInvalidArgumentsAndExistingTemplateDestination() {
 
     QTemporaryDir temporary;
     QVERIFY(temporary.isValid());
+    const auto invalid_date_provider = [&provider_calls] {
+        ++provider_calls;
+        return QDate{};
+    };
+    const auto missing_catalog = QDir(temporary.path()).filePath(QStringLiteral("missing-catalog"));
+    const auto invalid_date_prepare = appellate::cli::detail::runPackCli(
+        {QStringLiteral("prepare-independent-review"), missing_catalog,
+         QStringLiteral("test.subject"), QStringLiteral("1.0.0"), QString(64, u'0'),
+         QStringLiteral("test.case"),
+         QDir(temporary.path()).filePath(QStringLiteral("new-handoff"))},
+        invalid_date_provider);
+    QCOMPARE(invalid_date_prepare.exit_code, static_cast<int>(ExitCode::OperationFailed));
+    QCOMPARE(responseObject(invalid_date_prepare.standard_error)
+                 .value(QStringLiteral("code"))
+                 .toString(),
+             QStringLiteral("invalid_configuration"));
+    const auto invalid_date_finalize = appellate::cli::detail::runPackCli(
+        {QStringLiteral("finalize-independent-review"),
+         QDir(temporary.path()).filePath(QStringLiteral("missing-handoff")),
+         QDir(temporary.path()).filePath(QStringLiteral("missing-declaration.json")),
+         missing_catalog, QDir(temporary.path()).filePath(QStringLiteral("new-pack"))},
+        invalid_date_provider);
+    QCOMPARE(invalid_date_finalize.exit_code, static_cast<int>(ExitCode::OperationFailed));
+    QCOMPARE(responseObject(invalid_date_finalize.standard_error)
+                 .value(QStringLiteral("code"))
+                 .toString(),
+             QStringLiteral("invalid_configuration"));
+    QCOMPARE(provider_calls, 2);
+    QVERIFY(!QFileInfo::exists(missing_catalog));
+
     const auto existing = QDir(temporary.path()).filePath(QStringLiteral("existing"));
     QVERIFY(QDir{}.mkpath(existing));
     const auto marker_path = QDir(existing).filePath(QStringLiteral("keep.txt"));

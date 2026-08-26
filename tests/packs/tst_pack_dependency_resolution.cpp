@@ -2309,6 +2309,11 @@ void PackDependencyResolutionTest::rollsBackNewArchiveAndBlobAfterFinalizationFa
     auto scratch_context = appellate::packs::detail::acquireSecureScratchContext();
     QVERIFY2(scratch_context.has_value(),
              scratch_context ? "" : qPrintable(scratch_context.error().message));
+    auto catalog_operand = appellate::packs::detail::retainCatalogOperand(catalog_root);
+    QVERIFY2(catalog_operand.has_value(),
+             catalog_operand ? "" : qPrintable(catalog_operand.error().message));
+    const auto attached = std::move(*catalog_operand).attachToSecureScratch(*scratch_context);
+    QVERIFY2(attached.has_value(), attached ? "" : qPrintable(attached.error().message));
     appellate::packs::detail::CatalogReport report;
     appellate::packs::detail::CatalogHooks hooks;
     hooks.report = &report;
@@ -2383,6 +2388,11 @@ void PackDependencyResolutionTest::preservesCommittedInstallAfterReportedFinaliz
     auto scratch_context = appellate::packs::detail::acquireSecureScratchContext();
     QVERIFY2(scratch_context.has_value(),
              scratch_context ? "" : qPrintable(scratch_context.error().message));
+    auto catalog_operand = appellate::packs::detail::retainCatalogOperand(catalog_root);
+    QVERIFY2(catalog_operand.has_value(),
+             catalog_operand ? "" : qPrintable(catalog_operand.error().message));
+    const auto attached = std::move(*catalog_operand).attachToSecureScratch(*scratch_context);
+    QVERIFY2(attached.has_value(), attached ? "" : qPrintable(attached.error().message));
     appellate::packs::detail::CatalogReport report;
     appellate::packs::detail::CatalogHooks hooks;
     hooks.report = &report;

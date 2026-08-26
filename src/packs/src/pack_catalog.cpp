@@ -195,113 +195,76 @@ using NativeCatalogIdentity = CatalogIdentity;
                                         : (::geteuid() == 0 || (status.st_mode & 0004) != 0);
 }
 
-[[nodiscard]] bool validCatalogNativeSpelling(const QString& value, qsizetype maximum_bytes) {
+[[nodiscard]] std::optional<QByteArray> encodedCatalogNativeSpelling(const QString& value,
+                                                                     qsizetype maximum_bytes) {
     if (value.contains(QChar::Null) || value.contains(QChar::ReplacementCharacter)) {
-        return false;
+        return std::nullopt;
     }
     for (qsizetype index = 0; index < value.size(); ++index) {
         const auto unit = value.at(index).unicode();
         if (unit >= 0xd800U && unit <= 0xdbffU) {
             if (++index >= value.size()) {
-                return false;
+                return std::nullopt;
             }
             const auto low = value.at(index).unicode();
             if (low < 0xdc00U || low > 0xdfffU) {
-                return false;
+                return std::nullopt;
             }
         } else if (unit >= 0xdc00U && unit <= 0xdfffU) {
-            return false;
+            return std::nullopt;
         }
     }
     const auto encoded = QFile::encodeName(value);
-    return !encoded.contains('\0') && encoded.size() <= maximum_bytes &&
-           QFile::decodeName(encoded) == value;
+    if (encoded.contains('\0') || encoded.size() > maximum_bytes ||
+        QFile::decodeName(encoded) != value) {
+        return std::nullopt;
+    }
+    return encoded;
 }
 
-[[nodiscard]] std::optional<QStringList> catalogAbsoluteComponents(const QString& path,
-                                                                   std::size_t maximum_components) {
-    if (!path.startsWith(u'/') || !validCatalogNativeSpelling(path, 4'095)) {
+struct CatalogEncodedAbsolutePath final {
+    QByteArray encoded_path;
+    QStringList diagnostic_components;
+    std::vector<QByteArray> encoded_components;
+};
+
+[[nodiscard]] std::optional<CatalogEncodedAbsolutePath>
+catalogEncodedAbsolutePath(const QString& path, std::size_t maximum_components) {
+    const auto encoded_path = encodedCatalogNativeSpelling(path, 4'095);
+    if (!path.startsWith(u'/') || !encoded_path) {
         return std::nullopt;
     }
     if (path == QStringLiteral("/")) {
-        return QStringList{};
+        return CatalogEncodedAbsolutePath{*encoded_path, {}, {}};
     }
     const auto components = path.sliced(1).split(u'/', Qt::KeepEmptyParts);
-    if (components.isEmpty() || static_cast<std::size_t>(components.size()) > maximum_components ||
-        std::ranges::any_of(components, [](const QString& component) {
-            return component.isEmpty() || component == QStringLiteral(".") ||
-                   component == QStringLiteral("..") || !validCatalogNativeSpelling(component, 255);
-        })) {
+    if (components.isEmpty() || static_cast<std::size_t>(components.size()) > maximum_components) {
         return std::nullopt;
     }
-    return components;
+    std::vector<QByteArray> encoded_components;
+    encoded_components.reserve(static_cast<std::size_t>(components.size()));
+    for (const auto& component : components) {
+        const auto encoded_component = encodedCatalogNativeSpelling(component, 255);
+        if (component.isEmpty() || component == QStringLiteral(".") ||
+            component == QStringLiteral("..") || !encoded_component) {
+            return std::nullopt;
+        }
+        encoded_components.push_back(*encoded_component);
+    }
+    return CatalogEncodedAbsolutePath{*encoded_path, components, std::move(encoded_components)};
 }
 
 struct CatalogResolvedOperand final {
     QString absolute_path;
+    QByteArray supplied_encoded_path;
     QByteArray encoded_path;
-    QStringList components;
+    QStringList diagnostic_components;
+    std::vector<QByteArray> encoded_components;
     CatalogDescriptor retained_cwd;
     CatalogIdentity cwd_identity;
     std::size_t cwd_component_count{};
     bool relative{};
 };
-
-[[maybe_unused, nodiscard]] std::expected<CatalogResolvedOperand, CatalogError>
-resolveCatalogOperand(const QString& supplied) {
-    if (supplied.isEmpty() || supplied.contains(QChar::Null) ||
-        supplied.contains(QChar::ReplacementCharacter)) {
-        return fail(CatalogErrorCode::InvalidConfiguration,
-                    QStringLiteral("Pack-catalog root spelling is invalid"));
-    }
-    const auto supplied_is_absolute = supplied.startsWith(u'/');
-    const auto supplied_components =
-        supplied_is_absolute ? catalogAbsoluteComponents(supplied, 126)
-                             : std::optional<QStringList>{supplied.split(u'/', Qt::KeepEmptyParts)};
-    if (!supplied_components || supplied_components->empty() ||
-        std::ranges::any_of(*supplied_components, [](const QString& component) {
-            return component.isEmpty() || component == QStringLiteral(".") ||
-                   component == QStringLiteral("..") || !validCatalogNativeSpelling(component, 255);
-        })) {
-        return fail(CatalogErrorCode::InvalidConfiguration,
-                    QStringLiteral("Pack-catalog root spelling is invalid"));
-    }
-    if (!validCatalogNativeSpelling(supplied, 4'095)) {
-        return fail(CatalogErrorCode::InvalidConfiguration,
-                    QStringLiteral("Pack-catalog root spelling exceeds native limits"));
-    }
-
-    QString absolute = supplied;
-    CatalogDescriptor retained_cwd;
-    CatalogIdentity cwd_identity;
-    std::size_t cwd_component_count = 0;
-    if (!supplied_is_absolute) {
-        retained_cwd.reset(::open(".", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
-        struct stat cwd_status{};
-        if (!retained_cwd || ::fstat(retained_cwd.get(), &cwd_status) != 0) {
-            return fail(CatalogErrorCode::CannotOpen,
-                        QStringLiteral("Cannot retain the current directory"));
-        }
-        const auto captured_cwd = QDir::currentPath();
-        const auto cwd_components = catalogAbsoluteComponents(captured_cwd, 128);
-        if (!cwd_components) {
-            return fail(CatalogErrorCode::CannotOpen,
-                        QStringLiteral("Current directory cannot anchor the catalog root"));
-        }
-        cwd_identity = catalogIdentity(cwd_status);
-        cwd_component_count = static_cast<std::size_t>(cwd_components->size());
-        absolute = captured_cwd == QStringLiteral("/") ? QStringLiteral("/") + supplied
-                                                       : captured_cwd + u'/' + supplied;
-    }
-    const auto components = catalogAbsoluteComponents(absolute, 126);
-    if (!components) {
-        return fail(CatalogErrorCode::CannotOpen,
-                    QStringLiteral("Absolute catalog root exceeds native limits"));
-    }
-    return CatalogResolvedOperand{
-        absolute,     QFile::encodeName(absolute), *components,          std::move(retained_cwd),
-        cwd_identity, cwd_component_count,         !supplied_is_absolute};
-}
 
 [[nodiscard]] auto validateCatalogGeneratedPathHeadroom(const CatalogResolvedOperand& operand)
     -> std::expected<void, CatalogError> {
@@ -822,10 +785,10 @@ retainCatalogRoot(CatalogResolvedOperand operand, bool writable, bool create_mis
     }
 
     QString absolute;
-    for (qsizetype index = 0; index < operand.components.size(); ++index) {
-        const auto& text = operand.components.at(index);
-        const auto component = QFile::encodeName(text);
-        const auto final_component = index + 1 == operand.components.size();
+    for (qsizetype index = 0; index < operand.diagnostic_components.size(); ++index) {
+        const auto& text = operand.diagnostic_components.at(index);
+        const auto& component = operand.encoded_components.at(static_cast<std::size_t>(index));
+        const auto final_component = index + 1 == operand.diagnostic_components.size();
         absolute += u'/' + text;
         auto& parent = anchor.controllers.back();
         struct stat named{};
@@ -4180,6 +4143,107 @@ ensureBlobObject(const QString& archive_path, const model::PackRevision& exact_r
 
 } // namespace
 
+struct detail::CatalogOperandSpelling::Impl final {
+    QString supplied_spelling;
+    QByteArray encoded_path;
+    QStringList diagnostic_components;
+    std::vector<QByteArray> encoded_components;
+    bool absolute{};
+};
+
+detail::CatalogOperandSpelling::CatalogOperandSpelling(std::unique_ptr<Impl> state)
+    : impl_(std::move(state)) {}
+detail::CatalogOperandSpelling::CatalogOperandSpelling(CatalogOperandSpelling&&) noexcept = default;
+detail::CatalogOperandSpelling&
+detail::CatalogOperandSpelling::operator=(CatalogOperandSpelling&&) noexcept = default;
+detail::CatalogOperandSpelling::~CatalogOperandSpelling() = default;
+
+bool detail::CatalogOperandSpelling::isValid() const noexcept { return impl_ != nullptr; }
+
+struct detail::CatalogOperandContext::Impl final {
+    QString supplied_spelling;
+#if defined(Q_OS_LINUX)
+    CatalogResolvedOperand operand;
+
+    Impl(QString supplied, CatalogResolvedOperand retained_operand)
+        : supplied_spelling(std::move(supplied)), operand(std::move(retained_operand)) {}
+#endif
+};
+
+detail::CatalogOperandContext::CatalogOperandContext(std::unique_ptr<Impl> state)
+    : impl_(std::move(state)) {}
+detail::CatalogOperandContext::CatalogOperandContext(CatalogOperandContext&&) noexcept = default;
+detail::CatalogOperandContext&
+detail::CatalogOperandContext::operator=(CatalogOperandContext&&) noexcept = default;
+detail::CatalogOperandContext::~CatalogOperandContext() = default;
+
+bool detail::CatalogOperandContext::isValid() const noexcept { return impl_ != nullptr; }
+
+const QString& detail::CatalogOperandContext::immutableAbsolutePath() const noexcept {
+    static const QString empty;
+#if defined(Q_OS_LINUX)
+    return impl_ != nullptr ? impl_->operand.absolute_path : empty;
+#else
+    return empty;
+#endif
+}
+
+const QByteArray& detail::CatalogOperandContext::encodedSuppliedPath() const noexcept {
+    static const QByteArray empty;
+#if defined(Q_OS_LINUX)
+    return impl_ != nullptr ? impl_->operand.supplied_encoded_path : empty;
+#else
+    return empty;
+#endif
+}
+
+const QByteArray& detail::CatalogOperandContext::encodedAbsolutePath() const noexcept {
+    static const QByteArray empty;
+#if defined(Q_OS_LINUX)
+    return impl_ != nullptr ? impl_->operand.encoded_path : empty;
+#else
+    return empty;
+#endif
+}
+
+const std::vector<QByteArray>&
+detail::CatalogOperandContext::encodedAbsoluteComponents() const noexcept {
+    static const std::vector<QByteArray> empty;
+#if defined(Q_OS_LINUX)
+    return impl_ != nullptr ? impl_->operand.encoded_components : empty;
+#else
+    return empty;
+#endif
+}
+
+struct detail::CatalogOpenAttempt final : SecureScratchContext::Attachment {
+    CatalogOperandContext operand;
+    CatalogHooks hooks;
+
+    CatalogOpenAttempt(CatalogOperandContext&& retained_operand, CatalogHooks retained_hooks)
+        : operand(std::move(retained_operand)), hooks(std::move(retained_hooks)) {}
+};
+
+std::expected<void, CatalogError>
+detail::CatalogOperandContext::attachToSecureScratch(SecureScratchContext& scratch_context,
+                                                     CatalogHooks hooks) && {
+    if (!isValid()) {
+        return fail(CatalogErrorCode::CannotOpen,
+                    QStringLiteral("Retained catalog operand was consumed"));
+    }
+    if (!scratch_context.isValid()) {
+        return fail(CatalogErrorCode::CannotOpen,
+                    QStringLiteral("Secure scratch context was consumed"));
+    }
+    if (scratch_context.catalog_attempt_ != nullptr) {
+        return fail(CatalogErrorCode::CannotOpen,
+                    QStringLiteral("Secure scratch context already has a catalog attempt"));
+    }
+    scratch_context.catalog_attempt_ =
+        std::make_unique<CatalogOpenAttempt>(std::move(*this), std::move(hooks));
+    return {};
+}
+
 struct PackCatalog::Impl final {
     detail::SecureScratchContext scratch_context;
 #if defined(Q_OS_LINUX)
@@ -4317,30 +4381,217 @@ PackCatalogSnapshot::loadResolved(const model::PackRevision& exact_root) const {
 
 std::expected<std::unique_ptr<PackCatalogSnapshot>, CatalogError>
 PackCatalogSnapshot::openExisting(const QString& root_directory) {
+    auto operand = detail::retainCatalogOperand(root_directory);
+    if (!operand) {
+        const auto code =
+            operand.error().code == detail::CatalogOperandFailureCode::InvalidArguments
+                ? CatalogErrorCode::InvalidConfiguration
+                : CatalogErrorCode::CannotOpen;
+        return fail(code, operand.error().message);
+    }
     auto scratch = detail::acquireSecureScratchContext();
     if (!scratch) {
         return fail(CatalogErrorCode::CannotOpen, scratch.error().message);
+    }
+    if (const auto attached = std::move(*operand).attachToSecureScratch(*scratch); !attached) {
+        return std::unexpected(attached.error());
     }
     return detail::PackCatalogSnapshotFactory::openExisting(root_directory, std::move(*scratch));
 }
 
 namespace detail {
 
-std::expected<std::unique_ptr<PackCatalogSnapshot>, CatalogError>
-PackCatalogSnapshotFactory::openExisting(const QString& root_directory,
-                                         SecureScratchContext&& scratch_context) {
-    return openExisting(root_directory, std::move(scratch_context), {});
+std::expected<CatalogOperandSpelling, CatalogOperandFailure>
+validateCatalogOperandSpelling(const QString& root_directory) {
+    const auto encoded_native_spelling = [](const QString& value,
+                                            qsizetype maximum_bytes) -> std::optional<QByteArray> {
+        if (value.contains(QChar::Null) || value.contains(QChar::ReplacementCharacter)) {
+            return std::nullopt;
+        }
+        for (qsizetype index = 0; index < value.size(); ++index) {
+            const auto unit = value.at(index).unicode();
+            if (unit >= 0xd800U && unit <= 0xdbffU) {
+                if (++index >= value.size()) {
+                    return std::nullopt;
+                }
+                const auto low = value.at(index).unicode();
+                if (low < 0xdc00U || low > 0xdfffU) {
+                    return std::nullopt;
+                }
+            } else if (unit >= 0xdc00U && unit <= 0xdfffU) {
+                return std::nullopt;
+            }
+        }
+        const auto encoded = QFile::encodeName(value);
+        if (encoded.contains('\0') || encoded.size() > maximum_bytes ||
+            QFile::decodeName(encoded) != value) {
+            return std::nullopt;
+        }
+        return encoded;
+    };
+
+    const auto absolute = root_directory.startsWith(u'/');
+    constexpr qsizetype longest_descendant_bytes = 81;
+    const auto encoded_path = encoded_native_spelling(root_directory, 4'095);
+    bool invalid = !encoded_path;
+    const auto body = absolute ? root_directory.sliced(1) : root_directory;
+    const auto components = body.split(u'/', Qt::KeepEmptyParts);
+    const auto maximum_components = absolute ? 126U : 128U;
+    std::vector<QByteArray> encoded_components;
+    if (!invalid && !components.isEmpty() &&
+        static_cast<std::size_t>(components.size()) <= maximum_components) {
+        encoded_components.reserve(static_cast<std::size_t>(components.size()));
+        for (const auto& component : components) {
+            const auto encoded_component = encoded_native_spelling(component, 255);
+            if (component.isEmpty() || component == QStringLiteral(".") ||
+                component == QStringLiteral("..") || !encoded_component) {
+                invalid = true;
+                break;
+            }
+            encoded_components.push_back(*encoded_component);
+        }
+    } else {
+        invalid = true;
+    }
+    if (absolute && encoded_path && encoded_path->size() > 4'095 - longest_descendant_bytes) {
+        invalid = true;
+    }
+    if (invalid) {
+        return std::unexpected(CatalogOperandFailure{
+            CatalogOperandFailureCode::InvalidArguments,
+            QStringLiteral("Pack-catalog operand violates native path bounds"),
+        });
+    }
+    auto state = std::make_unique<CatalogOperandSpelling::Impl>();
+    state->supplied_spelling = root_directory;
+    state->encoded_path = *encoded_path;
+    state->diagnostic_components = components;
+    state->encoded_components = std::move(encoded_components);
+    state->absolute = absolute;
+    return CatalogOperandSpelling(std::move(state));
+}
+
+std::expected<CatalogOperandContext, CatalogOperandFailure>
+retainCatalogOperand(const QString& root_directory) {
+    auto spelling = validateCatalogOperandSpelling(root_directory);
+    if (!spelling) {
+        return std::unexpected(spelling.error());
+    }
+    return retainCatalogOperand(std::move(*spelling));
+}
+
+std::expected<CatalogOperandContext, CatalogOperandFailure>
+retainCatalogOperand(CatalogOperandSpelling&& spelling) {
+    if (!spelling.isValid()) {
+        return std::unexpected(CatalogOperandFailure{
+            CatalogOperandFailureCode::UnsupportedEnvironment,
+            QStringLiteral("Retained catalog spelling was consumed"),
+        });
+    }
+#if !defined(Q_OS_LINUX)
+    return std::unexpected(CatalogOperandFailure{
+        CatalogOperandFailureCode::UnsupportedEnvironment,
+        QStringLiteral("Retained catalog operands require Linux"),
+    });
+#else
+    auto spelling_state = std::move(spelling.impl_);
+    auto supplied_spelling = std::move(spelling_state->supplied_spelling);
+    CatalogResolvedOperand operand;
+    operand.supplied_encoded_path = spelling_state->encoded_path;
+    operand.relative = !spelling_state->absolute;
+
+    if (spelling_state->absolute) {
+        operand.absolute_path = supplied_spelling;
+        operand.encoded_path = spelling_state->encoded_path;
+        operand.diagnostic_components = std::move(spelling_state->diagnostic_components);
+        operand.encoded_components = std::move(spelling_state->encoded_components);
+    } else {
+        operand.retained_cwd.reset(::open(".", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+        struct stat cwd_status{};
+        if (!operand.retained_cwd || ::fstat(operand.retained_cwd.get(), &cwd_status) != 0) {
+            return std::unexpected(CatalogOperandFailure{
+                CatalogOperandFailureCode::UnsupportedEnvironment,
+                QStringLiteral("Cannot retain the current directory"),
+            });
+        }
+        const auto captured_cwd = QDir::currentPath();
+        const auto cwd = catalogEncodedAbsolutePath(captured_cwd, 128);
+        if (!cwd) {
+            return std::unexpected(CatalogOperandFailure{
+                CatalogOperandFailureCode::UnsupportedEnvironment,
+                QStringLiteral("Current directory cannot anchor the catalog root"),
+            });
+        }
+        const auto component_count =
+            cwd->diagnostic_components.size() + spelling_state->diagnostic_components.size();
+        operand.absolute_path = captured_cwd == QStringLiteral("/")
+                                    ? QStringLiteral("/") + supplied_spelling
+                                    : captured_cwd + u'/' + supplied_spelling;
+        const auto encoded_absolute = encodedCatalogNativeSpelling(operand.absolute_path, 4'095);
+        auto composed_absolute = cwd->encoded_path;
+        if (composed_absolute != QByteArrayLiteral("/")) {
+            composed_absolute += '/';
+        }
+        composed_absolute += spelling_state->encoded_path;
+        if (!encoded_absolute || *encoded_absolute != composed_absolute || component_count > 126) {
+            return std::unexpected(CatalogOperandFailure{
+                CatalogOperandFailureCode::UnsupportedEnvironment,
+                QStringLiteral("Absolute catalog root exceeds native limits"),
+            });
+        }
+        operand.encoded_path = *encoded_absolute;
+        operand.diagnostic_components = cwd->diagnostic_components;
+        operand.diagnostic_components.append(spelling_state->diagnostic_components);
+        operand.encoded_components = cwd->encoded_components;
+        operand.encoded_components.insert(operand.encoded_components.end(),
+                                          spelling_state->encoded_components.begin(),
+                                          spelling_state->encoded_components.end());
+        operand.cwd_identity = catalogIdentity(cwd_status);
+        operand.cwd_component_count = static_cast<std::size_t>(cwd->diagnostic_components.size());
+    }
+    if (const auto feasible = validateCatalogGeneratedPathHeadroom(operand); !feasible) {
+        return std::unexpected(CatalogOperandFailure{
+            spelling_state->absolute ? CatalogOperandFailureCode::InvalidArguments
+                                     : CatalogOperandFailureCode::UnsupportedEnvironment,
+            feasible.error().message,
+        });
+    }
+    return CatalogOperandContext(
+        std::make_unique<CatalogOperandContext::Impl>(supplied_spelling, std::move(operand)));
+#endif
 }
 
 std::expected<std::unique_ptr<PackCatalogSnapshot>, CatalogError>
 PackCatalogSnapshotFactory::openExisting(const QString& root_directory,
-                                         SecureScratchContext&& scratch_context,
-                                         CatalogHooks hooks) {
-    auto retained_scratch = std::move(scratch_context);
-    if (!retained_scratch.isValid()) {
+                                         SecureScratchContext&& scratch_context) {
+    if (!scratch_context.isValid()) {
         return fail(CatalogErrorCode::CannotOpen,
                     QStringLiteral("Secure scratch context was consumed"));
     }
+    if (scratch_context.catalog_attempt_ == nullptr) {
+        return fail(CatalogErrorCode::CannotOpen,
+                    QStringLiteral("Secure scratch context has no retained catalog operand"));
+    }
+    auto* attempt = static_cast<CatalogOpenAttempt*>(scratch_context.catalog_attempt_.get());
+    if (!attempt->operand.isValid()) {
+        if (attempt->hooks.report != nullptr) {
+            attempt->hooks.report->final_error = CatalogErrorCode::CannotOpen;
+        }
+        return fail(CatalogErrorCode::CannotOpen,
+                    QStringLiteral("Retained catalog operand was consumed"));
+    }
+    if (attempt->operand.impl_->supplied_spelling != root_directory) {
+        if (attempt->hooks.report != nullptr) {
+            attempt->hooks.report->final_error = CatalogErrorCode::InvalidConfiguration;
+        }
+        return fail(
+            CatalogErrorCode::InvalidConfiguration,
+            QStringLiteral("Retained catalog operand does not match the supplied spelling"));
+    }
+    auto operand_context = std::move(attempt->operand);
+    auto hooks = std::move(attempt->hooks);
+    scratch_context.catalog_attempt_.reset();
+    auto retained_scratch = std::move(scratch_context);
     if (hooks.report != nullptr) {
         ++hooks.report->scratch_acquisitions;
     }
@@ -4352,19 +4603,14 @@ PackCatalogSnapshotFactory::openExisting(const QString& root_directory,
         return std::unexpected(std::move(error));
     };
 #if !defined(Q_OS_LINUX)
-    static_cast<void>(root_directory);
+    static_cast<void>(operand_context);
     return reject(CatalogError{CatalogErrorCode::CannotOpen,
                                QStringLiteral("Catalog snapshots require Linux")});
 #else
-    auto operand = resolveCatalogOperand(root_directory);
-    if (!operand) {
-        return reject(operand.error());
-    }
-    if (const auto feasible = validateCatalogGeneratedPathHeadroom(*operand); !feasible) {
-        return reject(feasible.error());
-    }
+    auto operand = std::move(operand_context.impl_->operand);
+    operand_context.impl_.reset();
     auto anchor =
-        retainCatalogRoot(std::move(*operand), false, false, CatalogOperation::SnapshotOpen, hooks);
+        retainCatalogRoot(std::move(operand), false, false, CatalogOperation::SnapshotOpen, hooks);
     if (!anchor) {
         return reject(anchor.error());
     }
@@ -4499,14 +4745,110 @@ PackCatalogSnapshotFactory::openExisting(const QString& root_directory,
 #endif
 }
 
+std::expected<CatalogProtectedInputClosure, CatalogError>
+PackCatalogSnapshotFactory::inspectProtectedCatalogInputs(const PackCatalogSnapshot& snapshot,
+                                                          CatalogHooks hooks) {
+#if !defined(Q_OS_LINUX)
+    static_cast<void>(snapshot);
+    static_cast<void>(hooks);
+    return fail(CatalogErrorCode::CannotOpen,
+                QStringLiteral("Protected catalog inspection requires Linux"));
+#else
+    if (snapshot.impl_ == nullptr || snapshot.impl_->catalog == nullptr ||
+        snapshot.impl_->catalog->impl_ == nullptr || !snapshot.impl_->catalog->impl_->snapshot) {
+        return fail(CatalogErrorCode::CannotOpen,
+                    QStringLiteral("Catalog snapshot state is unavailable"));
+    }
+
+    auto& anchor = snapshot.impl_->catalog->impl_->anchor;
+    auto root_lock =
+        lockCatalogRoot(anchor.rootDescriptor(), anchor.absolute_root, CatalogLockMode::Shared,
+                        CatalogOperation::ProtectedInputInspection, hooks, true);
+    if (!root_lock) {
+        return std::unexpected(root_lock.error());
+    }
+    if (const auto rebound = revalidateCatalogAnchor(anchor); !rebound) {
+        return std::unexpected(rebound.error());
+    }
+    auto current = classifyCatalogNamespace(anchor, false, *root_lock,
+                                            CatalogOperation::ProtectedInputInspection, hooks);
+    if (!current) {
+        return std::unexpected(current.error());
+    }
+    if (current->shape != CatalogNamespaceShape::Current || !current->blobs_identity) {
+        return fail(CatalogErrorCode::CorruptCatalog,
+                    QStringLiteral("Protected catalog inspection requires schema version 2"));
+    }
+
+    CatalogProtectedInputClosure closure;
+    closure.immutable_root_path = anchor.absolute_root;
+    // Current catalog admission permits directories only at these three positions. Entries below
+    // archives and blobs were retained as regular files above, so there are no unreported nested
+    // directory identities for the publisher's ancestry check.
+    closure.directories.reserve(3);
+    const auto append_identity = [&closure](const auto& identity) {
+        closure.directories.push_back(CatalogProtectedInputDirectory{
+            static_cast<std::uint64_t>(identity.device),
+            static_cast<std::uint64_t>(identity.inode),
+        });
+    };
+    append_identity(current->root_identity);
+    append_identity(current->archives_identity);
+    append_identity(*current->blobs_identity);
+    closure.aggregate_entry_count =
+        current->root_names.size() + current->archives.size() + current->blobs.size();
+    if (closure.aggregate_entry_count > maximum_catalog_inventory_entries) {
+        return fail(CatalogErrorCode::CorruptCatalog,
+                    QStringLiteral("Catalog namespace exceeds 20000 entries"));
+    }
+    if (const auto released = root_lock->release(); !released) {
+        return std::unexpected(released.error());
+    }
+    return closure;
+#endif
+}
+
+std::expected<CatalogProtectedInputClosure, CatalogError>
+inspectProtectedCatalogInputs(const PackCatalogSnapshot& snapshot, CatalogHooks hooks) {
+    return PackCatalogSnapshotFactory::inspectProtectedCatalogInputs(snapshot, std::move(hooks));
+}
+
 std::expected<std::unique_ptr<PackCatalog>, CatalogError>
 PackCatalogFactory::open(const QString& root_directory, SecureScratchContext&& scratch_context,
                          CatalogHooks hooks) {
-    auto retained_scratch = std::move(scratch_context);
-    if (!retained_scratch.isValid()) {
+    if (!scratch_context.isValid()) {
+        if (hooks.report != nullptr) {
+            hooks.report->final_error = CatalogErrorCode::CannotOpen;
+        }
         return fail(CatalogErrorCode::CannotOpen,
                     QStringLiteral("Secure scratch context was consumed"));
     }
+    if (scratch_context.catalog_attempt_ == nullptr) {
+        if (hooks.report != nullptr) {
+            hooks.report->final_error = CatalogErrorCode::CannotOpen;
+        }
+        return fail(CatalogErrorCode::CannotOpen,
+                    QStringLiteral("Secure scratch context has no retained catalog operand"));
+    }
+    auto* attempt = static_cast<CatalogOpenAttempt*>(scratch_context.catalog_attempt_.get());
+    if (!attempt->operand.isValid()) {
+        if (hooks.report != nullptr) {
+            hooks.report->final_error = CatalogErrorCode::CannotOpen;
+        }
+        return fail(CatalogErrorCode::CannotOpen,
+                    QStringLiteral("Retained catalog operand was consumed"));
+    }
+    if (attempt->operand.impl_->supplied_spelling != root_directory) {
+        if (hooks.report != nullptr) {
+            hooks.report->final_error = CatalogErrorCode::InvalidConfiguration;
+        }
+        return fail(
+            CatalogErrorCode::InvalidConfiguration,
+            QStringLiteral("Retained catalog operand does not match the supplied spelling"));
+    }
+    auto operand_context = std::move(attempt->operand);
+    scratch_context.catalog_attempt_.reset();
+    auto retained_scratch = std::move(scratch_context);
     if (hooks.report != nullptr) {
         ++hooks.report->scratch_acquisitions;
     }
@@ -4518,19 +4860,14 @@ PackCatalogFactory::open(const QString& root_directory, SecureScratchContext&& s
         return std::unexpected(std::move(error));
     };
 #if !defined(Q_OS_LINUX)
-    static_cast<void>(root_directory);
+    static_cast<void>(operand_context);
     return reject(CatalogError{CatalogErrorCode::CannotOpen,
                                QStringLiteral("Secure writable catalogs require Linux")});
 #else
-    auto operand = resolveCatalogOperand(root_directory);
-    if (!operand) {
-        return reject(operand.error());
-    }
-    if (const auto feasible = validateCatalogGeneratedPathHeadroom(*operand); !feasible) {
-        return reject(feasible.error());
-    }
+    auto operand = std::move(operand_context.impl_->operand);
+    operand_context.impl_.reset();
     auto anchor =
-        retainCatalogRoot(std::move(*operand), true, true, CatalogOperation::WritableOpen, hooks);
+        retainCatalogRoot(std::move(operand), true, true, CatalogOperation::WritableOpen, hooks);
     if (!anchor) {
         return reject(anchor.error());
     }
@@ -5227,9 +5564,20 @@ PackCatalogFactory::open(const QString& root_directory, SecureScratchContext&& s
 
 std::expected<std::unique_ptr<PackCatalog>, CatalogError>
 PackCatalog::open(const QString& root_directory) {
+    auto operand = detail::retainCatalogOperand(root_directory);
+    if (!operand) {
+        const auto code =
+            operand.error().code == detail::CatalogOperandFailureCode::InvalidArguments
+                ? CatalogErrorCode::InvalidConfiguration
+                : CatalogErrorCode::CannotOpen;
+        return fail(code, operand.error().message);
+    }
     auto scratch = detail::acquireSecureScratchContext();
     if (!scratch) {
         return fail(CatalogErrorCode::CannotOpen, scratch.error().message);
+    }
+    if (const auto attached = std::move(*operand).attachToSecureScratch(*scratch); !attached) {
+        return std::unexpected(attached.error());
     }
     return detail::PackCatalogFactory::open(root_directory, std::move(*scratch), {});
 }

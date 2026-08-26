@@ -1,4 +1,10 @@
 #include "pack_cli.hpp"
+#include "pack_cli_p.hpp"
+
+#include "independent_review_publisher_p.hpp"
+#include "pack_archive_p.hpp"
+#include "pack_catalog_p.hpp"
+#include "realism_evidence.hpp"
 
 #include "appellate/model/pack_id.hpp"
 #include "appellate/packs/error.hpp"
@@ -23,12 +29,17 @@
 
 #include <array>
 #include <cerrno>
+#include <cstdint>
 #include <cstring>
 #include <expected>
+#include <limits>
+#include <memory>
 #include <optional>
 #include <ranges>
+#include <span>
 #include <string>
 #include <utility>
+#include <vector>
 
 #if defined(Q_OS_UNIX)
 #include <dirent.h>
@@ -190,7 +201,10 @@ constexpr auto output_schema_version = 1;
         "[--installed-at <canonical UTC>] | list <catalog> | template <new-destination> | "
         "author-realism-evidence <directory> <catalog> <review-resource-id> <trace-json> | "
         "author-realism-evidence-multi <directory> <catalog> <review-resource-id> "
-        "<trace-set-json>");
+        "<trace-set-json> | prepare-independent-review <catalog> <subject-pack-id> "
+        "<subject-version> <subject-digest> <case-id> <new-handoff-directory> | "
+        "finalize-independent-review <handoff-directory> <completed-declaration-json> "
+        "<catalog> <new-pack-directory>");
 }
 
 [[nodiscard]] bool isCanonicalUtc(const QString& value) {
@@ -1851,13 +1865,474 @@ constexpr std::array<const char*, 14> template_members{
     return success(std::move(object));
 }
 
+[[nodiscard]] QJsonObject
+independentReviewCountsObject(const packs::RealismEvidenceCounts& counts) {
+    return QJsonObject{
+        {QStringLiteral("authorities"), static_cast<qint64>(counts.authorities)},
+        {QStringLiteral("blobs"), static_cast<qint64>(counts.blobs)},
+        {QStringLiteral("packs"), static_cast<qint64>(counts.packs)},
+        {QStringLiteral("record_checks"), static_cast<qint64>(counts.record_checks)},
+        {QStringLiteral("resources"), static_cast<qint64>(counts.resources)},
+        {QStringLiteral("traces"), static_cast<qint64>(counts.traces)},
+    };
+}
+
+[[nodiscard]] RunResult scratchFailure(const packs::detail::SecureScratchFailure& error,
+                                       const QString& command) {
+    switch (error.code) {
+    case packs::detail::SecureScratchFailureCode::EnvironmentInfeasible:
+        return failure(ExitCode::OperationFailed, QStringLiteral("unsupported_authoring_platform"),
+                       error.message, command);
+    case packs::detail::SecureScratchFailureCode::OperationalFailure:
+        return failure(ExitCode::OperationFailed, QStringLiteral("cannot_open_catalog"),
+                       error.message, command);
+    case packs::detail::SecureScratchFailureCode::InvalidConfiguration:
+        return failure(ExitCode::OperationFailed, QStringLiteral("invalid_configuration"),
+                       error.message, command);
+    }
+    return failure(ExitCode::OperationFailed, QStringLiteral("cannot_open_catalog"), error.message,
+                   command);
+}
+
+[[nodiscard]] auto
+openIndependentReviewSnapshot(const QString& catalog_path,
+                              packs::detail::CatalogOperandContext&& catalog_operand,
+                              const QString& command)
+    -> std::expected<std::unique_ptr<packs::PackCatalogSnapshot>, RunResult> {
+    auto scratch = packs::detail::acquireSecureScratchContext();
+    if (!scratch) {
+        return std::unexpected(scratchFailure(scratch.error(), command));
+    }
+    if (const auto attached = std::move(catalog_operand).attachToSecureScratch(*scratch);
+        !attached) {
+        return std::unexpected(failure(ExitCode::OperationFailed,
+                                       catalogErrorCode(attached.error().code),
+                                       attached.error().message, command));
+    }
+    auto snapshot =
+        packs::detail::PackCatalogSnapshotFactory::openExisting(catalog_path, std::move(*scratch));
+    if (!snapshot) {
+        return std::unexpected(failure(ExitCode::OperationFailed,
+                                       catalogErrorCode(snapshot.error().code),
+                                       snapshot.error().message, command));
+    }
+    return std::move(*snapshot);
+}
+
+[[nodiscard]] RunResult
+catalogOperandFailureResult(const packs::detail::CatalogOperandFailure& error,
+                            const QString& command) {
+    if (error.code == packs::detail::CatalogOperandFailureCode::InvalidArguments) {
+        return invalidArguments(error.message, command);
+    }
+    return failure(ExitCode::OperationFailed, QStringLiteral("unsupported_authoring_platform"),
+                   error.message, command);
+}
+
+[[nodiscard]] RunResult
+independentReviewBuilderFailure(const packs::IndependentReviewError& error, const QString& command,
+                                const QString& contextual_invalid_input_code) {
+    switch (error.code) {
+    case packs::IndependentReviewErrorCode::InvalidInput:
+        return failure(ExitCode::InvalidPack, contextual_invalid_input_code, error.message,
+                       command);
+    case packs::IndependentReviewErrorCode::InvalidReviewSource:
+        return failure(ExitCode::InvalidPack, QStringLiteral("invalid_review_source"),
+                       error.message, command);
+    case packs::IndependentReviewErrorCode::InvalidHandoff:
+        return failure(ExitCode::InvalidPack, QStringLiteral("invalid_handoff"), error.message,
+                       command);
+    case packs::IndependentReviewErrorCode::InvalidDeclaration:
+        return failure(ExitCode::InvalidPack, QStringLiteral("invalid_declaration"), error.message,
+                       command);
+    case packs::IndependentReviewErrorCode::InvalidIndependentReviewPack:
+        return failure(ExitCode::InvalidPack, QStringLiteral("invalid_independent_review_pack"),
+                       error.message, command);
+    case packs::IndependentReviewErrorCode::CatalogFailure:
+        return failure(
+            ExitCode::OperationFailed,
+            catalogErrorCode(error.catalog_code.value_or(packs::CatalogErrorCode::CannotOpen)),
+            error.message, command);
+    case packs::IndependentReviewErrorCode::ImmutableConflict:
+        return failure(ExitCode::OperationFailed, QStringLiteral("immutable_conflict"),
+                       error.message, command);
+    }
+    return failure(ExitCode::OperationFailed, QStringLiteral("invalid_configuration"),
+                   error.message, command);
+}
+
+[[nodiscard]] QString publicationErrorCode(detail::IndependentReviewPublicationErrorCode code) {
+    switch (code) {
+    case detail::IndependentReviewPublicationErrorCode::InvalidArguments:
+        return QStringLiteral("invalid_arguments");
+    case detail::IndependentReviewPublicationErrorCode::DestinationExists:
+        return QStringLiteral("destination_exists");
+    case detail::IndependentReviewPublicationErrorCode::DestinationOverlapsProtectedInput:
+        return QStringLiteral("destination_overlaps_protected_input");
+    case detail::IndependentReviewPublicationErrorCode::UnsafeDestinationParent:
+        return QStringLiteral("unsafe_destination_parent");
+    case detail::IndependentReviewPublicationErrorCode::CannotPublishDestination:
+        return QStringLiteral("cannot_publish_destination");
+    case detail::IndependentReviewPublicationErrorCode::PublicationCleanupFailed:
+        return QStringLiteral("publication_cleanup_failed");
+    case detail::IndependentReviewPublicationErrorCode::PublicationIdentityFailed:
+        return QStringLiteral("publication_identity_failed");
+    case detail::IndependentReviewPublicationErrorCode::PublicationOutcomeUncertain:
+        return QStringLiteral("publication_outcome_uncertain");
+    case detail::IndependentReviewPublicationErrorCode::PublicationDurabilityFailed:
+        return QStringLiteral("publication_durability_failed");
+    case detail::IndependentReviewPublicationErrorCode::UnsupportedAuthoringPlatform:
+        return QStringLiteral("unsupported_authoring_platform");
+    case detail::IndependentReviewPublicationErrorCode::InvalidStagedArtifact:
+        break;
+    }
+    return QStringLiteral("cannot_publish_destination");
+}
+
+[[nodiscard]] RunResult
+publicationFailureResult(const detail::IndependentReviewPublicationError& error,
+                         const QString& command, const QString& invalid_staged_code) {
+    if (error.code == detail::IndependentReviewPublicationErrorCode::InvalidArguments) {
+        return invalidArguments(error.message, command);
+    }
+    if (error.code == detail::IndependentReviewPublicationErrorCode::InvalidStagedArtifact) {
+        return failure(ExitCode::InvalidPack, invalid_staged_code, error.message, command);
+    }
+    return failure(ExitCode::OperationFailed, publicationErrorCode(error.code), error.message,
+                   command);
+}
+
+[[nodiscard]] std::expected<QDate, RunResult>
+captureIndependentReviewDate(const detail::CurrentUtcDateProvider& provider,
+                             const QString& command) {
+    if (!provider) {
+        return std::unexpected(
+            failure(ExitCode::OperationFailed, QStringLiteral("invalid_configuration"),
+                    QStringLiteral("The current UTC date provider is not configured"), command));
+    }
+    const auto current_utc_date = provider();
+    if (!current_utc_date.isValid()) {
+        return std::unexpected(failure(
+            ExitCode::OperationFailed, QStringLiteral("invalid_configuration"),
+            QStringLiteral("The current UTC date provider returned an invalid date"), command));
+    }
+    return current_utc_date;
+}
+
+[[nodiscard]] std::vector<detail::IndependentReviewProtectedDirectory>
+publicationProtectedDirectories(const packs::detail::CatalogProtectedInputClosure& closure) {
+    std::vector<detail::IndependentReviewProtectedDirectory> directories;
+    directories.reserve(closure.directories.size());
+    for (const auto& directory : closure.directories) {
+        directories.push_back(detail::IndependentReviewProtectedDirectory{
+            directory.device,
+            directory.inode,
+        });
+    }
+    return directories;
+}
+
+[[nodiscard]] RunResult
+prepareIndependentReviewCommand(const QStringList& arguments,
+                                const detail::CurrentUtcDateProvider& current_utc_date_provider,
+                                const detail::IndependentReviewCliHooks& hooks) {
+    const auto command = QStringLiteral("prepare-independent-review");
+    if (arguments.size() != 7) {
+        return invalidArguments(
+            QStringLiteral("prepare-independent-review requires exactly six operands"), command);
+    }
+    if (std::ranges::any_of(arguments.sliced(1),
+                            [](const QString& operand) { return operand.isEmpty(); })) {
+        return invalidArguments(
+            QStringLiteral("prepare-independent-review operands cannot be empty"), command);
+    }
+    auto catalog_spelling = packs::detail::validateCatalogOperandSpelling(arguments.at(1));
+    if (!catalog_spelling) {
+        return catalogOperandFailureResult(catalog_spelling.error(), command);
+    }
+    auto destination_token = detail::encodeIndependentReviewDestinationPath(
+        arguments.at(6), detail::IndependentReviewArtifactKind::PreparedHandoff);
+    if (!destination_token) {
+        return publicationFailureResult(destination_token.error(), command,
+                                        QStringLiteral("invalid_handoff"));
+    }
+    const auto current_utc_date = captureIndependentReviewDate(current_utc_date_provider, command);
+    if (!current_utc_date) {
+        return current_utc_date.error();
+    }
+    auto catalog_operand = packs::detail::retainCatalogOperand(std::move(*catalog_spelling));
+    if (!catalog_operand) {
+        return catalogOperandFailureResult(catalog_operand.error(), command);
+    }
+    auto snapshot =
+        openIndependentReviewSnapshot(arguments.at(1), std::move(*catalog_operand), command);
+    if (!snapshot) {
+        return snapshot.error();
+    }
+    const packs::IndependentReviewPrepareInput input{
+        model::PackRevision{
+            model::PackId{arguments.at(2).toStdString()},
+            arguments.at(3).toStdString(),
+            arguments.at(4).toStdString(),
+        },
+        arguments.at(5),
+        *current_utc_date,
+    };
+    const auto prepared = packs::prepareIndependentReview(**snapshot, input);
+    if (!prepared) {
+        return independentReviewBuilderFailure(prepared.error(), command,
+                                               QStringLiteral("invalid_review_source"));
+    }
+    const auto protected_inputs = packs::detail::inspectProtectedCatalogInputs(**snapshot);
+    if (!protected_inputs) {
+        return failure(ExitCode::OperationFailed, catalogErrorCode(protected_inputs.error().code),
+                       protected_inputs.error().message, command);
+    }
+
+    detail::IndependentReviewPublicationRequest request{
+        detail::IndependentReviewArtifactKind::PreparedHandoff,
+        arguments.at(6),
+        publicationProtectedDirectories(*protected_inputs),
+        protected_inputs->aggregate_entry_count,
+        {},
+        {
+            {QStringLiteral("handoff.json"), prepared->handoff_bytes},
+            {QStringLiteral("review-declaration.template.json"),
+             prepared->declaration_template_bytes},
+        },
+        [snapshot = snapshot->get(), input, expected_handoff = prepared->handoff_bytes,
+         expected_template = prepared->declaration_template_bytes](const QString& staging_root)
+            -> std::expected<void, detail::IndependentReviewStagedValidationError> {
+            const auto staged = detail::readIndependentReviewStagedHandoffDirectory(staging_root);
+            if (!staged) {
+                return std::unexpected(
+                    detail::IndependentReviewStagedValidationError{staged.error().message});
+            }
+            const auto rescanned = packs::detail::validatePreparedIndependentReview(
+                *snapshot, staged->handoff_bytes, staged->declaration_template_bytes,
+                input.current_utc_date);
+            if (staged->handoff_bytes != expected_handoff ||
+                staged->declaration_template_bytes != expected_template) {
+                return std::unexpected(detail::IndependentReviewStagedValidationError{
+                    QStringLiteral("Staged handoff bytes differ from the deterministic output"),
+                    detail::IndependentReviewStagedValidationErrorCode::PublicationMismatch});
+            }
+            if (!rescanned) {
+                return std::unexpected(
+                    detail::IndependentReviewStagedValidationError{rescanned.error().message});
+            }
+            return {};
+        },
+        std::move(*destination_token),
+    };
+    if (const auto published = detail::publishIndependentReviewArtifacts(request, hooks.publisher);
+        !published) {
+        return publicationFailureResult(published.error(), command,
+                                        QStringLiteral("invalid_handoff"));
+    }
+
+    const auto detached_revision = packs::realism_evidence_detached_review_engine_revision;
+    QJsonObject object{
+        {QStringLiteral("case_id"), prepared->case_id},
+        {QStringLiteral("closure_digest"), prepared->closure_digest},
+        {QStringLiteral("command"), command},
+        {QStringLiteral("evidence_counts"), independentReviewCountsObject(prepared->counts)},
+        {QStringLiteral("files"), QJsonArray{QStringLiteral("handoff.json"),
+                                             QStringLiteral("review-declaration.template.json")}},
+        {QStringLiteral("handoff_digest"), prepared->handoff_digest},
+        {QStringLiteral("mechanical_trace_revision"),
+         QString::fromLatin1(detached_revision.data(),
+                             static_cast<qsizetype>(detached_revision.size()))},
+        {QStringLiteral("source_review_resource_id"), prepared->source_review_resource_id},
+        {QStringLiteral("subject_revision"), revisionObject(prepared->subject_revision)},
+    };
+    return success(std::move(object));
+}
+
+[[nodiscard]] RunResult
+finalizeIndependentReviewCommand(const QStringList& arguments,
+                                 const detail::CurrentUtcDateProvider& current_utc_date_provider,
+                                 const detail::IndependentReviewCliHooks& hooks) {
+    const auto command = QStringLiteral("finalize-independent-review");
+    if (arguments.size() != 5) {
+        return invalidArguments(
+            QStringLiteral("finalize-independent-review requires exactly four operands"), command);
+    }
+    if (std::ranges::any_of(arguments.sliced(1),
+                            [](const QString& operand) { return operand.isEmpty(); })) {
+        return invalidArguments(
+            QStringLiteral("finalize-independent-review operands cannot be empty"), command);
+    }
+    auto handoff_token = detail::encodeIndependentReviewHandoffPath(arguments.at(1));
+    if (!handoff_token) {
+        return publicationFailureResult(handoff_token.error(), command,
+                                        QStringLiteral("invalid_handoff"));
+    }
+    auto declaration_token = detail::encodeIndependentReviewPathSpelling(arguments.at(2), false);
+    if (!declaration_token) {
+        return publicationFailureResult(declaration_token.error(), command,
+                                        QStringLiteral("invalid_declaration"));
+    }
+    auto catalog_spelling = packs::detail::validateCatalogOperandSpelling(arguments.at(3));
+    if (!catalog_spelling) {
+        return catalogOperandFailureResult(catalog_spelling.error(), command);
+    }
+    auto destination_token = detail::encodeIndependentReviewDestinationPath(
+        arguments.at(4), detail::IndependentReviewArtifactKind::FinalizedPack);
+    if (!destination_token) {
+        return publicationFailureResult(destination_token.error(), command,
+                                        QStringLiteral("invalid_independent_review_pack"));
+    }
+    const auto current_utc_date = captureIndependentReviewDate(current_utc_date_provider, command);
+    if (!current_utc_date) {
+        return current_utc_date.error();
+    }
+    auto catalog_operand = packs::detail::retainCatalogOperand(std::move(*catalog_spelling));
+    if (!catalog_operand) {
+        return catalogOperandFailureResult(catalog_operand.error(), command);
+    }
+    const auto handoff = detail::readIndependentReviewHandoffDirectory(std::move(*handoff_token));
+    if (!handoff) {
+        return publicationFailureResult(handoff.error(), command,
+                                        QStringLiteral("invalid_handoff"));
+    }
+    const auto completed_declaration =
+        detail::readIndependentReviewDeclaration(std::move(*declaration_token));
+    if (!completed_declaration) {
+        return publicationFailureResult(completed_declaration.error(), command,
+                                        QStringLiteral("invalid_declaration"));
+    }
+    auto snapshot =
+        openIndependentReviewSnapshot(arguments.at(3), std::move(*catalog_operand), command);
+    if (!snapshot) {
+        return snapshot.error();
+    }
+    const packs::IndependentReviewFinalizeInput input{
+        handoff->handoff_bytes,
+        handoff->declaration_template_bytes,
+        *completed_declaration,
+        *current_utc_date,
+    };
+    const auto finalized = packs::finalizeIndependentReview(**snapshot, input);
+    if (!finalized) {
+        return independentReviewBuilderFailure(finalized.error(), command,
+                                               QStringLiteral("invalid_handoff"));
+    }
+    const auto resolved_subject = (*snapshot)->loadResolved(finalized->dependency_revision);
+    if (!resolved_subject) {
+        return failure(ExitCode::OperationFailed, catalogErrorCode(resolved_subject.error().code),
+                       resolved_subject.error().message, command);
+    }
+    const auto protected_inputs = packs::detail::inspectProtectedCatalogInputs(**snapshot);
+    if (!protected_inputs) {
+        return failure(ExitCode::OperationFailed, catalogErrorCode(protected_inputs.error().code),
+                       protected_inputs.error().message, command);
+    }
+    auto protected_directories = publicationProtectedDirectories(*protected_inputs);
+    protected_directories.push_back(handoff->protected_directory);
+    if (protected_inputs->aggregate_entry_count >
+        std::numeric_limits<std::size_t>::max() - handoff->protected_entry_count) {
+        return failure(ExitCode::OperationFailed,
+                       QStringLiteral("destination_overlaps_protected_input"),
+                       QStringLiteral("The protected-input inventory count overflowed"), command);
+    }
+    const auto protected_entry_count =
+        protected_inputs->aggregate_entry_count + handoff->protected_entry_count;
+    auto publication_manifest = finalized->manifest_bytes;
+    auto publication_review = finalized->review_bytes;
+    if (hooks.replace_finalized_publication_members) {
+        hooks.replace_finalized_publication_members(publication_manifest, publication_review);
+    }
+
+    detail::IndependentReviewPublicationRequest request{
+        detail::IndependentReviewArtifactKind::FinalizedPack,
+        arguments.at(4),
+        std::move(protected_directories),
+        protected_entry_count,
+        {},
+        {
+            {QStringLiteral("manifest.json"), publication_manifest},
+            {QStringLiteral("resources/realism-review.json"), publication_review},
+        },
+        [snapshot = snapshot->get(), resolved_subject = &*resolved_subject, input,
+         expected_revision = finalized->revision, expected_manifest = publication_manifest,
+         expected_review = publication_review](const QString& staging_root)
+            -> std::expected<void, detail::IndependentReviewStagedValidationError> {
+            const auto staged = packs::PackReader::readDirectory(
+                staging_root, packs::PackValidationScope::ResolvedClosure);
+            if (!staged) {
+                return std::unexpected(
+                    detail::IndependentReviewStagedValidationError{staged.error().message});
+            }
+            if (staged->revision != expected_revision) {
+                return std::unexpected(detail::IndependentReviewStagedValidationError{
+                    QStringLiteral("Staged detached pack has the wrong revision"),
+                    detail::IndependentReviewStagedValidationErrorCode::PublicationMismatch});
+            }
+            std::vector<const packs::LoadedPack*> dependencies;
+            dependencies.reserve(resolved_subject->dependenciesDependencyFirst().size() + 1U);
+            for (const auto& dependency : resolved_subject->dependenciesDependencyFirst()) {
+                dependencies.push_back(&dependency);
+            }
+            dependencies.push_back(&resolved_subject->root());
+            const auto graph = packs::PackReader::validateResolvedGraph(
+                *staged, std::span<const packs::LoadedPack* const>(dependencies.data(),
+                                                                   dependencies.size()));
+            if (!graph) {
+                return std::unexpected(
+                    detail::IndependentReviewStagedValidationError{graph.error().message});
+            }
+            const auto rebuilt = packs::finalizeIndependentReview(*snapshot, input);
+            if (!rebuilt || rebuilt->revision != expected_revision ||
+                rebuilt->manifest_bytes != expected_manifest ||
+                rebuilt->review_bytes != expected_review) {
+                return std::unexpected(detail::IndependentReviewStagedValidationError{
+                    rebuilt ? QStringLiteral("The staged detached pack cannot be reproduced")
+                            : rebuilt.error().message,
+                    detail::IndependentReviewStagedValidationErrorCode::PublicationMismatch});
+            }
+            return {};
+        },
+        std::move(*destination_token),
+    };
+    if (const auto published = detail::publishIndependentReviewArtifacts(request, hooks.publisher);
+        !published) {
+        return publicationFailureResult(published.error(), command,
+                                        QStringLiteral("invalid_independent_review_pack"));
+    }
+
+    auto object = revisionObject(finalized->revision);
+    object.insert(QStringLiteral("case_id"), finalized->case_id);
+    object.insert(QStringLiteral("closure_digest"), finalized->closure_digest);
+    object.insert(QStringLiteral("command"), command);
+    object.insert(QStringLiteral("dependency_revision"),
+                  revisionObject(finalized->dependency_revision));
+    object.insert(QStringLiteral("files"),
+                  QJsonArray{QStringLiteral("manifest.json"),
+                             QStringLiteral("resources/realism-review.json")});
+    object.insert(QStringLiteral("handoff_digest"), finalized->handoff_digest);
+    object.insert(QStringLiteral("review_resource_id"), finalized->review_resource_id);
+    object.insert(QStringLiteral("review_sha256"), finalized->review_sha256);
+    return success(std::move(object));
+}
+
 } // namespace
 
-RunResult runPackCli(const QStringList& arguments) {
+namespace detail {
+
+RunResult runPackCli(const QStringList& arguments,
+                     const CurrentUtcDateProvider& current_utc_date_provider,
+                     const IndependentReviewCliHooks& hooks) {
     if (arguments.isEmpty()) {
         return invalidArguments(QStringLiteral("a command is required"));
     }
     const auto command = arguments.front();
+    if (command == QStringLiteral("prepare-independent-review")) {
+        return prepareIndependentReviewCommand(arguments, current_utc_date_provider, hooks);
+    }
+    if (command == QStringLiteral("finalize-independent-review")) {
+        return finalizeIndependentReviewCommand(arguments, current_utc_date_provider, hooks);
+    }
     if (command == QStringLiteral("validate")) {
         return validateCommand(arguments);
     }
@@ -1888,6 +2363,12 @@ RunResult runPackCli(const QStringList& arguments) {
         return templateCommand(arguments);
     }
     return invalidArguments(QStringLiteral("unknown command: %1").arg(command), command);
+}
+
+} // namespace detail
+
+RunResult runPackCli(const QStringList& arguments) {
+    return detail::runPackCli(arguments, [] { return QDateTime::currentDateTimeUtc().date(); });
 }
 
 } // namespace appellate::cli

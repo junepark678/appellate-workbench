@@ -2,6 +2,9 @@ include_guard(GLOBAL)
 
 include(GNUInstallDirs)
 
+if(NOT CMAKE_INSTALL_DATADIR STREQUAL "share")
+    message(FATAL_ERROR "The Linux pre-MVP bundle requires CMAKE_INSTALL_DATADIR=share")
+endif()
 if(CMAKE_VERSION VERSION_LESS 4.3)
     message(FATAL_ERROR "Linux archive packaging requires CMake 4.3 or newer")
 endif()
@@ -343,14 +346,56 @@ install(
     DESTINATION "${CMAKE_INSTALL_DATADIR}/appellate-workbench"
 )
 install(
-    FILES
-        "${PROJECT_SOURCE_DIR}/README.md"
-        "${PROJECT_SOURCE_DIR}/docs/PRODUCT.md"
-        "${PROJECT_SOURCE_DIR}/docs/ARCHITECTURE.md"
-        "${PROJECT_SOURCE_DIR}/docs/REALISM_MATRIX.md"
-        "${PROJECT_SOURCE_DIR}/docs/RELEASE.md"
-        "${PROJECT_SOURCE_DIR}/docs/spec/PACKS.md"
+    FILES "${PROJECT_SOURCE_DIR}/README.md"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/APPELLATE_EVENT_CATALOG.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/ARCHITECTURE.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/INDEPENDENT_REVIEW.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/PARITY_INVENTORY.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/PRODUCT.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/REALISM_MATRIX.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/RELEASE.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/adr/0001-native-offline-mvp.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs/adr"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/adr/0002-declarative-pack-trust-boundary.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs/adr"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/adr/0003-bench-profile-boundary.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs/adr"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/content/M4_CASE_MATRIX.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs/content"
+)
+install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/spec/PACKS.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs/spec"
 )
 
 set(QT_DEPLOY_USE_PATCHELF ON)
@@ -437,13 +482,14 @@ if(BUILD_TESTING)
             "${CMAKE_COMMAND}"
             "-DAPPELLATE_BUILD_DIR=${PROJECT_BINARY_DIR}"
             "-DAPPELLATE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+            "-DAPPELLATE_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
             -P "${PROJECT_SOURCE_DIR}/tests/release/verify_install.cmake"
     )
     set_tests_properties(
         linux_bundle_smoke
         PROPERTIES
             LABELS "e2e;ui;local;packaging"
-            TIMEOUT 600
+            TIMEOUT 900
     )
 
     add_test(
@@ -454,6 +500,7 @@ if(BUILD_TESTING)
             "-DAPPELLATE_CPACK_EXECUTABLE=${CMAKE_CPACK_COMMAND}"
             "-DAPPELLATE_PACKAGE_FILE_NAME=${APPELLATE_BINARY_PACKAGE_FILE_NAME}"
             "-DAPPELLATE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+            "-DAPPELLATE_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
             "-DAPPELLATE_VERIFY_INSTALL_SCRIPT=${PROJECT_SOURCE_DIR}/tests/release/verify_install.cmake"
             -P "${PROJECT_SOURCE_DIR}/tests/release/verify_archive.cmake"
     )

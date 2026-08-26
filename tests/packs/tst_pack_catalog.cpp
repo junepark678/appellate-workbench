@@ -72,6 +72,28 @@ static_assert(std::same_as<
                   std::declval<appellate::packs::detail::SecureScratchContext&&>())),
               std::expected<std::unique_ptr<PackCatalogSnapshot>, appellate::packs::CatalogError>>);
 
+[[nodiscard]] auto
+openWritableWithRetainedOperand(const QString& root_directory,
+                                appellate::packs::detail::SecureScratchContext&& scratch_context,
+                                appellate::packs::detail::CatalogHooks hooks)
+    -> std::expected<std::unique_ptr<PackCatalog>, appellate::packs::CatalogError> {
+    auto operand = appellate::packs::detail::retainCatalogOperand(root_directory);
+    if (!operand) {
+        const auto code =
+            operand.error().code ==
+                    appellate::packs::detail::CatalogOperandFailureCode::InvalidArguments
+                ? CatalogErrorCode::InvalidConfiguration
+                : CatalogErrorCode::CannotOpen;
+        return std::unexpected(appellate::packs::CatalogError{code, operand.error().message});
+    }
+    if (const auto attached = std::move(*operand).attachToSecureScratch(scratch_context);
+        !attached) {
+        return std::unexpected(attached.error());
+    }
+    return appellate::packs::detail::PackCatalogFactory::open(
+        root_directory, std::move(scratch_context), std::move(hooks));
+}
+
 template <typename Snapshot>
 concept SnapshotExposesInstall =
     requires(Snapshot& snapshot, const QString& archive, const QString& installed_at) {
@@ -761,8 +783,13 @@ void PackCatalogTest::consumesSecureScratchContextOnce() {
     appellate::packs::detail::CatalogReport first_report;
     appellate::packs::detail::CatalogHooks first_hooks;
     first_hooks.report = &first_report;
+    auto operand = appellate::packs::detail::retainCatalogOperand(catalog_root);
+    QVERIFY2(operand.has_value(), operand ? "" : qPrintable(operand.error().message));
+    const auto attached =
+        std::move(*operand).attachToSecureScratch(*context, std::move(first_hooks));
+    QVERIFY2(attached.has_value(), attached ? "" : qPrintable(attached.error().message));
     auto snapshot = appellate::packs::detail::PackCatalogSnapshotFactory::openExisting(
-        catalog_root, std::move(*context), std::move(first_hooks));
+        catalog_root, std::move(*context));
     QVERIFY2(snapshot.has_value(), snapshot ? "" : qPrintable(snapshot.error().message));
     QVERIFY(!context->isValid());
     QCOMPARE(temp_path_captures, std::size_t{1});
@@ -780,15 +807,11 @@ void PackCatalogTest::consumesSecureScratchContextOnce() {
     QVERIFY(observed(appellate::packs::detail::CatalogEvent::QueryPlanVerified,
                      appellate::packs::detail::CatalogSubject::PrivateDatabaseMain));
 
-    appellate::packs::detail::CatalogReport second_report;
-    appellate::packs::detail::CatalogHooks second_hooks;
-    second_hooks.report = &second_report;
     const auto moved_from = appellate::packs::detail::PackCatalogSnapshotFactory::openExisting(
-        catalog_root, std::move(*context), std::move(second_hooks));
+        catalog_root, std::move(*context));
     QVERIFY(!moved_from.has_value());
     QCOMPARE(moved_from.error().code, CatalogErrorCode::CannotOpen);
     QCOMPARE(temp_path_captures, std::size_t{1});
-    QVERIFY(second_report.observations.empty());
 }
 
 void PackCatalogTest::rejectsNonNormativeMigrationLedgerBeforeSourceSqlite() {
@@ -811,8 +834,8 @@ void PackCatalogTest::rejectsNonNormativeMigrationLedgerBeforeSourceSqlite() {
     appellate::packs::detail::CatalogReport report;
     appellate::packs::detail::CatalogHooks hooks;
     hooks.report = &report;
-    const auto rejected = appellate::packs::detail::PackCatalogFactory::open(
-        catalog_root, std::move(*scratch_context), std::move(hooks));
+    const auto rejected = openWritableWithRetainedOperand(catalog_root, std::move(*scratch_context),
+                                                          std::move(hooks));
     QVERIFY(!rejected.has_value());
     QCOMPARE(rejected.error().code, CatalogErrorCode::CorruptCatalog);
     QVERIFY(std::ranges::none_of(
@@ -844,8 +867,8 @@ void PackCatalogTest::cleansFailedWritableInitializationAndRetries() {
                    ? appellate::packs::detail::CatalogInjectedAction::FailBefore
                    : appellate::packs::detail::CatalogInjectedAction::Continue;
     };
-    const auto failed = appellate::packs::detail::PackCatalogFactory::open(
-        catalog_root, std::move(*scratch), std::move(hooks));
+    const auto failed =
+        openWritableWithRetainedOperand(catalog_root, std::move(*scratch), std::move(hooks));
     QVERIFY(!failed.has_value());
     QCOMPARE(failed.error().code, CatalogErrorCode::CannotOpen);
     QVERIFY(!QFileInfo::exists(catalog_root));
@@ -871,8 +894,8 @@ void PackCatalogTest::cleansFailedWritableInitializationAndRetries() {
                    ? appellate::packs::detail::CatalogInjectedAction::FailBefore
                    : appellate::packs::detail::CatalogInjectedAction::Continue;
     };
-    const auto empty_failed = appellate::packs::detail::PackCatalogFactory::open(
-        empty_root, std::move(*empty_scratch), std::move(empty_hooks));
+    const auto empty_failed = openWritableWithRetainedOperand(empty_root, std::move(*empty_scratch),
+                                                              std::move(empty_hooks));
     QVERIFY(!empty_failed.has_value());
     QCOMPARE(empty_failed.error().code, CatalogErrorCode::CannotOpen);
     QVERIFY(QFileInfo(empty_root).isDir());
@@ -935,8 +958,8 @@ void PackCatalogTest::rejectsReboundAttemptLockOnLateWritableOpenFailure() {
         }
         return appellate::packs::detail::CatalogInjectedAction::Continue;
     };
-    const auto rejected = appellate::packs::detail::PackCatalogFactory::open(
-        catalog_root, std::move(*scratch_context), std::move(hooks));
+    const auto rejected = openWritableWithRetainedOperand(catalog_root, std::move(*scratch_context),
+                                                          std::move(hooks));
     QVERIFY(!rejected.has_value());
     QCOMPARE(rejected.error().code, CatalogErrorCode::CorruptCatalog);
     QVERIFY(mutation_succeeded);
@@ -1511,8 +1534,8 @@ void PackCatalogTest::rollsBackV1MigrationBeforeCommitAndRetries() {
         }
         return appellate::packs::detail::CatalogInjectedAction::Continue;
     };
-    const auto rejected = appellate::packs::detail::PackCatalogFactory::open(
-        catalog_root, std::move(*scratch_context), std::move(hooks));
+    const auto rejected = openWritableWithRetainedOperand(catalog_root, std::move(*scratch_context),
+                                                          std::move(hooks));
     QVERIFY(!rejected.has_value());
     QCOMPARE(rejected.error().code, CatalogErrorCode::MigrationFailed);
     QVERIFY(injected);
@@ -1573,7 +1596,7 @@ void PackCatalogTest::preservesAppliedV1MigrationAfterReportedCommitFailure() {
         }
         return appellate::packs::detail::CatalogInjectedAction::Continue;
     };
-    const auto reported_failure = appellate::packs::detail::PackCatalogFactory::open(
+    const auto reported_failure = openWritableWithRetainedOperand(
         catalog_root, std::move(*scratch_context), std::move(hooks));
     QVERIFY(!reported_failure.has_value());
     QCOMPARE(reported_failure.error().code, CatalogErrorCode::CannotOpen);

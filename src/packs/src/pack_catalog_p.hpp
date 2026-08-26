@@ -121,6 +121,7 @@ enum class CatalogSubject {
 enum class CatalogOperation {
     None,
     SnapshotOpen,
+    ProtectedInputInspection,
     WritableOpen,
     List,
     Load,
@@ -250,16 +251,106 @@ struct CatalogHooks final {
     CatalogReport* report{};
 };
 
+struct CatalogProtectedInputDirectory final {
+    std::uint64_t device{};
+    std::uint64_t inode{};
+
+    friend bool operator==(const CatalogProtectedInputDirectory&,
+                           const CatalogProtectedInputDirectory&) = default;
+};
+
+struct CatalogProtectedInputClosure final {
+    QString immutable_root_path;
+    std::vector<CatalogProtectedInputDirectory> directories;
+    std::size_t aggregate_entry_count{};
+
+    friend bool operator==(const CatalogProtectedInputClosure&,
+                           const CatalogProtectedInputClosure&) = default;
+};
+
+enum class CatalogOperandFailureCode {
+    InvalidArguments,
+    UnsupportedEnvironment,
+};
+
+struct CatalogOperandFailure final {
+    CatalogOperandFailureCode code{};
+    QString message;
+};
+
+class CatalogOperandSpelling final {
+  public:
+    CatalogOperandSpelling(const CatalogOperandSpelling&) = delete;
+    CatalogOperandSpelling& operator=(const CatalogOperandSpelling&) = delete;
+    CatalogOperandSpelling(CatalogOperandSpelling&&) noexcept;
+    CatalogOperandSpelling& operator=(CatalogOperandSpelling&&) noexcept;
+    ~CatalogOperandSpelling();
+
+    [[nodiscard]] bool isValid() const noexcept;
+
+  private:
+    struct Impl;
+    explicit CatalogOperandSpelling(std::unique_ptr<Impl> state);
+    std::unique_ptr<Impl> impl_;
+
+    friend auto validateCatalogOperandSpelling(const QString& root_directory)
+        -> std::expected<CatalogOperandSpelling, CatalogOperandFailure>;
+    friend auto retainCatalogOperand(CatalogOperandSpelling&& spelling)
+        -> std::expected<class CatalogOperandContext, CatalogOperandFailure>;
+};
+
+class CatalogOperandContext final {
+  public:
+    CatalogOperandContext(const CatalogOperandContext&) = delete;
+    CatalogOperandContext& operator=(const CatalogOperandContext&) = delete;
+    CatalogOperandContext(CatalogOperandContext&&) noexcept;
+    CatalogOperandContext& operator=(CatalogOperandContext&&) noexcept;
+    ~CatalogOperandContext();
+
+    [[nodiscard]] bool isValid() const noexcept;
+    [[nodiscard]] const QString& immutableAbsolutePath() const noexcept;
+    [[nodiscard]] const QByteArray& encodedSuppliedPath() const noexcept;
+    [[nodiscard]] const QByteArray& encodedAbsolutePath() const noexcept;
+    [[nodiscard]] const std::vector<QByteArray>& encodedAbsoluteComponents() const noexcept;
+    [[nodiscard]] auto
+    attachToSecureScratch(SecureScratchContext& scratch_context,
+                          CatalogHooks hooks = {}) && -> std::expected<void, CatalogError>;
+
+  private:
+    struct Impl;
+    explicit CatalogOperandContext(std::unique_ptr<Impl> state);
+    std::unique_ptr<Impl> impl_;
+
+    friend auto retainCatalogOperand(const QString& root_directory)
+        -> std::expected<CatalogOperandContext, CatalogOperandFailure>;
+    friend auto retainCatalogOperand(CatalogOperandSpelling&& spelling)
+        -> std::expected<CatalogOperandContext, CatalogOperandFailure>;
+    friend struct PackCatalogSnapshotFactory;
+    friend struct PackCatalogFactory;
+};
+
+[[nodiscard]] auto retainCatalogOperand(const QString& root_directory)
+    -> std::expected<CatalogOperandContext, CatalogOperandFailure>;
+
+[[nodiscard]] auto retainCatalogOperand(CatalogOperandSpelling&& spelling)
+    -> std::expected<CatalogOperandContext, CatalogOperandFailure>;
+
+[[nodiscard]] auto validateCatalogOperandSpelling(const QString& root_directory)
+    -> std::expected<CatalogOperandSpelling, CatalogOperandFailure>;
+
 struct PackCatalogSnapshotFactory final {
     [[nodiscard]] static auto openExisting(const QString& root_directory,
                                            SecureScratchContext&& scratch_context)
         -> std::expected<std::unique_ptr<PackCatalogSnapshot>, CatalogError>;
 
-    [[nodiscard]] static auto openExisting(const QString& root_directory,
-                                           SecureScratchContext&& scratch_context,
-                                           CatalogHooks hooks)
-        -> std::expected<std::unique_ptr<PackCatalogSnapshot>, CatalogError>;
+    [[nodiscard]] static auto inspectProtectedCatalogInputs(const PackCatalogSnapshot& snapshot,
+                                                            CatalogHooks hooks)
+        -> std::expected<CatalogProtectedInputClosure, CatalogError>;
 };
+
+[[nodiscard]] auto inspectProtectedCatalogInputs(const PackCatalogSnapshot& snapshot,
+                                                 CatalogHooks hooks = {})
+    -> std::expected<CatalogProtectedInputClosure, CatalogError>;
 
 struct PackCatalogFactory final {
     [[nodiscard]] static auto open(const QString& root_directory,

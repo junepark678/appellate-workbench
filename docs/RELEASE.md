@@ -68,6 +68,33 @@ an undeclared pack can enter the artifact. Extracting the top-level directory is
 removing that directory is uninstallation. User databases, catalog objects, and settings live
 under the platform data/config directories and are deliberately not deleted with the program.
 
+Operator documentation is installed without flattening below
+`share/doc/appellate-workbench`. Its exact relative allowlist is:
+
+```text
+README.md
+docs/APPELLATE_EVENT_CATALOG.md
+docs/ARCHITECTURE.md
+docs/INDEPENDENT_REVIEW.md
+docs/PARITY_INVENTORY.md
+docs/PRODUCT.md
+docs/REALISM_MATRIX.md
+docs/RELEASE.md
+docs/adr/0001-native-offline-mvp.md
+docs/adr/0002-declarative-pack-trust-boundary.md
+docs/adr/0003-bench-profile-boundary.md
+docs/content/M4_CASE_MATRIX.md
+docs/spec/PACKS.md
+```
+
+There is no flattened root-level `ARCHITECTURE.md`, `INDEPENDENT_REVIEW.md`, `PACKS.md`,
+`PRODUCT.md`, `REALISM_MATRIX.md`, or `RELEASE.md`. Installed-prefix and extracted-archive gates
+require the exact documentation tree, ordinary non-symlink files, byte equality with the source,
+and a closed set of resolving relative Markdown links. The
+[detached independent-review operator guide](INDEPENDENT_REVIEW.md) and
+[pack contract](spec/PACKS.md) are therefore available with the binaries after relocation, without
+relying on a source checkout.
+
 The Linux bundle deliberately contains only the X11/XWayland (`qxcb`) and headless (`qoffscreen`)
 Qt platform plugins, plus the SQLite driver. Native Wayland and all other Qt plugin families are
 outside this exact artifact contract. The automated gate proves the plugin file allowlist and
@@ -121,13 +148,27 @@ above is the packaging proof that the resolved v0.2 runtime is the content that 
 The v0.1 compatibility pack does not contain a grounded oral-argument question bank. The
 installed-flow gate therefore invokes the installed artifact's own `appellate-pack template`
 command and exports that embedded schema-2 grounded starter to an exact-hash archive outside the
-install prefix. The same sequence is repeated with the relocated CLI; both template extraction and
-export run inside a user/network namespace. Through the real shipped executable and user import
-path, the gate persists and reopens one workflow filing, its CAS bytes, and one grounded oral answer
-while proving the workflow rows are unchanged by oral practice. Generated starter archives remain
-temporary verification output and are rejected by the artifact allowlists. This proves
-artifact-alone functional workflow/oral persistence plumbing and v0.1 compatibility, not the
-complete Asterglen v0.2 legal simulation required for MVP acceptance.
+install prefix. The same sequence is repeated with the relocated CLI. Template extraction, archive
+export and validation, and the user-import E2E run under the release runner's ordinary UID because
+hardened scratch admission verifies the complete retained absolute controller chain; the automated
+packaging test does not claim network isolation for this sequence. The separate offline and
+clean-system gate below supplies the network-disabled release evidence. Through the real shipped
+executable and user import path, the gate persists and reopens one workflow filing, its CAS bytes,
+and one grounded oral answer while proving the workflow rows are unchanged by oral practice.
+Generated starter archives remain temporary verification output and are rejected by the artifact
+allowlists. This proves artifact-alone functional workflow/oral persistence plumbing and v0.1
+compatibility, not the complete Asterglen v0.2 legal simulation required for MVP acceptance.
+
+The installed and extracted/relocated gates also exercise their own `appellate-pack` binary through
+one temporary, test-only Serrano detached-review flow and exact wrong-arity envelopes for both
+independent-review commands. The flow prepares a handoff, finalizes a declaration dated at the
+source boundary, exports the resulting deferred review directory twice with byte-identical archives,
+installs it into a separate ephemeral verification catalog, and then fully validates its resolved
+closure. It must leave the bundled subject and archive bytes unchanged and no publication/catalog
+residue. Its conspicuous
+`test.detached-review.*` and `TEST-ONLY` identities are removed with the verifier root; no handoff,
+declaration, detached test pack, new executable, or private header enters the release, and the exact
+thirteen-pack archive allowlist remains unchanged.
 
 The normal local desktop E2Es separately exercise pack installation, SQLite save/resume, record
 CAS materialization, workflow judgment, actual and counterfactual oral argument, restart/replay,

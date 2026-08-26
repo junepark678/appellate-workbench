@@ -808,6 +808,8 @@ appellate-pack list <catalog>
 appellate-pack validate-resolved <catalog> <pack-id> <version> <digest>
 appellate-pack author-realism-evidence <directory> <catalog> <review-resource-id> <trace-json>
 appellate-pack author-realism-evidence-multi <directory> <catalog> <review-resource-id> <trace-set-json>
+appellate-pack prepare-independent-review <catalog> <subject-pack-id> <subject-version> <subject-digest> <case-id> <new-handoff-directory>
+appellate-pack finalize-independent-review <handoff-directory> <completed-declaration-json> <catalog> <new-pack-directory>
 ```
 
 `template` creates a complete fictional/composite schema-version-2 example containing every
@@ -823,6 +825,47 @@ JSON response states that resolution has not yet occurred. `validate-resolved` a
 root revision in a local catalog, validates the whole installed closure, and returns the complete
 pack-ID-sorted revision-pin set. Neither command performs network access or makes a deferred pack
 directly executable.
+
+### Detached independent-review commands
+
+`prepare-independent-review` opens an existing catalog through an immutable snapshot and requires
+the exact requested schema-version-2 subject revision, case, and one strict production-multi review
+in state `independent_review_pending`. It independently rebuilds the review-excluded subject
+closure, code-owned evidence IDs and dimension partitions, exact record and authority bindings, and
+every replayed trace. It changes each trace to the fixed
+`appellate.realism-evidence.detached-review-replay.v1` revision and recomputes the trace evidence
+digest. The source `reviewed_on` cannot be later than the one current UTC calendar date captured by
+preparation. It does not trust or copy a hidden source score-zero partition.
+
+The command publishes one previously absent directory containing exactly `handoff.json` and
+`review-declaration.template.json`. Both are closed canonical JSON objects; they must remain
+byte-identical, including their final LF. The handoff binds the subject pin, source review,
+mechanical evidence, template SHA-256, and association digest. The template contains nulls for all
+coordinator/human declarations and is not itself bound to a handoff. Preparation writes no reviewer
+claim, review resource, manifest, pack revision, catalog row, or source edit.
+
+An operator copies the template to a separate completed declaration and fills its exact closed
+field set. Reviewer identity and qualification are attributable metadata, not a cryptographic
+signature or identity proof. All seven scores are integers 0 through 3. Score zero clears that
+dimension; a nonzero score retains its complete rebuilt partition and fails if the partition is
+empty. Typed blocking uncertainty requires a canonical HTTPS `remediation_issue`; nonblocking
+uncertainty forbids it. `reviewed_on` cannot precede the source review or exceed the one captured
+current UTC calendar date at finalization.
+
+`finalize-independent-review` accepts the unchanged handoff directory, that separate completed
+declaration, the existing subject catalog, and a previously absent pack directory. It recomputes
+the template hash and association digest, reloads the exact subject through a fresh immutable
+snapshot, independently reconstructs the complete payload, and strictly validates the deterministic
+result before publication. Success produces exactly `manifest.json` and
+`resources/realism-review.json`: a schema-version-2 detached review-only pack with one review, no
+blobs, and one exact direct dependency pin on the subject owner.
+
+Neither command overwrites or repairs an existing path, installs or archives a pack, changes the
+source root or catalog, performs network access, or establishes gold, release-ready, or MVP-complete
+status. A finalized directory is separately archived with `export-deferred`, installed with
+`install` after its exact subject closure, and checked with `validate-resolved`. See the
+[detached independent-review operator guide](../INDEPENDENT_REVIEW.md) for the ordered procedure,
+declaration fields, publication boundary, and recovery instructions.
 
 Both realism-evidence authoring commands require every exact dependency to be installed in
 `catalog`; neither installs the root or dependencies. They precompute and validate the final
