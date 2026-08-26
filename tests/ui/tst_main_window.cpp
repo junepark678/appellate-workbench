@@ -73,6 +73,7 @@ class MainWindowTest final : public QObject {
     void installedRecordActionOpensSearchablePdf();
     void recordFailuresPreserveLastGoodWorkspace();
     void sealedRecordAccessPersistsAndRejectsTamperedReplay();
+    void blockedRecordAccessDoesNotExposeEmptyMenus();
     void argumentLaunchUsesExactSelectedConfigurationAndPreservesWorkspaceOnError();
     void actionsExposeAccessibleUsefulStates();
 };
@@ -302,7 +303,8 @@ class RecordingRecordAccessProvider final : public appellate::ui::RecordAccessTr
     return destination;
 }
 
-[[nodiscard]] QString createSealedTwinsPack(const QString& root) {
+[[nodiscard]] QString createSealedTwinsPack(const QString& root,
+                                            bool include_blocking_requirements = false) {
     const auto destination = QDir(root).filePath(QStringLiteral("sealed-twins-pack"));
     if (!copyTree(fixture(QStringLiteral("full-resource-pack-v2")), destination)) {
         return {};
@@ -370,7 +372,11 @@ class RecordingRecordAccessProvider final : public appellate::ui::RecordAccessTr
             {QStringLiteral("public_entry_id"), QStringLiteral("example.record.entry-one")},
             {QStringLiteral("authorization_authority_id"),
              QStringLiteral("example.authority.deficiency")},
-            {QStringLiteral("required_items"), QJsonArray{QStringLiteral("redacted_counterpart")}},
+            {QStringLiteral("required_items"),
+             include_blocking_requirements
+                 ? QJsonArray{QStringLiteral("motion"), QStringLiteral("certificate"),
+                              QStringLiteral("redacted_counterpart")}
+                 : QJsonArray{QStringLiteral("redacted_counterpart")}},
             {QStringLiteral("anchor_mappings"),
              QJsonArray{QJsonObject{
                  {QStringLiteral("stable_anchor_id"),
@@ -926,6 +932,40 @@ void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
         QVERIFY(last_good_revoke->isEnabled());
         QVERIFY(reopened.recordAccessMenu()->isEnabled());
     }
+}
+
+void MainWindowTest::blockedRecordAccessDoesNotExposeEmptyMenus() {
+    QTemporaryDir state;
+    QVERIFY(state.isValid());
+    const auto source = createSealedTwinsPack(state.path(), true);
+    QVERIFY2(!source.isEmpty(), "Failed to create blocked sealed-twins fixture");
+    const auto archive_path = QDir(state.path()).filePath(QStringLiteral("blocked.awpack"));
+    const auto exported = PackArchive::exportDirectory(source, archive_path);
+    QVERIFY2(exported.has_value(), exported ? "" : qPrintable(exported.error().message));
+
+    MainWindow window({}, QDir(state.path()).filePath(QStringLiteral("catalog")), nullptr, {}, {},
+                      QDir(state.path()).filePath(QStringLiteral("record-access.sqlite")));
+    const auto installed = window.loadSource(archive_path);
+    QVERIFY2(installed.has_value(), installed ? "" : qPrintable(installed.error()));
+    const auto opened = window.openSelectedRecord();
+    QVERIFY2(opened.has_value(), opened ? "" : qPrintable(opened.error()));
+
+    auto* disclosure_menu = window.findChild<QMenu*>(
+        QStringLiteral("recordAccessDisclosureMenu.example.disclosure.psr"));
+    auto* grant = window.findChild<QAction*>(
+        QStringLiteral("grantRecordAccessAction.example.disclosure.psr"));
+    auto* revoke = window.findChild<QAction*>(
+        QStringLiteral("revokeRecordAccessAction.example.disclosure.psr"));
+    QVERIFY(disclosure_menu != nullptr);
+    QVERIFY(grant != nullptr);
+    QVERIFY(revoke != nullptr);
+    QVERIFY(!grant->isEnabled());
+    QVERIFY(!grant->isVisible());
+    QVERIFY(!revoke->isEnabled());
+    QVERIFY(!revoke->isVisible());
+    QVERIFY(!disclosure_menu->menuAction()->isVisible());
+    QVERIFY(!window.recordAccessMenu()->isEnabled());
+    QVERIFY(!window.recordAccessMenu()->menuAction()->isVisible());
 }
 
 void MainWindowTest::argumentLaunchUsesExactSelectedConfigurationAndPreservesWorkspaceOnError() {

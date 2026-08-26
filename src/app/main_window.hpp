@@ -157,6 +157,7 @@ class MainWindow final : public QMainWindow {
 
     struct RecordAccessActionBinding final {
         std::string disclosure_id;
+        QMenu* disclosure_menu{};
         QAction* grant_action{};
         QAction* revoke_action{};
     };

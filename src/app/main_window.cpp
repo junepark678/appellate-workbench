@@ -1196,7 +1196,7 @@ void MainWindow::rebuildRecordAccessActions() {
             transitionRecordAccess(public_id, model::RecordAccessAction::Revoke);
         });
         record_access_action_bindings_.push_back(
-            RecordAccessActionBinding{public_id, grant_action, revoke_action});
+            RecordAccessActionBinding{public_id, disclosure_menu, grant_action, revoke_action});
     }
     updateActionStates();
 }
@@ -1704,11 +1704,13 @@ void MainWindow::updateActionStates(
     const auto disclosures = record_access_controller_ != nullptr
                                  ? record_access_controller_->disclosures()
                                  : std::vector<model::RecordAccessDisclosureStatus>{};
+    bool has_visible_record_access_action = false;
     for (const auto& binding : record_access_action_bindings_) {
         const auto disclosure =
             std::ranges::find(disclosures, binding.disclosure_id,
                               &model::RecordAccessDisclosureStatus::disclosure_id);
         if (!record_access_active || disclosure == disclosures.end()) {
+            binding.disclosure_menu->menuAction()->setVisible(false);
             binding.grant_action->setEnabled(false);
             binding.grant_action->setVisible(false);
             binding.revoke_action->setEnabled(false);
@@ -1718,10 +1720,14 @@ void MainWindow::updateActionStates(
         const auto can_grant = !disclosure->authorized && disclosure->blocking_deficiencies.empty();
         binding.grant_action->setEnabled(can_grant);
         binding.grant_action->setVisible(can_grant);
-        binding.revoke_action->setEnabled(disclosure->authorized);
-        binding.revoke_action->setVisible(disclosure->authorized);
+        const auto can_revoke = disclosure->authorized;
+        binding.revoke_action->setEnabled(can_revoke);
+        binding.revoke_action->setVisible(can_revoke);
+        const auto show_disclosure = can_grant || can_revoke;
+        binding.disclosure_menu->menuAction()->setVisible(show_disclosure);
+        has_visible_record_access_action = has_visible_record_access_action || show_disclosure;
     }
-    const auto show_record_access = record_access_active && !record_access_action_bindings_.empty();
+    const auto show_record_access = record_access_active && has_visible_record_access_action;
     record_access_menu_->setEnabled(show_record_access);
     record_access_menu_->menuAction()->setVisible(show_record_access);
 }
