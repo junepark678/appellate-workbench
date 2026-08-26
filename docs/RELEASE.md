@@ -139,11 +139,15 @@ only relocated binaries and archives. This proves exact archive integrity, depen
 runtime projection, and desktop loading for all nine finalized v2 roots. It does not establish
 qualified independent review, level 3 or gold status, or complete the MVP.
 
-The existing deterministic offline workflow E2E remains pinned to the immutable Asterglen v0.1.0
-archive. Its UI driver knows that predecessor's single visible transition; the current generic UI
-transition affordance cannot supply the first order/filing required by v0.2.0. This compatibility
-flow therefore must not be cited as v0.2 workflow-progression evidence. The ordinary desktop gate
-above is the packaging proof that the resolved v0.2 runtime is the content that loads by default.
+The deterministic local desktop workflow E2E exports and installs the exact Asterglen v0.2.0
+resolved closure, opens it through the ordinary `MainWindow` workflow provider, and selects every
+action by its stable authored-action key. It supplies only the user-editable filing fields, service
+choices, and deficiency cure choice through native controls; production code resolves each bound
+PDF by exact unsealed record-entry ID and digest. The E2E submits all 37 canonical commands (14
+filings and 23 court-controlled actions), observes all six authored filing rejections, closes and
+reopens after the first rejected notice and the accepted opening brief, and reaches the exact
+40-event terminal authored-dismissal state with 17 CAS references. This is v0.2 local desktop
+workflow-progression evidence; it is not the clean-system, network-disabled release drill.
 
 The v0.1 compatibility pack does not contain a grounded oral-argument question bank. The
 installed-flow gate therefore invokes the installed artifact's own `appellate-pack template`
@@ -157,7 +161,8 @@ executable and user import path, the gate persists and reopens one workflow fili
 and one grounded oral answer while proving the workflow rows are unchanged by oral practice.
 Generated starter archives remain temporary verification output and are rejected by the artifact
 allowlists. This proves artifact-alone functional workflow/oral persistence plumbing and v0.1
-compatibility, not the complete Asterglen v0.2 legal simulation required for MVP acceptance.
+compatibility. The distinct local desktop E2E above supplies the complete Asterglen v0.2 canonical
+UI progression, while the clean-system release drill remains a separate requirement.
 
 The installed and extracted/relocated gates also exercise their own `appellate-pack` binary through
 one temporary, test-only Serrano detached-review flow and exact wrong-arity envelopes for both
