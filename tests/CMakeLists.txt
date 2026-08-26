@@ -179,6 +179,25 @@ target_link_libraries(
 target_compile_features(tst_workflow_engine PRIVATE cxx_std_26)
 add_test(NAME workflow_engine COMMAND tst_workflow_engine)
 
+qt_add_executable(
+    tst_workflow_action_planner
+    app/tst_workflow_action_planner.cpp
+)
+target_link_libraries(
+    tst_workflow_action_planner
+    PRIVATE
+        appellate::application
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_definitions(
+    tst_workflow_action_planner
+    PRIVATE APPELLATE_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+)
+target_compile_features(tst_workflow_action_planner PRIVATE cxx_std_26)
+add_test(NAME workflow_action_planner COMMAND tst_workflow_action_planner)
+
 qt_add_executable(tst_oral_argument_engine engine/tst_oral_argument_engine.cpp)
 target_link_libraries(
     tst_oral_argument_engine
