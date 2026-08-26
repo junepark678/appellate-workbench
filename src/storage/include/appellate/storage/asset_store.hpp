@@ -25,6 +25,12 @@ struct AssetRecoveryHooks final {
     std::function<bool(qsizetype, const QString&)> permit_quarantine;
 };
 
+// Deterministic, non-reentrant barrier for proving that first lock publication has no visible
+// create-to-normalize interval. Production callers use the hook-free acquireLock entry point.
+struct AssetStoreLockHooks final {
+    std::function<void()> after_anonymous_create;
+};
+
 } // namespace detail
 
 class SessionArchive;
@@ -119,6 +125,8 @@ class AssetStore final {
     [[nodiscard]] auto stage(QIODevice& source) -> std::expected<StagedAsset, AssetStoreError>;
     [[nodiscard]] auto stage(QByteArrayView bytes) -> std::expected<StagedAsset, AssetStoreError>;
     [[nodiscard]] auto acquireLock() const -> std::expected<AssetStoreLock, AssetStoreError>;
+    [[nodiscard]] auto acquireLock(const detail::AssetStoreLockHooks& hooks) const
+        -> std::expected<AssetStoreLock, AssetStoreError>;
     [[nodiscard]] auto finalize(StagedAsset& staged, const AssetStoreLock& lock) const
         -> std::expected<StoredAsset, AssetStoreError>;
 

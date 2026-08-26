@@ -652,6 +652,11 @@ std::expected<StagedAsset, AssetStoreError> AssetStore::stage(QIODevice& source)
 }
 
 std::expected<AssetStoreLock, AssetStoreError> AssetStore::acquireLock() const {
+    return acquireLock({});
+}
+
+std::expected<AssetStoreLock, AssetStoreError>
+AssetStore::acquireLock(const detail::AssetStoreLockHooks& hooks) const {
     if (const auto ready = ensureReady(); !ready) {
         return std::unexpected(ready.error());
     }
@@ -672,6 +677,20 @@ std::expected<AssetStoreLock, AssetStoreError> AssetStore::acquireLock() const {
             return fail(AssetStoreErrorCode::CannotCommit,
                         systemError(u"Create staged asset-store lock"));
         }
+        try {
+            if (hooks.after_anonymous_create) {
+                hooks.after_anonymous_create();
+            }
+        } catch (const std::exception& exception) {
+            static_cast<void>(::close(descriptor));
+            return fail(AssetStoreErrorCode::CannotCommit,
+                        QStringLiteral("Asset-store lock hook failed: %1")
+                            .arg(QString::fromLocal8Bit(exception.what())));
+        } catch (...) {
+            static_cast<void>(::close(descriptor));
+            return fail(AssetStoreErrorCode::CannotCommit,
+                        QStringLiteral("Asset-store lock hook failed"));
+        }
         if (const auto private_file = detail::normalizeNewPrivateStateFile(descriptor, 0);
             !private_file) {
             static_cast<void>(::close(descriptor));
@@ -682,6 +701,10 @@ std::expected<AssetStoreLock, AssetStoreError> AssetStore::acquireLock() const {
             static_cast<void>(::close(descriptor));
             return fail(AssetStoreErrorCode::CannotSync, message);
         }
+        // This link is the first operation that can make the lock visible. The retained file is
+        // already exact mode 0600, ACL-free, empty, and durable at link count zero. Once published,
+        // never detach the stable cooperative-lock name, including on a parent-directory sync or
+        // later validation failure; another process may already be using that inode for exclusion.
         int linked{};
         do {
             linked = ::linkat(descriptor, "", root_descriptor_, ".cas.lock", AT_EMPTY_PATH);
@@ -731,6 +754,7 @@ std::expected<AssetStoreLock, AssetStoreError> AssetStore::acquireLock() const {
     }
     return AssetStoreLock(descriptor);
 #else
+    Q_UNUSED(hooks);
     return fail(AssetStoreErrorCode::InvalidConfiguration,
                 QStringLiteral("Asset-store locking is unavailable"));
 #endif

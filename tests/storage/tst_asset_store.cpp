@@ -8,6 +8,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <cerrno>
 #include <utility>
 
 #if defined(Q_OS_UNIX)
@@ -16,6 +17,7 @@
 
 #if defined(Q_OS_LINUX)
 #include <sys/stat.h>
+#include <sys/wait.h>
 #endif
 
 namespace {
@@ -35,6 +37,8 @@ class AssetStoreTest final : public QObject {
     void lockMoveAssignmentTransfersOwnershipSafely();
     void rejectsHardLinkedFinalObjectWithoutChangingAlias();
     void rejectsHardLinkedPublicationLockWithoutChangingAlias();
+    void firstLockPublicationSurvivesCreatorCrash();
+    void preservesUnsafeLegacyLockCrashResidue();
     void createsExactPrivateLayoutUnderHostileUmask_data();
     void createsExactPrivateLayoutUnderHostileUmask();
     void rejectsUnsafePreexistingModesWithoutRepair();
@@ -43,6 +47,7 @@ class AssetStoreTest final : public QObject {
 
 using appellate::storage::AssetStore;
 using appellate::storage::AssetStoreErrorCode;
+using appellate::storage::detail::AssetStoreLockHooks;
 
 #if defined(Q_OS_LINUX)
 class ScopedUmask final {
@@ -333,6 +338,120 @@ void AssetStoreTest::rejectsHardLinkedPublicationLockWithoutChangingAlias() {
     QVERIFY(alias.open(QIODevice::ReadOnly));
     QCOMPARE(alias.readAll(), before);
     alias.close();
+#endif
+}
+
+void AssetStoreTest::firstLockPublicationSurvivesCreatorCrash() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Atomic CAS lock publication is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto root = QDir(controller.path()).filePath(QStringLiteral("assets"));
+    const auto lock_path = QDir(root).filePath(QStringLiteral(".cas.lock"));
+
+    const auto prepublish_child = ::fork();
+    QVERIFY(prepublish_child >= 0);
+    if (prepublish_child == 0) {
+        static_cast<void>(::umask(0777));
+        AssetStore store(root, 1024);
+        AssetStoreLockHooks hooks;
+        hooks.after_anonymous_create = [] { ::_exit(0); };
+        static_cast<void>(store.acquireLock(hooks));
+        ::_exit(10);
+    }
+
+    int child_status{};
+    pid_t waited{};
+    do {
+        waited = ::waitpid(prepublish_child, &child_status, 0);
+    } while (waited < 0 && errno == EINTR);
+    QCOMPARE(waited, prepublish_child);
+    QVERIFY(WIFEXITED(child_status));
+    QCOMPARE(WEXITSTATUS(child_status), 0);
+    QVERIFY(!QFileInfo::exists(lock_path));
+
+    const auto child = ::fork();
+    QVERIFY(child >= 0);
+    if (child == 0) {
+        static_cast<void>(::umask(0777));
+        AssetStore store(root, 1024);
+        const auto lock = store.acquireLock();
+        if (!lock) {
+            ::_exit(10);
+        }
+        struct stat published{};
+        if (::lstat(QFile::encodeName(lock_path).constData(), &published) != 0) {
+            ::_exit(11);
+        }
+        if (!S_ISREG(published.st_mode) || (published.st_mode & 07777) != 0600 ||
+            published.st_nlink != 1 || published.st_size != 0) {
+            ::_exit(12);
+        }
+        // Deliberately bypass every C++ destructor. The kernel releases flock ownership, while the
+        // exact published name must remain as the durable cooperative-lock rendezvous point.
+        ::_exit(0);
+    }
+
+    child_status = 0;
+    waited = 0;
+    do {
+        waited = ::waitpid(child, &child_status, 0);
+    } while (waited < 0 && errno == EINTR);
+    QCOMPARE(waited, child);
+    QVERIFY(WIFEXITED(child_status));
+    QCOMPARE(WEXITSTATUS(child_status), 0);
+
+    struct stat before{};
+    QCOMPARE(::lstat(QFile::encodeName(lock_path).constData(), &before), 0);
+    QVERIFY(S_ISREG(before.st_mode));
+    QCOMPARE(static_cast<mode_t>(before.st_mode & 07777), static_cast<mode_t>(0600));
+    QCOMPARE(before.st_nlink, static_cast<nlink_t>(1));
+    QCOMPARE(before.st_size, static_cast<off_t>(0));
+
+    AssetStore reopened(root, 1024);
+    const auto reacquired = reopened.acquireLock();
+    if (!reacquired) {
+        QFAIL(qPrintable(reacquired.error().message));
+    }
+    struct stat after{};
+    QCOMPARE(::lstat(QFile::encodeName(lock_path).constData(), &after), 0);
+    QCOMPARE(after.st_dev, before.st_dev);
+    QCOMPARE(after.st_ino, before.st_ino);
+    QCOMPARE(static_cast<mode_t>(after.st_mode & 07777), static_cast<mode_t>(0600));
+    QCOMPARE(after.st_nlink, static_cast<nlink_t>(1));
+#endif
+}
+
+void AssetStoreTest::preservesUnsafeLegacyLockCrashResidue() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Exact CAS lock validation is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto root = QDir(controller.path()).filePath(QStringLiteral("assets"));
+    AssetStore store(root, 1024);
+    {
+        const auto staged = store.stage(QByteArrayLiteral("initialize-without-lock"));
+        QVERIFY(staged.has_value());
+    }
+
+    const auto lock_path = QDir(root).filePath(QStringLiteral(".cas.lock"));
+    QFile residue(lock_path);
+    QVERIFY(residue.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+    residue.close();
+    QVERIFY(chmodExact(lock_path, 0000));
+    struct stat before{};
+    QCOMPARE(::lstat(QFile::encodeName(lock_path).constData(), &before), 0);
+
+    const auto rejected = store.acquireLock();
+    QVERIFY(!rejected.has_value());
+    struct stat after{};
+    QCOMPARE(::lstat(QFile::encodeName(lock_path).constData(), &after), 0);
+    QCOMPARE(after.st_dev, before.st_dev);
+    QCOMPARE(after.st_ino, before.st_ino);
+    QCOMPARE(static_cast<mode_t>(after.st_mode & 07777), static_cast<mode_t>(0000));
+    QCOMPARE(after.st_nlink, static_cast<nlink_t>(1));
 #endif
 }
 
