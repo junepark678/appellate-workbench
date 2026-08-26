@@ -1,5 +1,18 @@
+function(_appellate_set_serialized_literal output encoded)
+    string(LENGTH "${encoded}" _encoded_length)
+    if(_encoded_length LESS 2)
+        message(FATAL_ERROR "Serialized CMake literal is missing its sentinels")
+    endif()
+    math(EXPR _decoded_length "${_encoded_length} - 2")
+    string(SUBSTRING "${encoded}" 1 "${_decoded_length}" _decoded)
+    set("${output}" "${_decoded}" PARENT_SCOPE)
+endfunction()
+
+_appellate_set_serialized_literal(_appellate_install_libdir @APPELLATE_RELEASE_LITERAL_OPEN@x@CMAKE_INSTALL_LIBDIR@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_patchelf_executable @APPELLATE_RELEASE_LITERAL_OPEN@x@APPELLATE_PATCHELF_EXECUTABLE@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+
 set(_appellate_bundle_library_dir
-    "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/@CMAKE_INSTALL_LIBDIR@"
+    "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${_appellate_install_libdir}"
 )
 file(GLOB _appellate_bundle_libraries
     LIST_DIRECTORIES FALSE
@@ -11,7 +24,7 @@ foreach(_appellate_library IN LISTS _appellate_bundle_libraries)
     endif()
     execute_process(
         COMMAND
-            "@APPELLATE_PATCHELF_EXECUTABLE@"
+            "${_appellate_patchelf_executable}"
             --set-rpath "$ORIGIN"
             "${_appellate_library}"
         RESULT_VARIABLE _appellate_patchelf_result

@@ -1,6 +1,7 @@
 include_guard(GLOBAL)
 
 include(GNUInstallDirs)
+include("${CMAKE_CURRENT_LIST_DIR}/SafeCMakeLiteral.cmake")
 
 if(NOT CMAKE_INSTALL_DATADIR STREQUAL "share")
     message(FATAL_ERROR "The Linux pre-MVP bundle requires CMAKE_INSTALL_DATADIR=share")
@@ -40,6 +41,15 @@ set(
     CACHE STRING
     "Expected OpenPGP signing-key fingerprint for the exact release tag"
 )
+string(LENGTH "${APPELLATE_RELEASE_SIGNING_FINGERPRINT}" _appellate_fingerprint_length)
+if(NOT APPELLATE_RELEASE_SIGNING_FINGERPRINT STREQUAL "" AND
+   (NOT _appellate_fingerprint_length EQUAL 40 OR
+    NOT APPELLATE_RELEASE_SIGNING_FINGERPRINT MATCHES "^[0-9A-Fa-f]+$"))
+    message(
+        FATAL_ERROR
+        "APPELLATE_RELEASE_SIGNING_FINGERPRINT must be empty or exactly 40 hexadecimal characters"
+    )
+endif()
 set(
     APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD
     OFF
@@ -196,6 +206,13 @@ if(APPELLATE_GLIBC_FLOOR STREQUAL "")
     else()
         set(APPELLATE_GLIBC_FLOOR "unverified")
     endif()
+endif()
+if(NOT APPELLATE_GLIBC_FLOOR STREQUAL "unverified" AND
+   NOT APPELLATE_GLIBC_FLOOR MATCHES "^[0-9]+[.][0-9]+$")
+    message(
+        FATAL_ERROR
+        "APPELLATE_GLIBC_FLOOR must be 'unverified' or a canonical major.minor version"
+    )
 endif()
 
 set(
@@ -419,6 +436,30 @@ _appellate_assert_release_archive(
 
 set(_appellate_release_generated "${PROJECT_BINARY_DIR}/release")
 file(MAKE_DIRECTORY "${_appellate_release_generated}")
+
+# configure_file performs textual substitution. Serialize every value used by the generated
+# verifier inside one CMake bracket argument whose closing delimiter is absent from all values.
+# This preserves legal quotes, backslashes, dollar signs, and newlines without allowing them to
+# become verifier source code.
+appellate_select_cmake_bracket_delimiter(
+    APPELLATE_RELEASE_LITERAL_OPEN
+    APPELLATE_RELEASE_LITERAL_CLOSE
+    APPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE
+    APPELLATE_RELEASE_SOURCE_REVISION
+    APPELLATE_RELEASE_SOURCE_EPOCH
+    PROJECT_VERSION
+    APPELLATE_RELEASE_SIGNING_FINGERPRINT
+    APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD
+    APPELLATE_SIGNED_RELEASE_ROOT
+    APPELLATE_SIGNED_RELEASE_TOKEN
+    PROJECT_SOURCE_DIR
+    PROJECT_BINARY_DIR
+    GIT_EXECUTABLE
+    APPELLATE_DEVELOPMENT_PACKAGE_FILE_NAME
+    CMAKE_INSTALL_LIBDIR
+    APPELLATE_PATCHELF_EXECUTABLE
+)
+
 configure_file(
     "${PROJECT_SOURCE_DIR}/cmake/release-compatibility.json.in"
     "${_appellate_release_generated}/compatibility.json"
@@ -629,6 +670,29 @@ if(NOT APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD)
 endif()
 
 if(BUILD_TESTING)
+    add_test(
+        NAME release_identity_literal_escaping
+        COMMAND
+            "${CMAKE_COMMAND}"
+            "-DAPPELLATE_CMAKE_GENERATOR=${CMAKE_GENERATOR}"
+            "-DAPPELLATE_CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}"
+            "-DAPPELLATE_CPACK_EXECUTABLE=${CMAKE_CPACK_COMMAND}"
+            "-DAPPELLATE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            "-DAPPELLATE_GIT_EXECUTABLE=${GIT_EXECUTABLE}"
+            "-DAPPELLATE_PATCHELF_EXECUTABLE=${APPELLATE_PATCHELF_EXECUTABLE}"
+            "-DAPPELLATE_QT6_DIR=${Qt6_DIR}"
+            "-DAPPELLATE_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+            "-DAPPELLATE_TEST_ROOT=${PROJECT_BINARY_DIR}/release-identity-literal-test"
+            -P
+            "${PROJECT_SOURCE_DIR}/tests/release/verify_release_identity_literals.cmake"
+    )
+    set_tests_properties(
+        release_identity_literal_escaping
+        PROPERTIES
+            LABELS "local;packaging;security"
+            TIMEOUT 120
+    )
+
     add_test(
         NAME linux_bundle_smoke
         COMMAND
