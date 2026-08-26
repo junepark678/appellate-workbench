@@ -1044,8 +1044,8 @@ void PackArchiveTest::importsArchivesThroughSecureScratch() {
         const auto subordinate_uid = subordinateId(QStringLiteral("/etc/subuid"));
         const auto subordinate_gid = subordinateId(QStringLiteral("/etc/subgid"));
         if (unshare.isEmpty() || !subordinate_uid.has_value() || !subordinate_gid.has_value()) {
-            QWARN("Second-UID sticky-controller rename row skipped explicitly: subordinate user "
-                  "namespace mappings are unavailable");
+            qWarning("Second-UID sticky-controller rename row skipped explicitly: subordinate user "
+                     "namespace mappings are unavailable");
         } else {
             bool rename_attempted = false;
             bool rename_denied = false;
@@ -1117,8 +1117,8 @@ void PackArchiveTest::importsArchivesThroughSecureScratch() {
         const auto subordinate_uid = subordinateId(QStringLiteral("/etc/subuid"));
         const auto subordinate_gid = subordinateId(QStringLiteral("/etc/subgid"));
         if (unshare.isEmpty() || !subordinate_uid.has_value() || !subordinate_gid.has_value()) {
-            QWARN("Wrong-owner controller row skipped explicitly: subordinate user namespace "
-                  "mappings are unavailable");
+            qWarning("Wrong-owner controller row skipped explicitly: subordinate user namespace "
+                     "mappings are unavailable");
         } else {
             QTemporaryDir wrong_owner_controller;
             QVERIFY(wrong_owner_controller.isValid());
