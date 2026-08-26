@@ -32,7 +32,6 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
-#include <cstdio>
 #include <exception>
 #include <iostream>
 #include <map>
@@ -180,12 +179,16 @@ commandDocumentDigest(const model::WorkflowCommand& command) {
 }
 
 [[nodiscard]] std::string dateText(const model::LegalDate& date) {
+    if (!date.value.ok())
+        fail("Invalid legal date");
     const auto year = static_cast<int>(date.value.year());
-    const auto month = static_cast<unsigned>(date.value.month());
-    const auto day = static_cast<unsigned>(date.value.day());
-    char buffer[11]{};
-    std::snprintf(buffer, sizeof(buffer), "%04d-%02u-%02u", year, month, day);
-    return buffer;
+    if (year < 1 || year > 9999)
+        fail("Legal date year must be between 0001 and 9999");
+    return QStringLiteral("%1-%2-%3")
+        .arg(year, 4, 10, QLatin1Char('0'))
+        .arg(static_cast<unsigned>(date.value.month()), 2, 10, QLatin1Char('0'))
+        .arg(static_cast<unsigned>(date.value.day()), 2, 10, QLatin1Char('0'))
+        .toStdString();
 }
 
 void addUint64(QCryptographicHash& hash, std::uint64_t value) {
