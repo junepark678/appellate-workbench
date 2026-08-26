@@ -258,6 +258,51 @@ template <typename Pack>
     return std::move(*runtime);
 }
 
+[[nodiscard]] auto
+exactInstalledClosuresForArchive(const packs::PackCatalog& catalog,
+                                 const storage::SessionArchiveReplayContents& contents)
+    -> std::expected<std::vector<packs::ResolvedPack>, QString> {
+    const auto installed = catalog.list();
+    if (!installed) {
+        return std::unexpected(QStringLiteral("Installed pack revisions cannot be listed: %1")
+                                   .arg(installed.error().message));
+    }
+    std::vector<packs::ResolvedPack> closures;
+    closures.reserve(installed->size());
+    for (const auto& pack : *installed) {
+        const auto required =
+            std::ranges::any_of(contents.sessions, [&](const storage::SessionSnapshot& session) {
+                return std::ranges::any_of(session.pins, [&](const storage::RevisionPin& pin) {
+                    return pin.pack_id == utf8(pack.revision.id.value) &&
+                           pin.version == utf8(pack.revision.version) &&
+                           pin.digest == utf8(pack.revision.digest);
+                });
+            });
+        if (!required) {
+            continue;
+        }
+        auto closure = catalog.loadResolved(pack.revision);
+        if (!closure) {
+            return std::unexpected(
+                QStringLiteral("Installed pack closure %1 %2 cannot be loaded: %3")
+                    .arg(utf8(pack.revision.id.value), utf8(pack.revision.version),
+                         closure.error().message));
+        }
+        closures.push_back(std::move(*closure));
+    }
+    return closures;
+}
+
+[[nodiscard]] std::vector<const packs::ResolvedPack*>
+closurePointers(const std::vector<packs::ResolvedPack>& closures) {
+    std::vector<const packs::ResolvedPack*> pointers;
+    pointers.reserve(closures.size());
+    for (const auto& closure : closures) {
+        pointers.push_back(&closure);
+    }
+    return pointers;
+}
+
 void configureAction(QAction& action, const QString& object_name, const QString& accessible_name,
                      const QString& status_tip) {
     action.setObjectName(object_name);
@@ -1209,6 +1254,10 @@ auto MainWindow::exportSessionArchive(const QString& path) -> std::expected<void
         return reject(QStringLiteral("No production Workflow/Oral session archive provider is "
                                      "available"));
     }
+    if (!catalog_) {
+        return reject(QStringLiteral(
+            "Workflow/Oral sessions can export only with an available installed-pack catalog"));
+    }
     const auto archive = session_archive_provider_->exportAll();
     if (!archive) {
         return reject(archive.error().message);
@@ -1219,6 +1268,16 @@ auto MainWindow::exportSessionArchive(const QString& path) -> std::expected<void
     }
     if (inspected->manifest.sessions.empty()) {
         return reject(QStringLiteral("There are no Workflow/Oral sessions to export"));
+    }
+    const auto closures = exactInstalledClosuresForArchive(*catalog_, *inspected);
+    if (!closures) {
+        return reject(closures.error());
+    }
+    const auto pointers = closurePointers(*closures);
+    const auto validated = session_archive_provider_->validate(*inspected, pointers);
+    if (!validated) {
+        return reject(QStringLiteral("Workflow/Oral sessions are not portable as one archive: %1")
+                          .arg(validated.error().message));
     }
     if (const auto published = SessionArchiveFile::publish(QByteArrayView(*archive), path);
         !published) {
@@ -1258,40 +1317,12 @@ auto MainWindow::importSessionArchive(const QString& path) -> std::expected<void
         return reject(QStringLiteral("An empty Workflow/Oral session archive cannot be imported"));
     }
 
-    const auto installed = catalog_->list();
-    if (!installed) {
-        return reject(QStringLiteral("Installed pack revisions cannot be listed: %1")
-                          .arg(installed.error().message));
+    const auto closures = exactInstalledClosuresForArchive(*catalog_, *inspected);
+    if (!closures) {
+        return reject(closures.error());
     }
-    std::vector<packs::ResolvedPack> closures;
-    closures.reserve(installed->size());
-    for (const auto& pack : *installed) {
-        const auto required =
-            std::ranges::any_of(inspected->sessions, [&](const storage::SessionSnapshot& session) {
-                return std::ranges::any_of(session.pins, [&](const storage::RevisionPin& pin) {
-                    return pin.pack_id == utf8(pack.revision.id.value) &&
-                           pin.version == utf8(pack.revision.version) &&
-                           pin.digest == utf8(pack.revision.digest);
-                });
-            });
-        if (!required) {
-            continue;
-        }
-        auto closure = catalog_->loadResolved(pack.revision);
-        if (!closure) {
-            return reject(QStringLiteral("Installed pack closure %1 %2 cannot be loaded: %3")
-                              .arg(utf8(pack.revision.id.value), utf8(pack.revision.version),
-                                   closure.error().message));
-        }
-        closures.push_back(std::move(*closure));
-    }
-    std::vector<const packs::ResolvedPack*> closure_pointers;
-    closure_pointers.reserve(closures.size());
-    for (const auto& closure : closures) {
-        closure_pointers.push_back(&closure);
-    }
-    const auto imported =
-        session_archive_provider_->import(QByteArrayView(*archive), closure_pointers);
+    const auto pointers = closurePointers(*closures);
+    const auto imported = session_archive_provider_->import(QByteArrayView(*archive), pointers);
     if (!imported) {
         return reject(imported.error().message);
     }
@@ -2457,10 +2488,10 @@ void MainWindow::updateActionStates() {
     clone_profile_action_->setVisible(has_profile);
     export_profile_action_->setEnabled(has_profile);
     export_profile_action_->setVisible(has_profile);
-    const auto can_export_sessions = session_archive_provider_ != nullptr;
+    const auto can_export_sessions = session_archive_provider_ != nullptr && catalog_ != nullptr;
     export_session_archive_action_->setEnabled(can_export_sessions);
     export_session_archive_action_->setVisible(can_export_sessions);
-    const auto can_import_sessions = can_export_sessions && catalog_ != nullptr;
+    const auto can_import_sessions = can_export_sessions;
     import_session_archive_action_->setEnabled(can_import_sessions);
     import_session_archive_action_->setVisible(can_import_sessions);
     const auto selected_row = case_list_->currentRow();

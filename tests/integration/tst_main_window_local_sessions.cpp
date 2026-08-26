@@ -602,6 +602,37 @@ void MainWindowLocalSessionsTest::providerPersistsWorkflowCasAndDigestBoundOralS
              QString::fromLatin1(expected_fixture_filed_oral_session));
     QCOMPARE((*digest_bound_oral)->canonicalDefinition()->configuration.legal_state_digest,
              ui::workflowLegalStateDigest(filed_snapshot).toStdString());
+    (*digest_bound_oral).reset();
+
+    const auto historically_split_archive = (*final_provider)->exportAll();
+    QVERIFY2(historically_split_archive.has_value(),
+             historically_split_archive ? ""
+                                        : qPrintable(historically_split_archive.error().message));
+    const auto historically_split_contents = (*final_provider)->read(*historically_split_archive);
+    QVERIFY2(historically_split_contents.has_value(),
+             historically_split_contents ? ""
+                                         : qPrintable(historically_split_contents.error().message));
+    QCOMPARE(historically_split_contents->sessions.size(), std::size_t{3});
+    const std::array<const packs::ResolvedPack*, 1> exact_closure{&*resolved};
+    const auto historically_split_validation =
+        (*final_provider)->validate(*historically_split_contents, exact_closure);
+    QVERIFY(!historically_split_validation.has_value());
+    QCOMPARE(historically_split_validation.error().code,
+             ui::SessionArchiveProviderErrorCode::ReplayFailure);
+    QVERIFY(historically_split_validation.error().message.contains(
+        QStringLiteral("validated workflow snapshot")));
+
+    ui::MainWindow history_window({}, temporary.filePath(QStringLiteral("catalog")), nullptr,
+                                  *final_provider, {},
+                                  temporary.filePath(QStringLiteral("history-record.sqlite")),
+                                  *final_provider, {}, {}, {}, {}, *final_provider);
+    QVERIFY(history_window.exportSessionArchiveAction()->isEnabled());
+    const auto nonportable_path =
+        temporary.filePath(QStringLiteral("historically-split.awsessions"));
+    const auto nonportable_export = history_window.exportSessionArchive(nonportable_path);
+    QVERIFY(!nonportable_export.has_value());
+    QVERIFY(nonportable_export.error().contains(QStringLiteral("not portable as one archive")));
+    QVERIFY(!QFileInfo::exists(nonportable_path));
 }
 
 void MainWindowLocalSessionsTest::asterglenWorkflowActionPersistsAndReopensThroughMainWindow() {
