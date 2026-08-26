@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Linux / GCC 14 / Qt 6.11.1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      CC: gcc-14
+      CXX: g++-14
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+      CTEST_PARALLEL_LEVEL: 2
+      LC_ALL: C.UTF-8
+      QT_QPA_PLATFORM: offscreen
+      TZ: UTC
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            g++-14 \
+            fonts-dejavu-core \
+            libarchive-dev \
+            libgl1-mesa-dev \
+            libsodium-dev \
+            ninja-build \
+            pkg-config \
+            uidmap
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action/action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.11.1"
+          modules: qtpdf
+          install-deps: true
+          cache: false
+          aqtversion: "==3.3.0"
+          py7zrversion: "==1.0.0"
+
+      - name: Report toolchain
+        run: |
+          cmake --version
+          ninja --version
+          "$CXX" --version
+          qmake -query QT_VERSION
+
+      - name: Configure
+        run: cmake --preset dev -DAPPELLATE_WARNINGS_AS_ERRORS=ON
+
+      - name: Build
+        run: cmake --build --preset dev
+
+      - name: Test
+        run: |
+          ulimit -n 65536
+          install -d -m 700 /tmp/appellate-workbench-ci
+          TMPDIR=/tmp/appellate-workbench-ci ctest --preset dev --no-tests=error
