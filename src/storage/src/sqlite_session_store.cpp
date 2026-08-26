@@ -1,5 +1,6 @@
 #include "appellate/storage/session_store.hpp"
 #include "appellate/storage/asset_store.hpp"
+#include "strict_json_scan.hpp"
 
 #include <QDateTime>
 #include <QCryptographicHash>
@@ -77,6 +78,9 @@ constexpr qsizetype backup_buffer_bytes = 64 * 1024;
 
 [[nodiscard]] bool validJsonObject(const QByteArray& value) {
     if (value.isEmpty() || value.size() > maximum_json_bytes) {
+        return false;
+    }
+    if (const auto strict = detail::scanStrictJson(QByteArrayView(value)); !strict) {
         return false;
     }
     QJsonParseError parse_error;

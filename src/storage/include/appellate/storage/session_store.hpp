@@ -14,6 +14,7 @@ namespace appellate::storage {
 class AssetStore;
 class AssetStoreLock;
 class StagedAsset;
+class SessionArchive;
 
 enum class StoreErrorCode {
     InvalidArgument,
@@ -168,6 +169,7 @@ class SessionStore final {
     [[nodiscard]] int schemaVersion() const;
 
   private:
+    friend class SessionArchive;
     explicit SessionStore(QString connection_name);
 
     [[nodiscard]] std::expected<void, StoreError> configure();

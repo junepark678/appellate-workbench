@@ -14,6 +14,8 @@ class QIODevice;
 
 namespace appellate::storage {
 
+class SessionArchive;
+
 enum class AssetStoreErrorCode {
     InvalidConfiguration,
     InvalidDigest,
@@ -113,6 +115,7 @@ class AssetStore final {
     [[nodiscard]] qint64 maxAssetBytes() const noexcept;
 
   private:
+    friend class SessionArchive;
     friend class SessionStore;
     [[nodiscard]] auto validateConfiguration() const -> std::expected<void, AssetStoreError>;
     [[nodiscard]] auto ensureReady() const -> std::expected<void, AssetStoreError>;
