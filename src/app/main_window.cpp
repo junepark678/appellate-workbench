@@ -1653,20 +1653,29 @@ void MainWindow::updateActionStates() {
 void MainWindow::updateActionStates(
     const std::expected<WorkflowLegalClockReading, QString>& preview_reading) {
     open_directory_action_->setEnabled(true);
-    install_archive_action_->setEnabled(catalog_ != nullptr);
+    open_directory_action_->setVisible(true);
+    const auto can_install_archive = catalog_ != nullptr;
+    install_archive_action_->setEnabled(can_install_archive);
+    install_archive_action_->setVisible(can_install_archive);
     import_profile_action_->setEnabled(true);
+    import_profile_action_->setVisible(true);
     const auto has_profile = profile_editor_->isEnabled() && profile_editor_->profile().has_value();
     clone_profile_action_->setEnabled(has_profile);
+    clone_profile_action_->setVisible(has_profile);
     export_profile_action_->setEnabled(has_profile);
+    export_profile_action_->setVisible(has_profile);
     const auto selected_row = case_list_->currentRow();
-    open_record_action_->setEnabled(
+    const auto can_open_record =
         catalog_ != nullptr && installed_pack_.has_value() && runtime_pack_.has_value() &&
-        selected_row >= 0 && static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size());
+        selected_row >= 0 && static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size();
+    open_record_action_->setEnabled(can_open_record);
+    open_record_action_->setVisible(can_open_record);
     const auto can_open_workflow =
         workflow_launch_provider_ != nullptr && installed_pack_.has_value() &&
         runtime_pack_.has_value() && selected_row >= 0 &&
         static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size();
     open_workflow_action_->setEnabled(can_open_workflow);
+    open_workflow_action_->setVisible(can_open_workflow);
     open_workflow_button_->setEnabled(can_open_workflow);
     const auto workflow_choice =
         preview_reading ? currentWorkflowAdvanceChoice(*preview_reading) : WorkflowAdvanceChoice{};
@@ -1674,6 +1683,7 @@ void MainWindow::updateActionStates(
                                       workflow_choice.actor != nullptr &&
                                       workflow_choice.command.has_value();
     advance_workflow_action_->setEnabled(can_advance_workflow);
+    advance_workflow_action_->setVisible(can_advance_workflow);
     advance_workflow_button_->setEnabled(can_advance_workflow);
     bool can_open_argument = false;
     if (oral_argument_launch_provider_ && installed_pack_ && runtime_pack_ && selected_row >= 0 &&
@@ -1687,6 +1697,7 @@ void MainWindow::updateActionStates(
                                 .grounded_question_bank.has_value();
     }
     open_oral_argument_action_->setEnabled(can_open_argument);
+    open_oral_argument_action_->setVisible(can_open_argument);
 
     const auto record_access_active =
         record_access_controller_ != nullptr && selectedCaseHasLoadedRecord();
@@ -1699,15 +1710,20 @@ void MainWindow::updateActionStates(
                               &model::RecordAccessDisclosureStatus::disclosure_id);
         if (!record_access_active || disclosure == disclosures.end()) {
             binding.grant_action->setEnabled(false);
+            binding.grant_action->setVisible(false);
             binding.revoke_action->setEnabled(false);
+            binding.revoke_action->setVisible(false);
             continue;
         }
-        binding.grant_action->setEnabled(!disclosure->authorized &&
-                                         disclosure->blocking_deficiencies.empty());
+        const auto can_grant = !disclosure->authorized && disclosure->blocking_deficiencies.empty();
+        binding.grant_action->setEnabled(can_grant);
+        binding.grant_action->setVisible(can_grant);
         binding.revoke_action->setEnabled(disclosure->authorized);
+        binding.revoke_action->setVisible(disclosure->authorized);
     }
-    record_access_menu_->setEnabled(record_access_active &&
-                                    !record_access_action_bindings_.empty());
+    const auto show_record_access = record_access_active && !record_access_action_bindings_.empty();
+    record_access_menu_->setEnabled(show_record_access);
+    record_access_menu_->menuAction()->setVisible(show_record_access);
 }
 
 void MainWindow::showError(const QString& message) {

@@ -709,8 +709,11 @@ void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
         QVERIFY(grant != nullptr);
         QVERIFY(revoke != nullptr);
         QVERIFY(window.recordAccessMenu()->isEnabled());
+        QVERIFY(window.recordAccessMenu()->menuAction()->isVisible());
         QVERIFY(grant->isEnabled());
+        QVERIFY(grant->isVisible());
         QVERIFY(!revoke->isEnabled());
+        QVERIFY(!revoke->isVisible());
         QVERIFY(grant->property("accessibleName")
                     .toString()
                     .contains(QStringLiteral("example.disclosure.psr")));
@@ -778,7 +781,9 @@ void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
         QCOMPARE(provider->transitions.front().disclosure_id,
                  std::string("example.disclosure.psr"));
         QVERIFY(!grant->isEnabled());
+        QVERIFY(!grant->isVisible());
         QVERIFY(revoke->isEnabled());
+        QVERIFY(revoke->isVisible());
         const auto missing =
             workspace->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"));
         QVERIFY(!missing.has_value());
@@ -837,7 +842,9 @@ void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
         QCOMPARE(workspace->loadedPageCount(), 0);
         QCOMPARE(workspace->documentSearchResultCount(), 0);
         QVERIFY(grant->isEnabled());
+        QVERIFY(grant->isVisible());
         QVERIFY(!revoke->isEnabled());
+        QVERIFY(!revoke->isVisible());
 
         // A revoked controller has no exportable authorization token. Opening
         // a fresh workspace can apply only the controller's current live head,
@@ -859,7 +866,9 @@ void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
         QVERIFY(grant != nullptr);
         QVERIFY(revoke != nullptr);
         QVERIFY(grant->isEnabled());
+        QVERIFY(grant->isVisible());
         QVERIFY(!revoke->isEnabled());
+        QVERIFY(!revoke->isVisible());
 
         grant->trigger();
         QCOMPARE(provider->transitions.size(), std::size_t{3});
@@ -890,7 +899,9 @@ void MainWindowTest::sealedRecordAccessPersistsAndRejectsTamperedReplay() {
         QVERIFY(grant != nullptr);
         QVERIFY(revoke != nullptr);
         QVERIFY(!grant->isEnabled());
+        QVERIFY(!grant->isVisible());
         QVERIFY(revoke->isEnabled());
+        QVERIFY(revoke->isVisible());
         auto* const last_good = reopened.recordWorkspace();
         QVERIFY(last_good->navigateToAnchor(QStringLiteral("example.record.anchor.psr-stable"))
                     .has_value());
@@ -1015,6 +1026,16 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(!window.exportProfileAction()->isEnabled());
     QVERIFY(!window.openRecordAction()->isEnabled());
     QVERIFY(!window.openOralArgumentAction()->isEnabled());
+    QVERIFY(window.openDirectoryAction()->isVisible());
+    QVERIFY(window.installArchiveAction()->isVisible());
+    QVERIFY(window.importProfileAction()->isVisible());
+    QVERIFY(!window.cloneProfileAction()->isVisible());
+    QVERIFY(!window.exportProfileAction()->isVisible());
+    QVERIFY(!window.openRecordAction()->isVisible());
+    QVERIFY(!window.openWorkflowAction()->isVisible());
+    QVERIFY(!window.advanceWorkflowAction()->isVisible());
+    QVERIFY(!window.openOralArgumentAction()->isVisible());
+    QVERIFY(!window.recordAccessMenu()->menuAction()->isVisible());
 
     const std::array actions{
         window.openDirectoryAction(),    window.installArchiveAction(),
@@ -1039,6 +1060,10 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(window.exportProfileAction()->isEnabled());
     QVERIFY(!window.openRecordAction()->isEnabled());
     QVERIFY(!window.openOralArgumentAction()->isEnabled());
+    QVERIFY(window.cloneProfileAction()->isVisible());
+    QVERIFY(window.exportProfileAction()->isVisible());
+    QVERIFY(!window.openRecordAction()->isVisible());
+    QVERIFY(!window.openOralArgumentAction()->isVisible());
     QVERIFY(!window.caseList()->accessibleName().isEmpty());
     QVERIFY(!window.argumentConfigurationSelector()->accessibleName().isEmpty());
     QVERIFY(!window.profileSelector()->accessibleName().isEmpty());
@@ -1067,6 +1092,7 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     MainWindow unavailable({}, not_a_directory);
     QVERIFY(unavailable.openDirectoryAction()->isEnabled());
     QVERIFY(!unavailable.installArchiveAction()->isEnabled());
+    QVERIFY(!unavailable.installArchiveAction()->isVisible());
     QVERIFY(unavailable.importProfileAction()->isEnabled());
     QVERIFY(unavailable.errorLabel()->text().contains(QStringLiteral("catalog unavailable")));
     QVERIFY(!unavailable.openOralArgumentAction()->isEnabled());
