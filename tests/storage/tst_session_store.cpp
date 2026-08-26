@@ -554,8 +554,8 @@ void SessionStoreTest::refusesCorruptUnusedIndexPageWithoutMutation() {
         page_size = query.value(0).toLongLong();
         QVERIFY(page_size >= 512);
         QVERIFY(query.exec(QStringLiteral(
-            "SELECT pageno FROM dbstat WHERE name='sqlite_autoindex_session_pins_1' "
-            "ORDER BY pageno LIMIT 1")) &&
+            "SELECT rootpage FROM sqlite_schema "
+            "WHERE type='index' AND name='sqlite_autoindex_session_pins_1'")) &&
                 query.next());
         page_number = query.value(0).toLongLong();
         QVERIFY(page_number > 1);
