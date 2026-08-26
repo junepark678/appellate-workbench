@@ -9,6 +9,7 @@
 #include "oral_argument_session_controller.hpp"
 #include "oral_argument_workspace.hpp"
 #include "record_workspace.hpp"
+#include "workflow_action_planner.hpp"
 #include "workflow_session_controller.hpp"
 
 #include <QByteArrayView>
@@ -333,6 +334,8 @@ void AsterglenRule54bV02UiE2eTest::coinstallsReplaysAndExercisesActualAndBranchW
     QCOMPARE(runtime_case.workflow.operations.size(), std::size_t{81});
     QCOMPARE(runtime_case.workflow.filing_routes.size(), std::size_t{11});
     QCOMPARE(runtime_case.definition.disposition_plans.size(), std::size_t{3});
+    const auto record_owner = resolved->resourceOwner(runtime_case.record.id.value);
+    QVERIFY(record_owner.has_value());
 
     const auto initial = initialWorkflowState(runtime_case);
     const auto actual_trace = loadActualTrace(runtime_case.record);
@@ -359,12 +362,64 @@ void AsterglenRule54bV02UiE2eTest::coinstallsReplaysAndExercisesActualAndBranchW
 
     for (std::size_t index = 0; index < actual_trace->size(); ++index) {
         const auto& step = actual_trace->at(index);
+        const auto expected_action_key = app::workflowActionKey(step.command);
+        const auto available_actions =
+            app::eligibleWorkflowActions(runtime_case, (*workflow)->state());
+        const auto planned = std::ranges::find(available_actions, expected_action_key,
+                                               &app::WorkflowActionOption::key);
+        QVERIFY2(planned != available_actions.end(), qPrintable(expected_action_key));
+        QCOMPARE(app::workflowActionKey(planned->command), expected_action_key);
+        QCOMPARE(planned->document_sha256, commandDocumentDigest(step.command));
+
+        auto submitted_command = planned->command;
+        if (std::holds_alternative<model::SubmitWorkflowFiling>(step.command)) {
+            auto* filing = std::get_if<model::SubmitWorkflowFiling>(&submitted_command);
+            const auto* oracle = std::get_if<model::SubmitWorkflowFiling>(&step.command);
+            QVERIFY(filing != nullptr);
+            QVERIFY(oracle != nullptr);
+            QCOMPARE(filing->fields.size(), planned->required_filing_fields.size());
+            QVERIFY(std::ranges::all_of(filing->fields,
+                                        [](const auto& field) { return field.value.empty(); }));
+            filing->fields = oracle->fields;
+            filing->served_actors = oracle->served_actors;
+            filing->cures_deficiency_id = oracle->cures_deficiency_id;
+        }
+
+        auto normalized = submitted_command;
+        const auto oracle_command_id =
+            std::visit([](const auto& command) { return command.header.command_id; }, step.command);
+        std::visit([&](auto& command) { command.header.command_id = oracle_command_id; },
+                   normalized);
+        QCOMPARE(normalized, step.command);
+
+        std::optional<QByteArray> installed_document;
+        if (planned->document_sha256.has_value()) {
+            QVERIFY(planned->record_entry_id.has_value());
+            const auto entry = std::ranges::find_if(
+                runtime_case.record.docket_entries, [&](const auto& candidate) {
+                    return candidate.id.value == *planned->record_entry_id;
+                });
+            QVERIFY(entry != runtime_case.record.docket_entries.end());
+            QVERIFY(!entry->sealed);
+            QCOMPARE(entry->asset_sha256, *planned->document_sha256);
+            const auto materialized =
+                (*catalog)->materializeBlob(*resolved, *record_owner, entry->asset_path);
+            QVERIFY2(materialized.has_value(),
+                     materialized ? "" : qPrintable(materialized.error().message));
+            QFile installed(materialized->local_path);
+            QVERIFY(installed.open(QIODevice::ReadOnly));
+            installed_document = installed.readAll();
+            QCOMPARE(sha256(QByteArrayView(*installed_document)).toStdString(),
+                     *planned->document_sha256);
+            QVERIFY(step.document_bytes.has_value());
+            QCOMPARE(*installed_document, *step.document_bytes);
+        }
         std::optional<QByteArrayView> document_view;
-        if (step.document_bytes.has_value()) {
-            document_view = QByteArrayView(*step.document_bytes);
+        if (installed_document.has_value()) {
+            document_view = QByteArrayView(*installed_document);
         }
         const auto submitted =
-            (*workflow)->submit(step.command, document_view,
+            (*workflow)->submit(submitted_command, document_view,
                                 QStringLiteral("2026-08-12T19:%1:00Z")
                                     .arg(static_cast<int>(index), 2, 10, QLatin1Char('0')));
         QVERIFY2(submitted.has_value(), submitted ? "" : qPrintable(submitted.error().message));

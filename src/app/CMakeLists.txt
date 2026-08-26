@@ -8,6 +8,8 @@ qt_add_library(
     session_controller.hpp
     workflow_session_controller.cpp
     workflow_session_controller.hpp
+    workflow_action_planner.cpp
+    workflow_action_planner.hpp
 )
 add_library(appellate::application ALIAS appellate_application)
 target_include_directories(
