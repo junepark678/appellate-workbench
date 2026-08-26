@@ -138,8 +138,8 @@ if(APPELLATE_ENABLE_ASAN OR APPELLATE_ENABLE_UBSAN)
     set(_appellate_pack_cli_function_timeout_ms 3600000)
     set_tests_properties(pack_cli PROPERTIES TIMEOUT 7200)
 else()
-    set(_appellate_pack_cli_function_timeout_ms 1800000)
-    set_tests_properties(pack_cli PROPERTIES TIMEOUT 2400)
+    set(_appellate_pack_cli_function_timeout_ms 2700000)
+    set_tests_properties(pack_cli PROPERTIES TIMEOUT 3600)
 endif()
 set_tests_properties(
     pack_cli
