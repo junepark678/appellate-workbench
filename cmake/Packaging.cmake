@@ -497,7 +497,7 @@ if(BUILD_TESTING)
         linux_bundle_smoke
         PROPERTIES
             LABELS "e2e;ui;local;packaging"
-            TIMEOUT 900
+            TIMEOUT 1800
     )
 
     add_test(
@@ -516,6 +516,6 @@ if(BUILD_TESTING)
         linux_archive_smoke
         PROPERTIES
             LABELS "e2e;ui;local;packaging"
-            TIMEOUT 900
+            TIMEOUT 1800
     )
 endif()

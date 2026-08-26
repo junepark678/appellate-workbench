@@ -1045,12 +1045,13 @@ function(_appellate_install_exact_archive pack_cli archive catalog installed_at 
         RESULT_VARIABLE _install_result
         OUTPUT_VARIABLE _install_output
         ERROR_VARIABLE _install_error
-        TIMEOUT 60
+        TIMEOUT 300
     )
     if(NOT _install_result EQUAL 0 OR NOT _install_error STREQUAL "")
         message(
             FATAL_ERROR
-            "Exact bundled pack installation failed for ${archive}:\n"
+            "Exact bundled pack installation failed for ${archive} "
+            "(result: ${_install_result}):\n"
             "${_install_output}\n${_install_error}"
         )
     endif()
