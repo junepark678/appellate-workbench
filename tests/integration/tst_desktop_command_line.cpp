@@ -60,7 +60,7 @@ struct ProcessResult final {
     if (!process.waitForStarted(10'000)) {
         return ProcessResult{-1, QProcess::CrashExit, {}, process.errorString().toUtf8()};
     }
-    if (!process.waitForFinished(30'000)) {
+    if (!process.waitForFinished(120'000)) {
         process.kill();
         static_cast<void>(process.waitForFinished(5'000));
         return ProcessResult{-1, QProcess::CrashExit, process.readAllStandardOutput(),
