@@ -22,11 +22,14 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
 #include <QPageSize>
 #include <QPainter>
 #include <QPdfWriter>
+#include <QPushButton>
+#include <QScrollArea>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QTabWidget>
@@ -35,6 +38,7 @@
 #include <QUuid>
 #include <QVariant>
 
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <optional>
@@ -67,6 +71,7 @@ class MainWindowTest final : public QObject {
 
   private slots:
     void loadsValidAuthoringDirectory();
+    void startupOnboardingDefersDenseWorkspace();
     void installsAndLoadsArchiveInInjectedCatalog();
     void malformedSourcePreservesLoadedState();
     void caseAndProfileSelectionStayInSync();
@@ -469,6 +474,93 @@ void MainWindowTest::loadsValidAuthoringDirectory() {
     QCOMPARE(profile->id, std::string("example.judge.fictional"));
     QVERIFY(window.profileEditor()->fictionalCompositeLabel()->text().contains(
         QStringLiteral("Fictional/composite")));
+}
+
+void MainWindowTest::startupOnboardingDefersDenseWorkspace() {
+    QTemporaryDir state;
+    QVERIFY(state.isValid());
+    MainWindow window({}, QDir(state.path()).filePath(QStringLiteral("catalog")));
+    window.resize(window.minimumSize());
+    window.show();
+    QCoreApplication::processEvents();
+
+    auto* onboarding = window.findChild<QWidget*>(QStringLiteral("startupOnboarding"));
+    auto* content = window.findChild<QWidget*>(QStringLiteral("packBrowserContent"));
+    auto* details_scroll = window.findChild<QScrollArea*>(QStringLiteral("caseDetailsScrollArea"));
+    QVERIFY(onboarding != nullptr);
+    QVERIFY(content != nullptr);
+    QVERIFY(details_scroll != nullptr);
+    QVERIFY(onboarding->isVisibleTo(&window));
+    QVERIFY(!content->isVisibleTo(&window));
+    QVERIFY(!window.caseList()->isVisibleTo(&window));
+    QVERIFY(!window.workflowCourtDateEditor()->isVisibleTo(&window));
+    QVERIFY(!window.profileEditor()->isVisibleTo(&window));
+
+    const std::array button_names{
+        QStringLiteral("welcomeInstallPackArchiveButton"),
+        QStringLiteral("welcomeOpenPackDirectoryButton"),
+        QStringLiteral("welcomeImportProfileButton"),
+    };
+    for (const auto& name : button_names) {
+        auto* button = window.findChild<QPushButton*>(name);
+        QVERIFY(button != nullptr);
+        QVERIFY(button->isVisibleTo(onboarding));
+        QVERIFY(button->focusPolicy() != Qt::NoFocus);
+        QVERIFY(!button->accessibleName().isEmpty());
+        QVERIFY(!button->accessibleDescription().isEmpty());
+        const QRect mapped(button->mapTo(onboarding, QPoint{}), button->size());
+        QVERIFY(onboarding->rect().contains(mapped));
+    }
+
+    auto enlarged_font = window.font();
+    enlarged_font.setPointSize(std::max(16, enlarged_font.pointSize() + 5));
+    window.setFont(enlarged_font);
+    window.resize(window.minimumSize());
+    QCoreApplication::processEvents();
+    for (const auto& name : button_names) {
+        auto* button = window.findChild<QPushButton*>(name);
+        QVERIFY(button != nullptr);
+        const QRect mapped(button->mapTo(onboarding, QPoint{}), button->size());
+        QVERIFY(onboarding->rect().contains(mapped));
+        QVERIFY(button->visibleRegion().contains(button->rect()));
+    }
+
+    const auto record_index = window.workspaceTabs()->indexOf(window.recordWorkspace());
+    const auto argument_index = window.workspaceTabs()->indexOf(window.oralArgumentWorkspace());
+    QVERIFY(record_index >= 0);
+    QVERIFY(argument_index >= 0);
+    QVERIFY(!window.workspaceTabs()->isTabVisible(record_index));
+    QVERIFY(!window.workspaceTabs()->isTabVisible(argument_index));
+
+    const auto profile_path =
+        fixture(QStringLiteral("full-resource-pack/resources/judge-profile.json"));
+    const auto imported = window.importProfile(profile_path);
+    QVERIFY2(imported.has_value(), imported ? "" : qPrintable(imported.error()));
+    QCoreApplication::processEvents();
+    QVERIFY(!onboarding->isVisibleTo(&window));
+    QVERIFY(content->isVisibleTo(&window));
+    QVERIFY(window.profileEditor()->isVisibleTo(&window));
+    QVERIFY(window.profileEditor()->isEnabled());
+    QVERIFY(window.cloneProfileAction()->isVisible());
+    QVERIFY(window.exportProfileAction()->isVisible());
+    QVERIFY(!window.caseList()->isVisibleTo(&window));
+    QVERIFY(!window.workflowCourtDateEditor()->isVisibleTo(&window));
+    QVERIFY(!window.findChild<QLabel*>(QStringLiteral("oralArgumentLaunchBoundary"))
+                 ->isVisibleTo(&window));
+    QVERIFY(window.workspaceTabs()->tabText(0).contains(QStringLiteral("Profile")));
+
+    const auto loaded = window.loadSource(fixture(QStringLiteral("full-resource-pack")));
+    QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error()));
+    QCoreApplication::processEvents();
+    QVERIFY(!onboarding->isVisibleTo(&window));
+    QVERIFY(content->isVisibleTo(&window));
+    QVERIFY(window.caseList()->isVisibleTo(&window));
+    QVERIFY(window.profileEditor()->isVisibleTo(&window));
+    QVERIFY(details_scroll->isVisibleTo(&window));
+    QVERIFY(details_scroll->viewport()->height() > 0);
+    QVERIFY(window.workspaceTabs()->tabText(0).contains(QStringLiteral("Cases")));
+    QVERIFY(!window.workspaceTabs()->isTabVisible(record_index));
+    QVERIFY(!window.workspaceTabs()->isTabVisible(argument_index));
 }
 
 void MainWindowTest::installsAndLoadsArchiveInInjectedCatalog() {
@@ -1133,6 +1225,11 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(unavailable.openDirectoryAction()->isEnabled());
     QVERIFY(!unavailable.installArchiveAction()->isEnabled());
     QVERIFY(!unavailable.installArchiveAction()->isVisible());
+    auto* unavailable_install_button =
+        unavailable.findChild<QPushButton*>(QStringLiteral("welcomeInstallPackArchiveButton"));
+    QVERIFY(unavailable_install_button != nullptr);
+    QVERIFY(!unavailable_install_button->isEnabled());
+    QVERIFY(!unavailable_install_button->isVisible());
     QVERIFY(unavailable.importProfileAction()->isEnabled());
     QVERIFY(unavailable.errorLabel()->text().contains(QStringLiteral("catalog unavailable")));
     QVERIFY(!unavailable.openOralArgumentAction()->isEnabled());

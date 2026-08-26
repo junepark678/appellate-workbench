@@ -771,6 +771,8 @@ void MainWindowLocalSessionsTest::
     const auto provider = ui::LocalSessionProvider::create(paths, fixed_clock);
     QVERIFY2(provider.has_value(), provider ? "" : qPrintable(provider.error()));
     ui::MainWindow window({}, catalog_root, nullptr, *provider, {}, {}, *provider, legal_clock);
+    window.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
     window.workflowCourtDateEditor()->setText(QStringLiteral("2026-08-11"));
     const auto loaded = window.loadSource(*archive);
     QVERIFY2(loaded.has_value(), loaded ? "" : qPrintable(loaded.error()));

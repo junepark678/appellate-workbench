@@ -23,6 +23,7 @@
 #include <QFileInfo>
 #include <QFont>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QInputDialog>
 #include <QKeySequence>
 #include <QLabel>
@@ -32,6 +33,7 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSignalBlocker>
 #include <QSplitter>
 #include <QStandardPaths>
@@ -248,8 +250,8 @@ MainWindow::MainWindow(
     setWindowTitle(QStringLiteral("Appellate Workbench"));
     resize(1180, 780);
     setMinimumSize(840, 600);
-    buildUi();
     buildFileMenu();
+    buildUi();
     configureRecordAccessDatabase(record_access_database_path);
     openCatalog(catalog_root);
     updateActionStates();
@@ -298,16 +300,6 @@ void MainWindow::buildUi() {
     boundary->setWordWrap(true);
     outer_layout->addWidget(boundary);
 
-    revision_label_ = new QLabel(QStringLiteral("Pack revision: No pack loaded."), container);
-    configureSummaryLabel(*revision_label_, QStringLiteral("packRevision"),
-                          QStringLiteral("Loaded pack revision"));
-    outer_layout->addWidget(revision_label_);
-
-    source_label_ = new QLabel(QStringLiteral("Source: No pack loaded."), container);
-    configureSummaryLabel(*source_label_, QStringLiteral("packSource"),
-                          QStringLiteral("Loaded pack source"));
-    outer_layout->addWidget(source_label_);
-
     error_label_ = new QLabel(container);
     configureSummaryLabel(*error_label_, QStringLiteral("packLoadError"),
                           QStringLiteral("Pack and profile error"));
@@ -315,7 +307,77 @@ void MainWindow::buildUi() {
     error_label_->setVisible(false);
     outer_layout->addWidget(error_label_);
 
-    auto* splitter = new QSplitter(Qt::Horizontal, container);
+    startup_onboarding_ = new QWidget(container);
+    startup_onboarding_->setObjectName(QStringLiteral("startupOnboarding"));
+    startup_onboarding_->setAccessibleName(QStringLiteral("Start a local appellate matter"));
+    auto* onboarding_outer = new QVBoxLayout(startup_onboarding_);
+    onboarding_outer->addStretch(1);
+    auto* onboarding_group =
+        new QGroupBox(QStringLiteral("Start with a local pack"), startup_onboarding_);
+    onboarding_group->setObjectName(QStringLiteral("startupOnboardingGroup"));
+    onboarding_group->setAccessibleName(QStringLiteral("Local pack start options"));
+    auto* onboarding_layout = new QVBoxLayout(onboarding_group);
+    auto* onboarding_summary = new QLabel(
+        QStringLiteral("Open an authoring folder or install an .awpack archive. No account or "
+                       "network connection is required."),
+        onboarding_group);
+    configureSummaryLabel(*onboarding_summary, QStringLiteral("startupOnboardingSummary"),
+                          QStringLiteral("Local pack onboarding summary"));
+    onboarding_layout->addWidget(onboarding_summary);
+    auto* onboarding_buttons = new QHBoxLayout();
+    welcome_install_archive_button_ =
+        new QPushButton(QStringLiteral("&Install pack…"), onboarding_group);
+    welcome_install_archive_button_->setObjectName(
+        QStringLiteral("welcomeInstallPackArchiveButton"));
+    welcome_install_archive_button_->setAccessibleName(QStringLiteral("Install local pack"));
+    welcome_install_archive_button_->setAccessibleDescription(
+        QStringLiteral("Choose and install a local Appellate Workbench pack archive"));
+    welcome_open_directory_button_ =
+        new QPushButton(QStringLiteral("Open authoring &folder…"), onboarding_group);
+    welcome_open_directory_button_->setObjectName(QStringLiteral("welcomeOpenPackDirectoryButton"));
+    welcome_open_directory_button_->setAccessibleName(
+        QStringLiteral("Open local authoring pack folder"));
+    welcome_open_directory_button_->setAccessibleDescription(
+        QStringLiteral("Choose and validate a local authoring pack directory"));
+    welcome_import_profile_button_ =
+        new QPushButton(QStringLiteral("Import &profile…"), onboarding_group);
+    welcome_import_profile_button_->setObjectName(QStringLiteral("welcomeImportProfileButton"));
+    welcome_import_profile_button_->setAccessibleName(
+        QStringLiteral("Import fictional composite profile"));
+    welcome_import_profile_button_->setAccessibleDescription(
+        QStringLiteral("Open the profile editor with a local fictional composite profile"));
+    onboarding_buttons->addWidget(welcome_install_archive_button_);
+    onboarding_buttons->addWidget(welcome_open_directory_button_);
+    onboarding_buttons->addWidget(welcome_import_profile_button_);
+    onboarding_layout->addLayout(onboarding_buttons);
+    onboarding_outer->addWidget(onboarding_group);
+    onboarding_outer->addStretch(1);
+    outer_layout->addWidget(startup_onboarding_, 1);
+
+    connect(welcome_install_archive_button_, &QPushButton::clicked, install_archive_action_,
+            &QAction::trigger);
+    connect(welcome_open_directory_button_, &QPushButton::clicked, open_directory_action_,
+            &QAction::trigger);
+    connect(welcome_import_profile_button_, &QPushButton::clicked, import_profile_action_,
+            &QAction::trigger);
+
+    pack_browser_content_ = new QWidget(container);
+    pack_browser_content_->setObjectName(QStringLiteral("packBrowserContent"));
+    pack_browser_content_->setAccessibleName(QStringLiteral("Loaded pack workspace"));
+    auto* content_layout = new QVBoxLayout(pack_browser_content_);
+
+    revision_label_ =
+        new QLabel(QStringLiteral("Pack revision: No pack loaded."), pack_browser_content_);
+    configureSummaryLabel(*revision_label_, QStringLiteral("packRevision"),
+                          QStringLiteral("Loaded pack revision"));
+    content_layout->addWidget(revision_label_);
+
+    source_label_ = new QLabel(QStringLiteral("Source: No pack loaded."), pack_browser_content_);
+    configureSummaryLabel(*source_label_, QStringLiteral("packSource"),
+                          QStringLiteral("Loaded pack source"));
+    content_layout->addWidget(source_label_);
+
+    auto* splitter = new QSplitter(Qt::Horizontal, pack_browser_content_);
     splitter->setObjectName(QStringLiteral("packBrowserSplitter"));
     splitter->setAccessibleName(QStringLiteral("Pack cases and details"));
 
@@ -336,9 +398,15 @@ void MainWindow::buildUi() {
     browser_layout->addWidget(case_heading);
     browser_layout->addWidget(case_list_, 1);
 
-    auto* details = new QWidget(splitter);
+    auto* details_scroll = new QScrollArea(splitter);
+    details_scroll->setObjectName(QStringLiteral("caseDetailsScrollArea"));
+    details_scroll->setAccessibleName(QStringLiteral("Scrollable selected case controls"));
+    details_scroll->setWidgetResizable(true);
+    details_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    auto* details = new QWidget(details_scroll);
     details->setObjectName(QStringLiteral("caseDetailsPane"));
     auto* details_layout = new QVBoxLayout(details);
+    details_scroll->setWidget(details);
 
     auto* summary_group = new QGroupBox(QStringLiteral("Selected case"), details);
     summary_group->setObjectName(QStringLiteral("caseSummaryGroup"));
@@ -455,12 +523,27 @@ void MainWindow::buildUi() {
     details_layout->addWidget(profile_editor_, 1);
 
     splitter->addWidget(browser);
-    splitter->addWidget(details);
+    splitter->addWidget(details_scroll);
+    splitter->setChildrenCollapsible(false);
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 3);
-    outer_layout->addWidget(splitter, 1);
+    content_layout->addWidget(splitter, 1);
+    pack_only_widgets_ = {
+        revision_label_,
+        source_label_,
+        browser,
+        summary_group,
+        workflow_group,
+        argument_label,
+        argument_configuration_selector_,
+        argument_launch_boundary_label_,
+        profile_label,
+        profile_selector_,
+    };
+    pack_browser_content_->setVisible(false);
+    outer_layout->addWidget(pack_browser_content_, 1);
 
-    browser_tab_index_ = workspace_tabs_->addTab(container, QStringLiteral("&Cases and profiles"));
+    browser_tab_index_ = workspace_tabs_->addTab(container, QStringLiteral("&Start"));
     workspace_tabs_->setTabToolTip(
         browser_tab_index_, QStringLiteral("Browse the loaded pack, cases, and bench profiles"));
 
@@ -472,6 +555,7 @@ void MainWindow::buildUi() {
         record_tab_index_,
         QStringLiteral("Review PDFs materialized from the selected installed pack"));
     workspace_tabs_->setTabEnabled(record_tab_index_, false);
+    workspace_tabs_->setTabVisible(record_tab_index_, false);
 
     oral_argument_workspace_ = new OralArgumentWorkspace(workspace_tabs_);
     argument_tab_index_ =
@@ -480,6 +564,7 @@ void MainWindow::buildUi() {
         argument_tab_index_,
         QStringLiteral("Practice exact pack-authored questions against a fictional bench"));
     workspace_tabs_->setTabEnabled(argument_tab_index_, false);
+    workspace_tabs_->setTabVisible(argument_tab_index_, false);
     setCentralWidget(workspace_tabs_);
 
     connect(case_list_, &QListWidget::currentRowChanged, this,
@@ -830,6 +915,14 @@ auto MainWindow::importProfile(const QString& path) -> std::expected<void, QStri
         profile_selector_->setCurrentIndex(-1);
     }
     profile_editor_->setEnabled(true);
+    if (!runtime_pack_) {
+        for (auto* widget : pack_only_widgets_) {
+            widget->setVisible(false);
+        }
+        startup_onboarding_->setVisible(false);
+        pack_browser_content_->setVisible(true);
+        workspace_tabs_->setTabText(browser_tab_index_, QStringLiteral("&Profile"));
+    }
     updateActionStates();
     showStatus(QStringLiteral("Imported fictional/composite profile."));
     return {};
@@ -938,6 +1031,7 @@ auto MainWindow::openSelectedRecord() -> std::expected<void, QString> {
     record_revision_ = runtime_pack_->revision;
     record_case_id_ = selected_case.definition.id;
     workspace_tabs_->setTabEnabled(record_tab_index_, true);
+    workspace_tabs_->setTabVisible(record_tab_index_, true);
     workspace_tabs_->setCurrentIndex(record_tab_index_);
     showStatus(QStringLiteral("Opened the verified public record from installed storage."));
     updateActionStates();
@@ -1075,6 +1169,7 @@ auto MainWindow::openSelectedOralArgument() -> std::expected<void, QString> {
     argument_case_id_ = selected_case.definition.id;
     argument_configuration_id_ = selected_argument.id;
     workspace_tabs_->setTabEnabled(argument_tab_index_, true);
+    workspace_tabs_->setTabVisible(argument_tab_index_, true);
     workspace_tabs_->setCurrentIndex(argument_tab_index_);
     showStatus(QStringLiteral("Opened exact %1 oral-argument configuration %2.")
                    .arg(selected_argument.grounded_question_bank->mode ==
@@ -1101,6 +1196,12 @@ void MainWindow::commitRuntime(packs::RuntimePack runtime, const QString& source
         QStringLiteral("Pack revision: %1 @ %2 — SHA-256 %3")
             .arg(utf8(revision.id.value), utf8(revision.version), utf8(revision.digest)));
     source_label_->setText(QStringLiteral("Source: %1").arg(current_source_path_));
+    startup_onboarding_->setVisible(false);
+    pack_browser_content_->setVisible(true);
+    workspace_tabs_->setTabText(browser_tab_index_, QStringLiteral("&Cases and profiles"));
+    for (auto* widget : pack_only_widgets_) {
+        widget->setVisible(true);
+    }
 
     {
         const QSignalBlocker blocker(case_list_);
@@ -1137,6 +1238,7 @@ void MainWindow::resetRecordWorkspace() {
         record_tab_index_,
         QStringLiteral("Review PDFs materialized from the selected installed pack"));
     workspace_tabs_->setTabEnabled(record_tab_index_, false);
+    workspace_tabs_->setTabVisible(record_tab_index_, false);
     delete previous_workspace;
 }
 
@@ -1145,6 +1247,7 @@ void MainWindow::clearRecordAccessActions() {
     if (record_access_menu_ != nullptr) {
         record_access_menu_->clear();
         record_access_menu_->setEnabled(false);
+        record_access_menu_->menuAction()->setVisible(false);
     }
 }
 
@@ -1314,6 +1417,7 @@ void MainWindow::invalidateArgumentSelection() {
     argument_configuration_id_.reset();
     if (workspace_tabs_ != nullptr && oral_argument_workspace_ != nullptr) {
         workspace_tabs_->setTabEnabled(argument_tab_index_, false);
+        workspace_tabs_->setTabVisible(argument_tab_index_, false);
         workspace_tabs_->setTabText(argument_tab_index_, QStringLiteral("Oral &Argument"));
         if (workspace_tabs_->currentIndex() == argument_tab_index_) {
             workspace_tabs_->setCurrentIndex(browser_tab_index_);
@@ -1473,6 +1577,7 @@ void MainWindow::updateCaseSelection(int row) {
         profile_selector_->setEnabled(false);
         argument_configuration_selector_->setEnabled(false);
         workspace_tabs_->setTabEnabled(argument_tab_index_, false);
+        workspace_tabs_->setTabVisible(argument_tab_index_, false);
         profile_editor_->setEnabled(false);
         updateActionStates();
         return;
@@ -1489,6 +1594,7 @@ void MainWindow::updateCaseSelection(int row) {
     }
     const auto record_matches_selection = selectedCaseHasLoadedRecord();
     workspace_tabs_->setTabEnabled(record_tab_index_, record_matches_selection);
+    workspace_tabs_->setTabVisible(record_tab_index_, record_matches_selection);
     if (!record_matches_selection && workspace_tabs_->currentIndex() == record_tab_index_) {
         workspace_tabs_->setCurrentIndex(browser_tab_index_);
     }
@@ -1557,6 +1663,7 @@ void MainWindow::updateArgumentSelection(int row) {
         profile_selector_->clear();
         profile_selector_->setEnabled(false);
         workspace_tabs_->setTabEnabled(argument_tab_index_, false);
+        workspace_tabs_->setTabVisible(argument_tab_index_, false);
         updateActionStates();
         return;
     }
@@ -1566,6 +1673,7 @@ void MainWindow::updateArgumentSelection(int row) {
         profile_selector_->clear();
         profile_selector_->setEnabled(false);
         workspace_tabs_->setTabEnabled(argument_tab_index_, false);
+        workspace_tabs_->setTabVisible(argument_tab_index_, false);
         updateActionStates();
         return;
     }
@@ -1591,6 +1699,7 @@ void MainWindow::updateArgumentSelection(int row) {
     }
     const auto argument_matches_selection = selectedCaseHasLoadedArgument();
     workspace_tabs_->setTabEnabled(argument_tab_index_, argument_matches_selection);
+    workspace_tabs_->setTabVisible(argument_tab_index_, argument_matches_selection);
     if (!argument_matches_selection && workspace_tabs_->currentIndex() == argument_tab_index_) {
         workspace_tabs_->setCurrentIndex(browser_tab_index_);
     }
@@ -1659,6 +1768,10 @@ void MainWindow::updateActionStates(
     install_archive_action_->setVisible(can_install_archive);
     import_profile_action_->setEnabled(true);
     import_profile_action_->setVisible(true);
+    welcome_open_directory_button_->setEnabled(true);
+    welcome_install_archive_button_->setEnabled(can_install_archive);
+    welcome_install_archive_button_->setVisible(can_install_archive);
+    welcome_import_profile_button_->setEnabled(true);
     const auto has_profile = profile_editor_->isEnabled() && profile_editor_->profile().has_value();
     clone_profile_action_->setEnabled(has_profile);
     clone_profile_action_->setVisible(has_profile);

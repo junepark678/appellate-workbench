@@ -27,6 +27,7 @@ class QLineEdit;
 class QMenu;
 class QPushButton;
 class QTabWidget;
+class QWidget;
 
 namespace appellate::app {
 class RecordAccessSessionController;
@@ -236,6 +237,12 @@ class MainWindow final : public QMainWindow {
     QLabel* record_summary_label_{};
     QLabel* bench_summary_label_{};
     QLabel* workflow_status_label_{};
+    QWidget* startup_onboarding_{};
+    QWidget* pack_browser_content_{};
+    QPushButton* welcome_open_directory_button_{};
+    QPushButton* welcome_install_archive_button_{};
+    QPushButton* welcome_import_profile_button_{};
+    std::vector<QWidget*> pack_only_widgets_;
     QLineEdit* workflow_court_date_editor_{};
     QPushButton* open_workflow_button_{};
     QPushButton* advance_workflow_button_{};
