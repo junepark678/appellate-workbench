@@ -1,0 +1,968 @@
+#include "oral_argument_session_controller.hpp"
+
+#include "resolved_session_pins.hpp"
+
+#include "appellate/engine/oral_argument_engine.hpp"
+#include "appellate/packs/pack_version.hpp"
+#include "appellate/packs/runtime_pack.hpp"
+#include "appellate/storage/oral_argument_codec.hpp"
+
+#include <QDateTime>
+#include <QRegularExpression>
+
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+#include <ranges>
+#include <span>
+#include <string>
+#include <utility>
+
+namespace appellate::app {
+namespace {
+
+constexpr auto legacy_persisted_event_type = "oral_argument.event.v1";
+constexpr auto legacy_persisted_authority_id = "oral.argument.engine.v1";
+constexpr auto canonical_persisted_event_type = "oral_argument.event.v2";
+constexpr auto canonical_persisted_authority_id = "oral.argument.engine.v2";
+constexpr std::size_t maximum_legacy_events = 4'096;
+constexpr std::size_t maximum_canonical_events = 64;
+
+[[nodiscard]] auto fail(OralArgumentSessionErrorCode code, QString message)
+    -> std::unexpected<OralArgumentSessionError> {
+    return std::unexpected(OralArgumentSessionError{code, std::move(message)});
+}
+
+[[nodiscard]] QString asQString(const std::string& value) { return QString::fromStdString(value); }
+
+[[nodiscard]] bool validCanonicalId(const QString& value) {
+    if (value.size() < 3 || value.size() > 160) {
+        return false;
+    }
+    bool has_separator = false;
+    bool previous_separator = true;
+    for (const auto character : value) {
+        const auto code = character.unicode();
+        const auto alphanumeric = (code >= u'a' && code <= u'z') || (code >= u'0' && code <= u'9');
+        const auto separator = code == u'.' || code == u'-';
+        if ((!alphanumeric && !separator) || (separator && previous_separator)) {
+            return false;
+        }
+        has_separator = has_separator || separator;
+        previous_separator = separator;
+    }
+    return has_separator && !previous_separator;
+}
+
+[[nodiscard]] bool validDigest(const QString& value) {
+    return value.size() == 64 && std::ranges::all_of(value, [](QChar character) {
+               return (character >= u'0' && character <= u'9') ||
+                      (character >= u'a' && character <= u'f');
+           });
+}
+
+[[nodiscard]] bool validPackId(const QString& value) {
+    static const QRegularExpression pattern(
+        QStringLiteral(R"(^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$)"));
+    return value.size() >= 3 && value.size() <= 128 && pattern.match(value).hasMatch();
+}
+
+[[nodiscard]] bool validCanonicalUtc(const QString& value) {
+    if (value.size() != 20 || !value.endsWith(u'Z')) {
+        return false;
+    }
+    const auto parsed = QDateTime::fromString(value, Qt::ISODate);
+    return parsed.isValid() && parsed.offsetFromUtc() == 0 &&
+           parsed.toUTC().toString(QStringLiteral("yyyy-MM-dd'T'HH:mm:ss'Z'")) == value;
+}
+
+[[nodiscard]] auto normalizePins(std::vector<storage::RevisionPin> pins,
+                                 OralArgumentSessionErrorCode error_code,
+                                 std::uint32_t manifest_schema_version)
+    -> std::expected<std::vector<storage::RevisionPin>, OralArgumentSessionError> {
+    if (pins.empty() || pins.size() > 128) {
+        return fail(error_code,
+                    QStringLiteral("A bounded nonempty pack-revision pin set is required"));
+    }
+    for (const auto& pin : pins) {
+        if (!validPackId(pin.pack_id) ||
+            !packs::isValidPackVersion(pin.version, manifest_schema_version) ||
+            !validDigest(pin.digest)) {
+            return fail(error_code, QStringLiteral("An oral-argument revision pin is invalid"));
+        }
+    }
+    std::ranges::sort(
+        pins, [](const auto& left, const auto& right) { return left.pack_id < right.pack_id; });
+    if (std::ranges::adjacent_find(pins, {}, &storage::RevisionPin::pack_id) != pins.end()) {
+        return fail(error_code,
+                    QStringLiteral("Oral-argument revision pins contain a duplicate pack"));
+    }
+    return pins;
+}
+
+[[nodiscard]] auto engineFailure(const engine::Error& error, OralArgumentSessionErrorCode code)
+    -> std::unexpected<OralArgumentSessionError> {
+    return fail(code, asQString(error.message));
+}
+
+[[nodiscard]] auto validateLegacyDefinitions(const QString& session_id,
+                                             const QString& engine_revision,
+                                             const model::OralArgumentConfiguration& configuration,
+                                             const model::BenchConfiguration& bench,
+                                             const model::ArgumentGrounding& grounding,
+                                             OralArgumentSessionErrorCode error_code)
+    -> std::expected<model::OralArgumentState, OralArgumentSessionError> {
+    if (!validCanonicalId(session_id) || !validCanonicalId(engine_revision)) {
+        return fail(error_code,
+                    QStringLiteral("Canonical session and engine revision IDs are required"));
+    }
+    const auto encoded = storage::encodeOralArgumentConfiguration(configuration);
+    if (!encoded) {
+        return fail(error_code, encoded.error().message);
+    }
+    const auto decoded = storage::decodeOralArgumentConfiguration(*encoded);
+    if (!decoded || *decoded != configuration) {
+        return fail(error_code,
+                    decoded ? QStringLiteral("Configuration does not round-trip canonically")
+                            : decoded.error().message);
+    }
+    const auto initial = engine::initializeOralArgument(configuration, bench, grounding);
+    if (!initial) {
+        return engineFailure(initial.error(), error_code);
+    }
+    return *initial;
+}
+
+[[nodiscard]] QString openingCommandId(const QString& session_id) {
+    return session_id + QStringLiteral(".opening");
+}
+
+[[nodiscard]] auto deriveCanonicalDefinitionFromRuntime(
+    const model::CaseId& case_id, const packs::RuntimeArgumentConfigId& argument_configuration_id,
+    const std::string& legal_state_digest, const packs::RuntimePack& runtime)
+    -> std::expected<model::CanonicalOralArgumentDefinition, OralArgumentSessionError> {
+    if (!validCanonicalId(QString::fromStdString(case_id.value)) ||
+        !validCanonicalId(QString::fromStdString(argument_configuration_id.value)) ||
+        !validDigest(QString::fromStdString(legal_state_digest))) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Canonical case, argument configuration, and legal-state pins "
+                                   "are required"));
+    }
+    const auto case_iterator = std::ranges::find_if(
+        runtime.cases, [&](const auto& candidate) { return candidate.definition.id == case_id; });
+    if (case_iterator == runtime.cases.end()) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Resolved pack does not contain the requested case"));
+    }
+    const auto argument_iterator =
+        std::ranges::find(case_iterator->argument_configurations, argument_configuration_id,
+                          &packs::RuntimeArgumentConfiguration::id);
+    if (argument_iterator == case_iterator->argument_configurations.end() ||
+        argument_iterator->case_id != case_id ||
+        !argument_iterator->grounded_question_bank.has_value() ||
+        argument_iterator->total_seconds <= argument_iterator->rebuttal_seconds) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Requested argument configuration is absent, ungrounded, or "
+                                   "has no principal time"));
+    }
+
+    model::BenchConfiguration bench{
+        case_iterator->court.jurisdiction_id.value,
+        case_iterator->court.role,
+        {},
+        argument_iterator->bench.presiding_seat_id.value,
+    };
+    bench.seats.reserve(argument_iterator->bench.seats.size());
+    for (const auto& seat : argument_iterator->bench.seats) {
+        bench.seats.push_back(model::BenchSeat{seat.id.value, seat.profile});
+    }
+    auto bank = *argument_iterator->grounded_question_bank;
+    const auto behavior_digest = engine::behaviorDefinitionDigest(bench);
+    const auto grounding_digest = engine::groundingDigest(bank);
+    if (!behavior_digest || !grounding_digest || *grounding_digest != bank.grounding_digest) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    !behavior_digest ? asQString(behavior_digest.error().message)
+                    : !grounding_digest
+                        ? asQString(grounding_digest.error().message)
+                        : QStringLiteral("Resolved question-bank digest differs from its "
+                                         "canonical content"));
+    }
+    return model::CanonicalOralArgumentDefinition{
+        model::OralArgumentConfiguration{
+            std::chrono::seconds{argument_iterator->total_seconds -
+                                 argument_iterator->rebuttal_seconds},
+            std::chrono::seconds{argument_iterator->rebuttal_seconds},
+            0.7,
+            3,
+            *behavior_digest,
+            *grounding_digest,
+            legal_state_digest,
+            case_iterator->definition.authored_disposition_plan_id.has_value()
+                ? case_iterator->definition.authored_disposition_plan_id->value
+                : case_iterator->authored_disposition_id.value,
+        },
+        std::move(bench),
+        std::move(bank),
+    };
+}
+
+[[nodiscard]] auto deriveCanonicalDefinition(
+    const model::CaseId& case_id, const packs::RuntimeArgumentConfigId& argument_configuration_id,
+    const std::string& legal_state_digest, const packs::ResolvedPack& resolved_pack)
+    -> std::expected<model::CanonicalOralArgumentDefinition, OralArgumentSessionError> {
+    const auto runtime = packs::loadRuntimePack(resolved_pack);
+    if (!runtime) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    asQString(runtime.error().message));
+    }
+    return deriveCanonicalDefinitionFromRuntime(case_id, argument_configuration_id,
+                                                legal_state_digest, *runtime);
+}
+
+[[nodiscard]] bool isLegacyResolvedPack(const packs::ResolvedPack& resolved_pack) {
+    return resolved_pack.root().manifest_schema_version == 1 &&
+           std::ranges::all_of(resolved_pack.dependenciesDependencyFirst(),
+                               [](const auto& pack) { return pack.manifest_schema_version == 1; });
+}
+
+[[nodiscard]] auto
+validateCanonicalDefinitions(const QString& session_id, const QString& engine_revision,
+                             const model::CanonicalOralArgumentDefinition& definition,
+                             OralArgumentSessionErrorCode error_code)
+    -> std::expected<model::OralArgumentState, OralArgumentSessionError> {
+    if (!validCanonicalId(session_id) || !validCanonicalId(engine_revision)) {
+        return fail(error_code,
+                    QStringLiteral("Canonical session and engine revision IDs are required"));
+    }
+    const auto initial = engine::initializeOralArgument(definition);
+    if (!initial)
+        return engineFailure(initial.error(), error_code);
+    return *initial;
+}
+
+[[nodiscard]] auto
+validateCanonicalSnapshot(const QString& session_id, const QString& expected_engine_revision,
+                          const std::vector<storage::RevisionPin>& expected_pins,
+                          const model::CanonicalOralArgumentDefinition& definition,
+                          const model::OralArgumentState& initial_state,
+                          const storage::SessionSnapshot& snapshot)
+    -> std::expected<model::OralArgumentState, OralArgumentSessionError> {
+    if (snapshot.session_id != session_id || snapshot.engine_revision != expected_engine_revision ||
+        snapshot.pins != expected_pins ||
+        snapshot.authority_contract != storage::SessionAuthorityContract::CanonicalV2 ||
+        !validCanonicalUtc(snapshot.created_at_utc) || snapshot.sequence <= 0 ||
+        snapshot.sequence > static_cast<qint64>(maximum_canonical_events) ||
+        snapshot.commands.size() != snapshot.events.size() ||
+        snapshot.events.size() != static_cast<std::size_t>(snapshot.sequence) ||
+        !snapshot.docket.empty() || !snapshot.asset_references.empty()) {
+        return fail(OralArgumentSessionErrorCode::CorruptSession,
+                    QStringLiteral("Canonical oral-argument identity, pins, contract, or row "
+                                   "counts differ"));
+    }
+
+    auto state = initial_state;
+    std::vector<model::OralArgumentEvent> journal;
+    journal.reserve(snapshot.events.size());
+    for (std::size_t index = 0; index < snapshot.events.size(); ++index) {
+        const auto expected_sequence = static_cast<qint64>(index);
+        const auto& command = snapshot.commands[index];
+        const auto& stored_event = snapshot.events[index];
+        if (command.expected_sequence != expected_sequence ||
+            stored_event.sequence != expected_sequence + 1 ||
+            !validCanonicalUtc(command.recorded_at_utc) ||
+            stored_event.event_type != QLatin1StringView(canonical_persisted_event_type) ||
+            stored_event.authority_id != QLatin1StringView(canonical_persisted_authority_id)) {
+            return fail(OralArgumentSessionErrorCode::CorruptSession,
+                        QStringLiteral("Canonical oral-argument command/event envelope was "
+                                       "tampered"));
+        }
+
+        std::optional<model::CounselAnswer> answer;
+        if (index == 0) {
+            if (command.command_id != openingCommandId(session_id)) {
+                return fail(OralArgumentSessionErrorCode::CorruptSession,
+                            QStringLiteral("Canonical opening command identity differs"));
+            }
+            const auto persisted =
+                storage::decodeCanonicalOralArgumentOpeningCommand(command.payload_json);
+            if (!persisted || persisted->session_id != session_id ||
+                persisted->command_id != command.command_id ||
+                persisted->engine_revision != expected_engine_revision ||
+                persisted->recorded_at_utc != command.recorded_at_utc ||
+                persisted->case_id != definition.question_bank.case_id ||
+                persisted->argument_configuration_id !=
+                    definition.question_bank.argument_configuration_id ||
+                persisted->configuration != definition.configuration) {
+                return fail(OralArgumentSessionErrorCode::CorruptSession,
+                            persisted ? QStringLiteral("Canonical opening definition pin differs")
+                                      : persisted.error().message);
+            }
+        } else {
+            if (!validCanonicalId(command.command_id) ||
+                command.command_id == openingCommandId(session_id)) {
+                return fail(OralArgumentSessionErrorCode::CorruptSession,
+                            QStringLiteral("Canonical counsel command ID is invalid"));
+            }
+            const auto persisted =
+                storage::decodeCanonicalOralArgumentCounselCommand(command.payload_json);
+            if (!persisted || persisted->session_id != session_id ||
+                persisted->command_id != command.command_id ||
+                persisted->recorded_at_utc != command.recorded_at_utc) {
+                return fail(OralArgumentSessionErrorCode::CorruptSession,
+                            persisted ? QStringLiteral("Canonical counsel command header differs")
+                                      : persisted.error().message);
+            }
+            answer = persisted->answer;
+        }
+
+        const auto event = storage::decodeCanonicalOralArgumentEvent(stored_event.payload_json);
+        if (!event || event->sequence != static_cast<std::uint64_t>(stored_event.sequence) ||
+            event->counsel != answer) {
+            return fail(OralArgumentSessionErrorCode::CorruptSession,
+                        event ? QStringLiteral("Canonical answer/event pair differs")
+                              : event.error().message);
+        }
+        const auto decision = index == 0 ? engine::planOpeningQuestion(definition, state)
+                                         : engine::decideCounselAnswer(definition, state, *answer);
+        if (!decision || *decision != *event) {
+            return fail(OralArgumentSessionErrorCode::CorruptSession,
+                        decision ? QStringLiteral("Canonical event differs from exact re-decision")
+                                 : asQString(decision.error().message));
+        }
+        const auto applied = engine::applyOralArgumentEvent(definition, state, *event);
+        if (!applied) {
+            return fail(OralArgumentSessionErrorCode::CorruptSession,
+                        asQString(applied.error().message));
+        }
+        state = *applied;
+        journal.push_back(*event);
+    }
+
+    const auto replayed = engine::replayOralArgument(definition, initial_state, journal);
+    if (!replayed || *replayed != state || state.journal != journal ||
+        state.next_event_sequence != static_cast<std::uint64_t>(snapshot.sequence) + 1) {
+        return fail(OralArgumentSessionErrorCode::CorruptSession,
+                    replayed ? QStringLiteral("Canonical transcript is not its exact replay")
+                             : asQString(replayed.error().message));
+    }
+    return state;
+}
+
+[[nodiscard]] auto validateLegacySnapshot(const QString& session_id,
+                                          const QString& expected_engine_revision,
+                                          const std::vector<storage::RevisionPin>& expected_pins,
+                                          const model::OralArgumentConfiguration& configuration,
+                                          const model::BenchConfiguration& bench,
+                                          const model::ArgumentGrounding& grounding,
+                                          const model::OralArgumentState& initial_state,
+                                          const storage::SessionSnapshot& snapshot)
+    -> std::expected<model::OralArgumentState, OralArgumentSessionError> {
+    if (snapshot.session_id != session_id || snapshot.engine_revision != expected_engine_revision ||
+        snapshot.pins != expected_pins ||
+        snapshot.authority_contract != storage::SessionAuthorityContract::LegacyV1 ||
+        !validCanonicalUtc(snapshot.created_at_utc) || snapshot.sequence <= 0 ||
+        snapshot.sequence > static_cast<qint64>(maximum_legacy_events) ||
+        snapshot.commands.size() != snapshot.events.size() ||
+        snapshot.events.size() != static_cast<std::size_t>(snapshot.sequence) ||
+        !snapshot.docket.empty() || !snapshot.asset_references.empty()) {
+        return fail(OralArgumentSessionErrorCode::CorruptSession,
+                    QStringLiteral("Oral-argument session identity, pins, or row counts differ"));
+    }
+
+    auto state = initial_state;
+    std::vector<model::OralArgumentEvent> journal;
+    journal.reserve(snapshot.events.size());
+    for (std::size_t index = 0; index < snapshot.events.size(); ++index) {
+        const auto expected_sequence = static_cast<qint64>(index);
+        const auto& command = snapshot.commands[index];
+        const auto& stored_event = snapshot.events[index];
+        if (command.expected_sequence != expected_sequence ||
+            stored_event.sequence != expected_sequence + 1 ||
+            !validCanonicalUtc(command.recorded_at_utc) ||
+            stored_event.event_type != QLatin1StringView(legacy_persisted_event_type) ||
+            stored_event.authority_id != QLatin1StringView(legacy_persisted_authority_id)) {
+            return fail(OralArgumentSessionErrorCode::CorruptSession,
+                        QStringLiteral("Oral-argument command/event envelope was tampered"));
+        }
+
+        std::optional<model::CounselAnswer> answer;
+        if (index == 0) {
+            if (command.command_id != openingCommandId(session_id)) {
+                return fail(OralArgumentSessionErrorCode::CorruptSession,
+                            QStringLiteral("Oral-argument opening command identity differs"));
+            }
+            const auto persisted = storage::decodeOralArgumentOpeningCommand(command.payload_json);
+            if (!persisted || persisted->session_id != session_id ||
+                persisted->command_id != command.command_id ||
+                persisted->engine_revision != expected_engine_revision ||
+                persisted->recorded_at_utc != command.recorded_at_utc ||
+                persisted->configuration != configuration) {
+                return fail(
+                    OralArgumentSessionErrorCode::CorruptSession,
+                    persisted ? QStringLiteral("Persisted oral-argument configuration pin differs")
+                              : persisted.error().message);
+            }
+        } else {
+            if (!validCanonicalId(command.command_id) ||
+                command.command_id == openingCommandId(session_id)) {
+                return fail(OralArgumentSessionErrorCode::CorruptSession,
+                            QStringLiteral("Persisted counsel command ID is invalid"));
+            }
+            const auto persisted = storage::decodeOralArgumentCounselCommand(command.payload_json);
+            if (!persisted || persisted->session_id != session_id ||
+                persisted->command_id != command.command_id ||
+                persisted->recorded_at_utc != command.recorded_at_utc) {
+                return fail(OralArgumentSessionErrorCode::CorruptSession,
+                            persisted ? QStringLiteral("Persisted counsel command header differs")
+                                      : persisted.error().message);
+            }
+            answer = persisted->answer;
+        }
+
+        const auto event = storage::decodeOralArgumentEvent(stored_event.payload_json);
+        if (!event || event->sequence != static_cast<std::uint64_t>(stored_event.sequence) ||
+            event->counsel != answer) {
+            return fail(OralArgumentSessionErrorCode::CorruptSession,
+                        event ? QStringLiteral("Persisted answer/event pair differs")
+                              : event.error().message);
+        }
+
+        std::expected<model::OralArgumentEvent, engine::Error> decision =
+            index == 0
+                ? engine::planOpeningQuestion(configuration, bench, grounding, state)
+                : engine::decideCounselAnswer(configuration, bench, grounding, state, *answer);
+        if (!decision || *decision != *event) {
+            return fail(OralArgumentSessionErrorCode::CorruptSession,
+                        decision ? QStringLiteral("Persisted event differs from exact re-decision")
+                                 : asQString(decision.error().message));
+        }
+        const auto applied =
+            engine::applyOralArgumentEvent(configuration, bench, grounding, state, *event);
+        if (!applied) {
+            return fail(OralArgumentSessionErrorCode::CorruptSession,
+                        asQString(applied.error().message));
+        }
+        state = *applied;
+        journal.push_back(*event);
+    }
+
+    const auto replayed =
+        engine::replayOralArgument(configuration, bench, grounding, initial_state, journal);
+    if (!replayed || *replayed != state || state.journal != journal ||
+        state.next_event_sequence != static_cast<std::uint64_t>(snapshot.sequence) + 1) {
+        return fail(OralArgumentSessionErrorCode::CorruptSession,
+                    replayed ? QStringLiteral("Persisted transcript is not its exact replay")
+                             : asQString(replayed.error().message));
+    }
+    return state;
+}
+
+} // namespace
+
+OralArgumentSessionController::OralArgumentSessionController(
+    QString session_id, model::OralArgumentConfiguration configuration,
+    model::BenchConfiguration bench, model::ArgumentGrounding grounding,
+    model::OralArgumentState initial_state, model::OralArgumentState state,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    std::vector<storage::RevisionPin> pins, storage::SessionSnapshot snapshot)
+    : session_id_(std::move(session_id)), configuration_(std::move(configuration)),
+      bench_(std::move(bench)), grounding_(std::move(grounding)),
+      initial_state_(std::move(initial_state)), state_(std::move(state)),
+      session_store_(std::move(session_store)), engine_revision_(std::move(engine_revision)),
+      pins_(std::move(pins)), snapshot_(std::move(snapshot)) {}
+
+std::expected<model::CanonicalOralArgumentDefinition, OralArgumentSessionError>
+OralArgumentSessionController::deriveCanonicalDefinitionForTesting(
+    const model::CaseId& case_id, const packs::RuntimeArgumentConfigId& argument_configuration_id,
+    std::string legal_state_digest, const packs::RuntimePack& runtime_pack) {
+    return deriveCanonicalDefinitionFromRuntime(case_id, argument_configuration_id,
+                                                legal_state_digest, runtime_pack);
+}
+
+OralArgumentSessionController::OralArgumentSessionController(
+    QString session_id, model::CanonicalOralArgumentDefinition definition,
+    model::OralArgumentState initial_state, model::OralArgumentState state,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    std::vector<storage::RevisionPin> pins, storage::SessionSnapshot snapshot)
+    : session_id_(std::move(session_id)), configuration_(definition.configuration),
+      bench_(definition.bench), canonical_definition_(std::move(definition)),
+      initial_state_(std::move(initial_state)), state_(std::move(state)),
+      session_store_(std::move(session_store)), engine_revision_(std::move(engine_revision)),
+      pins_(std::move(pins)), snapshot_(std::move(snapshot)) {}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::create(QString session_id,
+                                      model::OralArgumentConfiguration configuration,
+                                      model::BenchConfiguration bench,
+                                      model::ArgumentGrounding grounding,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString engine_revision, QString created_at_utc,
+                                      std::vector<storage::RevisionPin> pins) {
+    if (!session_store || !validCanonicalUtc(created_at_utc)) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Session store and canonical creation time are required"));
+    }
+    const auto normalized_pins =
+        normalizePins(std::move(pins), OralArgumentSessionErrorCode::InvalidConfiguration, 1);
+    if (!normalized_pins) {
+        return std::unexpected(normalized_pins.error());
+    }
+    const auto initial =
+        validateLegacyDefinitions(session_id, engine_revision, configuration, bench, grounding,
+                                  OralArgumentSessionErrorCode::InvalidConfiguration);
+    if (!initial) {
+        return std::unexpected(initial.error());
+    }
+    const auto encoded_opening = storage::encodeOralArgumentOpeningCommand(
+        storage::OralArgumentOpeningCommand{session_id, openingCommandId(session_id),
+                                            engine_revision, created_at_utc, configuration});
+    if (!encoded_opening) {
+        return fail(OralArgumentSessionErrorCode::CommandCodecFailure,
+                    encoded_opening.error().message);
+    }
+    const auto opening = engine::planOpeningQuestion(configuration, bench, grounding, *initial);
+    if (!opening) {
+        return engineFailure(opening.error(), OralArgumentSessionErrorCode::EngineFailure);
+    }
+    const auto encoded_event = storage::encodeOralArgumentEvent(*opening);
+    if (!encoded_event) {
+        return fail(OralArgumentSessionErrorCode::EventCodecFailure, encoded_event.error().message);
+    }
+    const auto projected =
+        engine::applyOralArgumentEvent(configuration, bench, grounding, *initial, *opening);
+    if (!projected) {
+        return engineFailure(projected.error(), OralArgumentSessionErrorCode::EngineFailure);
+    }
+
+    const storage::CommitBatch opening_batch{
+        openingCommandId(session_id),
+        *encoded_opening,
+        created_at_utc,
+        {storage::EventWrite{QLatin1StringView(legacy_persisted_event_type), *encoded_event,
+                             QLatin1StringView(legacy_persisted_authority_id)}},
+        {},
+        {},
+    };
+    const auto appended = session_store->createSessionWithInitialBatch(
+        session_id, engine_revision, created_at_utc, *normalized_pins,
+        storage::SessionAuthorityContract::LegacyV1, opening_batch);
+    if (!appended) {
+        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, appended.error().message);
+    }
+    const auto snapshot = session_store->loadSession(session_id);
+    if (!snapshot) {
+        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, snapshot.error().message);
+    }
+    const auto verified =
+        validateLegacySnapshot(session_id, engine_revision, *normalized_pins, configuration, bench,
+                               grounding, *initial, *snapshot);
+    if (!verified || *verified != *projected || *appended != 1) {
+        return fail(OralArgumentSessionErrorCode::CorruptSession,
+                    verified ? QStringLiteral("New oral-argument session failed verification")
+                             : verified.error().message);
+    }
+    return std::unique_ptr<OralArgumentSessionController>(new OralArgumentSessionController(
+        std::move(session_id), std::move(configuration), std::move(bench), std::move(grounding),
+        *initial, *verified, std::move(session_store), std::move(engine_revision), *normalized_pins,
+        *snapshot));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::create(QString session_id,
+                                      model::OralArgumentConfiguration configuration,
+                                      model::BenchConfiguration bench,
+                                      model::ArgumentGrounding grounding,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString engine_revision, QString created_at_utc,
+                                      const packs::ResolvedPack& resolved_pack) {
+    if (!isLegacyResolvedPack(resolved_pack)) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Legacy oral-argument definitions require an exact schema-1 "
+                                   "resolved pack closure"));
+    }
+    return create(std::move(session_id), std::move(configuration), std::move(bench),
+                  std::move(grounding), std::move(session_store), std::move(engine_revision),
+                  std::move(created_at_utc), revisionPinsForSession(resolved_pack));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::createCanonicalForTesting(
+    QString session_id, model::CanonicalOralArgumentDefinition definition,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    QString created_at_utc, std::vector<storage::RevisionPin> pins) {
+    return createCanonicalBound(std::move(session_id), std::move(definition),
+                                std::move(session_store), std::move(engine_revision),
+                                std::move(created_at_utc), std::move(pins), 1);
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::createCanonicalBound(
+    QString session_id, model::CanonicalOralArgumentDefinition definition,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    QString created_at_utc, std::vector<storage::RevisionPin> pins,
+    std::uint32_t manifest_schema_version) {
+    if (!session_store || !validCanonicalUtc(created_at_utc)) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Session store and canonical creation time are required"));
+    }
+    const auto normalized_pins =
+        normalizePins(std::move(pins), OralArgumentSessionErrorCode::InvalidConfiguration,
+                      manifest_schema_version);
+    if (!normalized_pins)
+        return std::unexpected(normalized_pins.error());
+    const auto initial =
+        validateCanonicalDefinitions(session_id, engine_revision, definition,
+                                     OralArgumentSessionErrorCode::InvalidConfiguration);
+    if (!initial)
+        return std::unexpected(initial.error());
+    const auto encoded_opening = storage::encodeCanonicalOralArgumentOpeningCommand(
+        storage::CanonicalOralArgumentOpeningCommand{
+            session_id, openingCommandId(session_id), engine_revision, created_at_utc,
+            definition.question_bank.case_id, definition.question_bank.argument_configuration_id,
+            definition.configuration});
+    if (!encoded_opening) {
+        return fail(OralArgumentSessionErrorCode::CommandCodecFailure,
+                    encoded_opening.error().message);
+    }
+    const auto opening = engine::planOpeningQuestion(definition, *initial);
+    if (!opening) {
+        return engineFailure(opening.error(), OralArgumentSessionErrorCode::EngineFailure);
+    }
+    const auto encoded_event = storage::encodeCanonicalOralArgumentEvent(*opening);
+    if (!encoded_event) {
+        return fail(OralArgumentSessionErrorCode::EventCodecFailure, encoded_event.error().message);
+    }
+    const auto projected = engine::applyOralArgumentEvent(definition, *initial, *opening);
+    if (!projected) {
+        return engineFailure(projected.error(), OralArgumentSessionErrorCode::EngineFailure);
+    }
+    const storage::CommitBatch opening_batch{
+        openingCommandId(session_id),
+        *encoded_opening,
+        created_at_utc,
+        {storage::EventWrite{QLatin1StringView(canonical_persisted_event_type), *encoded_event,
+                             QLatin1StringView(canonical_persisted_authority_id)}},
+        {},
+        {},
+    };
+    const auto appended = session_store->createSessionWithInitialBatch(
+        session_id, engine_revision, created_at_utc, *normalized_pins,
+        storage::SessionAuthorityContract::CanonicalV2, opening_batch);
+    if (!appended) {
+        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, appended.error().message);
+    }
+    const auto snapshot = session_store->loadSession(session_id);
+    if (!snapshot) {
+        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, snapshot.error().message);
+    }
+    const auto verified = validateCanonicalSnapshot(session_id, engine_revision, *normalized_pins,
+                                                    definition, *initial, *snapshot);
+    if (!verified || *verified != *projected || *appended != 1) {
+        return fail(OralArgumentSessionErrorCode::CorruptSession,
+                    verified ? QStringLiteral("New canonical oral-argument session failed "
+                                              "verification")
+                             : verified.error().message);
+    }
+    return std::unique_ptr<OralArgumentSessionController>(new OralArgumentSessionController(
+        std::move(session_id), std::move(definition), *initial, *verified, std::move(session_store),
+        std::move(engine_revision), *normalized_pins, *snapshot));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::create(
+    QString session_id, const model::CaseId& case_id,
+    const packs::RuntimeArgumentConfigId& argument_configuration_id, std::string legal_state_digest,
+    std::unique_ptr<storage::SessionStore> session_store, QString engine_revision,
+    QString created_at_utc, const packs::ResolvedPack& resolved_pack) {
+    const auto definition = deriveCanonicalDefinition(case_id, argument_configuration_id,
+                                                      legal_state_digest, resolved_pack);
+    if (!definition)
+        return std::unexpected(definition.error());
+    return createCanonicalBound(std::move(session_id), *definition, std::move(session_store),
+                                std::move(engine_revision), std::move(created_at_utc),
+                                revisionPinsForSession(resolved_pack),
+                                resolved_pack.root().manifest_schema_version);
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::reopen(QString session_id,
+                                      model::OralArgumentConfiguration configuration,
+                                      model::BenchConfiguration bench,
+                                      model::ArgumentGrounding grounding,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString expected_engine_revision,
+                                      std::vector<storage::RevisionPin> expected_pins) {
+    if (!session_store) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Session store is required"));
+    }
+    const auto normalized_pins = normalizePins(
+        std::move(expected_pins), OralArgumentSessionErrorCode::InvalidConfiguration, 1);
+    if (!normalized_pins) {
+        return std::unexpected(normalized_pins.error());
+    }
+    const auto initial =
+        validateLegacyDefinitions(session_id, expected_engine_revision, configuration, bench,
+                                  grounding, OralArgumentSessionErrorCode::InvalidConfiguration);
+    if (!initial) {
+        return std::unexpected(initial.error());
+    }
+    const auto snapshot = session_store->loadSession(session_id);
+    if (!snapshot) {
+        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, snapshot.error().message);
+    }
+    const auto state =
+        validateLegacySnapshot(session_id, expected_engine_revision, *normalized_pins,
+                               configuration, bench, grounding, *initial, *snapshot);
+    if (!state) {
+        return std::unexpected(state.error());
+    }
+    return std::unique_ptr<OralArgumentSessionController>(new OralArgumentSessionController(
+        std::move(session_id), std::move(configuration), std::move(bench), std::move(grounding),
+        *initial, *state, std::move(session_store), std::move(expected_engine_revision),
+        *normalized_pins, *snapshot));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::reopen(QString session_id,
+                                      model::OralArgumentConfiguration configuration,
+                                      model::BenchConfiguration bench,
+                                      model::ArgumentGrounding grounding,
+                                      std::unique_ptr<storage::SessionStore> session_store,
+                                      QString expected_engine_revision,
+                                      const packs::ResolvedPack& resolved_pack) {
+    if (!isLegacyResolvedPack(resolved_pack)) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Legacy oral-argument definitions require an exact schema-1 "
+                                   "resolved pack closure"));
+    }
+    return reopen(std::move(session_id), std::move(configuration), std::move(bench),
+                  std::move(grounding), std::move(session_store),
+                  std::move(expected_engine_revision), revisionPinsForSession(resolved_pack));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::reopenCanonicalForTesting(
+    QString session_id, model::CanonicalOralArgumentDefinition definition,
+    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+    std::vector<storage::RevisionPin> expected_pins) {
+    return reopenCanonicalBound(std::move(session_id), std::move(definition),
+                                std::move(session_store), std::move(expected_engine_revision),
+                                std::move(expected_pins), 1);
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::reopenCanonicalBound(
+    QString session_id, model::CanonicalOralArgumentDefinition definition,
+    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+    std::vector<storage::RevisionPin> expected_pins, std::uint32_t manifest_schema_version) {
+    if (!session_store) {
+        return fail(OralArgumentSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Session store is required"));
+    }
+    const auto normalized_pins =
+        normalizePins(std::move(expected_pins), OralArgumentSessionErrorCode::InvalidConfiguration,
+                      manifest_schema_version);
+    if (!normalized_pins)
+        return std::unexpected(normalized_pins.error());
+    const auto initial =
+        validateCanonicalDefinitions(session_id, expected_engine_revision, definition,
+                                     OralArgumentSessionErrorCode::InvalidConfiguration);
+    if (!initial)
+        return std::unexpected(initial.error());
+    const auto snapshot = session_store->loadSession(session_id);
+    if (!snapshot) {
+        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, snapshot.error().message);
+    }
+    const auto state = validateCanonicalSnapshot(session_id, expected_engine_revision,
+                                                 *normalized_pins, definition, *initial, *snapshot);
+    if (!state)
+        return std::unexpected(state.error());
+    return std::unique_ptr<OralArgumentSessionController>(new OralArgumentSessionController(
+        std::move(session_id), std::move(definition), *initial, *state, std::move(session_store),
+        std::move(expected_engine_revision), *normalized_pins, *snapshot));
+}
+
+std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>
+OralArgumentSessionController::reopen(
+    QString session_id, const model::CaseId& case_id,
+    const packs::RuntimeArgumentConfigId& argument_configuration_id, std::string legal_state_digest,
+    std::unique_ptr<storage::SessionStore> session_store, QString expected_engine_revision,
+    const packs::ResolvedPack& resolved_pack) {
+    const auto definition = deriveCanonicalDefinition(case_id, argument_configuration_id,
+                                                      legal_state_digest, resolved_pack);
+    if (!definition)
+        return std::unexpected(definition.error());
+    return reopenCanonicalBound(std::move(session_id), *definition, std::move(session_store),
+                                std::move(expected_engine_revision),
+                                revisionPinsForSession(resolved_pack),
+                                resolved_pack.root().manifest_schema_version);
+}
+
+std::expected<void, OralArgumentSessionError>
+OralArgumentSessionController::validateSnapshotForReplay(
+    const model::CaseId& case_id, const packs::RuntimeArgumentConfigId& argument_configuration_id,
+    std::string legal_state_digest, const storage::SessionSnapshot& snapshot,
+    const QString& expected_engine_revision, const packs::ResolvedPack& resolved_pack) {
+    const auto definition = deriveCanonicalDefinition(case_id, argument_configuration_id,
+                                                      legal_state_digest, resolved_pack);
+    if (!definition) {
+        return std::unexpected(definition.error());
+    }
+    const auto expected_pins = normalizePins(revisionPinsForSession(resolved_pack),
+                                             OralArgumentSessionErrorCode::InvalidConfiguration,
+                                             resolved_pack.root().manifest_schema_version);
+    if (!expected_pins) {
+        return std::unexpected(expected_pins.error());
+    }
+    const auto initial =
+        validateCanonicalDefinitions(snapshot.session_id, expected_engine_revision, *definition,
+                                     OralArgumentSessionErrorCode::InvalidConfiguration);
+    if (!initial) {
+        return std::unexpected(initial.error());
+    }
+    const auto validated =
+        validateCanonicalSnapshot(snapshot.session_id, expected_engine_revision, *expected_pins,
+                                  *definition, *initial, snapshot);
+    if (!validated) {
+        return std::unexpected(validated.error());
+    }
+    return {};
+}
+
+std::expected<OralArgumentSubmissionResult, OralArgumentSessionError>
+OralArgumentSessionController::submit(QString command_id, const model::CounselAnswer& answer,
+                                      const QString& recorded_at_utc) {
+    if (!validCanonicalId(command_id) || command_id == openingCommandId(session_id_) ||
+        !validCanonicalUtc(recorded_at_utc) || snapshot_.sequence < 1 ||
+        snapshot_.sequence != static_cast<qint64>(state_.journal.size()) ||
+        snapshot_.sequence >= static_cast<qint64>(canonical_definition_.has_value()
+                                                      ? maximum_canonical_events
+                                                      : maximum_legacy_events)) {
+        return fail(
+            OralArgumentSessionErrorCode::InvalidConfiguration,
+            QStringLiteral("Counsel command identity, time, or session sequence is invalid"));
+    }
+    if (canonical_definition_.has_value()) {
+        const auto encoded_command = storage::encodeCanonicalOralArgumentCounselCommand(
+            storage::OralArgumentCounselCommand{session_id_, command_id, recorded_at_utc, answer});
+        if (!encoded_command) {
+            return fail(OralArgumentSessionErrorCode::CommandCodecFailure,
+                        encoded_command.error().message);
+        }
+        const auto event = engine::decideCounselAnswer(*canonical_definition_, state_, answer);
+        if (!event) {
+            return engineFailure(event.error(), OralArgumentSessionErrorCode::EngineFailure);
+        }
+        const auto encoded_event = storage::encodeCanonicalOralArgumentEvent(*event);
+        if (!encoded_event) {
+            return fail(OralArgumentSessionErrorCode::EventCodecFailure,
+                        encoded_event.error().message);
+        }
+        const auto projected =
+            engine::applyOralArgumentEvent(*canonical_definition_, state_, *event);
+        if (!projected) {
+            return engineFailure(projected.error(), OralArgumentSessionErrorCode::EngineFailure);
+        }
+        const storage::CommitBatch batch{
+            command_id,
+            *encoded_command,
+            recorded_at_utc,
+            {storage::EventWrite{QLatin1StringView(canonical_persisted_event_type), *encoded_event,
+                                 QLatin1StringView(canonical_persisted_authority_id)}},
+            {},
+            {},
+        };
+        const auto appended = session_store_->append(session_id_, snapshot_.sequence, batch);
+        if (!appended) {
+            return fail(OralArgumentSessionErrorCode::SessionStoreFailure,
+                        appended.error().message);
+        }
+        const auto snapshot = session_store_->loadSession(session_id_);
+        if (!snapshot) {
+            return fail(OralArgumentSessionErrorCode::SessionStoreFailure,
+                        snapshot.error().message);
+        }
+        const auto verified =
+            validateCanonicalSnapshot(session_id_, engine_revision_, pins_, *canonical_definition_,
+                                      initial_state_, *snapshot);
+        if (!verified || *verified != *projected || *appended != snapshot->sequence) {
+            return fail(OralArgumentSessionErrorCode::CorruptSession,
+                        verified ? QStringLiteral("Appended canonical oral-argument event failed "
+                                                  "verification")
+                                 : verified.error().message);
+        }
+        state_ = *verified;
+        snapshot_ = *snapshot;
+        return OralArgumentSubmissionResult{*event, *appended};
+    }
+    const auto encoded_command = storage::encodeOralArgumentCounselCommand(
+        storage::OralArgumentCounselCommand{session_id_, command_id, recorded_at_utc, answer});
+    if (!encoded_command) {
+        return fail(OralArgumentSessionErrorCode::CommandCodecFailure,
+                    encoded_command.error().message);
+    }
+    const auto event =
+        engine::decideCounselAnswer(configuration_, bench_, grounding_, state_, answer);
+    if (!event) {
+        return engineFailure(event.error(), OralArgumentSessionErrorCode::EngineFailure);
+    }
+    const auto encoded_event = storage::encodeOralArgumentEvent(*event);
+    if (!encoded_event) {
+        return fail(OralArgumentSessionErrorCode::EventCodecFailure, encoded_event.error().message);
+    }
+    const auto projected =
+        engine::applyOralArgumentEvent(configuration_, bench_, grounding_, state_, *event);
+    if (!projected) {
+        return engineFailure(projected.error(), OralArgumentSessionErrorCode::EngineFailure);
+    }
+    const storage::CommitBatch batch{
+        command_id,
+        *encoded_command,
+        recorded_at_utc,
+        {storage::EventWrite{QLatin1StringView(legacy_persisted_event_type), *encoded_event,
+                             QLatin1StringView(legacy_persisted_authority_id)}},
+        {},
+        {},
+    };
+    const auto appended = session_store_->append(session_id_, snapshot_.sequence, batch);
+    if (!appended) {
+        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, appended.error().message);
+    }
+    const auto snapshot = session_store_->loadSession(session_id_);
+    if (!snapshot) {
+        return fail(OralArgumentSessionErrorCode::SessionStoreFailure, snapshot.error().message);
+    }
+    const auto verified =
+        validateLegacySnapshot(session_id_, engine_revision_, pins_, configuration_, bench_,
+                               grounding_, initial_state_, *snapshot);
+    if (!verified || *verified != *projected || *appended != snapshot->sequence) {
+        return fail(OralArgumentSessionErrorCode::CorruptSession,
+                    verified ? QStringLiteral("Appended oral-argument event failed verification")
+                             : verified.error().message);
+    }
+    state_ = *verified;
+    snapshot_ = *snapshot;
+    return OralArgumentSubmissionResult{*event, *appended};
+}
+
+const QString& OralArgumentSessionController::sessionId() const noexcept { return session_id_; }
+
+const model::OralArgumentState& OralArgumentSessionController::initialState() const noexcept {
+    return initial_state_;
+}
+
+const model::OralArgumentState& OralArgumentSessionController::state() const noexcept {
+    return state_;
+}
+
+const storage::SessionSnapshot& OralArgumentSessionController::snapshot() const noexcept {
+    return snapshot_;
+}
+
+const model::CanonicalOralArgumentDefinition*
+OralArgumentSessionController::canonicalDefinition() const noexcept {
+    return canonical_definition_ ? &*canonical_definition_ : nullptr;
+}
+
+} // namespace appellate::app

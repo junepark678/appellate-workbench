@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "resource_kind": "judge_profile",
+  "resource_id": "us.ca4.bench-profile.slate",
+  "display_name": "Composite Jurist Slate",
+  "profile_class": "fictional_composite",
+  "compatibility": {
+    "court_roles": ["appellate"],
+    "jurisdiction_ids": ["us.ca4"]
+  },
+  "interaction": {
+    "directness": 0.65,
+    "formality": 0.90,
+    "question_length": 0.52,
+    "interruption_frequency": 0.22,
+    "follow_up_depth": 0.74,
+    "hypothetical_frequency": 0.44,
+    "concession_recall": 0.82,
+    "record_pin_demand": 0.70,
+    "time_strictness": 0.72,
+    "issue_focus": [
+      {"topic_id": "workbench.topic.standard-of-review", "weight": 0.86},
+      {"topic_id": "workbench.topic.merits", "weight": 0.76},
+      {"topic_id": "workbench.topic.remedy", "weight": 0.72}
+    ]
+  },
+  "voice": {
+    "register": "formal",
+    "cadence": "measured",
+    "question_framing": "socratic",
+    "address_convention": "advocate",
+    "verbosity": 0.54,
+    "sentence_complexity": 0.68,
+    "question_phrases": ["how does the standard shape the result", "what relief follows from that premise"],
+    "interruption_phrases": ["let us separate those points", "return to the stated standard"],
+    "clarification_phrases": ["state the proposed disposition", "explain the connection between rule and remedy"]
+  }
+}

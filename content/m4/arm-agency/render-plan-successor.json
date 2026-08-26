@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "source_path": "documents/appellate-actual/a01-petition-deficient.md",
+      "output_path": "assets/a01-petition-deficient.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 9,
+      "title": "Synthetic Deficient Petition for Review"
+    },
+    {
+      "source_path": "documents/appellate-actual/a02-petition-deficiency-notice.md",
+      "output_path": "assets/a02-petition-deficiency-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 11,
+      "title": "Synthetic Notice of Petition Deficiency"
+    },
+    {
+      "source_path": "documents/appellate-actual/a03-cured-petition-order-copy.md",
+      "output_path": "assets/a03-cured-petition-order-copy.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 13,
+      "title": "Synthetic Cured Petition for Review and Attached Board Order"
+    },
+    {
+      "source_path": "documents/appellate-actual/a04-docketing-notice.md",
+      "output_path": "assets/a04-docketing-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 25,
+      "title": "Synthetic Docketing Notice"
+    },
+    {
+      "source_path": "documents/appellate-actual/a05-respondent-appearance.md",
+      "output_path": "assets/a05-respondent-appearance.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 28,
+      "title": "Synthetic Respondent Appearance"
+    },
+    {
+      "source_path": "documents/appellate-actual/a06-motion-to-supplement.md",
+      "output_path": "assets/a06-motion-to-supplement.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 30,
+      "title": "Synthetic Motion to Supplement with Post-Order Proffer"
+    },
+    {
+      "source_path": "documents/appellate-actual/a07-motion-to-correct-record.md",
+      "output_path": "assets/a07-motion-to-correct-record.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 36,
+      "title": "Synthetic Motion to Correct the Certified Agency Record"
+    },
+    {
+      "source_path": "documents/appellate-actual/a08-petitioner-appearance.md",
+      "output_path": "assets/a08-petitioner-appearance.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 42,
+      "title": "Synthetic Petitioner Appearance"
+    },
+    {
+      "source_path": "documents/appellate-actual/a09-docketing-statement.md",
+      "output_path": "assets/a09-docketing-statement.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 44,
+      "title": "Synthetic Petitioner Docketing Statement"
+    },
+    {
+      "source_path": "documents/appellate-actual/a10-government-record-motions-response.md",
+      "output_path": "assets/a10-government-record-motions-response.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 48,
+      "title": "Synthetic Government Response to Record Motions"
+    },
+    {
+      "source_path": "documents/appellate-actual/a11-rule16b-stipulation.md",
+      "output_path": "assets/a11-rule16b-stipulation.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 53,
+      "title": "Synthetic Rule 16(b) Stipulation"
+    },
+    {
+      "source_path": "documents/appellate-actual/a12-order-granting-correction.md",
+      "output_path": "assets/a12-order-granting-correction.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 56,
+      "title": "Synthetic Order Granting Record Correction"
+    },
+    {
+      "source_path": "documents/appellate-actual/a13-order-denying-supplementation.md",
+      "output_path": "assets/a13-order-denying-supplementation.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 58,
+      "title": "Synthetic Order Denying Supplementation"
+    },
+    {
+      "source_path": "documents/appellate-actual/a14-briefing-order.md",
+      "output_path": "assets/a14-briefing-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 60,
+      "title": "Synthetic Briefing Order"
+    },
+    {
+      "source_path": "documents/appellate-actual/a15-petitioner-opening-brief.md",
+      "output_path": "assets/a15-petitioner-opening-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 63,
+      "title": "Synthetic Petitioner Opening Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a16-government-response-brief.md",
+      "output_path": "assets/a16-government-response-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 83,
+      "title": "Synthetic Government Response Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a17-petitioner-reply-brief.md",
+      "output_path": "assets/a17-petitioner-reply-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 101,
+      "title": "Synthetic Petitioner Reply Brief"
+    },
+    {
+      "source_path": "documents/appellate-actual/a18-argument-calendar-notice.md",
+      "output_path": "assets/a18-argument-calendar-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 109,
+      "title": "Synthetic Oral Argument Calendar Notice"
+    },
+    {
+      "source_path": "documents/appellate-actual/a19-argument-held-submission-order.md",
+      "output_path": "assets/a19-argument-held-submission-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 111,
+      "title": "Synthetic Order Recording Argument Held and Submission"
+    },
+    {
+      "source_path": "documents/appellate-actual/a20-synthetic-opinion.md",
+      "output_path": "assets/a20-synthetic-opinion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 112,
+      "title": "Panel Opinion"
+    },
+    {
+      "source_path": "documents/appellate-actual/a21-judgment.md",
+      "output_path": "assets/a21-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 124,
+      "title": "Synthetic Judgment"
+    },
+    {
+      "source_path": "documents/appellate-actual/a22-mandate.md",
+      "output_path": "assets/a22-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 126,
+      "title": "Synthetic Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b01-day31-petition-order-copy.md",
+      "output_path": "assets/b01-day31-petition-order-copy.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 128,
+      "title": "Synthetic Counterfactual Day-31 Petition and Attached Board Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b02-timeliness-show-cause-order.md",
+      "output_path": "assets/b02-timeliness-show-cause-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 140,
+      "title": "Synthetic Counterfactual Timeliness Show-Cause Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b03-government-invocation-motion.md",
+      "output_path": "assets/b03-government-invocation-motion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 143,
+      "title": "Synthetic Counterfactual Government Motion Invoking Petition Deadline"
+    },
+    {
+      "source_path": "documents/appellate-branches/b04-day31-dismissal-order.md",
+      "output_path": "assets/b04-day31-dismissal-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 148,
+      "title": "Synthetic Counterfactual Day-31 Dismissal Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b05-uncured-deficiency-dismissal.md",
+      "output_path": "assets/b05-uncured-deficiency-dismissal.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 151,
+      "title": "Synthetic Counterfactual Uncured-Deficiency Dismissal Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b06-show-cause-discharged.md",
+      "output_path": "assets/b06-show-cause-discharged.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 153,
+      "title": "Synthetic Counterfactual Order Discharging Timeliness Show Cause"
+    },
+    {
+      "source_path": "documents/appellate-branches/b07-timely-rehearing-petition.md",
+      "output_path": "assets/b07-timely-rehearing-petition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 155,
+      "title": "Synthetic Counterfactual Timely Rehearing Petition"
+    },
+    {
+      "source_path": "documents/appellate-branches/b08-rehearing-denial.md",
+      "output_path": "assets/b08-rehearing-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 163,
+      "title": "Synthetic Counterfactual Rehearing Denial Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b09-mandate-stay-motion.md",
+      "output_path": "assets/b09-mandate-stay-motion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 165,
+      "title": "Synthetic Counterfactual Motion to Stay the Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b10-stay-denial.md",
+      "output_path": "assets/b10-stay-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 170,
+      "title": "Synthetic Counterfactual Stay Denial Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b11-stay-grant.md",
+      "output_path": "assets/b11-stay-grant.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 172,
+      "title": "Synthetic Counterfactual Stay Grant Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b12-mandate-after-rehearing-denial.md",
+      "output_path": "assets/b12-mandate-after-rehearing-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 174,
+      "title": "Synthetic Counterfactual Mandate After Rehearing Denial"
+    },
+    {
+      "source_path": "documents/appellate-branches/b13-mandate-after-stay-denial.md",
+      "output_path": "assets/b13-mandate-after-stay-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 176,
+      "title": "Synthetic Counterfactual Mandate After Stay Denial"
+    }
+  ]
+}

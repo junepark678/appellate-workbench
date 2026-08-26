@@ -2,5 +2,8 @@
   "schema_version": 999,
   "pack_id": "example.unsupported.pack",
   "version": "0.1.0",
-  "contents": []
+  "required_capabilities": [],
+  "dependencies": [],
+  "contents": [],
+  "blobs": []
 }

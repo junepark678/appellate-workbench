@@ -1,0 +1,507 @@
+{
+    "blobs": [
+        {
+            "byte_size": 25288,
+            "media_type": "application/pdf",
+            "path": "objects/a01-case-opening-notice.pdf",
+            "sha256": "c53ab0d8a00e2ccc0272f20a824d0a22c0b0839140284c2667032e4e20748fc9"
+        },
+        {
+            "byte_size": 28881,
+            "media_type": "application/pdf",
+            "path": "objects/a02-docketing-statement.pdf",
+            "sha256": "dffd1963b6a3a9c878dc1ac59b20f61031895de8fbecb67d83efa886bca5757b"
+        },
+        {
+            "byte_size": 27835,
+            "media_type": "application/pdf",
+            "path": "objects/a03-appearances-disclosures.pdf",
+            "sha256": "24cc71bc31b17af9c73a5edbb227b0b593f15a90eab97561a178a52158b921d1"
+        },
+        {
+            "byte_size": 33807,
+            "media_type": "application/pdf",
+            "path": "objects/a04-motion-sealed-materials.pdf",
+            "sha256": "47cd6f26bc9fa206fadfebed64d3ea1d7cd91de511b9fd43c470d6aee194abf0"
+        },
+        {
+            "byte_size": 28136,
+            "media_type": "application/pdf",
+            "path": "objects/a05-certificate-confidentiality.pdf",
+            "sha256": "f21932be20833463b363702bb93ab480b833debeb1910aa2586c5b325cfdecfa"
+        },
+        {
+            "byte_size": 69385,
+            "media_type": "application/pdf",
+            "path": "objects/a06-public-opening-brief.pdf",
+            "sha256": "f2400c4d7ef1b1c47651f18e076f8550d71f7f5091b2b642ab9df965bbbb300b"
+        },
+        {
+            "byte_size": 70183,
+            "media_type": "application/pdf",
+            "path": "objects/a07-sealed-opening-brief.pdf",
+            "sha256": "cb92fffef63231d818add67dae724f9973a8c477aac66385f953c92973886083"
+        },
+        {
+            "byte_size": 40989,
+            "media_type": "application/pdf",
+            "path": "objects/a08-government-waiver-motion.pdf",
+            "sha256": "cd031fdb33336964513f054a1d41bbc70a683be7e175671892b1bc7750ddc5de"
+        },
+        {
+            "byte_size": 41835,
+            "media_type": "application/pdf",
+            "path": "objects/a09-waiver-motion-opposition.pdf",
+            "sha256": "5ba9e8783deec935caa0da387056cfac300e9b4a7936d6718ff11051f575da23"
+        },
+        {
+            "byte_size": 29594,
+            "media_type": "application/pdf",
+            "path": "objects/a10-partial-dismissal-order.pdf",
+            "sha256": "3b0f6e78db1d63ad8b4c79203fae706806feb1cc368d6fa3ec5bddcaeac7b1a8"
+        },
+        {
+            "byte_size": 60972,
+            "media_type": "application/pdf",
+            "path": "objects/a11-public-response-brief.pdf",
+            "sha256": "8f40b9b4a1852d294509bb3778e301657e6242214757674191e05c970dc29033"
+        },
+        {
+            "byte_size": 54586,
+            "media_type": "application/pdf",
+            "path": "objects/a12-sealed-response-brief.pdf",
+            "sha256": "d798179de4b8267956a835ffe72be234f6e35ecddbb4f3066703a6b495353758"
+        },
+        {
+            "byte_size": 43668,
+            "media_type": "application/pdf",
+            "path": "objects/a13-public-reply-brief.pdf",
+            "sha256": "f2d7806ea6b917efc3f7a6df1eea84f3eac53c359b25648efb7848c19f6df914"
+        },
+        {
+            "byte_size": 38802,
+            "media_type": "application/pdf",
+            "path": "objects/a14-sealed-reply-brief.pdf",
+            "sha256": "fd0a2f2b6f062102b79abd5d6f6f114d94eef16ed9d2158645e6840f79bd571e"
+        },
+        {
+            "byte_size": 38328,
+            "media_type": "application/pdf",
+            "path": "objects/a15-public-psr-volume-surrogate.pdf",
+            "sha256": "7a54d4b79d1d673ffb0ee6109ae6811540a25450db32ef8de5599c4d0012c13b"
+        },
+        {
+            "byte_size": 34159,
+            "media_type": "application/pdf",
+            "path": "objects/a16-sealed-psr-volume.pdf",
+            "sha256": "5cef4e0bc4b70284c988531e9fc4be5ea9c13960e211f3ce9dfbe84c3dff72a4"
+        },
+        {
+            "byte_size": 24914,
+            "media_type": "application/pdf",
+            "path": "objects/a17-argument-calendar-notice.pdf",
+            "sha256": "ddca0667c3f9ba5da842c87efe7ec0fc302ac40a65a783eeb33da6b7192cfed8"
+        },
+        {
+            "byte_size": 64901,
+            "media_type": "application/pdf",
+            "path": "objects/a18-published-opinion.pdf",
+            "sha256": "153f3c1a086b52f50ba4791dffeb55ff6849c33540a071be41779483bfddb2ee"
+        },
+        {
+            "byte_size": 25808,
+            "media_type": "application/pdf",
+            "path": "objects/a19-judgment.pdf",
+            "sha256": "41fc7fd249daceb61677ce9a77870d6ba861d43b6df348d4a9b70748bbbcfb09"
+        },
+        {
+            "byte_size": 22518,
+            "media_type": "application/pdf",
+            "path": "objects/a20-mandate.pdf",
+            "sha256": "c63eb2a36c93047034070f4a39822a1335982d3ac43aa0a8a677e1d1d694dec3"
+        },
+        {
+            "byte_size": 32426,
+            "media_type": "application/pdf",
+            "path": "objects/b01-day15-notice-packet.pdf",
+            "sha256": "8d021565bbe9b42ccd7f5694f89070545be7290b4fde467b1ddcc53496e47de9"
+        },
+        {
+            "byte_size": 29816,
+            "media_type": "application/pdf",
+            "path": "objects/b02-limited-remand-order.pdf",
+            "sha256": "457e9c6b2502c0197e008f3a949239f0f4cbb0efaa5dcf7442fd903f6b078c04"
+        },
+        {
+            "byte_size": 27312,
+            "media_type": "application/pdf",
+            "path": "objects/b03-no-extension-statement.pdf",
+            "sha256": "7c92431ad838055e472cfefa7a5413f54fbf1cf05e7cf3199ecd3afc8f1fe52d"
+        },
+        {
+            "byte_size": 29792,
+            "media_type": "application/pdf",
+            "path": "objects/b04-rule4b4-findings-order.pdf",
+            "sha256": "bb48ebef23a58f316d90ade88e1adcc4504cac946794e9b4131a60c4e8b14438"
+        },
+        {
+            "byte_size": 23985,
+            "media_type": "application/pdf",
+            "path": "objects/b05-limited-remand-return.pdf",
+            "sha256": "67d03f2726c1fc4cea702c1d69c9d24da78e94c7825d543533656f6bf8a4c998"
+        },
+        {
+            "byte_size": 38598,
+            "media_type": "application/pdf",
+            "path": "objects/b06-government-first-threshold-motion.pdf",
+            "sha256": "5908eaa4e1a27b1b12e254b822edd1a23e7cdfafe1c6e08cbd7de5726f12dcb5"
+        },
+        {
+            "byte_size": 32458,
+            "media_type": "application/pdf",
+            "path": "objects/b07-threshold-motion-opposition.pdf",
+            "sha256": "afed916da9800d4353c0b1c49cc5257444be894f7af83187fa83cc83f7e5a39c"
+        },
+        {
+            "byte_size": 27227,
+            "media_type": "application/pdf",
+            "path": "objects/b08-threshold-motion-reply.pdf",
+            "sha256": "320cf8f32714677f652718f11dfdcaa6e0f31f66c3587c666fbe947c3d88cd77"
+        },
+        {
+            "byte_size": 35663,
+            "media_type": "application/pdf",
+            "path": "objects/b09-dismissal-opinion-judgment.pdf",
+            "sha256": "dd19a4169241165c7daabba803030dafc6d72bb000dcef1140300013e1440ef6"
+        },
+        {
+            "byte_size": 23771,
+            "media_type": "application/pdf",
+            "path": "objects/b10-ordinary-mandate.pdf",
+            "sha256": "5975aa0921297ba0c891da8143d5b7e59f7c1e1c32a03dafc160b38f31e47ebf"
+        },
+        {
+            "byte_size": 39889,
+            "media_type": "application/pdf",
+            "path": "objects/l01-criminal-complaint.pdf",
+            "sha256": "27a3a87c030bd5b0f03b729d951218c0f10ab84e5ef6c4984ce40e1768f11ff1"
+        },
+        {
+            "byte_size": 36768,
+            "media_type": "application/pdf",
+            "path": "objects/l02-indictment.pdf",
+            "sha256": "26c6cb061681466687e9c80c189426536f4ff5eb46a4aa544554d16177fccbba"
+        },
+        {
+            "byte_size": 31113,
+            "media_type": "application/pdf",
+            "path": "objects/l03-initial-appearance.pdf",
+            "sha256": "4e841e10500a99e52daaef0dfd5feb2811fc308bcfdc4cb81997f0e84e6f7516"
+        },
+        {
+            "byte_size": 38843,
+            "media_type": "application/pdf",
+            "path": "objects/l04-detention-hearing-order.pdf",
+            "sha256": "3945180441b55bc6bcf8d99bd678db880198bdfc8462568fa7781d8a54c4942a"
+        },
+        {
+            "byte_size": 36754,
+            "media_type": "application/pdf",
+            "path": "objects/l05-discovery-index.pdf",
+            "sha256": "125e80b404ab98304f2132e3e2b22d5fbd5cff8e7114518cd7091c3bdfc24ca4"
+        },
+        {
+            "byte_size": 38815,
+            "media_type": "application/pdf",
+            "path": "objects/l06-notice-change-plea.pdf",
+            "sha256": "c9b3b1f8042ebd1687915c8c2e9aea411b7cf895398d104a8f972d986b8a6bef"
+        },
+        {
+            "byte_size": 33947,
+            "media_type": "application/pdf",
+            "path": "objects/l07-pre-plea-status.pdf",
+            "sha256": "14fb4932c7f2e5848d9d16163c1225f5fffd5de11c80828ad73da6d9ceac3348"
+        },
+        {
+            "byte_size": 37360,
+            "media_type": "application/pdf",
+            "path": "objects/l08-rule11-scheduling-order.pdf",
+            "sha256": "6cfd49f7fde19e0cc4b8f347e209012f6603c956952522ea0f726476f17db414"
+        },
+        {
+            "byte_size": 51222,
+            "media_type": "application/pdf",
+            "path": "objects/l09-plea-agreement.pdf",
+            "sha256": "1fd5ffdd77fe1ea1cdc7a0be91bdb112f5dd611108d5815f1d9e4fceee41537b"
+        },
+        {
+            "byte_size": 40386,
+            "media_type": "application/pdf",
+            "path": "objects/l10-stipulated-factual-basis.pdf",
+            "sha256": "cb9b40d7bb12f8ac788f458159690f7571e9fc5252bcdeffaf1cd3ea74b06916"
+        },
+        {
+            "byte_size": 72259,
+            "media_type": "application/pdf",
+            "path": "objects/l11-rule11-transcript.pdf",
+            "sha256": "0b853316c95a1118a3172d71720e2da3521ef817fd821cac385cdbc2e8db4356"
+        },
+        {
+            "byte_size": 29353,
+            "media_type": "application/pdf",
+            "path": "objects/l12-plea-acceptance-order.pdf",
+            "sha256": "fea8880c150d03a7e9db86688279be4d604f8122ba1d71d90616915e97dd6fbf"
+        },
+        {
+            "byte_size": 71237,
+            "media_type": "application/pdf",
+            "path": "objects/l13-public-psr-surrogate.pdf",
+            "sha256": "cf960c4b6783ef60627e36eba1645054a919cb71f3b60df89531f06083912c6b"
+        },
+        {
+            "byte_size": 70786,
+            "media_type": "application/pdf",
+            "path": "objects/l14-sealed-psr-packet.pdf",
+            "sha256": "6b0deeb699dd0748a3e525b7a325b61e33bb25ee8c0c3abda9213c536a27cead"
+        },
+        {
+            "byte_size": 51011,
+            "media_type": "application/pdf",
+            "path": "objects/l15-public-objection-surrogate.pdf",
+            "sha256": "3ea0a86b8e7ba0c03af375a3fad37daa9e4f777753b6e0998a22f7834b9c959e"
+        },
+        {
+            "byte_size": 53863,
+            "media_type": "application/pdf",
+            "path": "objects/l16-sealed-objection-packet.pdf",
+            "sha256": "4afe302ffa21dc370377abc4d7fa2be22bd8ebf81e4781a1984b957c412f2dad"
+        },
+        {
+            "byte_size": 52238,
+            "media_type": "application/pdf",
+            "path": "objects/l17-public-defense-sentencing-surrogate.pdf",
+            "sha256": "f16639dc8b13079325c8fbb64ee3842032f7641b27d8abc66c6e72c3bdaf6916"
+        },
+        {
+            "byte_size": 55718,
+            "media_type": "application/pdf",
+            "path": "objects/l18-sealed-defense-sentencing.pdf",
+            "sha256": "cb70980932ba2ea7cd914b06385c722ef5415da9f8079b245fd4e3d7a891f435"
+        },
+        {
+            "byte_size": 48960,
+            "media_type": "application/pdf",
+            "path": "objects/l19-public-government-sentencing-surrogate.pdf",
+            "sha256": "6c7c517455b69497829fab5a02bbea3c2612298b2c0eb85ce9ac35b53cc0ec9a"
+        },
+        {
+            "byte_size": 51563,
+            "media_type": "application/pdf",
+            "path": "objects/l20-sealed-government-sentencing.pdf",
+            "sha256": "41c48945b5b8cf19a8573ac81f9193824f58f29d8935136294be764d466ba690"
+        },
+        {
+            "byte_size": 92580,
+            "media_type": "application/pdf",
+            "path": "objects/l21-sentencing-transcript.pdf",
+            "sha256": "eee7427a284569e9543cdc58d2892f3affb1924e6c039bc624acd02357cca73d"
+        },
+        {
+            "byte_size": 31357,
+            "media_type": "application/pdf",
+            "path": "objects/l22-public-sentencing-minute-reasons-summary.pdf",
+            "sha256": "1b0ce2c43419554d7bca5d9c43faa2a62eed3ba21456463d23a9821967997fa0"
+        },
+        {
+            "byte_size": 37681,
+            "media_type": "application/pdf",
+            "path": "objects/l23-role-objection-order.pdf",
+            "sha256": "f6c4fffb93565e39d629f9754a38f7f1c1d755206c227c8674e926870bd96776"
+        },
+        {
+            "byte_size": 31098,
+            "media_type": "application/pdf",
+            "path": "objects/l24-criminal-judgment.pdf",
+            "sha256": "180b2a4db58da53eb8fa286a901c8d9bd100a6bde8019251b20e0b67114c4da2"
+        },
+        {
+            "byte_size": 24088,
+            "media_type": "application/pdf",
+            "path": "objects/l25-appellate-rights-notice.pdf",
+            "sha256": "f53c0bfae4cac595a288876f383aa2f46a4b170c577154446841706980a1353d"
+        },
+        {
+            "byte_size": 30708,
+            "media_type": "application/pdf",
+            "path": "objects/l26-district-docket-report.pdf",
+            "sha256": "6e08b4ad46dc040af6b143708c79bdd4b719e904f1168f3305954afe93e31490"
+        },
+        {
+            "byte_size": 25849,
+            "media_type": "application/pdf",
+            "path": "objects/l27-notice-of-appeal.pdf",
+            "sha256": "8cc1ff5e84b0d418173f28c14a864e6a9ee7e6e71c133da4b4dcb68ffc1d3915"
+        },
+        {
+            "byte_size": 28024,
+            "media_type": "application/pdf",
+            "path": "objects/l28-record-transmittal.pdf",
+            "sha256": "dab6dfdeb04fd0971fcbd17b2694bafae9fcc0348921cac68f9ecc34d8549f4d"
+        }
+    ],
+    "contents": [
+        {
+            "id": "ca4m4.case.serrano-waiver",
+            "kind": "case",
+            "path": "resources/case.json",
+            "schema_version": 2,
+            "sha256": "b524d45cfa9c7b763c425b3d54b8192152ec2bafa6a1204a3a8f785f04363bc8"
+        },
+        {
+            "id": "ca4m4.serrano.argument.actual-record",
+            "kind": "argument_config",
+            "path": "resources/argument-actual.json",
+            "schema_version": 2,
+            "sha256": "ea1e3c651297762ecfb0a670792074dce7f33eacf664c7318fa4ee18d9429cd9"
+        },
+        {
+            "id": "ca4m4.serrano.argument.day15-counterfactual",
+            "kind": "argument_config",
+            "path": "resources/argument-counterfactual.json",
+            "schema_version": 2,
+            "sha256": "d3af74ae42762064c6151b09d5e42f6ff723473cfbf6476bcc96f98f4569cef7"
+        },
+        {
+            "id": "ca4m4.serrano.authorities.case-specific",
+            "kind": "authority_set",
+            "path": "resources/authority-set.json",
+            "schema_version": 2,
+            "sha256": "4eda5fdb91468f29441a1278ec5b69802cbef997b94c5664514be8dc6ec44848"
+        },
+        {
+            "id": "ca4m4.serrano.bench.three-judge",
+            "kind": "bench_configuration",
+            "path": "resources/bench-configuration.json",
+            "schema_version": 2,
+            "sha256": "3573ac5835d719aa25b47f999703508173154ea6a13e8d40875f4c948844dd2d"
+        },
+        {
+            "id": "ca4m4.serrano.procedure.criminal-sentencing-appeal",
+            "kind": "procedure_profile",
+            "path": "resources/procedure-profile.json",
+            "schema_version": 2,
+            "sha256": "134820b8392ce9524174b9bc9ce9ec1c9f2d64cac8323e19c3c620e56e54bbd5"
+        },
+        {
+            "id": "ca4m4.serrano.record",
+            "kind": "record",
+            "path": "resources/record.json",
+            "schema_version": 2,
+            "sha256": "ff91471c1fbde78ad6ef138a7cfc14358ea0ff985ccb58bb19f9c146f1785fb5"
+        },
+        {
+            "id": "ca4m4.serrano.workflow.waiver-allocution-appeal",
+            "kind": "workflow",
+            "path": "resources/workflow.json",
+            "schema_version": 2,
+            "sha256": "b31e490d3fa460c0b1bff551fe937d8acae41b53f1a6cdf41549d3ac411585c2"
+        },
+        {
+            "id": "ca4m4.serrano.review.authoring-2026-08-19",
+            "kind": "realism_review",
+            "path": "resources/realism-review.json",
+            "schema_version": 2,
+            "sha256": "d0521658fb7eb2ed8eb35c30293aaf5b86ca029257ac6cadef7e14b56557a57d"
+        }
+    ],
+    "dependencies": [
+        {
+            "pack_id": "foundation.us-federal",
+            "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9",
+            "version": "2025.12.01"
+        },
+        {
+            "pack_id": "foundation.us-ca4",
+            "sha256": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262",
+            "version": "2026.03.23"
+        },
+        {
+            "pack_id": "foundation.us-ca4-fictional-bench",
+            "sha256": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d",
+            "version": "1.0.0"
+        }
+    ],
+    "pack_id": "us.ca4.m4.serrano-waiver",
+    "required_capabilities": [
+        {
+            "id": "workbench.pack.argument-date-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.canonical-authority",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.declarative-resources",
+            "version": 2
+        },
+        {
+            "id": "workbench.pack.dependent-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.event-date-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.grounded-questions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.named-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-disposition-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-document-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-legal-time-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.realism-evidence",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-filing-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-role-subsets",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.sealed-record-twins",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.structured-disposition",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-instance-preconditions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-preconditions",
+            "version": 1
+        }
+    ],
+    "schema_version": 2,
+    "version": "1.2.0"
+}

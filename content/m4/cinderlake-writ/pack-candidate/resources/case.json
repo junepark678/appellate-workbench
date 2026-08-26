@@ -1,0 +1,282 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4m4.case.cinderlake-writ",
+  "title": "In re Cinder Lake Health Network, Inc.",
+  "procedure_profile_id": "ca4m4.cinder.procedure.privilege-mandamus",
+  "record_id": "ca4m4.cinder.record",
+  "actors": [
+    {
+      "actor_id": "ca4m4.cinder.actor.cinder-lake",
+      "role_id": "us.ca4.role.initiating-party",
+      "display_name": "Cinder Lake Health Network, Inc. (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.cinder.actor.rhea-calder",
+      "role_id": "us.ca4.role.responding-party",
+      "display_name": "Rhea Calder, fictional real party in interest",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.cinder.actor.district-court",
+      "role_id": "ca4m4.cinder.role.originating-court",
+      "display_name": "Fictional United States District Court for the Eastern District of North Carolina",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.cinder.actor.ca4-clerk",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional Fourth Circuit exercise clerk",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.cinder.actor.composite-panel",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional composite Fourth Circuit panel",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4m4.cinder.issue.petition-compliance",
+      "title": "Whether a writ petition supplies the required caption, relief, issues, necessary facts, reasons, essential materials, service, and trial-judge copy, distinguishing a curable technical deficiency from a conforming but substantively insufficient petition",
+      "target_ids": [
+        "ca4m4.cinder.target.writ-petition-compliance"
+      ],
+      "authority_ids": [
+        "us.federal.authority.frap-21-extraordinary-writ",
+        "us.federal.authority.frap-25-filing-service",
+        "us.ca4.authority.local-rule-21b-writs"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.cinder.anchor.pa1",
+        "ca4m4.cinder.anchor.pa154",
+        "ca4m4.cinder.anchor.pa164",
+        "ca4m4.cinder.anchor.pa167",
+        "ca4m4.cinder.anchor.pa184",
+        "ca4m4.cinder.anchor.pa185"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+      "title": "Whether Cinder Lake lacks another adequate means to prevent compelled disclosure, has a clear and indisputable right against the categorical waiver ruling, and shows that partial mandamus relief is appropriate",
+      "target_ids": [
+        "ca4m4.cinder.target.writ-relief"
+      ],
+      "authority_ids": [
+        "ca4m4.cinder.authority.usc-1651-all-writs",
+        "us.federal.authority.frap-21-extraordinary-writ",
+        "us.federal.authority.frap-40-rehearing",
+        "us.ca4.authority.local-rule-21b-writs",
+        "ca4m4.cinder.authority.cheney-three-part-mandamus",
+        "ca4m4.cinder.authority.mohawk-privilege-review",
+        "ca4m4.cinder.authority.murphy-brown-mandamus",
+        "ca4m4.cinder.authority.sky-angel-rule502-waiver",
+        "ca4m4.cinder.authority.fluor-privilege-mandamus"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.cinder.anchor.ja144",
+        "ca4m4.cinder.anchor.ja50",
+        "ca4m4.cinder.anchor.ja152",
+        "ca4m4.cinder.anchor.ja174",
+        "ca4m4.cinder.anchor.ja186",
+        "ca4m4.cinder.anchor.stable.lower-investigation-waiver-analysis",
+        "ca4m4.cinder.anchor.stable.actual-petition-irreparable-disclosure",
+        "ca4m4.cinder.anchor.pa1",
+        "ca4m4.cinder.anchor.pa76",
+        "ca4m4.cinder.anchor.pa90",
+        "ca4m4.cinder.anchor.pa98",
+        "ca4m4.cinder.anchor.pa132",
+        "ca4m4.cinder.anchor.pa185",
+        "ca4m4.cinder.anchor.pa199",
+        "ca4m4.cinder.anchor.pa204",
+        "ca4m4.cinder.anchor.pa205"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.cinder.issue.categorical-subject-matter-waiver",
+      "title": "Whether the pre-suit compliance response disclosed general conclusions and remediation without revealing a privileged communication and therefore could not support categorical subject-matter waiver under Rule 502(a)",
+      "target_ids": [
+        "ca4m4.cinder.target.categorical-waiver-provision"
+      ],
+      "authority_ids": [
+        "ca4m4.cinder.authority.fre-501-governing-privilege",
+        "ca4m4.cinder.authority.fre-502-waiver",
+        "ca4m4.cinder.authority.upjohn-corporate-privilege",
+        "ca4m4.cinder.authority.sky-angel-rule502-waiver",
+        "ca4m4.cinder.authority.hawkins-privilege-burden-waiver",
+        "ca4m4.cinder.authority.fluor-privilege-mandamus"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.cinder.anchor.ja50",
+        "ca4m4.cinder.anchor.ja37",
+        "ca4m4.cinder.anchor.ja43",
+        "ca4m4.cinder.anchor.stable.lower-investigation-waiver-analysis",
+        "ca4m4.cinder.anchor.stable.lower-investigation-source-communications",
+        "ca4m4.cinder.anchor.stable.lower-privilege-log-categories",
+        "ca4m4.cinder.anchor.ja144",
+        "ca4m4.cinder.anchor.stable.actual-petition-waiver-statement",
+        "ca4m4.cinder.anchor.pa134"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.cinder.issue.seven-day-production",
+      "title": "Whether the order to produce all investigation files in seven days defeats meaningful later review and must be vacated with the categorical-waiver provision pending document-specific privilege and work-product review",
+      "target_ids": [
+        "ca4m4.cinder.target.production-provision"
+      ],
+      "authority_ids": [
+        "ca4m4.cinder.authority.frcp-26-privilege",
+        "ca4m4.cinder.authority.mohawk-privilege-review",
+        "ca4m4.cinder.authority.cheney-three-part-mandamus",
+        "ca4m4.cinder.authority.fluor-privilege-mandamus"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.cinder.anchor.ja144",
+        "ca4m4.cinder.anchor.ja152",
+        "ca4m4.cinder.anchor.ja174",
+        "ca4m4.cinder.anchor.ja186",
+        "ca4m4.cinder.anchor.stable.lower-investigation-source-communications",
+        "ca4m4.cinder.anchor.stable.lower-privilege-log-categories",
+        "ca4m4.cinder.anchor.stable.actual-petition-irreparable-disclosure",
+        "ca4m4.cinder.anchor.pa76",
+        "ca4m4.cinder.anchor.pa90",
+        "ca4m4.cinder.anchor.pa137"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.cinder.issue.related-discovery-scope",
+      "title": "Whether the extraordinary-relief request should be denied insofar as it seeks a blanket prohibition on otherwise available related discovery rather than document-specific application of privilege, work product, proportionality, and motion-to-compel rules",
+      "target_ids": [
+        "ca4m4.cinder.target.blanket-related-discovery-bar"
+      ],
+      "authority_ids": [
+        "ca4m4.cinder.authority.upjohn-corporate-privilege",
+        "ca4m4.cinder.authority.frcp-26-privilege",
+        "ca4m4.cinder.authority.frcp-37-motion-to-compel",
+        "ca4m4.cinder.authority.ednc-lr7-1-discovery-motions",
+        "ca4m4.cinder.authority.ednc-lr26-1-discovery"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.cinder.anchor.ja95",
+        "ca4m4.cinder.anchor.ja109",
+        "ca4m4.cinder.anchor.ja144",
+        "ca4m4.cinder.anchor.ja152",
+        "ca4m4.cinder.anchor.stable.lower-privilege-log-categories",
+        "ca4m4.cinder.anchor.pa140"
+      ]
+    }
+  ],
+  "authored_disposition_id": "ca4m4.cinder.operation.issue-actual-judgment",
+  "authored_disposition_plan_id": "ca4m4.cinder.disposition.actual-partial-grant-vacatur-remand",
+  "disposition_plans": [
+    {
+      "plan_id": "ca4m4.cinder.disposition.actual-partial-grant-vacatur-remand",
+      "finality": "final",
+      "digest": "fb287ac6047317c87ea29e6ae7545829795c25c0ba8480b2e548b1511361d519",
+      "components": [
+        {
+          "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+          "target_id": "ca4m4.cinder.target.writ-relief",
+          "scope": "part",
+          "action": "grant",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.cinder.authority.usc-1651-all-writs",
+            "ca4m4.cinder.authority.cheney-three-part-mandamus",
+            "ca4m4.cinder.authority.mohawk-privilege-review",
+            "ca4m4.cinder.authority.murphy-brown-mandamus",
+            "ca4m4.cinder.authority.fluor-privilege-mandamus"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.cinder.anchor.ja144",
+            "ca4m4.cinder.anchor.pa90",
+            "ca4m4.cinder.anchor.pa132"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.cinder.issue.categorical-subject-matter-waiver",
+          "target_id": "ca4m4.cinder.target.categorical-waiver-provision",
+          "scope": "whole",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.cinder.authority.fre-502-waiver",
+            "ca4m4.cinder.authority.upjohn-corporate-privilege",
+            "ca4m4.cinder.authority.sky-angel-rule502-waiver",
+            "ca4m4.cinder.authority.hawkins-privilege-burden-waiver",
+            "ca4m4.cinder.authority.fluor-privilege-mandamus"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.cinder.anchor.ja50",
+            "ca4m4.cinder.anchor.stable.lower-investigation-waiver-analysis",
+            "ca4m4.cinder.anchor.ja144",
+            "ca4m4.cinder.anchor.pa134"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.cinder.issue.seven-day-production",
+          "target_id": "ca4m4.cinder.target.production-provision",
+          "scope": "whole",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.cinder.authority.frcp-26-privilege",
+            "ca4m4.cinder.authority.mohawk-privilege-review",
+            "ca4m4.cinder.authority.cheney-three-part-mandamus",
+            "ca4m4.cinder.authority.fluor-privilege-mandamus"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.cinder.anchor.ja144",
+            "ca4m4.cinder.anchor.ja152",
+            "ca4m4.cinder.anchor.stable.actual-petition-irreparable-disclosure",
+            "ca4m4.cinder.anchor.pa137"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.cinder.issue.related-discovery-scope",
+          "target_id": "ca4m4.cinder.target.blanket-related-discovery-bar",
+          "scope": "whole",
+          "action": "deny",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.cinder.authority.upjohn-corporate-privilege",
+            "ca4m4.cinder.authority.frcp-26-privilege",
+            "ca4m4.cinder.authority.frcp-37-motion-to-compel"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.cinder.anchor.ja95",
+            "ca4m4.cinder.anchor.ja109",
+            "ca4m4.cinder.anchor.pa140"
+          ]
+        }
+      ]
+    },
+    {
+      "plan_id": "ca4m4.cinder.disposition.counterfactual-summary-denial",
+      "finality": "final",
+      "digest": "c053d31abece1d6c4d14fcafc54d3dd7b8845c8fc0b7fcd67f083c2fd23fe8e9",
+      "components": [
+        {
+          "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+          "target_id": "ca4m4.cinder.target.writ-relief",
+          "scope": "whole",
+          "action": "deny",
+          "remand": false,
+          "authority_ids": [
+            "us.federal.authority.frap-21-extraordinary-writ",
+            "us.ca4.authority.local-rule-21b-writs",
+            "ca4m4.cinder.authority.usc-1651-all-writs",
+            "ca4m4.cinder.authority.cheney-three-part-mandamus",
+            "ca4m4.cinder.authority.mohawk-privilege-review"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.cinder.anchor.pa185",
+            "ca4m4.cinder.anchor.pa199"
+          ]
+        }
+      ]
+    }
+  ]
+}

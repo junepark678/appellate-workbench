@@ -1,5 +1,8 @@
 # Architecture
 
+This architecture implements the accepted
+[native, offline-first MVP boundary](adr/0001-native-offline-mvp.md).
+
 ## Shape
 
 Appellate Workbench is a native Qt 6 application compiled in C++26 mode. Qt Widgets is used
@@ -9,14 +12,21 @@ runtime and no application server.
 The dependency direction is intentionally narrow:
 
 ```text
-desktop-ui -> packs / future engine / future storage
-packs      -> model + Qt Core
-model      -> standard C++ only
+desktop-ui / cli -> packs / engine / storage
+packs            -> model + engine + storage + Qt Core / Sql + libarchive
+engine           -> model
+storage          -> model + Qt Core / Sql
+model            -> standard C++ only
 ```
 
-Targets are added only with a real vertical slice. Planned targets include `engine` for the
-deterministic state machine, `storage` for SQLite and the content-addressed asset store, and
-`sync` for optional encrypted object replication. There is no generic `core` junk drawer.
+The packs target uses engine and storage only at its validation boundary: schema-v2 realism
+evidence contains canonical command/event bytes that must decode and replay against the exact
+resolved workflow before a pack is accepted. Runtime simulation still flows from the application
+through the engine and storage layers; neither engine nor storage depends on packs.
+
+Targets are added only with a real vertical slice. Optional encrypted object replication will
+eventually live in a separate `sync` target; it is not part of persistence or simulation
+correctness. There is no generic `core` junk drawer.
 
 ## Determinism and persistence
 
@@ -27,6 +37,12 @@ rendered utterances, not merely a model seed.
 
 Wall-clock and randomness enter through explicit interfaces and are recorded. Given the same
 versions, initial state, seed, and user choices, the legal event trace is identical.
+
+Portable schema-1 session archives pair current workflow/oral snapshots with their exact referenced
+CAS bytes. Export and create-only import are bounded, deterministic operations. The product layer
+requires an exact installed resolved-pack closure and replays every supported engine before either
+publishing an archive or changing the target stores. The unkeyed archive digest detects corruption,
+not authenticity, and record-access state remains outside this workflow/oral boundary.
 
 ## Pack trust boundary
 
@@ -54,7 +70,7 @@ state.
 ## Sync boundary
 
 Sync is a replica layer, never the database. It transfers encrypted immutable objects through
-a minimal provider interface. A local-folder adapter supports user-chosen tools such as
-Syncthing or a cloud-drive folder; a later S3-compatible adapter is the reference remote.
+a minimal provider interface. The create-only local-folder adapter supports user-chosen tools
+such as Syncthing or a cloud-drive folder; a later S3-compatible adapter is the reference remote.
 SQLite, WAL files, plaintext records, and live row mutations are never uploaded. Conflicts
 produce explicit branches.

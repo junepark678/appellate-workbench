@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "resource_kind": "form",
+  "resource_id": "example.form.notice",
+  "filing_id": "example.filing.notice",
+  "title": "Notice of Appeal",
+  "fields": [
+    {
+      "field_id": "example.field.caption",
+      "label": "Case caption",
+      "value_type": "short_text",
+      "required": true
+    }
+  ]
+}

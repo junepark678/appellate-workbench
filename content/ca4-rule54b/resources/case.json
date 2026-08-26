@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "resource_kind": "case",
+  "resource_id": "ca4r54b.case.asterglen",
+  "title": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC",
+  "procedure_profile_id": "ca4r54b.procedure.civil-appeal",
+  "record_id": "ca4r54b.record.asterglen",
+  "actors": [
+    {"actor_id": "ca4r54b.actor.asterglen", "role_id": "ca4r54b.role.appellant", "display_name": "Asterglen Freight Software, Inc. (fictional)", "synthetic": true},
+    {"actor_id": "ca4r54b.actor.copper-kestrel", "role_id": "ca4r54b.role.appellee", "display_name": "Copper Kestrel Logistics, LLC (fictional)", "synthetic": true},
+    {"actor_id": "ca4r54b.actor.meridian-silt", "role_id": "ca4r54b.role.appellee", "display_name": "Meridian Silt Holdings, LLC (fictional)", "synthetic": true},
+    {"actor_id": "ca4r54b.actor.ca4-clerk", "role_id": "ca4r54b.role.court", "display_name": "Exercise Fourth Circuit clerk", "synthetic": true},
+    {"actor_id": "ca4r54b.actor.composite-panel", "role_id": "ca4r54b.role.court", "display_name": "Fictional composite appellate panel", "synthetic": true}
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4r54b.issue.rule54b-finality",
+      "title": "Whether a grant of a Rule 54(b) motion and separate partial judgment become final when the order omits the express no-just-reason determination",
+      "authority_ids": [
+        "ca4r54b.authority.usc-1291",
+        "ca4r54b.authority.frcp-54b",
+        "ca4r54b.authority.kinsale",
+        "ca4r54b.authority.mcpherson"
+      ],
+      "record_anchor_ids": [
+        "ca4r54b.record.anchor.ja27",
+        "ca4r54b.record.anchor.ja29",
+        "ca4r54b.record.anchor.ja37",
+        "ca4r54b.record.anchor.ja40",
+        "ca4r54b.record.anchor.ja41"
+      ]
+    },
+    {
+      "issue_id": "ca4r54b.issue.notice-timeliness",
+      "title": "Whether the March 3 notice was filed within the ordinary private-party civil appeal period after the February 4 separate judgment",
+      "authority_ids": [
+        "ca4r54b.authority.usc-2107a",
+        "ca4r54b.authority.frap-4a1",
+        "ca4r54b.authority.frap-26a"
+      ],
+      "record_anchor_ids": [
+        "ca4r54b.record.anchor.ja41",
+        "ca4r54b.record.anchor.ja42",
+        "ca4r54b.record.anchor.ja43",
+        "ca4r54b.record.anchor.ja46"
+      ]
+    },
+    {
+      "issue_id": "ca4r54b.issue.merits-not-reached",
+      "title": "Contract notice-and-cure merits preserved but not reached because appellate jurisdiction is absent",
+      "authority_ids": [
+        "ca4r54b.authority.usc-1291",
+        "ca4r54b.authority.kinsale"
+      ],
+      "record_anchor_ids": [
+        "ca4r54b.record.anchor.ja7",
+        "ca4r54b.record.anchor.ja8",
+        "ca4r54b.record.anchor.ja15",
+        "ca4r54b.record.anchor.ja25",
+        "ca4r54b.record.anchor.ja26"
+      ]
+    }
+  ],
+  "authored_disposition_id": "ca4r54b.operation.issue-dismissal-judgment"
+}

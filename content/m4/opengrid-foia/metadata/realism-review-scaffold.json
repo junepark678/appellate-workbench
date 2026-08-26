@@ -1,0 +1,74 @@
+{
+  "schema_version": 2,
+  "resource_kind": "realism_review",
+  "resource_id": "ca4m4.opengrid.review.authoring-2026-08-19",
+  "case_id": "ca4m4.case.opengrid-foia",
+  "review_state": "independent_review_pending",
+  "reviewed_on": "2026-08-19",
+  "dimensions": {
+    "procedural_law": 2,
+    "deadlines_authority": 2,
+    "record_consistency": 2,
+    "consequences": 2,
+    "oral_argument": 2,
+    "bench_differentiation": 2,
+    "provenance": 2
+  },
+  "known_uncertainty": [
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.qualified-review-pending",
+      "summary": "Review by a qualified FOIA, cybersecurity-records, sealing, and appellate practitioner remains pending; no independent review is recorded and no level-3 or gold claim is made.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.automated-legal-realism-limit",
+      "summary": "Automated schema, citation, digest, render, and record-capability checks do not establish the legal accuracy, completeness, currency, or practical realism of the authored FOIA, Exemption 7(E), Exemption 7(F), Vaughn, segregability, or sealing analysis.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.exact-document-classification-scope",
+      "summary": "Record tags, stable-anchor mappings, and future workflow bindings are authored for exact identified documents and do not generalize to novel filings, altered bytes, or unreviewed procedural circumstances.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.foia-proof-boundary",
+      "summary": "The actual record supports Exemption 7(E) protection for fictional operational decision-tree implementation relationships but does not supply the item-specific Exemption 7(F), Vaughn, and segregability proof assumed by the isolated counterfactual. The system does not infer those legal showings from arbitrary cyber-response text.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.sealed-twin-access-boundary",
+      "summary": "The record models seventeen public/sealed disclosure pairs through bijective page mappings, public-default projection, exact-document session grants, revocation, and deferred per-open CAS verification. Those controls establish repository behavior for the frozen bytes, not the legal propriety of sealing or authorization in another matter.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.counterfactual-docket-isolation",
+      "summary": "PA156–PA364 are never-filed counterfactual branch artifacts on a distinct synthetic docket. Actual-history operations, the actual disposition, and actual-record argument questions must exclude those pages even though the complete training record resolves their anchors.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.five-path-workflow-preflight",
+      "summary": "The committed workflow and five canonical traces intentionally preserve exactly five source-faithful endpoints: actual ordinary mandate; counterfactual rehearing denial; counterfactual mandate-stay denial after rehearing denial; rehearing-grant mandate-stayed; and rehearing-grant supplemental merits through revised mandate. The trace corpus covers all 101 workflow operations, and no unsupported sixth execution is represented.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.workflow-engine-revised-judgment-limit",
+      "summary": "After the B21 rehearing-grant order vacates the prior judgment, the engine retains B12 as its immutable judgment state because it has no reset opcode. The committed workflow encodes B27 as the exact revised-judgment order gating B28; this disclosed representational boundary neither makes the never-filed documents actual history nor combines mutually exclusive mandate routes.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.synthetic-identities-and-cyber-detail",
+      "summary": "All parties, people, offices, systems, addresses, dockets, identifiers, facts, and events are fictional. Cyber-response descriptions are intentionally abstract and non-actionable; repository checks cannot establish external authenticity or authorize use as operational guidance.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.synthetic-bench-oral-limit",
+      "summary": "The Vale, Quill, and Reed profiles and oral-argument behavior are fictional or composite training constructs; differentiation does not model a real judge or predict actual advocacy, questioning, or outcomes.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4m4.opengrid.uncertainty.generated-pdf-provenance-limit",
+      "summary": "The PDFs are generated training artifacts. Source-to-PDF checks, the accepted render inventory, and pinned hashes document repository provenance but cannot establish external authenticity, future cross-render byte determinism, or complete accessibility and typography quality.",
+      "blocking": false
+    }
+  ]
+}

@@ -13,7 +13,8 @@
       "binaryDir": "${sourceDir}/build/dev",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "BUILD_TESTING": "ON"
+        "BUILD_TESTING": "ON",
+        "APPELLATE_ENABLE_LINUX_PACKAGING": "OFF"
       }
     },
     {
@@ -23,7 +24,8 @@
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "BUILD_TESTING": "ON"
+        "BUILD_TESTING": "ON",
+        "APPELLATE_ENABLE_LINUX_PACKAGING": "ON"
       }
     },
     {
@@ -69,6 +71,51 @@
     {
       "name": "asan",
       "configurePreset": "asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "e2e",
+      "displayName": "Local desktop end-to-end tests",
+      "configurePreset": "dev",
+      "environment": {
+        "QT_QPA_PLATFORM": "offscreen"
+      },
+      "filter": {
+        "include": {
+          "label": "e2e"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "high-dpi",
+      "displayName": "2x high-DPI UI tests",
+      "configurePreset": "dev",
+      "filter": {
+        "include": {
+          "label": "high-dpi"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "packaging",
+      "displayName": "Local Linux install and relocation tests",
+      "configurePreset": "release",
+      "environment": {
+        "QT_QPA_PLATFORM": "offscreen"
+      },
+      "filter": {
+        "include": {
+          "label": "packaging"
+        }
+      },
       "output": {
         "outputOnFailure": true
       }

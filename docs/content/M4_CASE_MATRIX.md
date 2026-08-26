@@ -1,0 +1,631 @@
+# M4 Fourth Circuit case matrix
+
+Common and non-Cinder sources were checked against official primary sources on **2026-08-11**.
+Cinder Lake's root-owned authority set has a separately frozen local authoring cutoff of
+**2026-08-19**. This is an authoring contract, not legal advice or independent legal review.
+
+## Frozen breadth and evidence floor
+
+The launch content has one jurisdiction, `us-ca4`, and four procedure profiles: six civil
+appeals, one criminal appeal, one agency review, and one original writ. The nine root packs have
+an aggregate floor of exactly **283 unique substantive, searchable lower-tribunal or certified-
+agency-record PDFs** linked by 283 docket-to-asset relationships:
+
+| Case | Profile | PDFs | Minimum substantive pages | Gold candidate |
+| --- | --- | ---: | ---: | --- |
+| Benton retaliation | Civil appeal | 37 | 260 | No |
+| Asterglen Rule 54(b) | Civil appeal | 37 | 230 | Civil |
+| Norvale injunction | Civil appeal | 24 | 149 | No |
+| Ellison immunity | Civil appeal | 37 | 275 | No |
+| Blue Ember JMOL | Civil appeal | 42 | 430 | No |
+| Open Grid FOIA | Civil appeal | 37 | 250 | No |
+| Serrano waiver | Criminal appeal | 28 | 260 | Criminal |
+| A.R.M. CAT | Agency review | 18 | 220 | Agency |
+| Cinder Lake privilege | Original writ | 23 | 180 | Writ |
+| **Total** | **Four profiles** | **283** | **2,254** | **Four** |
+
+Reusable forms, shared authorities, generated appellate filings, counterfactual training
+documents, and optional audio/video blobs do not count toward 283. Blank or padding pages do not
+count toward the page floor. A root may therefore contain more total blobs than its row without
+changing this breadth floor. The existing Asterglen v1 `0.1.0` pack remains immutable on its EDVA
+`SYN-25-0117` and appellate `SYN-26-1427` identities. Its expanded schema-v2 successor is a new
+`0.2.0` revision with no reused or relabeled predecessor PDF. The successor's independent NDWV
+record is 37 PDFs/234 JA pages, satisfying the 37-PDF/230-page floor; its complete root
+adds 13 actual appellate PDFs/70 PA pages and 25 isolated branch PDFs/73 PA pages, for 75 PDFs/377
+anchors. The final root is
+`7e77bc0fbe02dc9e108681df73852859d6d0f577acdcb65fcfb7678eac78b728`; its evidence closure is
+`445c3f11dcc8046eedfc233407699cbbb3ea4e39425d22c976808959350ca62c`.
+
+The finalized A.R.M. `1.2.0` candidate demonstrates that distinction: its certified agency
+record is 18 PDFs/238 AR pages, satisfying the 18-PDF/220-page floor, while its complete root is
+54 PDFs/415 pages after adding 36 post-agency PDFs/177 PA pages. PA1–PA127 belong to the actual
+appellate docket (with PA1–PA8 still extra-record), and PA128–PA177 is an isolated, never-filed
+counterfactual bank.
+
+The finalized Benton `1.2.0` candidate follows the same counting rule. Its lower-court record
+remains 37 PDFs/262 JA pages, satisfying the 37-PDF/260-page floor, while its complete root is
+67 PDFs/389 pages after adding 13 actual appellate PDFs/70 PA pages and 17 separately docketed,
+counterfactual PDFs/57 PA pages. The PA71–PA127 documents never occurred on the actual appeal and
+do not change the frozen 283-PDF lower-tribunal/certified-agency breadth total.
+
+The frozen Norvale source/render/record bytes likewise refine only its page floor, not the
+283-PDF breadth total. Its lower-court record is 24 PDFs/149 JA pages, while its complete record
+is 73 PDFs/383 pages after adding 23 actual appellate PDFs/135 PA pages and 26 separately
+docketed, never-filed branch PDFs/99 PA pages. PA136–PA234 never occurred on the actual appeal.
+The independently hostile-reviewed workflow, nine traces, manifest, review, root, deterministic
+archive, resolved install, and focused tests now form an installable level-2 authoring candidate.
+
+The frozen Ellison source/render/record/core slice likewise refines only its page floor, not the
+283-PDF breadth total. Its lower-court record is 37 PDFs/275 JA pages, while its complete record
+is 72 PDFs/449 pages after adding 15 actual appellate PDFs/91 PA pages and 20 separately
+docketed, never-filed counterfactual PDFs/83 PA pages. PA92–PA174 never occurred on the actual
+appeal. The frozen workflow and six traces, final nine-resource/72-blob manifest, promoted
+level-2 review, deterministic archive, dependency-only resolved install, and hostile runtime
+audit now form an installable authoring candidate. Synthetic PA92–PA174 remain excluded from
+actual-history and actual-disposition grounding.
+
+The frozen Blue Ember source/render/record/core slice also leaves the 283-PDF breadth total
+unchanged. Its lower-court record is 42 PDFs/430 JA pages, while its complete record is
+83 PDFs/656 pages after adding 16 actual appellate PDFs/108 PA pages and 25 separately docketed,
+never-filed counterfactual PDFs/118 PA pages. PA109–PA226 never occurred on the actual appeal.
+The frozen workflow and six traces, final nine-resource/83-blob manifest, promoted level-2
+review, deterministic archive, dependency-only four-revision install, and 78-mutation hostile
+runtime audit now form an installable authoring candidate. Frozen focused integration/UI tests
+also pass normally and under UTC with zero skips. Synthetic PA109–PA226 remain excluded from
+actual-history, actual-disposition, and actual-record question grounding.
+
+The frozen Open Grid source/render/record/core slice also leaves the 283-PDF breadth total
+unchanged. Its lower-court record is 37 PDFs/290 JA pages, while its complete record is
+84 PDFs/654 pages after adding 19 actual appellate PDFs/155 PA pages and 28 separately docketed,
+never-filed counterfactual PDFs/209 PA pages. PA156–PA364 never occurred on the actual appeal.
+Seventeen public/sealed disclosure pairs close through 172 bijective page mappings, including
+22 named stable-anchor subjects. The frozen 35-stage/101-operation workflow and five traces,
+final nine-resource/84-blob manifest, authored level-2 review, deterministic archive, exact
+four-revision resolved install, and 65-mutation hostile audit now form an installable authoring
+candidate. The authored descriptor/anchor checks bind the exact record and blob closure; separate
+installed runtime evidence covers public-default projection, disclosure-specific session grant,
+revocation, exact-closure denial, deferred per-open CAS verification, and snapshot isolation.
+Frozen focused integration/UI commit `f2192e7462f12faf58d67b297216fecedba53a28` passed normal
+and `TZ=UTC` runs 2/2 with zero skips.
+
+The frozen Serrano source/render/record/core slice also leaves the 283-PDF breadth total
+unchanged. Its lower-court record is 28 PDFs/260 JA pages, while its complete record is
+58 PDFs/456 pages after adding 20 actual appellate PDFs/155 PA pages and 10 separately docketed,
+never-filed counterfactual PDFs/41 PA pages. PA156–PA196 never occurred on the actual appeal.
+Eight public/sealed disclosure pairs close through 95 bijective page mappings. The frozen
+24-stage/79-operation workflow has exactly two canonical traces: the 51-command actual ordinary
+mandate and the 35-command day-15 counterfactual ordinary mandate. The final nine-resource,
+58-blob manifest, authored level-2 review, deterministic archive, exact four-revision resolved
+install, workflow replay, and separate sealed-record runtime audit now form an installable
+criminal gold candidate. Qualified independent review remains pending.
+
+The frozen Cinder Lake source/render/record/core slice likewise leaves the 283-PDF breadth total
+unchanged. Its district record is 23 PDFs/196 JA pages, satisfying the 23-PDF/180-page floor. Its
+complete record is 48 PDFs/402 anchors after adding 19 actual appellate PDFs/153 PA pages and two
+separately docketed, never-filed counterfactual branches of three PDFs/31 PA pages and three
+PDFs/22 PA pages. Four public/sealed disclosure pairs close through 52 bijective mappings, with a
+44-entry/350-anchor public-default projection. The frozen workflow and three traces, final
+nine-resource/48-blob manifest, authored level-2 review, deterministic archive, exact
+four-revision resolved install, hostile workflow and sealed-record audits, and focused tests now
+form an installable level-2 writ gold candidate. Qualified independent review remains pending.
+
+Every brief proposition, oral-argument question, and disposition reason must resolve to a
+rendered `JA`, `SJA`, `AR`, or `PA` page. All parties, people, dockets, addresses, facts, and
+records are fictional. Simulated docket numbers begin `SYN-`. Real courts, sovereigns, and
+agencies appear only as institutional procedural actors.
+
+## Exact shared dependencies
+
+Each v2 root exact-pins:
+
+1. `foundation.us-federal@2025.12.01`: national rules, calendar, and common federal authorities.
+2. `foundation.us-ca4@2026.03.23`: the court, four procedure profiles, local rules, and shared
+   filing/form catalogs.
+3. `foundation.us-ca4-fictional-bench@1.0.0`: reusable generic fictional/composite profiles.
+
+Facts, case-specific authorities, records/blobs, grounded questions, workflow deltas, and
+dispositions remain root-owned. No fact or record asset is shared across cases. Dependency
+resolution remains gated by the exact capability, version, and digest constraints established in
+issues #23–#28.
+
+Reusable fictional/composite profiles are Alder (clipped/direct), Rowan
+(technical/measured/Socratic), Vale (plain/measured), Fen (expansive/hypothetical), Quill
+(clipped/plain), March (formal/technical), Reed (clipped/technical), and Slate
+(measured/formal). Their focus uses reusable topics, never a particular case's issue ID.
+
+## Case definitions
+
+### 1. Benton retaliation — `ca4m4.case.benton-retaliation`
+
+*Leora Benton v. Blue Cedar Compliance, Inc.* — `SYN-CA4-26-CV-4101`,
+`SYN-EDVA-25-CV-0412`. Rowan presides with Alder and Fen.
+
+- **Wedge:** Title VII retaliation summary judgment. Protected opposition and EEOC
+  participation precede a reduction in force by six weeks. Comparator scores and shifting
+  explanations remain admitted; one late comparator declaration is excluded.
+- **Record:** 5 pleadings/initiation, 4 exhaustion/policy, 8 fact exhibits, 7 depositions,
+  6 summary-judgment papers, 3 exclusion papers/order, and 4 judgment/docket/initiation items.
+- **Argument:** but-for causation in the pretext framework, comparator similarity, the record
+  remaining after exclusion, and relief. Counterfactual: no decisionmaker knowledge.
+- **Disposition:** affirm exclusion; vacate retaliation summary judgment; remand.
+- **Limits:** exact role subsets, instance predicates, document bindings, disposition-plan
+  bindings, and replay enforce the authored actual and adverse branches. The engine still does
+  not infer protected activity, comparator similarity, knowledge, pretext, the legal meaning of a
+  novel filing, or a clerk-versus-panel classification within the shared court role.
+
+### 2. Asterglen finality — `ca4r54b.case.asterglen`
+
+*Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings,
+LLC* — `SYN-CA4-26-CV-4102`, `SYN-NDWV-25-CV-0618`. Vale presides with Rowan and Alder.
+
+- **Wedge:** live counterclaims remain. The district court grants a Rule 54(b) motion and enters
+  partial judgment without expressly determining that there is no just reason for delay.
+- **Record:** 6 pleadings/counterclaims, 8 contract/change-order items, 7 discovery/testimony,
+  7 partial-summary-judgment items, 4 Rule 54 items, and 5 judgment/docket/initiation items.
+- **Argument:** claim scope, overlap, the missing express determination, fragmentation, and why
+  section 1292 is no substitute. Counterfactual: supported express findings.
+- **Disposition:** dismiss for lack of appellate jurisdiction and remand; do not reach the
+  contract merits, do not vacate the January 12 partial-summary-judgment order, and expressly
+  direct each side to bear its own appellate costs.
+- **Migration:** preserve the audited EDVA/appellate v1 pack byte-for-byte and author the new NDWV
+  37-PDF/234-page lower record as `0.2.0`; add 13 actual PA PDFs and 25 never-occurred branch PDFs
+  without counting either class toward the frozen lower-tribunal breadth total.
+- **Evidence status:** nine resources, 16 capabilities, three structured dispositions, and eight
+  production traces form the installable successor. Authoring review is level 2 throughout and
+  `independent_review_pending`; the exact render, resolved install, and evidence closure pass.
+
+### 3. Norvale injunction — `ca4m4.case.norvale-injunction`
+
+*Piedmont Booksellers Guild v. City of Norvale* — `SYN-CA4-26-CV-4103`,
+`SYN-DSC-26-CV-0107`. Quill presides with Fen and Vale.
+
+- **Wedge:** preliminary relief against a content-neutral paid-speaker permit for recurring
+  public book fairs, plus district-first appellate-stay practice.
+- **Record:** 5 pleading/ordinance/history, 6 declaration/photo/calendar, 4 preliminary-
+  injunction, 2 hearing/order, 4 district-stay, and 3 docket/initiation items.
+- **Consequences:** failure to seek district relief or explain impracticability defeats the Rule
+  8 motion. Recurring events prevent an artificial one-date mootness premise.
+- **Disposition:** deny appellate stay; affirm entitlement to interim relief; remand only for a
+  corrected Rule 65(c)/(d) order without dissolving protection.
+- **Evidence status:** the accepted record contains 24 lower PDFs/149 JA pages, 23 actual
+  appellate PDFs/135 PA pages, and 26 never-filed branch PDFs/99 PA pages, for 73 PDFs/383
+  anchors. The frozen workflow SHA-256 is
+  `1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a`:
+  16 stages, 90 operations, 13 filing routes, 24 exact filing bindings, 31 document bindings,
+  two disposition bindings, and 14 concrete deadline IDs representing 12 logical concepts.
+  Nine canonical traces contain 316 commands and 334 events with exact 90-operation coverage.
+  The 16-capability root is
+  `a51383c0c1edcd56153b36291177425b09846ab607c39c28030820ef700df05f`,
+  with evidence closure
+  `1170d682b46773d09b63b5dcfcd5b7c485c2f792881c94027b76550ef021d82c`.
+- **Limits:** stay practice is serialized before merits briefing. The model does not infer
+  concurrent clocks, impracticability, mootness, or the legal meaning of arbitrary filings;
+  shared court-role authorization cannot itself distinguish clerk from panel. The structured
+  disposition also has no separate non-vacatur/continued-protection field, so that limitation
+  remains an exact narrative contract. The B02, B05, and B07 Rule 8 exercises are scoped
+  appellate-stay endpoints; no complete alternate notice, record, merits, or mandate docket is
+  claimed for them.
+
+### 4. Ellison immunity — `ca4m4.case.ellison-immunity`
+
+*Mara Ellison v. Officer Nolan Rusk* — `SYN-CA4-26-CV-4104`,
+`SYN-WDVA-25-CV-0733`. Alder presides with Reed and March.
+
+- **Wedge:** collateral-order review of qualified-immunity denial after a welfare-check seizure;
+  obstructed body-camera footage leaves resistance and threat facts disputed.
+- **Record:** 4 pleadings, 6 report/dispatch/medical, 6 bodycam transcript/frame/authentication,
+  8 deposition/expert, 7 immunity/SUMF, 1 order, and 5 docket/initiation PDFs. The complete
+  PDF-only corpus adds 15 actual appellate and 20 never-filed counterfactual PDFs. No MP4 is
+  included.
+- **Argument:** separate unreviewable factual sufficiency from reviewable legal questions on
+  plaintiff-favorable assumed facts; address why obscured camera evidence is not dispositive,
+  incident-date clearly established law, intervening *Barricks*/*Zorn*, and exact relief.
+- **Disposition:** actual—dismiss the factual-sufficiency target, affirm the Fourth Amendment
+  legal ruling on assumed facts, and affirm the clearly-established-law denial of qualified
+  immunity. Adverse—dismiss the factual target, assume constitutional excessiveness without
+  deciding it, and reverse only the qualified-immunity target for summary judgment to Rusk.
+- **Evidence status:** source, render, and the 72-entry/449-anchor record are frozen. Workflow
+  `cd69b276a63ae508ba0d98bbee15585847a405b5b55a48df69fffe45811ca23a` and successor plan
+  `82f1afa17e4d15a192cc6567ff3ffaa3415d2dd95f609aa58c760c026c78273d` bind six canonical
+  traces with 229 commands/events, all 77 operations, 14 same-ID filing recoveries, 24 court
+  documents, 11 deadlines, and five terminated plus one stayed endpoint. Manifest
+  `8f0d614a73a4850a93170a7338229b64e2b1d042134e678785eaab481fd8ca42` closes nine resources,
+  72 blobs, 16 capabilities, and three exact dependencies. Review
+  `5545977962535b58f029de10959cf2f9e49348a12fb4f7bff17574aa688b8867` binds closure
+  `8032c5547dd522cad241b9c816bd611d198dbe7e007b0cd29781b8b471de41ac`; exactly one successful
+  authoring invocation produced root
+  `c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0` and the deterministic
+  4,230,462-byte archive
+  `59f32f521644bac61865cf1e59444fc98dbb9007461a1709272ffe261cbad1d0`.
+  The review remains level 2 and `independent_review_pending`.
+- **Limits:** the engine does not classify arbitrary argument as legal or factual, inspect video,
+  infer disputed movement/resistance/threat/credibility, treat post-incident *Barricks* or *Zorn*
+  as February 2025 notice, combine mutually exclusive Rule 41 paths, or model real judges.
+
+### 5. Blue Ember post-trial — `ca4m4.case.blueember-jmol`
+
+*Blue Ember Biologics, LLC v. Granite Heron Logistics, Inc.* — `SYN-CA4-26-CV-4105`,
+`SYN-WDNC-24-CV-0520`. March presides with Rowan and Slate.
+
+- **Wedge:** Rule 50(a) challenges causation only; Rule 50(b) first raises mitigation. The court
+  grants JMOL on mitigation and conditionally grants a Rule 59 damages retrial.
+- **Record:** 7 pleading/contract, 7 discovery/expert, 4 pretrial, 6 trial transcript, 7 trial
+  exhibit, 4 Rule 50(a)/verdict/judgment, 5 Rule 50(b)/59, and 2 docket/notice PDFs: 42 lower
+  PDFs/430 JA pages. The complete PDF-only corpus adds 16 actual appellate PDFs/108 PA pages and
+  25 separately docketed, never-filed counterfactual PDFs/118 PA pages, for 83 PDFs/656 anchors.
+- **Argument:** exact preservation language, renewed-motion boundaries, Rule 50 versus Rule 59
+  review, and permitted relief. On the actual record, both Rule 50(a) motions challenge causation
+  only and mitigation first appears under Rule 50(b). B01 alone supplies the isolated,
+  never-filed counterfactual premise that both pre-verdict motions expressly preserve mitigation.
+- **Disposition:** actual—reverse mitigation JMOL, affirm the conditional Rule 59 ruling and
+  damages-only scope, vacate the amended judgment, and remand for a damages retrial.
+  Counterfactual—affirm mitigation JMOL and the amended judgment without deciding the conditional
+  Rule 59 ruling or retrial scope.
+- **Evidence status:** source, render, the 83-entry/656-anchor record, and seven non-workflow core
+  resources are frozen. Source closure
+  `c5e843bfc968a726ee86a0d130cd8b85e89c74e76dc75239191a20048a9054a5`, render inventory
+  `c52eab8d01e68ec08f5f43e07e8ef2fdc7996ddc15cace7ab4b818518b51f89a`, and record
+  `080ff7772d73131a5471f2fc530b4d63c6215831a82ffcd671ef50beff8d1c7a` bind that slice. Workflow
+  `7c2356718286505eee16d62b48ca281f92eee367c9e21319ddcae02d87c1a120` and successor plan
+  `664b8632be87d885cebc4625282f0b452c5d376be607bc889ee86012c3ddcee5` bind six traces with
+  270 commands/events, all 93 operations, 18 unique filing IDs and 61 same-ID recoveries,
+  25 court documents, 14 deadlines, and five terminated plus one stayed endpoint. Manifest
+  `2b545cee1aaba7a1475b2f5085ae93d50ec9e3255a68f9762d3bec63492a8dac` closes nine resources,
+  83 blobs, 16 capabilities, and three exact dependencies. Review
+  `8fe8d9b06f38ca16fe535c917c3da4b2c6d92a5ee2f17924d49a945d2e5e0688` binds closure
+  `3f38cd1a12f7f61c037f338fef4f1600ab83434208aa13a8ff5cf56a52fe5d5a`; exactly one valid
+  authoring call produced root
+  `08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec` and the deterministic
+  5,326,158-byte archive
+  `c6332ae33e351ccb27ed17b5576b147a47f9f5f0b44583365212b1781a288ed2`. Fresh four-revision
+  resolved installation and the 78-mutation hostile audit passed. Exact three-file focused-test
+  commit `1d497aecd9e9fdf2ab5ffa4f47ad994052cd304f` passed normal and UTC integration/UI runs with
+  zero skips. The review remains level 2 and `independent_review_pending`.
+- **Limits:** the engine does not infer Rule 50 preservation, distinguish a new ground from a
+  variation on a preserved issue, classify arbitrary posttrial filings, evaluate mitigation or
+  damages evidence, combine mutually exclusive Rule 41 paths, or model real judges. The generated
+  corpus has no MP4 or raw logger, assay, laboratory, or device-data file. Synthetic PA109–PA226
+  cannot ground the actual history, actual disposition, or actual-record question bank.
+
+### 6. Open Grid FOIA — `ca4m4.case.opengrid-foia`
+
+*Open Grid Archive v. United States Department of Energy* — `SYN-CA4-26-CV-4106`,
+`SYN-DMD-25-CV-0914`. Vale presides with Quill and Reed.
+
+- **Wedge:** FOIA Exemptions 7(E) and 7(F), Vaughn specificity, segregability, and paired
+  public/sealed filings concerning cyber-response playbooks.
+- **Record:** 5 request-chain, 2 pleading, 4 search-declaration, 4 public/sealed Vaughn,
+  6 public/sealed sample-record, 6 cross-summary-judgment, 5 seal/in-camera, and 5
+  judgment/docket/initiation PDFs: 37 lower-record PDFs/290 JA pages. The complete PDF-only
+  corpus adds 19 actual appellate PDFs/155 PA pages and 28 separately docketed, never-filed
+  counterfactual PDFs/209 PA pages, for 84 PDFs/654 anchors.
+- **Argument:** law-enforcement purpose, technique versus guideline/risk, Vaughn detail,
+  segregability, 7(F), foreseeable harm, and least-restrictive sealing. The actual bank excludes
+  PA156–PA364; the counterfactual bank uses only the isolated corrected premise and docket.
+- **Disposition:** actual—affirm 7(E) only for the operational decision-tree target; vacate the
+  categorical 7(F), segregability, and overbroad-sealing targets; remand. Counterfactual—hold the
+  operational 7(E) showing constant, assume item-specific 7(F), documented line review, and
+  narrow sealing findings, and affirm all four targets.
+- **Confidentiality boundary:** the schema-v2 record closes 17 equal-page public/sealed pairs
+  through 172 bijective mappings, including 22 named stable-anchor subjects. Public-default
+  projection, exact-disclosure session grant, revocation, exact-closure binding, and deferred
+  per-open path/size/digest/readability/page-count verification implement
+  `workbench.pack.sealed-record-twins@1` for the exact synthetic bytes. No controlled copy
+  contains actionable real cyber-response information.
+- **Frozen closure:** source
+  `ec7ab1ce6ff02b2005f672f1da03c75fb51aac5eb3b95b97ac3ddeeeab6fb1c1`; PDF
+  `ab5dcc9df062758bc9d58eddb24657fbdeea71dc7afe47a1a04ef1a29072a9fe`; record
+  `4fb13f25af4e06234cfa0ffbb0c0f77b7476ad7c65ed9365cc9642cb38f27f5a`; seven-resource core
+  `8d245455f20b896d9333e414db5a6d30520c948166bb9797c99cd916fd1ebb4f`.
+- **Workflow:** workflow
+  `66361faed640a8e274834b49595061b51d5fc41b1ef34b4d494f0ca49de67503` contains 35 stages,
+  101 operations, 17 routes, 19 public filing bindings, 22 public court-document bindings,
+  12 deadlines, and 41 distinct public provenance entries, with no sealed binding. Source
+  chronology supports five canonical paths only—actual
+  ordinary; counterfactual rehearing denial; counterfactual mandate-stay denial after rehearing
+  denial; counterfactual rehearing grant ending at mandate-stayed; and rehearing grant through
+  supplemental merits, revised judgment, and mandate. The sources do not support a sixth
+  execution. The five traces contain 221 commands/events, cover all 101 operations, include
+  39 rejection events, and end at four terminated plus one blocked endpoint; their closure is
+  `9247eb77b22dc166db60ef7d984ac70114b00af4387cd61ebdc1d377654b02ae`.
+- **Release status:** manifest
+  `94ff5a6f3e89686c6119578033cbec7218afe5b0543ddbebba6e54e787bf3f70` closes nine resources,
+  84 blobs, 17 capabilities, and three dependencies. Review
+  `2f0b0b06fd7de51dd2fa53466458b3e3e4ba7bc1c181ea0342c543e65b36ba34` binds evidence closure
+  `1acce5699c11f75736f2f611e0eae6158f37f26970bf1f7d8b99ddbd85956534` over
+  4/44/84/5/2/33 packs/resources/blobs/traces/checks/authorities and 168 unique IDs. Root
+  `9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5` exports to the
+  deterministic 5,244,039-byte archive
+  `1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09` and passes fresh resolved
+  installation and runtime replay. Focused-test commit
+  `f2192e7462f12faf58d67b297216fecedba53a28` passed normal and `TZ=UTC` integration/UI runs
+  2/2 with zero skips in 85.43 and 85.29 seconds. The review remains
+  `independent_review_pending`, so this is installable level-2 evidence, not level 3 or gold.
+
+### 7. Serrano waiver — `ca4m4.case.serrano-waiver`
+
+*United States v. Mateo Serrano* — `SYN-CA4-26-CR-4201`, `SYN-MDNC-25-CR-0328`.
+Slate presides with Alder and March.
+
+- **Wedge:** a knowing waiver covers Guidelines calculation but expressly reserves complete
+  denial of allocution; Serrano also contests the section 3B1.1(b) finding that he supervised
+  another participant.
+- **Record:** 4 charging/initial, 4 pre-plea, 4 plea/Rule 11, 4 PSR/objection, 4 sentencing
+  submission, 3 transcript/order, and 5 judgment/docket/initiation PDFs: 28 lower-record
+  PDFs/260 JA pages. The complete corpus adds 20 actual appellate PDFs/155 PA pages and 10
+  separately docketed, never-filed counterfactual PDFs/41 PA pages, for 58 PDFs/456 anchors.
+- **Argument:** the actual appeal tests waiver validity and scope, the express complete-denial
+  carve-out, whether counsel's advocacy can substitute for personal allocution, prejudice from
+  the unheard mitigation statement, and the proper remand. The isolated counterfactual tests a
+  district-clerk notice filed on day 15, a prompt limited remand, findings of neither excusable
+  neglect nor good cause, and prompt government invocation of Rule 4(b).
+- **Consequences:** the actual day-14 notice is timely. The valid waiver dismisses only the
+  enhancement target without deciding its merits; the allocution carve-out remains reviewable.
+  In the isolated branch, the first government substantive response combines Rule 4(b) and waiver,
+  but the court dismisses solely under Rule 4(b) without reaching waiver, role, or allocution.
+- **Disposition:** actual—leave the conviction intact, dismiss the enhancement appeal under the
+  waiver, vacate the sentence, and remand for full resentencing with allocution. Counterfactual—
+  dismiss the day-15 appeal under Rule 4(b) and issue the ordinary mandate without deciding any
+  merits issue.
+- **Confidentiality boundary:** eight equal-page public/sealed disclosure pairs close through
+  95 bijective mappings under `workbench.pack.sealed-record-twins@1`: four lower-record
+  PSR/objection/sentencing pairs and four appellate brief/PSR-volume pairs. The public-default
+  projection exposes 50 entries carrying 361 physical public anchors; the 95 mappings keep each
+  sealed page subject navigable through its public counterpart without exposing sealed bytes.
+  Each exact-document session grant exposes one sealed twin, and revocation returns to 50.
+  Filing and court-document bindings use only public entries. These synthetic controls do not
+  represent PACER, CM/ECF, Probation, or a real presentence report.
+- **Evidence status:** successor plan
+  `6125c3623ec484cae049961336cfd2b16571b7a77f748ccf4ac588af5d3fdbbd`, render inventory
+  `dd3dde8fd145b12f09eed6a97d3bfd85a36c2e18cac10c9916c156b83481d70b`, record
+  `ff91471c1fbde78ad6ef138a7cfc14358ea0ff985ccb58bb19f9c146f1785fb5`, and workflow
+  `b31e490d3fa460c0b1bff551fe937d8acae41b53f1a6cdf41549d3ac411585c2` bind the frozen corpus.
+  The workflow has 24 stages, 79 operations, 14 routes, 16 exact filing bindings, 13 bound court
+  documents, and 16 deadlines. Its two traces contain 86 commands and 86 events, cover all 79
+  operations, and exercise 16 same-ID filing rejection/recovery pairs.
+- **Authority cutoff:** Serrano's completed source and authority set is frozen as of
+  2026-08-19. Individual documents cite only authorities available on their source dates, and the
+  isolated day-15 branch cites neither *Hunter* nor *Melvin*.
+- **Release status:** manifest
+  `a1910f6d853371b2061ffa10e7271389a914e2e39172c544e3dff2221665f577` closes nine resources,
+  58 blobs, 17 capabilities, and three dependencies. Review
+  `d0521658fb7eb2ed8eb35c30293aaf5b86ca029257ac6cadef7e14b56557a57d` binds evidence closure
+  `052e54ec473a8a427f1cda0c004f02878955e46f4e2282c64385ed4e404eb955` over
+  4/44/58/2/2/44 packs/resources/blobs/traces/checks/authorities and 150 unique non-pack evidence
+  IDs. Root `9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344`
+  exports to the deterministic 3,453,568-byte archive
+  `d76686cec2053f78334c73f1c3aac415b637e733f0494b527001368597a1c243` and passes fresh resolved,
+  workflow, and sealed-record runtime audits. The `1.2.0` review remains level 2 and
+  `independent_review_pending`, so Serrano is the criminal gold candidate, not a gold pack.
+- **Limits:** the engine does not infer waiver scope, participant status, personal allocution,
+  prejudice, excusable neglect, good cause, or timeliness from arbitrary text. The
+  counterfactual docket and PA156–PA196 cannot ground the actual history or disposition, and
+  automated evidence does not substitute for qualified criminal-sentencing/appellate review.
+
+### 8. A.R.M. agency review — `ca4m4.case.arm-agency`
+
+*A.R.M. v. Attorney General of the United States* — `SYN-CA4-25-AG-4301`,
+`SYN-BIA-25-0113`. Rowan presides with Reed and Quill.
+
+- **Wedge:** a final BIA removal order fails to aggregate CAT risk or address admitted official-
+  acquiescence evidence. The certified record omits one admitted declaration; petitioner also
+  tenders a genuinely new declaration.
+- **Record:** 2 NTA/pleading, 4 application/declaration/family, 3 country/medical/translation,
+  2 IJ transcript, 1 IJ decision, 3 BIA notice/brief/response, 1 BIA final order, and
+  2 certified-index/omission PDFs.
+- **Consequences:** restore admitted omitted material; reject genuinely new extra-record material.
+  A day-31 petition is nonjurisdictionally late and requires government invocation.
+- **Disposition:** grant correction for the admitted declaration, deny supplementation, grant the
+  petition in part, vacate the BIA order, and remand.
+- **Limits:** exact role subsets, filing/order-instance guards, static deficiency deadlines, and
+  bound order/judgment/mandate documents now enforce the authored actual and adverse branches.
+  The engine still does not infer final-order status or the legal meaning of novel filings, and
+  parallel stay-and-merits work remains out of scope. The day-31 invocation and record-motion
+  semantics are therefore authored exact-byte document bindings validated by replay, not
+  universal legal classifiers or claims of independent legal review.
+
+### 9. Cinder Lake writ — `ca4m4.case.cinderlake-writ`
+
+*In re Cinder Lake Health Network, Inc.* — `SYN-CA4-26-WR-4401`,
+`SYN-EDNC-25-CV-0882`. Alder presides with Vale and Fen.
+
+- **Authority cutoff:** all 17 root-owned authority entries were checked against official sources
+  on `2026-08-19`. *In re Fluor* is identified as unpublished and nonprecedential and is used only
+  for its exact persuasive analogy.
+- **Wedge:** the August 21 pre-suit compliance letter reports remediation and outside-counsel
+  involvement without disclosing privileged communications; the March 25 order nevertheless
+  finds categorical subject-matter waiver and compels production within seven days. The January 9
+  Rule 502(d) order governs later disclosures and neither retroactively creates nor erases waiver
+  from the August 21 pre-suit letter.
+- **Record:** 3 pleading, 2 protective-order/ESI, 4 audit/legal-communication, 2 privilege-log,
+  3 compel, 2 hearing/order, 3 reconsideration, 3 stay, and 1 district-docket PDF, totaling
+  23 PDFs/196 JA pages. The actual appellate docket contains 19 PDFs/153 PA pages; the exact
+  deficiency-cure and summary-denial dockets contain 3/31 and 3/22 and never occurred on the
+  actual writ. Four synthetic public/sealed pairs close through 52 bijective stable-anchor
+  mappings. The default projection exposes 44 entries/350 anchors, each exact grant exposes one
+  sealed twin for 45 entries, and revocation restores 44; no PACER, CM/ECF, or real sealed filing
+  is accessed.
+- **Consequences:** the exact B01 omissions trigger the B02 notice and a static two-calendar-day
+  cure deadline; timely exact B03 cures to a live submitted endpoint. Separate B04 is accepted as
+  conforming and then receives substantive summary denial without an answer or argument. The
+  actual path serializes the emergency motion and response, interim stay, appearances, answer
+  invitation, April 9 answer and April 13 reply deadlines, answer, reply, expedited-argument
+  order, and April 21 argument.
+- **Disposition:** grant the writ in part; vacate the categorical-waiver and seven-day-production
+  provisions; deny a blanket bar on related discovery; remand for document-specific privilege,
+  work-product, and discovery review. Final dispositions are transmitted to the trial-court judge
+  on the judgment date under Rule 21(b)(7). The summary and actual Rule 40 deadlines are April 15
+  and May 19; an original proceeding has no mandate or `IssueMandate` operation here.
+- **Workflow and traces:** workflow
+  `337c0eb859c43ec1296a7e4cb0e595cb20bbb061265dd6ce86f02a5524851d60` has 15 stages,
+  45 operations, eight filing routes, 10 exact filing bindings, 10 document bindings, two
+  structured dispositions, and five deadlines. The actual, deficiency-cure, and summary-denial
+  traces contain 26/29, 4/6, and 6/7 commands/events. Their 36 commands/42 events cover all
+  37 non-reject operations; eight reject operations are hostile-tested rather than canonical
+  outcomes. The plan-order trace closure is
+  `e589e247823dd02b51a03069d3724a0e9f3827480be81a95ef750e665e4f6988`.
+- **Evidence:** manifest
+  `53b2f6769e5e294e8ada426357a1a5eb29e770a9715d9d75ee993b6fd4f5a0ad` closes nine resources,
+  48 blobs, 18 capabilities, and three exact dependencies. Review
+  `2ab0d10cef5e67e5dde3684de994d8c838bc566af8925c3686841f14cc82fad7` records level 2 in all
+  seven dimensions, 16 nonblocking uncertainties, and `independent_review_pending`; evidence
+  closure `f6f573db90136f950b34055f4ae9baa18c7b3135733ff1d803dc686da7463439`
+  contains 4/44/48/3/2/30 pack/resource/blob/trace/record-check/authority entries, 127 unique
+  non-pack evidence IDs, and dimension-reference counts 40/15/51/28/24/4/85. Final root
+  `020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c` exports as the
+  deterministic 2,519,053-byte archive
+  `eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956`. Focused-test commit
+  `b1fb8b898ceb23cf9c773b22c7f358c7c073243e` passed normal and
+  `TZ=UTC`/`LC_ALL=C.UTF-8` integration/UI runs 2/2 with zero skips.
+- **Limits:** exact identities, static deadlines, preconditions, legal times, document bindings,
+  and canonical traces implement only these frozen routes. The engine does not infer privilege,
+  waiver, sealing, cure, conformity, urgency, answer or argument need, mandamus entitlement, or
+  remedy scope from arbitrary filings or prose. B01–B06 remain isolated never-filed artifacts.
+  Automated evidence does not constitute qualified independent review or support level 3 or gold.
+
+## Official source baseline
+
+Common sources:
+
+- [Fourth Circuit FRAP, local rules, and IOPs (2026-03-23)](https://www.ca4.uscourts.gov/docs/pdfs/rules.pdf)
+- [Federal Rules of Appellate Procedure (2025-12-01)](https://www.uscourts.gov/sites/default/files/document/federal-rules-of-appellate-procedure.pdf)
+- [Federal Rules of Civil Procedure (2025-12-01)](https://www.uscourts.gov/sites/default/files/document/federal-rules-of-civil-procedure.pdf)
+- [Federal Rules of Criminal Procedure (2025-12-01 official compilation; last substantively amended in 2023)](https://www.uscourts.gov/sites/default/files/document/federal-rules-of-criminal-procedure.pdf)
+- [Fourth Circuit sealed/confidential materials guide](https://www.ca4.uscourts.gov/appellateprocedureguide/General_Provisions/SealedConfidMem.html)
+
+Case-specific primary sources:
+
+| Case | Authorities |
+| --- | --- |
+| Benton | [42 U.S.C. § 2000e-3](https://uscode.house.gov/view.xhtml?req=%28title%3A42+section%3A2000e-3+edition%3Aprelim%29); [Foster v. UMES](https://www.ca4.uscourts.gov/opinions/published/141073.p.pdf) (published, 2015-05-21) |
+| Asterglen | [28 U.S.C. § 1291](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1291); [28 U.S.C. § 2107](https://uscode.house.gov/view.xhtml?edition=prelim&req=granuleid%3AUSC-prelim-title28-section2107); FRCP 54(b) and 58; [Kinsale Insurance](https://www.ca4.uscourts.gov/opinions/211754.P.pdf) (published, 2022-04-20); [McPherson](https://www.ca4.uscourts.gov/opinions/231938.U.pdf) (unpublished, 2024-10-15); [Bowles](https://www.govinfo.gov/content/pkg/USREPORTS-551/pdf/USREPORTS-551-205.pdf); [Primov](https://www.courts.state.va.us/static/opinions/opnscvwp/1171381.pdf) |
+| Norvale | [28 U.S.C. § 1292(a)(1)](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1292%28a%29%281%29); FRCP 65; [Billups](https://www.ca4.uscourts.gov/opinions/191044.P.pdf); [Pashby](https://www.ca4.uscourts.gov/opinions/Published/112363.p.pdf) |
+| Ellison | [42 U.S.C. § 1983](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title42-section1983); [Graham](https://www.govinfo.gov/content/pkg/USREPORTS-490/pdf/USREPORTS-490-386.pdf); [Johnson](https://www.govinfo.gov/content/pkg/USREPORTS-515/pdf/USREPORTS-515-304.pdf); [Barricks](https://www.ca4.uscourts.gov/opinions/251250.P.pdf); [Armstrong](https://www.ca4.uscourts.gov/opinions/151191.P.pdf); [Smith](https://www.ca4.uscourts.gov/opinions/121503.P.pdf); [Meyers](https://www.ca4.uscourts.gov/opinions/112192.P.pdf); [Yates](https://www.ca4.uscourts.gov/opinions/151555.P.pdf); [Zorn](https://www.supremecourt.gov/opinions/25pdf/25-297_bqm2.pdf) |
+| Blue Ember | FRCP 50 and 59; [Unitherm](https://www.govinfo.gov/app/details/USREPORTS-546/USREPORTS-546-394); [Plyler](https://www.ca4.uscourts.gov/opinions/241445.P.pdf); [Wiener](https://www.ca4.uscourts.gov/opinions/241316.P.pdf); [Gautier](https://www.ca4.uscourts.gov/opinions/241401.P.pdf); [Boley](https://www.ca4.uscourts.gov/opinions/231493.U.pdf) (nonprecedential) |
+| Open Grid | [5 U.S.C. § 552](https://uscode.house.gov/view.xhtml?edition=prelim&req=granuleid%3AUSC-prelim-title5-section552); [Grey](https://www.ca4.uscourts.gov/opinions/231910.P.pdf); [Company Doe](https://www.ca4.uscourts.gov/Opinions/Published/122209.P.pdf) |
+| Serrano | [18 U.S.C. § 3742](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title18-section3742); [Boutcher](https://www.ca4.uscourts.gov/opinions/204248.P.pdf); [Jennings](https://www.ca4.uscourts.gov/opinions/244027.P.pdf); [Marsh](https://www.ca4.uscourts.gov/Opinions/184609.P.pdf); [2025 Guidelines Manual](https://www.ussc.gov/guidelines/2025-guidelines-manual) |
+| A.R.M. | [8 U.S.C. § 1252](https://uscode.house.gov/view.xhtml?edition=prelim&f=treesort&num=0&req=%28title%3A8+section%3A1252+edition%3Aprelim%29+OR+%28granuleid%3AUSC-prelim-title8-section1252%29); [8 C.F.R. pt. 1208 (2025-01-01)](https://www.govinfo.gov/content/pkg/CFR-2025-title8-vol1/pdf/CFR-2025-title8-vol1-part1208.pdf); [Riley v. Bondi](https://www.supremecourt.gov/opinions/24pdf/23-1270_6j37.pdf); [Rodriguez-Arias](https://www.ca4.uscourts.gov/opinions/172211.P.pdf) |
+| Cinder Lake | [28 U.S.C. § 1651](https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title28-section1651); [Murphy-Brown](https://www.ca4.uscourts.gov/opinions/181762.P.pdf); [In re Fluor](https://www.ca4.uscourts.gov/opinions/201241.U.pdf) (nonprecedential); [Cheney](https://www.govinfo.gov/app/details/USREPORTS-542/USREPORTS-542-367) |
+
+Before release, each pack pins the exact source version, checked-on date, locator, official URL,
+precedential status, proposition, evidence closure, and trace required by #26 and #27.
+
+## Realism and sequencing gates
+
+Cases begin at realism level 0. Automated traces, page/authority resolution, chronology checks,
+and author review establish at most level 2. Level 3 requires a detached, exact-dependent review
+pack signed off by a qualified independent reviewer; any record, question, authority, or workflow
+change invalidates that review.
+
+The A.R.M. `1.2.0` root currently records level 2 in every dimension with exact closure over four
+packs, 44 non-review resources, 54 blobs, seven traces, two record checks, and 32 authorities.
+Its state is `independent_review_pending`, so it remains the agency gold candidate rather than the
+agency gold pack.
+
+The Benton `1.2.0` root currently records level 2 in every dimension with exact closure over four
+packs, 44 non-review resources, 67 blobs, seven traces, two record checks, and 28 authorities.
+Its 148 unique non-pack evidence IDs remain bound to an `independent_review_pending` root review.
+Benton is therefore an installable non-gold civil authoring candidate; Asterglen retains the civil
+gold-candidate designation.
+
+The Asterglen `0.2.0` successor currently records authoring level 2 in every dimension with
+`independent_review_pending`. It contains nine resources, 16 capabilities, 75 PDFs/377 anchors,
+three structured dispositions, and eight production traces. Exact root
+`7e77bc0fbe02dc9e108681df73852859d6d0f577acdcb65fcfb7678eac78b728`, review
+`e16caac5226fdb26fb8acead14ef0a0bfd4d569af5ba84b9da65389e5fb0c905`, and closure
+`445c3f11dcc8046eedfc233407699cbbb3ea4e39425d22c976808959350ca62c` bind the accepted render and
+final replay. It therefore remains the installable civil gold candidate rather than a civil gold
+pack. The v0.1.0 predecessor
+stays immutable and is not silently upgraded into schema v2 or level 3.
+
+The Ellison `1.2.0` authoring candidate records level 2 in every dimension with
+`independent_review_pending`. Its exact evidence envelope covers four packs, 44 non-review
+resources, 72 blobs, six traces, two record checks, and 35 authorities: 159 unique non-pack
+evidence IDs. The seven dimension-reference counts are 49/19/75/33/17/4/114. The installed
+hostile audit made 458 command
+redecisions, 229 prefix replays, 12 full replays, and 66 mutation rejections. The final root is
+`c2a4f3bc07f05eb1429257320ed839ebaea837da7aa7330f4669bbb157168ce0`, with evidence closure
+`8032c5547dd522cad241b9c816bd611d198dbe7e007b0cd29781b8b471de41ac`.
+Ellison is therefore an installable level-2 authoring candidate, not a level-3 or gold pack.
+Its PDF-only corpus contains no MP4; the engine makes no video inference, and separately
+docketed synthetic PA92–PA174 cannot ground actual-history claims.
+
+The Blue Ember `1.2.0` authoring candidate records level 2 in every dimension with
+`independent_review_pending`. Its exact evidence envelope covers four packs, 44 non-review
+resources, 83 blobs, six traces, two record checks, and 39 authorities: 174 unique non-pack
+evidence IDs. The seven dimension-reference counts are 53/19/86/37/20/4/129. The installed
+audit redecided 270 commands, replayed all 270 prefixes and 12 complete journals, and rejected
+78 hostile mutations. The final root is
+`08d88e4811e8ed8ad6e642cc041365508808f7158862aa93199de867f31431ec`, with evidence closure
+`3f38cd1a12f7f61c037f338fef4f1600ab83434208aa13a8ff5cf56a52fe5d5a`.
+Focused-test commit `1d497aecd9e9fdf2ab5ffa4f47ad994052cd304f` passed normal and UTC runs with zero skips.
+Blue Ember is therefore an installable level-2 authoring candidate, not a level-3 or gold pack.
+Actual Rule 50(a) preservation remains causation-only; B01's express-mitigation premise exists
+solely on the separate never-filed docket. The PDF-only corpus contains no MP4 or raw instrument
+data, and synthetic PA109–PA226 cannot ground actual-history claims.
+
+The Open Grid `1.2.0` authoring candidate records level 2 in every dimension with
+`independent_review_pending`. Its frozen source/render/record corpus contains 84 PDFs/654 anchors
+across the 37/290 lower, 19/155 actual, and 28/209 isolated counterfactual allocations. The
+35-stage/101-operation workflow and five traces close 221 commands/events, exact 101-operation
+coverage, 39 rejection events, 19 bindings, 17 routes, 22 court documents, 12 deadlines, four
+terminated plus one blocked endpoint, and 65 hostile mutation rejections. The 9/84/17/3
+manifest binds an evidence envelope of 4/44/84/5/2/33 entries, 168 unique evidence IDs, and
+dimension-reference counts 46/20/87/32/18/4/124. Exact root
+`9cb2879b1cc27e98d8def7c926a38e9f4eb2cbec90785be74c009156b4a1e4c5` and archive
+`1efa067767f3c729bbd67c40b3faa239673025f421133bddf32ec6b090231b09` pass fresh resolved
+installation and runtime audits. The two authored record checks bind descriptors and anchors;
+the separate installed capability audit proves grant/revoke/CAS/snapshot behavior. Focused-test
+commit `f2192e7462f12faf58d67b297216fecedba53a28` passed normal and `TZ=UTC` integration/UI runs
+2/2 with zero skips. This is installable level-2 evidence, not level 3 or gold, and synthetic
+PA156–PA364 cannot ground actual-history claims.
+
+The Serrano `1.2.0` criminal gold candidate records level 2 in every dimension with
+`independent_review_pending`. Its frozen corpus contains 28 lower-record PDFs/260 JA pages,
+20 actual appellate PDFs/155 PA pages, and 10 separately docketed, never-filed counterfactual
+PDFs/41 PA pages, for 58 PDFs/456 anchors. Eight public/sealed disclosure pairs close through
+95 bijective mappings. The 24-stage/79-operation workflow and two traces close 86 commands and
+86 events, all 79 operations, 16 exact filing bindings, 13 court documents, 16 deadlines, and
+16 same-ID filing recoveries. The 9/58/17/3 manifest binds an evidence envelope of
+4/44/58/2/2/44 entries, 150 unique non-pack evidence IDs, and dimension-reference counts
+54/26/61/35/28/4/109. Exact root
+`9b4941e97292faa0fceda1f1c719f6e38ce8478c82350c7fbbb74a010c27d344`, evidence closure
+`052e54ec473a8a427f1cda0c004f02878955e46f4e2282c64385ed4e404eb955`, and archive
+`d76686cec2053f78334c73f1c3aac415b637e733f0494b527001368597a1c243` pass fresh resolved,
+workflow, and sealed-record runtime audits. Focused-test commit
+`ba9e7558a44411bd709351f657a6b98407f86235` passed normal and `TZ=UTC` integration/UI runs
+2/2 with zero skips in 37.38s and 37.51s. This is installable level-2 evidence, not level 3 or
+gold; the isolated day-15 docket and PA156–PA196 cannot ground actual-history claims.
+
+The Cinder Lake `1.2.0` writ gold candidate records level 2 in every dimension with
+`independent_review_pending`. Its frozen 48-PDF/402-anchor corpus includes four public/sealed
+disclosure pairs and a 44-entry/350-anchor public-default projection. The
+15-stage/45-operation workflow and three traces close 36 commands, 42 events, all 37 non-reject
+operations, eight exact filing routes, 10 filing bindings, 10 court-document bindings, two
+dispositions, five deadlines, and no mandate. The 9/48/18/3 manifest binds an evidence envelope
+of 4/44/48/3/2/30 entries, 127 unique non-pack evidence IDs, and dimension-reference counts
+40/15/51/28/24/4/85. Exact root
+`020517571a6c15f90765e12b94ab53d8598be3bc3081d47caecdf5950bacd05c`, evidence closure
+`f6f573db90136f950b34055f4ae9baa18c7b3135733ff1d803dc686da7463439`, and archive
+`eeefbbbe84cf4addbf91a68447281217226c6a08c7e0e3e1294947d5e5dc8956` pass fresh resolved,
+canonical, hostile, and sealed-record runtime audits. Focused-test commit
+`b1fb8b898ceb23cf9c773b22c7f358c7c073243e` passed normal and
+`TZ=UTC`/`LC_ALL=C.UTF-8` integration/UI runs 2/2 with zero skips. This is installable level-2
+evidence, not level 3 or gold; qualified federal civil-discovery, privilege, Rule 502, mandamus,
+sealing, and appellate review remains pending.
+
+The four gold candidates require, respectively, an appellate-finality reviewer, criminal
+sentencing/waiver reviewer, immigration reviewer with an operative-CFR refresh, and
+appellate-privilege/writ reviewer. Open Grid's exact sealed/public record behavior and
+workflow/release evidence and focused tests are frozen; qualified independent FOIA/appellate
+review remains pending.
+
+The completed root work used this frozen parallel allocation without shared-file overlap:
+
+- Benton + Asterglen + A.R.M.: 92 lower-tribunal/certified-record PDFs / 710 floor pages.
+- Ellison + Open Grid + Cinder Lake: 97 lower-tribunal/certified-record PDFs / 705 floor pages.
+- Norvale + Blue Ember + Serrano: 94 lower-tribunal/certified-record PDFs / 839 floor pages.
+
+Per-case authoring used separate source/schema, record-batch, workflow/trace,
+disposition/argument/bench, and level-2-evidence boundaries. Shared indexes and build registration
+remained integrator-owned.

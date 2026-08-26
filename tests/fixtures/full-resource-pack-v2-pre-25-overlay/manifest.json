@@ -1,0 +1,126 @@
+{
+  "schema_version": 2,
+  "pack_id": "example.full.fictional",
+  "version": "2.0.0",
+  "required_capabilities": [
+    {
+      "id": "workbench.pack.declarative-resources",
+      "version": 2
+    },
+    {
+      "id": "workbench.pack.judge-profile",
+      "version": 2
+    },
+    {
+      "id": "workbench.pack.voice-style",
+      "version": 2
+    },
+    {
+      "id": "workbench.pack.canonical-authority",
+      "version": 1
+    },
+    {
+      "id": "workbench.pack.structured-disposition",
+      "version": 1
+    },
+    {
+      "id": "workbench.pack.workflow-preconditions",
+      "version": 1
+    }
+  ],
+  "dependencies": [],
+  "blobs": [
+    {
+      "path": "objects/final-order.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 1163,
+      "sha256": "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366"
+    }
+  ],
+  "contents": [
+    {
+      "id": "example.argument.fictional",
+      "kind": "argument_config",
+      "schema_version": 2,
+      "path": "resources/argument-config.json",
+      "sha256": "8262b9770b4265f7643863d9f5c7dc7d341a505f0c60fd13f8bb3088bf7f366c"
+    },
+    {
+      "id": "example.authorities.fictional",
+      "kind": "authority_set",
+      "schema_version": 2,
+      "path": "resources/authority-set.json",
+      "sha256": "13c4d1d65e1fbc224b58de525147b7a9d25bd37e121b776cfc2c8f29dda5a791"
+    },
+    {
+      "id": "example.bench.fictional",
+      "kind": "bench_configuration",
+      "schema_version": 2,
+      "path": "resources/bench-configuration.json",
+      "sha256": "290b8cd172d839b93c919f4c56f19a336e761a49b2bdbb242b49bb4d0ac5c868"
+    },
+    {
+      "id": "example.case.fictional",
+      "kind": "case",
+      "schema_version": 2,
+      "path": "resources/case.json",
+      "sha256": "cb3142b2f386fec0d71602a2a416a0ec4e0625ab83cf1659a01230d10b44eb5b"
+    },
+    {
+      "id": "example.court.fictional",
+      "kind": "court",
+      "schema_version": 2,
+      "path": "resources/court.json",
+      "sha256": "cea386ca372d37389b25d74e04a5ab94fadc2614710ddddff2d410e3ebcb6b1b"
+    },
+    {
+      "id": "example.catalog.fictional",
+      "kind": "filing_catalog",
+      "schema_version": 2,
+      "path": "resources/filing-catalog.json",
+      "sha256": "d3dc9d927398522249231ba5b28b90dbb4e32ad288c0d8afb49a64449f9b1a2f"
+    },
+    {
+      "id": "example.form.notice",
+      "kind": "form",
+      "schema_version": 2,
+      "path": "resources/form.json",
+      "sha256": "942055d142755b8cd67fad9ddafdbcb8f29252e9da6ce016afe19087d35ca4b8"
+    },
+    {
+      "id": "example.judge.fictional",
+      "kind": "judge_profile",
+      "schema_version": 2,
+      "path": "resources/judge-profile.json",
+      "sha256": "31af3ab9b4250814e8f04af9fdc211e2f46a22f0d7f7290a6e53a8b1a6fcc3b7"
+    },
+    {
+      "id": "example.procedure.fictional",
+      "kind": "procedure_profile",
+      "schema_version": 2,
+      "path": "resources/procedure-profile.json",
+      "sha256": "c4b127feffcc4ab508330ec3f778e4419d38361964380998cd998077df2de832"
+    },
+    {
+      "id": "example.review.fictional",
+      "kind": "realism_review",
+      "schema_version": 2,
+      "path": "resources/realism-review.json",
+      "sha256": "5e1afa61a9a6f1a6cd01e76615cbe6d0ec5794bc7b79859deae4aa80b38532dc"
+    },
+    {
+      "id": "example.record.fictional",
+      "kind": "record",
+      "schema_version": 2,
+      "path": "resources/record.json",
+      "sha256": "72f766bdb25ecb63d779110adebf6c23f96fee56b5f50d1ce66d4bd2ebbe1607"
+    },
+    {
+      "id": "example.workflow.fictional",
+      "kind": "workflow",
+      "schema_version": 2,
+      "path": "resources/workflow.json",
+      "sha256": "1dadbffdb7abff7553d7ed1ce2a8d52c3b7a030950b705813da63fd5d969e1a8"
+    }
+  ]
+}

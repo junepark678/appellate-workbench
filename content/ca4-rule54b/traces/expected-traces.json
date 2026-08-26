@@ -1,0 +1,218 @@
+{
+  "format": "appellate-workbench-expected-traces",
+  "format_version": 1,
+  "case_id": "ca4r54b.case.asterglen",
+  "authority_set_id": "ca4r54b.authorities.2026-08-11",
+  "as_of": "2026-08-11",
+  "date_convention": "Exclude trigger day, count calendar days, and roll a weekend or legal-holiday last day under FRAP 26(a). Dates assume electronic service and no order changing time.",
+  "authored_trace_id": "ca4r54b.trace.authored-missing-express-determination",
+  "traces": [
+    {
+      "trace_id": "ca4r54b.trace.authored-missing-express-determination",
+      "kind": "authored-adverse",
+      "predicate": {
+        "private_civil_parties": true,
+        "partial_claim_disposed_with_prejudice": true,
+        "separate_partial_judgment_entered": "2026-02-04",
+        "rule54b_motion_granted": true,
+        "express_no_just_reason_determination_in_order_or_judgment": false,
+        "tolling_motion": false,
+        "extension_or_reopening": false
+      },
+      "steps": [
+        {
+          "sequence": 1,
+          "event": "calculate_notice_deadline",
+          "trigger": "separate partial judgment entered 2026-02-04",
+          "result": "ordinary deadline 2026-03-06",
+          "authority_ids": ["ca4r54b.authority.usc-2107a", "ca4r54b.authority.frap-4a1", "ca4r54b.authority.frap-26a"]
+        },
+        {
+          "sequence": 2,
+          "event": "notice_filed",
+          "date": "2026-03-03",
+          "result": "timely notice; timeliness does not establish finality",
+          "authority_ids": ["ca4r54b.authority.frap-3", "ca4r54b.authority.frap-4a1", "ca4r54b.authority.usc-2107a"]
+        },
+        {
+          "sequence": 3,
+          "event": "appeal_docketed",
+          "date": "2026-03-05",
+          "result": "docket under district caption and identify Asterglen as appellant",
+          "authority_ids": ["ca4r54b.authority.frap-12"]
+        },
+        {
+          "sequence": 4,
+          "event": "initial_documents_filed",
+          "date": "2026-03-16",
+          "result": "docketing statement and no-transcript certification timely; transcript certification also precedes 2026-03-17 notice-triggered date",
+          "authority_ids": ["ca4r54b.authority.loc-r-3b", "ca4r54b.authority.initial-documents", "ca4r54b.authority.frap-10", "ca4r54b.authority.frap-26a"]
+        },
+        {
+          "sequence": 5,
+          "event": "record_complete_and_briefing_order",
+          "dates": ["2026-03-20", "2026-03-23"],
+          "result": "written record complete; ordinary civil briefing path opens",
+          "authority_ids": ["ca4r54b.authority.frap-10", "ca4r54b.authority.frap-31"]
+        },
+        {
+          "sequence": 6,
+          "event": "opening_brief_and_appendix_filed",
+          "date": "2026-04-29",
+          "result": "filed on the ordinary 40-day deadline measured from the 2026-03-20 record filing; intended appendix continuously paginated JA1-JA47",
+          "authority_ids": ["ca4r54b.authority.frap-31", "ca4r54b.authority.frap-26a", "ca4r54b.authority.frap-30", "ca4r54b.authority.ja-pagination"]
+        },
+        {
+          "sequence": 7,
+          "event": "response_brief_filed",
+          "date": "2026-05-08",
+          "result": "within 30 days after electronic service of opening brief",
+          "authority_ids": ["ca4r54b.authority.frap-31", "ca4r54b.authority.frap-26a"]
+        },
+        {
+          "sequence": 8,
+          "event": "submitted_without_oral_argument",
+          "date": "2026-06-03",
+          "result": "unanimous composite panel uses briefs because the threshold issue is authoritatively addressed and argument would not significantly aid decision",
+          "authority_ids": ["ca4r54b.authority.frap-34"]
+        },
+        {
+          "sequence": 9,
+          "event": "judgment_entered",
+          "date": "2026-06-08",
+          "result": "dismiss appeal for lack of jurisdiction and remand; do not vacate or reach the January 12 merits order",
+          "authority_ids": ["ca4r54b.authority.usc-1291", "ca4r54b.authority.frcp-54b", "ca4r54b.authority.kinsale", "ca4r54b.authority.mcpherson", "ca4r54b.authority.frap-36"]
+        },
+        {
+          "sequence": 10,
+          "event": "rehearing_period_expires",
+          "date": "2026-06-22",
+          "result": "no petition filed in the 14-day private civil period",
+          "authority_ids": ["ca4r54b.authority.frap-40", "ca4r54b.authority.frap-26a"]
+        },
+        {
+          "sequence": 11,
+          "event": "mandate_issues",
+          "date": "2026-06-29",
+          "result": "certified judgment, opinion, and costs direction issue and become effective seven days after rehearing time expires",
+          "authority_ids": ["ca4r54b.authority.frap-41", "ca4r54b.authority.frap-40", "ca4r54b.authority.frap-26a"]
+        }
+      ],
+      "terminal_state": "dismissed-remanded-mandate-issued",
+      "uncertainty": "McPherson is unpublished and nonbinding, but the authored omission directly violates Rule 54(b)'s express textual condition and published Kinsale supplies the governing two-step framework."
+    },
+    {
+      "trace_id": "ca4r54b.trace.valid-supported-certification",
+      "kind": "counterfactual-favorable-jurisdiction-gate",
+      "predicate": {
+        "ultimate_disposition_of_individual_claim": true,
+        "separate_partial_judgment": true,
+        "express_no_just_reason_determination": true,
+        "case_specific_findings_address_claim_relationship_mootness_repeat_review_setoff_and_equities": true,
+        "certification_within_discretion": true,
+        "timely_notice": true
+      },
+      "expected_path": [
+        {"event": "notice_through_briefing", "result": "same initiation, record, and briefing rules as authored trace", "authority_ids": ["ca4r54b.authority.frap-3", "ca4r54b.authority.frap-4a1", "ca4r54b.authority.frap-10", "ca4r54b.authority.frap-12", "ca4r54b.authority.frap-31"]},
+        {"event": "jurisdiction_gate", "result": "Rule 54(b) finality may permit section 1291 review; the court still evaluates the district court's certification for abuse of discretion", "authority_ids": ["ca4r54b.authority.usc-1291", "ca4r54b.authority.frcp-54b", "ca4r54b.authority.kinsale"]},
+        {"event": "merits_disposition", "result": "reach the designated merits issue; no affirm/reverse result is precommitted because the substantive merits are not controlled by the finality authorities", "authority_ids": ["ca4r54b.authority.frap-36"]},
+        {"event": "post_judgment", "result": "calculate rehearing and mandate from the actual judgment and any amended decision, petition, stay motion, or modifying order", "authority_ids": ["ca4r54b.authority.frap-40", "ca4r54b.authority.frap-41", "ca4r54b.authority.frap-26a"]}
+      ],
+      "terminal_state": "mandate-issued-after-merits-judgment",
+      "uncertainty": "An express formula alone does not establish that certification is within discretion. Kinsale requires a case-specific record, and intertwined claims or contestants remaining below may still supply just reason for delay."
+    },
+    {
+      "trace_id": "ca4r54b.trace.express-words-no-findings",
+      "kind": "adverse-certification-review",
+      "predicate": {
+        "express_no_just_reason_determination": true,
+        "case_specific_findings": false,
+        "timely_notice": true
+      },
+      "expected_path": [
+        {"event": "notice_through-submission", "result": "proceeds subject to jurisdiction review", "authority_ids": ["ca4r54b.authority.frap-3", "ca4r54b.authority.frap-4a1", "ca4r54b.authority.usc-1291"]},
+        {"event": "certification_review", "result": "normal deference is nullified; court evaluates whether certification exceeded discretion in light of the case-specific record", "authority_ids": ["ca4r54b.authority.kinsale", "ca4r54b.authority.frcp-54b"]},
+        {"event": "judgment", "result": "outcome is not deterministic from omitted findings alone; if certification is legally unsound, dismiss and remand without reaching merits", "authority_ids": ["ca4r54b.authority.kinsale", "ca4r54b.authority.frap-36"]},
+        {"event": "mandate", "result": "follow Rule 40 and the later-of rule in Rule 41 from the actual judgment and intervening filings", "authority_ids": ["ca4r54b.authority.frap-40", "ca4r54b.authority.frap-41"]}
+      ],
+      "terminal_state": "branch-on-certification-discretion",
+      "uncertainty": "Kinsale makes missing reasoning consequential but does not make every sparse certification automatically jurisdictionally defective on every record."
+    },
+    {
+      "trace_id": "ca4r54b.trace.motion-denied-or-no-rule54-order",
+      "kind": "adverse-finality",
+      "predicate": {
+        "fewer_than_all_claims_resolved": true,
+        "rule54b_certification": false,
+        "other_immediate_appeal_basis": false,
+        "notice_filed": true
+      },
+      "expected_path": [
+        {"event": "docket_and-jurisdiction-review", "result": "docketing does not create finality", "authority_ids": ["ca4r54b.authority.frap-12", "ca4r54b.authority.usc-1291"]},
+        {"event": "judgment", "result": "dismiss for lack of a final decision and remand; do not reach merits", "authority_ids": ["ca4r54b.authority.frcp-54b", "ca4r54b.authority.usc-1291", "ca4r54b.authority.kinsale", "ca4r54b.authority.frap-36"]},
+        {"event": "mandate", "result": "issue from dismissal judgment under Rules 40 and 41", "authority_ids": ["ca4r54b.authority.frap-40", "ca4r54b.authority.frap-41"]}
+      ],
+      "terminal_state": "dismissed-remanded-mandate-issued",
+      "uncertainty": "This trace assumes no section 1292, collateral-order, or other statutory route; those routes require separate predicates and authorities."
+    },
+    {
+      "trace_id": "ca4r54b.trace.untimely-notice-no-relief",
+      "kind": "adverse-notice-timing",
+      "predicate": {
+        "judgment_entered": "2026-02-04",
+        "ordinary_notice_deadline": "2026-03-06",
+        "notice_filed_after": "2026-03-06",
+        "federal_party": false,
+        "timely_tolling_motion": false,
+        "extension_or_reopening_order": false
+      },
+      "expected_path": [
+        {"event": "notice_received", "result": "late notice cannot invoke appellate jurisdiction on assumed facts", "authority_ids": ["ca4r54b.authority.usc-2107a", "ca4r54b.authority.frap-4a1", "ca4r54b.authority.civil-deadline-jurisdictional"]},
+        {"event": "judgment", "result": "dismiss for untimely civil notice without reaching Rule 54(b) or contract merits", "authority_ids": ["ca4r54b.authority.usc-2107a", "ca4r54b.authority.civil-deadline-jurisdictional", "ca4r54b.authority.frap-36"]},
+        {"event": "mandate", "result": "issue after the actual rehearing period and Rule 41 later-of calculation", "authority_ids": ["ca4r54b.authority.frap-40", "ca4r54b.authority.frap-41"]}
+      ],
+      "terminal_state": "dismissed-as-untimely-mandate-issued",
+      "uncertainty": "A real trace must separately test FRAP 4(a)(4), 4(a)(5), 4(a)(6), federal-party status, and Rule 4(a)(7) entry; this branch assumes all are absent."
+    },
+    {
+      "trace_id": "ca4r54b.trace.timely-rehearing-petition",
+      "kind": "post-judgment-delay",
+      "predicate": {
+        "judgment_entered": "2026-06-08",
+        "petition_filed_by": "2026-06-22",
+        "petition_timely": true,
+        "petition_denied_example_date": "2026-07-01",
+        "stay_motion": false
+      },
+      "expected_path": [
+        {"event": "petition_accepted", "result": "timely under the 14-day private civil period", "authority_ids": ["ca4r54b.authority.frap-40", "ca4r54b.authority.frap-26a"]},
+        {"event": "mandate_held", "result": "mandate does not issue on the no-petition date", "authority_ids": ["ca4r54b.authority.frap-41"]},
+        {"event": "petition_denied", "date": "2026-07-01", "result": "new Rule 41 trigger", "authority_ids": ["ca4r54b.authority.frap-41"]},
+        {"event": "mandate_issues", "date": "2026-07-08", "result": "seven days after denial, absent another later trigger or modifying order", "authority_ids": ["ca4r54b.authority.frap-41", "ca4r54b.authority.frap-26a"]}
+      ],
+      "terminal_state": "mandate-issued-after-rehearing-denial",
+      "uncertainty": "If rehearing is granted or the decision amended, Rule 40 and Rule 41 calculations restart from the actual new events; this example does not model that grant branch."
+    },
+    {
+      "trace_id": "ca4r54b.trace.stay-motion",
+      "kind": "post-judgment-delay",
+      "predicate": {
+        "timely_stay_motion": true,
+        "stay_motion_denied_example_date": "2026-07-10",
+        "later_rehearing_trigger": false
+      },
+      "expected_path": [
+        {"event": "mandate_held", "result": "Rule 41 uses the later applicable trigger while the timely stay motion remains unresolved", "authority_ids": ["ca4r54b.authority.frap-41"]},
+        {"event": "stay_denied", "date": "2026-07-10", "result": "denial supplies example later trigger", "authority_ids": ["ca4r54b.authority.frap-41"]},
+        {"event": "mandate_issues", "date": "2026-07-17", "result": "seven days after denial, absent a court order or later trigger", "authority_ids": ["ca4r54b.authority.frap-41", "ca4r54b.authority.frap-26a"]}
+      ],
+      "terminal_state": "mandate-issued-after-stay-denial",
+      "uncertainty": "A granted stay is controlled by the order and Rule 41(d); no fixed issuance date can be inferred without that order and any certiorari events."
+    }
+  ],
+  "global_uncertainty": [
+    "Trace predicates must be evaluated from entered judicial text and docket events; a party's requested finding is not treated as the court's finding.",
+    "No branch asserts that every Rule 54(b) certification involving overlapping claims is invalid.",
+    "The current resource workflow cannot express these predicates, alternative statutory bases, later-of triggers, or tolling events; this trace format is authoring evidence only."
+  ]
+}

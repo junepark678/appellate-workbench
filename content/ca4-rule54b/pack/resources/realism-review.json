@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "resource_kind": "realism_review",
+  "resource_id": "ca4r54b.review.authoring-2026-08-11",
+  "case_id": "ca4r54b.case.asterglen",
+  "review_state": "independent_review_pending",
+  "reviewed_on": "2026-08-11",
+  "reviewer_reference": "Author self-review by the repository maintainer; evidence: content/ca4-rule54b/sources/SOURCE_NOTES.md, traces/expected-traces.json, VALIDATION.md, and tests/integration/tst_gold_case_trace.cpp.",
+  "dimensions": {
+    "procedural_law": 2,
+    "deadlines_authority": 2,
+    "record_consistency": 2,
+    "consequences": 2,
+    "oral_argument": 2,
+    "bench_differentiation": 2,
+    "provenance": 2
+  },
+  "known_uncertainty": [
+    "No independent qualified reviewer has reviewed this revision; no dimension claims level 3.",
+    "The authored court decides on the briefs; the argument configuration is explicitly counterfactual training, not a docket event.",
+    "Bench profiles are fictional composites; deterministic engine tests prove distinct phrasing and turn-taking without modeling any real person.",
+    "The installed record contains 18 verified PDFs and 124 searchable pages, separates the synthetic district and appellate dockets, preserves their actual exercise ECF labels and filing metadata, and supplies stable JA1–JA47 page anchors; this remains authoring and automated-test evidence pending independent review.",
+    "The pack is manifest-governed and distributable, but QPdfWriter embeds wall-clock metadata; the semantic render plan is reproducible while emitted PDF bytes are pinned artifacts rather than cross-run deterministic output.",
+    "Only the response-brief deadline is currently enforced by a filing route; other direct court-calculated deadlines are recorded and replayed but are not yet linked to filing eligibility.",
+    "Transcript-order and rehearing-petition forms are available but are not executable filing routes; appearance/disclosure, reply briefing, tolling, extension, reopening, and conditional Rule 41 logic remain outside this pack revision.",
+    "The Rule 54(b) dismissal is an authored disposition, not a general predicate evaluator for finality or abuse-of-discretion branches.",
+    "McPherson is an unpublished, nonbinding disposition; binding grounding is Rule 54(b), 28 U.S.C. § 1291, and published Kinsale.",
+    "The Rule 54(b) abuse-of-discretion inquiry and the separateness of claims remain fact-specific; alternate supported-certification traces are expectations, not assertions about every case."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.docketing-statement",
+  "filing_id": "us.ca4.filing.docketing-statement", "title": "Docketing Statement",
+  "fields": [
+    {"field_id": "us.ca4.field.docketing.jurisdiction", "label": "Jurisdictional basis", "value_type": "authority_citation", "required": true},
+    {"field_id": "us.ca4.field.docketing.issues", "label": "Issues expected to be raised", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.docketing.related-cases", "label": "Related cases", "value_type": "long_text", "required": true}
+  ]
+}

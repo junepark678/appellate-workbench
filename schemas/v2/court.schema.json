@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v2/court.schema.json",
+  "title": "Court and calendar definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "resource_kind",
+    "resource_id",
+    "jurisdiction_id",
+    "name",
+    "court_role",
+    "authority_set_ids",
+    "holidays"
+  ],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "resource_kind": { "const": "court" },
+    "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "jurisdiction_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+    "court_role": { "enum": ["district", "appellate"] },
+    "authority_set_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+    },
+    "holidays": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 4096,
+      "items": { "type": "string", "format": "date" }
+    }
+  }
+}

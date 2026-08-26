@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v2/common.schema.json",
+  "$defs": {
+    "namespaced_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)+(?:[-.][a-z0-9]+)*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "portable_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^[a-z0-9](?:[a-z0-9._-]*[a-z0-9_-])?(?:/[a-z0-9](?:[a-z0-9._-]*[a-z0-9_-])?)*$"
+    },
+    "pack_version": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128,
+      "pattern": "^(?:(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?|[2-9][0-9]{3}\\.(?:0[1-9]|1[0-2])\\.(?:0[1-9]|[12][0-9]|3[01]))$",
+      "format": "appellate-pack-version-v2"
+    },
+    "unit_interval": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "nonempty_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "canonical_authority_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "canonical_authority_locator": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "canonical_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority_id",
+        "authority_type",
+        "jurisdiction_id",
+        "issuing_body_id",
+        "precedential_status",
+        "official_source",
+        "citation",
+        "source_version",
+        "checked_on",
+        "locator",
+        "source_url",
+        "proposition"
+      ],
+      "properties": {
+        "authority_id": { "$ref": "#/$defs/namespaced_id" },
+        "authority_type": {
+          "enum": [
+            "constitution",
+            "statute",
+            "rule",
+            "regulation",
+            "case",
+            "order",
+            "administrative_decision",
+            "other"
+          ]
+        },
+        "jurisdiction_id": { "$ref": "#/$defs/namespaced_id" },
+        "issuing_body_id": { "$ref": "#/$defs/namespaced_id" },
+        "precedential_status": {
+          "enum": ["not_applicable", "precedential", "nonprecedential"]
+        },
+        "official_source": { "type": "boolean" },
+        "citation": { "$ref": "#/$defs/canonical_authority_text" },
+        "source_version": { "type": "string", "format": "date" },
+        "checked_on": { "type": "string", "format": "date" },
+        "locator": { "$ref": "#/$defs/canonical_authority_locator" },
+        "source_url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048,
+          "pattern": "^https://[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?:[/?][^#]*)?$"
+        },
+        "proposition": { "$ref": "#/$defs/canonical_authority_text" }
+      }
+    },
+    "authority_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_authority_id", "supporting_authority_ids"],
+      "properties": {
+        "primary_authority_id": { "$ref": "#/$defs/namespaced_id" },
+        "supporting_authority_ids": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/namespaced_id" }
+        }
+      }
+    }
+  }
+}

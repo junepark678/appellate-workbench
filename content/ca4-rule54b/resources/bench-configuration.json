@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "resource_kind": "bench_configuration",
+  "resource_id": "ca4r54b.bench.composite-three",
+  "court_id": "ca4r54b.court.ca4",
+  "presiding_seat_id": "ca4r54b.seat.alder",
+  "seats": [
+    {"seat_id": "ca4r54b.seat.alder", "profile_id": "ca4r54b.judge.composite-alder", "court_role": "appellate"},
+    {"seat_id": "ca4r54b.seat.rowan", "profile_id": "ca4r54b.judge.composite-rowan", "court_role": "appellate"},
+    {"seat_id": "ca4r54b.seat.vale", "profile_id": "ca4r54b.judge.composite-vale", "court_role": "appellate"}
+  ]
+}

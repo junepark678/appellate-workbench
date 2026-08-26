@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "resource_kind": "case",
+  "resource_id": "example.case.fictional",
+  "title": "Example Appellant v. Example Appellee",
+  "procedure_profile_id": "example.procedure.fictional",
+  "record_id": "example.record.fictional",
+  "actors": [
+    {
+      "actor_id": "example.actor.appellant",
+      "role_id": "example.role.appellant",
+      "display_name": "Example Appellant",
+      "synthetic": true
+    },
+    {
+      "actor_id": "example.actor.appellee",
+      "role_id": "example.role.appellee",
+      "display_name": "Example Appellee",
+      "synthetic": true
+    },
+    {
+      "actor_id": "example.actor.court",
+      "role_id": "example.role.court",
+      "display_name": "Fictional Court",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "example.issue.preservation",
+      "title": "Whether the issue was preserved",
+      "authority_ids": ["example.authority.rule-one"],
+      "record_anchor_ids": ["example.record.entry-one", "example.record.anchor.ja2"]
+    }
+  ],
+  "authored_disposition_id": "example.operation.issue-judgment"
+}

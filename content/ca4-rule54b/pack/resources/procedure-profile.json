@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "resource_kind": "procedure_profile",
+  "resource_id": "ca4r54b.procedure.civil-appeal",
+  "court_id": "ca4r54b.court.ca4",
+  "proceeding_type": "civil_appeal",
+  "actor_roles": [
+    "ca4r54b.role.appellant",
+    "ca4r54b.role.appellee",
+    "ca4r54b.role.court"
+  ],
+  "filing_catalog_id": "ca4r54b.catalog.civil-appeal",
+  "workflow_id": "ca4r54b.workflow.civil-rule54b",
+  "authority_set_ids": ["ca4r54b.authorities.2026-08-11"]
+}

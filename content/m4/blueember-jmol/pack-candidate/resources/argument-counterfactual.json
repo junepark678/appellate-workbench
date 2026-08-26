@@ -1,0 +1,371 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.blueember.argument.preserved-counterfactual",
+  "case_id": "ca4m4.case.blueember-jmol",
+  "bench_configuration_id": "ca4m4.blueember.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.blueember.issue.rule50-renewal-boundary",
+    "ca4m4.blueember.issue.conditional-rule59-new-trial",
+    "ca4m4.blueember.issue.partial-new-trial-scope",
+    "ca4m4.blueember.issue.rule50c-appellate-relief"
+  ],
+  "grounded_question_bank": {
+    "mode": "counterfactual_training",
+    "grounding_digest": "b9260ac4bb7d70ebea11970a791635dc3e49df92ccbe572360d49adbfc97d733",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
+        "topic_ids": [
+          "workbench.topic.preservation",
+          "workbench.topic.record-support",
+          "workbench.topic.merits"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.blueember.issue.conditional-rule59-new-trial",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.standard-of-review",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.blueember.issue.partial-new-trial-scope",
+        "topic_ids": [
+          "workbench.topic.standard-of-review",
+          "workbench.topic.record-support",
+          "workbench.topic.remedy"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.blueember.issue.rule50c-appellate-relief",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-renewal-preservation",
+        "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
+        "topic_id": "workbench.topic.preservation",
+        "prompt": "What exact never-occurred language at PA109-PA110 expressly places the Cobalt Finch slot and $1.5 million mitigation reduction in both assumed Rule 50(a) motions?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-preservation-rule50",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-preservation-pa109",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa109"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-preservation-pa110",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa110"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-renewal-record",
+        "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "How does the synthetic premise document Blue Ember's opportunity to answer or seek reopening, while making clear that PA109-PA112 neither changes JA373-JA382 nor occurred on the actual docket?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-record-price",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.price-same-ground"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-record-pa111",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa111"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-record-pa112",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa112"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-renewal-merits",
+        "issue_id": "ca4m4.blueember.issue.rule50-renewal-boundary",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "On the expressly preserved premise, why could the panel conclude that no reasonable jury could retain more than a $2.7 million award after the Cobalt Finch evidence and North Carolina mitigation burden are applied?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-merits-thermal",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.thermal-design-mitigation-burden"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-merits-clark",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.clark-mitigation-defense"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-merits-ja352",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja352"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-merits-ja358",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja358"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-merits-ja368",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja368"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-renewal-merits-pa169",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa169"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-rule59-authority",
+        "issue_id": "ca4m4.blueember.issue.conditional-rule59-new-trial",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "What does Rule 50(c) require the district court to do when it grants JMOL, and why does that conditional ruling remain legally present even when the preserved JMOL is affirmed?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-rule59-authority-rule50",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-rule59-authority-ja418",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja418"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-rule59-authority-pa170",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa170"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-rule59-standard",
+        "issue_id": "ca4m4.blueember.issue.conditional-rule59-new-trial",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "If the panel had needed to reach the conditional Rule 59 ruling, what clear-weight and abuse-of-discretion standards would Atlas supply?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-rule59-standard-rule59",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.frcp-59-new-trial"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-rule59-standard-atlas",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.atlas-rule59-and-partial-retrial"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-rule59-standard-ja420",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja420"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-rule59-consequence",
+        "issue_id": "ca4m4.blueember.issue.conditional-rule59-new-trial",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "Why does affirmance of preserved mitigation JMOL leave the conditional new-trial ruling dormant rather than activate it, vacate it, or decide whether it was an abuse of discretion?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-rule59-consequence-rule50",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-rule59-consequence-pa170",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa170"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-rule59-consequence-pa171",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa171"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-scope-standard",
+        "issue_id": "ca4m4.blueember.issue.partial-new-trial-scope",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "What distinct-and-separable standard would govern a damages-only retrial if Rule 50(c)(2) activated the conditional ruling, notwithstanding that the counterfactual opinion does not reach it?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-standard-atlas",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.atlas-rule59-and-partial-retrial"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-standard-rice",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.rice-separable-damages-retrial"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-standard-ja418",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja418"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-scope-record",
+        "issue_id": "ca4m4.blueember.issue.partial-new-trial-scope",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Which verdict and posttrial pages identify gross damages and mitigation separately from liability and causation, even though no retrial occurs on the preserved counterfactual path?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-record-rice",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.rice-separable-damages-retrial"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-record-ja383",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja383"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-record-ja418",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja418"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-record-pa171",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa171"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-scope-remedy",
+        "issue_id": "ca4m4.blueember.issue.partial-new-trial-scope",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why must the counterfactual disposition omit the damages-only-retrial target instead of purporting to affirm, reverse, or vacate a conditional issue the opinion expressly does not reach?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-remedy-rule50",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-remedy-pa171",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa171"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-scope-remedy-pa174",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa174"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-relief-jurisdiction",
+        "issue_id": "ca4m4.blueember.issue.rule50c-appellate-relief",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Why does the panel retain final-decision jurisdiction over the same December 15 amended judgment when the training premise changes preservation but does not create a second real district-court judgment?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-jurisdiction-1291",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.section-1291-final-judgment"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-jurisdiction-ja421",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja421"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-jurisdiction-ja422",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.ja422"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-jurisdiction-pa175",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa175"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-relief-remedy",
+        "issue_id": "ca4m4.blueember.issue.rule50c-appellate-relief",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why does the express Rule 50(a) mitigation ground at PA109-PA112 avoid the distinct-basis defect identified in Plyler, while Wiener permits imperfect alignment only between that same Rule 50(b) issue and appellate theory, yielding affirmance of mitigation JMOL and the $2.7 million amended judgment without remand?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-remedy-rule50",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-remedy-plyler",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.plyler-distinct-basis"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-remedy-wiener",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.wiener-same-issue"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-remedy-pa171",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa171"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-remedy-pa174",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa174"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-remedy-pa176",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa176"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.blueember.question.counterfactual-relief-consequence",
+        "issue_id": "ca4m4.blueember.issue.rule50c-appellate-relief",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "What safeguards prevent the never-filed PA109-PA176 branch from being mistaken for the actual appeal, and what judgment would remain operative in the hypothetical after mandate?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-consequence-rule50",
+            "kind": "authority",
+            "authority_id": "ca4m4.blueember.authority.frcp-50-renewal-and-conditional-ruling"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-consequence-pa109",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa109"
+          },
+          {
+            "grounding_id": "ca4m4.blueember.grounding.counterfactual-relief-consequence-pa176",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.blueember.anchor.pa176"
+          }
+        ]
+      }
+    ]
+  }
+}

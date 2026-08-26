@@ -1,0 +1,487 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.cinder.argument.actual-record",
+  "case_id": "ca4m4.case.cinderlake-writ",
+  "bench_configuration_id": "ca4m4.cinder.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.cinder.issue.mandamus-threshold",
+    "ca4m4.cinder.issue.categorical-subject-matter-waiver",
+    "ca4m4.cinder.issue.seven-day-production",
+    "ca4m4.cinder.issue.related-discovery-scope"
+  ],
+  "grounded_question_bank": {
+    "mode": "actual_record",
+    "grounding_digest": "6800db5538c47b4a2940dec743e30bd463986e9f741944b639e7446f3451ce0d",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.governing-authority",
+          "workbench.topic.practical-consequences",
+          "workbench.topic.remedy"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.cinder.issue.categorical-subject-matter-waiver",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.merits",
+          "workbench.topic.practical-consequences",
+          "workbench.topic.preservation"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.cinder.issue.seven-day-production",
+        "topic_ids": [
+          "workbench.topic.practical-consequences",
+          "workbench.topic.remedy",
+          "workbench.topic.merits",
+          "workbench.topic.governing-authority"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.cinder.issue.related-discovery-scope",
+        "topic_ids": [
+          "workbench.topic.merits",
+          "workbench.topic.practical-consequences",
+          "workbench.topic.remedy",
+          "workbench.topic.governing-authority"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.cinder.question.actual-threshold-no-adequate-means",
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Why is ordinary postjudgment review inadequate before the April 1 production deadline, given Mohawk's usual rule and Fluor's narrow persuasive treatment of compelled privilege disclosure?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-no-adequate-mohawk",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.mohawk-privilege-review"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-no-adequate-fluor",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.fluor-privilege-mandamus"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-no-adequate-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja144"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-no-adequate-petition",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.stable.actual-petition-irreparable-disclosure"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-threshold-clear-right",
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "What makes Cinder Lake's asserted right clear and indisputable rather than merely debatable when the letter announces conclusions and remediation but does not reveal counsel's communication?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-clear-cheney",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.cheney-three-part-mandamus"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-clear-sky-angel",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.sky-angel-rule502-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-clear-letter",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja50"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-clear-analysis",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-waiver-analysis"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-threshold-appropriate",
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "Why is a writ appropriate after reconsideration and a district stay were denied but the court of appeals preserved the status quo before disclosure?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-appropriate-murphy",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.murphy-brown-mandamus"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-appropriate-district-denial",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja186"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-appropriate-interim-stay",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa90"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-threshold-remedy-line",
+        "issue_id": "ca4m4.cinder.issue.mandamus-threshold",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "How can the panel grant the writ only as to categorical waiver and compelled production while denying the requested blanket bar on related discovery?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-remedy-all-writs",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.usc-1651-all-writs"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-remedy-reconsideration",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja152"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-threshold-remedy-opinion",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa132"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-waiver-disclosure-predicate",
+        "issue_id": "ca4m4.cinder.issue.categorical-subject-matter-waiver",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Under Rule 502(a) and Sky Angel, what privileged communication or information did the August 21 letter intentionally disclose before any same-subject or fairness inquiry can begin?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-predicate-rule502",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.fre-502-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-predicate-sky-angel",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.sky-angel-rule502-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-predicate-letter",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja50"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-predicate-petition",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.stable.actual-petition-waiver-statement"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-waiver-communications-facts",
+        "issue_id": "ca4m4.cinder.issue.categorical-subject-matter-waiver",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "How does Upjohn's distinction between protected communications and discoverable underlying facts apply to the investigation sources, chronology, and general remedial steps described here?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-communications-upjohn",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.upjohn-corporate-privilege"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-communications-sources",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-source-communications"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-communications-chronology",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja43"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-waiver-hawkins-limit",
+        "issue_id": "ca4m4.cinder.issue.categorical-subject-matter-waiver",
+        "topic_id": "workbench.topic.preservation",
+        "prompt": "What does Hawkins establish about the proponent's burden and actual disclosure, and why can that pre-Rule-502 decision not carry the district court's categorical subject-matter ruling?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-hawkins-case",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.hawkins-privilege-burden-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-hawkins-rule502",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.fre-502-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-hawkins-log",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log-categories"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-hawkins-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja144"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-waiver-rule502d-timing",
+        "issue_id": "ca4m4.cinder.issue.categorical-subject-matter-waiver",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "What does the January 9 Rule 502(d) order protect, and why does neither side claim that it retroactively changes whether the pre-suit August 21 letter disclosed privileged content?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-rule502d-authority",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.fre-502-waiver"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-rule502d-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja37"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-rule502d-letter",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja50"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-waiver-rule502d-opinion",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa134"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-production-postjudgment",
+        "issue_id": "ca4m4.cinder.issue.seven-day-production",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "Why would compliance on April 1 destroy the confidentiality interest before an ordinary appeal, and how does the exact seven-day order compare with Fluor without making Fluor binding?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-postjudgment-mohawk",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.mohawk-privilege-review"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-postjudgment-fluor",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.fluor-privilege-mandamus"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-postjudgment-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja144"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-postjudgment-petition",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.stable.actual-petition-irreparable-disclosure"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-production-document-review",
+        "issue_id": "ca4m4.cinder.issue.seven-day-production",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Which Rule 26 privilege and work-product questions remain document specific, and why may the court not compel the entire protected production—including the complete memorandum, twenty logged items, and attachments—solely from a categorical waiver premise?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-review-rule26",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.frcp-26-privilege"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-review-source",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.stable.lower-investigation-source-communications"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-review-log",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log-categories"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-review-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja144"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-production-seven-day-clock",
+        "issue_id": "ca4m4.cinder.issue.seven-day-production",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Which record documents establish the exact seven-day clock, the unsuccessful efforts to stay it, and the need for serialized emergency relief before merits briefing?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-clock-fluor",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.fluor-privilege-mandamus"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-clock-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja144"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-clock-denial",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja186"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-clock-motion",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa76"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-production-remand",
+        "issue_id": "ca4m4.cinder.issue.seven-day-production",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why does vacating the production provision and remanding for document-specific review protect privilege without deciding every entry on the log in the first instance?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-remand-cheney",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.cheney-three-part-mandamus"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-remand-rule26",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.frcp-26-privilege"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-remand-reconsideration",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja152"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-production-remand-opinion",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa137"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-scope-underlying-facts",
+        "issue_id": "ca4m4.cinder.issue.related-discovery-scope",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Which underlying facts and nonprivileged sources remain discoverable under Upjohn and Rule 26 even if the privileged communications and protected work product remain withheld?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-facts-upjohn",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.upjohn-corporate-privilege"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-facts-rule26",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.frcp-26-privilege"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-facts-requests",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja95"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-facts-opposition",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja109"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-scope-compel-record",
+        "issue_id": "ca4m4.cinder.issue.related-discovery-scope",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "How do Rule 37 and Local Rules 7.1 and 26.1 confine the motion-to-compel dispute to identified requests, responses, conferral, and the expedited no-reply record?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-compel-rule37",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.frcp-37-motion-to-compel"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-compel-local7",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.ednc-lr7-1-discovery-motions"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-compel-local26",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.ednc-lr26-1-discovery"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-compel-motion",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja95"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-scope-no-blanket-bar",
+        "issue_id": "ca4m4.cinder.issue.related-discovery-scope",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why does correction of categorical waiver not entitle Cinder Lake to a blanket writ barring every related discovery request, and what remains for the district court on remand?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-no-bar-rule26",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.frcp-26-privilege"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-no-bar-order",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.ja144"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-no-bar-opinion",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa140"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.cinder.question.actual-scope-practical-boundary",
+        "issue_id": "ca4m4.cinder.issue.related-discovery-scope",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "In practical terms, what discovery may continue after final disposition, what must remain protected pending review, and why does the answer turn on document-specific analysis rather than topic labels?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-practical-upjohn",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.upjohn-corporate-privilege"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-practical-rule26",
+            "kind": "authority",
+            "authority_id": "ca4m4.cinder.authority.frcp-26-privilege"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-practical-log",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.stable.lower-privilege-log-categories"
+          },
+          {
+            "grounding_id": "ca4m4.cinder.grounding.actual-scope-practical-disposition",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.cinder.anchor.pa140"
+          }
+        ]
+      }
+    ]
+  }
+}

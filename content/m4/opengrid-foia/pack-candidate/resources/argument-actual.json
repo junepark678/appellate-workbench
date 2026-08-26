@@ -1,0 +1,376 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.opengrid.argument.actual-record",
+  "case_id": "ca4m4.case.opengrid-foia",
+  "bench_configuration_id": "ca4m4.opengrid.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+    "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+    "ca4m4.opengrid.issue.segregability",
+    "ca4m4.opengrid.issue.overbroad-sealing"
+  ],
+  "grounded_question_bank": {
+    "mode": "actual_record",
+    "grounding_digest": "bdbfefea95255ef6d323ce0baebf27a5bb0f93f73484cc68df1e6e5e59b1c23b",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.merits",
+          "workbench.topic.record-support"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+        "topic_ids": [
+          "workbench.topic.standard-of-review",
+          "workbench.topic.governing-authority",
+          "workbench.topic.record-support"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.opengrid.issue.segregability",
+        "topic_ids": [
+          "workbench.topic.merits",
+          "workbench.topic.record-support",
+          "workbench.topic.remedy"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.opengrid.question.actual-7e-purpose",
+        "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Why can a cyber-response playbook created to prevent, identify, and respond to unlawful attacks satisfy Exemption 7's law-enforcement-purpose threshold, and what limits remain under the text of 7(E)?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-purpose-foia",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-purpose-grey",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.grey-7e-techniques-guidelines"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-purpose-ja55",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.ja55"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-purpose-stable",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.primary-vaughn-law-enforcement-purpose"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-7e-technique",
+        "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Which portions of the operational decision tree are nonpublic implementation details of techniques or procedures, and why does Grey not require DOE to prove a separate risk of circumvention for those portions?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-technique-grey",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.grey-7e-techniques-guidelines"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-technique-trigger",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.decision-tree-trigger-sequence"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-technique-detail",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.decision-tree-operational-details"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-7e-record",
+        "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "What actual-record evidence distinguishes public knowledge of a general cyber-response technique from the withheld trigger order and implementation details that the panel affirms under 7(E)?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-record-grey",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.grey-7e-techniques-guidelines"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-record-opening",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.actual-opening-7e"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7e-record-pa133",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa133"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-7f-review",
+        "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "Under de novo FOIA review, what burden does DOE bear before categorical 7(F) withholding can be sustained, and what factual basis must the Vaughn record provide?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-review-zaid",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.zaid-categorical-proof"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-review-rein",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.rein-vaughn-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-review-pa136",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa136"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-7f-danger",
+        "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Why does 7(F) not require DOE to name a threatened individual, yet still require more than a generic assertion that every redacted playbook detail could endanger operators or the public?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-danger-epic",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.epic-7f-and-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-danger-peer",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.peer-critical-infrastructure"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-danger-category",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.primary-vaughn-7f-category"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-danger-matrix",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.escalation-matrix-7f"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-7f-vaughn",
+        "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Which actual Vaughn and in-camera assertions fail to connect meaningful functional categories to a particular expected safety harm, requiring vacatur rather than affirmance of categorical 7(F) withholding?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-vaughn-rein",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.rein-vaughn-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-vaughn-zaid",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.zaid-categorical-proof"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-vaughn-summary",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.doe-summary-7f"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-vaughn-camera",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.in-camera-categorical-assertion"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-7f-vaughn-pa138",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa138"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-segregability-rule",
+        "issue_id": "ca4m4.opengrid.issue.segregability",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "What separate segregability duty remains after the panel accepts some 7(E) withholding, and why are administrative headings and coordination text not automatically inseparable from protected operational details?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-rule-foia",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-rule-rein",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.rein-vaughn-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-rule-admin",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.playbook-admin-segregable"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-segregability-record",
+        "issue_id": "ca4m4.opengrid.issue.segregability",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Why do the supplemental declaration and Vaughn materials fail to establish a page-level line review, despite DOE's assertion that no additional nonexempt text can be released?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-record-rein",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.rein-vaughn-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-record-ja70",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.ja70"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-record-line",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.supplemental-vaughn-line-review"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-record-reply",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.open-grid-reply-segregability"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-segregability-remedy",
+        "issue_id": "ca4m4.opengrid.issue.segregability",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why does the disposition vacate the segregability ruling and remand for a supported line-by-line determination without ordering disclosure of details already sustained under 7(E)?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-remedy-foia",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-remedy-epic",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.epic-7f-and-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-segregability-remedy-pa143",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa143"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-sealing-jurisdiction",
+        "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Why does the final judgment permit appellate review of the sealing ruling, and what source-of-access, notice, alternatives, and findings framework governs that review?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-jurisdiction-1291",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.section-1291-final-judgment"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-jurisdiction-company",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.company-doe-sealing"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-jurisdiction-ja270",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.ja270"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-jurisdiction-ja243",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.ja243"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-sealing-remedy",
+        "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why must the district court's broad sealing order be vacated while document-specific interim appellate sealing remains available for material supported by particular findings and public redacted counterparts?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-remedy-dmd",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.dmd-local-rule-105-11-sealing"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-remedy-company",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.company-doe-sealing"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-remedy-ja243",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.ja243"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-remedy-pa119",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa119"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-remedy-pa148",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa148"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.actual-sealing-consequence",
+        "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "How do stable logical anchors, public-only default projection, session-scoped grants, revocation, and deferred CAS verification allow argument over paired filings without leaking a sealed asset or making authorization durable?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-consequence-lr25",
+            "kind": "authority",
+            "authority_id": "us.ca4.authority.local-rule-25c-sealed-materials"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-consequence-guide",
+            "kind": "authority",
+            "authority_id": "us.ca4.authority.sealed-materials-guide"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-consequence-appendix",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.actual-appendix-sealing"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.actual-sealing-consequence-pa19",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa19"
+          }
+        ]
+      }
+    ]
+  }
+}

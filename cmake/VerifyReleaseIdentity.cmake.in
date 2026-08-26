@@ -1,0 +1,261 @@
+function(_appellate_set_serialized_literal output encoded)
+    string(LENGTH "${encoded}" _encoded_length)
+    if(_encoded_length LESS 2)
+        message(FATAL_ERROR "Serialized CMake literal is missing its sentinels")
+    endif()
+    math(EXPR _decoded_length "${_encoded_length} - 2")
+    string(SUBSTRING "${encoded}" 1 "${_decoded_length}" _decoded)
+    set("${output}" "${_decoded}" PARENT_SCOPE)
+endfunction()
+
+_appellate_set_serialized_literal(_appellate_allow_development @APPELLATE_RELEASE_LITERAL_OPEN@x@APPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_expected_revision @APPELLATE_RELEASE_LITERAL_OPEN@x@APPELLATE_RELEASE_SOURCE_REVISION@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_expected_epoch @APPELLATE_RELEASE_LITERAL_OPEN@x@APPELLATE_RELEASE_SOURCE_EPOCH@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_project_version @APPELLATE_RELEASE_LITERAL_OPEN@x@PROJECT_VERSION@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+set(_appellate_expected_tag "v${_appellate_project_version}")
+_appellate_set_serialized_literal(_appellate_expected_fingerprint @APPELLATE_RELEASE_LITERAL_OPEN@x@APPELLATE_RELEASE_SIGNING_FINGERPRINT@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_internal_signed_build @APPELLATE_RELEASE_LITERAL_OPEN@x@APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_signed_release_root @APPELLATE_RELEASE_LITERAL_OPEN@x@APPELLATE_SIGNED_RELEASE_ROOT@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_signed_release_token @APPELLATE_RELEASE_LITERAL_OPEN@x@APPELLATE_SIGNED_RELEASE_TOKEN@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_configured_source @APPELLATE_RELEASE_LITERAL_OPEN@x@PROJECT_SOURCE_DIR@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_configured_build @APPELLATE_RELEASE_LITERAL_OPEN@x@PROJECT_BINARY_DIR@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_git_executable @APPELLATE_RELEASE_LITERAL_OPEN@x@GIT_EXECUTABLE@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+_appellate_set_serialized_literal(_appellate_development_package_file_name @APPELLATE_RELEASE_LITERAL_OPEN@x@APPELLATE_DEVELOPMENT_PACKAGE_FILE_NAME@x@APPELLATE_RELEASE_LITERAL_CLOSE@)
+
+if(NOT _appellate_expected_epoch MATCHES "^[0-9]+$")
+    message(FATAL_ERROR "The configured release source epoch is not a Unix timestamp")
+endif()
+execute_process(
+    COMMAND
+        "${_appellate_git_executable}" rev-parse --verify
+        "${_appellate_expected_revision}^{commit}"
+    WORKING_DIRECTORY "${_appellate_configured_source}"
+    RESULT_VARIABLE _appellate_epoch_revision_result
+    OUTPUT_VARIABLE _appellate_epoch_revision
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _appellate_epoch_revision_error
+)
+execute_process(
+    COMMAND
+        "${_appellate_git_executable}" show -s --format=%ct
+        "${_appellate_expected_revision}^{commit}"
+    WORKING_DIRECTORY "${_appellate_configured_source}"
+    RESULT_VARIABLE _appellate_epoch_result
+    OUTPUT_VARIABLE _appellate_actual_epoch
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _appellate_epoch_error
+)
+if(NOT _appellate_epoch_revision_result EQUAL 0 OR
+   NOT _appellate_epoch_revision STREQUAL _appellate_expected_revision OR
+   NOT _appellate_epoch_result EQUAL 0 OR
+   NOT _appellate_actual_epoch STREQUAL _appellate_expected_epoch)
+    message(
+        FATAL_ERROR
+        "Release source epoch does not match the exact configured commit: "
+        "${_appellate_epoch_revision_error}${_appellate_epoch_error}"
+    )
+endif()
+set(ENV{SOURCE_DATE_EPOCH} "${_appellate_expected_epoch}")
+
+if(_appellate_allow_development)
+    set(
+        CPACK_PACKAGE_FILE_NAME
+        "${_appellate_development_package_file_name}"
+    )
+    message(
+        AUTHOR_WARNING
+        "Creating an explicitly unverified development package; it is not publishable"
+    )
+    return()
+endif()
+
+if(NOT _appellate_internal_signed_build STREQUAL "ON")
+    message(
+        FATAL_ERROR
+        "Direct production CPack is disabled; use the signed_release_candidate target"
+    )
+endif()
+string(LENGTH "${_appellate_signed_release_token}" _appellate_token_length)
+if(DEFINED APPELLATE_SIGNED_RELEASE_RUN_TOKEN)
+    set(_appellate_runtime_token "${APPELLATE_SIGNED_RELEASE_RUN_TOKEN}")
+else()
+    set(_appellate_runtime_token "")
+endif()
+if(NOT _appellate_token_length EQUAL 32 OR
+   NOT _appellate_signed_release_token MATCHES "^[0-9a-f]+$" OR
+   NOT _appellate_runtime_token STREQUAL _appellate_signed_release_token)
+    message(FATAL_ERROR "Signed release CPack invocation token is missing or invalid")
+endif()
+
+get_filename_component(
+    _appellate_signed_release_root_absolute "${_appellate_signed_release_root}" ABSOLUTE
+)
+get_filename_component(
+    _appellate_signed_release_root_name "${_appellate_signed_release_root_absolute}" NAME
+)
+set(_appellate_root_sentinel
+    "${_appellate_signed_release_root_absolute}/.appellate-release-root")
+if(_appellate_signed_release_root_absolute STREQUAL "" OR
+   _appellate_signed_release_root_absolute STREQUAL "/" OR
+   NOT _appellate_signed_release_root_absolute STREQUAL _appellate_signed_release_root OR
+   NOT _appellate_signed_release_root_name MATCHES
+       "^[.]signed-release-staging-[0-9a-f]+$" OR
+   IS_SYMLINK "${_appellate_signed_release_root_absolute}" OR
+   NOT IS_DIRECTORY "${_appellate_signed_release_root_absolute}" OR
+   IS_SYMLINK "${_appellate_root_sentinel}" OR
+   NOT EXISTS "${_appellate_root_sentinel}" OR
+   IS_DIRECTORY "${_appellate_root_sentinel}")
+    message(FATAL_ERROR "Signed release staging root is missing, broad, or replaced")
+endif()
+file(READ "${_appellate_root_sentinel}" _appellate_root_sentinel_text)
+if(NOT _appellate_root_sentinel_text STREQUAL "appellate-signed-release-root\n")
+    message(FATAL_ERROR "Signed release staging root sentinel changed")
+endif()
+
+set(
+    _appellate_expected_snapshot
+    "${_appellate_signed_release_root_absolute}/exact-source-snapshot"
+)
+if(_appellate_configured_build STREQUAL
+   "${_appellate_signed_release_root_absolute}/first-clean-build")
+    set(
+        _appellate_expected_artifacts
+        "${_appellate_signed_release_root_absolute}/first-artifacts"
+    )
+elseif(_appellate_configured_build STREQUAL
+       "${_appellate_signed_release_root_absolute}/second-clean-build-with-distinct-path-length")
+    set(
+        _appellate_expected_artifacts
+        "${_appellate_signed_release_root_absolute}/second-artifacts"
+    )
+else()
+    message(FATAL_ERROR "Signed release build is not an exact staging-root child")
+endif()
+if(NOT _appellate_configured_source STREQUAL _appellate_expected_snapshot OR
+   NOT DEFINED CPACK_PACKAGE_DIRECTORY OR
+   NOT CPACK_PACKAGE_DIRECTORY STREQUAL _appellate_expected_artifacts OR
+   IS_SYMLINK "${_appellate_configured_source}" OR
+   NOT IS_DIRECTORY "${_appellate_configured_source}" OR
+   IS_SYMLINK "${_appellate_configured_build}" OR
+   NOT IS_DIRECTORY "${_appellate_configured_build}" OR
+   IS_SYMLINK "${_appellate_expected_artifacts}" OR
+   NOT IS_DIRECTORY "${_appellate_expected_artifacts}")
+    message(FATAL_ERROR "Signed release source, build, or artifact containment is invalid")
+endif()
+set(
+    _appellate_artifact_sentinel
+    "${_appellate_expected_artifacts}/.appellate-signed-artifact-directory"
+)
+if(IS_SYMLINK "${_appellate_artifact_sentinel}" OR
+   NOT EXISTS "${_appellate_artifact_sentinel}" OR
+   IS_DIRECTORY "${_appellate_artifact_sentinel}")
+    message(FATAL_ERROR "Signed release artifact directory sentinel is missing or replaced")
+endif()
+file(READ "${_appellate_artifact_sentinel}" _appellate_artifact_sentinel_text)
+if(NOT _appellate_artifact_sentinel_text STREQUAL
+   "appellate-signed-artifact-directory\n")
+    message(FATAL_ERROR "Signed release artifact directory sentinel changed")
+endif()
+file(REAL_PATH "${_appellate_signed_release_root_absolute}" _appellate_root_real)
+file(REAL_PATH "${_appellate_configured_source}" _appellate_source_real)
+file(REAL_PATH "${_appellate_configured_build}" _appellate_build_real)
+file(REAL_PATH "${_appellate_expected_artifacts}" _appellate_artifacts_real)
+get_filename_component(_appellate_source_real_parent "${_appellate_source_real}" DIRECTORY)
+get_filename_component(_appellate_build_real_parent "${_appellate_build_real}" DIRECTORY)
+get_filename_component(_appellate_artifacts_real_parent "${_appellate_artifacts_real}" DIRECTORY)
+if(NOT _appellate_source_real_parent STREQUAL _appellate_root_real OR
+   NOT _appellate_build_real_parent STREQUAL _appellate_root_real OR
+   NOT _appellate_artifacts_real_parent STREQUAL _appellate_root_real OR
+   NOT _appellate_source_real STREQUAL _appellate_expected_snapshot OR
+   NOT _appellate_build_real STREQUAL _appellate_configured_build OR
+   NOT _appellate_artifacts_real STREQUAL _appellate_expected_artifacts)
+    message(FATAL_ERROR "Signed release staging paths escape their real root")
+endif()
+if(NOT CPACK_GENERATOR STREQUAL "TZST" OR
+   NOT CPACK_PACKAGE_FILE_NAME STREQUAL
+       "appellate-workbench-${_appellate_project_version}-linux-x86_64" OR
+   NOT CPACK_PACKAGE_VERSION STREQUAL _appellate_project_version OR
+   NOT CPACK_PACKAGE_CHECKSUM STREQUAL "SHA256")
+    message(FATAL_ERROR "Signed release CPack identity or generator was overridden")
+endif()
+
+string(LENGTH "${_appellate_expected_fingerprint}" _appellate_fingerprint_length)
+if(NOT _appellate_fingerprint_length EQUAL 40 OR
+   NOT _appellate_expected_fingerprint MATCHES "^[0-9A-Fa-f]+$")
+    message(FATAL_ERROR "A 40-hex APPELLATE_RELEASE_SIGNING_FINGERPRINT is required")
+endif()
+string(TOUPPER "${_appellate_expected_fingerprint}" _appellate_expected_fingerprint)
+
+execute_process(
+    COMMAND "${_appellate_git_executable}" status --porcelain=v1 --untracked-files=normal
+    WORKING_DIRECTORY "${_appellate_configured_source}"
+    RESULT_VARIABLE _appellate_status_result
+    OUTPUT_VARIABLE _appellate_status
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _appellate_status_error
+)
+if(NOT _appellate_status_result EQUAL 0 OR NOT _appellate_status STREQUAL "")
+    message(
+        FATAL_ERROR
+        "Release packaging requires a clean source tree:\n"
+        "${_appellate_status}\n${_appellate_status_error}"
+    )
+endif()
+
+execute_process(
+    COMMAND "${_appellate_git_executable}" rev-parse HEAD^{commit}
+    WORKING_DIRECTORY "${_appellate_configured_source}"
+    RESULT_VARIABLE _appellate_head_result
+    OUTPUT_VARIABLE _appellate_head
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _appellate_head_error
+)
+if(NOT _appellate_head_result EQUAL 0 OR
+   NOT _appellate_head STREQUAL _appellate_expected_revision)
+    message(
+        FATAL_ERROR
+        "Release source revision mismatch: expected ${_appellate_expected_revision}, "
+        "found ${_appellate_head}. ${_appellate_head_error}"
+    )
+endif()
+
+execute_process(
+    COMMAND "${_appellate_git_executable}" rev-parse "refs/tags/${_appellate_expected_tag}^{commit}"
+    WORKING_DIRECTORY "${_appellate_configured_source}"
+    RESULT_VARIABLE _appellate_tag_result
+    OUTPUT_VARIABLE _appellate_tag_revision
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _appellate_tag_error
+)
+if(NOT _appellate_tag_result EQUAL 0 OR NOT _appellate_tag_revision STREQUAL _appellate_head)
+    message(
+        FATAL_ERROR
+        "Release tag ${_appellate_expected_tag} must resolve exactly to HEAD: "
+        "${_appellate_tag_error}"
+    )
+endif()
+
+execute_process(
+    COMMAND "${_appellate_git_executable}" verify-tag --raw "${_appellate_expected_tag}"
+    WORKING_DIRECTORY "${_appellate_configured_source}"
+    RESULT_VARIABLE _appellate_verify_result
+    OUTPUT_VARIABLE _appellate_verify_output
+    ERROR_VARIABLE _appellate_verify_error
+)
+set(_appellate_verify_text "${_appellate_verify_output}\n${_appellate_verify_error}")
+string(
+    REGEX MATCH
+    "\\[GNUPG:\\] VALIDSIG ([0-9A-Fa-f]+)"
+    _appellate_validsig
+    "${_appellate_verify_text}"
+)
+if(NOT _appellate_verify_result EQUAL 0 OR NOT _appellate_validsig)
+    message(FATAL_ERROR "Release tag signature verification failed: ${_appellate_verify_text}")
+endif()
+string(TOUPPER "${CMAKE_MATCH_1}" _appellate_actual_fingerprint)
+if(NOT _appellate_actual_fingerprint STREQUAL _appellate_expected_fingerprint)
+    message(
+        FATAL_ERROR
+        "Release tag was signed by ${_appellate_actual_fingerprint}, not the configured key"
+    )
+endif()

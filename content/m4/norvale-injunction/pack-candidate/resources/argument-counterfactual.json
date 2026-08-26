@@ -1,0 +1,141 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.norvale.argument.adverse-record",
+  "case_id": "ca4m4.case.norvale-injunction",
+  "bench_configuration_id": "ca4m4.norvale.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.norvale.issue.interlocutory-jurisdiction",
+    "ca4m4.norvale.issue.recurring-events-mootness",
+    "ca4m4.norvale.issue.preliminary-injunction-entitlement",
+    "ca4m4.norvale.issue.rule65-cd-remedy"
+  ],
+  "grounded_question_bank": {
+    "mode": "counterfactual_training",
+    "grounding_digest": "5b5559db07537e94046dffc733b8f3f104f09533ff9ffede190f4e1758260ecb",
+    "issue_topic_bindings": [
+      {"issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_ids":["workbench.topic.jurisdiction","workbench.topic.governing-authority","workbench.topic.record-support","workbench.topic.practical-consequences"]},
+      {"issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_ids":["workbench.topic.jurisdiction","workbench.topic.governing-authority","workbench.topic.record-support","workbench.topic.practical-consequences"]},
+      {"issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_ids":["workbench.topic.standard-of-review","workbench.topic.governing-authority","workbench.topic.merits","workbench.topic.record-support"]},
+      {"issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_ids":["workbench.topic.preservation","workbench.topic.governing-authority","workbench.topic.remedy","workbench.topic.practical-consequences"]}
+    ],
+    "questions": [
+      {
+        "question_id":"ca4m4.norvale.question.adverse-jurisdiction-statute","issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_id":"workbench.topic.jurisdiction","prompt":"Even on the adverse merits path, what exact injunctive features of the January 23 order support § 1292(a)(1) jurisdiction?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-jurisdiction-statute-authority","kind":"authority","authority_id":"ca4m4.norvale.authority.usc-1292a1"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-jurisdiction-statute-ja115","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja115"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-jurisdiction-statute-ja144","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja144"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-rule8-threshold","issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_id":"workbench.topic.governing-authority","prompt":"Why does the B01 filing fail the district-first threshold, and what must the denial say without reaching the stay factors?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule8-threshold-authority","kind":"authority","authority_id":"ca4m4.norvale.authority.local-rule-8-district-first"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule8-threshold-pa136","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa136"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule8-threshold-pa144","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa144"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-rule8-impracticability","issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_id":"workbench.topic.record-support","prompt":"What specific facts in B03 make the impracticability path procedurally cognizable, and why can the panel still deny relief on the merits?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule8-impracticability-rule8","kind":"authority","authority_id":"ca4m4.norvale.authority.local-rule-8-district-first"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule8-impracticability-pa147","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa147"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule8-impracticability-pa163","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa163"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-stay-practical","issue_id":"ca4m4.norvale.issue.interlocutory-jurisdiction","topic_id":"workbench.topic.practical-consequences","prompt":"If the panel grants a short appellate stay, what limits should preserve the distinction between temporary suspension and a decision on preliminary-injunction entitlement?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-stay-practical-nken","kind":"authority","authority_id":"ca4m4.norvale.authority.nken-stay-factors"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-stay-practical-pa166","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa166"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-stay-practical-pa168","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa168"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-mootness-jurisdiction","issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_id":"workbench.topic.jurisdiction","prompt":"Why must the adverse opinion still reject mootness when the permit rule remains operative and the same Guild documents recurring events?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-jurisdiction-robinson","kind":"authority","authority_id":"ca4m4.norvale.authority.robinson-recurring-mootness"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-jurisdiction-ja44","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja44"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-jurisdiction-ja64","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja64"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-mootness-authority","issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_id":"workbench.topic.governing-authority","prompt":"Which Robinson principle permits a live recurring-event controversy while avoiding a categorical exception for every short event?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-authority-robinson","kind":"authority","authority_id":"ca4m4.norvale.authority.robinson-recurring-mootness"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-authority-ja34","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja34"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-authority-ja58","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja58"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-mootness-record","issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_id":"workbench.topic.record-support","prompt":"Which lower-record pages, independent of the actual mootness-motion docket, establish repeated reservations and continued exposure?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-record-robinson","kind":"authority","authority_id":"ca4m4.norvale.authority.robinson-recurring-mootness"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-record-ja38","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja38"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-record-ja64","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja64"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-mootness-practical","issue_id":"ca4m4.norvale.issue.recurring-events-mootness","topic_id":"workbench.topic.practical-consequences","prompt":"How can the adverse opinion decide the merits after rejecting mootness without importing the separate actual A15–A17 motion history?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-practical-robinson","kind":"authority","authority_id":"ca4m4.norvale.authority.robinson-recurring-mootness"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-practical-pa174","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa174"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-mootness-practical-pa189","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa189"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-pi-standard","issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_id":"workbench.topic.standard-of-review","prompt":"Which district findings can be reversed as clearly erroneous and which legal conclusions receive de novo review on the adverse path?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-standard-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-winter-review"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-standard-ja115","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja115"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-standard-pa174","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa174"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-pi-authority","issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_id":"workbench.topic.governing-authority","prompt":"How can the adverse analysis recognize paid literary presentations as protected speech while concluding that this evidentiary record supports the permit rule?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-authority-billups","kind":"authority","authority_id":"ca4m4.norvale.authority.billups-protected-paid-speech"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-authority-ja15","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja15"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-authority-pa180","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa180"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-pi-merits","issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_id":"workbench.topic.merits","prompt":"What City evidence could satisfy narrow tailoring, and what response is required to the stipulated less restrictive alternatives?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-merits-billups","kind":"authority","authority_id":"ca4m4.norvale.authority.billups-narrow-tailoring"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-merits-ja49","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja49"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-merits-ja54","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja54"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-merits-ja88","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja88"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-pi-record","issue_id":"ca4m4.norvale.issue.preliminary-injunction-entitlement","topic_id":"workbench.topic.record-support","prompt":"Which hearing and declaration pages support the adverse opinion's conclusion, and where does the panel avoid resolving a fact not in the authored record?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-record-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-winter-review"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-record-ja74","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja74"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-record-ja93","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja93"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-pi-record-pa189","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa189"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-rule65-preservation","issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_id":"workbench.topic.preservation","prompt":"If preliminary relief is reversed, what preserved Rule 65 objections remain analytically distinct from the entitlement holding?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-preservation-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-rule65-cd-remand"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-preservation-ja115","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja115"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-preservation-ja120","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja120"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-rule65-authority","issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_id":"workbench.topic.governing-authority","prompt":"Why does Pashby's corrective-remand approach not compel that remedy after the panel reverses entitlement to preliminary relief?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-authority-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-rule65-cd-remand"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-authority-ja121","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja121"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-authority-pa190","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa190"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-rule65-remedy","issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_id":"workbench.topic.remedy","prompt":"What judgment language reverses the preliminary injunction and remands without also granting the separate limited corrective-remand target?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-remedy-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-rule65-cd-remand"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-remedy-pa190","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa190"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-remedy-pa191","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa191"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.norvale.question.adverse-rule65-practical","issue_id":"ca4m4.norvale.issue.rule65-cd-remedy","topic_id":"workbench.topic.practical-consequences","prompt":"How should the adverse disposition avoid suggesting that a Rule 65 drafting defect independently resolves the First Amendment merits?","grounding":[
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-practical-pashby","kind":"authority","authority_id":"ca4m4.norvale.authority.pashby-rule65-cd-remand"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-practical-ja124","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.ja124"},
+          {"grounding_id":"ca4m4.norvale.grounding.adverse-rule65-practical-pa189","kind":"record_page","anchor_id":"ca4m4.norvale.anchor.pa189"}
+        ]
+      }
+    ]
+  }
+}

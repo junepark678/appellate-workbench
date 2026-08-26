@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "pack_id": "us.ca4.m4.ellison-immunity",
+  "successor_version": "1.2.0",
+  "boundary": "appellate_workflow_and_six_canonical_production_traces",
+  "frozen_core": {
+    "case_sha256": "e29d11e570d49b058a6dc57c020e433dc4210638fbd3434d3aacb40467f91822",
+    "procedure_profile_sha256": "050d5fe439316267c79eeecff9528ede7f6abf7272c8004e51682baa608190ba",
+    "record_sha256": "3269cf7be84b0e1545f17d19876a64e86930d44259bb13d543d53ddb12bd199f",
+    "workflow_sha256": "cd69b276a63ae508ba0d98bbee15585847a405b5b55a48df69fffe45811ca23a"
+  },
+  "resolved_contract": {
+    "root_digest": "032dd02f0ee551820e5ed3f2900a866b6cccc91543d6c0072cbad374d5caa053",
+    "resolved_revision_count": 4,
+    "dependency_revision_pins": [
+      {
+        "pack_id": "foundation.us-federal",
+        "version": "2025.12.01",
+        "digest": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9"
+      },
+      {
+        "pack_id": "foundation.us-ca4",
+        "version": "2026.03.23",
+        "digest": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262"
+      },
+      {
+        "pack_id": "foundation.us-ca4-fictional-bench",
+        "version": "1.0.0",
+        "digest": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d"
+      }
+    ]
+  },
+  "workflow_contract": {
+    "resource_id": "ca4m4.ellison.workflow.qualified-immunity-appeal",
+    "source_path": "resources/workflow.candidate.json",
+    "promoted_path": "pack-candidate/resources/workflow.json",
+    "sha256": "cd69b276a63ae508ba0d98bbee15585847a405b5b55a48df69fffe45811ca23a",
+    "stage_count": 20,
+    "operation_count": 77,
+    "filing_route_count": 11,
+    "filing_binding_count": 14,
+    "document_binding_count": 24,
+    "disposition_binding_count": 2,
+    "deadline_calculation_operation_count": 11,
+    "concrete_deadline_id_count": 11,
+    "logical_deadline_concept_count": 9,
+    "bound_record_union_count": 38,
+    "deficiency_count": 0,
+    "all_operations_exact_legal_time_guarded": true,
+    "all_operations_precondition_guarded": true
+  },
+  "source_binding_contract": {
+    "filing_record_entry_codes": [
+      "L35",
+      "L36",
+      "A02",
+      "A03",
+      "A04",
+      "A06",
+      "A07",
+      "A08",
+      "A09",
+      "B04",
+      "B10",
+      "B11",
+      "B15",
+      "B16"
+    ],
+    "court_document_record_entry_codes": [
+      "L37",
+      "A01",
+      "A05",
+      "A10",
+      "A11",
+      "A12",
+      "A13",
+      "A14",
+      "A15",
+      "B01",
+      "B02",
+      "B03",
+      "B05",
+      "B06",
+      "B07",
+      "B08",
+      "B09",
+      "B12",
+      "B13",
+      "B14",
+      "B17",
+      "B18",
+      "B19",
+      "B20"
+    ],
+    "filing_and_court_document_sets_disjoint": true,
+    "b18_contract": "one exact EnterOrder court-document binding and no filing route",
+    "active_opposing_party_service_only": true,
+    "former_district_defendant_excluded_from_appellate_service": true
+  },
+  "deadline_contract": [
+    {
+      "deadline_id": "ca4m4.ellison.deadline.opening-brief",
+      "rule": "42 calendar days from the February 2 record-complete briefing order",
+      "due_date": "2026-03-16"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.response-brief",
+      "rule": "30 calendar days from the March 16 opening brief",
+      "due_date": "2026-04-15"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.reply-brief",
+      "rule": "21 calendar days from the April 15 response brief",
+      "due_date": "2026-05-06"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.actual-rehearing-petition",
+      "rule": "FRAP 40 fourteen days from actual judgment",
+      "due_date": "2026-07-14"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.adverse-rehearing-petition",
+      "rule": "FRAP 40 fourteen days from adverse judgment",
+      "due_date": "2026-07-14"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.actual-ordinary-mandate",
+      "rule": "FRAP 41 seven days after the actual rehearing deadline",
+      "due_date": "2026-07-21"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.adverse-ordinary-mandate",
+      "rule": "FRAP 41 seven days after the adverse rehearing deadline",
+      "due_date": "2026-07-21"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.actual-post-stay-denial-mandate",
+      "rule": "one calendar day after the July 20 mandate-stay denial",
+      "due_date": "2026-07-21"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.actual-stay-through",
+      "rule": "twenty-one calendar days after the July 20 limited mandate-stay grant",
+      "due_date": "2026-08-10"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.adverse-post-rehearing-mandate",
+      "rule": "FRAP 41 seven days after the August 4 rehearing denial",
+      "due_date": "2026-08-11"
+    },
+    {
+      "deadline_id": "ca4m4.ellison.deadline.actual-post-dissolution-mandate",
+      "rule": "one calendar day after the August 10 certiorari-abandonment stay-dissolution order",
+      "due_date": "2026-08-11"
+    }
+  ],
+  "trace_contract": {
+    "engine_revision": "appellate.realism-evidence.codec-replay-multi.v1",
+    "trace_count": 6,
+    "command_count": 229,
+    "event_count": 229,
+    "operation_union_count": 77,
+    "filing_binding_union_count": 14,
+    "court_document_binding_union_count": 24,
+    "reject_operation_union_count": 11,
+    "nonconforming_rejection_event_count": 14,
+    "rejection_reason": "nonconforming_filing",
+    "same_trace_same_filing_id_recovery_required": true,
+    "codec_decode_reencode_required": true,
+    "fresh_generation_count": 2,
+    "fresh_generations_byte_identical": true,
+    "command_prefix_replay_count": 229,
+    "full_replay_pass_count": 2,
+    "terminal_trace_count": 5,
+    "blocked_state_trace_count": 1,
+    "per_trace_tamper_rejections": [
+      "sequence",
+      "legal_time",
+      "document_sha256",
+      "service",
+      "order_id",
+      "order_disposition"
+    ]
+  },
+  "rejection_recovery_distribution": [
+    {
+      "trace_id": "ca4m4.ellison.trace.actual-ordinary",
+      "filing_ids": [
+        "ca4m4.ellison.filing.l35-notice-of-appeal",
+        "ca4m4.ellison.filing.a02-rusk-appearance",
+        "ca4m4.ellison.filing.a03-ellison-appearance",
+        "ca4m4.ellison.filing.l36-transcript-order",
+        "ca4m4.ellison.filing.a04-docketing-statement",
+        "ca4m4.ellison.filing.a06-rusk-opening-brief",
+        "ca4m4.ellison.filing.a07-joint-appendix",
+        "ca4m4.ellison.filing.a08-ellison-response-brief",
+        "ca4m4.ellison.filing.a09-rusk-reply-brief"
+      ]
+    },
+    {
+      "trace_id": "ca4m4.ellison.trace.adverse-rehearing",
+      "filing_ids": [
+        "ca4m4.ellison.filing.b04-rehearing-petition"
+      ]
+    },
+    {
+      "trace_id": "ca4m4.ellison.trace.stay-denial",
+      "filing_ids": [
+        "ca4m4.ellison.filing.b10-stay-motion-denial",
+        "ca4m4.ellison.filing.b11-stay-response-denial"
+      ]
+    },
+    {
+      "trace_id": "ca4m4.ellison.trace.stay-grant-blocked",
+      "filing_ids": [
+        "ca4m4.ellison.filing.b15-stay-motion-grant",
+        "ca4m4.ellison.filing.b16-stay-response-grant"
+      ]
+    }
+  ],
+  "planned_traces": [
+    {
+      "trace_id": "ca4m4.ellison.trace.actual-ordinary",
+      "evidence_id": "ca4m4.ellison.evidence.trace.actual-ordinary",
+      "canonical_trace_path": "traces/actual-ordinary-through-mandate.json",
+      "classification": "actual_appellate_path",
+      "command_count": 41,
+      "event_count": 41,
+      "terminal_stage_id": "ca4m4.ellison.stage.terminated",
+      "terminal": true,
+      "terminal_result": "authored_mixed_disposition_ordinary_mandate_issued"
+    },
+    {
+      "trace_id": "ca4m4.ellison.trace.adverse-ordinary",
+      "evidence_id": "ca4m4.ellison.evidence.trace.adverse-ordinary",
+      "canonical_trace_path": "traces/adverse-ordinary-through-mandate.json",
+      "classification": "counterfactual_appellate_branch",
+      "command_count": 30,
+      "event_count": 30,
+      "terminal_stage_id": "ca4m4.ellison.stage.terminated",
+      "terminal": true,
+      "terminal_result": "adverse_qualified_immunity_disposition_ordinary_mandate_issued"
+    },
+    {
+      "trace_id": "ca4m4.ellison.trace.adverse-rehearing",
+      "evidence_id": "ca4m4.ellison.evidence.trace.adverse-rehearing",
+      "canonical_trace_path": "traces/adverse-rehearing-denial-through-mandate.json",
+      "classification": "counterfactual_appellate_branch",
+      "command_count": 36,
+      "event_count": 36,
+      "terminal_stage_id": "ca4m4.ellison.stage.terminated",
+      "terminal": true,
+      "terminal_result": "adverse_rehearing_denied_then_mandate_issued"
+    },
+    {
+      "trace_id": "ca4m4.ellison.trace.stay-denial",
+      "evidence_id": "ca4m4.ellison.evidence.trace.stay-denial",
+      "canonical_trace_path": "traces/mandate-stay-denial-through-mandate.json",
+      "classification": "counterfactual_appellate_branch",
+      "command_count": 41,
+      "event_count": 41,
+      "terminal_stage_id": "ca4m4.ellison.stage.terminated",
+      "terminal": true,
+      "terminal_result": "actual_disposition_mandate_issued_after_stay_denial"
+    },
+    {
+      "trace_id": "ca4m4.ellison.trace.stay-grant-blocked",
+      "evidence_id": "ca4m4.ellison.evidence.trace.stay-grant-blocked",
+      "canonical_trace_path": "traces/mandate-stay-grant-blocked.json",
+      "classification": "counterfactual_appellate_branch",
+      "command_count": 39,
+      "event_count": 39,
+      "terminal_stage_id": "ca4m4.ellison.stage.actual-mandate-stayed",
+      "terminal": false,
+      "endpoint_scope": "blocked_state",
+      "terminal_result": "mandate_stayed_pending_certiorari"
+    },
+    {
+      "trace_id": "ca4m4.ellison.trace.stay-grant-dissolution",
+      "evidence_id": "ca4m4.ellison.evidence.trace.stay-grant-dissolution",
+      "canonical_trace_path": "traces/mandate-stay-grant-dissolution-through-mandate.json",
+      "classification": "counterfactual_appellate_branch",
+      "command_count": 42,
+      "event_count": 42,
+      "terminal_stage_id": "ca4m4.ellison.stage.terminated",
+      "terminal": true,
+      "terminal_result": "mandate_issued_after_certiorari_abandonment_stay_dissolution"
+    }
+  ]
+}

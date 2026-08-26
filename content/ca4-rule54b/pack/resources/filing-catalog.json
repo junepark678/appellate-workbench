@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "resource_kind": "filing_catalog",
+  "resource_id": "ca4r54b.catalog.civil-appeal",
+  "filings": [
+    {
+      "filing_id": "ca4r54b.filing.notice-appeal",
+      "title": "Civil Notice of Appeal",
+      "actor_role_ids": ["ca4r54b.role.appellant"],
+      "required_field_ids": [
+        "ca4r54b.field.notice-party",
+        "ca4r54b.field.notice-judgment",
+        "ca4r54b.field.notice-court",
+        "ca4r54b.field.notice-date"
+      ],
+      "authority_id": "ca4r54b.authority.frap-3"
+    },
+    {
+      "filing_id": "ca4r54b.filing.docketing-statement",
+      "title": "Fourth Circuit Civil Appeal Docketing Statement",
+      "actor_role_ids": ["ca4r54b.role.appellant"],
+      "required_field_ids": [
+        "ca4r54b.field.docket-jurisdiction",
+        "ca4r54b.field.docket-issues",
+        "ca4r54b.field.docket-transcript"
+      ],
+      "authority_id": "ca4r54b.authority.loc-r-3b"
+    },
+    {
+      "filing_id": "ca4r54b.filing.transcript-order",
+      "title": "Transcript Order or No-Transcript Certification",
+      "actor_role_ids": ["ca4r54b.role.appellant"],
+      "required_field_ids": [
+        "ca4r54b.field.transcript-selection",
+        "ca4r54b.field.transcript-notice-date"
+      ],
+      "authority_id": "ca4r54b.authority.frap-10"
+    },
+    {
+      "filing_id": "ca4r54b.filing.opening-brief",
+      "title": "Appellant Opening Brief",
+      "actor_role_ids": ["ca4r54b.role.appellant"],
+      "required_field_ids": [
+        "ca4r54b.field.brief-jurisdiction",
+        "ca4r54b.field.brief-issues",
+        "ca4r54b.field.brief-record-citations",
+        "ca4r54b.field.brief-relief"
+      ],
+      "authority_id": "ca4r54b.authority.frap-31"
+    },
+    {
+      "filing_id": "ca4r54b.filing.response-brief",
+      "title": "Appellee Response Brief",
+      "actor_role_ids": ["ca4r54b.role.appellee"],
+      "required_field_ids": [
+        "ca4r54b.field.response-jurisdiction",
+        "ca4r54b.field.response-argument"
+      ],
+      "authority_id": "ca4r54b.authority.frap-31"
+    },
+    {
+      "filing_id": "ca4r54b.filing.rehearing-petition",
+      "title": "Petition for Panel Rehearing or Rehearing En Banc",
+      "actor_role_ids": ["ca4r54b.role.appellant", "ca4r54b.role.appellee"],
+      "required_field_ids": [
+        "ca4r54b.field.rehearing-ground",
+        "ca4r54b.field.rehearing-judgment-date",
+        "ca4r54b.field.rehearing-relief"
+      ],
+      "authority_id": "ca4r54b.authority.frap-40"
+    }
+  ]
+}

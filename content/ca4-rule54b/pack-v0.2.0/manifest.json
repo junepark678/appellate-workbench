@@ -1,0 +1,605 @@
+{
+    "blobs": [
+        {
+            "byte_size": 22942,
+            "media_type": "application/pdf",
+            "path": "objects/a01-docketing-notice.pdf",
+            "sha256": "fcbfc1714c59750108022b1742ede499e940e8304a112bd5b0ac667a421aa196"
+        },
+        {
+            "byte_size": 29641,
+            "media_type": "application/pdf",
+            "path": "objects/a02-appellant-docketing-statement.pdf",
+            "sha256": "fb9c6ae5a7ed47bc28ab8b5d0eff5a6dd09253b27fea14c7f95e4908e16082c2"
+        },
+        {
+            "byte_size": 25758,
+            "media_type": "application/pdf",
+            "path": "objects/a03-appearances-disclosures.pdf",
+            "sha256": "0f68b94e58f741807f47684e10859295b3bbdc035d036d00deaeca2856e0d905"
+        },
+        {
+            "byte_size": 26471,
+            "media_type": "application/pdf",
+            "path": "objects/a04-record-complete-briefing-order.pdf",
+            "sha256": "eb98c346b78983add78d8ea90ca7fb93f0f3b0c548178d9aa1c7363ea5c389c5"
+        },
+        {
+            "byte_size": 78461,
+            "media_type": "application/pdf",
+            "path": "objects/a05-asterglen-opening-brief.pdf",
+            "sha256": "02fbdd60401d9eaebf52b308167ce9566ecd5611da98e3df26a2d7e5e7d204c3"
+        },
+        {
+            "byte_size": 77657,
+            "media_type": "application/pdf",
+            "path": "objects/a06-appellees-response-brief.pdf",
+            "sha256": "3799c3f9d87fe26348583548d6bc6225d85e4241ac9a3157f2a7c0632cef9d5c"
+        },
+        {
+            "byte_size": 19681,
+            "media_type": "application/pdf",
+            "path": "objects/a07-no-reply-notice.pdf",
+            "sha256": "4026ec39150490d7f9d247e521942c68b0966926a8538cb50d7350d07f27cb9e"
+        },
+        {
+            "byte_size": 23124,
+            "media_type": "application/pdf",
+            "path": "objects/a08-submission-on-briefs-order.pdf",
+            "sha256": "b744d08e2b0be38c0ca6c0928bc84dc1abafbe512497f313ff54e3a31d67638b"
+        },
+        {
+            "byte_size": 22829,
+            "media_type": "application/pdf",
+            "path": "objects/a09-district-status-certification.pdf",
+            "sha256": "0d5b17e477d9cc1d5b0c5ec0336e41f7e5a6b253a628f983bc4aff6a1053bee6"
+        },
+        {
+            "byte_size": 60260,
+            "media_type": "application/pdf",
+            "path": "objects/a10-panel-opinion.pdf",
+            "sha256": "346d851e5c7eca6ccbd921c31eaed1fcbaf7c6aa19b624e5a4dd9d6760b764c7"
+        },
+        {
+            "byte_size": 22369,
+            "media_type": "application/pdf",
+            "path": "objects/a11-judgment.pdf",
+            "sha256": "d7f4b146485cb7ccb890e505c643bd5b2fe7912a94ca333c223b89d4ccd3cac8"
+        },
+        {
+            "byte_size": 19668,
+            "media_type": "application/pdf",
+            "path": "objects/a12-mandate-release-order.pdf",
+            "sha256": "6f59e8839082d69e248fd8a0c41cce20c9c1b40ebe19274df2ef1cd2f99a2f1b"
+        },
+        {
+            "byte_size": 22442,
+            "media_type": "application/pdf",
+            "path": "objects/a13-mandate.pdf",
+            "sha256": "aacb64b7da46957fa6aef7d2f49ae74d83917668725f6eabc74d9fd5a5392733"
+        },
+        {
+            "byte_size": 29973,
+            "media_type": "application/pdf",
+            "path": "objects/b01-stipulation-narrowing-remaining-matters.pdf",
+            "sha256": "da7c7da42d7d45558c0f5a5ac26fd80eff541d77f1283fcc6a66c4a268f852db"
+        },
+        {
+            "byte_size": 30297,
+            "media_type": "application/pdf",
+            "path": "objects/b02-supported-rule54b-order.pdf",
+            "sha256": "f2b9f8ffb67a628721fb36bc7ea813bac83277403c4aac51114c9fdff78d207d"
+        },
+        {
+            "byte_size": 23696,
+            "media_type": "application/pdf",
+            "path": "objects/b03-supported-partial-judgment.pdf",
+            "sha256": "aa4977faf4bc8917684c069fd8ee9dbc8a014d14eaedad9d275b993e41a5c603"
+        },
+        {
+            "byte_size": 54559,
+            "media_type": "application/pdf",
+            "path": "objects/b04-supported-certification-merits-opinion.pdf",
+            "sha256": "9618e992bde2ff3e2685a0562c92f074f712709a6b1a5c50d657c7696b62b66f"
+        },
+        {
+            "byte_size": 22990,
+            "media_type": "application/pdf",
+            "path": "objects/b05-supported-certification-merits-judgment.pdf",
+            "sha256": "abdbeffce3fea78c728bb5de72cd2500e7158fb178f795c52b252546ffd747a8"
+        },
+        {
+            "byte_size": 19436,
+            "media_type": "application/pdf",
+            "path": "objects/b06-supported-certification-release-order.pdf",
+            "sha256": "ad17b804c81b20e51c445a2249457bceb09648e16b27805b320acaa8d6517ba4"
+        },
+        {
+            "byte_size": 22914,
+            "media_type": "application/pdf",
+            "path": "objects/b07-supported-certification-mandate.pdf",
+            "sha256": "584aaddb0fe793878c8aa4f70878b58a42a360a793cf5d7e13b7453a398e4528"
+        },
+        {
+            "byte_size": 25954,
+            "media_type": "application/pdf",
+            "path": "objects/b08-first-business-day-late-notice.pdf",
+            "sha256": "7fb133c09635021c0215973fa4fc87e137aa0a1ed7551b9d7abbf8ca8aacfce8"
+        },
+        {
+            "byte_size": 26420,
+            "media_type": "application/pdf",
+            "path": "objects/b09-untimely-notice-dismissal-order.pdf",
+            "sha256": "5d93d65bace64082297a1af8507436c23271a1a3e952b39c7ddea1830cac2231"
+        },
+        {
+            "byte_size": 22867,
+            "media_type": "application/pdf",
+            "path": "objects/b10-untimely-notice-judgment.pdf",
+            "sha256": "dffc6a10fde8bd88e38be5a0192bf09f1f29ed33ab6eebcb3cccfc9ed7ef1722"
+        },
+        {
+            "byte_size": 19557,
+            "media_type": "application/pdf",
+            "path": "objects/b11-untimely-notice-release-order.pdf",
+            "sha256": "5a3c0bbfccac3831799d595ca5b752840e1abd256ec22eff3ebaf52f82504b09"
+        },
+        {
+            "byte_size": 22483,
+            "media_type": "application/pdf",
+            "path": "objects/b12-untimely-notice-mandate.pdf",
+            "sha256": "29eb1cb4ccfa29135f48aee81931bb9d23c2fd72963feb0f6a6fec8c0474da51"
+        },
+        {
+            "byte_size": 25606,
+            "media_type": "application/pdf",
+            "path": "objects/b13-missing-separate-document-status.pdf",
+            "sha256": "ed1e903af7299dd5b6fc8c9d4d6adb97a047108de6c1430d17cafd7a32a2df8e"
+        },
+        {
+            "byte_size": 26290,
+            "media_type": "application/pdf",
+            "path": "objects/b14-missing-separate-document-timing-order.pdf",
+            "sha256": "0ce991f7d0ad5af85cc3f1ff6c7020aebfa13a6b1eeb8d0bf12987d90ba57f1c"
+        },
+        {
+            "byte_size": 41205,
+            "media_type": "application/pdf",
+            "path": "objects/b15-timely-rehearing-petition.pdf",
+            "sha256": "8e048651f8e4eee1c0bed37cbe4a10751d01c2f6132f4f4f953f33969be8167f"
+        },
+        {
+            "byte_size": 22718,
+            "media_type": "application/pdf",
+            "path": "objects/b16-rehearing-denial.pdf",
+            "sha256": "d39f59c0e003a5c6490928bce1baa12823ae49e5592da5f609cdb8dd7cef05b9"
+        },
+        {
+            "byte_size": 20103,
+            "media_type": "application/pdf",
+            "path": "objects/b17-post-rehearing-release-order.pdf",
+            "sha256": "b37959296f5a5336a166ca0f72b3d19c22414d69c04142e0f7abbf30101cd3f0"
+        },
+        {
+            "byte_size": 22630,
+            "media_type": "application/pdf",
+            "path": "objects/b18-post-rehearing-mandate.pdf",
+            "sha256": "f8cc9a2c3efd9dfa33badd462209148208f6cb76d3d9dd0adf6103f7de249a82"
+        },
+        {
+            "byte_size": 33067,
+            "media_type": "application/pdf",
+            "path": "objects/b19-motion-stay-mandate.pdf",
+            "sha256": "d42765c08cffa068733a94f8604f1b52e50b13ec35f676027f83a0e22399afcf"
+        },
+        {
+            "byte_size": 23299,
+            "media_type": "application/pdf",
+            "path": "objects/b20-stay-denial.pdf",
+            "sha256": "f564f7f3006b2bbbad50cc39ea7ebcb45b107d9e6fc7c052dc7589405f13f395"
+        },
+        {
+            "byte_size": 20200,
+            "media_type": "application/pdf",
+            "path": "objects/b21-stay-denial-release-order.pdf",
+            "sha256": "7d45a8c7fbfb70ac7437dc1bcf9f74d1cd04cfbeea2f420c45d402e0a8898f4a"
+        },
+        {
+            "byte_size": 22940,
+            "media_type": "application/pdf",
+            "path": "objects/b22-stay-denial-mandate.pdf",
+            "sha256": "4698390ac28c17e7dc382e1d9a03cdfbb3b4ae59df5b2e944f3e31a20e3e1126"
+        },
+        {
+            "byte_size": 22910,
+            "media_type": "application/pdf",
+            "path": "objects/b23-stay-grant.pdf",
+            "sha256": "f5ada13fb9a8c3f9022999ec748f9899e244c093e502d7e174344f35939a3df0"
+        },
+        {
+            "byte_size": 22964,
+            "media_type": "application/pdf",
+            "path": "objects/b24-stay-dissolution-release.pdf",
+            "sha256": "842b862eee072f6a335fa8342c97d12b66b0342973d388810a9f6efe0459ff12"
+        },
+        {
+            "byte_size": 22669,
+            "media_type": "application/pdf",
+            "path": "objects/b25-post-stay-mandate.pdf",
+            "sha256": "f5a3cfcaec2d6adf1a3576f695f607d2305b5837533848a432b2c2122e53f171"
+        },
+        {
+            "byte_size": 43479,
+            "media_type": "application/pdf",
+            "path": "objects/l01-complaint.pdf",
+            "sha256": "3c45207a7cf09feacbc431880413c4f26e20e09ad05443daf0977673b3122412"
+        },
+        {
+            "byte_size": 48879,
+            "media_type": "application/pdf",
+            "path": "objects/l02-copper-answer-counterclaim.pdf",
+            "sha256": "77745fa8e49160d28281bfac5efc6f7f0bdc04d7b50866d3a170baa631a7f402"
+        },
+        {
+            "byte_size": 36953,
+            "media_type": "application/pdf",
+            "path": "objects/l03-meridian-answer.pdf",
+            "sha256": "4b35501eb7d57e4626c3803e2480dc65428baffc4245a6f2b7a2782564886ccc"
+        },
+        {
+            "byte_size": 34958,
+            "media_type": "application/pdf",
+            "path": "objects/l04-asterglen-answer-counterclaim.pdf",
+            "sha256": "fcd8f78d016de0f76e1428ee00bcb89152d8b0a37ebc2d59efe1e661c55b67d6"
+        },
+        {
+            "byte_size": 36200,
+            "media_type": "application/pdf",
+            "path": "objects/l05-copper-amended-counterclaim.pdf",
+            "sha256": "91ea7586d7d0421f603cc09f55c4d0f3f63bbc5fa130c52fc8b398e9de8a5b39"
+        },
+        {
+            "byte_size": 33041,
+            "media_type": "application/pdf",
+            "path": "objects/l06-asterglen-answer-amended-counterclaim.pdf",
+            "sha256": "a67f1d015ae1269ee02932a69e7d80360a96392da7bf7740544390fa8d964158"
+        },
+        {
+            "byte_size": 57801,
+            "media_type": "application/pdf",
+            "path": "objects/l07-pilot-license-schedules.pdf",
+            "sha256": "2419b243663adc45b11bb5b543cf702c531c9ed385d4f4a1d6253be1b3fd9888"
+        },
+        {
+            "byte_size": 32122,
+            "media_type": "application/pdf",
+            "path": "objects/l08-proposed-change-order-29-terminals.pdf",
+            "sha256": "03c0faa90456db052bb64086eea7f19a1f55042799fcdf3b3f818159e9a08cf3"
+        },
+        {
+            "byte_size": 32525,
+            "media_type": "application/pdf",
+            "path": "objects/l09-june10-load-test-response.pdf",
+            "sha256": "febdabd4b30c3405e61b79de0d1ec9c989e65a1575e35582a5701a236f34659e"
+        },
+        {
+            "byte_size": 40533,
+            "media_type": "application/pdf",
+            "path": "objects/l10-meridian-integration-sow.pdf",
+            "sha256": "e42dc28b56b2f7405273e5f88ba079201b51896da892d6752dd252f72ce4691b"
+        },
+        {
+            "byte_size": 41025,
+            "media_type": "application/pdf",
+            "path": "objects/l11-beaconroute-provisioning-ledger.pdf",
+            "sha256": "fc72bbdf8d2f7cdb86390b0f4fb374db7d3522ed5900eadb41e7897e1ed944af"
+        },
+        {
+            "byte_size": 35217,
+            "media_type": "application/pdf",
+            "path": "objects/l12-july8-call-email-chain.pdf",
+            "sha256": "1394fba295c88b2ebc5c0d88f454b14a708780bcc4c984a178e78b0a9fd3e88d"
+        },
+        {
+            "byte_size": 35824,
+            "media_type": "application/pdf",
+            "path": "objects/l13-july18-compliance-audit.pdf",
+            "sha256": "2c67b5a0513409e75a4864a20324d28827e1f494b272b95ff374023aa459914d"
+        },
+        {
+            "byte_size": 39286,
+            "media_type": "application/pdf",
+            "path": "objects/l14-july22-termination-cure-chain.pdf",
+            "sha256": "f51228ddefad2bb99bd9d49d36ef2125b5330c4892194e4d5c6b045f2d4b31b5"
+        },
+        {
+            "byte_size": 32711,
+            "media_type": "application/pdf",
+            "path": "objects/l15-rule26f-report.pdf",
+            "sha256": "89459baf3cc1510e63c17c49d383f963896c101eaca34a33bd47d6fed8e861a6"
+        },
+        {
+            "byte_size": 39664,
+            "media_type": "application/pdf",
+            "path": "objects/l16-copper-interrogatory-rfa-responses.pdf",
+            "sha256": "6e5bf9f5dee85db2f3b781f93c1e1671ebeaad62c1b31152f34784ee5c6eeb13"
+        },
+        {
+            "byte_size": 46864,
+            "media_type": "application/pdf",
+            "path": "objects/l17-asterglen-30b6-deposition-excerpts.pdf",
+            "sha256": "0abf61c6d1b11fe81828ca3779b20095be99f0867b2ced19ca602b7a9ace6b18"
+        },
+        {
+            "byte_size": 43785,
+            "media_type": "application/pdf",
+            "path": "objects/l18-copper-operations-deposition-excerpts.pdf",
+            "sha256": "9439f22fb2b89abd7bce185ed809ada63d4fa8a1e871cf021cb351489ebd0b5c"
+        },
+        {
+            "byte_size": 41065,
+            "media_type": "application/pdf",
+            "path": "objects/l19-meridian-engineer-deposition-excerpts.pdf",
+            "sha256": "1c16420313790a52aae66d5fe1cf288b92e1bdd7dc0d3b50653b514b1d7cdbba"
+        },
+        {
+            "byte_size": 40248,
+            "media_type": "application/pdf",
+            "path": "objects/l20-cure-feasibility-declaration.pdf",
+            "sha256": "ac1200a1077e75c8146491122506adf32f803adb453e37505c064b40ebe0e7e8"
+        },
+        {
+            "byte_size": 35281,
+            "media_type": "application/pdf",
+            "path": "objects/l21-damages-offset-declaration.pdf",
+            "sha256": "80d09211c1e166ea3012fc0d8adacda715c3e8ee1794a3bd1157a26481883b1b"
+        },
+        {
+            "byte_size": 28614,
+            "media_type": "application/pdf",
+            "path": "objects/l22-copper-partial-summary-judgment-motion.pdf",
+            "sha256": "72223910e3af6a2b9216b7781cdd69e42f164609a914782a247a0afd36653878"
+        },
+        {
+            "byte_size": 43641,
+            "media_type": "application/pdf",
+            "path": "objects/l23-copper-summary-judgment-memorandum.pdf",
+            "sha256": "213561a6668255e1b927e9c4c3d87181e6e1ad9b73727188c367d423b6557aac"
+        },
+        {
+            "byte_size": 37563,
+            "media_type": "application/pdf",
+            "path": "objects/l24-copper-undisputed-facts.pdf",
+            "sha256": "ce0148513527f8aa234acd691c4d0150edba6a8fc5086ecc586e269409e44a91"
+        },
+        {
+            "byte_size": 47504,
+            "media_type": "application/pdf",
+            "path": "objects/l25-asterglen-summary-judgment-opposition.pdf",
+            "sha256": "1260085183a111e09ea162413e1cb7d1c5e7ef634d72cb7c3f6727cbb03659c6"
+        },
+        {
+            "byte_size": 35785,
+            "media_type": "application/pdf",
+            "path": "objects/l26-meridian-overlap-response.pdf",
+            "sha256": "b998f8b1cfecf9d3ac5042ba4a588b9ee214df1efe625e36adac68ffe6b28eae"
+        },
+        {
+            "byte_size": 35846,
+            "media_type": "application/pdf",
+            "path": "objects/l27-copper-summary-judgment-reply.pdf",
+            "sha256": "959beb9dbb5d86eb40ea6baf99e8e6cc7f5d8bd6d494ad1461fa8225d57906b5"
+        },
+        {
+            "byte_size": 38428,
+            "media_type": "application/pdf",
+            "path": "objects/l28-partial-summary-judgment-order.pdf",
+            "sha256": "f3cc6a8eae5775f29b95c950da6b74156fa47efcafd6b69cd2dba1aafff62dc8"
+        },
+        {
+            "byte_size": 43875,
+            "media_type": "application/pdf",
+            "path": "objects/l29-rule54b-motion-memorandum.pdf",
+            "sha256": "266ef6533719d7842e5bbc55642c8ee5aaf37676036b37dc37ad72a5b463648c"
+        },
+        {
+            "byte_size": 46492,
+            "media_type": "application/pdf",
+            "path": "objects/l30-rule54b-opposition.pdf",
+            "sha256": "cdc6aae040fa55f761d71c0aa02f71358b35f56a8820fbda7243f04d5ef9c3cd"
+        },
+        {
+            "byte_size": 30612,
+            "media_type": "application/pdf",
+            "path": "objects/l31-rule54b-reply.pdf",
+            "sha256": "049780a334ee62ba7dc053cb46fff2c876216bf61ffd97c8689fc2c6458ee9c0"
+        },
+        {
+            "byte_size": 21206,
+            "media_type": "application/pdf",
+            "path": "objects/l32-bare-rule54b-order.pdf",
+            "sha256": "c49b27f7810944feb2f78c3b147d9a84a93ecc70c28c25549693e01619885b36"
+        },
+        {
+            "byte_size": 27000,
+            "media_type": "application/pdf",
+            "path": "objects/l33-case-assignment-initial-order.pdf",
+            "sha256": "7ee0102bcd623564ca49dc05df6f9e47e06cf6ed9497164195bddd3365dc7376"
+        },
+        {
+            "byte_size": 23280,
+            "media_type": "application/pdf",
+            "path": "objects/l34-partial-judgment.pdf",
+            "sha256": "8146b9d6c595bf1dacd830da8423e82cd2ee987c31647318ffb7f84baaa28496"
+        },
+        {
+            "byte_size": 25951,
+            "media_type": "application/pdf",
+            "path": "objects/l35-notice-of-appeal.pdf",
+            "sha256": "c861886102ec416a24419da14bcb04e0ff80e06e7a178a2294940e44b6f54f7e"
+        },
+        {
+            "byte_size": 26663,
+            "media_type": "application/pdf",
+            "path": "objects/l36-no-transcript-record-designation.pdf",
+            "sha256": "96c0c8475db34ed823f94412d730d88066770aaf375305d003d6df01782c9ea0"
+        },
+        {
+            "byte_size": 44652,
+            "media_type": "application/pdf",
+            "path": "objects/l37-certified-district-docket.pdf",
+            "sha256": "fdae1ba14ac37db31a9a9f43eb8029e24ec01f81aa84afdf16c2a18f6d007d1b"
+        }
+    ],
+    "contents": [
+        {
+            "id": "ca4r54b.argument.actual-record",
+            "kind": "argument_config",
+            "path": "resources/argument-actual.json",
+            "schema_version": 2,
+            "sha256": "6f6cd0da82b2b377752936364acc0b0d07975994791965996050c13c24406886"
+        },
+        {
+            "id": "ca4r54b.argument.counterfactual",
+            "kind": "argument_config",
+            "path": "resources/argument-counterfactual.json",
+            "schema_version": 2,
+            "sha256": "7c611c4d871e71a1207e6ca98dfcc16ae049a92895a86f15d4484a678b0322eb"
+        },
+        {
+            "id": "ca4r54b.authorities.case-specific",
+            "kind": "authority_set",
+            "path": "resources/authority-set.json",
+            "schema_version": 2,
+            "sha256": "820d308333519f2199713657068ab186bad45d48b40309be189677d973f5cad2"
+        },
+        {
+            "id": "ca4r54b.bench.composite-three",
+            "kind": "bench_configuration",
+            "path": "resources/bench-configuration.json",
+            "schema_version": 2,
+            "sha256": "bba13128422c72141f21d9bb9b19422eab9b7888bca1a82dd7d5ec6aea5ccd13"
+        },
+        {
+            "id": "ca4r54b.case.asterglen",
+            "kind": "case",
+            "path": "resources/case.json",
+            "schema_version": 2,
+            "sha256": "c9356a9984a79260f685b197ce06f868be4f6dab097411782f19b9297ead743e"
+        },
+        {
+            "id": "ca4r54b.procedure.civil-appeal",
+            "kind": "procedure_profile",
+            "path": "resources/procedure-profile.json",
+            "schema_version": 2,
+            "sha256": "4aceac5f2dc55fa97d25c475be4a6caa20b345c905d01c604b4ec232ad95bd3c"
+        },
+        {
+            "id": "ca4r54b.record.asterglen",
+            "kind": "record",
+            "path": "resources/record.json",
+            "schema_version": 2,
+            "sha256": "429603e0b7b49ff25e8a444a411b9c257cfbf0009fbfe1fc103ae8ac80e52f84"
+        },
+        {
+            "id": "ca4r54b.workflow.civil-rule54b",
+            "kind": "workflow",
+            "path": "resources/workflow.json",
+            "schema_version": 2,
+            "sha256": "949626bcbe0046bbabf615f62df8376a4fcfa463e30fc9dd5c322d56d4428f21"
+        },
+        {
+            "id": "ca4r54b.review.authoring-2026-08-12",
+            "kind": "realism_review",
+            "path": "resources/realism-review.json",
+            "schema_version": 2,
+            "sha256": "e16caac5226fdb26fb8acead14ef0a0bfd4d569af5ba84b9da65389e5fb0c905"
+        }
+    ],
+    "dependencies": [
+        {
+            "pack_id": "foundation.us-federal",
+            "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9",
+            "version": "2025.12.01"
+        },
+        {
+            "pack_id": "foundation.us-ca4",
+            "sha256": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262",
+            "version": "2026.03.23"
+        },
+        {
+            "pack_id": "foundation.us-ca4-fictional-bench",
+            "sha256": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d",
+            "version": "1.0.0"
+        }
+    ],
+    "pack_id": "us.ca4.rule54b.asterglen",
+    "required_capabilities": [
+        {
+            "id": "workbench.pack.declarative-resources",
+            "version": 2
+        },
+        {
+            "id": "workbench.pack.canonical-authority",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-preconditions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.dependent-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.named-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.event-date-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.grounded-questions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-role-subsets",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-instance-preconditions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-disposition-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-document-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.structured-disposition",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.realism-evidence",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-filing-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.alternative-event-date-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-legal-time-guards",
+            "version": 1
+        }
+    ],
+    "schema_version": 2,
+    "version": "0.2.0"
+}

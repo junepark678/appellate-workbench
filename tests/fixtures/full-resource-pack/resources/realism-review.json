@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "resource_kind": "realism_review",
+  "resource_id": "example.review.fictional",
+  "case_id": "example.case.fictional",
+  "review_state": "self_reviewed",
+  "dimensions": {
+    "procedural_law": 2,
+    "deadlines_authority": 2,
+    "record_consistency": 3,
+    "consequences": 2,
+    "oral_argument": 3,
+    "bench_differentiation": 2,
+    "provenance": 2
+  },
+  "known_uncertainty": ["The court and authorities are deliberately fictional."]
+}

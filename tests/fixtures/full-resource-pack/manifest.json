@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "pack_id": "example.full.fictional",
+  "version": "1.0.0",
+  "required_capabilities": [
+    {
+      "id": "workbench.pack.declarative-resources",
+      "version": 1
+    }
+  ],
+  "dependencies": [],
+  "blobs": [
+    {
+      "path": "objects/final-order.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 1163,
+      "sha256": "bab85fe6529e9832b26196e8f08448b02bbe79e5ae4d4d37d104b278e11f1366"
+    }
+  ],
+  "contents": [
+    {
+      "id": "example.argument.fictional",
+      "kind": "argument_config",
+      "schema_version": 1,
+      "path": "resources/argument-config.json",
+      "sha256": "1024cbc3ef4d07d570555f73b39ce799e5e850474ce857b088293039716b3b8d"
+    },
+    {
+      "id": "example.authorities.fictional",
+      "kind": "authority_set",
+      "schema_version": 1,
+      "path": "resources/authority-set.json",
+      "sha256": "38a23ce20f8c96ec65a8e95c78299141670d614e4c96b120cbc17a805fb0de59"
+    },
+    {
+      "id": "example.bench.fictional",
+      "kind": "bench_configuration",
+      "schema_version": 1,
+      "path": "resources/bench-configuration.json",
+      "sha256": "c41673701bb135b423ba78d76100c49977f85765b58ab50c236b798261a8cd17"
+    },
+    {
+      "id": "example.case.fictional",
+      "kind": "case",
+      "schema_version": 1,
+      "path": "resources/case.json",
+      "sha256": "2e2b3b94972a017fcb1787087e2acb3208d704455116ad08c61672ddc35a6795"
+    },
+    {
+      "id": "example.court.fictional",
+      "kind": "court",
+      "schema_version": 1,
+      "path": "resources/court.json",
+      "sha256": "483b1862d7b289d24011e4b4c86f3c4b63fa567e81f03ca4eaa991a955ddf42f"
+    },
+    {
+      "id": "example.catalog.fictional",
+      "kind": "filing_catalog",
+      "schema_version": 1,
+      "path": "resources/filing-catalog.json",
+      "sha256": "ff2b3487467d1de7ee137f1dcf3ca85bcfcff230f1218e79069054bae0659942"
+    },
+    {
+      "id": "example.form.notice",
+      "kind": "form",
+      "schema_version": 1,
+      "path": "resources/form.json",
+      "sha256": "5d4a9237be3aaa9b3fa50ed8b5a75a64cb2cf332eb11ec920e9446d33e56f838"
+    },
+    {
+      "id": "example.judge.fictional",
+      "kind": "judge_profile",
+      "schema_version": 1,
+      "path": "resources/judge-profile.json",
+      "sha256": "fd327954c748e02524723dd219a83c3e5e06dd58562402eed4517063f0d4cbd5"
+    },
+    {
+      "id": "example.procedure.fictional",
+      "kind": "procedure_profile",
+      "schema_version": 1,
+      "path": "resources/procedure-profile.json",
+      "sha256": "1702f2c3d29f90c221e02a0580a7060abdd2dae72c76d25adc63d47a5e76bb66"
+    },
+    {
+      "id": "example.review.fictional",
+      "kind": "realism_review",
+      "schema_version": 1,
+      "path": "resources/realism-review.json",
+      "sha256": "7767cbda04579d530a3076dbecadac06f3b27b10c3292a7246d392fe112dc121"
+    },
+    {
+      "id": "example.record.fictional",
+      "kind": "record",
+      "schema_version": 1,
+      "path": "resources/record.json",
+      "sha256": "0345fe80460eeb2c32efcd1354c92b0a3a826defd12f16c4b43b57adc3e86b5c"
+    },
+    {
+      "id": "example.workflow.fictional",
+      "kind": "workflow",
+      "schema_version": 1,
+      "path": "resources/workflow.json",
+      "sha256": "c7bb77f2bb143e97ed6254d04f438fedb62ddb2c05127e118925e67f794aaae7"
+    }
+  ]
+}

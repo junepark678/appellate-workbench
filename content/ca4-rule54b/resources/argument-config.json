@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4r54b.argument.counterfactual",
+  "case_id": "ca4r54b.case.asterglen",
+  "bench_configuration_id": "ca4r54b.bench.composite-three",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4r54b.issue.rule54b-finality",
+    "ca4r54b.issue.notice-timeliness",
+    "ca4r54b.issue.merits-not-reached"
+  ]
+}

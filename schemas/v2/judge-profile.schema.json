@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v2/judge-profile.schema.json",
+  "title": "Appellate Workbench fictional/composite bench profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "resource_kind",
+    "resource_id",
+    "display_name",
+    "profile_class",
+    "compatibility",
+    "interaction",
+    "voice"
+  ],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "resource_kind": { "const": "judge_profile" },
+    "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "display_name": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "profile_class": { "const": "fictional_composite" },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["court_roles", "jurisdiction_ids"],
+      "properties": {
+        "court_roles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["district", "appellate"] }
+        },
+        "jurisdiction_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+        }
+      }
+    },
+    "interaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "directness",
+        "formality",
+        "question_length",
+        "interruption_frequency",
+        "follow_up_depth",
+        "hypothetical_frequency",
+        "concession_recall",
+        "record_pin_demand",
+        "time_strictness",
+        "issue_focus"
+      ],
+      "properties": {
+        "directness": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "formality": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "question_length": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "interruption_frequency": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "follow_up_depth": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "hypothetical_frequency": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "concession_recall": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "record_pin_demand": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "time_strictness": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "issue_focus": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["topic_id", "weight"],
+            "properties": {
+              "topic_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+              "weight": { "$ref": "common.schema.json#/$defs/unit_interval" }
+            }
+          }
+        }
+      }
+    },
+    "voice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "register",
+        "cadence",
+        "question_framing",
+        "address_convention",
+        "verbosity",
+        "sentence_complexity",
+        "question_phrases",
+        "interruption_phrases",
+        "clarification_phrases"
+      ],
+      "properties": {
+        "register": { "enum": ["plain", "formal", "technical"] },
+        "cadence": { "enum": ["clipped", "measured", "expansive"] },
+        "question_framing": { "enum": ["direct", "socratic", "narrative"] },
+        "address_convention": { "enum": ["counsel", "advocate"] },
+        "verbosity": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "sentence_complexity": { "$ref": "common.schema.json#/$defs/unit_interval" },
+        "question_phrases": { "$ref": "#/$defs/phrase_set" },
+        "interruption_phrases": { "$ref": "#/$defs/phrase_set" },
+        "clarification_phrases": { "$ref": "#/$defs/phrase_set" }
+      }
+    }
+  },
+  "$defs": {
+    "phrase_set": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "pattern": "^[^{}\\r\\n\\t]+$"
+      }
+    }
+  }
+}

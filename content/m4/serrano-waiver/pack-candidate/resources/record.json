@@ -1,0 +1,4392 @@
+{
+  "schema_version": 2,
+  "resource_kind": "record",
+  "resource_id": "ca4m4.serrano.record",
+  "caption": "United States v. Mateo Serrano",
+  "disclosure_policy": {
+    "policy_id": "ca4m4.serrano.record.policy.public-sealed-psr-twins",
+    "unauthorized_projection": "public_counterparts_only",
+    "authorized_projection": "public_and_authorized_sealed",
+    "sealed_asset_access": "session_event_grant_required"
+  },
+  "sealed_disclosures": [
+    {
+      "disclosure_id": "ca4m4.serrano.disclosure.lower-psr-packet",
+      "sealed_entry_id": "ca4m4.serrano.record.entry.l14",
+      "public_entry_id": "ca4m4.serrano.record.entry.l13",
+      "authorization_authority_id": "ca4m4.serrano.authority.mdnc-psr-confidentiality",
+      "required_items": [
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-01",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja122",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja102"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-02",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja123",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja103"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-03",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja124",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja104"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.psr-offense-conduct",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja125",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja105"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-05",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja126",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja106"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-06",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja127",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja107"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-07",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja128",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja108"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-08",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja129",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja109"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.psr-role-adjustment",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja130",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja110"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-10",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja131",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja111"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-11",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja132",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja112"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.psr-guideline-range",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja133",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja113"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-13",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja134",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja114"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-14",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja135",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja115"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-15",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja136",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja116"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-16",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja137",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja117"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.psr-mitigation-history",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja138",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja118"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-18",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja139",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja119"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-19",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja140",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja120"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-psr-packet.page-20",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja141",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja121"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.serrano.disclosure.lower-objection-packet",
+      "sealed_entry_id": "ca4m4.serrano.record.entry.l16",
+      "public_entry_id": "ca4m4.serrano.record.entry.l15",
+      "authorization_authority_id": "ca4m4.serrano.authority.mdnc-psr-confidentiality",
+      "required_items": [
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-objection-packet.page-01",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja152",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja142"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-objection-packet.page-02",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja153",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja143"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-objection-packet.page-03",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja154",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja144"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.role-enhancement-objection",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja155",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja145"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-objection-packet.page-05",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja156",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja146"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-objection-packet.page-06",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja157",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja147"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.role-enhancement-response",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja158",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja148"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-objection-packet.page-08",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja159",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja149"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-objection-packet.page-09",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja160",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja150"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-objection-packet.page-10",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja161",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja151"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.serrano.disclosure.lower-defense-sentencing-memorandum",
+      "sealed_entry_id": "ca4m4.serrano.record.entry.l18",
+      "public_entry_id": "ca4m4.serrano.record.entry.l17",
+      "authorization_authority_id": "ca4m4.serrano.authority.mdnc-lr5-4-automatic-sealing",
+      "required_items": [
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-01",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja173",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja162"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-02",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja174",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja163"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-03",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja175",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja164"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-04",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja176",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja165"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-05",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja177",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja166"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.defense-sentencing-mitigation",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja178",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja167"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-07",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja179",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja168"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-08",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja180",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja169"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-09",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja181",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja170"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-10",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja182",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja171"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-defense-sentencing-memorandum.page-11",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja183",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja172"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.serrano.disclosure.lower-government-sentencing-memorandum",
+      "sealed_entry_id": "ca4m4.serrano.record.entry.l20",
+      "public_entry_id": "ca4m4.serrano.record.entry.l19",
+      "authorization_authority_id": "ca4m4.serrano.authority.mdnc-lr5-4-automatic-sealing",
+      "required_items": [
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-government-sentencing-memorandum.page-01",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja194",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja184"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-government-sentencing-memorandum.page-02",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja195",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja185"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-government-sentencing-memorandum.page-03",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja196",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja186"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-government-sentencing-memorandum.page-04",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja197",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja187"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.government-sentencing-role-position",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja198",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja188"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-government-sentencing-memorandum.page-06",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja199",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja189"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-government-sentencing-memorandum.page-07",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja200",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja190"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-government-sentencing-memorandum.page-08",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja201",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja191"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-government-sentencing-memorandum.page-09",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja202",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja192"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.lower-government-sentencing-memorandum.page-10",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.ja203",
+          "public_anchor_id": "ca4m4.serrano.anchor.ja193"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.serrano.disclosure.actual-opening-brief",
+      "sealed_entry_id": "ca4m4.serrano.record.entry.a07",
+      "public_entry_id": "ca4m4.serrano.record.entry.a06",
+      "motion_entry_id": "ca4m4.serrano.record.entry.a04",
+      "certificate_entry_id": "ca4m4.serrano.record.entry.a05",
+      "authorization_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+      "required_items": [
+        "motion",
+        "certificate",
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-01",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa38",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa22"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-02",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa39",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa23"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-03",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa40",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa24"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-waiver-clause",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa41",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa25"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-05",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa42",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa26"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-06",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa43",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa27"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-07",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa44",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa28"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-08",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa45",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa29"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-role-scope",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa46",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa30"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-10",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa47",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa31"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-11",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa48",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa32"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-12",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa49",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa33"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-13",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa50",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa34"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-14",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa51",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa35"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-15",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa52",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa36"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-opening-brief.page-16",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa53",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa37"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.serrano.disclosure.actual-response-brief",
+      "sealed_entry_id": "ca4m4.serrano.record.entry.a12",
+      "public_entry_id": "ca4m4.serrano.record.entry.a11",
+      "motion_entry_id": "ca4m4.serrano.record.entry.a04",
+      "certificate_entry_id": "ca4m4.serrano.record.entry.a05",
+      "authorization_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+      "required_items": [
+        "motion",
+        "certificate",
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-01",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa88",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa74"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-02",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa89",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa75"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-03",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa90",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa76"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-04",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa91",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa77"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-05",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa92",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa78"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-06",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa93",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa79"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-allocution-prejudice",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa94",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa80"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-08",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa95",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa81"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-09",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa96",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa82"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-10",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa97",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa83"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-11",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa98",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa84"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-12",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa99",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa85"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-13",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa100",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa86"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-response-brief.page-14",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa101",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa87"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.serrano.disclosure.actual-reply-brief",
+      "sealed_entry_id": "ca4m4.serrano.record.entry.a14",
+      "public_entry_id": "ca4m4.serrano.record.entry.a13",
+      "motion_entry_id": "ca4m4.serrano.record.entry.a04",
+      "certificate_entry_id": "ca4m4.serrano.record.entry.a05",
+      "authorization_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+      "required_items": [
+        "motion",
+        "certificate",
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-reply-brief.page-01",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa110",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa102"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-reply-brief.page-02",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa111",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa103"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-reply-brief.page-03",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa112",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa104"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-reply-brief.page-04",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa113",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa105"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-reply-express-carve-out",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa114",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa106"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-reply-brief.page-06",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa115",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa107"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-reply-brief.page-07",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa116",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa108"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-reply-brief.page-08",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa117",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa109"
+        }
+      ]
+    },
+    {
+      "disclosure_id": "ca4m4.serrano.disclosure.actual-psr-appendix-volume",
+      "sealed_entry_id": "ca4m4.serrano.record.entry.a16",
+      "public_entry_id": "ca4m4.serrano.record.entry.a15",
+      "motion_entry_id": "ca4m4.serrano.record.entry.a04",
+      "certificate_entry_id": "ca4m4.serrano.record.entry.a05",
+      "authorization_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+      "required_items": [
+        "motion",
+        "certificate",
+        "redacted_counterpart"
+      ],
+      "anchor_mappings": [
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-psr-appendix-volume.page-01",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa124",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa118"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-psr-appendix-volume.page-02",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa125",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa119"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-appendix-psr-volume",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa126",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa120"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-psr-appendix-volume.page-04",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa127",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa121"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-psr-appendix-volume.page-05",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa128",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa122"
+        },
+        {
+          "stable_anchor_id": "ca4m4.serrano.anchor.stable.actual-psr-appendix-volume.page-06",
+          "sealed_anchor_id": "ca4m4.serrano.anchor.pa129",
+          "public_anchor_id": "ca4m4.serrano.anchor.pa123"
+        }
+      ]
+    }
+  ],
+  "dockets": [
+    {
+      "docket_id": "ca4m4.serrano.docket.district",
+      "docket_type": "district",
+      "court_ref": "United States District Court for the Middle District of North Carolina",
+      "public_docket_number": "SYN-MDNC-25-CR-0328",
+      "caption": "United States v. Mateo Serrano"
+    },
+    {
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit",
+      "public_docket_number": "SYN-CA4-26-CR-4201",
+      "caption": "United States v. Mateo Serrano"
+    },
+    {
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit — isolated never-filed counterfactual exercise docket",
+      "public_docket_number": "SYN-CA4-26-CR-4201-CF-DAY15-NEVER-FILED",
+      "caption": "United States v. Mateo Serrano — isolated never-filed day-15 counterfactual branch"
+    }
+  ],
+  "docket_entries": [
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l01",
+      "entry_number": 1,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L01",
+      "filed_on": "2025-11-03",
+      "title": "Criminal Complaint and Supporting Affidavit",
+      "actor": "Fictional United States prosecution actor",
+      "description": "Lower-record document L01: Criminal Complaint and Supporting Affidavit.",
+      "tags": [
+        "lower_record",
+        "charging_initial"
+      ],
+      "asset_path": "objects/l01-criminal-complaint.pdf",
+      "asset_sha256": "27a3a87c030bd5b0f03b729d951218c0f10ab84e5ef6c4984ce40e1768f11ff1",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l02",
+      "entry_number": 2,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L02",
+      "filed_on": "2025-11-05",
+      "title": "Indictment",
+      "actor": "Fictional United States prosecution actor",
+      "description": "Lower-record document L02: Indictment.",
+      "tags": [
+        "lower_record",
+        "charging_initial"
+      ],
+      "asset_path": "objects/l02-indictment.pdf",
+      "asset_sha256": "26c6cb061681466687e9c80c189426536f4ff5eb46a4aa544554d16177fccbba",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l03",
+      "entry_number": 3,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L03",
+      "filed_on": "2025-11-06",
+      "title": "Arrest Return, Initial-Appearance Minutes, and Conditions Order",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L03: Arrest Return, Initial-Appearance Minutes, and Conditions Order.",
+      "tags": [
+        "lower_record",
+        "charging_initial"
+      ],
+      "asset_path": "objects/l03-initial-appearance.pdf",
+      "asset_sha256": "4e841e10500a99e52daaef0dfd5feb2811fc308bcfdc4cb81997f0e84e6f7516",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l04",
+      "entry_number": 4,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L04",
+      "filed_on": "2025-11-07",
+      "title": "Detention Hearing Transcript and Detention Order",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L04: Detention Hearing Transcript and Detention Order.",
+      "tags": [
+        "lower_record",
+        "charging_initial"
+      ],
+      "asset_path": "objects/l04-detention-hearing-order.pdf",
+      "asset_sha256": "3945180441b55bc6bcf8d99bd678db880198bdfc8462568fa7781d8a54c4942a",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l05",
+      "entry_number": 5,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L05",
+      "filed_on": "2025-11-10",
+      "title": "Discovery Production Index and Confidentiality Acknowledgment",
+      "actor": "Fictional United States prosecution actor and Mateo Serrano (fictional)",
+      "description": "Lower-record document L05: Discovery Production Index and Confidentiality Acknowledgment.",
+      "tags": [
+        "lower_record",
+        "pre_plea"
+      ],
+      "asset_path": "objects/l05-discovery-index.pdf",
+      "asset_sha256": "125e80b404ab98304f2132e3e2b22d5fbd5cff8e7114518cd7091c3bdfc24ca4",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l06",
+      "entry_number": 6,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L06",
+      "filed_on": "2025-11-12",
+      "title": "Defendant Notice of Intent to Change Plea",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Lower-record document L06: Defendant Notice of Intent to Change Plea.",
+      "tags": [
+        "lower_record",
+        "pre_plea"
+      ],
+      "asset_path": "objects/l06-notice-change-plea.pdf",
+      "asset_sha256": "c9b3b1f8042ebd1687915c8c2e9aea411b7cf895398d104a8f972d986b8a6bef",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l07",
+      "entry_number": 7,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L07",
+      "filed_on": "2025-11-13",
+      "title": "Joint Pre-Plea Status Report and Guidelines-Manual Notice",
+      "actor": "Fictional United States prosecution actor and Mateo Serrano (fictional)",
+      "description": "Lower-record document L07: Joint Pre-Plea Status Report and Guidelines-Manual Notice.",
+      "tags": [
+        "lower_record",
+        "pre_plea"
+      ],
+      "asset_path": "objects/l07-pre-plea-status.pdf",
+      "asset_sha256": "14fb4932c7f2e5848d9d16163c1225f5fffd5de11c80828ad73da6d9ceac3348",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l08",
+      "entry_number": 8,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L08",
+      "filed_on": "2025-11-14",
+      "title": "Order Scheduling Rule 11 Hearing",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L08: Order Scheduling Rule 11 Hearing.",
+      "tags": [
+        "lower_record",
+        "pre_plea"
+      ],
+      "asset_path": "objects/l08-rule11-scheduling-order.pdf",
+      "asset_sha256": "6cfd49f7fde19e0cc4b8f347e209012f6603c956952522ea0f726476f17db414",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "entry_number": 9,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L09",
+      "filed_on": "2025-11-18",
+      "title": "Plea Agreement with Appeal Waiver and Express Allocution Carve-Out",
+      "actor": "Mateo Serrano (fictional) and Fictional United States prosecution actor",
+      "description": "Lower-record document L09: Plea Agreement with Appeal Waiver and Express Allocution Carve-Out.",
+      "tags": [
+        "lower_record",
+        "plea_rule11"
+      ],
+      "asset_path": "objects/l09-plea-agreement.pdf",
+      "asset_sha256": "1fd5ffdd77fe1ea1cdc7a0be91bdb112f5dd611108d5815f1d9e4fceee41537b",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l10",
+      "entry_number": 10,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L10",
+      "filed_on": "2025-11-18",
+      "title": "Stipulated Factual Basis",
+      "actor": "Mateo Serrano (fictional) and Fictional United States prosecution actor",
+      "description": "Lower-record document L10: Stipulated Factual Basis.",
+      "tags": [
+        "lower_record",
+        "plea_rule11"
+      ],
+      "asset_path": "objects/l10-stipulated-factual-basis.pdf",
+      "asset_sha256": "cb9b40d7bb12f8ac788f458159690f7571e9fc5252bcdeffaf1cd3ea74b06916",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "entry_number": 11,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L11",
+      "filed_on": "2025-11-18",
+      "title": "Rule 11 Plea-Hearing Transcript",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina and Mateo Serrano (fictional)",
+      "description": "Lower-record document L11: Rule 11 Plea-Hearing Transcript.",
+      "tags": [
+        "lower_record",
+        "plea_rule11"
+      ],
+      "asset_path": "objects/l11-rule11-transcript.pdf",
+      "asset_sha256": "0b853316c95a1118a3172d71720e2da3521ef817fd821cac385cdbc2e8db4356",
+      "page_count": 21,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l12",
+      "entry_number": 12,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L12",
+      "filed_on": "2025-11-18",
+      "title": "Order Accepting Guilty Plea",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L12: Order Accepting Guilty Plea.",
+      "tags": [
+        "lower_record",
+        "plea_rule11"
+      ],
+      "asset_path": "objects/l12-plea-acceptance-order.pdf",
+      "asset_sha256": "fea8880c150d03a7e9db86688279be4d604f8122ba1d71d90616915e97dd6fbf",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "entry_number": 13,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L13",
+      "filed_on": "2026-02-17",
+      "title": "Public Docket Surrogate and Category Index for Sealed Presentence Report Packet",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Public docket surrogate or category index for the paired sealed material: Public Docket Surrogate and Category Index for Sealed Presentence Report Packet. It does not reproduce or disclose the protected filing.",
+      "tags": [
+        "lower_record",
+        "psr_objection"
+      ],
+      "asset_path": "objects/l13-public-psr-surrogate.pdf",
+      "asset_sha256": "cf960c4b6783ef60627e36eba1645054a919cb71f3b60df89531f06083912c6b",
+      "page_count": 20,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "entry_number": 14,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L14",
+      "filed_on": "2026-02-17",
+      "title": "Sealed Presentence Report Packet — Draft January 9 and Final February 17",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L14: Sealed Presentence Report Packet — Draft January 9 and Final February 17.",
+      "tags": [
+        "lower_record",
+        "psr_objection"
+      ],
+      "asset_path": "objects/l14-sealed-psr-packet.pdf",
+      "asset_sha256": "6b0deeb699dd0748a3e525b7a325b61e33bb25ee8c0c3abda9213c536a27cead",
+      "page_count": 20,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "entry_number": 15,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L15",
+      "filed_on": "2026-02-06",
+      "title": "Public Docket Surrogate and Category Index for Sealed Objection Packet",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Public docket surrogate or category index for the paired sealed material: Public Docket Surrogate and Category Index for Sealed Objection Packet. It does not reproduce or disclose the protected filing.",
+      "tags": [
+        "lower_record",
+        "psr_objection"
+      ],
+      "asset_path": "objects/l15-public-objection-surrogate.pdf",
+      "asset_sha256": "3ea0a86b8e7ba0c03af375a3fad37daa9e4f777753b6e0998a22f7834b9c959e",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "entry_number": 16,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L16",
+      "filed_on": "2026-02-06",
+      "title": "Sealed Defendant Objection, Probation Position, and Government Response Packet",
+      "actor": "Mateo Serrano (fictional) and Fictional United States prosecution actor and Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L16: Sealed Defendant Objection, Probation Position, and Government Response Packet.",
+      "tags": [
+        "lower_record",
+        "psr_objection"
+      ],
+      "asset_path": "objects/l16-sealed-objection-packet.pdf",
+      "asset_sha256": "4afe302ffa21dc370377abc4d7fa2be22bd8ebf81e4781a1984b957c412f2dad",
+      "page_count": 10,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "entry_number": 17,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L17",
+      "filed_on": "2026-02-19",
+      "title": "Public Docket Surrogate for Sealed Defendant Sentencing Memorandum",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Public docket surrogate or category index for the paired sealed material: Public Docket Surrogate for Sealed Defendant Sentencing Memorandum. It does not reproduce or disclose the protected filing.",
+      "tags": [
+        "lower_record",
+        "sentencing_submission"
+      ],
+      "asset_path": "objects/l17-public-defense-sentencing-surrogate.pdf",
+      "asset_sha256": "f16639dc8b13079325c8fbb64ee3842032f7641b27d8abc66c6e72c3bdaf6916",
+      "page_count": 11,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "entry_number": 18,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L18",
+      "filed_on": "2026-02-19",
+      "title": "Sealed Defendant Sentencing Memorandum",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Lower-record document L18: Sealed Defendant Sentencing Memorandum.",
+      "tags": [
+        "lower_record",
+        "sentencing_submission"
+      ],
+      "asset_path": "objects/l18-sealed-defense-sentencing.pdf",
+      "asset_sha256": "cb70980932ba2ea7cd914b06385c722ef5415da9f8079b245fd4e3d7a891f435",
+      "page_count": 11,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "entry_number": 19,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L19",
+      "filed_on": "2026-02-19",
+      "title": "Public Docket Surrogate for Sealed Government Sentencing Memorandum",
+      "actor": "Fictional United States prosecution actor",
+      "description": "Public docket surrogate or category index for the paired sealed material: Public Docket Surrogate for Sealed Government Sentencing Memorandum. It does not reproduce or disclose the protected filing.",
+      "tags": [
+        "lower_record",
+        "sentencing_submission"
+      ],
+      "asset_path": "objects/l19-public-government-sentencing-surrogate.pdf",
+      "asset_sha256": "6c7c517455b69497829fab5a02bbea3c2612298b2c0eb85ce9ac35b53cc0ec9a",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "entry_number": 20,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L20",
+      "filed_on": "2026-02-19",
+      "title": "Sealed Government Sentencing Memorandum",
+      "actor": "Fictional United States prosecution actor",
+      "description": "Lower-record document L20: Sealed Government Sentencing Memorandum.",
+      "tags": [
+        "lower_record",
+        "sentencing_submission"
+      ],
+      "asset_path": "objects/l20-sealed-government-sentencing.pdf",
+      "asset_sha256": "41c48945b5b8cf19a8573ac81f9193824f58f29d8935136294be764d466ba690",
+      "page_count": 10,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "entry_number": 21,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L21",
+      "filed_on": "2026-02-24",
+      "title": "Sentencing Hearing Transcript",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina and Mateo Serrano (fictional) and Fictional United States prosecution actor",
+      "description": "Lower-record document L21: Sentencing Hearing Transcript.",
+      "tags": [
+        "lower_record",
+        "transcript_order"
+      ],
+      "asset_path": "objects/l21-sentencing-transcript.pdf",
+      "asset_sha256": "eee7427a284569e9543cdc58d2892f3affb1924e6c039bc624acd02357cca73d",
+      "page_count": 26,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l22",
+      "entry_number": 22,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L22",
+      "filed_on": "2026-02-24",
+      "title": "Public Sentencing Minute Entry and Reasons Summary — Not the Confidential Statement-of-Reasons Form",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L22: Public Sentencing Minute Entry and Reasons Summary — Not the Confidential Statement-of-Reasons Form.",
+      "tags": [
+        "lower_record",
+        "transcript_order"
+      ],
+      "asset_path": "objects/l22-public-sentencing-minute-reasons-summary.pdf",
+      "asset_sha256": "1b0ce2c43419554d7bca5d9c43faa2a62eed3ba21456463d23a9821967997fa0",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l23",
+      "entry_number": 23,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L23",
+      "filed_on": "2026-02-24",
+      "title": "Order Overruling Aggravating-Role Objection",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L23: Order Overruling Aggravating-Role Objection.",
+      "tags": [
+        "lower_record",
+        "transcript_order"
+      ],
+      "asset_path": "objects/l23-role-objection-order.pdf",
+      "asset_sha256": "f6c4fffb93565e39d629f9754a38f7f1c1d755206c227c8674e926870bd96776",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l24",
+      "entry_number": 24,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L24",
+      "filed_on": "2026-02-25",
+      "title": "Criminal Judgment",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L24: Criminal Judgment.",
+      "tags": [
+        "lower_record",
+        "judgment_docket_initiation"
+      ],
+      "asset_path": "objects/l24-criminal-judgment.pdf",
+      "asset_sha256": "180b2a4db58da53eb8fa286a901c8d9bd100a6bde8019251b20e0b67114c4da2",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l25",
+      "entry_number": 25,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L25",
+      "filed_on": "2026-02-24",
+      "title": "Rule 32(j) Notice of Appellate Rights",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L25: Rule 32(j) Notice of Appellate Rights.",
+      "tags": [
+        "lower_record",
+        "judgment_docket_initiation"
+      ],
+      "asset_path": "objects/l25-appellate-rights-notice.pdf",
+      "asset_sha256": "f53c0bfae4cac595a288876f383aa2f46a4b170c577154446841706980a1353d",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l26",
+      "entry_number": 26,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L26",
+      "filed_on": "2026-03-11",
+      "title": "Certified District-Court Docket Report",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L26: Certified District-Court Docket Report.",
+      "tags": [
+        "lower_record",
+        "judgment_docket_initiation"
+      ],
+      "asset_path": "objects/l26-district-docket-report.pdf",
+      "asset_sha256": "6e08b4ad46dc040af6b143708c79bdd4b719e904f1168f3305954afe93e31490",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l27",
+      "entry_number": 27,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L27",
+      "filed_on": "2026-03-11",
+      "title": "Actual Day-14 Notice of Appeal",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Lower-record document L27: Actual Day-14 Notice of Appeal.",
+      "tags": [
+        "lower_record",
+        "judgment_docket_initiation"
+      ],
+      "asset_path": "objects/l27-notice-of-appeal.pdf",
+      "asset_sha256": "8cc1ff5e84b0d418173f28c14a864e6a9ee7e6e71c133da4b4dcb68ffc1d3915",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.l28",
+      "entry_number": 28,
+      "docket_id": "ca4m4.serrano.docket.district",
+      "entry_label": "Lower Record L28",
+      "filed_on": "2026-03-16",
+      "title": "Certified Record Transmittal and Sealed-Volume Index",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Lower-record document L28: Certified Record Transmittal and Sealed-Volume Index.",
+      "tags": [
+        "lower_record",
+        "judgment_docket_initiation"
+      ],
+      "asset_path": "objects/l28-record-transmittal.pdf",
+      "asset_sha256": "dab6dfdeb04fd0971fcbd17b2694bafae9fcc0348921cac68f9ecc34d8549f4d",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a01",
+      "entry_number": 29,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A01",
+      "filed_on": "2026-03-16",
+      "title": "Actual Case-Opening Notice",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A01: Actual Case-Opening Notice.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a01-case-opening-notice.pdf",
+      "asset_sha256": "c53ab0d8a00e2ccc0272f20a824d0a22c0b0839140284c2667032e4e20748fc9",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a02",
+      "entry_number": 30,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A02",
+      "filed_on": "2026-03-23",
+      "title": "Actual Docketing Statement",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Actual appellate document A02: Actual Docketing Statement.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a02-docketing-statement.pdf",
+      "asset_sha256": "dffd1963b6a3a9c878dc1ac59b20f61031895de8fbecb67d83efa886bca5757b",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a03",
+      "entry_number": 31,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A03",
+      "filed_on": "2026-03-23",
+      "title": "Actual Appearances and Disclosure Statements",
+      "actor": "Mateo Serrano (fictional) and Fictional United States prosecution actor",
+      "description": "Actual appellate document A03: Actual Appearances and Disclosure Statements.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a03-appearances-disclosures.pdf",
+      "asset_sha256": "24cc71bc31b17af9c73a5edbb227b0b593f15a90eab97561a178a52158b921d1",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a04",
+      "entry_number": 32,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A04",
+      "filed_on": "2026-04-01",
+      "title": "Motion to Continue Lower-Record Seal and File Public/Sealed Appellate Twins",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Actual appellate document A04: Motion to Continue Lower-Record Seal and File Public/Sealed Appellate Twins.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a04-motion-sealed-materials.pdf",
+      "asset_sha256": "47cd6f26bc9fa206fadfebed64d3ea1d7cd91de511b9fd43c470d6aee194abf0",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a05",
+      "entry_number": 33,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A05",
+      "filed_on": "2026-04-01",
+      "title": "Certificate of Confidentiality and Sealed-Volume Protocol",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Actual appellate document A05: Certificate of Confidentiality and Sealed-Volume Protocol.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a05-certificate-confidentiality.pdf",
+      "asset_sha256": "f21932be20833463b363702bb93ab480b833debeb1910aa2586c5b325cfdecfa",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "entry_number": 34,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A06",
+      "filed_on": "2026-04-15",
+      "title": "Public Redacted Opening Brief",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Public redacted counterpart to the paired sealed highlighted appellate filing: Public Redacted Opening Brief. Protected details remain omitted.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a06-public-opening-brief.pdf",
+      "asset_sha256": "f2400c4d7ef1b1c47651f18e076f8550d71f7f5091b2b642ab9df965bbbb300b",
+      "page_count": 16,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "entry_number": 35,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A07",
+      "filed_on": "2026-04-15",
+      "title": "Sealed Highlighted Opening Brief",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Sealed appellate counterpart A07: Sealed Highlighted Opening Brief. Access is controlled by its exact disclosure grant.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a07-sealed-opening-brief.pdf",
+      "asset_sha256": "cb92fffef63231d818add67dae724f9973a8c477aac66385f953c92973886083",
+      "page_count": 16,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a08",
+      "entry_number": 36,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A08",
+      "filed_on": "2026-04-22",
+      "title": "Government First Threshold Motion to Dismiss Enhancement Target Under Appeal Waiver",
+      "actor": "Fictional United States prosecution actor",
+      "description": "Actual appellate document A08: Government First Threshold Motion to Dismiss Enhancement Target Under Appeal Waiver.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a08-government-waiver-motion.pdf",
+      "asset_sha256": "cd031fdb33336964513f054a1d41bbc70a683be7e175671892b1bc7750ddc5de",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a09",
+      "entry_number": 37,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A09",
+      "filed_on": "2026-04-29",
+      "title": "Opposition to Target-Limited Waiver Motion",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Actual appellate document A09: Opposition to Target-Limited Waiver Motion.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a09-waiver-motion-opposition.pdf",
+      "asset_sha256": "5ba9e8783deec935caa0da387056cfac300e9b4a7936d6718ff11051f575da23",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a10",
+      "entry_number": 38,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A10",
+      "filed_on": "2026-05-05",
+      "title": "Order Dismissing Enhancement Target and Preserving Allocution Issue",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual appellate document A10: Order Dismissing Enhancement Target and Preserving Allocution Issue.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a10-partial-dismissal-order.pdf",
+      "asset_sha256": "3b0f6e78db1d63ad8b4c79203fae706806feb1cc368d6fa3ec5bddcaeac7b1a8",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "entry_number": 39,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A11",
+      "filed_on": "2026-05-19",
+      "title": "Public Redacted Government Response Brief on Allocution",
+      "actor": "Fictional United States prosecution actor",
+      "description": "Public redacted counterpart to the paired sealed highlighted appellate filing: Public Redacted Government Response Brief on Allocution. Protected details remain omitted.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a11-public-response-brief.pdf",
+      "asset_sha256": "8f40b9b4a1852d294509bb3778e301657e6242214757674191e05c970dc29033",
+      "page_count": 14,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "entry_number": 40,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A12",
+      "filed_on": "2026-05-19",
+      "title": "Sealed Highlighted Government Response Brief on Allocution",
+      "actor": "Fictional United States prosecution actor",
+      "description": "Sealed appellate counterpart A12: Sealed Highlighted Government Response Brief on Allocution. Access is controlled by its exact disclosure grant.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a12-sealed-response-brief.pdf",
+      "asset_sha256": "d798179de4b8267956a835ffe72be234f6e35ecddbb4f3066703a6b495353758",
+      "page_count": 14,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a13",
+      "entry_number": 41,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A13",
+      "filed_on": "2026-06-02",
+      "title": "Public Redacted Reply Brief",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Public redacted counterpart to the paired sealed highlighted appellate filing: Public Redacted Reply Brief. Protected details remain omitted.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a13-public-reply-brief.pdf",
+      "asset_sha256": "f2d7806ea6b917efc3f7a6df1eea84f3eac53c359b25648efb7848c19f6df914",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a14",
+      "entry_number": 42,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A14",
+      "filed_on": "2026-06-02",
+      "title": "Sealed Highlighted Reply Brief",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Sealed appellate counterpart A14: Sealed Highlighted Reply Brief. Access is controlled by its exact disclosure grant.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a14-sealed-reply-brief.pdf",
+      "asset_sha256": "fd0a2f2b6f062102b79abd5d6f6f114d94eef16ed9d2158645e6840f79bd571e",
+      "page_count": 8,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a15",
+      "entry_number": 43,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A15",
+      "filed_on": "2026-06-02",
+      "title": "Public Docket Surrogate and Index for Sealed PSR Appendix Volume",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Public docket surrogate or category index for the paired sealed material: Public Docket Surrogate and Index for Sealed PSR Appendix Volume. It does not reproduce or disclose the protected filing.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a15-public-psr-volume-surrogate.pdf",
+      "asset_sha256": "7a54d4b79d1d673ffb0ee6109ae6811540a25450db32ef8de5599c4d0012c13b",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a16",
+      "entry_number": 44,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A16",
+      "filed_on": "2026-06-02",
+      "title": "Sealed Separate PSR Appendix Volume",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Sealed appellate counterpart A16: Sealed Separate PSR Appendix Volume. Access is controlled by its exact disclosure grant.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a16-sealed-psr-volume.pdf",
+      "asset_sha256": "5cef4e0bc4b70284c988531e9fc4be5ea9c13960e211f3ce9dfbe84c3dff72a4",
+      "page_count": 6,
+      "sealed": true
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a17",
+      "entry_number": 45,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A17",
+      "filed_on": "2026-06-10",
+      "title": "Oral-Argument Calendar Notice",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A17: Oral-Argument Calendar Notice.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a17-argument-calendar-notice.pdf",
+      "asset_sha256": "ddca0667c3f9ba5da842c87efe7ec0fc302ac40a65a783eeb33da6b7192cfed8",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "entry_number": 46,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A18",
+      "filed_on": "2026-07-28",
+      "title": "Published Opinion — Dismissed in Part; Sentence Vacated and Remanded",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual appellate document A18: Published Opinion — Dismissed in Part; Sentence Vacated and Remanded.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a18-published-opinion.pdf",
+      "asset_sha256": "153f3c1a086b52f50ba4791dffeb55ff6849c33540a071be41779483bfddb2ee",
+      "page_count": 18,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a19",
+      "entry_number": 47,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A19",
+      "filed_on": "2026-07-28",
+      "title": "Judgment — Enhancement Appeal Dismissed; Sentence Vacated and Remanded",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A19: Judgment — Enhancement Appeal Dismissed; Sentence Vacated and Remanded.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a19-judgment.pdf",
+      "asset_sha256": "41fc7fd249daceb61677ce9a77870d6ba861d43b6df348d4a9b70748bbbcfb09",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.a20",
+      "entry_number": 48,
+      "docket_id": "ca4m4.serrano.docket.appellate",
+      "entry_label": "Actual Appellate A20",
+      "filed_on": "2026-08-18",
+      "title": "Actual Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A20: Actual Mandate.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a20-mandate.pdf",
+      "asset_sha256": "c63eb2a36c93047034070f4a39822a1335982d3ac43aa0a8a677e1d1d694dec3",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b01",
+      "entry_number": 49,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B01 — Never Filed",
+      "filed_on": "2026-03-12",
+      "title": "Never-Filed Day-15 Notice of Appeal and Timing-Predicate Packet",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Counterfactual appellate document B01: Never-Filed Day-15 Notice of Appeal and Timing-Predicate Packet. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b01-day15-notice-packet.pdf",
+      "asset_sha256": "8d021565bbe9b42ccd7f5694f89070545be7290b4fde467b1ddcc53496e47de9",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b02",
+      "entry_number": 50,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B02 — Never Filed",
+      "filed_on": "2026-03-16",
+      "title": "Never-Filed Appellate Case-Opening and Limited-Remand Order",
+      "actor": "Fictional Fourth Circuit exercise clerk and Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual appellate document B02: Never-Filed Appellate Case-Opening and Limited-Remand Order. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b02-limited-remand-order.pdf",
+      "asset_sha256": "457e9c6b2502c0197e008f3a949239f0f4cbb0efaa5dcf7442fd903f6b078c04",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b03",
+      "entry_number": 51,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B03 — Never Filed",
+      "filed_on": "2026-03-18",
+      "title": "Never-Filed Serrano Statement Disclaiming Rule 4(b)(4) Extension and Excuse",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Counterfactual appellate document B03: Never-Filed Serrano Statement Disclaiming Rule 4(b)(4) Extension and Excuse. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b03-no-extension-statement.pdf",
+      "asset_sha256": "7c92431ad838055e472cfefa7a5413f54fbf1cf05e7cf3199ecd3afc8f1fe52d",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b04",
+      "entry_number": 52,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B04 — Never Filed",
+      "filed_on": "2026-03-20",
+      "title": "Never-Filed District Rule 4(b)(4) Findings and Order Declining Extension",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina",
+      "description": "Counterfactual appellate document B04: Never-Filed District Rule 4(b)(4) Findings and Order Declining Extension. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b04-rule4b4-findings-order.pdf",
+      "asset_sha256": "bb48ebef23a58f316d90ade88e1adcc4504cac946794e9b4131a60c4e8b14438",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b05",
+      "entry_number": 53,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B05 — Never Filed",
+      "filed_on": "2026-03-23",
+      "title": "Never-Filed Certified Limited-Remand Return and Resumption Notice",
+      "actor": "Fictional United States District Court for the Middle District of North Carolina and Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B05: Never-Filed Certified Limited-Remand Return and Resumption Notice. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b05-limited-remand-return.pdf",
+      "asset_sha256": "67d03f2726c1fc4cea702c1d69c9d24da78e94c7825d543533656f6bf8a4c998",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b06",
+      "entry_number": 54,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B06 — Never Filed",
+      "filed_on": "2026-03-25",
+      "title": "Never-Filed Government First Threshold Motion to Dismiss for Rule 4(b) Untimeliness and Appeal Waiver",
+      "actor": "Fictional United States prosecution actor",
+      "description": "Counterfactual appellate document B06: Never-Filed Government First Threshold Motion to Dismiss for Rule 4(b) Untimeliness and Appeal Waiver. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b06-government-first-threshold-motion.pdf",
+      "asset_sha256": "5908eaa4e1a27b1b12e254b822edd1a23e7cdfafe1c6e08cbd7de5726f12dcb5",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b07",
+      "entry_number": 55,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B07 — Never Filed",
+      "filed_on": "2026-03-30",
+      "title": "Never-Filed Opposition to Government Threshold Motion",
+      "actor": "Mateo Serrano (fictional)",
+      "description": "Counterfactual appellate document B07: Never-Filed Opposition to Government Threshold Motion. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b07-threshold-motion-opposition.pdf",
+      "asset_sha256": "afed916da9800d4353c0b1c49cc5257444be894f7af83187fa83cc83f7e5a39c",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b08",
+      "entry_number": 56,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B08 — Never Filed",
+      "filed_on": "2026-04-02",
+      "title": "Never-Filed Government Reply on Rule 4(b) and Waiver",
+      "actor": "Fictional United States prosecution actor",
+      "description": "Counterfactual appellate document B08: Never-Filed Government Reply on Rule 4(b) and Waiver. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b08-threshold-motion-reply.pdf",
+      "asset_sha256": "320cf8f32714677f652718f11dfdcaa6e0f31f66c3587c666fbe947c3d88cd77",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b09",
+      "entry_number": 57,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B09 — Never Filed",
+      "filed_on": "2026-04-10",
+      "title": "Never-Filed Opinion, Order, and Judgment Dismissing Appeal",
+      "actor": "Fictional composite Fourth Circuit panel and Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B09: Never-Filed Opinion, Order, and Judgment Dismissing Appeal. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b09-dismissal-opinion-judgment.pdf",
+      "asset_sha256": "dd19a4169241165c7daabba803030dafc6d72bb000dcef1140300013e1440ef6",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.serrano.record.entry.b10",
+      "entry_number": 58,
+      "docket_id": "ca4m4.serrano.docket.counterfactual-day15",
+      "entry_label": "Counterfactual Branch B10 — Never Filed",
+      "filed_on": "2026-05-01",
+      "title": "Never-Filed Ordinary Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B10: Never-Filed Ordinary Mandate. This isolated training document was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b10-ordinary-mandate.pdf",
+      "asset_sha256": "5975aa0921297ba0c891da8143d5b7e59f7c1e1c32a03dafc160b38f31e47ebf",
+      "page_count": 2,
+      "sealed": false
+    }
+  ],
+  "page_anchors": [
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja1",
+      "entry_id": "ca4m4.serrano.record.entry.l01",
+      "page_number": 1,
+      "citation_label": "JA1"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja2",
+      "entry_id": "ca4m4.serrano.record.entry.l01",
+      "page_number": 2,
+      "citation_label": "JA2"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja3",
+      "entry_id": "ca4m4.serrano.record.entry.l01",
+      "page_number": 3,
+      "citation_label": "JA3"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja4",
+      "entry_id": "ca4m4.serrano.record.entry.l01",
+      "page_number": 4,
+      "citation_label": "JA4"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja5",
+      "entry_id": "ca4m4.serrano.record.entry.l01",
+      "page_number": 5,
+      "citation_label": "JA5"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja6",
+      "entry_id": "ca4m4.serrano.record.entry.l01",
+      "page_number": 6,
+      "citation_label": "JA6"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja7",
+      "entry_id": "ca4m4.serrano.record.entry.l01",
+      "page_number": 7,
+      "citation_label": "JA7"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja8",
+      "entry_id": "ca4m4.serrano.record.entry.l01",
+      "page_number": 8,
+      "citation_label": "JA8"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja9",
+      "entry_id": "ca4m4.serrano.record.entry.l02",
+      "page_number": 1,
+      "citation_label": "JA9"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja10",
+      "entry_id": "ca4m4.serrano.record.entry.l02",
+      "page_number": 2,
+      "citation_label": "JA10"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja11",
+      "entry_id": "ca4m4.serrano.record.entry.l02",
+      "page_number": 3,
+      "citation_label": "JA11"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja12",
+      "entry_id": "ca4m4.serrano.record.entry.l02",
+      "page_number": 4,
+      "citation_label": "JA12"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja13",
+      "entry_id": "ca4m4.serrano.record.entry.l02",
+      "page_number": 5,
+      "citation_label": "JA13"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja14",
+      "entry_id": "ca4m4.serrano.record.entry.l02",
+      "page_number": 6,
+      "citation_label": "JA14"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja15",
+      "entry_id": "ca4m4.serrano.record.entry.l02",
+      "page_number": 7,
+      "citation_label": "JA15"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja16",
+      "entry_id": "ca4m4.serrano.record.entry.l03",
+      "page_number": 1,
+      "citation_label": "JA16"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja17",
+      "entry_id": "ca4m4.serrano.record.entry.l03",
+      "page_number": 2,
+      "citation_label": "JA17"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja18",
+      "entry_id": "ca4m4.serrano.record.entry.l03",
+      "page_number": 3,
+      "citation_label": "JA18"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja19",
+      "entry_id": "ca4m4.serrano.record.entry.l03",
+      "page_number": 4,
+      "citation_label": "JA19"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja20",
+      "entry_id": "ca4m4.serrano.record.entry.l03",
+      "page_number": 5,
+      "citation_label": "JA20"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja21",
+      "entry_id": "ca4m4.serrano.record.entry.l04",
+      "page_number": 1,
+      "citation_label": "JA21"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja22",
+      "entry_id": "ca4m4.serrano.record.entry.l04",
+      "page_number": 2,
+      "citation_label": "JA22"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja23",
+      "entry_id": "ca4m4.serrano.record.entry.l04",
+      "page_number": 3,
+      "citation_label": "JA23"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja24",
+      "entry_id": "ca4m4.serrano.record.entry.l04",
+      "page_number": 4,
+      "citation_label": "JA24"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja25",
+      "entry_id": "ca4m4.serrano.record.entry.l04",
+      "page_number": 5,
+      "citation_label": "JA25"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja26",
+      "entry_id": "ca4m4.serrano.record.entry.l04",
+      "page_number": 6,
+      "citation_label": "JA26"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja27",
+      "entry_id": "ca4m4.serrano.record.entry.l04",
+      "page_number": 7,
+      "citation_label": "JA27"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja28",
+      "entry_id": "ca4m4.serrano.record.entry.l04",
+      "page_number": 8,
+      "citation_label": "JA28"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja29",
+      "entry_id": "ca4m4.serrano.record.entry.l05",
+      "page_number": 1,
+      "citation_label": "JA29"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja30",
+      "entry_id": "ca4m4.serrano.record.entry.l05",
+      "page_number": 2,
+      "citation_label": "JA30"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja31",
+      "entry_id": "ca4m4.serrano.record.entry.l05",
+      "page_number": 3,
+      "citation_label": "JA31"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja32",
+      "entry_id": "ca4m4.serrano.record.entry.l05",
+      "page_number": 4,
+      "citation_label": "JA32"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja33",
+      "entry_id": "ca4m4.serrano.record.entry.l05",
+      "page_number": 5,
+      "citation_label": "JA33"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja34",
+      "entry_id": "ca4m4.serrano.record.entry.l05",
+      "page_number": 6,
+      "citation_label": "JA34"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja35",
+      "entry_id": "ca4m4.serrano.record.entry.l05",
+      "page_number": 7,
+      "citation_label": "JA35"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja36",
+      "entry_id": "ca4m4.serrano.record.entry.l06",
+      "page_number": 1,
+      "citation_label": "JA36"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja37",
+      "entry_id": "ca4m4.serrano.record.entry.l06",
+      "page_number": 2,
+      "citation_label": "JA37"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja38",
+      "entry_id": "ca4m4.serrano.record.entry.l06",
+      "page_number": 3,
+      "citation_label": "JA38"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja39",
+      "entry_id": "ca4m4.serrano.record.entry.l06",
+      "page_number": 4,
+      "citation_label": "JA39"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja40",
+      "entry_id": "ca4m4.serrano.record.entry.l06",
+      "page_number": 5,
+      "citation_label": "JA40"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja41",
+      "entry_id": "ca4m4.serrano.record.entry.l06",
+      "page_number": 6,
+      "citation_label": "JA41"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja42",
+      "entry_id": "ca4m4.serrano.record.entry.l06",
+      "page_number": 7,
+      "citation_label": "JA42"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja43",
+      "entry_id": "ca4m4.serrano.record.entry.l06",
+      "page_number": 8,
+      "citation_label": "JA43"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja44",
+      "entry_id": "ca4m4.serrano.record.entry.l07",
+      "page_number": 1,
+      "citation_label": "JA44"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja45",
+      "entry_id": "ca4m4.serrano.record.entry.l07",
+      "page_number": 2,
+      "citation_label": "JA45"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja46",
+      "entry_id": "ca4m4.serrano.record.entry.l07",
+      "page_number": 3,
+      "citation_label": "JA46"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja47",
+      "entry_id": "ca4m4.serrano.record.entry.l07",
+      "page_number": 4,
+      "citation_label": "JA47"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja48",
+      "entry_id": "ca4m4.serrano.record.entry.l07",
+      "page_number": 5,
+      "citation_label": "JA48"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja49",
+      "entry_id": "ca4m4.serrano.record.entry.l07",
+      "page_number": 6,
+      "citation_label": "JA49"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja50",
+      "entry_id": "ca4m4.serrano.record.entry.l08",
+      "page_number": 1,
+      "citation_label": "JA50"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja51",
+      "entry_id": "ca4m4.serrano.record.entry.l08",
+      "page_number": 2,
+      "citation_label": "JA51"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja52",
+      "entry_id": "ca4m4.serrano.record.entry.l08",
+      "page_number": 3,
+      "citation_label": "JA52"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja53",
+      "entry_id": "ca4m4.serrano.record.entry.l08",
+      "page_number": 4,
+      "citation_label": "JA53"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja54",
+      "entry_id": "ca4m4.serrano.record.entry.l08",
+      "page_number": 5,
+      "citation_label": "JA54"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja55",
+      "entry_id": "ca4m4.serrano.record.entry.l08",
+      "page_number": 6,
+      "citation_label": "JA55"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja56",
+      "entry_id": "ca4m4.serrano.record.entry.l08",
+      "page_number": 7,
+      "citation_label": "JA56"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja57",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 1,
+      "citation_label": "JA57"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja58",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 2,
+      "citation_label": "JA58"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja59",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 3,
+      "citation_label": "JA59"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja60",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 4,
+      "citation_label": "JA60"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja61",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 5,
+      "citation_label": "JA61"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja62",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 6,
+      "citation_label": "JA62"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja63",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 7,
+      "citation_label": "JA63"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja64",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 8,
+      "citation_label": "JA64"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja65",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 9,
+      "citation_label": "JA65"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja66",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 10,
+      "citation_label": "JA66"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja67",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 11,
+      "citation_label": "JA67"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja68",
+      "entry_id": "ca4m4.serrano.record.entry.l09",
+      "page_number": 12,
+      "citation_label": "JA68"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja69",
+      "entry_id": "ca4m4.serrano.record.entry.l10",
+      "page_number": 1,
+      "citation_label": "JA69"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja70",
+      "entry_id": "ca4m4.serrano.record.entry.l10",
+      "page_number": 2,
+      "citation_label": "JA70"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja71",
+      "entry_id": "ca4m4.serrano.record.entry.l10",
+      "page_number": 3,
+      "citation_label": "JA71"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja72",
+      "entry_id": "ca4m4.serrano.record.entry.l10",
+      "page_number": 4,
+      "citation_label": "JA72"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja73",
+      "entry_id": "ca4m4.serrano.record.entry.l10",
+      "page_number": 5,
+      "citation_label": "JA73"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja74",
+      "entry_id": "ca4m4.serrano.record.entry.l10",
+      "page_number": 6,
+      "citation_label": "JA74"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja75",
+      "entry_id": "ca4m4.serrano.record.entry.l10",
+      "page_number": 7,
+      "citation_label": "JA75"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja76",
+      "entry_id": "ca4m4.serrano.record.entry.l10",
+      "page_number": 8,
+      "citation_label": "JA76"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja77",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 1,
+      "citation_label": "JA77"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja78",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 2,
+      "citation_label": "JA78"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja79",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 3,
+      "citation_label": "JA79"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja80",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 4,
+      "citation_label": "JA80"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja81",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 5,
+      "citation_label": "JA81"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja82",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 6,
+      "citation_label": "JA82"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja83",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 7,
+      "citation_label": "JA83"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja84",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 8,
+      "citation_label": "JA84"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja85",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 9,
+      "citation_label": "JA85"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja86",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 10,
+      "citation_label": "JA86"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja87",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 11,
+      "citation_label": "JA87"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja88",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 12,
+      "citation_label": "JA88"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja89",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 13,
+      "citation_label": "JA89"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja90",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 14,
+      "citation_label": "JA90"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja91",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 15,
+      "citation_label": "JA91"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja92",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 16,
+      "citation_label": "JA92"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja93",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 17,
+      "citation_label": "JA93"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja94",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 18,
+      "citation_label": "JA94"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja95",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 19,
+      "citation_label": "JA95"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja96",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 20,
+      "citation_label": "JA96"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja97",
+      "entry_id": "ca4m4.serrano.record.entry.l11",
+      "page_number": 21,
+      "citation_label": "JA97"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja98",
+      "entry_id": "ca4m4.serrano.record.entry.l12",
+      "page_number": 1,
+      "citation_label": "JA98"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja99",
+      "entry_id": "ca4m4.serrano.record.entry.l12",
+      "page_number": 2,
+      "citation_label": "JA99"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja100",
+      "entry_id": "ca4m4.serrano.record.entry.l12",
+      "page_number": 3,
+      "citation_label": "JA100"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja101",
+      "entry_id": "ca4m4.serrano.record.entry.l12",
+      "page_number": 4,
+      "citation_label": "JA101"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja102",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 1,
+      "citation_label": "JA102"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja103",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 2,
+      "citation_label": "JA103"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja104",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 3,
+      "citation_label": "JA104"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja105",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 4,
+      "citation_label": "JA105"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja106",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 5,
+      "citation_label": "JA106"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja107",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 6,
+      "citation_label": "JA107"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja108",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 7,
+      "citation_label": "JA108"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja109",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 8,
+      "citation_label": "JA109"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja110",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 9,
+      "citation_label": "JA110"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja111",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 10,
+      "citation_label": "JA111"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja112",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 11,
+      "citation_label": "JA112"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja113",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 12,
+      "citation_label": "JA113"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja114",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 13,
+      "citation_label": "JA114"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja115",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 14,
+      "citation_label": "JA115"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja116",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 15,
+      "citation_label": "JA116"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja117",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 16,
+      "citation_label": "JA117"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja118",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 17,
+      "citation_label": "JA118"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja119",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 18,
+      "citation_label": "JA119"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja120",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 19,
+      "citation_label": "JA120"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja121",
+      "entry_id": "ca4m4.serrano.record.entry.l13",
+      "page_number": 20,
+      "citation_label": "JA121"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja122",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 1,
+      "citation_label": "JA122"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja123",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 2,
+      "citation_label": "JA123"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja124",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 3,
+      "citation_label": "JA124"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja125",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 4,
+      "citation_label": "JA125"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja126",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 5,
+      "citation_label": "JA126"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja127",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 6,
+      "citation_label": "JA127"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja128",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 7,
+      "citation_label": "JA128"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja129",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 8,
+      "citation_label": "JA129"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja130",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 9,
+      "citation_label": "JA130"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja131",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 10,
+      "citation_label": "JA131"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja132",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 11,
+      "citation_label": "JA132"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja133",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 12,
+      "citation_label": "JA133"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja134",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 13,
+      "citation_label": "JA134"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja135",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 14,
+      "citation_label": "JA135"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja136",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 15,
+      "citation_label": "JA136"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja137",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 16,
+      "citation_label": "JA137"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja138",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 17,
+      "citation_label": "JA138"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja139",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 18,
+      "citation_label": "JA139"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja140",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 19,
+      "citation_label": "JA140"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja141",
+      "entry_id": "ca4m4.serrano.record.entry.l14",
+      "page_number": 20,
+      "citation_label": "JA141"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja142",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 1,
+      "citation_label": "JA142"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja143",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 2,
+      "citation_label": "JA143"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja144",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 3,
+      "citation_label": "JA144"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja145",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 4,
+      "citation_label": "JA145"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja146",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 5,
+      "citation_label": "JA146"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja147",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 6,
+      "citation_label": "JA147"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja148",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 7,
+      "citation_label": "JA148"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja149",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 8,
+      "citation_label": "JA149"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja150",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 9,
+      "citation_label": "JA150"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja151",
+      "entry_id": "ca4m4.serrano.record.entry.l15",
+      "page_number": 10,
+      "citation_label": "JA151"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja152",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 1,
+      "citation_label": "JA152"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja153",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 2,
+      "citation_label": "JA153"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja154",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 3,
+      "citation_label": "JA154"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja155",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 4,
+      "citation_label": "JA155"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja156",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 5,
+      "citation_label": "JA156"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja157",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 6,
+      "citation_label": "JA157"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja158",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 7,
+      "citation_label": "JA158"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja159",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 8,
+      "citation_label": "JA159"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja160",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 9,
+      "citation_label": "JA160"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja161",
+      "entry_id": "ca4m4.serrano.record.entry.l16",
+      "page_number": 10,
+      "citation_label": "JA161"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja162",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 1,
+      "citation_label": "JA162"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja163",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 2,
+      "citation_label": "JA163"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja164",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 3,
+      "citation_label": "JA164"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja165",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 4,
+      "citation_label": "JA165"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja166",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 5,
+      "citation_label": "JA166"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja167",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 6,
+      "citation_label": "JA167"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja168",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 7,
+      "citation_label": "JA168"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja169",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 8,
+      "citation_label": "JA169"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja170",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 9,
+      "citation_label": "JA170"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja171",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 10,
+      "citation_label": "JA171"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja172",
+      "entry_id": "ca4m4.serrano.record.entry.l17",
+      "page_number": 11,
+      "citation_label": "JA172"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja173",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 1,
+      "citation_label": "JA173"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja174",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 2,
+      "citation_label": "JA174"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja175",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 3,
+      "citation_label": "JA175"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja176",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 4,
+      "citation_label": "JA176"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja177",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 5,
+      "citation_label": "JA177"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja178",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 6,
+      "citation_label": "JA178"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja179",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 7,
+      "citation_label": "JA179"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja180",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 8,
+      "citation_label": "JA180"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja181",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 9,
+      "citation_label": "JA181"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja182",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 10,
+      "citation_label": "JA182"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja183",
+      "entry_id": "ca4m4.serrano.record.entry.l18",
+      "page_number": 11,
+      "citation_label": "JA183"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja184",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 1,
+      "citation_label": "JA184"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja185",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 2,
+      "citation_label": "JA185"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja186",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 3,
+      "citation_label": "JA186"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja187",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 4,
+      "citation_label": "JA187"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja188",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 5,
+      "citation_label": "JA188"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja189",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 6,
+      "citation_label": "JA189"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja190",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 7,
+      "citation_label": "JA190"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja191",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 8,
+      "citation_label": "JA191"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja192",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 9,
+      "citation_label": "JA192"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja193",
+      "entry_id": "ca4m4.serrano.record.entry.l19",
+      "page_number": 10,
+      "citation_label": "JA193"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja194",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 1,
+      "citation_label": "JA194"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja195",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 2,
+      "citation_label": "JA195"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja196",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 3,
+      "citation_label": "JA196"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja197",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 4,
+      "citation_label": "JA197"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja198",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 5,
+      "citation_label": "JA198"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja199",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 6,
+      "citation_label": "JA199"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja200",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 7,
+      "citation_label": "JA200"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja201",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 8,
+      "citation_label": "JA201"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja202",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 9,
+      "citation_label": "JA202"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja203",
+      "entry_id": "ca4m4.serrano.record.entry.l20",
+      "page_number": 10,
+      "citation_label": "JA203"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja204",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 1,
+      "citation_label": "JA204"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja205",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 2,
+      "citation_label": "JA205"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja206",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 3,
+      "citation_label": "JA206"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja207",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 4,
+      "citation_label": "JA207"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja208",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 5,
+      "citation_label": "JA208"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja209",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 6,
+      "citation_label": "JA209"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja210",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 7,
+      "citation_label": "JA210"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja211",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 8,
+      "citation_label": "JA211"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja212",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 9,
+      "citation_label": "JA212"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja213",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 10,
+      "citation_label": "JA213"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja214",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 11,
+      "citation_label": "JA214"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja215",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 12,
+      "citation_label": "JA215"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja216",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 13,
+      "citation_label": "JA216"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja217",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 14,
+      "citation_label": "JA217"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja218",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 15,
+      "citation_label": "JA218"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja219",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 16,
+      "citation_label": "JA219"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja220",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 17,
+      "citation_label": "JA220"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja221",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 18,
+      "citation_label": "JA221"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja222",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 19,
+      "citation_label": "JA222"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja223",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 20,
+      "citation_label": "JA223"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja224",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 21,
+      "citation_label": "JA224"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja225",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 22,
+      "citation_label": "JA225"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja226",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 23,
+      "citation_label": "JA226"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja227",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 24,
+      "citation_label": "JA227"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja228",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 25,
+      "citation_label": "JA228"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja229",
+      "entry_id": "ca4m4.serrano.record.entry.l21",
+      "page_number": 26,
+      "citation_label": "JA229"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja230",
+      "entry_id": "ca4m4.serrano.record.entry.l22",
+      "page_number": 1,
+      "citation_label": "JA230"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja231",
+      "entry_id": "ca4m4.serrano.record.entry.l22",
+      "page_number": 2,
+      "citation_label": "JA231"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja232",
+      "entry_id": "ca4m4.serrano.record.entry.l22",
+      "page_number": 3,
+      "citation_label": "JA232"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja233",
+      "entry_id": "ca4m4.serrano.record.entry.l22",
+      "page_number": 4,
+      "citation_label": "JA233"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja234",
+      "entry_id": "ca4m4.serrano.record.entry.l22",
+      "page_number": 5,
+      "citation_label": "JA234"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja235",
+      "entry_id": "ca4m4.serrano.record.entry.l23",
+      "page_number": 1,
+      "citation_label": "JA235"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja236",
+      "entry_id": "ca4m4.serrano.record.entry.l23",
+      "page_number": 2,
+      "citation_label": "JA236"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja237",
+      "entry_id": "ca4m4.serrano.record.entry.l23",
+      "page_number": 3,
+      "citation_label": "JA237"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja238",
+      "entry_id": "ca4m4.serrano.record.entry.l23",
+      "page_number": 4,
+      "citation_label": "JA238"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja239",
+      "entry_id": "ca4m4.serrano.record.entry.l23",
+      "page_number": 5,
+      "citation_label": "JA239"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja240",
+      "entry_id": "ca4m4.serrano.record.entry.l23",
+      "page_number": 6,
+      "citation_label": "JA240"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja241",
+      "entry_id": "ca4m4.serrano.record.entry.l23",
+      "page_number": 7,
+      "citation_label": "JA241"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja242",
+      "entry_id": "ca4m4.serrano.record.entry.l24",
+      "page_number": 1,
+      "citation_label": "JA242"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja243",
+      "entry_id": "ca4m4.serrano.record.entry.l24",
+      "page_number": 2,
+      "citation_label": "JA243"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja244",
+      "entry_id": "ca4m4.serrano.record.entry.l24",
+      "page_number": 3,
+      "citation_label": "JA244"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja245",
+      "entry_id": "ca4m4.serrano.record.entry.l24",
+      "page_number": 4,
+      "citation_label": "JA245"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja246",
+      "entry_id": "ca4m4.serrano.record.entry.l24",
+      "page_number": 5,
+      "citation_label": "JA246"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja247",
+      "entry_id": "ca4m4.serrano.record.entry.l25",
+      "page_number": 1,
+      "citation_label": "JA247"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja248",
+      "entry_id": "ca4m4.serrano.record.entry.l25",
+      "page_number": 2,
+      "citation_label": "JA248"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja249",
+      "entry_id": "ca4m4.serrano.record.entry.l26",
+      "page_number": 1,
+      "citation_label": "JA249"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja250",
+      "entry_id": "ca4m4.serrano.record.entry.l26",
+      "page_number": 2,
+      "citation_label": "JA250"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja251",
+      "entry_id": "ca4m4.serrano.record.entry.l26",
+      "page_number": 3,
+      "citation_label": "JA251"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja252",
+      "entry_id": "ca4m4.serrano.record.entry.l26",
+      "page_number": 4,
+      "citation_label": "JA252"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja253",
+      "entry_id": "ca4m4.serrano.record.entry.l26",
+      "page_number": 5,
+      "citation_label": "JA253"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja254",
+      "entry_id": "ca4m4.serrano.record.entry.l27",
+      "page_number": 1,
+      "citation_label": "JA254"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja255",
+      "entry_id": "ca4m4.serrano.record.entry.l27",
+      "page_number": 2,
+      "citation_label": "JA255"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja256",
+      "entry_id": "ca4m4.serrano.record.entry.l27",
+      "page_number": 3,
+      "citation_label": "JA256"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja257",
+      "entry_id": "ca4m4.serrano.record.entry.l28",
+      "page_number": 1,
+      "citation_label": "JA257"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja258",
+      "entry_id": "ca4m4.serrano.record.entry.l28",
+      "page_number": 2,
+      "citation_label": "JA258"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja259",
+      "entry_id": "ca4m4.serrano.record.entry.l28",
+      "page_number": 3,
+      "citation_label": "JA259"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.ja260",
+      "entry_id": "ca4m4.serrano.record.entry.l28",
+      "page_number": 4,
+      "citation_label": "JA260"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa1",
+      "entry_id": "ca4m4.serrano.record.entry.a01",
+      "page_number": 1,
+      "citation_label": "PA1"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa2",
+      "entry_id": "ca4m4.serrano.record.entry.a01",
+      "page_number": 2,
+      "citation_label": "PA2"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa3",
+      "entry_id": "ca4m4.serrano.record.entry.a01",
+      "page_number": 3,
+      "citation_label": "PA3"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa4",
+      "entry_id": "ca4m4.serrano.record.entry.a02",
+      "page_number": 1,
+      "citation_label": "PA4"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa5",
+      "entry_id": "ca4m4.serrano.record.entry.a02",
+      "page_number": 2,
+      "citation_label": "PA5"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa6",
+      "entry_id": "ca4m4.serrano.record.entry.a02",
+      "page_number": 3,
+      "citation_label": "PA6"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa7",
+      "entry_id": "ca4m4.serrano.record.entry.a02",
+      "page_number": 4,
+      "citation_label": "PA7"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa8",
+      "entry_id": "ca4m4.serrano.record.entry.a03",
+      "page_number": 1,
+      "citation_label": "PA8"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa9",
+      "entry_id": "ca4m4.serrano.record.entry.a03",
+      "page_number": 2,
+      "citation_label": "PA9"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa10",
+      "entry_id": "ca4m4.serrano.record.entry.a03",
+      "page_number": 3,
+      "citation_label": "PA10"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa11",
+      "entry_id": "ca4m4.serrano.record.entry.a03",
+      "page_number": 4,
+      "citation_label": "PA11"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa12",
+      "entry_id": "ca4m4.serrano.record.entry.a04",
+      "page_number": 1,
+      "citation_label": "PA12"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa13",
+      "entry_id": "ca4m4.serrano.record.entry.a04",
+      "page_number": 2,
+      "citation_label": "PA13"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa14",
+      "entry_id": "ca4m4.serrano.record.entry.a04",
+      "page_number": 3,
+      "citation_label": "PA14"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa15",
+      "entry_id": "ca4m4.serrano.record.entry.a04",
+      "page_number": 4,
+      "citation_label": "PA15"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa16",
+      "entry_id": "ca4m4.serrano.record.entry.a04",
+      "page_number": 5,
+      "citation_label": "PA16"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa17",
+      "entry_id": "ca4m4.serrano.record.entry.a04",
+      "page_number": 6,
+      "citation_label": "PA17"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa18",
+      "entry_id": "ca4m4.serrano.record.entry.a05",
+      "page_number": 1,
+      "citation_label": "PA18"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa19",
+      "entry_id": "ca4m4.serrano.record.entry.a05",
+      "page_number": 2,
+      "citation_label": "PA19"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa20",
+      "entry_id": "ca4m4.serrano.record.entry.a05",
+      "page_number": 3,
+      "citation_label": "PA20"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa21",
+      "entry_id": "ca4m4.serrano.record.entry.a05",
+      "page_number": 4,
+      "citation_label": "PA21"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa22",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 1,
+      "citation_label": "PA22"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa23",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 2,
+      "citation_label": "PA23"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa24",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 3,
+      "citation_label": "PA24"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa25",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 4,
+      "citation_label": "PA25"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa26",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 5,
+      "citation_label": "PA26"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa27",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 6,
+      "citation_label": "PA27"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa28",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 7,
+      "citation_label": "PA28"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa29",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 8,
+      "citation_label": "PA29"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa30",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 9,
+      "citation_label": "PA30"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa31",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 10,
+      "citation_label": "PA31"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa32",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 11,
+      "citation_label": "PA32"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa33",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 12,
+      "citation_label": "PA33"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa34",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 13,
+      "citation_label": "PA34"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa35",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 14,
+      "citation_label": "PA35"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa36",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 15,
+      "citation_label": "PA36"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa37",
+      "entry_id": "ca4m4.serrano.record.entry.a06",
+      "page_number": 16,
+      "citation_label": "PA37"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa38",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 1,
+      "citation_label": "PA38"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa39",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 2,
+      "citation_label": "PA39"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa40",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 3,
+      "citation_label": "PA40"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa41",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 4,
+      "citation_label": "PA41"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa42",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 5,
+      "citation_label": "PA42"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa43",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 6,
+      "citation_label": "PA43"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa44",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 7,
+      "citation_label": "PA44"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa45",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 8,
+      "citation_label": "PA45"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa46",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 9,
+      "citation_label": "PA46"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa47",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 10,
+      "citation_label": "PA47"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa48",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 11,
+      "citation_label": "PA48"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa49",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 12,
+      "citation_label": "PA49"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa50",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 13,
+      "citation_label": "PA50"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa51",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 14,
+      "citation_label": "PA51"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa52",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 15,
+      "citation_label": "PA52"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa53",
+      "entry_id": "ca4m4.serrano.record.entry.a07",
+      "page_number": 16,
+      "citation_label": "PA53"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa54",
+      "entry_id": "ca4m4.serrano.record.entry.a08",
+      "page_number": 1,
+      "citation_label": "PA54"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa55",
+      "entry_id": "ca4m4.serrano.record.entry.a08",
+      "page_number": 2,
+      "citation_label": "PA55"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa56",
+      "entry_id": "ca4m4.serrano.record.entry.a08",
+      "page_number": 3,
+      "citation_label": "PA56"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa57",
+      "entry_id": "ca4m4.serrano.record.entry.a08",
+      "page_number": 4,
+      "citation_label": "PA57"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa58",
+      "entry_id": "ca4m4.serrano.record.entry.a08",
+      "page_number": 5,
+      "citation_label": "PA58"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa59",
+      "entry_id": "ca4m4.serrano.record.entry.a08",
+      "page_number": 6,
+      "citation_label": "PA59"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa60",
+      "entry_id": "ca4m4.serrano.record.entry.a08",
+      "page_number": 7,
+      "citation_label": "PA60"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa61",
+      "entry_id": "ca4m4.serrano.record.entry.a08",
+      "page_number": 8,
+      "citation_label": "PA61"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa62",
+      "entry_id": "ca4m4.serrano.record.entry.a09",
+      "page_number": 1,
+      "citation_label": "PA62"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa63",
+      "entry_id": "ca4m4.serrano.record.entry.a09",
+      "page_number": 2,
+      "citation_label": "PA63"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa64",
+      "entry_id": "ca4m4.serrano.record.entry.a09",
+      "page_number": 3,
+      "citation_label": "PA64"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa65",
+      "entry_id": "ca4m4.serrano.record.entry.a09",
+      "page_number": 4,
+      "citation_label": "PA65"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa66",
+      "entry_id": "ca4m4.serrano.record.entry.a09",
+      "page_number": 5,
+      "citation_label": "PA66"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa67",
+      "entry_id": "ca4m4.serrano.record.entry.a09",
+      "page_number": 6,
+      "citation_label": "PA67"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa68",
+      "entry_id": "ca4m4.serrano.record.entry.a09",
+      "page_number": 7,
+      "citation_label": "PA68"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa69",
+      "entry_id": "ca4m4.serrano.record.entry.a09",
+      "page_number": 8,
+      "citation_label": "PA69"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa70",
+      "entry_id": "ca4m4.serrano.record.entry.a10",
+      "page_number": 1,
+      "citation_label": "PA70"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa71",
+      "entry_id": "ca4m4.serrano.record.entry.a10",
+      "page_number": 2,
+      "citation_label": "PA71"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa72",
+      "entry_id": "ca4m4.serrano.record.entry.a10",
+      "page_number": 3,
+      "citation_label": "PA72"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa73",
+      "entry_id": "ca4m4.serrano.record.entry.a10",
+      "page_number": 4,
+      "citation_label": "PA73"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa74",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 1,
+      "citation_label": "PA74"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa75",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 2,
+      "citation_label": "PA75"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa76",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 3,
+      "citation_label": "PA76"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa77",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 4,
+      "citation_label": "PA77"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa78",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 5,
+      "citation_label": "PA78"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa79",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 6,
+      "citation_label": "PA79"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa80",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 7,
+      "citation_label": "PA80"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa81",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 8,
+      "citation_label": "PA81"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa82",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 9,
+      "citation_label": "PA82"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa83",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 10,
+      "citation_label": "PA83"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa84",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 11,
+      "citation_label": "PA84"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa85",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 12,
+      "citation_label": "PA85"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa86",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 13,
+      "citation_label": "PA86"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa87",
+      "entry_id": "ca4m4.serrano.record.entry.a11",
+      "page_number": 14,
+      "citation_label": "PA87"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa88",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 1,
+      "citation_label": "PA88"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa89",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 2,
+      "citation_label": "PA89"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa90",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 3,
+      "citation_label": "PA90"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa91",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 4,
+      "citation_label": "PA91"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa92",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 5,
+      "citation_label": "PA92"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa93",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 6,
+      "citation_label": "PA93"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa94",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 7,
+      "citation_label": "PA94"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa95",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 8,
+      "citation_label": "PA95"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa96",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 9,
+      "citation_label": "PA96"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa97",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 10,
+      "citation_label": "PA97"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa98",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 11,
+      "citation_label": "PA98"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa99",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 12,
+      "citation_label": "PA99"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa100",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 13,
+      "citation_label": "PA100"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa101",
+      "entry_id": "ca4m4.serrano.record.entry.a12",
+      "page_number": 14,
+      "citation_label": "PA101"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa102",
+      "entry_id": "ca4m4.serrano.record.entry.a13",
+      "page_number": 1,
+      "citation_label": "PA102"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa103",
+      "entry_id": "ca4m4.serrano.record.entry.a13",
+      "page_number": 2,
+      "citation_label": "PA103"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa104",
+      "entry_id": "ca4m4.serrano.record.entry.a13",
+      "page_number": 3,
+      "citation_label": "PA104"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa105",
+      "entry_id": "ca4m4.serrano.record.entry.a13",
+      "page_number": 4,
+      "citation_label": "PA105"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa106",
+      "entry_id": "ca4m4.serrano.record.entry.a13",
+      "page_number": 5,
+      "citation_label": "PA106"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa107",
+      "entry_id": "ca4m4.serrano.record.entry.a13",
+      "page_number": 6,
+      "citation_label": "PA107"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa108",
+      "entry_id": "ca4m4.serrano.record.entry.a13",
+      "page_number": 7,
+      "citation_label": "PA108"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa109",
+      "entry_id": "ca4m4.serrano.record.entry.a13",
+      "page_number": 8,
+      "citation_label": "PA109"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa110",
+      "entry_id": "ca4m4.serrano.record.entry.a14",
+      "page_number": 1,
+      "citation_label": "PA110"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa111",
+      "entry_id": "ca4m4.serrano.record.entry.a14",
+      "page_number": 2,
+      "citation_label": "PA111"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa112",
+      "entry_id": "ca4m4.serrano.record.entry.a14",
+      "page_number": 3,
+      "citation_label": "PA112"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa113",
+      "entry_id": "ca4m4.serrano.record.entry.a14",
+      "page_number": 4,
+      "citation_label": "PA113"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa114",
+      "entry_id": "ca4m4.serrano.record.entry.a14",
+      "page_number": 5,
+      "citation_label": "PA114"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa115",
+      "entry_id": "ca4m4.serrano.record.entry.a14",
+      "page_number": 6,
+      "citation_label": "PA115"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa116",
+      "entry_id": "ca4m4.serrano.record.entry.a14",
+      "page_number": 7,
+      "citation_label": "PA116"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa117",
+      "entry_id": "ca4m4.serrano.record.entry.a14",
+      "page_number": 8,
+      "citation_label": "PA117"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa118",
+      "entry_id": "ca4m4.serrano.record.entry.a15",
+      "page_number": 1,
+      "citation_label": "PA118"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa119",
+      "entry_id": "ca4m4.serrano.record.entry.a15",
+      "page_number": 2,
+      "citation_label": "PA119"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa120",
+      "entry_id": "ca4m4.serrano.record.entry.a15",
+      "page_number": 3,
+      "citation_label": "PA120"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa121",
+      "entry_id": "ca4m4.serrano.record.entry.a15",
+      "page_number": 4,
+      "citation_label": "PA121"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa122",
+      "entry_id": "ca4m4.serrano.record.entry.a15",
+      "page_number": 5,
+      "citation_label": "PA122"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa123",
+      "entry_id": "ca4m4.serrano.record.entry.a15",
+      "page_number": 6,
+      "citation_label": "PA123"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa124",
+      "entry_id": "ca4m4.serrano.record.entry.a16",
+      "page_number": 1,
+      "citation_label": "PA124"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa125",
+      "entry_id": "ca4m4.serrano.record.entry.a16",
+      "page_number": 2,
+      "citation_label": "PA125"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa126",
+      "entry_id": "ca4m4.serrano.record.entry.a16",
+      "page_number": 3,
+      "citation_label": "PA126"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa127",
+      "entry_id": "ca4m4.serrano.record.entry.a16",
+      "page_number": 4,
+      "citation_label": "PA127"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa128",
+      "entry_id": "ca4m4.serrano.record.entry.a16",
+      "page_number": 5,
+      "citation_label": "PA128"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa129",
+      "entry_id": "ca4m4.serrano.record.entry.a16",
+      "page_number": 6,
+      "citation_label": "PA129"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa130",
+      "entry_id": "ca4m4.serrano.record.entry.a17",
+      "page_number": 1,
+      "citation_label": "PA130"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa131",
+      "entry_id": "ca4m4.serrano.record.entry.a17",
+      "page_number": 2,
+      "citation_label": "PA131"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa132",
+      "entry_id": "ca4m4.serrano.record.entry.a17",
+      "page_number": 3,
+      "citation_label": "PA132"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa133",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 1,
+      "citation_label": "PA133"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa134",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 2,
+      "citation_label": "PA134"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa135",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 3,
+      "citation_label": "PA135"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa136",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 4,
+      "citation_label": "PA136"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa137",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 5,
+      "citation_label": "PA137"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa138",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 6,
+      "citation_label": "PA138"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa139",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 7,
+      "citation_label": "PA139"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa140",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 8,
+      "citation_label": "PA140"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa141",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 9,
+      "citation_label": "PA141"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa142",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 10,
+      "citation_label": "PA142"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa143",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 11,
+      "citation_label": "PA143"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa144",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 12,
+      "citation_label": "PA144"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa145",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 13,
+      "citation_label": "PA145"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa146",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 14,
+      "citation_label": "PA146"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa147",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 15,
+      "citation_label": "PA147"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa148",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 16,
+      "citation_label": "PA148"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa149",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 17,
+      "citation_label": "PA149"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa150",
+      "entry_id": "ca4m4.serrano.record.entry.a18",
+      "page_number": 18,
+      "citation_label": "PA150"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa151",
+      "entry_id": "ca4m4.serrano.record.entry.a19",
+      "page_number": 1,
+      "citation_label": "PA151"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa152",
+      "entry_id": "ca4m4.serrano.record.entry.a19",
+      "page_number": 2,
+      "citation_label": "PA152"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa153",
+      "entry_id": "ca4m4.serrano.record.entry.a19",
+      "page_number": 3,
+      "citation_label": "PA153"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa154",
+      "entry_id": "ca4m4.serrano.record.entry.a20",
+      "page_number": 1,
+      "citation_label": "PA154"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa155",
+      "entry_id": "ca4m4.serrano.record.entry.a20",
+      "page_number": 2,
+      "citation_label": "PA155"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa156",
+      "entry_id": "ca4m4.serrano.record.entry.b01",
+      "page_number": 1,
+      "citation_label": "PA156"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa157",
+      "entry_id": "ca4m4.serrano.record.entry.b01",
+      "page_number": 2,
+      "citation_label": "PA157"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa158",
+      "entry_id": "ca4m4.serrano.record.entry.b01",
+      "page_number": 3,
+      "citation_label": "PA158"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa159",
+      "entry_id": "ca4m4.serrano.record.entry.b01",
+      "page_number": 4,
+      "citation_label": "PA159"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa160",
+      "entry_id": "ca4m4.serrano.record.entry.b01",
+      "page_number": 5,
+      "citation_label": "PA160"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa161",
+      "entry_id": "ca4m4.serrano.record.entry.b02",
+      "page_number": 1,
+      "citation_label": "PA161"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa162",
+      "entry_id": "ca4m4.serrano.record.entry.b02",
+      "page_number": 2,
+      "citation_label": "PA162"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa163",
+      "entry_id": "ca4m4.serrano.record.entry.b02",
+      "page_number": 3,
+      "citation_label": "PA163"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa164",
+      "entry_id": "ca4m4.serrano.record.entry.b02",
+      "page_number": 4,
+      "citation_label": "PA164"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa165",
+      "entry_id": "ca4m4.serrano.record.entry.b03",
+      "page_number": 1,
+      "citation_label": "PA165"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa166",
+      "entry_id": "ca4m4.serrano.record.entry.b03",
+      "page_number": 2,
+      "citation_label": "PA166"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa167",
+      "entry_id": "ca4m4.serrano.record.entry.b03",
+      "page_number": 3,
+      "citation_label": "PA167"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa168",
+      "entry_id": "ca4m4.serrano.record.entry.b04",
+      "page_number": 1,
+      "citation_label": "PA168"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa169",
+      "entry_id": "ca4m4.serrano.record.entry.b04",
+      "page_number": 2,
+      "citation_label": "PA169"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa170",
+      "entry_id": "ca4m4.serrano.record.entry.b04",
+      "page_number": 3,
+      "citation_label": "PA170"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa171",
+      "entry_id": "ca4m4.serrano.record.entry.b04",
+      "page_number": 4,
+      "citation_label": "PA171"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa172",
+      "entry_id": "ca4m4.serrano.record.entry.b05",
+      "page_number": 1,
+      "citation_label": "PA172"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa173",
+      "entry_id": "ca4m4.serrano.record.entry.b05",
+      "page_number": 2,
+      "citation_label": "PA173"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa174",
+      "entry_id": "ca4m4.serrano.record.entry.b06",
+      "page_number": 1,
+      "citation_label": "PA174"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa175",
+      "entry_id": "ca4m4.serrano.record.entry.b06",
+      "page_number": 2,
+      "citation_label": "PA175"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa176",
+      "entry_id": "ca4m4.serrano.record.entry.b06",
+      "page_number": 3,
+      "citation_label": "PA176"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa177",
+      "entry_id": "ca4m4.serrano.record.entry.b06",
+      "page_number": 4,
+      "citation_label": "PA177"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa178",
+      "entry_id": "ca4m4.serrano.record.entry.b06",
+      "page_number": 5,
+      "citation_label": "PA178"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa179",
+      "entry_id": "ca4m4.serrano.record.entry.b06",
+      "page_number": 6,
+      "citation_label": "PA179"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa180",
+      "entry_id": "ca4m4.serrano.record.entry.b06",
+      "page_number": 7,
+      "citation_label": "PA180"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa181",
+      "entry_id": "ca4m4.serrano.record.entry.b07",
+      "page_number": 1,
+      "citation_label": "PA181"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa182",
+      "entry_id": "ca4m4.serrano.record.entry.b07",
+      "page_number": 2,
+      "citation_label": "PA182"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa183",
+      "entry_id": "ca4m4.serrano.record.entry.b07",
+      "page_number": 3,
+      "citation_label": "PA183"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa184",
+      "entry_id": "ca4m4.serrano.record.entry.b07",
+      "page_number": 4,
+      "citation_label": "PA184"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa185",
+      "entry_id": "ca4m4.serrano.record.entry.b07",
+      "page_number": 5,
+      "citation_label": "PA185"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa186",
+      "entry_id": "ca4m4.serrano.record.entry.b08",
+      "page_number": 1,
+      "citation_label": "PA186"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa187",
+      "entry_id": "ca4m4.serrano.record.entry.b08",
+      "page_number": 2,
+      "citation_label": "PA187"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa188",
+      "entry_id": "ca4m4.serrano.record.entry.b08",
+      "page_number": 3,
+      "citation_label": "PA188"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa189",
+      "entry_id": "ca4m4.serrano.record.entry.b09",
+      "page_number": 1,
+      "citation_label": "PA189"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa190",
+      "entry_id": "ca4m4.serrano.record.entry.b09",
+      "page_number": 2,
+      "citation_label": "PA190"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa191",
+      "entry_id": "ca4m4.serrano.record.entry.b09",
+      "page_number": 3,
+      "citation_label": "PA191"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa192",
+      "entry_id": "ca4m4.serrano.record.entry.b09",
+      "page_number": 4,
+      "citation_label": "PA192"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa193",
+      "entry_id": "ca4m4.serrano.record.entry.b09",
+      "page_number": 5,
+      "citation_label": "PA193"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa194",
+      "entry_id": "ca4m4.serrano.record.entry.b09",
+      "page_number": 6,
+      "citation_label": "PA194"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa195",
+      "entry_id": "ca4m4.serrano.record.entry.b10",
+      "page_number": 1,
+      "citation_label": "PA195"
+    },
+    {
+      "anchor_id": "ca4m4.serrano.anchor.pa196",
+      "entry_id": "ca4m4.serrano.record.entry.b10",
+      "page_number": 2,
+      "citation_label": "PA196"
+    }
+  ]
+}

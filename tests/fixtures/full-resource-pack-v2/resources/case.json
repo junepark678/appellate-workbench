@@ -1,0 +1,98 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "example.case.fictional",
+  "title": "Example Appellant v. Example Appellee",
+  "procedure_profile_id": "example.procedure.fictional",
+  "record_id": "example.record.fictional",
+  "actors": [
+    {
+      "actor_id": "example.actor.appellant",
+      "role_id": "example.role.appellant",
+      "display_name": "Example Appellant",
+      "synthetic": true
+    },
+    {
+      "actor_id": "example.actor.appellee",
+      "role_id": "example.role.appellee",
+      "display_name": "Example Appellee",
+      "synthetic": true
+    },
+    {
+      "actor_id": "example.actor.court",
+      "role_id": "example.role.court",
+      "display_name": "Fictional Court",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "example.issue.preservation",
+      "title": "Whether the issue was preserved",
+      "target_ids": [
+        "example.target.preservation"
+      ],
+      "authority_ids": [
+        "example.authority.rule-one"
+      ],
+      "record_anchor_ids": [
+        "example.record.entry-one",
+        "example.record.brief-opening",
+        "example.record.anchor.ja2"
+      ]
+    },
+    {
+      "issue_id": "example.issue.prejudice",
+      "title": "Whether any error was prejudicial",
+      "target_ids": [
+        "example.target.prejudice"
+      ],
+      "authority_ids": [
+        "example.authority.rule-one"
+      ],
+      "record_anchor_ids": [
+        "example.record.entry-one",
+        "example.record.brief-opening",
+        "example.record.anchor.ja2"
+      ]
+    }
+  ],
+  "disposition_plans": [
+    {
+      "plan_id": "example.disposition.fictional",
+      "finality": "final",
+      "digest": "eb57e60742d575427f440eb816575a2bc2bd214c2068d79e7a9a7beba2d51a66",
+      "components": [
+        {
+          "issue_id": "example.issue.preservation",
+          "target_id": "example.target.preservation",
+          "scope": "whole",
+          "action": "dismiss",
+          "remand": true,
+          "authority_ids": [
+            "example.authority.rule-one"
+          ],
+          "record_anchor_ids": [
+            "example.record.entry-one",
+            "example.record.anchor.ja2"
+          ]
+        },
+        {
+          "issue_id": "example.issue.prejudice",
+          "target_id": "example.target.prejudice",
+          "scope": "part",
+          "action": "deny",
+          "remand": false,
+          "authority_ids": [
+            "example.authority.rule-one"
+          ],
+          "record_anchor_ids": [
+            "example.record.anchor.ja2"
+          ]
+        }
+      ]
+    }
+  ],
+  "authored_disposition_plan_id": "example.disposition.fictional",
+  "authored_disposition_id": "example.operation.issue-judgment"
+}

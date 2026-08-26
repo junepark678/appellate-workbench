@@ -1,0 +1,659 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.arm.argument.actual-record",
+  "case_id": "ca4m4.case.arm-agency",
+  "bench_configuration_id": "ca4m4.arm.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.arm.issue.record-composition",
+    "ca4m4.arm.issue.aggregate-cat-risk",
+    "ca4m4.arm.issue.official-acquiescence",
+    "ca4m4.arm.issue.review-standard",
+    "ca4m4.arm.issue.petition-timeliness"
+  ],
+  "grounded_question_bank": {
+    "mode": "actual_record",
+    "grounding_digest": "0bf9b67b1ad8bf28c5c061deda496a1047d731ce66fdec9a864c112c637cd2b5",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_ids": [
+          "workbench.topic.record-support",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_ids": [
+          "workbench.topic.merits",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_ids": [
+          "workbench.topic.standard-of-review",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.arm.question.actual-record-composition-rule-record",
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Under Rule 16 and Section 1252(b)(4)(A), which pages establish that P-7 was admitted, omitted from the initial transmission, and restored as the same document, while PA1–PA8 was never before the agency?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-rule-record-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.frap-16-record"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-rule-record-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-record-limit"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-rule-record-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar117"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-rule-record-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar219"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-rule-record-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar233"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-rule-record-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa1"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-record-composition-standard-remedy",
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why is correction the proper remedy for the omitted P-7, while supplementation is unavailable to place the post-order PA1–PA8 proffer in the administrative record?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-standard-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.frap-16-record"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-standard-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-record-limit"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-standard-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar227"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-standard-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar237"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-standard-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa36"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-standard-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa53"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-standard-remedy-record-05",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa56"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-standard-remedy-record-06",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa58"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-record-composition-practical-consequence",
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "At merits argument, what practical line separates permissible reliance on restored P-7 from discussion of PA1–PA8 solely as the subject of the denied supplementation request?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-practical-consequence-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-record-limit"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-practical-consequence-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar235"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-practical-consequence-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar237"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-practical-consequence-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa7"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-record-composition-practical-consequence-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa58"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-aggregate-risk-rule-record",
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "How do the CAT burden, all-evidence regulation, and Rodriguez-Arias aggregation rule apply to the recorded Unit Four, Harbor League, and return-identification pathways?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-rule-record-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-cat-burden"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-rule-record-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-all-evidence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-rule-record-authority-03",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-aggregation"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-rule-record-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar29"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-rule-record-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar86"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-rule-record-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar137"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-rule-record-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa69"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-aggregate-risk-standard-remedy",
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "When the agency discusses each feared source separately but does not assess their interaction, why is vacatur and remand the claimed remedy rather than appellate reweighing?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-standard-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-all-evidence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-standard-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-aggregation"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-standard-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar171"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-standard-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar212"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-standard-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa72"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-standard-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa87"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-aggregate-risk-practical-consequence",
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "What combined-risk findings would the agency need to explain on remand without presuming that any contractor, registry, or official link has been proved?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-practical-consequence-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-cat-burden"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-practical-consequence-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-aggregation"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-practical-consequence-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar154"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-practical-consequence-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar159"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-aggregate-risk-practical-consequence-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa105"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-official-acquiescence-rule-record",
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Under the regulatory awareness-and-breach standard, which record pages bear on complaint routing, official knowledge or willful blindness, failure to intervene, and contrary safeguards?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-rule-record-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-torture-acquiescence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-rule-record-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-rule-record-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar66"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-rule-record-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar80"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-rule-record-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar87"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-rule-record-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar148"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-rule-record-record-05",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa74"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-official-acquiescence-standard-remedy",
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "If the agency did not meaningfully address the routing and nonintervention evidence, why is the requested remedy vacatur and remand rather than an appellate finding that acquiescence is established?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-standard-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-torture-acquiescence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-standard-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-standard-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar172"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-standard-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar215"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-standard-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa75"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-standard-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa92"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-official-acquiescence-practical-consequence",
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "What practical distinctions should counsel draw among ineffective protection, official awareness, willful blindness, and breach of a duty to intervene when applying the record?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-practical-consequence-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-torture-acquiescence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-practical-consequence-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar45"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-practical-consequence-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar71"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-practical-consequence-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar147"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-practical-consequence-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar148"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-official-acquiescence-practical-consequence-record-05",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa103"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-review-standard-rule-record",
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "How do Section 1252(b)(4)(B)'s compelled-conclusion rule and the meaningful-consideration requirement divide factual deference from review of the agency's stated analysis?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-rule-record-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-review-standard"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-rule-record-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-rule-record-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar171"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-rule-record-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar172"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-rule-record-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar212"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-rule-record-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar215"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-rule-record-record-05",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar216"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-rule-record-record-06",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa76"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-review-standard-remedy",
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "If central aggregation or acquiescence evidence was not meaningfully addressed, why may the court vacate and remand without deciding CAT eligibility or making first-instance findings?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-review-standard"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar216"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa77"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa96"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa106"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-review-standard-practical-consequence",
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "Which disputed inferences must remain for the agency, and what explanation must it provide so the court can perform review under the statutory standard?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-practical-consequence-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-review-standard"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-practical-consequence-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-practical-consequence-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar60"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-practical-consequence-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar72"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-practical-consequence-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar216"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-practical-consequence-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa96"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-review-standard-practical-consequence-record-05",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa106"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-petition-timeliness-rule-record",
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Which pages fix January 13 as the Board-order date, February 11 as the day-29 petition tender, and February 12 as the cure date, and how do Section 1252(b)(1) and Rule 15 apply?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-rule-record-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-deadline"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-rule-record-authority-02",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-15-agency-review"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-rule-record-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar211"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-rule-record-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar218"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-rule-record-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa9"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-rule-record-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa13"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-petition-timeliness-standard-remedy",
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Because the actual petition was tendered within 30 days, what disposition follows for the timing challenge, and what limited significance does Riley's claims-processing holding retain?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-standard-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-deadline"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-standard-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.riley-claims-processing"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-standard-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar211"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-standard-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa9"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-standard-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa13"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-standard-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa25"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.actual-petition-timeliness-practical-consequence",
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "What practical docket distinction must counsel preserve between the February 11 receipt of the petition and the February 12 completion of its missing order attachment?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-practical-consequence-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-deadline"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-practical-consequence-authority-02",
+            "kind": "authority",
+            "authority_id": "us.federal.authority.frap-15-agency-review"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-practical-consequence-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar218"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-practical-consequence-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa9"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-practical-consequence-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa13"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.actual-petition-timeliness-practical-consequence-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa44"
+          }
+        ]
+      }
+    ]
+  }
+}

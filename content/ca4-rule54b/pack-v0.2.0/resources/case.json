@@ -1,0 +1,337 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4r54b.case.asterglen",
+  "title": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC",
+  "procedure_profile_id": "ca4r54b.procedure.civil-appeal",
+  "record_id": "ca4r54b.record.asterglen",
+  "actors": [
+    {
+      "actor_id": "ca4r54b.actor.asterglen",
+      "role_id": "us.ca4.role.initiating-party",
+      "display_name": "Asterglen Freight Software, Inc. (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4r54b.actor.copper-kestrel",
+      "role_id": "us.ca4.role.responding-party",
+      "display_name": "Copper Kestrel Logistics, LLC (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4r54b.actor.meridian-silt",
+      "role_id": "us.ca4.role.responding-party",
+      "display_name": "Meridian Silt Holdings, LLC (fictional)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4r54b.actor.ca4-clerk",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional Fourth Circuit clerk",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4r54b.actor.composite-panel",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional composite Fourth Circuit panel",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4r54b.issue.rule54b-finality",
+      "title": "Whether the bare Rule 54(b) grant and partial judgment are final without the district court's express no-just-reason determination",
+      "target_ids": [
+        "ca4r54b.target.rule54b-certification-and-appellate-jurisdiction"
+      ],
+      "authority_ids": [
+        "ca4r54b.authority.usc-1291",
+        "us.federal.authority.frcp-54b-partial-judgment",
+        "ca4r54b.authority.kinsale",
+        "ca4r54b.authority.mcpherson"
+      ],
+      "record_anchor_ids": [
+        "ca4r54b.record.anchor.ja192",
+        "ca4r54b.record.anchor.ja196",
+        "ca4r54b.record.anchor.ja198",
+        "ca4r54b.record.anchor.ja199",
+        "ca4r54b.record.anchor.ja205",
+        "ca4r54b.record.anchor.ja212",
+        "ca4r54b.record.anchor.ja216",
+        "ca4r54b.record.anchor.ja220",
+        "ca4r54b.record.anchor.ja221",
+        "ca4r54b.record.anchor.ja222",
+        "ca4r54b.record.anchor.ja224",
+        "ca4r54b.record.anchor.ja228",
+        "ca4r54b.record.anchor.ja231",
+        "ca4r54b.record.anchor.ja234",
+        "ca4r54b.record.anchor.pa10",
+        "ca4r54b.record.anchor.pa13",
+        "ca4r54b.record.anchor.pa31",
+        "ca4r54b.record.anchor.pa50",
+        "ca4r54b.record.anchor.pa52",
+        "ca4r54b.record.anchor.pa53",
+        "ca4r54b.record.anchor.pa54",
+        "ca4r54b.record.anchor.pa55",
+        "ca4r54b.record.anchor.pa64",
+        "ca4r54b.record.anchor.pa65",
+        "ca4r54b.record.anchor.pa66",
+      "ca4r54b.record.anchor.pa67",
+      "ca4r54b.record.anchor.pa71",
+      "ca4r54b.record.anchor.pa72",
+      "ca4r54b.record.anchor.pa73",
+      "ca4r54b.record.anchor.pa74",
+      "ca4r54b.record.anchor.pa75",
+      "ca4r54b.record.anchor.pa76",
+      "ca4r54b.record.anchor.pa77",
+      "ca4r54b.record.anchor.pa78",
+      "ca4r54b.record.anchor.pa79",
+      "ca4r54b.record.anchor.pa80",
+      "ca4r54b.record.anchor.pa81",
+        "ca4r54b.record.anchor.pa82"
+      ]
+    },
+    {
+      "issue_id": "ca4r54b.issue.notice-timeliness",
+      "title": "Whether a civil notice of appeal is timely under the conditional final-judgment and separate-document chronologies",
+      "target_ids": [
+        "ca4r54b.target.notice-of-appeal-timeliness"
+      ],
+      "authority_ids": [
+        "ca4r54b.authority.usc-2107a",
+        "us.federal.authority.frap-4-civil-time",
+        "us.federal.authority.frap-26-calendar",
+        "ca4r54b.authority.frcp-58-entry",
+        "ca4r54b.authority.bowles"
+      ],
+      "record_anchor_ids": [
+        "ca4r54b.record.anchor.ja216",
+        "ca4r54b.record.anchor.ja220",
+        "ca4r54b.record.anchor.ja221",
+        "ca4r54b.record.anchor.ja222",
+        "ca4r54b.record.anchor.ja223",
+        "ca4r54b.record.anchor.ja224",
+        "ca4r54b.record.anchor.ja228",
+        "ca4r54b.record.anchor.ja231",
+        "ca4r54b.record.anchor.ja234",
+        "ca4r54b.record.anchor.pa1",
+        "ca4r54b.record.anchor.pa3",
+        "ca4r54b.record.anchor.pa10",
+        "ca4r54b.record.anchor.pa98",
+        "ca4r54b.record.anchor.pa99",
+      "ca4r54b.record.anchor.pa100",
+      "ca4r54b.record.anchor.pa101",
+      "ca4r54b.record.anchor.pa102",
+      "ca4r54b.record.anchor.pa103",
+        "ca4r54b.record.anchor.pa104",
+        "ca4r54b.record.anchor.pa105",
+        "ca4r54b.record.anchor.pa109",
+        "ca4r54b.record.anchor.pa112",
+        "ca4r54b.record.anchor.pa114"
+      ]
+    },
+    {
+      "issue_id": "ca4r54b.issue.contract-notice-and-cure-merits",
+      "title": "Whether Virginia law permits Copper's Count I judgment despite the Pilot License's written-notice and 15-day cure condition",
+      "target_ids": [
+        "ca4r54b.target.count-i-contract-summary-judgment"
+      ],
+      "authority_ids": [
+        "ca4r54b.authority.primov-condition-precedent"
+      ],
+      "record_anchor_ids": [
+        "ca4r54b.record.anchor.ja42",
+        "ca4r54b.record.anchor.ja48",
+        "ca4r54b.record.anchor.ja51",
+        "ca4r54b.record.anchor.ja55",
+        "ca4r54b.record.anchor.ja60",
+        "ca4r54b.record.anchor.ja64",
+        "ca4r54b.record.anchor.ja72",
+        "ca4r54b.record.anchor.ja79",
+        "ca4r54b.record.anchor.ja85",
+        "ca4r54b.record.anchor.ja91",
+        "ca4r54b.record.anchor.ja97",
+        "ca4r54b.record.anchor.ja103",
+        "ca4r54b.record.anchor.ja110",
+        "ca4r54b.record.anchor.ja120",
+        "ca4r54b.record.anchor.ja129",
+        "ca4r54b.record.anchor.ja137",
+        "ca4r54b.record.anchor.ja145",
+        "ca4r54b.record.anchor.ja155",
+        "ca4r54b.record.anchor.ja164",
+        "ca4r54b.record.anchor.ja171",
+        "ca4r54b.record.anchor.ja180",
+        "ca4r54b.record.anchor.ja186",
+        "ca4r54b.record.anchor.ja192",
+        "ca4r54b.record.anchor.ja198",
+        "ca4r54b.record.anchor.pa13",
+        "ca4r54b.record.anchor.pa20",
+        "ca4r54b.record.anchor.pa25",
+        "ca4r54b.record.anchor.pa31",
+        "ca4r54b.record.anchor.pa40",
+        "ca4r54b.record.anchor.pa45",
+        "ca4r54b.record.anchor.pa54",
+        "ca4r54b.record.anchor.pa81",
+        "ca4r54b.record.anchor.pa86",
+        "ca4r54b.record.anchor.pa90",
+        "ca4r54b.record.anchor.pa92",
+        "ca4r54b.record.anchor.pa93",
+        "ca4r54b.record.anchor.pa94"
+      ]
+    }
+  ],
+  "authored_disposition_id": "ca4r54b.operation.issue-dismissal-judgment",
+  "authored_disposition_plan_id": "ca4r54b.disposition.authored-dismissal",
+  "disposition_plans": [
+    {
+      "plan_id": "ca4r54b.disposition.authored-dismissal",
+      "finality": "final",
+      "digest": "8b2dad501826e20244223e8faa93b2bfd36f1ac13ec9afc9dcb6df07a4f5b29b",
+      "components": [
+        {
+          "issue_id": "ca4r54b.issue.rule54b-finality",
+          "target_id": "ca4r54b.target.rule54b-certification-and-appellate-jurisdiction",
+          "scope": "whole",
+          "action": "dismiss",
+          "remand": true,
+          "authority_ids": [
+            "ca4r54b.authority.usc-1291",
+            "us.federal.authority.frcp-54b-partial-judgment",
+            "ca4r54b.authority.kinsale",
+            "ca4r54b.authority.mcpherson"
+          ],
+          "record_anchor_ids": [
+            "ca4r54b.record.anchor.ja192",
+            "ca4r54b.record.anchor.ja198",
+            "ca4r54b.record.anchor.ja199",
+            "ca4r54b.record.anchor.ja205",
+            "ca4r54b.record.anchor.ja212",
+            "ca4r54b.record.anchor.ja216",
+            "ca4r54b.record.anchor.ja220",
+            "ca4r54b.record.anchor.ja221",
+            "ca4r54b.record.anchor.ja222",
+            "ca4r54b.record.anchor.ja224",
+            "ca4r54b.record.anchor.ja228",
+            "ca4r54b.record.anchor.ja234",
+            "ca4r54b.record.anchor.pa52",
+            "ca4r54b.record.anchor.pa53",
+            "ca4r54b.record.anchor.pa54",
+            "ca4r54b.record.anchor.pa55",
+            "ca4r54b.record.anchor.pa64",
+            "ca4r54b.record.anchor.pa65",
+            "ca4r54b.record.anchor.pa66",
+            "ca4r54b.record.anchor.pa67"
+          ]
+        }
+      ]
+    },
+    {
+      "plan_id": "ca4r54b.disposition.counterfactual-supported-certification",
+      "finality": "final",
+      "digest": "4924c1582d4e4670944cb4788f0e78fed425ee88427ebe45ea9ef462ad5f1ad6",
+      "components": [
+        {
+          "issue_id": "ca4r54b.issue.rule54b-finality",
+          "target_id": "ca4r54b.target.rule54b-certification-and-appellate-jurisdiction",
+          "scope": "whole",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4r54b.authority.usc-1291",
+            "us.federal.authority.frcp-54b-partial-judgment",
+            "ca4r54b.authority.kinsale"
+          ],
+          "record_anchor_ids": [
+            "ca4r54b.record.anchor.ja192",
+            "ca4r54b.record.anchor.ja198",
+            "ca4r54b.record.anchor.pa71",
+            "ca4r54b.record.anchor.pa72",
+            "ca4r54b.record.anchor.pa73",
+            "ca4r54b.record.anchor.pa74",
+            "ca4r54b.record.anchor.pa75",
+            "ca4r54b.record.anchor.pa76",
+            "ca4r54b.record.anchor.pa77",
+            "ca4r54b.record.anchor.pa78",
+            "ca4r54b.record.anchor.pa79",
+            "ca4r54b.record.anchor.pa80",
+            "ca4r54b.record.anchor.pa81",
+            "ca4r54b.record.anchor.pa82"
+          ]
+        },
+        {
+          "issue_id": "ca4r54b.issue.contract-notice-and-cure-merits",
+          "target_id": "ca4r54b.target.count-i-contract-summary-judgment",
+          "scope": "whole",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4r54b.authority.primov-condition-precedent"
+          ],
+          "record_anchor_ids": [
+            "ca4r54b.record.anchor.ja42",
+            "ca4r54b.record.anchor.ja48",
+            "ca4r54b.record.anchor.ja51",
+            "ca4r54b.record.anchor.ja55",
+            "ca4r54b.record.anchor.ja60",
+            "ca4r54b.record.anchor.ja64",
+            "ca4r54b.record.anchor.ja72",
+            "ca4r54b.record.anchor.ja79",
+            "ca4r54b.record.anchor.ja85",
+            "ca4r54b.record.anchor.ja91",
+            "ca4r54b.record.anchor.ja97",
+            "ca4r54b.record.anchor.ja110",
+            "ca4r54b.record.anchor.ja120",
+            "ca4r54b.record.anchor.ja129",
+            "ca4r54b.record.anchor.ja137",
+            "ca4r54b.record.anchor.ja145",
+            "ca4r54b.record.anchor.ja155",
+            "ca4r54b.record.anchor.ja164",
+            "ca4r54b.record.anchor.ja171",
+            "ca4r54b.record.anchor.ja180",
+            "ca4r54b.record.anchor.ja186",
+            "ca4r54b.record.anchor.ja192",
+            "ca4r54b.record.anchor.ja198",
+            "ca4r54b.record.anchor.pa81",
+            "ca4r54b.record.anchor.pa86",
+            "ca4r54b.record.anchor.pa90",
+            "ca4r54b.record.anchor.pa92",
+            "ca4r54b.record.anchor.pa93",
+            "ca4r54b.record.anchor.pa94"
+          ]
+        }
+      ]
+    },
+    {
+      "plan_id": "ca4r54b.disposition.counterfactual-untimely-notice",
+      "finality": "final",
+      "digest": "6dc76c1a2b9edb6d7de608925d65ce84b750163060467f7e165c3f667fb5d25d",
+      "components": [
+        {
+          "issue_id": "ca4r54b.issue.notice-timeliness",
+          "target_id": "ca4r54b.target.notice-of-appeal-timeliness",
+          "scope": "whole",
+          "action": "dismiss",
+          "remand": false,
+          "authority_ids": [
+            "ca4r54b.authority.usc-2107a",
+            "us.federal.authority.frap-4-civil-time",
+            "us.federal.authority.frap-26-calendar",
+            "ca4r54b.authority.bowles"
+          ],
+          "record_anchor_ids": [
+            "ca4r54b.record.anchor.ja220",
+            "ca4r54b.record.anchor.ja221",
+            "ca4r54b.record.anchor.pa98",
+            "ca4r54b.record.anchor.pa99",
+            "ca4r54b.record.anchor.pa100",
+            "ca4r54b.record.anchor.pa101",
+            "ca4r54b.record.anchor.pa102",
+            "ca4r54b.record.anchor.pa103",
+            "ca4r54b.record.anchor.pa104",
+            "ca4r54b.record.anchor.pa105"
+          ]
+        }
+      ]
+    }
+  ]
+}

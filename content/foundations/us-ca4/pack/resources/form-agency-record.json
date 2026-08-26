@@ -1,0 +1,8 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.agency-record",
+  "filing_id": "us.ca4.filing.agency-record", "title": "Certified Agency Record",
+  "fields": [
+    {"field_id": "us.ca4.field.agency-record.index", "label": "Certified record index", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.agency-record.certification", "label": "Certification", "value_type": "boolean", "required": true}
+  ]
+}

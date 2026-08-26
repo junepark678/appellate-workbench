@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "resource_kind": "form",
+  "resource_id": "ca4r54b.form.transcript-order",
+  "filing_id": "ca4r54b.filing.transcript-order",
+  "title": "Transcript Order or No-Transcript Certification",
+  "fields": [
+    {"field_id": "ca4r54b.field.transcript-selection", "label": "Transcript selection", "value_type": "choice", "required": true, "choices": ["Order all necessary transcript", "Order specified portions", "No transcript will be ordered"]},
+    {"field_id": "ca4r54b.field.transcript-notice-date", "label": "Notice-of-appeal filing date", "value_type": "date", "required": true}
+  ]
+}

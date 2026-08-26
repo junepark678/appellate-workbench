@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "source_path": "documents/batch-1/03-cat-application.md",
+      "output_path": "assets/03-cat-application.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 21,
+      "title": "Synthetic CAT Application and Indexed Chronology"
+    },
+    {
+      "source_path": "documents/batch-1/05-sibling-declaration.md",
+      "output_path": "assets/05-sibling-declaration.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 51,
+      "title": "Synthetic S.M. Sibling Declaration and Communication Log"
+    },
+    {
+      "source_path": "documents/batch-2/07-country-conditions-report.md",
+      "output_path": "assets/07-country-conditions-report.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 73,
+      "title": "Synthetic Country-Conditions and Institutional-Routing Report"
+    },
+    {
+      "source_path": "documents/batch-2/08-trauma-medical-evaluation.md",
+      "output_path": "assets/08-trauma-medical-evaluation.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 93,
+      "title": "Synthetic Trauma and Medical Evaluation"
+    },
+    {
+      "source_path": "documents/batch-2/09-certified-translation-packet.md",
+      "output_path": "assets/09-certified-translation-packet.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 105,
+      "title": "Synthetic Combined P-4/P-5/P-6 Controlled Text and Translation Packet"
+    },
+    {
+      "source_path": "documents/batch-2/10-merits-hearing-transcript-vol-1.md",
+      "output_path": "assets/10-merits-hearing-transcript-vol-1.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 115,
+      "title": "Synthetic Immigration Merits Hearing Transcript, Volume 1"
+    },
+    {
+      "source_path": "documents/batch-2/11-merits-hearing-transcript-vol-2.md",
+      "output_path": "assets/11-merits-hearing-transcript-vol-2.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 139,
+      "title": "Synthetic Immigration Merits Hearing Transcript, Volume 2"
+    },
+    {
+      "source_path": "documents/batch-2/12-ij-decision.md",
+      "output_path": "assets/12-ij-decision.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 163,
+      "title": "Synthetic Immigration Judge Decision Denying CAT Protection"
+    },
+    {
+      "source_path": "documents/batch-2/13-bia-notice-appeal.md",
+      "output_path": "assets/13-bia-notice-appeal.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 179,
+      "title": "Synthetic Notice of Appeal to the Board of Immigration Appeals"
+    },
+    {
+      "source_path": "documents/batch-2/14-bia-opening-brief.md",
+      "output_path": "assets/14-bia-opening-brief.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 183,
+      "title": "Synthetic A.R.M. Opening Brief Before the Board"
+    },
+    {
+      "source_path": "documents/batch-2/15-dhs-bia-response.md",
+      "output_path": "assets/15-dhs-bia-response.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 199,
+      "title": "Synthetic DHS Response Before the Board"
+    },
+    {
+      "source_path": "documents/batch-2/16-bia-final-order.md",
+      "output_path": "assets/16-bia-final-order.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 211,
+      "title": "Synthetic Board Final Order"
+    },
+    {
+      "source_path": "documents/batch-2/17-initial-certified-index.md",
+      "output_path": "assets/17-initial-certified-index.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 219,
+      "title": "Synthetic Initial Certified Index and Transmittal"
+    },
+    {
+      "source_path": "documents/batch-2/18-exhibit-receipt-audit-corrected-certification.md",
+      "output_path": "assets/18-exhibit-receipt-audit-corrected-certification.pdf",
+      "page_label_prefix": "AR",
+      "page_label_start": 227,
+      "title": "Synthetic Rule 16(b) Exhibit Audit and Corrected Certification"
+    }
+  ]
+}

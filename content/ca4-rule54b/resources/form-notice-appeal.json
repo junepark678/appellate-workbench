@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "resource_kind": "form",
+  "resource_id": "ca4r54b.form.notice-appeal",
+  "filing_id": "ca4r54b.filing.notice-appeal",
+  "title": "Civil Notice of Appeal",
+  "fields": [
+    {"field_id": "ca4r54b.field.notice-party", "label": "Party or parties taking the appeal", "value_type": "short_text", "required": true},
+    {"field_id": "ca4r54b.field.notice-judgment", "label": "Judgment or appealable order designated", "value_type": "record_citation", "required": true},
+    {"field_id": "ca4r54b.field.notice-court", "label": "Court to which the appeal is taken", "value_type": "short_text", "required": true},
+    {"field_id": "ca4r54b.field.notice-date", "label": "Date filed with district clerk", "value_type": "date", "required": true}
+  ]
+}

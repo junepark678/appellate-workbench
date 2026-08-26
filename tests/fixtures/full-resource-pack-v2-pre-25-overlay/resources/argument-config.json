@@ -1,0 +1,12 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "example.argument.fictional",
+  "case_id": "example.case.fictional",
+  "bench_configuration_id": "example.bench.fictional",
+  "total_seconds": 1800,
+  "rebuttal_seconds": 180,
+  "permitted_issue_ids": [
+    "example.issue.preservation"
+  ]
+}

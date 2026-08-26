@@ -2,10 +2,14 @@
   "schema_version": 1,
   "pack_id": "example.unsafe.pack",
   "version": "0.1.0",
+  "required_capabilities": [],
+  "dependencies": [],
+  "blobs": [],
   "contents": [
     {
       "id": "example.judge.escape",
       "kind": "judge_profile",
+      "schema_version": 1,
       "path": "../outside.json",
       "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     }

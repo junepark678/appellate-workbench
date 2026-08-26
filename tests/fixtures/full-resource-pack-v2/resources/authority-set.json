@@ -1,0 +1,92 @@
+{
+  "schema_version": 2,
+  "resource_kind": "authority_set",
+  "resource_id": "example.authorities.fictional",
+  "source_cutoff": "2026-01-01",
+  "authorities": [
+    {
+      "authority_id": "example.authority.rule-one",
+      "authority_type": "rule",
+      "jurisdiction_id": "example.jurisdiction.fictional",
+      "issuing_body_id": "example.court.fictional",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fictional Rule 1",
+      "source_version": "2026-01-01",
+      "checked_on": "2026-01-01",
+      "locator": "Rule 1",
+      "source_url": "https://example.invalid/rules/1",
+      "proposition": "A notice starts the fictional appeal."
+    },
+    {
+      "authority_id": "example.authority.filing-eligibility",
+      "authority_type": "rule",
+      "jurisdiction_id": "example.jurisdiction.fictional",
+      "issuing_body_id": "example.court.fictional",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fictional Rule 2",
+      "source_version": "2026-01-01",
+      "checked_on": "2026-01-01",
+      "locator": "Rule 2",
+      "source_url": "https://example.invalid/rules/2",
+      "proposition": "A filing that is not eligible at the current stage is rejected."
+    },
+    {
+      "authority_id": "example.authority.deficiency",
+      "authority_type": "rule",
+      "jurisdiction_id": "example.jurisdiction.fictional",
+      "issuing_body_id": "example.court.fictional",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fictional Rule 3",
+      "source_version": "2026-01-01",
+      "checked_on": "2026-01-01",
+      "locator": "Rule 3",
+      "source_url": "https://example.invalid/rules/3",
+      "proposition": "A deficient notice receives an opportunity to cure."
+    },
+    {
+      "authority_id": "example.authority.cure-deadline",
+      "authority_type": "rule",
+      "jurisdiction_id": "example.jurisdiction.fictional",
+      "issuing_body_id": "example.court.fictional",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fictional Rule 4",
+      "source_version": "2026-01-01",
+      "checked_on": "2026-01-01",
+      "locator": "Rule 4",
+      "source_url": "https://example.invalid/rules/4",
+      "proposition": "A deficient notice may be cured within two calendar days."
+    },
+    {
+      "authority_id": "example.authority.submission",
+      "authority_type": "rule",
+      "jurisdiction_id": "example.jurisdiction.fictional",
+      "issuing_body_id": "example.court.fictional",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fictional Rule 5",
+      "source_version": "2026-01-01",
+      "checked_on": "2026-01-01",
+      "locator": "Rule 5",
+      "source_url": "https://example.invalid/rules/5",
+      "proposition": "Acceptance advances the appeal to submission."
+    },
+    {
+      "authority_id": "example.authority.judgment",
+      "authority_type": "rule",
+      "jurisdiction_id": "example.jurisdiction.fictional",
+      "issuing_body_id": "example.court.fictional",
+      "precedential_status": "not_applicable",
+      "official_source": true,
+      "citation": "Fictional Rule 6",
+      "source_version": "2026-01-01",
+      "checked_on": "2026-01-01",
+      "locator": "Rule 6",
+      "source_url": "https://example.invalid/rules/6",
+      "proposition": "The court may issue judgment after submission."
+    }
+  ]
+}

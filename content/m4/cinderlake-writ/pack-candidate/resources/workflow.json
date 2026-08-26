@@ -1,0 +1,3142 @@
+{
+  "schema_version": 2,
+  "resource_kind": "workflow",
+  "resource_id": "ca4m4.cinder.workflow.privilege-mandamus",
+  "initial_stage_id": "ca4m4.cinder.stage.opened",
+  "stages": [
+    "ca4m4.cinder.stage.opened",
+    "ca4m4.cinder.stage.deficiency-cure",
+    "ca4m4.cinder.stage.submitted",
+    "ca4m4.cinder.stage.actual-sealing-support",
+    "ca4m4.cinder.stage.actual-emergency",
+    "ca4m4.cinder.stage.actual-answer",
+    "ca4m4.cinder.stage.actual-reply",
+    "ca4m4.cinder.stage.actual-briefing-complete",
+    "ca4m4.cinder.stage.actual-argument",
+    "ca4m4.cinder.stage.actual-submitted",
+    "ca4m4.cinder.stage.actual-post-judgment",
+    "ca4m4.cinder.stage.actual-terminal",
+    "ca4m4.cinder.stage.counterfactual-summary",
+    "ca4m4.cinder.stage.counterfactual-summary-post-judgment",
+    "ca4m4.cinder.stage.counterfactual-summary-terminal"
+  ],
+  "operations": [
+    {
+      "operation_id": "ca4m4.cinder.operation.reject-opened-writ-petition",
+      "stage_id": "ca4m4.cinder.stage.opened",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+      "stage_id": "ca4m4.cinder.stage.opened",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.issue-b01-petition-deficiency",
+      "stage_id": "ca4m4.cinder.stage.opened",
+      "opcode": "issue_deficiency",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-21b-writs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.calculate-b01-petition-cure",
+      "stage_id": "ca4m4.cinder.stage.opened",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-21b-writs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 2,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-opened-petition-to-submitted",
+      "stage_id": "ca4m4.cinder.stage.opened",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.submitted",
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.enter-b02-deficiency-notice",
+      "stage_id": "ca4m4.cinder.stage.opened",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-21b-writs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.b02",
+        "document_sha256": "83dac37fbca804e7c452be9e50148a04d46db7fc062264c53c2e72e761f934c3",
+        "expected_court_date": "2026-04-01",
+        "order_id": "ca4m4.cinder.order.b02-deficiency-notice",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.b01-petition-cure",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-b02-deficiency-to-cure",
+      "stage_id": "ca4m4.cinder.stage.opened",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-21b-writs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.deficiency-cure",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.b02-deficiency-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-b02-deficiency-notice",
+          "record_entry_id": "ca4m4.cinder.record.entry.b02",
+          "document_sha256": "83dac37fbca804e7c452be9e50148a04d46db7fc062264c53c2e72e761f934c3"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.b01-petition-cure",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.reject-corrected-writ-petition",
+      "stage_id": "ca4m4.cinder.stage.deficiency-cure",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+      "stage_id": "ca4m4.cinder.stage.deficiency-cure",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-b03-cure-to-submitted",
+      "stage_id": "ca4m4.cinder.stage.deficiency-cure",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.submitted",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.b02-deficiency-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-b02-deficiency-notice",
+          "record_entry_id": "ca4m4.cinder.record.entry.b02",
+          "document_sha256": "83dac37fbca804e7c452be9e50148a04d46db7fc062264c53c2e72e761f934c3"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.b01-petition-cure",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-a01-to-actual-sealing-support",
+      "stage_id": "ca4m4.cinder.stage.submitted",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.actual-sealing-support",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-b04-to-counterfactual-summary",
+      "stage_id": "ca4m4.cinder.stage.submitted",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.counterfactual-summary",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.reject-actual-sealing-motion",
+      "stage_id": "ca4m4.cinder.stage.actual-sealing-support",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-25c-sealed-materials",
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+      "stage_id": "ca4m4.cinder.stage.actual-sealing-support",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-27-motions",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.reject-a06-essential-appendix",
+      "stage_id": "ca4m4.cinder.stage.actual-sealing-support",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-30-appendix",
+          "us.ca4.authority.local-rule-30b-appendix"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.accept-a06-essential-appendix",
+      "stage_id": "ca4m4.cinder.stage.actual-sealing-support",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-30-appendix",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-30b-appendix",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-actual-sealing-to-emergency",
+      "stage_id": "ca4m4.cinder.stage.actual-sealing-support",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-27-motions",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a02-motion-to-seal",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+          "record_entry_id": "ca4m4.cinder.record.entry.a02",
+          "document_sha256": "5dd42325ca598740b44adb5ddd7af5f67c8f761680bdf65b7e2117d3cec008a3"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a03-confidentiality-certificate",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+          "record_entry_id": "ca4m4.cinder.record.entry.a03",
+          "document_sha256": "be1b224920d896e42b807e9c0e1d0f9039c73eaec24dcfb58870bfbd9a4e3fc7"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a04-highly-sensitive-document-certificate",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+          "record_entry_id": "ca4m4.cinder.record.entry.a04",
+          "document_sha256": "eb69bae6b9ae763555b916ed7e127b27453066738ed835369b59c930c07f128e"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a06-public-essential-record-appendix",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a06-essential-appendix",
+          "record_entry_id": "ca4m4.cinder.record.entry.a06",
+          "document_sha256": "a6aee9f54bcec9633ebe50fe70a4d1106c6bea719aa991c9051bfdad19745771"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.reject-actual-emergency-motion",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.accept-actual-emergency-motion",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-27-motions",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-27-motions",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.reject-a11-appearance",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-46c-appearance"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-02",
+          "instant_unix_seconds": "1775088000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.accept-a11-appearance",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-46c-appearance",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-02",
+          "instant_unix_seconds": "1775088000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.enter-a10-interim-stay",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "ca4m4.cinder.authority.usc-1651-all-writs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.ca4.authority.local-rule-21b-writs",
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.a10",
+        "document_sha256": "94eb398c281008c6671f748e19c4d8678bb9be562b5d660091e17cbf77c5ec78",
+        "expected_court_date": "2026-04-01",
+        "order_id": "ca4m4.cinder.order.a10-interim-stay",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a06-public-essential-record-appendix",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a06-essential-appendix",
+          "record_entry_id": "ca4m4.cinder.record.entry.a06",
+          "document_sha256": "a6aee9f54bcec9633ebe50fe70a4d1106c6bea719aa991c9051bfdad19745771"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a08-emergency-stay-motion",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-actual-emergency-motion",
+          "record_entry_id": "ca4m4.cinder.record.entry.a08",
+          "document_sha256": "9096f1c6216677ec8d9efb780a8ca7505ac171befaa733f69ae512ee7807d20a"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.rhea-calder",
+          "filing_id": "ca4m4.cinder.filing.a09-emergency-stay-response",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-actual-emergency-motion",
+          "record_entry_id": "ca4m4.cinder.record.entry.a09",
+          "document_sha256": "4635f5dcff3ee72ee764b0ce4ed568b31b4fb87de5d18a0770e66603e6d14c80"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.enter-a12-answer-invitation",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.a12",
+        "document_sha256": "60be0412a18a58623c982a7fa9db889c8934086819bb96049e51ef4f26478fdd",
+        "expected_court_date": "2026-04-03",
+        "order_id": "ca4m4.cinder.order.a12-answer-invitation",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a10-interim-stay",
+          "disposition": "granted",
+          "operation_id": "ca4m4.cinder.operation.enter-a10-interim-stay",
+          "record_entry_id": "ca4m4.cinder.record.entry.a10",
+          "document_sha256": "94eb398c281008c6671f748e19c4d8678bb9be562b5d660091e17cbf77c5ec78"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a11-appearances-disclosures",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a11-appearance",
+          "record_entry_id": "ca4m4.cinder.record.entry.a11",
+          "document_sha256": "e2c17a3a469cf994323e707a6814626a4e754f25aef6d2701e04b0832f81995a"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-03",
+          "instant_unix_seconds": "1775174400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.calculate-actual-answer-deadline",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-21b-writs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 6,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.cinder.deadline.actual-answer",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.cinder.order.a12-answer-invitation",
+        "operation_id": "ca4m4.cinder.operation.enter-a12-answer-invitation"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a12-answer-invitation",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a12-answer-invitation",
+          "record_entry_id": "ca4m4.cinder.record.entry.a12",
+          "document_sha256": "60be0412a18a58623c982a7fa9db889c8934086819bb96049e51ef4f26478fdd"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-03",
+          "instant_unix_seconds": "1775174400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.calculate-actual-reply-deadline",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-21b-writs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 4,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.cinder.deadline.actual-reply",
+      "deadline_base_id": "ca4m4.cinder.deadline.actual-answer",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a12-answer-invitation",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a12-answer-invitation",
+          "record_entry_id": "ca4m4.cinder.record.entry.a12",
+          "document_sha256": "60be0412a18a58623c982a7fa9db889c8934086819bb96049e51ef4f26478fdd"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.actual-answer",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-03",
+          "instant_unix_seconds": "1775174400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-actual-emergency-to-answer",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.actual-answer",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a12-answer-invitation",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a12-answer-invitation",
+          "record_entry_id": "ca4m4.cinder.record.entry.a12",
+          "document_sha256": "60be0412a18a58623c982a7fa9db889c8934086819bb96049e51ef4f26478fdd"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.actual-answer",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.actual-reply",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-03",
+          "instant_unix_seconds": "1775174400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.reject-a13-writ-response",
+      "stage_id": "ca4m4.cinder.stage.actual-answer",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-09",
+          "instant_unix_seconds": "1775692800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.accept-a13-writ-response",
+      "stage_id": "ca4m4.cinder.stage.actual-answer",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-09",
+          "instant_unix_seconds": "1775692800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-a13-answer-to-reply",
+      "stage_id": "ca4m4.cinder.stage.actual-answer",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.actual-reply",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a12-answer-invitation",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a12-answer-invitation",
+          "record_entry_id": "ca4m4.cinder.record.entry.a12",
+          "document_sha256": "60be0412a18a58623c982a7fa9db889c8934086819bb96049e51ef4f26478fdd"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.actual-answer",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-09",
+          "instant_unix_seconds": "1775692800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.reject-a14-reply",
+      "stage_id": "ca4m4.cinder.stage.actual-reply",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-13",
+          "instant_unix_seconds": "1776038400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.accept-a14-reply",
+      "stage_id": "ca4m4.cinder.stage.actual-reply",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-27-motions",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-27-motions",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-13",
+          "instant_unix_seconds": "1776038400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-a14-reply-to-briefing-complete",
+      "stage_id": "ca4m4.cinder.stage.actual-reply",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.actual-briefing-complete",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-response",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.rhea-calder",
+          "filing_id": "ca4m4.cinder.filing.a13-answer-to-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a13-writ-response",
+          "record_entry_id": "ca4m4.cinder.record.entry.a13",
+          "document_sha256": "cf0cc35b0930bb2adc5d36632c1fd977c410c59c2cb9bc18a90d6add3764fa1e"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.actual-reply",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-13",
+          "instant_unix_seconds": "1776038400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.enter-a15-expedited-argument-order",
+      "stage_id": "ca4m4.cinder.stage.actual-briefing-complete",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-21b-writs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-34-argument",
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.a15",
+        "document_sha256": "4aad3248240a367f69eb77e85603d212b3b25fcc165a714fdbc1880cc80f1877",
+        "expected_court_date": "2026-04-14",
+        "order_id": "ca4m4.cinder.order.a15-expedited-argument",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a14-reply-in-support",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a14-reply",
+          "record_entry_id": "ca4m4.cinder.record.entry.a14",
+          "document_sha256": "bfd7f2f46c5d503bbfb21f971ffa931061abb5de2636bf1cfb0c06d20aa6dceb"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.actual-reply",
+          "status": "satisfied"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-14",
+          "instant_unix_seconds": "1776124800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.schedule-a15-oral-argument",
+      "stage_id": "ca4m4.cinder.stage.actual-briefing-complete",
+      "opcode": "schedule_argument",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument",
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.actual-argument",
+      "expected_argument_date": "2026-04-21",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a15-expedited-argument",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a15-expedited-argument-order",
+          "record_entry_id": "ca4m4.cinder.record.entry.a15",
+          "document_sha256": "4aad3248240a367f69eb77e85603d212b3b25fcc165a714fdbc1880cc80f1877"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-14",
+          "instant_unix_seconds": "1776124800"
+        },
+        {
+          "court_date": "2026-04-21",
+          "instant_unix_seconds": "1776729600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.enter-a16-oral-argument-held",
+      "stage_id": "ca4m4.cinder.stage.actual-argument",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument",
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.a16",
+        "document_sha256": "56b06d66c5177b474e1c1d28563d38cacb7a993e46bf4d8adac5e7c5f72f7a23",
+        "expected_court_date": "2026-04-21",
+        "order_id": "ca4m4.cinder.order.a16-oral-argument-held",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a15-expedited-argument",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a15-expedited-argument-order",
+          "record_entry_id": "ca4m4.cinder.record.entry.a15",
+          "document_sha256": "4aad3248240a367f69eb77e85603d212b3b25fcc165a714fdbc1880cc80f1877"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": true
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-21",
+          "instant_unix_seconds": "1776729600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-a16-argument-to-submitted",
+      "stage_id": "ca4m4.cinder.stage.actual-argument",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument",
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.actual-submitted",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a16-oral-argument-held",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a16-oral-argument-held",
+          "record_entry_id": "ca4m4.cinder.record.entry.a16",
+          "document_sha256": "56b06d66c5177b474e1c1d28563d38cacb7a993e46bf4d8adac5e7c5f72f7a23"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": true
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-21",
+          "instant_unix_seconds": "1776729600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.enter-a17-published-opinion",
+      "stage_id": "ca4m4.cinder.stage.actual-submitted",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "ca4m4.cinder.authority.usc-1651-all-writs",
+          "ca4m4.cinder.authority.cheney-three-part-mandamus",
+          "ca4m4.cinder.authority.murphy-brown-mandamus"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.a17",
+        "document_sha256": "91462891c1c7d883c883fc9c4a329ca8621f59c43c908462f8a8c24d30a36439",
+        "expected_court_date": "2026-05-05",
+        "order_id": "ca4m4.cinder.order.a17-published-opinion",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a16-oral-argument-held",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a16-oral-argument-held",
+          "record_entry_id": "ca4m4.cinder.record.entry.a16",
+          "document_sha256": "56b06d66c5177b474e1c1d28563d38cacb7a993e46bf4d8adac5e7c5f72f7a23"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": true
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-05",
+          "instant_unix_seconds": "1777939200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.issue-actual-judgment",
+      "stage_id": "ca4m4.cinder.stage.actual-submitted",
+      "opcode": "issue_judgment",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-21-extraordinary-writ",
+          "ca4m4.cinder.authority.usc-1651-all-writs",
+          "ca4m4.cinder.authority.cheney-three-part-mandamus",
+          "ca4m4.cinder.authority.murphy-brown-mandamus"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.a18",
+        "document_sha256": "e94785c120ebc50d6c6171dfa3d5ad4ee0a27ae756e02111c52363be0263abbb",
+        "expected_court_date": "2026-05-05"
+      },
+      "disposition_plan_id": "ca4m4.cinder.disposition.actual-partial-grant-vacatur-remand",
+      "next_stage_id": "ca4m4.cinder.stage.actual-post-judgment",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a17-published-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a17-published-opinion",
+          "record_entry_id": "ca4m4.cinder.record.entry.a17",
+          "document_sha256": "91462891c1c7d883c883fc9c4a329ca8621f59c43c908462f8a8c24d30a36439"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": true
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-05",
+          "instant_unix_seconds": "1777939200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.enter-a19-final-disposition-transmittal",
+      "stage_id": "ca4m4.cinder.stage.actual-post-judgment",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-36-judgment",
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.a19",
+        "document_sha256": "4377861990661e0dce74891056987c1e4fd3a592e971c3c6f5208db3b78ec144",
+        "expected_court_date": "2026-05-05",
+        "order_id": "ca4m4.cinder.order.a19-final-disposition-transmittal",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a17-published-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a17-published-opinion",
+          "record_entry_id": "ca4m4.cinder.record.entry.a17",
+          "document_sha256": "91462891c1c7d883c883fc9c4a329ca8621f59c43c908462f8a8c24d30a36439"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-05",
+          "instant_unix_seconds": "1777939200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.calculate-actual-rule40-deadline",
+      "stage_id": "ca4m4.cinder.stage.actual-post-judgment",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.cinder.deadline.actual-rule40",
+      "deadline_event_base": {
+        "kind": "judgment_occurred"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a19-final-disposition-transmittal",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a19-final-disposition-transmittal",
+          "record_entry_id": "ca4m4.cinder.record.entry.a19",
+          "document_sha256": "4377861990661e0dce74891056987c1e4fd3a592e971c3c6f5208db3b78ec144"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-05",
+          "instant_unix_seconds": "1777939200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-actual-rehearing-expired-to-terminal",
+      "stage_id": "ca4m4.cinder.stage.actual-post-judgment",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.actual-terminal",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.a19-final-disposition-transmittal",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-a19-final-disposition-transmittal",
+          "record_entry_id": "ca4m4.cinder.record.entry.a19",
+          "document_sha256": "4377861990661e0dce74891056987c1e4fd3a592e971c3c6f5208db3b78ec144"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.actual-rule40",
+          "status": "reached"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-19",
+          "instant_unix_seconds": "1779148800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.issue-counterfactual-summary-judgment",
+      "stage_id": "ca4m4.cinder.stage.counterfactual-summary",
+      "opcode": "issue_judgment",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-21b-writs",
+          "us.federal.authority.frap-36-judgment",
+          "ca4m4.cinder.authority.cheney-three-part-mandamus"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.b05",
+        "document_sha256": "4f93af454501e07ad4e7178575fe60d9006b77c55ac3bb36fc1544a002b06771",
+        "expected_court_date": "2026-04-01"
+      },
+      "disposition_plan_id": "ca4m4.cinder.disposition.counterfactual-summary-denial",
+      "next_stage_id": "ca4m4.cinder.stage.counterfactual-summary-post-judgment",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-response",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.rhea-calder",
+          "filing_id": "ca4m4.cinder.filing.a13-answer-to-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a13-writ-response",
+          "record_entry_id": "ca4m4.cinder.record.entry.a13",
+          "document_sha256": "cf0cc35b0930bb2adc5d36632c1fd977c410c59c2cb9bc18a90d6add3764fa1e"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a14-reply-in-support",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a14-reply",
+          "record_entry_id": "ca4m4.cinder.record.entry.a14",
+          "document_sha256": "bfd7f2f46c5d503bbfb21f971ffa931061abb5de2636bf1cfb0c06d20aa6dceb"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.enter-b06-summary-disposition-transmittal",
+      "stage_id": "ca4m4.cinder.stage.counterfactual-summary-post-judgment",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-36-judgment",
+          "us.ca4.authority.local-rule-21b-writs"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.cinder.record.entry.b06",
+        "document_sha256": "5b7e0e52ff8bd1b57bc80fe7c4881671648f192696aaf7e1e9f801ea74c2a28a",
+        "expected_court_date": "2026-04-01",
+        "order_id": "ca4m4.cinder.order.b06-summary-disposition-transmittal",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-response",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.rhea-calder",
+          "filing_id": "ca4m4.cinder.filing.a13-answer-to-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a13-writ-response",
+          "record_entry_id": "ca4m4.cinder.record.entry.a13",
+          "document_sha256": "cf0cc35b0930bb2adc5d36632c1fd977c410c59c2cb9bc18a90d6add3764fa1e"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a14-reply-in-support",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a14-reply",
+          "record_entry_id": "ca4m4.cinder.record.entry.a14",
+          "document_sha256": "bfd7f2f46c5d503bbfb21f971ffa931061abb5de2636bf1cfb0c06d20aa6dceb"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.calculate-counterfactual-summary-rule40-deadline",
+      "stage_id": "ca4m4.cinder.stage.counterfactual-summary-post-judgment",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.cinder.deadline.counterfactual-summary-rule40",
+      "deadline_event_base": {
+        "kind": "judgment_occurred"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-response",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.rhea-calder",
+          "filing_id": "ca4m4.cinder.filing.a13-answer-to-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a13-writ-response",
+          "record_entry_id": "ca4m4.cinder.record.entry.a13",
+          "document_sha256": "cf0cc35b0930bb2adc5d36632c1fd977c410c59c2cb9bc18a90d6add3764fa1e"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a14-reply-in-support",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a14-reply",
+          "record_entry_id": "ca4m4.cinder.record.entry.a14",
+          "document_sha256": "bfd7f2f46c5d503bbfb21f971ffa931061abb5de2636bf1cfb0c06d20aa6dceb"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.b06-summary-disposition-transmittal",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-b06-summary-disposition-transmittal",
+          "record_entry_id": "ca4m4.cinder.record.entry.b06",
+          "document_sha256": "5b7e0e52ff8bd1b57bc80fe7c4881671648f192696aaf7e1e9f801ea74c2a28a"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-01",
+          "instant_unix_seconds": "1775001600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.cinder.operation.advance-counterfactual-summary-rehearing-expired-to-terminal",
+      "stage_id": "ca4m4.cinder.stage.counterfactual-summary-post-judgment",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "next_stage_id": "ca4m4.cinder.stage.counterfactual-summary-terminal",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": true,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b04",
+          "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.a01",
+          "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-petition",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.writ-response",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.rhea-calder",
+          "filing_id": "ca4m4.cinder.filing.a13-answer-to-petition",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a13-writ-response",
+          "record_entry_id": "ca4m4.cinder.record.entry.a13",
+          "document_sha256": "cf0cc35b0930bb2adc5d36632c1fd977c410c59c2cb9bc18a90d6add3764fa1e"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "filing_id": "ca4m4.cinder.filing.a14-reply-in-support",
+          "accept_operation_id": "ca4m4.cinder.operation.accept-a14-reply",
+          "record_entry_id": "ca4m4.cinder.record.entry.a14",
+          "document_sha256": "bfd7f2f46c5d503bbfb21f971ffa931061abb5de2636bf1cfb0c06d20aa6dceb"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": false
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.cinder.order.b06-summary-disposition-transmittal",
+          "disposition": "other",
+          "operation_id": "ca4m4.cinder.operation.enter-b06-summary-disposition-transmittal",
+          "record_entry_id": "ca4m4.cinder.record.entry.b06",
+          "document_sha256": "5b7e0e52ff8bd1b57bc80fe7c4881671648f192696aaf7e1e9f801ea74c2a28a"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.cinder.deadline.counterfactual-summary-rule40",
+          "status": "reached"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-15",
+          "instant_unix_seconds": "1776211200"
+        }
+      ]
+    }
+  ],
+  "filing_routes": [
+    {
+      "filing_type_id": "us.ca4.filing.writ-petition",
+      "stage_id": "ca4m4.cinder.stage.opened",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.writ-petition.caption",
+        "us.ca4.field.writ-petition.relief",
+        "us.ca4.field.writ-petition.issues",
+        "us.ca4.field.writ-petition.necessary-facts",
+        "us.ca4.field.writ-petition.reasons",
+        "us.ca4.field.writ-petition.essential-materials",
+        "us.ca4.field.writ-petition.trial-judge-copy-provided"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+      "reject_operation_id": "ca4m4.cinder.operation.reject-opened-writ-petition",
+      "deficiency_operation_id": "ca4m4.cinder.operation.issue-b01-petition-deficiency",
+      "deficiency_deadline": {
+        "deadline_id": "ca4m4.cinder.deadline.b01-petition-cure",
+        "operation_id": "ca4m4.cinder.operation.calculate-b01-petition-cure",
+        "id_mode": "exact",
+        "trigger_filing": {
+          "filing_id": "ca4m4.cinder.filing.b01-defective-petition",
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "record_entry_id": "ca4m4.cinder.record.entry.b01",
+          "document_sha256": "18e0a9ecaf573a9f24e07d22716d8103010846ea8fe16a191e84ce8414ea93e9",
+          "expected_court_date": "2026-04-01"
+        }
+      },
+      "advance_operation_id": "ca4m4.cinder.operation.advance-opened-petition-to-submitted",
+      "reject_after_deadline": false
+    },
+    {
+      "filing_type_id": "us.ca4.filing.writ-petition",
+      "stage_id": "ca4m4.cinder.stage.deficiency-cure",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.writ-petition.caption",
+        "us.ca4.field.writ-petition.relief",
+        "us.ca4.field.writ-petition.issues",
+        "us.ca4.field.writ-petition.necessary-facts",
+        "us.ca4.field.writ-petition.reasons",
+        "us.ca4.field.writ-petition.essential-materials",
+        "us.ca4.field.writ-petition.trial-judge-copy-provided"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+      "reject_operation_id": "ca4m4.cinder.operation.reject-corrected-writ-petition",
+      "advance_operation_id": "ca4m4.cinder.operation.advance-b03-cure-to-submitted",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "record_entry_id": "ca4m4.cinder.record.entry.b03",
+          "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00",
+          "expected_legal_time": {
+            "court_date": "2026-04-01",
+            "instant_unix_seconds": "1775001600"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            },
+            {
+              "kind": "order_instance",
+              "order_id": "ca4m4.cinder.order.b02-deficiency-notice",
+              "disposition": "other",
+              "operation_id": "ca4m4.cinder.operation.enter-b02-deficiency-notice",
+              "record_entry_id": "ca4m4.cinder.record.entry.b02",
+              "document_sha256": "83dac37fbca804e7c452be9e50148a04d46db7fc062264c53c2e72e761f934c3"
+            },
+            {
+              "kind": "deadline_status",
+              "deadline_id": "ca4m4.cinder.deadline.b01-petition-cure",
+              "status": "open"
+            }
+          ]
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.cinder.deadline.b01-petition-cure"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.cinder.stage.actual-sealing-support",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+      "reject_operation_id": "ca4m4.cinder.operation.reject-actual-sealing-motion",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.cinder.filing.a02-motion-to-seal",
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "record_entry_id": "ca4m4.cinder.record.entry.a02",
+          "document_sha256": "5dd42325ca598740b44adb5ddd7af5f67c8f761680bdf65b7e2117d3cec008a3",
+          "expected_legal_time": {
+            "court_date": "2026-04-01",
+            "instant_unix_seconds": "1775001600"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b03",
+              "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            }
+          ]
+        },
+        {
+          "filing_id": "ca4m4.cinder.filing.a03-confidentiality-certificate",
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "record_entry_id": "ca4m4.cinder.record.entry.a03",
+          "document_sha256": "be1b224920d896e42b807e9c0e1d0f9039c73eaec24dcfb58870bfbd9a4e3fc7",
+          "expected_legal_time": {
+            "court_date": "2026-04-01",
+            "instant_unix_seconds": "1775001600"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b03",
+              "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a02-motion-to-seal",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+              "record_entry_id": "ca4m4.cinder.record.entry.a02",
+              "document_sha256": "5dd42325ca598740b44adb5ddd7af5f67c8f761680bdf65b7e2117d3cec008a3"
+            }
+          ]
+        },
+        {
+          "filing_id": "ca4m4.cinder.filing.a04-highly-sensitive-document-certificate",
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "record_entry_id": "ca4m4.cinder.record.entry.a04",
+          "document_sha256": "eb69bae6b9ae763555b916ed7e127b27453066738ed835369b59c930c07f128e",
+          "expected_legal_time": {
+            "court_date": "2026-04-01",
+            "instant_unix_seconds": "1775001600"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b03",
+              "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a02-motion-to-seal",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+              "record_entry_id": "ca4m4.cinder.record.entry.a02",
+              "document_sha256": "5dd42325ca598740b44adb5ddd7af5f67c8f761680bdf65b7e2117d3cec008a3"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a03-confidentiality-certificate",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+              "record_entry_id": "ca4m4.cinder.record.entry.a03",
+              "document_sha256": "be1b224920d896e42b807e9c0e1d0f9039c73eaec24dcfb58870bfbd9a4e3fc7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.appendix",
+      "stage_id": "ca4m4.cinder.stage.actual-sealing-support",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.appendix.contents",
+        "us.ca4.field.appendix.pagination"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.cinder.operation.accept-a06-essential-appendix",
+      "reject_operation_id": "ca4m4.cinder.operation.reject-a06-essential-appendix",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.cinder.filing.a06-public-essential-record-appendix",
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "record_entry_id": "ca4m4.cinder.record.entry.a06",
+          "document_sha256": "a6aee9f54bcec9633ebe50fe70a4d1106c6bea719aa991c9051bfdad19745771",
+          "expected_legal_time": {
+            "court_date": "2026-04-01",
+            "instant_unix_seconds": "1775001600"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b03",
+              "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a02-motion-to-seal",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+              "record_entry_id": "ca4m4.cinder.record.entry.a02",
+              "document_sha256": "5dd42325ca598740b44adb5ddd7af5f67c8f761680bdf65b7e2117d3cec008a3"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a03-confidentiality-certificate",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+              "record_entry_id": "ca4m4.cinder.record.entry.a03",
+              "document_sha256": "be1b224920d896e42b807e9c0e1d0f9039c73eaec24dcfb58870bfbd9a4e3fc7"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a04-highly-sensitive-document-certificate",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-actual-sealing-motion",
+              "record_entry_id": "ca4m4.cinder.record.entry.a04",
+              "document_sha256": "eb69bae6b9ae763555b916ed7e127b27453066738ed835369b59c930c07f128e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.cinder.operation.accept-actual-emergency-motion",
+      "reject_operation_id": "ca4m4.cinder.operation.reject-actual-emergency-motion",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.cinder.filing.a08-emergency-stay-motion",
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "record_entry_id": "ca4m4.cinder.record.entry.a08",
+          "document_sha256": "9096f1c6216677ec8d9efb780a8ca7505ac171befaa733f69ae512ee7807d20a",
+          "expected_legal_time": {
+            "court_date": "2026-04-01",
+            "instant_unix_seconds": "1775001600"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b03",
+              "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.appendix",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a06-public-essential-record-appendix",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-a06-essential-appendix",
+              "record_entry_id": "ca4m4.cinder.record.entry.a06",
+              "document_sha256": "a6aee9f54bcec9633ebe50fe70a4d1106c6bea719aa991c9051bfdad19745771"
+            }
+          ]
+        },
+        {
+          "filing_id": "ca4m4.cinder.filing.a09-emergency-stay-response",
+          "actor_id": "ca4m4.cinder.actor.rhea-calder",
+          "record_entry_id": "ca4m4.cinder.record.entry.a09",
+          "document_sha256": "4635f5dcff3ee72ee764b0ce4ed568b31b4fb87de5d18a0770e66603e6d14c80",
+          "expected_legal_time": {
+            "court_date": "2026-04-01",
+            "instant_unix_seconds": "1775001600"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b03",
+              "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.appendix",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a06-public-essential-record-appendix",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-a06-essential-appendix",
+              "record_entry_id": "ca4m4.cinder.record.entry.a06",
+              "document_sha256": "a6aee9f54bcec9633ebe50fe70a4d1106c6bea719aa991c9051bfdad19745771"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.motion",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a08-emergency-stay-motion",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-actual-emergency-motion",
+              "record_entry_id": "ca4m4.cinder.record.entry.a08",
+              "document_sha256": "9096f1c6216677ec8d9efb780a8ca7505ac171befaa733f69ae512ee7807d20a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.appearance",
+      "stage_id": "ca4m4.cinder.stage.actual-emergency",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.appearance.counsel-name",
+        "us.ca4.field.appearance.party-name",
+        "us.ca4.field.appearance.contact"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.cinder.operation.accept-a11-appearance",
+      "reject_operation_id": "ca4m4.cinder.operation.reject-a11-appearance",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.cinder.filing.a11-appearances-disclosures",
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "record_entry_id": "ca4m4.cinder.record.entry.a11",
+          "document_sha256": "e2c17a3a469cf994323e707a6814626a4e754f25aef6d2701e04b0832f81995a",
+          "expected_legal_time": {
+            "court_date": "2026-04-02",
+            "instant_unix_seconds": "1775088000"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b03",
+              "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            },
+            {
+              "kind": "order_instance",
+              "order_id": "ca4m4.cinder.order.a10-interim-stay",
+              "disposition": "granted",
+              "operation_id": "ca4m4.cinder.operation.enter-a10-interim-stay",
+              "record_entry_id": "ca4m4.cinder.record.entry.a10",
+              "document_sha256": "94eb398c281008c6671f748e19c4d8678bb9be562b5d660091e17cbf77c5ec78"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.writ-response",
+      "stage_id": "ca4m4.cinder.stage.actual-answer",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.writ-response.position",
+        "us.ca4.field.writ-response.grounds"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.cinder.operation.accept-a13-writ-response",
+      "reject_operation_id": "ca4m4.cinder.operation.reject-a13-writ-response",
+      "advance_operation_id": "ca4m4.cinder.operation.advance-a13-answer-to-reply",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.cinder.filing.a13-answer-to-petition",
+          "actor_id": "ca4m4.cinder.actor.rhea-calder",
+          "record_entry_id": "ca4m4.cinder.record.entry.a13",
+          "document_sha256": "cf0cc35b0930bb2adc5d36632c1fd977c410c59c2cb9bc18a90d6add3764fa1e",
+          "expected_legal_time": {
+            "court_date": "2026-04-09",
+            "instant_unix_seconds": "1775692800"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b03",
+              "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            },
+            {
+              "kind": "order_instance",
+              "order_id": "ca4m4.cinder.order.a12-answer-invitation",
+              "disposition": "other",
+              "operation_id": "ca4m4.cinder.operation.enter-a12-answer-invitation",
+              "record_entry_id": "ca4m4.cinder.record.entry.a12",
+              "document_sha256": "60be0412a18a58623c982a7fa9db889c8934086819bb96049e51ef4f26478fdd"
+            },
+            {
+              "kind": "deadline_status",
+              "deadline_id": "ca4m4.cinder.deadline.actual-answer",
+              "status": "open"
+            }
+          ]
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.cinder.deadline.actual-answer"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.cinder.stage.actual-reply",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.cinder.operation.accept-a14-reply",
+      "reject_operation_id": "ca4m4.cinder.operation.reject-a14-reply",
+      "advance_operation_id": "ca4m4.cinder.operation.advance-a14-reply-to-briefing-complete",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.cinder.filing.a14-reply-in-support",
+          "actor_id": "ca4m4.cinder.actor.cinder-lake",
+          "record_entry_id": "ca4m4.cinder.record.entry.a14",
+          "document_sha256": "bfd7f2f46c5d503bbfb21f971ffa931061abb5de2636bf1cfb0c06d20aa6dceb",
+          "expected_legal_time": {
+            "court_date": "2026-04-13",
+            "instant_unix_seconds": "1776038400"
+          },
+          "preconditions": [
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.a01-public-writ-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.a01",
+              "document_sha256": "ebc93b2d94d0605c1c5f4f878802a7851abf5084a2471e089fa23558e5a7610f"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b03-corrected-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-b03-corrected-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b03",
+              "document_sha256": "cf647602f81ab14187aa0a136840d105618f1c2ea44d38cb58f5e82b4a9eae00"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-petition",
+              "present": false,
+              "actor_id": "ca4m4.cinder.actor.cinder-lake",
+              "filing_id": "ca4m4.cinder.filing.b04-conforming-incomplete-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-opened-writ-petition",
+              "record_entry_id": "ca4m4.cinder.record.entry.b04",
+              "document_sha256": "60dc04131f5a69f628c6562183f5bb603cf98bf08722af46c6f7f078ff64a7f5"
+            },
+            {
+              "kind": "filing_instance",
+              "filing_type_id": "us.ca4.filing.writ-response",
+              "present": true,
+              "actor_id": "ca4m4.cinder.actor.rhea-calder",
+              "filing_id": "ca4m4.cinder.filing.a13-answer-to-petition",
+              "accept_operation_id": "ca4m4.cinder.operation.accept-a13-writ-response",
+              "record_entry_id": "ca4m4.cinder.record.entry.a13",
+              "document_sha256": "cf0cc35b0930bb2adc5d36632c1fd977c410c59c2cb9bc18a90d6add3764fa1e"
+            },
+            {
+              "kind": "deadline_status",
+              "deadline_id": "ca4m4.cinder.deadline.actual-reply",
+              "status": "open"
+            }
+          ]
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.cinder.deadline.actual-reply"
+    }
+  ],
+  "calendar": {
+    "holidays": [
+      "2025-01-01",
+      "2025-01-20",
+      "2025-02-17",
+      "2025-05-26",
+      "2025-06-19",
+      "2025-07-04",
+      "2025-09-01",
+      "2025-10-13",
+      "2025-11-11",
+      "2025-11-27",
+      "2025-12-25",
+      "2026-01-01",
+      "2026-01-19",
+      "2026-02-16",
+      "2026-05-25",
+      "2026-06-19",
+      "2026-07-03",
+      "2026-09-07",
+      "2026-10-12",
+      "2026-11-11",
+      "2026-11-26",
+      "2026-12-25",
+      "2027-01-01",
+      "2027-01-18",
+      "2027-02-15",
+      "2027-05-31",
+      "2027-06-18",
+      "2027-07-05",
+      "2027-09-06",
+      "2027-10-11",
+      "2027-11-11",
+      "2027-11-25",
+      "2027-12-24"
+    ]
+  }
+}

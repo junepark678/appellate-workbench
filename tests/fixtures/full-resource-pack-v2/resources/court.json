@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "resource_kind": "court",
+  "resource_id": "example.court.fictional",
+  "jurisdiction_id": "example.jurisdiction.fictional",
+  "name": "Fictional Court of Appeals",
+  "court_role": "appellate",
+  "authority_set_ids": [
+    "example.authorities.fictional"
+  ],
+  "holidays": [
+    "2026-01-01"
+  ]
+}

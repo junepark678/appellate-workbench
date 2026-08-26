@@ -1,0 +1,70 @@
+{
+  "schema_version": 2,
+  "pack_id": "foundation.us-ca4-fictional-bench",
+  "version": "1.0.0",
+  "required_capabilities": [
+    {"id": "workbench.pack.declarative-resources", "version": 2},
+    {"id": "workbench.pack.judge-profile", "version": 2},
+    {"id": "workbench.pack.voice-style", "version": 2}
+  ],
+  "dependencies": [],
+  "contents": [
+    {
+      "id": "us.ca4.bench-profile.alder",
+      "kind": "judge_profile",
+      "schema_version": 2,
+      "path": "resources/judge-alder.json",
+      "sha256": "f7cb2e6eeb92ce1f5e59d3ecf13795713ecf071336dbf70cdfce48a38873e1ed"
+    },
+    {
+      "id": "us.ca4.bench-profile.fen",
+      "kind": "judge_profile",
+      "schema_version": 2,
+      "path": "resources/judge-fen.json",
+      "sha256": "6b11078a80f89b606fc0cb933a89a9105ed0fef28781d7a771603074b45d8e66"
+    },
+    {
+      "id": "us.ca4.bench-profile.march",
+      "kind": "judge_profile",
+      "schema_version": 2,
+      "path": "resources/judge-march.json",
+      "sha256": "c5bdc41c9ffd6b22da6eaef1ad82dba6eb97da37e1a2b990716862ce5ddcc7d7"
+    },
+    {
+      "id": "us.ca4.bench-profile.quill",
+      "kind": "judge_profile",
+      "schema_version": 2,
+      "path": "resources/judge-quill.json",
+      "sha256": "f4727a709628c8209cec0b833edfdec4d629ff21083d2ee8cdcf016dee5429a1"
+    },
+    {
+      "id": "us.ca4.bench-profile.reed",
+      "kind": "judge_profile",
+      "schema_version": 2,
+      "path": "resources/judge-reed.json",
+      "sha256": "4239178db7e1d0589c0eee91e13435bac1fda08a59124654d068832e401091b7"
+    },
+    {
+      "id": "us.ca4.bench-profile.rowan",
+      "kind": "judge_profile",
+      "schema_version": 2,
+      "path": "resources/judge-rowan.json",
+      "sha256": "e6ea8f4ab452a80c8e03091ef76fc8befac6f375a7a0cc33daea283bad7fd336"
+    },
+    {
+      "id": "us.ca4.bench-profile.slate",
+      "kind": "judge_profile",
+      "schema_version": 2,
+      "path": "resources/judge-slate.json",
+      "sha256": "497e05aa8561aad33836a1ab7e0deb6c383a999ac8e842d3090460270c9efe23"
+    },
+    {
+      "id": "us.ca4.bench-profile.vale",
+      "kind": "judge_profile",
+      "schema_version": 2,
+      "path": "resources/judge-vale.json",
+      "sha256": "86eea12b565a9b61623f929ecfdd93aa6bcae6ac5ca2ff27049630af070bf5ab"
+    }
+  ],
+  "blobs": []
+}

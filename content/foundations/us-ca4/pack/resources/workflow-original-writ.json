@@ -1,0 +1,43 @@
+{
+  "schema_version": 2,
+  "resource_kind": "workflow",
+  "resource_id": "us.ca4.workflow.original-writ",
+  "initial_stage_id": "us.ca4.writ.stage.opened",
+  "stages": ["us.ca4.writ.stage.opened", "us.ca4.writ.stage.submitted"],
+  "operations": [
+    {"operation_id": "us.ca4.writ.operation.reject-opened", "stage_id": "us.ca4.writ.stage.opened", "opcode": "reject_filing", "authority": {"primary_authority_id": "us.ca4.authority.local-rule-21b-writs", "supporting_authority_ids": ["us.federal.authority.frap-21-extraordinary-writ"]}, "authorized_role_ids": []},
+    {"operation_id": "us.ca4.writ.operation.accept-petition", "stage_id": "us.ca4.writ.stage.opened", "opcode": "accept_filing", "authority": {"primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ", "supporting_authority_ids": ["us.ca4.authority.local-rule-21b-writs"]}, "authorized_role_ids": []},
+    {"operation_id": "us.ca4.writ.operation.issue-deficiency", "stage_id": "us.ca4.writ.stage.opened", "opcode": "issue_deficiency", "authority": {"primary_authority_id": "us.ca4.authority.local-rule-21b-writs", "supporting_authority_ids": ["us.federal.authority.frap-21-extraordinary-writ"]}, "authorized_role_ids": []},
+    {"operation_id": "us.ca4.writ.operation.advance-submitted", "stage_id": "us.ca4.writ.stage.opened", "opcode": "advance_stage", "authority": {"primary_authority_id": "us.ca4.authority.local-rule-21b-writs", "supporting_authority_ids": ["us.federal.authority.frap-21-extraordinary-writ"]}, "next_stage_id": "us.ca4.writ.stage.submitted", "authorized_role_ids": []},
+    {"operation_id": "us.ca4.writ.operation.reject-submitted", "stage_id": "us.ca4.writ.stage.submitted", "opcode": "reject_filing", "authority": {"primary_authority_id": "us.ca4.authority.local-rule-25a-electronic-filing", "supporting_authority_ids": ["us.federal.authority.frap-25-filing-service"]}, "authorized_role_ids": []},
+    {"operation_id": "us.ca4.writ.operation.order-response", "stage_id": "us.ca4.writ.stage.submitted", "opcode": "enter_order", "authority": {"primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ", "supporting_authority_ids": ["us.ca4.authority.local-rule-21b-writs"]}, "authorized_role_ids": ["us.ca4.role.court"]},
+    {"operation_id": "us.ca4.writ.operation.accept-response", "stage_id": "us.ca4.writ.stage.submitted", "opcode": "accept_filing", "authority": {"primary_authority_id": "us.ca4.authority.local-rule-21b-writs", "supporting_authority_ids": ["us.federal.authority.frap-21-extraordinary-writ"]}, "authorized_role_ids": [], "preconditions": [{"kind": "order_disposition", "order_id": "us.ca4.writ.order.response-requested", "disposition": "granted"}]},
+    {"operation_id": "us.ca4.writ.operation.accept-motion", "stage_id": "us.ca4.writ.stage.submitted", "opcode": "accept_filing", "authority": {"primary_authority_id": "us.ca4.authority.local-rule-27-motions", "supporting_authority_ids": ["us.federal.authority.frap-27-motions"]}, "authorized_role_ids": []},
+    {"operation_id": "us.ca4.writ.operation.schedule-argument", "stage_id": "us.ca4.writ.stage.submitted", "opcode": "schedule_argument", "authority": {"primary_authority_id": "us.ca4.authority.local-rule-21b-writs", "supporting_authority_ids": ["us.ca4.authority.local-rule-34-argument"]}, "authorized_role_ids": ["us.ca4.role.court"]},
+    {"operation_id": "us.ca4.writ.operation.issue-judgment", "stage_id": "us.ca4.writ.stage.submitted", "opcode": "issue_judgment", "authority": {"primary_authority_id": "us.federal.authority.frap-21-extraordinary-writ", "supporting_authority_ids": ["us.ca4.authority.local-rule-21b-writs"]}, "authorized_role_ids": ["us.ca4.role.court"]},
+    {"operation_id": "us.ca4.writ.operation.issue-mandate", "stage_id": "us.ca4.writ.stage.submitted", "opcode": "issue_mandate", "authority": {"primary_authority_id": "us.federal.authority.frap-41-mandate", "supporting_authority_ids": ["us.ca4.authority.local-rule-41-mandate"]}, "authorized_role_ids": ["us.ca4.role.court"], "preconditions": [{"kind": "judgment_issued", "issued": true}]}
+  ],
+  "filing_routes": [
+    {
+      "filing_type_id": "us.ca4.filing.writ-petition", "stage_id": "us.ca4.writ.stage.opened", "authorized_role_ids": ["us.ca4.role.initiating-party"],
+      "required_field_ids": ["us.ca4.field.writ-petition.caption", "us.ca4.field.writ-petition.relief", "us.ca4.field.writ-petition.issues", "us.ca4.field.writ-petition.necessary-facts", "us.ca4.field.writ-petition.reasons", "us.ca4.field.writ-petition.essential-materials", "us.ca4.field.writ-petition.trial-judge-copy-provided"], "required_service_role_ids": ["us.ca4.role.initiating-party", "us.ca4.role.responding-party"],
+      "accept_operation_id": "us.ca4.writ.operation.accept-petition", "reject_operation_id": "us.ca4.writ.operation.reject-opened", "deficiency_operation_id": "us.ca4.writ.operation.issue-deficiency",
+      "advance_operation_id": "us.ca4.writ.operation.advance-submitted", "reject_after_deadline": false
+    },
+    {
+      "filing_type_id": "us.ca4.filing.writ-response", "stage_id": "us.ca4.writ.stage.submitted", "authorized_role_ids": ["us.ca4.role.responding-party"],
+      "required_field_ids": ["us.ca4.field.writ-response.position", "us.ca4.field.writ-response.grounds"], "required_service_role_ids": ["us.ca4.role.initiating-party", "us.ca4.role.responding-party"],
+      "accept_operation_id": "us.ca4.writ.operation.accept-response", "reject_operation_id": "us.ca4.writ.operation.reject-submitted", "reject_after_deadline": false
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion", "stage_id": "us.ca4.writ.stage.submitted", "authorized_role_ids": ["us.ca4.role.initiating-party", "us.ca4.role.responding-party"],
+      "required_field_ids": ["us.ca4.field.motion.relief", "us.ca4.field.motion.grounds", "us.ca4.field.motion.party-position"], "required_service_role_ids": ["us.ca4.role.initiating-party", "us.ca4.role.responding-party"],
+      "accept_operation_id": "us.ca4.writ.operation.accept-motion", "reject_operation_id": "us.ca4.writ.operation.reject-submitted", "reject_after_deadline": false
+    }
+  ],
+  "calendar": {"holidays": [
+    "2025-01-01", "2025-01-20", "2025-02-17", "2025-05-26", "2025-06-19", "2025-07-04", "2025-09-01", "2025-10-13", "2025-11-11", "2025-11-27", "2025-12-25",
+    "2026-01-01", "2026-01-19", "2026-02-16", "2026-05-25", "2026-06-19", "2026-07-03", "2026-09-07", "2026-10-12", "2026-11-11", "2026-11-26", "2026-12-25",
+    "2027-01-01", "2027-01-18", "2027-02-15", "2027-05-31", "2027-06-18", "2027-07-05", "2027-09-06", "2027-10-11", "2027-11-11", "2027-11-25", "2027-12-24"
+  ]}
+}

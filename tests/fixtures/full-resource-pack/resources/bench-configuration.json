@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "resource_kind": "bench_configuration",
+  "resource_id": "example.bench.fictional",
+  "court_id": "example.court.fictional",
+  "presiding_seat_id": "example.seat.presiding",
+  "seats": [
+    {
+      "seat_id": "example.seat.presiding",
+      "profile_id": "example.judge.fictional",
+      "court_role": "appellate"
+    }
+  ]
+}

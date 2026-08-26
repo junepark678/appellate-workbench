@@ -1,0 +1,24 @@
+{
+  "schema_version": 2,
+  "resource_kind": "bench_configuration",
+  "resource_id": "ca4m4.cinder.bench.three-judge",
+  "court_id": "us.ca4.court.appeals",
+  "presiding_seat_id": "ca4m4.cinder.seat.alder",
+  "seats": [
+    {
+      "seat_id": "ca4m4.cinder.seat.alder",
+      "profile_id": "us.ca4.bench-profile.alder",
+      "court_role": "appellate"
+    },
+    {
+      "seat_id": "ca4m4.cinder.seat.vale",
+      "profile_id": "us.ca4.bench-profile.vale",
+      "court_role": "appellate"
+    },
+    {
+      "seat_id": "ca4m4.cinder.seat.fen",
+      "profile_id": "us.ca4.bench-profile.fen",
+      "court_role": "appellate"
+    }
+  ]
+}

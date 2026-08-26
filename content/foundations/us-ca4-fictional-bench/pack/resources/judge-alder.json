@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "resource_kind": "judge_profile",
+  "resource_id": "us.ca4.bench-profile.alder",
+  "display_name": "Composite Jurist Alder",
+  "profile_class": "fictional_composite",
+  "compatibility": {
+    "court_roles": ["appellate"],
+    "jurisdiction_ids": ["us.ca4"]
+  },
+  "interaction": {
+    "directness": 0.92,
+    "formality": 0.74,
+    "question_length": 0.22,
+    "interruption_frequency": 0.65,
+    "follow_up_depth": 0.72,
+    "hypothetical_frequency": 0.25,
+    "concession_recall": 0.82,
+    "record_pin_demand": 0.80,
+    "time_strictness": 0.82,
+    "issue_focus": [
+      {"topic_id": "workbench.topic.jurisdiction", "weight": 0.85},
+      {"topic_id": "workbench.topic.preservation", "weight": 0.75},
+      {"topic_id": "workbench.topic.remedy", "weight": 0.45}
+    ]
+  },
+  "voice": {
+    "register": "formal",
+    "cadence": "clipped",
+    "question_framing": "direct",
+    "address_convention": "counsel",
+    "verbosity": 0.24,
+    "sentence_complexity": 0.42,
+    "question_phrases": ["state the rule", "what is your best answer"],
+    "interruption_phrases": ["stop there", "answer that point first"],
+    "clarification_phrases": ["be precise", "identify the distinction"]
+  }
+}

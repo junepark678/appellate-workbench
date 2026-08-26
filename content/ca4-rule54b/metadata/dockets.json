@@ -1,0 +1,65 @@
+{
+  "format": "appellate-workbench-synthetic-dockets",
+  "format_version": 1,
+  "case_id": "ca4r54b.case.asterglen",
+  "as_of": "2026-08-11",
+  "synthetic": true,
+  "district": {
+    "court": "United States District Court for the Eastern District of Virginia",
+    "docket": "SYN-25-0117",
+    "caption": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC",
+    "entries": [
+      {"number": 1, "date": "2025-03-03", "title": "Complaint and Jury Demand", "document_id": "ca4r54b.document.d01"},
+      {"number": 8, "date": "2025-04-07", "title": "Answer, Affirmative Defenses, and Counterclaim", "document_id": "ca4r54b.document.d08"},
+      {"number": 10, "date": "2025-04-28", "title": "Answer to Counterclaim", "document_id": null},
+      {"number": 17, "date": "2025-06-02", "title": "Rule 16 Scheduling Order", "document_id": null},
+      {"number": 31, "date": "2025-10-15", "title": "Discovery Completion Notice", "document_id": null},
+      {"number": 42, "date": "2025-11-03", "title": "Copper Kestrel Motion for Summary Judgment on Count I", "document_id": null},
+      {"number": 43, "date": "2025-11-03", "title": "Memorandum and Exhibits Supporting ECF No. 42", "document_id": null},
+      {"number": 49, "date": "2025-11-24", "title": "Asterglen Opposition to ECF No. 42", "document_id": null},
+      {"number": 52, "date": "2025-12-05", "title": "Copper Kestrel Reply Supporting ECF No. 42", "document_id": null},
+      {"number": 55, "date": "2026-01-12", "title": "Memorandum Order on Partial Summary Judgment", "document_id": "ca4r54b.document.d55"},
+      {"number": 57, "date": "2026-01-20", "title": "Motion for Entry of Partial Final Judgment Under Rule 54(b)", "document_id": "ca4r54b.document.d57"},
+      {"number": 58, "date": "2026-01-30", "title": "Opposition to Rule 54(b) Motion", "document_id": "ca4r54b.document.d58"},
+      {"number": 59, "date": "2026-02-04", "title": "Order Granting Rule 54(b) Motion", "document_id": "ca4r54b.document.d59"},
+      {"number": 60, "date": "2026-02-04", "title": "Partial Judgment", "document_id": "ca4r54b.document.d60"},
+      {"number": 61, "date": "2026-03-03", "title": "Notice of Appeal", "document_id": "ca4r54b.document.d61"},
+      {"number": 62, "date": "2026-03-03", "title": "Notice and Fee Receipt", "document_id": null},
+      {"number": 63, "date": "2026-03-04", "title": "Notice and Initial Docket Entries Transmitted", "document_id": null},
+      {"number": 64, "date": "2026-03-16", "title": "No-Transcript Certification", "document_id": "ca4r54b.document.a03"},
+      {"number": 65, "date": "2026-03-20", "title": "Certified District Docket Entries and Record Complete", "document_id": "ca4r54b.document.d62"},
+      {"number": 66, "date": "2026-06-29", "title": "Fourth Circuit Synthetic Mandate Received", "document_id": "ca4r54b.document.a22"}
+    ]
+  },
+  "appellate": {
+    "court": "United States Court of Appeals for the Fourth Circuit",
+    "docket": "SYN-26-1427",
+    "caption": "Asterglen Freight Software, Inc. v. Copper Kestrel Logistics, LLC and Meridian Silt Holdings, LLC",
+    "entries": [
+      {"number": 1, "date": "2026-03-05", "title": "Appeal Docketed; Docketing Notice", "document_id": "ca4r54b.document.a01"},
+      {"number": 4, "date": "2026-03-16", "title": "Appellant Appearance and Corporate Disclosure", "document_id": null},
+      {"number": 5, "date": "2026-03-16", "title": "Civil Appeal Docketing Statement", "document_id": "ca4r54b.document.a02"},
+      {"number": 6, "date": "2026-03-16", "title": "No-Transcript Certification", "document_id": "ca4r54b.document.a03"},
+      {"number": 7, "date": "2026-03-18", "title": "Appellees Appearances and Corporate Disclosures", "document_id": null},
+      {"number": 9, "date": "2026-03-20", "title": "Record Complete", "document_id": null},
+      {"number": 10, "date": "2026-03-23", "title": "Civil Briefing Order", "document_id": null},
+      {"number": 14, "date": "2026-04-29", "title": "Appellant Opening Brief", "document_id": "ca4r54b.document.a10"},
+      {"number": 15, "date": "2026-04-29", "title": "Joint Appendix", "document_id": "ca4r54b.document.a12"},
+      {"number": 18, "date": "2026-05-08", "title": "Appellees Response Brief", "document_id": "ca4r54b.document.a11"},
+      {"number": 20, "date": "2026-06-03", "title": "Submitted to Composite Panel on Briefs", "document_id": null},
+      {"number": 21, "date": "2026-06-08", "title": "Synthetic Opinion: Dismissed and Remanded", "document_id": "ca4r54b.document.a20"},
+      {"number": 22, "date": "2026-06-08", "title": "Synthetic Judgment Entered", "document_id": "ca4r54b.document.a21"},
+      {"number": 23, "date": "2026-06-22", "title": "Rehearing Period Expired; No Petition Filed", "document_id": null},
+      {"number": 24, "date": "2026-06-29", "title": "Synthetic Mandate Issued", "document_id": "ca4r54b.document.a22"}
+    ]
+  },
+  "negative_procedural_facts": [
+    "No post-judgment tolling motion was filed.",
+    "No extension or reopening of the notice period was requested.",
+    "No hearing occurred on the dispositive or Rule 54(b) motions.",
+    "No transcript exists or was ordered.",
+    "No reply brief was filed.",
+    "No rehearing petition or stay-of-mandate motion was filed.",
+    "No district stay of the unresolved claims was entered."
+  ]
+}

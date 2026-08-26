@@ -2,12 +2,31 @@
   "schema_version": 1,
   "pack_id": "example.appellate.ca4",
   "version": "0.1.0",
+  "required_capabilities": [
+    {
+      "id": "workbench.pack.judge-profile",
+      "version": 1
+    },
+    {
+      "id": "workbench.pack.voice-style",
+      "version": 1
+    }
+  ],
+  "dependencies": [
+    {
+      "pack_id": "example.foundation.common",
+      "version": "1.2.3",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+    }
+  ],
+  "blobs": [],
   "contents": [
     {
       "id": "example.judge.measured",
       "kind": "judge_profile",
+      "schema_version": 1,
       "path": "judges/measured.json",
-      "sha256": "11e25ae35fe36439415979da4a72bad745ec6599c321103c87789d3b45c7b69e"
+      "sha256": "0fb808320b8b19b2c99159322f3dc1678953e84aa8d42d1ab4b2a2e072b624b3"
     }
   ]
 }

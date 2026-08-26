@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "resource_kind": "realism_review",
+  "resource_id": "ca4r54b.review.authoring-2026-08-12",
+  "case_id": "ca4r54b.case.asterglen",
+  "review_state": "independent_review_pending",
+  "reviewed_on": "2026-08-12",
+  "dimensions": {
+    "procedural_law": 2,
+    "deadlines_authority": 2,
+    "record_consistency": 2,
+    "consequences": 2,
+    "oral_argument": 2,
+    "bench_differentiation": 2,
+    "provenance": 2
+  },
+  "known_uncertainty": [
+    {
+      "uncertainty_id": "ca4r54b.uncertainty.qualified-review-pending",
+      "summary": "Review by a qualified civil-appellate and Virginia contract practitioner remains pending; no independent review is recorded and no level-3 claim is made.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4r54b.uncertainty.automated-legal-realism-limit",
+      "summary": "Automated schema, citation, deadline, and replay checks do not establish the legal accuracy, completeness, currency, or practical realism of the cited authorities or authored analysis.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4r54b.uncertainty.exact-document-classification-scope",
+      "summary": "Operation bindings, record tags, and classifications are authored for the exact identified documents and do not generalize to novel filings, altered bytes, or unreviewed procedural circumstances.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4r54b.uncertainty.conditional-finality-deadlines",
+      "summary": "The notice and separate-document clocks depend on authored finality predicates; the system replays those exact branches but does not infer finality or select a trigger from arbitrary district records.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4r54b.uncertainty.counterfactual-never-occurred-isolation",
+      "summary": "The separately docketed branch pages are counterfactual training artifacts that never occurred on the actual district or appellate dockets and must remain isolated from actual-history questions and grounding.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4r54b.uncertainty.synthetic-bench-oral-limit",
+      "summary": "The bench profiles and oral-argument behavior are synthetic training constructs; differentiation and deterministic replay do not model any real judge or predict actual advocacy, questioning, or outcomes.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4r54b.uncertainty.generated-pdf-provenance-limit",
+      "summary": "The PDFs are generated training artifacts. Source-to-PDF checks, accepted render inventories, and pinned hashes document repository provenance but cannot establish external authenticity, cross-render byte determinism, or complete accessibility and typography quality.",
+      "blocking": false
+    },
+    {
+      "uncertainty_id": "ca4r54b.uncertainty.supported-certification-intermediate-filings-abstracted",
+      "summary": "The supported-certification branch binds its changed district predicate and resulting opinion, judgment, release, and mandate, but abstracts intervening notice, docketing, and briefing papers that were not authored for that counterfactual docket; replay therefore verifies the modeled branch consequence rather than a complete counterfactual appellate docket.",
+      "blocking": false
+    }
+  ]
+}

@@ -1,0 +1,593 @@
+{
+    "blobs": [
+        {
+            "byte_size": 29656,
+            "media_type": "application/pdf",
+            "path": "objects/a01-appellate-docketing-notice.pdf",
+            "sha256": "1aec323041d0ea80b73c4bacc617fe9dfd81df131d02f1aa43502f045201d4f5"
+        },
+        {
+            "byte_size": 26553,
+            "media_type": "application/pdf",
+            "path": "objects/a02-city-appearance-disclosure.pdf",
+            "sha256": "4e8636898ceda53979790b116e129244105252395e293a760fc2beb9f97955f6"
+        },
+        {
+            "byte_size": 26733,
+            "media_type": "application/pdf",
+            "path": "objects/a03-guild-appearance-disclosure.pdf",
+            "sha256": "e51a0e8f9dc42b63e761ca65b5c9de222760201cda9764639c054abe73d880f3"
+        },
+        {
+            "byte_size": 56489,
+            "media_type": "application/pdf",
+            "path": "objects/a04-city-rule8-stay-motion.pdf",
+            "sha256": "bb5f54c8a0b55ff4cc339c5379576e9f5a7053df6c72be41d726d4a60fa73dde"
+        },
+        {
+            "byte_size": 48905,
+            "media_type": "application/pdf",
+            "path": "objects/a05-guild-stay-response.pdf",
+            "sha256": "8fc3acbdb3bb061d87d679be70f2ebcf9858462cd5b861d4219fc9142546adfa"
+        },
+        {
+            "byte_size": 34015,
+            "media_type": "application/pdf",
+            "path": "objects/a06-city-stay-reply.pdf",
+            "sha256": "a20de37212af99ccef644c196c1e6fe4da76ffadb9803f39c85956a592576fd5"
+        },
+        {
+            "byte_size": 32252,
+            "media_type": "application/pdf",
+            "path": "objects/a07-appellate-stay-denial.pdf",
+            "sha256": "6c04e8866321a96faa4777ebc21612947dcea88a1a6ee1915096d9fd55842054"
+        },
+        {
+            "byte_size": 39230,
+            "media_type": "application/pdf",
+            "path": "objects/a08-city-docketing-statement.pdf",
+            "sha256": "eed4e25dffb774a5b3bbf82e4fa1a82a9c165c87eccb40d3800b52c196eb30ad"
+        },
+        {
+            "byte_size": 23031,
+            "media_type": "application/pdf",
+            "path": "objects/a09-no-additional-transcript-certificate.pdf",
+            "sha256": "709d37ff82f0af43c8d78b9d17a14cd7cf816b0c13d8db3aa560dba4c9fb1671"
+        },
+        {
+            "byte_size": 27336,
+            "media_type": "application/pdf",
+            "path": "objects/a10-record-complete-briefing-order.pdf",
+            "sha256": "6a35fc399b86e13a719c821469007cae629b202d5388359fa32bb964e0403957"
+        },
+        {
+            "byte_size": 71694,
+            "media_type": "application/pdf",
+            "path": "objects/a11-city-opening-brief.pdf",
+            "sha256": "6bfa1c80ea1c3a59103ef7a13630ed15de37f091dc9fa0c96dfc8117c3d078a0"
+        },
+        {
+            "byte_size": 32917,
+            "media_type": "application/pdf",
+            "path": "objects/a12-joint-appendix-cover-index-certification.pdf",
+            "sha256": "6f8ec12c507c98a081d0fb755615a73bb62e9ca2751748f7973d410aef5c2e19"
+        },
+        {
+            "byte_size": 70155,
+            "media_type": "application/pdf",
+            "path": "objects/a13-guild-response-brief.pdf",
+            "sha256": "2956eeddcb904f8a0e1ae0f3b601003bbedef88689c0a85999700ebd5d85ad98"
+        },
+        {
+            "byte_size": 50074,
+            "media_type": "application/pdf",
+            "path": "objects/a14-city-reply-brief.pdf",
+            "sha256": "ddf58c417904557bf1d12b17afbd11116a61e29038efca1186fb6864bb07f1c1"
+        },
+        {
+            "byte_size": 29448,
+            "media_type": "application/pdf",
+            "path": "objects/a15-city-one-date-mootness-motion.pdf",
+            "sha256": "d52c70316ab1163cf10ab98161cc890188cc63407685e6b4ed543bd3d2d165bf"
+        },
+        {
+            "byte_size": 34918,
+            "media_type": "application/pdf",
+            "path": "objects/a16-guild-recurring-events-response.pdf",
+            "sha256": "3d94bba00284b1b23c58cd6b5b3c273d0cd74f7b8c4c9108c9542ed071334228"
+        },
+        {
+            "byte_size": 29533,
+            "media_type": "application/pdf",
+            "path": "objects/a17-mootness-denial.pdf",
+            "sha256": "b8a7cc156a69360be37fcf3a25ae0060a8e327e1caf52f188a19fb1fbb3529f4"
+        },
+        {
+            "byte_size": 22593,
+            "media_type": "application/pdf",
+            "path": "objects/a18-oral-argument-calendar-notice.pdf",
+            "sha256": "bf6d8258aea0c20bc3f7efd576c11b56b3f0a0321c3dd6b1d65ad7d7c68efcdd"
+        },
+        {
+            "byte_size": 22970,
+            "media_type": "application/pdf",
+            "path": "objects/a19-argument-held-order-minute-sheet.pdf",
+            "sha256": "40fa79bc1362d9100947916f0833988f0f4f82f2042fe1104908f52155f6cc2e"
+        },
+        {
+            "byte_size": 72830,
+            "media_type": "application/pdf",
+            "path": "objects/a20-authored-panel-opinion.pdf",
+            "sha256": "02c225c48c3c5c5ca592d21dba7efff2c17608be70f497760faf8f2d8441c736"
+        },
+        {
+            "byte_size": 22468,
+            "media_type": "application/pdf",
+            "path": "objects/a21-authored-judgment.pdf",
+            "sha256": "af41a79fe0adf210b3e17e6cd0f39f43784b3b25ca1e28edddb86ee5fafa7bf0"
+        },
+        {
+            "byte_size": 19658,
+            "media_type": "application/pdf",
+            "path": "objects/a22-ordinary-mandate-release-order.pdf",
+            "sha256": "96316c7f68fbef397433378a467ab6bd392e3f1bbf50347933c168f81752a26c"
+        },
+        {
+            "byte_size": 22319,
+            "media_type": "application/pdf",
+            "path": "objects/a23-mandate.pdf",
+            "sha256": "f225a245535b2d97e0ad7df06428c3e38f44e361bc9653bb4c35bc10b89c1502"
+        },
+        {
+            "byte_size": 50081,
+            "media_type": "application/pdf",
+            "path": "objects/b01-rule8-motion-omitting-district-relief.pdf",
+            "sha256": "862f15a4930f2a1902cda158935ddc743d33650cba87a9ed5c1fccf0c902abe1"
+        },
+        {
+            "byte_size": 31675,
+            "media_type": "application/pdf",
+            "path": "objects/b02-rule8-threshold-denial.pdf",
+            "sha256": "421fafe4a84b0b0ee922f60492035287234076c3bd0ef8ad1ed57ed915f2238b"
+        },
+        {
+            "byte_size": 52573,
+            "media_type": "application/pdf",
+            "path": "objects/b03-rule8-impracticability-motion.pdf",
+            "sha256": "d7aa0b962ebd91933ea0ea903079225bcb822198dc48c7a602bb779211de98fe"
+        },
+        {
+            "byte_size": 47157,
+            "media_type": "application/pdf",
+            "path": "objects/b04-guild-impracticability-response.pdf",
+            "sha256": "94c77ddd2356ebe9358b13658e277e25849833d7a2571f3c136cc400139be8f5"
+        },
+        {
+            "byte_size": 32026,
+            "media_type": "application/pdf",
+            "path": "objects/b05-impracticability-stay-denial.pdf",
+            "sha256": "8edd1ff49d439e2326e2b8a413731e386db1332295ac5a716f32d361dd2a140f"
+        },
+        {
+            "byte_size": 32271,
+            "media_type": "application/pdf",
+            "path": "objects/b06-appellate-stay-grant.pdf",
+            "sha256": "d50e4af85acce388c882087117e75452d4a5c63deeee64376995c7d0f0c921d1"
+        },
+        {
+            "byte_size": 27166,
+            "media_type": "application/pdf",
+            "path": "objects/b07-stay-dissolution-order.pdf",
+            "sha256": "fed6b65d542abd81dddec0c614f220b9727ccf51fdfdc646ece57a83ed130d64"
+        },
+        {
+            "byte_size": 24697,
+            "media_type": "application/pdf",
+            "path": "objects/b08-submission-on-briefs-order.pdf",
+            "sha256": "463c27643cced49e041f56ad3c3fbdc0992452e569575f911fe639ec0bec6d75"
+        },
+        {
+            "byte_size": 79458,
+            "media_type": "application/pdf",
+            "path": "objects/b09-adverse-opinion.pdf",
+            "sha256": "a5a256c9f95ddc2394561de000c1adc7adb08964de2eede6342c20b58f586ff4"
+        },
+        {
+            "byte_size": 24138,
+            "media_type": "application/pdf",
+            "path": "objects/b10-adverse-judgment.pdf",
+            "sha256": "58e6b0789f38f08d18164ecd088906880e1c8209bd3ca6f2e374ffbdc5db546d"
+        },
+        {
+            "byte_size": 51103,
+            "media_type": "application/pdf",
+            "path": "objects/b11-timely-rehearing-petition.pdf",
+            "sha256": "47ddc4b695fc0c4154b9b49c955c2aea14b3cdf24e46eea7303f9d3a7a87f10b"
+        },
+        {
+            "byte_size": 24354,
+            "media_type": "application/pdf",
+            "path": "objects/b12-rehearing-denial.pdf",
+            "sha256": "d9d1cde7baef01a899792bb87e0e0650a93a0a317b9f966cbd4e7659b8e10e2e"
+        },
+        {
+            "byte_size": 21173,
+            "media_type": "application/pdf",
+            "path": "objects/b13-post-rehearing-release-order.pdf",
+            "sha256": "873c27df543654ce722d165fefa87bdd57a2a7d9d13b348c149cfd27a85d7f23"
+        },
+        {
+            "byte_size": 24134,
+            "media_type": "application/pdf",
+            "path": "objects/b14-post-rehearing-mandate.pdf",
+            "sha256": "8ade2ed008e20cf43f17216f47bc53796ae33ee7f294dfec3429bf5783e47b2a"
+        },
+        {
+            "byte_size": 33113,
+            "media_type": "application/pdf",
+            "path": "objects/b15-mandate-stay-motion-denial-path.pdf",
+            "sha256": "c777a646176d472d8cfb16c766b0fedefd7798ac9f4fe27c976c17ca0a05ccda"
+        },
+        {
+            "byte_size": 23488,
+            "media_type": "application/pdf",
+            "path": "objects/b16-mandate-stay-denial.pdf",
+            "sha256": "f3af77f5d825fe5a2a1ea5603e27c2b03a097c19a997afa63b2d0d2ec27a328e"
+        },
+        {
+            "byte_size": 20327,
+            "media_type": "application/pdf",
+            "path": "objects/b17-post-stay-denial-release-order.pdf",
+            "sha256": "e12caf047651a82c3202a93e78c17ab15c449bed769192c1bad23f6463cf3d13"
+        },
+        {
+            "byte_size": 23352,
+            "media_type": "application/pdf",
+            "path": "objects/b18-post-stay-denial-mandate.pdf",
+            "sha256": "10066257fdc5454029aa0d7ef091ab15ee9d3e69bd25a8507dcedd03bfcff4b0"
+        },
+        {
+            "byte_size": 33561,
+            "media_type": "application/pdf",
+            "path": "objects/b19-mandate-stay-motion-grant-path.pdf",
+            "sha256": "1ca12e6087ff700463e34b550f32675012fdc7b9a46e4d13d219644cd46637a4"
+        },
+        {
+            "byte_size": 23246,
+            "media_type": "application/pdf",
+            "path": "objects/b20-mandate-stay-grant.pdf",
+            "sha256": "a8040b64f486f257aa60892fe44aacf35fba7391b32990c704958706a91953b5"
+        },
+        {
+            "byte_size": 23283,
+            "media_type": "application/pdf",
+            "path": "objects/b21-stay-dissolution-release-order.pdf",
+            "sha256": "4b9a524ee26ddb3c8b1598ec865057d9609a51b87d36972e79f8fe3622429c39"
+        },
+        {
+            "byte_size": 23540,
+            "media_type": "application/pdf",
+            "path": "objects/b22-post-stay-mandate.pdf",
+            "sha256": "3fe99a2f2a26a6c196a439ed7594b11b1e252dd513e2c510bb27d52c0fda161d"
+        },
+        {
+            "byte_size": 30784,
+            "media_type": "application/pdf",
+            "path": "objects/b23-expedition-submission-motion.pdf",
+            "sha256": "c7d9e2c9daa716a72d6e886922082a8fe37382e7a6e3f2593712042dd25d42d9"
+        },
+        {
+            "byte_size": 23168,
+            "media_type": "application/pdf",
+            "path": "objects/b24-expedition-grant.pdf",
+            "sha256": "b77476164674dcb7fb471612aa7a731ad1fc50cc86bd37abd188f18c6cbb4758"
+        },
+        {
+            "byte_size": 20460,
+            "media_type": "application/pdf",
+            "path": "objects/b25-adverse-ordinary-release-order.pdf",
+            "sha256": "bdc40542092bc656cf2144d3b2ef33c601b8ef0054b559f3fe3dd11abba8f4c3"
+        },
+        {
+            "byte_size": 23313,
+            "media_type": "application/pdf",
+            "path": "objects/b26-adverse-mandate.pdf",
+            "sha256": "26880631feb7e388f006489ead2b21fa900e85d2b9ad50c4610af0ce3c723fa6"
+        },
+        {
+            "byte_size": 44356,
+            "media_type": "application/pdf",
+            "path": "objects/l01-complaint.pdf",
+            "sha256": "9b3a8ff83a7fb7f95551721b8f4470186b5e0e39bce6ecaa5a17a53b8753e812"
+        },
+        {
+            "byte_size": 37077,
+            "media_type": "application/pdf",
+            "path": "objects/l02-city-answer.pdf",
+            "sha256": "a24209cb44f2b160bd07993c177ed405fc4258f252069de18d23c92a66a8a74d"
+        },
+        {
+            "byte_size": 46859,
+            "media_type": "application/pdf",
+            "path": "objects/l03-paid-speaker-permit-ordinance.pdf",
+            "sha256": "875ef37567fd292bd6751b1ab821640f99e91fb11917597b3602a9cb3c7d8bcc"
+        },
+        {
+            "byte_size": 41110,
+            "media_type": "application/pdf",
+            "path": "objects/l04-legislative-history.pdf",
+            "sha256": "a45095131a249ba2d140588cacef264e45ee2715db6452155e5ed5d1e90dddd0"
+        },
+        {
+            "byte_size": 30257,
+            "media_type": "application/pdf",
+            "path": "objects/l05-permit-enforcement-history.pdf",
+            "sha256": "1f08f19409ced2f81620fdc92363c204dd8e7bbc94befcad83bdb930befaa47a"
+        },
+        {
+            "byte_size": 34197,
+            "media_type": "application/pdf",
+            "path": "objects/l06-guild-director-declaration.pdf",
+            "sha256": "c1312124480406342ade02e20d3dc7c43521eeecf98615e351ac5f717f2109ad"
+        },
+        {
+            "byte_size": 33339,
+            "media_type": "application/pdf",
+            "path": "objects/l07-bookseller-declaration.pdf",
+            "sha256": "cd56a65e2935824a635c1b3987fa58d725034e0205d1f846e060617a502597af"
+        },
+        {
+            "byte_size": 33313,
+            "media_type": "application/pdf",
+            "path": "objects/l08-fair-organizer-declaration.pdf",
+            "sha256": "6c97a8abaa9d4fd80937bc1f03627e1a5a0482b748163c88948bd308ae8f380d"
+        },
+        {
+            "byte_size": 36801,
+            "media_type": "application/pdf",
+            "path": "objects/l09-city-parks-events-director-declaration.pdf",
+            "sha256": "83c2789c522ce83dc26389323ef9adeb0464bbf5c2dc1a6aa04ba06eb19b7fcb"
+        },
+        {
+            "byte_size": 32085,
+            "media_type": "application/pdf",
+            "path": "objects/l10-police-logistics-declaration.pdf",
+            "sha256": "d4b354feb995957988580086656db2d9bd5ff23a681281b5b4edb36abb81b8b4"
+        },
+        {
+            "byte_size": 44409,
+            "media_type": "application/pdf",
+            "path": "objects/l11-site-photos-maps-calendar-reservations.pdf",
+            "sha256": "33b78213b1254e9cfcf5cba15db7a273e5c51f3f491a02707e71cbc6ed16cfb6"
+        },
+        {
+            "byte_size": 57878,
+            "media_type": "application/pdf",
+            "path": "objects/l12-preliminary-injunction-motion-memorandum.pdf",
+            "sha256": "6c0f2190bf2800affb641e456f3c88257caac4f11e95f46f53b33e041289fb65"
+        },
+        {
+            "byte_size": 57985,
+            "media_type": "application/pdf",
+            "path": "objects/l13-city-pi-opposition.pdf",
+            "sha256": "8565b6c952a0b4e00028621713a70aecee2f85801717c05424acca9045f55332"
+        },
+        {
+            "byte_size": 41738,
+            "media_type": "application/pdf",
+            "path": "objects/l14-guild-pi-reply.pdf",
+            "sha256": "e9e43757843ca96b87d1014ce91a00919962cff8ea87e3dfa5baac38382d7e58"
+        },
+        {
+            "byte_size": 40580,
+            "media_type": "application/pdf",
+            "path": "objects/l15-stipulated-facts-alternatives-chart.pdf",
+            "sha256": "d24751cfeece8dcab4ba57f452f287c05be1b17301eaace9950497e15f574abb"
+        },
+        {
+            "byte_size": 99461,
+            "media_type": "application/pdf",
+            "path": "objects/l16-pi-hearing-transcript.pdf",
+            "sha256": "1eb20fe87069f0c57cbf11155a8015a11ee3dd5fa7905f33a0fd878eb6b0c615"
+        },
+        {
+            "byte_size": 52187,
+            "media_type": "application/pdf",
+            "path": "objects/l17-preliminary-injunction-order.pdf",
+            "sha256": "ce228230d6f61d42522abefbcb6050dfdb90abdf2db63bdf4ed92fc7bbc0155b"
+        },
+        {
+            "byte_size": 37499,
+            "media_type": "application/pdf",
+            "path": "objects/l18-city-district-stay-motion.pdf",
+            "sha256": "a89eb3ac60223cc6fb0a3cf5dcd5d15a8e2980d8f932588dd1cb92c27b93b01d"
+        },
+        {
+            "byte_size": 32125,
+            "media_type": "application/pdf",
+            "path": "objects/l19-guild-district-stay-opposition.pdf",
+            "sha256": "e742474172d9bc4124572a548d4231e2bf12b8172bbeb91f4bc1bc559a0404b9"
+        },
+        {
+            "byte_size": 26417,
+            "media_type": "application/pdf",
+            "path": "objects/l20-city-district-stay-reply.pdf",
+            "sha256": "876b107644da134de0ef7e9fbb1ba20b7ddcbe9aaed0e9ae45014b772b9fd4f9"
+        },
+        {
+            "byte_size": 32115,
+            "media_type": "application/pdf",
+            "path": "objects/l21-district-stay-denial.pdf",
+            "sha256": "bbf4ef2ee3dacc9957b1d34d18fbe0d77dea899fcb3c0d7c2b66ec166a2dcc64"
+        },
+        {
+            "byte_size": 21131,
+            "media_type": "application/pdf",
+            "path": "objects/l22-notice-of-appeal.pdf",
+            "sha256": "a925ab72946f59b1b8f8c36621c3d26ed9b5d65935328a3bc5842fb54618d62f"
+        },
+        {
+            "byte_size": 29171,
+            "media_type": "application/pdf",
+            "path": "objects/l23-certified-district-docket.pdf",
+            "sha256": "1884f4ecc69ba0bea71ec1a88cc5360fa6bc968a0d725c617a69de42726aafed"
+        },
+        {
+            "byte_size": 27572,
+            "media_type": "application/pdf",
+            "path": "objects/l24-record-certificate-index.pdf",
+            "sha256": "9c15063904d6bff8cde5e3ec917ac10961fcca3aa2f8eb662557f7f391369525"
+        }
+    ],
+    "contents": [
+        {
+            "id": "ca4m4.case.norvale-injunction",
+            "kind": "case",
+            "path": "resources/case.json",
+            "schema_version": 2,
+            "sha256": "2f24762e0548d6e2c62544f6bf0918ba08c472d97677271a2251ee67e0c261e1"
+        },
+        {
+            "id": "ca4m4.norvale.argument.actual-record",
+            "kind": "argument_config",
+            "path": "resources/argument-actual.json",
+            "schema_version": 2,
+            "sha256": "b99581558b2dfc53a294cf6bf357104b5eeb610fbf479aaef78e398b774200fc"
+        },
+        {
+            "id": "ca4m4.norvale.argument.adverse-record",
+            "kind": "argument_config",
+            "path": "resources/argument-counterfactual.json",
+            "schema_version": 2,
+            "sha256": "8fb8c1348b1f03afc45e8335e2f3ff84f055f875e60a247e907014ae871040f9"
+        },
+        {
+            "id": "ca4m4.norvale.authorities.case-specific",
+            "kind": "authority_set",
+            "path": "resources/authority-set.json",
+            "schema_version": 2,
+            "sha256": "2f046241ffb7b802b54bd98b5079256da708f4f25ce2bfd770c333c5e84d713d"
+        },
+        {
+            "id": "ca4m4.norvale.bench.three-judge",
+            "kind": "bench_configuration",
+            "path": "resources/bench-configuration.json",
+            "schema_version": 2,
+            "sha256": "89f52481e722dac8dddc310010fe43308fe03ce72357b0d0d67ac14f6ba9853f"
+        },
+        {
+            "id": "ca4m4.norvale.procedure.civil-appeal",
+            "kind": "procedure_profile",
+            "path": "resources/procedure-profile.json",
+            "schema_version": 2,
+            "sha256": "4bb5fee6613a9a1e300d12d9a4d30248ee8478d1076d9f712e2f768bb852bdee"
+        },
+        {
+            "id": "ca4m4.norvale.record",
+            "kind": "record",
+            "path": "resources/record.json",
+            "schema_version": 2,
+            "sha256": "a25bb89f96b78bbf7b084b50c4327953ed0af602359e49460dd1e10ef48306c3"
+        },
+        {
+            "id": "ca4m4.norvale.review.authoring-2026-08-12",
+            "kind": "realism_review",
+            "path": "resources/realism-review.json",
+            "schema_version": 2,
+            "sha256": "8870e5c8c10e956552f99c5069a2fbc6874402cc07e062bca38706ba565bc4e8"
+        },
+        {
+            "id": "ca4m4.norvale.workflow.civil-injunction",
+            "kind": "workflow",
+            "path": "resources/workflow.json",
+            "schema_version": 2,
+            "sha256": "1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a"
+        }
+    ],
+    "dependencies": [
+        {
+            "pack_id": "foundation.us-federal",
+            "sha256": "866c90996c15e2076b9508a297ffce1a4e766b1432a9e11d08e8138c57e363c9",
+            "version": "2025.12.01"
+        },
+        {
+            "pack_id": "foundation.us-ca4",
+            "sha256": "449d75c77e5c47883f750377450f2d1ec1fc0e42e20b1f247446b208661d3262",
+            "version": "2026.03.23"
+        },
+        {
+            "pack_id": "foundation.us-ca4-fictional-bench",
+            "sha256": "cee0bf93309cc9ad800f215a47d734b20a9fdf5dc889f2f440e4382b942d332d",
+            "version": "1.0.0"
+        }
+    ],
+    "pack_id": "us.ca4.m4.norvale-injunction",
+    "required_capabilities": [
+        {
+            "id": "workbench.pack.argument-date-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.canonical-authority",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.declarative-resources",
+            "version": 2
+        },
+        {
+            "id": "workbench.pack.dependent-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.event-date-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.grounded-questions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.named-deadlines",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-disposition-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-document-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.operation-legal-time-guards",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.realism-evidence",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-filing-bindings",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.route-role-subsets",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.structured-disposition",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-instance-preconditions",
+            "version": 1
+        },
+        {
+            "id": "workbench.pack.workflow-preconditions",
+            "version": 1
+        }
+    ],
+    "schema_version": 2,
+    "version": "1.2.0"
+}

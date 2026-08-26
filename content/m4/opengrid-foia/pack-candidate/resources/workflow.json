@@ -1,0 +1,4758 @@
+{
+  "schema_version": 2,
+  "resource_kind": "workflow",
+  "resource_id": "ca4m4.opengrid.workflow.foia-sealed-appeal",
+  "initial_stage_id": "ca4m4.opengrid.stage.notice-of-appeal",
+  "stages": [
+    "ca4m4.opengrid.stage.notice-of-appeal",
+    "ca4m4.opengrid.stage.opened",
+    "ca4m4.opengrid.stage.record-ready",
+    "ca4m4.opengrid.stage.actual-opened",
+    "ca4m4.opengrid.stage.actual-sealing-support",
+    "ca4m4.opengrid.stage.actual-opening-briefing",
+    "ca4m4.opengrid.stage.actual-response-briefing",
+    "ca4m4.opengrid.stage.actual-reply-appendix",
+    "ca4m4.opengrid.stage.actual-sealing-decision",
+    "ca4m4.opengrid.stage.actual-briefing-complete",
+    "ca4m4.opengrid.stage.actual-argument",
+    "ca4m4.opengrid.stage.actual-submitted",
+    "ca4m4.opengrid.stage.actual-post-judgment",
+    "ca4m4.opengrid.stage.counterfactual-premise",
+    "ca4m4.opengrid.stage.counterfactual-sealing-support",
+    "ca4m4.opengrid.stage.counterfactual-opening-briefing",
+    "ca4m4.opengrid.stage.counterfactual-response-briefing",
+    "ca4m4.opengrid.stage.counterfactual-reply-briefing",
+    "ca4m4.opengrid.stage.counterfactual-briefing-complete",
+    "ca4m4.opengrid.stage.counterfactual-argument",
+    "ca4m4.opengrid.stage.counterfactual-submitted",
+    "ca4m4.opengrid.stage.counterfactual-post-judgment",
+    "ca4m4.opengrid.stage.counterfactual-rehearing-response",
+    "ca4m4.opengrid.stage.counterfactual-rehearing-choice",
+    "ca4m4.opengrid.stage.counterfactual-rehearing-denial",
+    "ca4m4.opengrid.stage.counterfactual-post-denial-choice",
+    "ca4m4.opengrid.stage.counterfactual-stay-response",
+    "ca4m4.opengrid.stage.counterfactual-stay-decision",
+    "ca4m4.opengrid.stage.counterfactual-post-stay-denial",
+    "ca4m4.opengrid.stage.counterfactual-rehearing-grant",
+    "ca4m4.opengrid.stage.counterfactual-mandate-stayed",
+    "ca4m4.opengrid.stage.counterfactual-supplemental-briefing",
+    "ca4m4.opengrid.stage.counterfactual-reheard-submitted",
+    "ca4m4.opengrid.stage.counterfactual-reheard-post-judgment",
+    "ca4m4.opengrid.stage.terminated"
+  ],
+  "operations": [
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-notice-of-appeal",
+      "stage_id": "ca4m4.opengrid.stage.notice-of-appeal",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-3-appeal-as-of-right",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-notice-of-appeal",
+      "stage_id": "ca4m4.opengrid.stage.notice-of-appeal",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-3-appeal-as-of-right"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": false
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-notice-to-opened",
+      "stage_id": "ca4m4.opengrid.stage.notice-of-appeal",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-3-appeal-as-of-right",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.opened",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.civil-notice-of-appeal",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.l36-notice-of-appeal",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-notice-of-appeal",
+          "record_entry_id": "ca4m4.opengrid.record.entry.l36",
+          "document_sha256": "b44784557a1f508d353c13228db65b9475e8955ac8d01effc18e3b921cbe9547"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-02",
+          "instant_unix_seconds": "1769990400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-certified-record-transmittal",
+      "stage_id": "ca4m4.opengrid.stage.opened",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-11-record-forwarding",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-10-record"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.l37",
+        "document_sha256": "aec90c0b268785e2a4050f83b391f3eb933e00a46899e47c22a091f8d16c3dfe",
+        "expected_court_date": "2026-02-09",
+        "order_id": "ca4m4.opengrid.order.certified-record-transmittal",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.civil-notice-of-appeal",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.l36-notice-of-appeal",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-notice-of-appeal",
+          "record_entry_id": "ca4m4.opengrid.record.entry.l36",
+          "document_sha256": "b44784557a1f508d353c13228db65b9475e8955ac8d01effc18e3b921cbe9547"
+        }
+      ],
+      "authorized_role_ids": [
+        "ca4m4.opengrid.role.originating-court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-09",
+          "instant_unix_seconds": "1770595200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-opened-to-record-ready",
+      "stage_id": "ca4m4.opengrid.stage.opened",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-11-record-forwarding",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-10-record"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.record-ready",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.certified-record-transmittal",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-certified-record-transmittal",
+          "record_entry_id": "ca4m4.opengrid.record.entry.l37",
+          "document_sha256": "aec90c0b268785e2a4050f83b391f3eb933e00a46899e47c22a091f8d16c3dfe"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-09",
+          "instant_unix_seconds": "1770595200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.select-actual-appellate-path",
+      "stage_id": "ca4m4.opengrid.stage.record-ready",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-3-appeal-as-of-right",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-3b-docketing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.certified-record-transmittal",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-certified-record-transmittal",
+          "record_entry_id": "ca4m4.opengrid.record.entry.l37",
+          "document_sha256": "aec90c0b268785e2a4050f83b391f3eb933e00a46899e47c22a091f8d16c3dfe"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-09",
+          "instant_unix_seconds": "1770595200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.select-counterfactual-appellate-path",
+      "stage_id": "ca4m4.opengrid.stage.record-ready",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-premise",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.certified-record-transmittal",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-certified-record-transmittal",
+          "record_entry_id": "ca4m4.opengrid.record.entry.l37",
+          "document_sha256": "aec90c0b268785e2a4050f83b391f3eb933e00a46899e47c22a091f8d16c3dfe"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-10",
+          "instant_unix_seconds": "1770681600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice",
+      "stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-3-appeal-as-of-right",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-3b-docketing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.a01",
+        "document_sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515",
+        "expected_court_date": "2026-02-09",
+        "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.certified-record-transmittal",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-certified-record-transmittal",
+          "record_entry_id": "ca4m4.opengrid.record.entry.l37",
+          "document_sha256": "aec90c0b268785e2a4050f83b391f3eb933e00a46899e47c22a091f8d16c3dfe"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-09",
+          "instant_unix_seconds": "1770595200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-actual-opening-brief-deadline",
+      "stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar",
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "deadline_days": 32,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.actual-opening-brief",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+        "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a01",
+          "document_sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-09",
+          "instant_unix_seconds": "1770595200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-actual-docketing-statement",
+      "stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-3b-docketing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a01",
+          "document_sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-18",
+          "instant_unix_seconds": "1771372800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-actual-docketing-statement",
+      "stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-3b-docketing"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a01",
+          "document_sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-18",
+          "instant_unix_seconds": "1771372800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-actual-appearances-disclosures",
+      "stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-46c-appearance",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a01",
+          "document_sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-18",
+          "instant_unix_seconds": "1771372800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-actual-appearances-disclosures",
+      "stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-46c-appearance"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a01",
+          "document_sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-18",
+          "instant_unix_seconds": "1771372800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-actual-opened-to-sealing-support",
+      "stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time",
+          "us.ca4.authority.local-rule-3b-docketing",
+          "us.ca4.authority.local-rule-46c-appearance"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-sealing-support",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a01",
+          "document_sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.docketing-statement",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a02-docketing-statement",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-docketing-statement",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a02",
+          "document_sha256": "037efef4be1009fb4236c116acfa9ec6e07544f6cade35eebe40eae50c7f39c6"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a03-appearances-disclosures",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-appearances-disclosures",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a03",
+          "document_sha256": "dbec9de5d406b595fd60a03c3cc9f9374ae54cf8b51be40239e3abd7ed3a0a37"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-18",
+          "instant_unix_seconds": "1771372800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+      "stage_id": "ca4m4.opengrid.stage.actual-sealing-support",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.sealed-materials-guide"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a01",
+          "document_sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.docketing-statement",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a02-docketing-statement",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-docketing-statement",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a02",
+          "document_sha256": "037efef4be1009fb4236c116acfa9ec6e07544f6cade35eebe40eae50c7f39c6"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a03-appearances-disclosures",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-appearances-disclosures",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a03",
+          "document_sha256": "dbec9de5d406b595fd60a03c3cc9f9374ae54cf8b51be40239e3abd7ed3a0a37"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-02",
+          "instant_unix_seconds": "1772409600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-actual-sealing-support",
+      "stage_id": "ca4m4.opengrid.stage.actual-sealing-support",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-case-opening-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-case-opening-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a01",
+          "document_sha256": "daf6746f93e3665a002d555c68057bf5e4b911a4b8631eea7e02bd1b81fba515"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.docketing-statement",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a02-docketing-statement",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-docketing-statement",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a02",
+          "document_sha256": "037efef4be1009fb4236c116acfa9ec6e07544f6cade35eebe40eae50c7f39c6"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a03-appearances-disclosures",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-appearances-disclosures",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a03",
+          "document_sha256": "dbec9de5d406b595fd60a03c3cc9f9374ae54cf8b51be40239e3abd7ed3a0a37"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-02",
+          "instant_unix_seconds": "1772409600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-actual-sealing-support-to-opening",
+      "stage_id": "ca4m4.opengrid.stage.actual-sealing-support",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-opening-briefing",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a04-motion-limited-sealing",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a04",
+          "document_sha256": "f785589a928138df9cbda592c7c2aa04ae73ac015f96246720a3c22c83932e7f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a05-certificate-confidentiality",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a05",
+          "document_sha256": "0f38fbaafa4c3ec91478fad9b8dd406b500221d5ba65636ffd460de2e241dcea"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-02",
+          "instant_unix_seconds": "1772409600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-actual-opening-brief",
+      "stage_id": "ca4m4.opengrid.stage.actual-opening-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs",
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a04-motion-limited-sealing",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a04",
+          "document_sha256": "f785589a928138df9cbda592c7c2aa04ae73ac015f96246720a3c22c83932e7f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a05-certificate-confidentiality",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a05",
+          "document_sha256": "0f38fbaafa4c3ec91478fad9b8dd406b500221d5ba65636ffd460de2e241dcea"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-13",
+          "instant_unix_seconds": "1773360000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-actual-opening-brief",
+      "stage_id": "ca4m4.opengrid.stage.actual-opening-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a04-motion-limited-sealing",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a04",
+          "document_sha256": "f785589a928138df9cbda592c7c2aa04ae73ac015f96246720a3c22c83932e7f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a05-certificate-confidentiality",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a05",
+          "document_sha256": "0f38fbaafa4c3ec91478fad9b8dd406b500221d5ba65636ffd460de2e241dcea"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-13",
+          "instant_unix_seconds": "1773360000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-actual-response-brief-deadline",
+      "stage_id": "ca4m4.opengrid.stage.actual-opening-briefing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar",
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "deadline_days": 30,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.actual-response-brief",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a06-public-opening-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a06",
+          "document_sha256": "4530bd7489ce8ae23743e70cfe228dc41cfa7805c77a155683c2ff04a78a712e"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-opening-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-13",
+          "instant_unix_seconds": "1773360000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-actual-opening-to-response",
+      "stage_id": "ca4m4.opengrid.stage.actual-opening-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-response-briefing",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a06-public-opening-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a06",
+          "document_sha256": "4530bd7489ce8ae23743e70cfe228dc41cfa7805c77a155683c2ff04a78a712e"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-13",
+          "instant_unix_seconds": "1773360000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-actual-response-brief",
+      "stage_id": "ca4m4.opengrid.stage.actual-response-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs",
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a06-public-opening-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a06",
+          "document_sha256": "4530bd7489ce8ae23743e70cfe228dc41cfa7805c77a155683c2ff04a78a712e"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-13",
+          "instant_unix_seconds": "1776038400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-actual-response-brief",
+      "stage_id": "ca4m4.opengrid.stage.actual-response-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a06-public-opening-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a06",
+          "document_sha256": "4530bd7489ce8ae23743e70cfe228dc41cfa7805c77a155683c2ff04a78a712e"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-13",
+          "instant_unix_seconds": "1776038400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-actual-reply-brief-deadline",
+      "stage_id": "ca4m4.opengrid.stage.actual-response-briefing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar",
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "deadline_days": 21,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.actual-reply-brief",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a08-public-response-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-response-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a08",
+          "document_sha256": "8cb08453d796225763c5e96680fc6ee8af47ff163279edc7384bc9853dfc0a12"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-response-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-13",
+          "instant_unix_seconds": "1776038400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-actual-response-to-reply-appendix",
+      "stage_id": "ca4m4.opengrid.stage.actual-response-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-reply-appendix",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a08-public-response-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-response-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a08",
+          "document_sha256": "8cb08453d796225763c5e96680fc6ee8af47ff163279edc7384bc9853dfc0a12"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-13",
+          "instant_unix_seconds": "1776038400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-actual-reply-brief",
+      "stage_id": "ca4m4.opengrid.stage.actual-reply-appendix",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs",
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a08-public-response-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-response-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a08",
+          "document_sha256": "8cb08453d796225763c5e96680fc6ee8af47ff163279edc7384bc9853dfc0a12"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-04",
+          "instant_unix_seconds": "1777852800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-actual-reply-brief",
+      "stage_id": "ca4m4.opengrid.stage.actual-reply-appendix",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a08-public-response-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-response-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a08",
+          "document_sha256": "8cb08453d796225763c5e96680fc6ee8af47ff163279edc7384bc9853dfc0a12"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-04",
+          "instant_unix_seconds": "1777852800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-actual-joint-appendix",
+      "stage_id": "ca4m4.opengrid.stage.actual-reply-appendix",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-30-appendix",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-30b-appendix",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a10-public-reply-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-reply-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a10",
+          "document_sha256": "8496047c8ff612fae44f932971e80ffdc1e72aa7941a563bf031c5b3b1211566"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-reply-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-04",
+          "instant_unix_seconds": "1777852800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-actual-joint-appendix",
+      "stage_id": "ca4m4.opengrid.stage.actual-reply-appendix",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-30-appendix",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a10-public-reply-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-reply-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a10",
+          "document_sha256": "8496047c8ff612fae44f932971e80ffdc1e72aa7941a563bf031c5b3b1211566"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-reply-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-04",
+          "instant_unix_seconds": "1777852800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-actual-reply-appendix-to-sealing-decision",
+      "stage_id": "ca4m4.opengrid.stage.actual-reply-appendix",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.federal.authority.frap-30-appendix"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-sealing-decision",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a10-public-reply-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-reply-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a10",
+          "document_sha256": "8496047c8ff612fae44f932971e80ffdc1e72aa7941a563bf031c5b3b1211566"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a12-public-joint-appendix",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-joint-appendix",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a12",
+          "document_sha256": "468dd9ee1c0b8838fef4107009cdbb03f4e064a4944935d60aa71c088fcda034"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-reply-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-04",
+          "instant_unix_seconds": "1777852800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-actual-limited-sealing-order",
+      "stage_id": "ca4m4.opengrid.stage.actual-sealing-decision",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+        "supporting_authority_ids": [
+          "ca4m4.opengrid.authority.company-doe-sealing",
+          "us.ca4.authority.sealed-materials-guide"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.a14",
+        "document_sha256": "c3000beda5478bc9bb088d319d21e85ed84d5dd462e71ebe703404e4b9f2bf00",
+        "expected_court_date": "2026-05-08",
+        "order_id": "ca4m4.opengrid.order.actual-limited-sealing",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a04-motion-limited-sealing",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a04",
+          "document_sha256": "f785589a928138df9cbda592c7c2aa04ae73ac015f96246720a3c22c83932e7f"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a05-certificate-confidentiality",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a05",
+          "document_sha256": "0f38fbaafa4c3ec91478fad9b8dd406b500221d5ba65636ffd460de2e241dcea"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a06-public-opening-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-opening-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a06",
+          "document_sha256": "4530bd7489ce8ae23743e70cfe228dc41cfa7805c77a155683c2ff04a78a712e"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.a08-public-response-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-response-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a08",
+          "document_sha256": "8cb08453d796225763c5e96680fc6ee8af47ff163279edc7384bc9853dfc0a12"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a10-public-reply-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-reply-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a10",
+          "document_sha256": "8496047c8ff612fae44f932971e80ffdc1e72aa7941a563bf031c5b3b1211566"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appendix",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.a12-public-joint-appendix",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-joint-appendix",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a12",
+          "document_sha256": "468dd9ee1c0b8838fef4107009cdbb03f4e064a4944935d60aa71c088fcda034"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-08",
+          "instant_unix_seconds": "1778198400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-actual-sealing-decision-to-briefing-complete",
+      "stage_id": "ca4m4.opengrid.stage.actual-sealing-decision",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+        "supporting_authority_ids": [
+          "ca4m4.opengrid.authority.company-doe-sealing",
+          "us.ca4.authority.sealed-materials-guide"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-briefing-complete",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-limited-sealing",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-limited-sealing-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a14",
+          "document_sha256": "c3000beda5478bc9bb088d319d21e85ed84d5dd462e71ebe703404e4b9f2bf00"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-08",
+          "instant_unix_seconds": "1778198400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-actual-argument-calendar-notice",
+      "stage_id": "ca4m4.opengrid.stage.actual-briefing-complete",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.a15",
+        "document_sha256": "2073a199560db302e36898a0eab45a87ef39d40afa0b3be36a1ffac9e71a3b58",
+        "expected_court_date": "2026-05-12",
+        "order_id": "ca4m4.opengrid.order.actual-argument-calendar",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-limited-sealing",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-limited-sealing-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a14",
+          "document_sha256": "c3000beda5478bc9bb088d319d21e85ed84d5dd462e71ebe703404e4b9f2bf00"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-12",
+          "instant_unix_seconds": "1778544000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.schedule-actual-argument",
+      "stage_id": "ca4m4.opengrid.stage.actual-briefing-complete",
+      "opcode": "schedule_argument",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-argument",
+      "expected_argument_date": "2026-06-09",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-argument-calendar",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-argument-calendar-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a15",
+          "document_sha256": "2073a199560db302e36898a0eab45a87ef39d40afa0b3be36a1ffac9e71a3b58"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-12",
+          "instant_unix_seconds": "1778544000"
+        },
+        {
+          "court_date": "2026-06-09",
+          "instant_unix_seconds": "1780963200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-actual-argument-held",
+      "stage_id": "ca4m4.opengrid.stage.actual-argument",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.a16",
+        "document_sha256": "d4dff53695367842637c5db4d22f8f3f828eb7cb5743bfa4a7e83e69abe588fb",
+        "expected_court_date": "2026-06-09",
+        "order_id": "ca4m4.opengrid.order.actual-argument-held",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "argument_scheduled",
+          "scheduled": true
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-09",
+          "instant_unix_seconds": "1780963200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-actual-argument-to-submitted",
+      "stage_id": "ca4m4.opengrid.stage.actual-argument",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-submitted",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-argument-held",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-argument-held",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a16",
+          "document_sha256": "d4dff53695367842637c5db4d22f8f3f828eb7cb5743bfa4a7e83e69abe588fb"
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-09",
+          "instant_unix_seconds": "1780963200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-actual-published-opinion",
+      "stage_id": "ca4m4.opengrid.stage.actual-submitted",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "ca4m4.opengrid.authority.section-1291-final-judgment",
+          "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.a17",
+        "document_sha256": "46b8f27e9338664be088d6b701c70477169f7933173ad78911e2ce1b45e222d9",
+        "expected_court_date": "2026-07-17",
+        "order_id": "ca4m4.opengrid.order.actual-published-opinion",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-argument-held",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-argument-held",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a16",
+          "document_sha256": "d4dff53695367842637c5db4d22f8f3f828eb7cb5743bfa4a7e83e69abe588fb"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-17",
+          "instant_unix_seconds": "1784246400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.issue-actual-judgment",
+      "stage_id": "ca4m4.opengrid.stage.actual-submitted",
+      "opcode": "issue_judgment",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "ca4m4.opengrid.authority.section-1291-final-judgment"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.a18",
+        "document_sha256": "70678a617a30bb5430791f1fb14999af2f1d0d01d5bf171141b107b4a6a2d497",
+        "expected_court_date": "2026-07-17"
+      },
+      "disposition_plan_id": "ca4m4.opengrid.disposition.actual-partial-vacatur-remand",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-published-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-published-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a17",
+          "document_sha256": "46b8f27e9338664be088d6b701c70477169f7933173ad78911e2ce1b45e222d9"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-17",
+          "instant_unix_seconds": "1784246400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-actual-rehearing-deadline",
+      "stage_id": "ca4m4.opengrid.stage.actual-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.actual-rehearing-petition",
+      "deadline_event_base": {
+        "kind": "judgment_occurred"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-published-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-published-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a17",
+          "document_sha256": "46b8f27e9338664be088d6b701c70477169f7933173ad78911e2ce1b45e222d9"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-17",
+          "instant_unix_seconds": "1784246400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-actual-mandate-deadline",
+      "stage_id": "ca4m4.opengrid.stage.actual-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "deadline_base_id": "ca4m4.opengrid.deadline.actual-rehearing-petition",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.actual-mandate",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-published-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-published-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a17",
+          "document_sha256": "46b8f27e9338664be088d6b701c70477169f7933173ad78911e2ce1b45e222d9"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-rehearing-petition",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-17",
+          "instant_unix_seconds": "1784246400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-actual-submitted-to-post-judgment",
+      "stage_id": "ca4m4.opengrid.stage.actual-submitted",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.actual-post-judgment",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-published-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-published-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a17",
+          "document_sha256": "46b8f27e9338664be088d6b701c70477169f7933173ad78911e2ce1b45e222d9"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-rehearing-petition",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-17",
+          "instant_unix_seconds": "1784246400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.issue-actual-mandate",
+      "stage_id": "ca4m4.opengrid.stage.actual-post-judgment",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.terminated",
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.a19",
+        "document_sha256": "22a3a0b7ed9854685ef3fcbf13cd1012a4163422766c5799b3592bff89d54dd7",
+        "expected_court_date": "2026-08-07"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.actual-published-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-actual-published-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a17",
+          "document_sha256": "46b8f27e9338664be088d6b701c70477169f7933173ad78911e2ce1b45e222d9"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-rehearing-petition",
+          "status": "reached"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.actual-mandate",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-07",
+          "instant_unix_seconds": "1786060800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-premise-notice",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-premise",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b01",
+        "document_sha256": "9318b8d12de7a2b2b8b08af856c3c9cd5e157c8a6bdfafae54f8767f118e82c8",
+        "expected_court_date": "2026-02-10",
+        "order_id": "ca4m4.opengrid.order.counterfactual-premise-notice",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.certified-record-transmittal",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-certified-record-transmittal",
+          "record_entry_id": "ca4m4.opengrid.record.entry.l37",
+          "document_sha256": "aec90c0b268785e2a4050f83b391f3eb933e00a46899e47c22a091f8d16c3dfe"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-10",
+          "instant_unix_seconds": "1770681600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-premise-to-sealing-support",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-premise",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-sealing-support",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-premise-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-premise-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b01",
+          "document_sha256": "9318b8d12de7a2b2b8b08af856c3c9cd5e157c8a6bdfafae54f8767f118e82c8"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-10",
+          "instant_unix_seconds": "1770681600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-sealing-support",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25c-sealed-materials",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.ca4.authority.sealed-materials-guide"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-premise-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-premise-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b01",
+          "document_sha256": "9318b8d12de7a2b2b8b08af856c3c9cd5e157c8a6bdfafae54f8767f118e82c8"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-12",
+          "instant_unix_seconds": "1770854400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-counterfactual-sealing-support",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-sealing-support",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-premise-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-premise-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b01",
+          "document_sha256": "9318b8d12de7a2b2b8b08af856c3c9cd5e157c8a6bdfafae54f8767f118e82c8"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-12",
+          "instant_unix_seconds": "1770854400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-sealing-support-to-opening",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-sealing-support",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-opening-briefing",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b02",
+          "document_sha256": "06ce6893e010003379fc613c68cd6b32e257df5b646d0e01cb8b60641123bfca"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b03-counterfactual-certificate-confidentiality",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b03",
+          "document_sha256": "6c599f970c94589a1284fe882b57e4288c5f72abcf9ba90a2670a2cb54ca444a"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-02-12",
+          "instant_unix_seconds": "1770854400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-counterfactual-opening-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-opening-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs",
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b02",
+          "document_sha256": "06ce6893e010003379fc613c68cd6b32e257df5b646d0e01cb8b60641123bfca"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b03-counterfactual-certificate-confidentiality",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b03",
+          "document_sha256": "6c599f970c94589a1284fe882b57e4288c5f72abcf9ba90a2670a2cb54ca444a"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-06",
+          "instant_unix_seconds": "1772755200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-counterfactual-opening-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-opening-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b02",
+          "document_sha256": "06ce6893e010003379fc613c68cd6b32e257df5b646d0e01cb8b60641123bfca"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b03-counterfactual-certificate-confidentiality",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b03",
+          "document_sha256": "6c599f970c94589a1284fe882b57e4288c5f72abcf9ba90a2670a2cb54ca444a"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-06",
+          "instant_unix_seconds": "1772755200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-opening-to-response",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-opening-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-response-briefing",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b04-counterfactual-public-opening-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b04",
+          "document_sha256": "d8f2de5ecbb31a4808ded59cb4ac95630287784583416346df86e5bb7fd75580"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-03-06",
+          "instant_unix_seconds": "1772755200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-counterfactual-response-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-response-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs",
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b04-counterfactual-public-opening-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b04",
+          "document_sha256": "d8f2de5ecbb31a4808ded59cb4ac95630287784583416346df86e5bb7fd75580"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-06",
+          "instant_unix_seconds": "1775433600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-counterfactual-response-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-response-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b04-counterfactual-public-opening-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b04",
+          "document_sha256": "d8f2de5ecbb31a4808ded59cb4ac95630287784583416346df86e5bb7fd75580"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-06",
+          "instant_unix_seconds": "1775433600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-response-to-reply",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-response-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-reply-briefing",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b06-counterfactual-public-response-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-response-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b06",
+          "document_sha256": "6dcafd53106a77faa4f93d8968b14331de7d4320f918305c5e84b35136f62eb0"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-06",
+          "instant_unix_seconds": "1775433600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-counterfactual-reply-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reply-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs",
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b06-counterfactual-public-response-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-response-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b06",
+          "document_sha256": "6dcafd53106a77faa4f93d8968b14331de7d4320f918305c5e84b35136f62eb0"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-20",
+          "instant_unix_seconds": "1776643200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-counterfactual-reply-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reply-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b06-counterfactual-public-response-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-response-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b06",
+          "document_sha256": "6dcafd53106a77faa4f93d8968b14331de7d4320f918305c5e84b35136f62eb0"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-20",
+          "instant_unix_seconds": "1776643200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-reply-to-briefing-complete",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reply-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-briefing-complete",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b08-counterfactual-public-reply-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-reply-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b08",
+          "document_sha256": "df0026bf03edf7146fd419838f4adc7bdb596c3d9c8bd1d7b1f62fd99c5212b1"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-20",
+          "instant_unix_seconds": "1776643200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-argument-notice",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-briefing-complete",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b10",
+        "document_sha256": "36a0af69b246a8714e31d43d06198974cc321b59cea37b7e2543157cbaf12712",
+        "expected_court_date": "2026-04-24",
+        "order_id": "ca4m4.opengrid.order.counterfactual-argument-notice",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b04-counterfactual-public-opening-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-opening-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b04",
+          "document_sha256": "d8f2de5ecbb31a4808ded59cb4ac95630287784583416346df86e5bb7fd75580"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b06-counterfactual-public-response-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-response-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b06",
+          "document_sha256": "6dcafd53106a77faa4f93d8968b14331de7d4320f918305c5e84b35136f62eb0"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b08-counterfactual-public-reply-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-reply-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b08",
+          "document_sha256": "df0026bf03edf7146fd419838f4adc7bdb596c3d9c8bd1d7b1f62fd99c5212b1"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-24",
+          "instant_unix_seconds": "1776988800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.schedule-counterfactual-argument",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-briefing-complete",
+      "opcode": "schedule_argument",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-argument",
+      "expected_argument_date": "2026-05-12",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-argument-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-argument-notice",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b10",
+          "document_sha256": "36a0af69b246a8714e31d43d06198974cc321b59cea37b7e2543157cbaf12712"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-04-24",
+          "instant_unix_seconds": "1776988800"
+        },
+        {
+          "court_date": "2026-05-12",
+          "instant_unix_seconds": "1778544000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-argument-to-submitted",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-argument",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-submitted",
+      "preconditions": [
+        {
+          "kind": "argument_scheduled",
+          "scheduled": true
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-12",
+          "instant_unix_seconds": "1778544000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-opinion",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-submitted",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "ca4m4.opengrid.authority.section-1291-final-judgment",
+          "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b11",
+        "document_sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e",
+        "expected_court_date": "2026-05-29",
+        "order_id": "ca4m4.opengrid.order.counterfactual-opinion",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-29",
+          "instant_unix_seconds": "1780012800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.issue-counterfactual-judgment",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-submitted",
+      "opcode": "issue_judgment",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "ca4m4.opengrid.authority.section-1291-final-judgment"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b12",
+        "document_sha256": "4a59123888e64ef2080666a6fd8d7152503392384f5fe8dac692b6b74519fa91",
+        "expected_court_date": "2026-05-29"
+      },
+      "disposition_plan_id": "ca4m4.opengrid.disposition.counterfactual-full-affirmance",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b11",
+          "document_sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-29",
+          "instant_unix_seconds": "1780012800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-counterfactual-initial-rehearing-deadline",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 45,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+      "deadline_event_base": {
+        "kind": "judgment_occurred"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b11",
+          "document_sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-29",
+          "instant_unix_seconds": "1780012800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-counterfactual-initial-ordinary-mandate-deadline",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "deadline_base_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-ordinary-mandate",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b11",
+          "document_sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-29",
+          "instant_unix_seconds": "1780012800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-submitted-to-post-judgment",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-submitted",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-post-judgment",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b11",
+          "document_sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-ordinary-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-05-29",
+          "instant_unix_seconds": "1780012800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-petition",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-judgment",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b11",
+          "document_sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-12",
+          "instant_unix_seconds": "1781222400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-counterfactual-rehearing-petition",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-judgment",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b11",
+          "document_sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-12",
+          "instant_unix_seconds": "1781222400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.request-counterfactual-rehearing-response",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-judgment",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-response",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b13",
+          "document_sha256": "6333342fe41ac174518ef7136037da25a1ba91fa9fe2ed21679226d93691aefb"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-17",
+          "instant_unix_seconds": "1781654400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-response",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-response",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b13",
+          "document_sha256": "6333342fe41ac174518ef7136037da25a1ba91fa9fe2ed21679226d93691aefb"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-17",
+          "instant_unix_seconds": "1781654400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-counterfactual-rehearing-response",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-response",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b13",
+          "document_sha256": "6333342fe41ac174518ef7136037da25a1ba91fa9fe2ed21679226d93691aefb"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-17",
+          "instant_unix_seconds": "1781654400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-response-to-rehearing-choice",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-response",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-choice",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-response",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b14",
+          "document_sha256": "0b12b856ee331a24aac67a94e3396c143ae355ccc9086f8482586198645f598a"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-17",
+          "instant_unix_seconds": "1781654400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.select-counterfactual-rehearing-denial",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-choice",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-denial",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b11",
+          "document_sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b13",
+          "document_sha256": "6333342fe41ac174518ef7136037da25a1ba91fa9fe2ed21679226d93691aefb"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-response",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b14",
+          "document_sha256": "0b12b856ee331a24aac67a94e3396c143ae355ccc9086f8482586198645f598a"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-22",
+          "instant_unix_seconds": "1782086400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.select-counterfactual-rehearing-grant",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-choice",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-grant",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b11",
+          "document_sha256": "d29c55d9395225094d9ccbfa74593d8a109dde8b35facc846f8b64196c5cac4e"
+        },
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b13",
+          "document_sha256": "6333342fe41ac174518ef7136037da25a1ba91fa9fe2ed21679226d93691aefb"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-response",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b14",
+          "document_sha256": "0b12b856ee331a24aac67a94e3396c143ae355ccc9086f8482586198645f598a"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-22",
+          "instant_unix_seconds": "1782086400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-denial",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-denial",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b15",
+        "document_sha256": "bfde5cb24ca296156e84e437bbc4ed6d4db667f2a1e23e0407f531d2a64f8614",
+        "expected_court_date": "2026-06-22",
+        "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-denial",
+        "disposition": "denied"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b13",
+          "document_sha256": "6333342fe41ac174518ef7136037da25a1ba91fa9fe2ed21679226d93691aefb"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-response",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b14",
+          "document_sha256": "0b12b856ee331a24aac67a94e3396c143ae355ccc9086f8482586198645f598a"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-22",
+          "instant_unix_seconds": "1782086400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-counterfactual-post-rehearing-denial-mandate-deadline",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-denial",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-rehearing-denial-mandate",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-denial",
+        "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-denial"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-denial",
+          "disposition": "denied",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-denial",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b15",
+          "document_sha256": "bfde5cb24ca296156e84e437bbc4ed6d4db667f2a1e23e0407f531d2a64f8614"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-22",
+          "instant_unix_seconds": "1782086400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-denial-to-post-denial-choice",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-denial",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-post-denial-choice",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-denial",
+          "disposition": "denied",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-denial",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b15",
+          "document_sha256": "bfde5cb24ca296156e84e437bbc4ed6d4db667f2a1e23e0407f531d2a64f8614"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-rehearing-denial-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-22",
+          "instant_unix_seconds": "1782086400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.issue-counterfactual-post-denial-mandate",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-denial-choice",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.terminated",
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b16",
+        "document_sha256": "8f2bddc24540e1a89c959e732d91ec622221aafd713707cc1efa5d9b455aca3f",
+        "expected_court_date": "2026-06-29"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-denial",
+          "disposition": "denied",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-denial",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b15",
+          "document_sha256": "bfde5cb24ca296156e84e437bbc4ed6d4db667f2a1e23e0407f531d2a64f8614"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-rehearing-denial-mandate",
+          "status": "reached"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b17-counterfactual-mandate-stay-motion",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b17",
+          "document_sha256": "080701338ea9d1982cb176ff38fd2219955a7ee21506bfb25c6dca245b3c3c56"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-29",
+          "instant_unix_seconds": "1782691200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-motion",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-denial-choice",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-27-motions",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-41-mandate",
+          "us.ca4.authority.local-rule-27-motions",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-denial",
+          "disposition": "denied",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-denial",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b15",
+          "document_sha256": "bfde5cb24ca296156e84e437bbc4ed6d4db667f2a1e23e0407f531d2a64f8614"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-rehearing-denial-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-25",
+          "instant_unix_seconds": "1782345600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-counterfactual-mandate-stay-motion",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-denial-choice",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.federal.authority.frap-41-mandate",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-denial",
+          "disposition": "denied",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-denial",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b15",
+          "document_sha256": "bfde5cb24ca296156e84e437bbc4ed6d4db667f2a1e23e0407f531d2a64f8614"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-rehearing-denial-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-25",
+          "instant_unix_seconds": "1782345600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-stay-motion-to-response",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-denial-choice",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-stay-response",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b17-counterfactual-mandate-stay-motion",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b17",
+          "document_sha256": "080701338ea9d1982cb176ff38fd2219955a7ee21506bfb25c6dca245b3c3c56"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-25",
+          "instant_unix_seconds": "1782345600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-opposition",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-stay-response",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-27-motions",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-41-mandate",
+          "us.ca4.authority.local-rule-27-motions",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b17-counterfactual-mandate-stay-motion",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b17",
+          "document_sha256": "080701338ea9d1982cb176ff38fd2219955a7ee21506bfb25c6dca245b3c3c56"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-26",
+          "instant_unix_seconds": "1782432000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-counterfactual-mandate-stay-opposition",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-stay-response",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions",
+          "us.federal.authority.frap-41-mandate",
+          "us.ca4.authority.local-rule-27-motions"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b17-counterfactual-mandate-stay-motion",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b17",
+          "document_sha256": "080701338ea9d1982cb176ff38fd2219955a7ee21506bfb25c6dca245b3c3c56"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-26",
+          "instant_unix_seconds": "1782432000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-stay-response-to-decision",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-stay-response",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-stay-decision",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b18-counterfactual-mandate-stay-opposition",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-opposition",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b18",
+          "document_sha256": "7800c91f9371e7bce4f0589846e71df7f32eabe34edacea1c8848638f2b8e52a"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-26",
+          "instant_unix_seconds": "1782432000"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stay-denial",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-stay-decision",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate",
+          "us.federal.authority.frap-27-motions"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b19",
+        "document_sha256": "170dfa2dea017252b43b15a638630328fd7cbee15bc6bae5684a6018ecc49fdc",
+        "expected_court_date": "2026-06-29",
+        "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stay-denial",
+        "disposition": "denied"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-denial",
+          "disposition": "denied",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-denial",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b15",
+          "document_sha256": "bfde5cb24ca296156e84e437bbc4ed6d4db667f2a1e23e0407f531d2a64f8614"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b17-counterfactual-mandate-stay-motion",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-motion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b17",
+          "document_sha256": "080701338ea9d1982cb176ff38fd2219955a7ee21506bfb25c6dca245b3c3c56"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b18-counterfactual-mandate-stay-opposition",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-opposition",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b18",
+          "document_sha256": "7800c91f9371e7bce4f0589846e71df7f32eabe34edacea1c8848638f2b8e52a"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-rehearing-denial-mandate",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-29",
+          "instant_unix_seconds": "1782691200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-counterfactual-shortened-post-stay-denial-mandate-deadline",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-stay-decision",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 1,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-stay-denial-mandate",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stay-denial",
+        "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stay-denial"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stay-denial",
+          "disposition": "denied",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stay-denial",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b19",
+          "document_sha256": "170dfa2dea017252b43b15a638630328fd7cbee15bc6bae5684a6018ecc49fdc"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-29",
+          "instant_unix_seconds": "1782691200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-stay-denial-to-post-stay-denial",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-stay-decision",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-post-stay-denial",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stay-denial",
+          "disposition": "denied",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stay-denial",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b19",
+          "document_sha256": "170dfa2dea017252b43b15a638630328fd7cbee15bc6bae5684a6018ecc49fdc"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-stay-denial-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-29",
+          "instant_unix_seconds": "1782691200"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.issue-counterfactual-post-stay-denial-mandate",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-stay-denial",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.terminated",
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b20",
+        "document_sha256": "3b7adbb831932a52b7ec23de7ba5daf6f12edff43ec87279fd2bf5e7d0b00a1e",
+        "expected_court_date": "2026-06-30"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stay-denial",
+          "disposition": "denied",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stay-denial",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b19",
+          "document_sha256": "170dfa2dea017252b43b15a638630328fd7cbee15bc6bae5684a6018ecc49fdc"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-post-stay-denial-mandate",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-30",
+          "instant_unix_seconds": "1782777600"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-grant",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-grant",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b21",
+        "document_sha256": "4c5cfd18ce0f56d1a873fc3f45589edec34cee287ab1c46ba3352778e976da8f",
+        "expected_court_date": "2026-06-22",
+        "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-grant",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-petition",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b13",
+          "document_sha256": "6333342fe41ac174518ef7136037da25a1ba91fa9fe2ed21679226d93691aefb"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-response",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b14",
+          "document_sha256": "0b12b856ee331a24aac67a94e3396c143ae355ccc9086f8482586198645f598a"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-22",
+          "instant_unix_seconds": "1782086400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stayed-order",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-grant",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b22",
+        "document_sha256": "8fea958bbfeef1130d98f511273c8fd8f1bcf685dc0c0efc5630d3046e5b8277",
+        "expected_court_date": "2026-06-22",
+        "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stayed",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-grant",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-grant",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b21",
+          "document_sha256": "4c5cfd18ce0f56d1a873fc3f45589edec34cee287ab1c46ba3352778e976da8f"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-22",
+          "instant_unix_seconds": "1782086400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-grant-to-mandate-stayed",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-grant",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-mandate-stayed",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-grant",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-grant",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b21",
+          "document_sha256": "4c5cfd18ce0f56d1a873fc3f45589edec34cee287ab1c46ba3352778e976da8f"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stayed",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stayed-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b22",
+          "document_sha256": "8fea958bbfeef1130d98f511273c8fd8f1bcf685dc0c0efc5630d3046e5b8277"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-22",
+          "instant_unix_seconds": "1782086400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-supplemental-briefing-order",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-mandate-stayed",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b23",
+        "document_sha256": "45116906ce9224a66602d08218a8d9f9718092f409e78cb3e9bf6343db361d13",
+        "expected_court_date": "2026-06-23",
+        "order_id": "ca4m4.opengrid.order.counterfactual-supplemental-briefing",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-grant",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-grant",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b21",
+          "document_sha256": "4c5cfd18ce0f56d1a873fc3f45589edec34cee287ab1c46ba3352778e976da8f"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stayed",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stayed-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b22",
+          "document_sha256": "8fea958bbfeef1130d98f511273c8fd8f1bcf685dc0c0efc5630d3046e5b8277"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-23",
+          "instant_unix_seconds": "1782172800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-counterfactual-supplemental-brief-deadline",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-mandate-stayed",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 9,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.counterfactual-supplemental-brief",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.opengrid.order.counterfactual-supplemental-briefing",
+        "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-supplemental-briefing-order"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-supplemental-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-supplemental-briefing-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b23",
+          "document_sha256": "45116906ce9224a66602d08218a8d9f9718092f409e78cb3e9bf6343db361d13"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-23",
+          "instant_unix_seconds": "1782172800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-mandate-stayed-to-supplemental-briefing",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-mandate-stayed",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-supplemental-briefing",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-supplemental-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-supplemental-briefing-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b23",
+          "document_sha256": "45116906ce9224a66602d08218a8d9f9718092f409e78cb3e9bf6343db361d13"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-supplemental-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-06-23",
+          "instant_unix_seconds": "1782172800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.accept-counterfactual-supplemental-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-supplemental-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b02",
+          "document_sha256": "06ce6893e010003379fc613c68cd6b32e257df5b646d0e01cb8b60641123bfca"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b03-counterfactual-certificate-confidentiality",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b03",
+          "document_sha256": "6c599f970c94589a1284fe882b57e4288c5f72abcf9ba90a2670a2cb54ca444a"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-supplemental-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-supplemental-briefing-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b23",
+          "document_sha256": "45116906ce9224a66602d08218a8d9f9718092f409e78cb3e9bf6343db361d13"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-supplemental-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-02",
+          "instant_unix_seconds": "1782950400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.reject-counterfactual-supplemental-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-supplemental-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-25-filing-service",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-28-briefs",
+          "us.ca4.authority.local-rule-25c-sealed-materials"
+        ]
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b02",
+          "document_sha256": "06ce6893e010003379fc613c68cd6b32e257df5b646d0e01cb8b60641123bfca"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "filing_id": "ca4m4.opengrid.filing.b03-counterfactual-certificate-confidentiality",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b03",
+          "document_sha256": "6c599f970c94589a1284fe882b57e4288c5f72abcf9ba90a2670a2cb54ca444a"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-supplemental-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-supplemental-briefing-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b23",
+          "document_sha256": "45116906ce9224a66602d08218a8d9f9718092f409e78cb3e9bf6343db361d13"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-supplemental-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-02",
+          "instant_unix_seconds": "1782950400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-supplemental-to-reheard-submitted",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-supplemental-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-reheard-submitted",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b24-counterfactual-public-supplemental-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-supplemental-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b24",
+          "document_sha256": "71e095aa17a637d66170cecd8318d471838ff0c473d24a87e450484a03c901d9"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-supplemental-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-02",
+          "instant_unix_seconds": "1782950400"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-opinion",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reheard-submitted",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b26",
+        "document_sha256": "6460de11e0e49be7313cea02f92ebecd0235db2b14c68dcd847a6b1d89605154",
+        "expected_court_date": "2026-07-13",
+        "order_id": "ca4m4.opengrid.order.counterfactual-revised-opinion",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-grant",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-grant",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b21",
+          "document_sha256": "4c5cfd18ce0f56d1a873fc3f45589edec34cee287ab1c46ba3352778e976da8f"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stayed",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stayed-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b22",
+          "document_sha256": "8fea958bbfeef1130d98f511273c8fd8f1bcf685dc0c0efc5630d3046e5b8277"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-supplemental-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-supplemental-briefing-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b23",
+          "document_sha256": "45116906ce9224a66602d08218a8d9f9718092f409e78cb3e9bf6343db361d13"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b24-counterfactual-public-supplemental-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-supplemental-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b24",
+          "document_sha256": "71e095aa17a637d66170cecd8318d471838ff0c473d24a87e450484a03c901d9"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-supplemental-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-13",
+          "instant_unix_seconds": "1783900800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-judgment",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reheard-submitted",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b27",
+        "document_sha256": "9e805e790c3620f92dcf9b7cdef018327bddeaa6eaffba3a4f0f79f8c194864c",
+        "expected_court_date": "2026-07-13",
+        "order_id": "ca4m4.opengrid.order.counterfactual-revised-judgment",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-grant",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-grant",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b21",
+          "document_sha256": "4c5cfd18ce0f56d1a873fc3f45589edec34cee287ab1c46ba3352778e976da8f"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stayed",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stayed-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b22",
+          "document_sha256": "8fea958bbfeef1130d98f511273c8fd8f1bcf685dc0c0efc5630d3046e5b8277"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-supplemental-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-supplemental-briefing-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b23",
+          "document_sha256": "45116906ce9224a66602d08218a8d9f9718092f409e78cb3e9bf6343db361d13"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b24-counterfactual-public-supplemental-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-supplemental-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b24",
+          "document_sha256": "71e095aa17a637d66170cecd8318d471838ff0c473d24a87e450484a03c901d9"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-supplemental-brief",
+          "status": "satisfied"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-revised-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b26",
+          "document_sha256": "6460de11e0e49be7313cea02f92ebecd0235db2b14c68dcd847a6b1d89605154"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-13",
+          "instant_unix_seconds": "1783900800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-counterfactual-revised-rehearing-deadline",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reheard-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.counterfactual-revised-rehearing-petition",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.opengrid.order.counterfactual-revised-judgment",
+        "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-judgment"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-revised-judgment",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-judgment",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b27",
+          "document_sha256": "9e805e790c3620f92dcf9b7cdef018327bddeaa6eaffba3a4f0f79f8c194864c"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-13",
+          "instant_unix_seconds": "1783900800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.calculate-counterfactual-revised-mandate-deadline",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reheard-submitted",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "deadline_base_id": "ca4m4.opengrid.deadline.counterfactual-revised-rehearing-petition",
+      "produced_deadline_id": "ca4m4.opengrid.deadline.counterfactual-revised-mandate",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-revised-judgment",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-judgment",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b27",
+          "document_sha256": "9e805e790c3620f92dcf9b7cdef018327bddeaa6eaffba3a4f0f79f8c194864c"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-revised-rehearing-petition",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-13",
+          "instant_unix_seconds": "1783900800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.advance-counterfactual-reheard-submitted-to-post-judgment",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reheard-submitted",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.counterfactual-reheard-post-judgment",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-revised-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b26",
+          "document_sha256": "6460de11e0e49be7313cea02f92ebecd0235db2b14c68dcd847a6b1d89605154"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-revised-judgment",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-judgment",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b27",
+          "document_sha256": "9e805e790c3620f92dcf9b7cdef018327bddeaa6eaffba3a4f0f79f8c194864c"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-revised-rehearing-petition",
+          "status": "open"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-revised-mandate",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-07-13",
+          "instant_unix_seconds": "1783900800"
+        }
+      ]
+    },
+    {
+      "operation_id": "ca4m4.opengrid.operation.issue-counterfactual-post-rehearing-mandate",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reheard-post-judgment",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate",
+          "us.federal.authority.frap-40-rehearing"
+        ]
+      },
+      "next_stage_id": "ca4m4.opengrid.stage.terminated",
+      "document_binding": {
+        "record_entry_id": "ca4m4.opengrid.record.entry.b28",
+        "document_sha256": "ae2338b43b46a23e4902c4fd3b9f563563d6f68b1263a2c1dc19063839e11cfc",
+        "expected_court_date": "2026-08-03"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-rehearing-grant",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-rehearing-grant",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b21",
+          "document_sha256": "4c5cfd18ce0f56d1a873fc3f45589edec34cee287ab1c46ba3352778e976da8f"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-mandate-stayed",
+          "disposition": "granted",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-mandate-stayed-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b22",
+          "document_sha256": "8fea958bbfeef1130d98f511273c8fd8f1bcf685dc0c0efc5630d3046e5b8277"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-supplemental-briefing",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-supplemental-briefing-order",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b23",
+          "document_sha256": "45116906ce9224a66602d08218a8d9f9718092f409e78cb3e9bf6343db361d13"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "filing_id": "ca4m4.opengrid.filing.b24-counterfactual-public-supplemental-brief",
+          "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-supplemental-brief",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b24",
+          "document_sha256": "71e095aa17a637d66170cecd8318d471838ff0c473d24a87e450484a03c901d9"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-revised-opinion",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-opinion",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b26",
+          "document_sha256": "6460de11e0e49be7313cea02f92ebecd0235db2b14c68dcd847a6b1d89605154"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.opengrid.order.counterfactual-revised-judgment",
+          "disposition": "other",
+          "operation_id": "ca4m4.opengrid.operation.enter-counterfactual-revised-judgment",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b27",
+          "document_sha256": "9e805e790c3620f92dcf9b7cdef018327bddeaa6eaffba3a4f0f79f8c194864c"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-revised-rehearing-petition",
+          "status": "reached"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.opengrid.deadline.counterfactual-revised-mandate",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ],
+      "allowed_legal_times": [
+        {
+          "court_date": "2026-08-03",
+          "instant_unix_seconds": "1785715200"
+        }
+      ]
+    }
+  ],
+  "filing_routes": [
+    {
+      "filing_type_id": "us.ca4.filing.civil-notice-of-appeal",
+      "stage_id": "ca4m4.opengrid.stage.notice-of-appeal",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.civil-notice.caption",
+        "us.ca4.field.civil-notice.appealing-parties",
+        "us.ca4.field.civil-notice.originating-docket",
+        "us.ca4.field.civil-notice.judgment-or-order",
+        "us.ca4.field.civil-notice.order-date",
+        "us.ca4.field.civil-notice.destination-court"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-notice-of-appeal",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-notice-of-appeal",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.l36-notice-of-appeal",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.l36",
+          "document_sha256": "b44784557a1f508d353c13228db65b9475e8955ac8d01effc18e3b921cbe9547",
+          "expected_legal_time": {
+            "court_date": "2026-02-02",
+            "instant_unix_seconds": "1769990400"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.docketing-statement",
+      "stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.docketing.jurisdiction",
+        "us.ca4.field.docketing.issues",
+        "us.ca4.field.docketing.related-cases"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-docketing-statement",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-actual-docketing-statement",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.a02-docketing-statement",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a02",
+          "document_sha256": "037efef4be1009fb4236c116acfa9ec6e07544f6cade35eebe40eae50c7f39c6",
+          "expected_legal_time": {
+            "court_date": "2026-02-18",
+            "instant_unix_seconds": "1771372800"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.appearance",
+      "stage_id": "ca4m4.opengrid.stage.actual-opened",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.appearance.counsel-name",
+        "us.ca4.field.appearance.party-name",
+        "us.ca4.field.appearance.contact"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-appearances-disclosures",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-actual-appearances-disclosures",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.a03-appearances-disclosures",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a03",
+          "document_sha256": "dbec9de5d406b595fd60a03c3cc9f9374ae54cf8b51be40239e3abd7ed3a0a37",
+          "expected_legal_time": {
+            "court_date": "2026-02-18",
+            "instant_unix_seconds": "1771372800"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.opengrid.stage.actual-sealing-support",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-sealing-support",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-actual-sealing-support",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.a04-motion-limited-sealing",
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a04",
+          "document_sha256": "f785589a928138df9cbda592c7c2aa04ae73ac015f96246720a3c22c83932e7f",
+          "expected_legal_time": {
+            "court_date": "2026-03-02",
+            "instant_unix_seconds": "1772409600"
+          }
+        },
+        {
+          "filing_id": "ca4m4.opengrid.filing.a05-certificate-confidentiality",
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a05",
+          "document_sha256": "0f38fbaafa4c3ec91478fad9b8dd406b500221d5ba65636ffd460de2e241dcea",
+          "expected_legal_time": {
+            "court_date": "2026-03-02",
+            "instant_unix_seconds": "1772409600"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.opengrid.stage.actual-opening-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-opening-brief",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-actual-opening-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.a06-public-opening-brief",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a06",
+          "document_sha256": "4530bd7489ce8ae23743e70cfe228dc41cfa7805c77a155683c2ff04a78a712e",
+          "expected_legal_time": {
+            "court_date": "2026-03-13",
+            "instant_unix_seconds": "1773360000"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.opengrid.deadline.actual-opening-brief"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.opengrid.stage.actual-response-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-response-brief",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-actual-response-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.a08-public-response-brief",
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a08",
+          "document_sha256": "8cb08453d796225763c5e96680fc6ee8af47ff163279edc7384bc9853dfc0a12",
+          "expected_legal_time": {
+            "court_date": "2026-04-13",
+            "instant_unix_seconds": "1776038400"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.opengrid.deadline.actual-response-brief"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.opengrid.stage.actual-reply-appendix",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-reply-brief",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-actual-reply-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.a10-public-reply-brief",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a10",
+          "document_sha256": "8496047c8ff612fae44f932971e80ffdc1e72aa7941a563bf031c5b3b1211566",
+          "expected_legal_time": {
+            "court_date": "2026-05-04",
+            "instant_unix_seconds": "1777852800"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.opengrid.deadline.actual-reply-brief"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.appendix",
+      "stage_id": "ca4m4.opengrid.stage.actual-reply-appendix",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.appendix.contents",
+        "us.ca4.field.appendix.pagination"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-actual-joint-appendix",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-actual-joint-appendix",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.a12-public-joint-appendix",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.a12",
+          "document_sha256": "468dd9ee1c0b8838fef4107009cdbb03f4e064a4944935d60aa71c088fcda034",
+          "expected_legal_time": {
+            "court_date": "2026-05-04",
+            "instant_unix_seconds": "1777852800"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-sealing-support",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-sealing-support",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-counterfactual-sealing-support",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.b02-counterfactual-motion-limited-sealing",
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b02",
+          "document_sha256": "06ce6893e010003379fc613c68cd6b32e257df5b646d0e01cb8b60641123bfca",
+          "expected_legal_time": {
+            "court_date": "2026-02-12",
+            "instant_unix_seconds": "1770854400"
+          }
+        },
+        {
+          "filing_id": "ca4m4.opengrid.filing.b03-counterfactual-certificate-confidentiality",
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b03",
+          "document_sha256": "6c599f970c94589a1284fe882b57e4288c5f72abcf9ba90a2670a2cb54ca444a",
+          "expected_legal_time": {
+            "court_date": "2026-02-12",
+            "instant_unix_seconds": "1770854400"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-opening-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-opening-brief",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-counterfactual-opening-brief",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.b04-counterfactual-public-opening-brief",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b04",
+          "document_sha256": "d8f2de5ecbb31a4808ded59cb4ac95630287784583416346df86e5bb7fd75580",
+          "expected_legal_time": {
+            "court_date": "2026-03-06",
+            "instant_unix_seconds": "1772755200"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-response-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-response-brief",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-counterfactual-response-brief",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.b06-counterfactual-public-response-brief",
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b06",
+          "document_sha256": "6dcafd53106a77faa4f93d8968b14331de7d4320f918305c5e84b35136f62eb0",
+          "expected_legal_time": {
+            "court_date": "2026-04-06",
+            "instant_unix_seconds": "1775433600"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-reply-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-reply-brief",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-counterfactual-reply-brief",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.b08-counterfactual-public-reply-brief",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b08",
+          "document_sha256": "df0026bf03edf7146fd419838f4adc7bdb596c3d9c8bd1d7b1f62fd99c5212b1",
+          "expected_legal_time": {
+            "court_date": "2026-04-20",
+            "instant_unix_seconds": "1776643200"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.rehearing-petition",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-judgment",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.rehearing.kind",
+        "us.ca4.field.rehearing.purpose-statement",
+        "us.ca4.field.rehearing.grounds"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-petition",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-counterfactual-rehearing-petition",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.b13-counterfactual-rehearing-petition",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b13",
+          "document_sha256": "6333342fe41ac174518ef7136037da25a1ba91fa9fe2ed21679226d93691aefb",
+          "expected_legal_time": {
+            "court_date": "2026-06-12",
+            "instant_unix_seconds": "1781222400"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.opengrid.deadline.counterfactual-initial-rehearing-petition"
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-rehearing-response",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-rehearing-response",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-counterfactual-rehearing-response",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.b14-counterfactual-rehearing-response",
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b14",
+          "document_sha256": "0b12b856ee331a24aac67a94e3396c143ae355ccc9086f8482586198645f598a",
+          "expected_legal_time": {
+            "court_date": "2026-06-17",
+            "instant_unix_seconds": "1781654400"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-post-denial-choice",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-motion",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-counterfactual-mandate-stay-motion",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.b17-counterfactual-mandate-stay-motion",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b17",
+          "document_sha256": "080701338ea9d1982cb176ff38fd2219955a7ee21506bfb25c6dca245b3c3c56",
+          "expected_legal_time": {
+            "court_date": "2026-06-25",
+            "instant_unix_seconds": "1782345600"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-stay-response",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-mandate-stay-opposition",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-counterfactual-mandate-stay-opposition",
+      "reject_after_deadline": false,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.b18-counterfactual-mandate-stay-opposition",
+          "actor_id": "ca4m4.opengrid.actor.doe",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b18",
+          "document_sha256": "7800c91f9371e7bce4f0589846e71df7f32eabe34edacea1c8848638f2b8e52a",
+          "expected_legal_time": {
+            "court_date": "2026-06-26",
+            "instant_unix_seconds": "1782432000"
+          }
+        }
+      ]
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.opengrid.stage.counterfactual-supplemental-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.opengrid.operation.accept-counterfactual-supplemental-brief",
+      "reject_operation_id": "ca4m4.opengrid.operation.reject-counterfactual-supplemental-brief",
+      "reject_after_deadline": true,
+      "filing_bindings": [
+        {
+          "filing_id": "ca4m4.opengrid.filing.b24-counterfactual-public-supplemental-brief",
+          "actor_id": "ca4m4.opengrid.actor.open-grid",
+          "record_entry_id": "ca4m4.opengrid.record.entry.b24",
+          "document_sha256": "71e095aa17a637d66170cecd8318d471838ff0c473d24a87e450484a03c901d9",
+          "expected_legal_time": {
+            "court_date": "2026-07-02",
+            "instant_unix_seconds": "1782950400"
+          }
+        }
+      ],
+      "satisfies_deadline_id": "ca4m4.opengrid.deadline.counterfactual-supplemental-brief"
+    }
+  ],
+  "calendar": {
+    "holidays": [
+      "2025-01-01",
+      "2025-01-20",
+      "2025-02-17",
+      "2025-05-26",
+      "2025-06-19",
+      "2025-07-04",
+      "2025-09-01",
+      "2025-10-13",
+      "2025-11-11",
+      "2025-11-27",
+      "2025-12-25",
+      "2026-01-01",
+      "2026-01-19",
+      "2026-02-16",
+      "2026-05-25",
+      "2026-06-19",
+      "2026-07-03",
+      "2026-09-07",
+      "2026-10-12",
+      "2026-11-11",
+      "2026-11-26",
+      "2026-12-25",
+      "2027-01-01",
+      "2027-01-18",
+      "2027-02-15",
+      "2027-05-31",
+      "2027-06-18",
+      "2027-07-05",
+      "2027-09-06",
+      "2027-10-11",
+      "2027-11-11",
+      "2027-11-25",
+      "2027-12-24"
+    ]
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.ellison.argument.adverse-record",
+  "case_id": "ca4m4.case.ellison-immunity",
+  "bench_configuration_id": "ca4m4.ellison.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.ellison.issue.collateral-order-boundary",
+    "ca4m4.ellison.issue.assumed-facts-fourth-amendment",
+    "ca4m4.ellison.issue.clearly-established-qualified-immunity"
+  ],
+  "grounded_question_bank": {
+    "mode": "counterfactual_training",
+    "grounding_digest": "cf7097c563a40f40feac132943f3f231efa6c1fb1ade0e3b7e433e12f1a38849",
+    "issue_topic_bindings": [
+      {"issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_ids":["workbench.topic.jurisdiction","workbench.topic.governing-authority","workbench.topic.record-support","workbench.topic.practical-consequences"]},
+      {"issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_ids":["workbench.topic.standard-of-review","workbench.topic.governing-authority","workbench.topic.merits","workbench.topic.record-support"]},
+      {"issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_ids":["workbench.topic.governing-authority","workbench.topic.standard-of-review","workbench.topic.preservation","workbench.topic.remedy"]}
+    ],
+    "questions": [
+      {
+        "question_id":"ca4m4.ellison.question.adverse-boundary-jurisdiction","issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_id":"workbench.topic.jurisdiction","prompt":"Why does the adverse branch still dismiss the factual-sufficiency target even though its separate legal qualified-immunity ruling ends the damages claim?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-jurisdiction-johnson","kind":"authority","authority_id":"ca4m4.ellison.authority.johnson-evidence-sufficiency"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-jurisdiction-ja252","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja252"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-jurisdiction-pa97","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa97"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-boundary-authority","issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_id":"workbench.topic.governing-authority","prompt":"Under Barricks, how can a genuine historical dispute survive the record review yet cease to matter after the court holds that the assumed conduct was not clearly prohibited?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-authority-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-collateral-boundary"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-authority-ja247","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja247"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-authority-pa94","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa94"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-boundary-record","issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_id":"workbench.topic.record-support","prompt":"Which obscured camera views and witness conflicts prevent the panel from treating Rusk's asserted forearm strike and belt reach as established on interlocutory review?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-record-johnson","kind":"authority","authority_id":"ca4m4.ellison.authority.johnson-evidence-sufficiency"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-record-ja77","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja77"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-record-ja141","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja141"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-record-pa96","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa96"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-boundary-practical","issue_id":"ca4m4.ellison.issue.collateral-order-boundary","topic_id":"workbench.topic.practical-consequences","prompt":"Why does the adverse judgment direct summary judgment for Rusk without declaring his contested account true or purporting to affirm the district court's evidentiary ruling?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-practical-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-collateral-boundary"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-practical-ja253","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja253"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-boundary-practical-pa106","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa106"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-fourth-standard","issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_id":"workbench.topic.standard-of-review","prompt":"What assumed facts make constitutional excessiveness plausible, and why may the counterfactual opinion reserve that first prong while deciding clearly established law?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-standard-graham","kind":"authority","authority_id":"ca4m4.ellison.authority.graham-force-totality"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-standard-ja249","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja249"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-standard-pa101","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa101"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-fourth-authority","issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_id":"workbench.topic.governing-authority","prompt":"How does Armstrong's danger-resistance distinction support Ellison at the constitutional prong even if the adverse branch finds its clearly-established fit insufficiently specific?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-authority-armstrong","kind":"authority","authority_id":"ca4m4.ellison.authority.armstrong-proportional-danger"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-authority-ja248","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja248"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-authority-ja249","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja249"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-fourth-merits","issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_id":"workbench.topic.merits","prompt":"Which Graham considerations favor finding one drive-stun cycle disproportionate, and which movement, warning, duration, and cessation facts make the constitutional balance less categorical?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-merits-graham","kind":"authority","authority_id":"ca4m4.ellison.authority.graham-force-totality"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-merits-smith","kind":"authority","authority_id":"ca4m4.ellison.authority.smith-modest-movement-force"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-merits-ja107","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja107"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-merits-ja249","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja249"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-fourth-record","issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","topic_id":"workbench.topic.record-support","prompt":"Which actual record pages fix one contact-mode cycle, no repeated post-control force, documented injury, two-officer presence, and a genuinely hidden threat interval?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-record-meyers","kind":"authority","authority_id":"ca4m4.ellison.authority.meyers-changing-threat"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-record-ja69","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja69"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-record-ja97","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja97"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-record-ja151","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja151"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-fourth-record-pa101","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa101"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-immunity-authority","issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_id":"workbench.topic.governing-authority","prompt":"Why does the adverse branch read Armstrong, Smith, Meyers, and Yates as materially different in cycle count, resistance, timing, or control stage rather than as clear notice for this single-cycle encounter?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-authority-armstrong","kind":"authority","authority_id":"ca4m4.ellison.authority.armstrong-prospective-notice"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-authority-smith","kind":"authority","authority_id":"ca4m4.ellison.authority.smith-modest-movement-force"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-authority-meyers","kind":"authority","authority_id":"ca4m4.ellison.authority.meyers-changing-threat"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-authority-yates","kind":"authority","authority_id":"ca4m4.ellison.authority.yates-nonthreatening-taser-notice"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-authority-pa102","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa102"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-authority-pa103","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa103"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-immunity-standard","issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_id":"workbench.topic.standard-of-review","prompt":"How may Zorn reinforce a specific-conduct methodology without serving as retroactive notice, and which electrical-force distinctions prevent treating its routine wristlock as factual precedent here?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-standard-zorn","kind":"authority","authority_id":"ca4m4.ellison.authority.zorn-specificity-warning"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-standard-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-assumed-facts-law"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-standard-pa100","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa100"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-standard-pa104","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa104"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-immunity-preservation","issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_id":"workbench.topic.preservation","prompt":"How did Rusk preserve a pure legal notice argument independent of his request to infer a strike and belt reach from the recordings?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-preservation-barricks","kind":"authority","authority_id":"ca4m4.ellison.authority.barricks-collateral-boundary"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-preservation-ja233","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja233"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-preservation-ja252","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja252"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-preservation-pa31","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa31"}
+        ]
+      },
+      {
+        "question_id":"ca4m4.ellison.question.adverse-immunity-remedy","issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","topic_id":"workbench.topic.remedy","prompt":"What disposition reverses only the clearly-established-law denial, assumes without deciding constitutional excessiveness, and remands for summary judgment without adjudicating the hidden movements?","grounding":[
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-remedy-zorn","kind":"authority","authority_id":"ca4m4.ellison.authority.zorn-specificity-warning"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-remedy-ja253","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.ja253"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-remedy-pa105","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa105"},
+          {"grounding_id":"ca4m4.ellison.grounding.adverse-immunity-remedy-pa106","kind":"record_page","anchor_id":"ca4m4.ellison.anchor.pa106"}
+        ]
+      }
+    ]
+  }
+}

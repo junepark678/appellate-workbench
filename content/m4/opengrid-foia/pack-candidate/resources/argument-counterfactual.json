@@ -1,0 +1,351 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.opengrid.argument.corrected-counterfactual",
+  "case_id": "ca4m4.case.opengrid-foia",
+  "bench_configuration_id": "ca4m4.opengrid.bench.three-judge",
+  "total_seconds": 1200,
+  "rebuttal_seconds": 120,
+  "permitted_issue_ids": [
+    "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+    "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+    "ca4m4.opengrid.issue.segregability",
+    "ca4m4.opengrid.issue.overbroad-sealing"
+  ],
+  "grounded_question_bank": {
+    "mode": "counterfactual_training",
+    "grounding_digest": "68f4d32cb47237aea128c33d638cafd3529a8cc1a807d43dd970b4b70d49b3f8",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.record-support",
+          "workbench.topic.merits"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.record-support",
+          "workbench.topic.merits"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.opengrid.issue.segregability",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.record-support",
+          "workbench.topic.merits"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.remedy",
+          "workbench.topic.practical-consequences"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-7e-authority",
+        "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Why does the corrected premise leave unchanged the legal conclusion that nonpublic trigger order and implementation details qualify as law-enforcement techniques or procedures under 7(E)?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7e-authority-foia",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7e-authority-grey",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.grey-7e-techniques-guidelines"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7e-authority-pa156",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa156"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-7e-record",
+        "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "What does the never-filed premise preserve from the actual record, and where does the counterfactual response distinguish protected operational sequencing from newly released general or administrative material?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7e-record-peer",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.peer-critical-infrastructure"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7e-record-pa158",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa158"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7e-record-response",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.counterfactual-response-line-review"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-7e-merits",
+        "issue_id": "ca4m4.opengrid.issue.exemption-7e-operational-decision-trees",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Why does the isolated corrected record support affirmance of the same operational-decision-tree target without converting the counterfactual branch into a filing on the actual appeal?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7e-merits-grey",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.grey-7e-techniques-guidelines"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7e-merits-pa156",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa156"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7e-merits-pa249",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa249"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-7f-authority",
+        "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "What must a corrected categorical 7(F) presentation show about functional groups and expected danger, and why is identifying a threatened person by name unnecessary?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-authority-zaid",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.zaid-categorical-proof"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-authority-epic",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.epic-7f-and-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-authority-limited",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.counterfactual-opening-limited-7f"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-7f-record",
+        "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Which never-filed corrections supply document-by-document review, meaningful functional categories, and page-linked explanations connecting disclosure to physical-safety harms?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-record-rein",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.rein-vaughn-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-record-zaid",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.zaid-categorical-proof"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-record-pa157",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa157"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-record-response",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.counterfactual-response-line-review"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-7f-merits",
+        "issue_id": "ca4m4.opengrid.issue.vaughn-and-categorical-7f",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Why would the corrected functional and harm-specific showing support affirmance of limited 7(F) withholding, unlike the categorical assertions in the actual record?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-merits-peer",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.peer-critical-infrastructure"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-merits-epic",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.epic-7f-and-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-7f-merits-pa253",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa253"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-segregability-authority",
+        "issue_id": "ca4m4.opengrid.issue.segregability",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "What affirmative showing must DOE make to establish that it disclosed every reasonably segregable nonexempt portion even after sustaining limited 7(E) and 7(F) withholdings?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-segregability-authority-foia",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.foia-disclosure-exemptions-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-segregability-authority-rein",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.rein-vaughn-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-segregability-authority-pa159",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa159"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-segregability-record",
+        "issue_id": "ca4m4.opengrid.issue.segregability",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "How do the corrected response and supplemental filing document a line-by-line review and release administrative headings and coordination text while retaining only supported operational redactions?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-segregability-record-rein",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.rein-vaughn-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-segregability-record-response",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.counterfactual-response-line-review"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-segregability-record-release",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.counterfactual-supplemental-release"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-segregability-merits",
+        "issue_id": "ca4m4.opengrid.issue.segregability",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Why does the corrected review and supplemental release support affirmance of the segregability target with no remand, and which nonexempt material has already been separated?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-segregability-merits-epic",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.epic-7f-and-segregability"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-segregability-merits-release",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.counterfactual-supplemental-release"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-segregability-merits-pa257",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa257"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-sealing-jurisdiction",
+        "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Why does changing only the never-filed sealing premise leave final-decision jurisdiction tied to the single actual district judgment without creating a second real judgment or appeal?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-jurisdiction-1291",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.section-1291-final-judgment"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-jurisdiction-ja270",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.ja270"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-jurisdiction-pa160",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa160"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-sealing-remedy",
+        "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Why would document-specific findings, stated duration, less-restrictive-alternative analysis, public redacted counterparts, and a confidentiality certificate support affirmance of narrow sealing?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-remedy-company",
+            "kind": "authority",
+            "authority_id": "ca4m4.opengrid.authority.company-doe-sealing"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-remedy-lr25",
+            "kind": "authority",
+            "authority_id": "us.ca4.authority.local-rule-25c-sealed-materials"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-remedy-pa164",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa164"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-remedy-pa170",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa170"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-remedy-narrow",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.counterfactual-reply-narrow-sealing"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.opengrid.question.counterfactual-sealing-consequence",
+        "issue_id": "ca4m4.opengrid.issue.overbroad-sealing",
+        "topic_id": "workbench.topic.practical-consequences",
+        "prompt": "How does the never-filed branch preserve public-only projection until a session grant, revoke access without retaining sealed rows, resolve argument through stable anchors, and defer sealed-asset CAS verification until each authorized open?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-consequence-guide",
+            "kind": "authority",
+            "authority_id": "us.ca4.authority.sealed-materials-guide"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-consequence-pa160",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa160"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-consequence-narrow",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.stable.counterfactual-reply-narrow-sealing"
+          },
+          {
+            "grounding_id": "ca4m4.opengrid.grounding.counterfactual-sealing-consequence-pa263",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.opengrid.anchor.pa263"
+          }
+        ]
+      }
+    ]
+  }
+}

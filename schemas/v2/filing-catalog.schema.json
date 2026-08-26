@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appellate-workbench.invalid/schemas/v2/filing-catalog.schema.json",
+  "title": "Procedure filing catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "resource_kind", "resource_id", "filings"],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "resource_kind": { "const": "filing_catalog" },
+    "resource_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+    "filings": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["filing_id", "title", "actor_role_ids", "required_field_ids", "authority_id"],
+        "properties": {
+          "filing_id": { "$ref": "common.schema.json#/$defs/namespaced_id" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "actor_role_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+          },
+          "required_field_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+          },
+          "authority_id": { "$ref": "common.schema.json#/$defs/namespaced_id" }
+        }
+      }
+    }
+  }
+}

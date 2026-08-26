@@ -1,0 +1,12 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.criminal-notice-of-appeal",
+  "filing_id": "us.ca4.filing.criminal-notice-of-appeal", "title": "Criminal Notice of Appeal",
+  "fields": [
+    {"field_id": "us.ca4.field.criminal-notice.caption", "label": "Case caption", "value_type": "short_text", "required": true},
+    {"field_id": "us.ca4.field.criminal-notice.appealing-parties", "label": "Party or parties taking the appeal", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.criminal-notice.originating-docket", "label": "Originating docket number", "value_type": "short_text", "required": true},
+    {"field_id": "us.ca4.field.criminal-notice.judgment-or-order", "label": "Judgment or appealable order designated for review", "value_type": "long_text", "required": true},
+    {"field_id": "us.ca4.field.criminal-notice.judgment-date", "label": "Date of judgment or order appealed from", "value_type": "date", "required": true},
+    {"field_id": "us.ca4.field.criminal-notice.destination-court", "label": "Court to which the appeal is taken", "value_type": "short_text", "required": true}
+  ]
+}

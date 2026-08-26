@@ -1,0 +1,5474 @@
+{
+  "schema_version": 2,
+  "resource_id": "ca4m4.blueember.record",
+  "resource_kind": "record",
+  "caption": "Blue Ember Biologics, LLC v. Granite Heron Logistics, Inc.",
+  "dockets": [
+    {
+      "docket_id": "ca4m4.blueember.docket.district",
+      "docket_type": "district",
+      "court_ref": "United States District Court for the Western District of North Carolina",
+      "public_docket_number": "SYN-WDNC-24-CV-0520",
+      "caption": "Blue Ember Biologics, LLC v. Granite Heron Logistics, Inc."
+    },
+    {
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit",
+      "public_docket_number": "SYN-CA4-26-CV-4105",
+      "caption": "Blue Ember Biologics, LLC v. Granite Heron Logistics, Inc."
+    },
+    {
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "docket_type": "appellate",
+      "court_id": "us.ca4.court.appeals",
+      "court_ref": "United States Court of Appeals for the Fourth Circuit — counterfactual training branch bank",
+      "public_docket_number": "SYN-CA4-26-CV-4105-CF-NEVER-OCCURRED",
+      "caption": "Blue Ember Biologics, LLC v. Granite Heron Logistics, Inc. — counterfactual training branches that never occurred on the actual docket"
+    }
+  ],
+  "docket_entries": [
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "entry_number": 1,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L01",
+      "filed_on": "2024-12-02",
+      "title": "Complaint",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L01: Complaint.",
+      "tags": [
+        "lower_record",
+        "pleading_contract"
+      ],
+      "asset_path": "objects/l01-complaint.pdf",
+      "asset_sha256": "b3b43e69265311fd713fb140f2d3f26ecd72f2206a2453f387f525732c846cc8",
+      "page_count": 11,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "entry_number": 2,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L02",
+      "filed_on": "2024-12-30",
+      "title": "Granite Heron Logistics, Inc.'s Answer",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L02: Granite Heron Logistics, Inc.'s Answer.",
+      "tags": [
+        "lower_record",
+        "pleading_contract"
+      ],
+      "asset_path": "objects/l02-granite-heron-answer.pdf",
+      "asset_sha256": "3602e3cfedcf26c0b5820f9eb7824a35121d584bd09a2661f79351ec2774fa1e",
+      "page_count": 9,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "entry_number": 3,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L03",
+      "filed_on": "2024-12-02",
+      "title": "Master Logistics Services Agreement",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L03: Master Logistics Services Agreement.",
+      "tags": [
+        "lower_record",
+        "pleading_contract"
+      ],
+      "asset_path": "objects/l03-master-logistics-services-agreement.pdf",
+      "asset_sha256": "ba4af964db75a4290bc90def604b6c58069de512e45ad45473e245c86158585f",
+      "page_count": 15,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "entry_number": 4,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L04",
+      "filed_on": "2024-12-02",
+      "title": "BE-214 Cold-Chain Statement of Work",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L04: BE-214 Cold-Chain Statement of Work.",
+      "tags": [
+        "lower_record",
+        "pleading_contract"
+      ],
+      "asset_path": "objects/l04-be214-cold-chain-statement-of-work.pdf",
+      "asset_sha256": "fac7f301847f0fc89f2d4aed4d00edf89b554347270db3b92b2734dcfdf90a54",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "entry_number": 5,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L05",
+      "filed_on": "2024-12-02",
+      "title": "Quality Agreement and Temperature-Control Protocol",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L05: Quality Agreement and Temperature-Control Protocol.",
+      "tags": [
+        "lower_record",
+        "pleading_contract"
+      ],
+      "asset_path": "objects/l05-quality-agreement-temperature-control-protocol.pdf",
+      "asset_sha256": "c36174faf6f6c4f89dd07832375cb5f877fce7900b6bf88f66dd81e9063794c7",
+      "page_count": 11,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l06",
+      "entry_number": 6,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L06",
+      "filed_on": "2024-12-02",
+      "title": "Validation-Lot Purchase Order and Release Specification",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L06: Validation-Lot Purchase Order and Release Specification.",
+      "tags": [
+        "lower_record",
+        "pleading_contract"
+      ],
+      "asset_path": "objects/l06-validation-lot-purchase-order-release-specification.pdf",
+      "asset_sha256": "243ff1496939856ce81d63839d84ca5cdf47a4c91ecf7d20be8c5b8f0d1dcf9a",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l07",
+      "entry_number": 7,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L07",
+      "filed_on": "2024-12-30",
+      "title": "Shipment Rate Confirmation and Custody Terms",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L07: Shipment Rate Confirmation and Custody Terms.",
+      "tags": [
+        "lower_record",
+        "pleading_contract"
+      ],
+      "asset_path": "objects/l07-shipment-rate-confirmation-custody-terms.pdf",
+      "asset_sha256": "42851e603b47afe36cced57b2d9ff56418d7d08aa033a1d02dc12ce605cc1dc8",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l08",
+      "entry_number": 8,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L08",
+      "filed_on": "2025-02-28",
+      "title": "Rule 26 Report Disclosures",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L08: Rule 26 Report Disclosures.",
+      "tags": [
+        "lower_record",
+        "discovery_expert"
+      ],
+      "asset_path": "objects/l08-rule26-report-disclosures.pdf",
+      "asset_sha256": "945b0aead2a00859341a622a8651bc20c7fdc86817b1e30e39b6ba02fea8a575",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "entry_number": 9,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L09",
+      "filed_on": "2025-04-07",
+      "title": "Blue Ember Rule 30(b)(6) Deposition",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L09: Blue Ember Rule 30(b)(6) Deposition.",
+      "tags": [
+        "lower_record",
+        "discovery_expert"
+      ],
+      "asset_path": "objects/l09-blue-ember-30b6-deposition.pdf",
+      "asset_sha256": "da3200ba8f0b62426b712f5e80262a50bbb43280fc20335c08cf96890307aced",
+      "page_count": 17,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "entry_number": 10,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L10",
+      "filed_on": "2025-04-21",
+      "title": "Granite Heron Rule 30(b)(6) Deposition",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L10: Granite Heron Rule 30(b)(6) Deposition.",
+      "tags": [
+        "lower_record",
+        "discovery_expert"
+      ],
+      "asset_path": "objects/l10-granite-heron-30b6-deposition.pdf",
+      "asset_sha256": "d759188fa7de9bec07b43905678395cc79bc7d9ca623ea6db447fa569750221b",
+      "page_count": 16,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "entry_number": 11,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L11",
+      "filed_on": "2025-05-05",
+      "title": "Transport Operations Manager Deposition",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L11: Transport Operations Manager Deposition.",
+      "tags": [
+        "lower_record",
+        "discovery_expert"
+      ],
+      "asset_path": "objects/l11-transport-operations-manager-deposition.pdf",
+      "asset_sha256": "2e3e61e8ba68d8fce716a1c2db3c30a0b050e27163287bdfbf724e4053165df3",
+      "page_count": 14,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "entry_number": 12,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L12",
+      "filed_on": "2025-05-19",
+      "title": "Cobalt Finch Capacity Witness Deposition",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L12: Cobalt Finch Capacity Witness Deposition.",
+      "tags": [
+        "lower_record",
+        "discovery_expert"
+      ],
+      "asset_path": "objects/l12-cobalt-finch-capacity-witness-deposition.pdf",
+      "asset_sha256": "ef7811c3849f3c85833e70f395cb315b80ea49cbfe0076b198fe8a3b796356a1",
+      "page_count": 14,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "entry_number": 13,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L13",
+      "filed_on": "2025-07-07",
+      "title": "Blue Ember Damages Expert Report",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L13: Blue Ember Damages Expert Report.",
+      "tags": [
+        "lower_record",
+        "discovery_expert"
+      ],
+      "asset_path": "objects/l13-blue-ember-damages-expert-report.pdf",
+      "asset_sha256": "bdde4415318bc7b47b974b6251e246226335902e5eba1111c080fb36d7cd4ead",
+      "page_count": 17,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "entry_number": 14,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L14",
+      "filed_on": "2025-08-04",
+      "title": "Granite Heron Mitigation Expert Report",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L14: Granite Heron Mitigation Expert Report.",
+      "tags": [
+        "lower_record",
+        "discovery_expert"
+      ],
+      "asset_path": "objects/l14-granite-heron-mitigation-expert-report.pdf",
+      "asset_sha256": "c6a7651c666376f3fe3aa06145b1fa188c1502e64ebcde58bb51a7bd2248ac57",
+      "page_count": 16,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "entry_number": 15,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L15",
+      "filed_on": "2025-09-12",
+      "title": "Final Pretrial Order",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L15: Final Pretrial Order.",
+      "tags": [
+        "lower_record",
+        "pretrial"
+      ],
+      "asset_path": "objects/l15-final-pretrial-order.pdf",
+      "asset_sha256": "f3308ccd7e55e33a6fac330a95c8fe1fae0116c8d99eb0b9565b5ff13f9b0779",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l16",
+      "entry_number": 16,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L16",
+      "filed_on": "2025-09-19",
+      "title": "Joint Stipulated Facts and Contested Issues",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L16: Joint Stipulated Facts and Contested Issues.",
+      "tags": [
+        "lower_record",
+        "pretrial"
+      ],
+      "asset_path": "objects/l16-joint-stipulated-facts-contested-issues.pdf",
+      "asset_sha256": "2e3334f3e92a69db20e8b2ab39558d8637339c0cc56765b6167b87f6c20f5f3e",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "entry_number": 17,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L17",
+      "filed_on": "2025-09-26",
+      "title": "Proposed Jury Instructions and Objections",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L17: Proposed Jury Instructions and Objections.",
+      "tags": [
+        "lower_record",
+        "pretrial"
+      ],
+      "asset_path": "objects/l17-proposed-jury-instructions-objections.pdf",
+      "asset_sha256": "b805ec207afa8b1ba58f2925f045d142991873b496bf88710aa76d2534988e17",
+      "page_count": 10,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l18",
+      "entry_number": 18,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L18",
+      "filed_on": "2025-10-03",
+      "title": "Final Pretrial Conference Order, Witness List, and Exhibit List",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L18: Final Pretrial Conference Order, Witness List, and Exhibit List.",
+      "tags": [
+        "lower_record",
+        "pretrial"
+      ],
+      "asset_path": "objects/l18-final-pretrial-conference-order-witness-exhibit-lists.pdf",
+      "asset_sha256": "dda86d75bb96c253d7d81345895f7f9f6da586299c8624d3593b3dfb3c6e1dfe",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "entry_number": 19,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L19",
+      "filed_on": "2025-10-06",
+      "title": "Trial Transcript Day One: Openings and Contract Proof",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L19: Trial Transcript Day One: Openings and Contract Proof.",
+      "tags": [
+        "lower_record",
+        "trial_transcript"
+      ],
+      "asset_path": "objects/l19-trial-transcript-day1-openings-contract.pdf",
+      "asset_sha256": "ff60071e33e23e3ba0c13a55a42ee2fd66533369ae621bbf0966a7768febcabc",
+      "page_count": 22,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "entry_number": 20,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L20",
+      "filed_on": "2025-10-07",
+      "title": "Trial Transcript Day Two: Temperature Excursion and Causation",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L20: Trial Transcript Day Two: Temperature Excursion and Causation.",
+      "tags": [
+        "lower_record",
+        "trial_transcript"
+      ],
+      "asset_path": "objects/l20-trial-transcript-day2-temperature-causation.pdf",
+      "asset_sha256": "1448fe8db58dd6761f9aa10406f2d91942d1fff959fc0f7b12cf251c39ddd9e7",
+      "page_count": 21,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "entry_number": 21,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L21",
+      "filed_on": "2025-10-08",
+      "title": "Trial Transcript Day Three: Cobalt Finch and Mitigation",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L21: Trial Transcript Day Three: Cobalt Finch and Mitigation.",
+      "tags": [
+        "lower_record",
+        "trial_transcript"
+      ],
+      "asset_path": "objects/l21-trial-transcript-day3-cobalt-finch-mitigation.pdf",
+      "asset_sha256": "96cb8e353933df7217f400d240a0324b007affdf5bcece965c9e9f8df1ad581b",
+      "page_count": 21,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "entry_number": 22,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L22",
+      "filed_on": "2025-10-09",
+      "title": "Trial Transcript Day Four: Damages Experts",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L22: Trial Transcript Day Four: Damages Experts.",
+      "tags": [
+        "lower_record",
+        "trial_transcript"
+      ],
+      "asset_path": "objects/l22-trial-transcript-day4-damages-experts.pdf",
+      "asset_sha256": "e27d060017d997b9e37a60b7ea6b495bb291da0e17eed047d3e519ff3ed0be58",
+      "page_count": 21,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "entry_number": 23,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L23",
+      "filed_on": "2025-10-10",
+      "title": "Trial Transcript Day Five: Defense Evidence",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L23: Trial Transcript Day Five: Defense Evidence.",
+      "tags": [
+        "lower_record",
+        "trial_transcript"
+      ],
+      "asset_path": "objects/l23-trial-transcript-day5-defense-evidence.pdf",
+      "asset_sha256": "df607cd90a8d21ec14fcd24f6cbf56f2d8a19a2f295f9d2fb4190619dd8268d4",
+      "page_count": 21,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "entry_number": 24,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L24",
+      "filed_on": "2025-10-14",
+      "title": "Trial Transcript Day Six: Rebuttal, Charge, and Closing",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L24: Trial Transcript Day Six: Rebuttal, Charge, and Closing.",
+      "tags": [
+        "lower_record",
+        "trial_transcript"
+      ],
+      "asset_path": "objects/l24-trial-transcript-day6-rebuttal-charge-closing.pdf",
+      "asset_sha256": "d040a48a1697a2d4a92cb93dc1538d65bb666bd51ab6f5e42c377ceb9d7ab32b",
+      "page_count": 20,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l25",
+      "entry_number": 25,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L25",
+      "filed_on": "2025-10-07",
+      "title": "Shipment Logger and Chain-of-Custody Exhibit",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L25: Shipment Logger and Chain-of-Custody Exhibit.",
+      "tags": [
+        "lower_record",
+        "trial_exhibit"
+      ],
+      "asset_path": "objects/l25-shipment-logger-chain-of-custody-exhibit.pdf",
+      "asset_sha256": "1d8177b46615d709e5ee72b5e1a6d7fd1dc22e2730e01727943326cdc7588f79",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l26",
+      "entry_number": 26,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L26",
+      "filed_on": "2025-10-07",
+      "title": "Stability Assay and Lot-Disposition Exhibit",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L26: Stability Assay and Lot-Disposition Exhibit.",
+      "tags": [
+        "lower_record",
+        "trial_exhibit"
+      ],
+      "asset_path": "objects/l26-stability-assay-lot-disposition-exhibit.pdf",
+      "asset_sha256": "35c8730180b8774216bc6189aaf7c94b27c4fa4b93b49a3b77d53977c9438072",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l27",
+      "entry_number": 27,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L27",
+      "filed_on": "2025-10-08",
+      "title": "Replacement Campaign Schedule and Cost Ledger",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L27: Replacement Campaign Schedule and Cost Ledger.",
+      "tags": [
+        "lower_record",
+        "trial_exhibit"
+      ],
+      "asset_path": "objects/l27-replacement-campaign-schedule-cost-ledger.pdf",
+      "asset_sha256": "82b9fe210746286f10bd92b99f7a83e68a49bbe5dc3828c9184174c5dec4999f",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l28",
+      "entry_number": 28,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L28",
+      "filed_on": "2025-10-08",
+      "title": "Cobalt Finch Capacity-Offer Emails",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L28: Cobalt Finch Capacity-Offer Emails.",
+      "tags": [
+        "lower_record",
+        "trial_exhibit"
+      ],
+      "asset_path": "objects/l28-cobalt-finch-capacity-offer-emails.pdf",
+      "asset_sha256": "5913bd94ffb6a6094cc1476df4c4911a25892f4c5c8a60083de44a5d027bdfbc",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l29",
+      "entry_number": 29,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L29",
+      "filed_on": "2025-10-08",
+      "title": "Cobalt Finch Qualification and Change-Control File",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L29: Cobalt Finch Qualification and Change-Control File.",
+      "tags": [
+        "lower_record",
+        "trial_exhibit"
+      ],
+      "asset_path": "objects/l29-cobalt-finch-qualification-change-control-file.pdf",
+      "asset_sha256": "b8e4f227d3f6ba5b14a71714f97d7f32063ddb8e96e49fc6eac62e9ca7f9368f",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l30",
+      "entry_number": 30,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L30",
+      "filed_on": "2025-10-09",
+      "title": "Blue Ember Damages Schedule and Invoices",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L30: Blue Ember Damages Schedule and Invoices.",
+      "tags": [
+        "lower_record",
+        "trial_exhibit"
+      ],
+      "asset_path": "objects/l30-blue-ember-damages-schedule-invoices.pdf",
+      "asset_sha256": "8c4a51ccad07c3766d00c0ede3eadd9b36852aa2095418c990b6d281e08cf4a2",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l31",
+      "entry_number": 31,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L31",
+      "filed_on": "2025-10-10",
+      "title": "Granite Heron Mitigation-Savings Model",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L31: Granite Heron Mitigation-Savings Model.",
+      "tags": [
+        "lower_record",
+        "trial_exhibit"
+      ],
+      "asset_path": "objects/l31-granite-heron-mitigation-savings-model.pdf",
+      "asset_sha256": "cc13f8ef196b4c9884b3741863deb96601a3c8f7a8a131d3e492bc06c54f36e3",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l32",
+      "entry_number": 32,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L32",
+      "filed_on": "2025-10-10",
+      "title": "Granite Heron's Initial Rule 50(a) Motion",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L32: Granite Heron's Initial Rule 50(a) Motion.",
+      "tags": [
+        "lower_record",
+        "rule_50a_verdict_judgment"
+      ],
+      "asset_path": "objects/l32-granite-heron-initial-rule50a-motion.pdf",
+      "asset_sha256": "1629bfdba3921e53299126413f1cb484820aca4175ea4095184a5130aefc3dfc",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l33",
+      "entry_number": 33,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L33",
+      "filed_on": "2025-10-14",
+      "title": "Granite Heron's Close-of-All-Evidence Rule 50(a) Motion",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L33: Granite Heron's Close-of-All-Evidence Rule 50(a) Motion.",
+      "tags": [
+        "lower_record",
+        "rule_50a_verdict_judgment"
+      ],
+      "asset_path": "objects/l33-granite-heron-close-of-all-evidence-rule50a-motion.pdf",
+      "asset_sha256": "77331fef1f6b0cd202564d24c7b663205e8e373c5d1f3c17a8ccebbb45e05adc",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l34",
+      "entry_number": 34,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L34",
+      "filed_on": "2025-10-14",
+      "title": "Special Verdict",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L34: Special Verdict.",
+      "tags": [
+        "lower_record",
+        "rule_50a_verdict_judgment"
+      ],
+      "asset_path": "objects/l34-special-verdict.pdf",
+      "asset_sha256": "55718958a7667c4c8393a32c87c84d749350c49bacae7cdd6cf3d55fc33ebfd4",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l35",
+      "entry_number": 35,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L35",
+      "filed_on": "2025-10-15",
+      "title": "Original Judgment",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L35: Original Judgment.",
+      "tags": [
+        "lower_record",
+        "rule_50a_verdict_judgment"
+      ],
+      "asset_path": "objects/l35-original-judgment.pdf",
+      "asset_sha256": "b497cd641c4b6f9c12ffdd512702af4c7e9a95c859607a32e952a7e1bf5dbe29",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "entry_number": 36,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L36",
+      "filed_on": "2025-11-10",
+      "title": "Granite Heron's Rule 50(b) and Rule 59 Motion",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L36: Granite Heron's Rule 50(b) and Rule 59 Motion.",
+      "tags": [
+        "lower_record",
+        "rule_50b_59"
+      ],
+      "asset_path": "objects/l36-granite-heron-rule50b-rule59-motion.pdf",
+      "asset_sha256": "0c1d21bdaa8e32e7552cc952e94b66d510870d02d67c6efe5e735f09735a870e",
+      "page_count": 9,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l37",
+      "entry_number": 37,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L37",
+      "filed_on": "2025-11-24",
+      "title": "Blue Ember's Posttrial Opposition",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L37: Blue Ember's Posttrial Opposition.",
+      "tags": [
+        "lower_record",
+        "rule_50b_59"
+      ],
+      "asset_path": "objects/l37-blue-ember-posttrial-opposition.pdf",
+      "asset_sha256": "4f3821a0830b097efc12c93591d5df98406da2eac06fb9e34451663f84ccbe8c",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l38",
+      "entry_number": 38,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L38",
+      "filed_on": "2025-12-01",
+      "title": "Granite Heron's Posttrial Reply",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Lower-record document L38: Granite Heron's Posttrial Reply.",
+      "tags": [
+        "lower_record",
+        "rule_50b_59"
+      ],
+      "asset_path": "objects/l38-granite-heron-posttrial-reply.pdf",
+      "asset_sha256": "37a7f21d9acab2b8d8bd263750d534641256c6cb93cf6c1a13eaf86de7650176",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l39",
+      "entry_number": 39,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L39",
+      "filed_on": "2025-12-08",
+      "title": "Posttrial Motion Hearing Transcript",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L39: Posttrial Motion Hearing Transcript.",
+      "tags": [
+        "lower_record",
+        "rule_50b_59"
+      ],
+      "asset_path": "objects/l39-posttrial-motion-hearing-transcript.pdf",
+      "asset_sha256": "1891fbf04673905f0236a0e2117f5986e9695e7ef97217d8f725ad9fdac3c0ce",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "entry_number": 40,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L40",
+      "filed_on": "2025-12-15",
+      "title": "Posttrial Order and Amended Judgment",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L40: Posttrial Order and Amended Judgment.",
+      "tags": [
+        "lower_record",
+        "rule_50b_59"
+      ],
+      "asset_path": "objects/l40-posttrial-order-amended-judgment.pdf",
+      "asset_sha256": "376ab83d24bf47d5b7af1b12842519b4cda5362ab73868d0c99c921ed1eb52a5",
+      "page_count": 9,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l41",
+      "entry_number": 41,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L41",
+      "filed_on": "2026-01-12",
+      "title": "Blue Ember's Notice of Appeal",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Lower-record document L41: Blue Ember's Notice of Appeal.",
+      "tags": [
+        "lower_record",
+        "docket_notice"
+      ],
+      "asset_path": "objects/l41-blue-ember-notice-of-appeal.pdf",
+      "asset_sha256": "29861569765b48ff172f5ded65ae8c5990598e4783240bdfdf35719fe77d0fac",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.l42",
+      "entry_number": 42,
+      "docket_id": "ca4m4.blueember.docket.district",
+      "entry_label": "Lower Record L42",
+      "filed_on": "2026-01-13",
+      "title": "Certified Docket and Record Certificate",
+      "actor": "Fictional United States District Court for the Western District of North Carolina",
+      "description": "Lower-record document L42: Certified Docket and Record Certificate.",
+      "tags": [
+        "lower_record",
+        "docket_notice"
+      ],
+      "asset_path": "objects/l42-certified-docket-record-certificate.pdf",
+      "asset_sha256": "b5b15b59b0307a787c7c27e97a1352ebda5a9d5d3d0ff801378b18bf7f707c5a",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a01",
+      "entry_number": 43,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A01",
+      "filed_on": "2026-01-14",
+      "title": "Appellate Docketing Notice",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A01: Appellate Docketing Notice.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a01-appellate-docketing-notice.pdf",
+      "asset_sha256": "2722e449c79cfcc8d4718f05fdf77e81b754e7caa3241086b321e0eadd338f60",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a02",
+      "entry_number": 44,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A02",
+      "filed_on": "2026-01-16",
+      "title": "Blue Ember Appearance and Disclosure Statement",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Actual appellate document A02: Blue Ember Appearance and Disclosure Statement.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a02-blue-ember-appearance-disclosure.pdf",
+      "asset_sha256": "a60c6178662e176fe35135a6637abea07de7210a484894f6ff4d16cdd3016c31",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a03",
+      "entry_number": 45,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A03",
+      "filed_on": "2026-01-16",
+      "title": "Granite Heron Appearance and Disclosure Statement",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Actual appellate document A03: Granite Heron Appearance and Disclosure Statement.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a03-granite-heron-appearance-disclosure.pdf",
+      "asset_sha256": "282d7ba13e6e8342a35349a64da46a12d6137a91aec9b8a22a3e95c1950fc094",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a04",
+      "entry_number": 46,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A04",
+      "filed_on": "2026-01-23",
+      "title": "Blue Ember Docketing Statement",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Actual appellate document A04: Blue Ember Docketing Statement.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a04-blue-ember-docketing-statement.pdf",
+      "asset_sha256": "40e17692dd04c069e7abe1f474d7d96c3d6e18dc4467f06856fb71647356e7d1",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a05",
+      "entry_number": 47,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A05",
+      "filed_on": "2026-01-23",
+      "title": "Transcript Order and Record Designation",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Actual appellate document A05: Transcript Order and Record Designation.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a05-transcript-order-record-designation.pdf",
+      "asset_sha256": "8c7a351de10681db3f9ea7e2ed382d1c1e888c8da19ca6a1371ad629ab63ae66",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a06",
+      "entry_number": 48,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A06",
+      "filed_on": "2026-02-02",
+      "title": "Record-Complete and Briefing Order",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A06: Record-Complete and Briefing Order.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a06-record-complete-briefing-order.pdf",
+      "asset_sha256": "ea6b47f8851d088308d5a6a7c0228d460461b44be80653be1b728a0e4da1f2a4",
+      "page_count": 3,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "entry_number": 49,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A07",
+      "filed_on": "2026-03-09",
+      "title": "Blue Ember Opening Brief",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Actual appellate document A07: Blue Ember Opening Brief.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a07-blue-ember-opening-brief.pdf",
+      "asset_sha256": "80350f6c94023cd1b5287b1e69b28e1439e82d234c1919a9821f9bc17d2d6a0c",
+      "page_count": 22,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a08",
+      "entry_number": 50,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A08",
+      "filed_on": "2026-03-09",
+      "title": "Joint Appendix Cover, Index, and Certification",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Actual appellate document A08: Joint Appendix Cover, Index, and Certification.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a08-joint-appendix-cover-index-certification.pdf",
+      "asset_sha256": "111ec43222386ffe0f0bae3e98dbbc7361557abdd1c6f9ffeedd74d36e0d438a",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "entry_number": 51,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A09",
+      "filed_on": "2026-04-08",
+      "title": "Granite Heron Response Brief",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Actual appellate document A09: Granite Heron Response Brief.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a09-granite-heron-response-brief.pdf",
+      "asset_sha256": "c20c4fdf945677387996289b392a04844ae224938aa6616426f54e91ae6116e6",
+      "page_count": 22,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "entry_number": 52,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A10",
+      "filed_on": "2026-04-20",
+      "title": "Blue Ember Reply Brief",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Actual appellate document A10: Blue Ember Reply Brief.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a10-blue-ember-reply-brief.pdf",
+      "asset_sha256": "9c365d4e8639ac39337dfdcf727d4f205f2fbd335f99cc67f500f9355b8147dc",
+      "page_count": 12,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a11",
+      "entry_number": 53,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A11",
+      "filed_on": "2026-04-24",
+      "title": "Oral-Argument Calendar Notice",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A11: Oral-Argument Calendar Notice.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a11-oral-argument-calendar-notice.pdf",
+      "asset_sha256": "bdeba1c0d6e611782e65323256095209b6bf20c5a85099beb75b058219baaa78",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a12",
+      "entry_number": 54,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A12",
+      "filed_on": "2026-05-06",
+      "title": "Argument-Held Minute Sheet",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual appellate document A12: Argument-Held Minute Sheet.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a12-argument-held-minute-sheet.pdf",
+      "asset_sha256": "0c5c74570aacc1c45b8f5252c03fe46f1e2c3412635b2852e0e6c504b724db0a",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "entry_number": 55,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A13",
+      "filed_on": "2026-07-09",
+      "title": "Published Panel Opinion",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Actual appellate document A13: Published Panel Opinion.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a13-published-panel-opinion.pdf",
+      "asset_sha256": "6e87cdcbd62d617aae22db97313903bbc07aedbb40e583ad7f1bc153c9add957",
+      "page_count": 17,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a14",
+      "entry_number": 56,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A14",
+      "filed_on": "2026-07-09",
+      "title": "Judgment",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A14: Judgment.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a14-judgment.pdf",
+      "asset_sha256": "5a339a13e14a331db000bcc1f5ab138e3c83060a10223c9ea6fad6c16d7854da",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a15",
+      "entry_number": 57,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A15",
+      "filed_on": "2026-07-30",
+      "title": "Ordinary Mandate-Release Order",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A15: Ordinary Mandate-Release Order.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a15-ordinary-mandate-release-order.pdf",
+      "asset_sha256": "45aa0355821b674e0f835653f118f286bb19f50f7960a7db9d56f696591b5ab2",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.a16",
+      "entry_number": 58,
+      "docket_id": "ca4m4.blueember.docket.appellate",
+      "entry_label": "Actual Appellate A16",
+      "filed_on": "2026-07-30",
+      "title": "Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Actual appellate document A16: Mandate.",
+      "tags": [
+        "actual_appellate_docket"
+      ],
+      "asset_path": "objects/a16-mandate.pdf",
+      "asset_sha256": "a51004a8cd6aabdbad6f7fd693c4649479b35c2115795864d0180860fc246233",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b01",
+      "entry_number": 59,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B01 — Never Filed",
+      "filed_on": "2026-02-02",
+      "title": "Counterfactual Express-Preservation Record-Variation and Briefing Order",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual appellate document B01: Counterfactual Express-Preservation Record-Variation and Briefing Order. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b01-counterfactual-express-preservation-record-order.pdf",
+      "asset_sha256": "33e4d4fb83a91e409fafc39e33958602dca9ffe6b2f4e22e660e418be4ff09a8",
+      "page_count": 4,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "entry_number": 60,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B02 — Never Filed",
+      "filed_on": "2026-03-09",
+      "title": "Counterfactual Blue Ember Opening Brief",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Counterfactual appellate document B02: Counterfactual Blue Ember Opening Brief. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b02-counterfactual-blue-ember-opening-brief.pdf",
+      "asset_sha256": "c6aa4b2ce5f62101c14ad216a862175e0c891d798e82335e2702c18b108e0020",
+      "page_count": 16,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b03",
+      "entry_number": 61,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B03 — Never Filed",
+      "filed_on": "2026-03-09",
+      "title": "Counterfactual Joint Appendix Cover, Index, and Certification",
+      "actor": "Blue Ember Biologics, LLC (fictional) and Granite Heron Logistics, Inc. (fictional)",
+      "description": "Counterfactual appellate document B03: Counterfactual Joint Appendix Cover, Index, and Certification. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b03-counterfactual-joint-appendix-cover-index-certification.pdf",
+      "asset_sha256": "5c3923d96ac613b95c5a453cb91554811e1b790b0ef7fff68738b1f3132e3d5e",
+      "page_count": 7,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "entry_number": 62,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B04 — Never Filed",
+      "filed_on": "2026-04-08",
+      "title": "Counterfactual Granite Heron Response Brief",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Counterfactual appellate document B04: Counterfactual Granite Heron Response Brief. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b04-counterfactual-granite-heron-response-brief.pdf",
+      "asset_sha256": "ae2e850d965ff49d679c8034ae5fa7b42979424e0628c3b0a5c458ed3359ed3d",
+      "page_count": 16,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b05",
+      "entry_number": 63,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B05 — Never Filed",
+      "filed_on": "2026-04-20",
+      "title": "Counterfactual Blue Ember Reply Brief",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Counterfactual appellate document B05: Counterfactual Blue Ember Reply Brief. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b05-counterfactual-blue-ember-reply-brief.pdf",
+      "asset_sha256": "0d550fd76aa1373c0a8f6d610424bc1893aaff70e394ed4f7c1a10a520a23c26",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b06",
+      "entry_number": 64,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B06 — Never Filed",
+      "filed_on": "2026-05-06",
+      "title": "Counterfactual Submission-on-Briefs Order",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual appellate document B06: Counterfactual Submission-on-Briefs Order. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b06-submission-on-briefs-order.pdf",
+      "asset_sha256": "5b328caaf05ef9a011bd0bb2c24cdca4a4ea12eb21142a5e21aac9030594fbcb",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "entry_number": 65,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B07 — Never Filed",
+      "filed_on": "2026-07-09",
+      "title": "Counterfactual Preserved-Mitigation Opinion",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual appellate document B07: Counterfactual Preserved-Mitigation Opinion. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b07-counterfactual-preserved-mitigation-opinion.pdf",
+      "asset_sha256": "ba10265c06549a8ac8576145b27dfacfb18fa5fd40ab58fa8ce7c82d0998c49d",
+      "page_count": 13,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b08",
+      "entry_number": 66,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B08 — Never Filed",
+      "filed_on": "2026-07-09",
+      "title": "Counterfactual Judgment",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B08: Counterfactual Judgment. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b08-counterfactual-judgment.pdf",
+      "asset_sha256": "b1b26db82867301512e3670925bce6f0e69cd746b0b0db764542e264f90a2564",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b09",
+      "entry_number": 67,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B09 — Never Filed",
+      "filed_on": "2026-07-30",
+      "title": "Counterfactual Ordinary Mandate-Release Order",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B09: Counterfactual Ordinary Mandate-Release Order. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b09-counterfactual-ordinary-mandate-release-order.pdf",
+      "asset_sha256": "79250c09a62a74dd3e31243753b18939dd418365082428468f8fa9bf4f4e7116",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b10",
+      "entry_number": 68,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B10 — Never Filed",
+      "filed_on": "2026-07-30",
+      "title": "Counterfactual Ordinary Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B10: Counterfactual Ordinary Mandate. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b10-counterfactual-ordinary-mandate.pdf",
+      "asset_sha256": "41a80248b6ccec0365b7ce9073c1bd2382f53c875f8e0cf7d16623d20263aa30",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b11",
+      "entry_number": 69,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B11 — Never Filed",
+      "filed_on": "2026-07-23",
+      "title": "Counterfactual Timely Rehearing Petition",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Counterfactual appellate document B11: Counterfactual Timely Rehearing Petition. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b11-timely-rehearing-petition.pdf",
+      "asset_sha256": "b5fd9cf4a89d392e07524776c99b6981d4bd7de36a67772eb30e1e6f4efcdf99",
+      "page_count": 8,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b12",
+      "entry_number": 70,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B12 — Never Filed",
+      "filed_on": "2026-08-06",
+      "title": "Counterfactual Rehearing Denial",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual appellate document B12: Counterfactual Rehearing Denial. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b12-rehearing-denial.pdf",
+      "asset_sha256": "2a81bd29a12d77c0db65a0cac4dfa97207176be7d54a9b0e7f74f34608684087",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b13",
+      "entry_number": 71,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B13 — Never Filed",
+      "filed_on": "2026-08-13",
+      "title": "Counterfactual Post-Rehearing Release Order",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B13: Counterfactual Post-Rehearing Release Order. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b13-post-rehearing-release-order.pdf",
+      "asset_sha256": "407131f5c8566852acbbb5024bebc487b248db7cc5c912c9aafb695ce822ee04",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b14",
+      "entry_number": 72,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B14 — Never Filed",
+      "filed_on": "2026-08-13",
+      "title": "Counterfactual Post-Rehearing Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B14: Counterfactual Post-Rehearing Mandate. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b14-post-rehearing-mandate.pdf",
+      "asset_sha256": "2325acb4453537cd1a535588f1921df1f451bf239f71d43fa3fd19835e86186c",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b15",
+      "entry_number": 73,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B15 — Never Filed",
+      "filed_on": "2026-07-27",
+      "title": "Counterfactual Mandate-Stay Motion: Denial Path",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Counterfactual appellate document B15: Counterfactual Mandate-Stay Motion: Denial Path. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b15-mandate-stay-motion-denial-path.pdf",
+      "asset_sha256": "493b33504f31fbb977dc7497427afb77167f283baf8153df29f6b4f4b5cefe75",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b16",
+      "entry_number": 74,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B16 — Never Filed",
+      "filed_on": "2026-07-28",
+      "title": "Counterfactual Mandate-Stay Response: Denial Path",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Counterfactual appellate document B16: Counterfactual Mandate-Stay Response: Denial Path. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b16-mandate-stay-response-denial-path.pdf",
+      "asset_sha256": "b2878f685087d70104f7a51af2646266a91f050d78540807a4ee7149cb36b14c",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b17",
+      "entry_number": 75,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B17 — Never Filed",
+      "filed_on": "2026-07-29",
+      "title": "Counterfactual Mandate-Stay Denial",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual appellate document B17: Counterfactual Mandate-Stay Denial. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b17-mandate-stay-denial.pdf",
+      "asset_sha256": "e526ea9b6c833fe083854478d59fedd1eb9590511cc88f2d347fd3cfb75bd6be",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b18",
+      "entry_number": 76,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B18 — Never Filed",
+      "filed_on": "2026-07-30",
+      "title": "Counterfactual Post-Stay-Denial Release Order",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B18: Counterfactual Post-Stay-Denial Release Order. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b18-post-stay-denial-release-order.pdf",
+      "asset_sha256": "b317c8109c744a02729bd8283890ddb90ac04d7e8a4ba41497425ad861d3bd5a",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b19",
+      "entry_number": 77,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B19 — Never Filed",
+      "filed_on": "2026-07-30",
+      "title": "Counterfactual Post-Stay-Denial Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B19: Counterfactual Post-Stay-Denial Mandate. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b19-post-stay-denial-mandate.pdf",
+      "asset_sha256": "76ba7bdbc19a0cf1f45ac9da7920c8a6c863b3e7c8ca7bb876540855a8f80446",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b20",
+      "entry_number": 78,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B20 — Never Filed",
+      "filed_on": "2026-07-27",
+      "title": "Counterfactual Mandate-Stay Motion: Grant Path",
+      "actor": "Granite Heron Logistics, Inc. (fictional)",
+      "description": "Counterfactual appellate document B20: Counterfactual Mandate-Stay Motion: Grant Path. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b20-mandate-stay-motion-grant-path.pdf",
+      "asset_sha256": "bec501c3cae92728edf4044999693e3f861156c6e7e0417e7ac120dd9cf5bdd6",
+      "page_count": 6,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b21",
+      "entry_number": 79,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B21 — Never Filed",
+      "filed_on": "2026-07-28",
+      "title": "Counterfactual Mandate-Stay Response: Grant Path",
+      "actor": "Blue Ember Biologics, LLC (fictional)",
+      "description": "Counterfactual appellate document B21: Counterfactual Mandate-Stay Response: Grant Path. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b21-mandate-stay-response-grant-path.pdf",
+      "asset_sha256": "8186c7c38c8a2b6cf1d4527699a90e8d19af499819522e371bb488b5afd286ef",
+      "page_count": 5,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b22",
+      "entry_number": 80,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B22 — Never Filed",
+      "filed_on": "2026-07-29",
+      "title": "Counterfactual Mandate-Stay Grant",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual appellate document B22: Counterfactual Mandate-Stay Grant. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b22-mandate-stay-grant.pdf",
+      "asset_sha256": "876ce411c14b6a7a4f16091998438f4cdc89c1ee03be63ac855e7f23d2789ba9",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b23",
+      "entry_number": 81,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B23 — Never Filed",
+      "filed_on": "2026-08-12",
+      "title": "Counterfactual Certiorari-Abandonment and Stay-Dissolution Order",
+      "actor": "Fictional composite Fourth Circuit panel",
+      "description": "Counterfactual appellate document B23: Counterfactual Certiorari-Abandonment and Stay-Dissolution Order. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b23-certiorari-abandonment-stay-dissolution-order.pdf",
+      "asset_sha256": "50d1c1b49d5330c89ae76303b5043a74c1242a537cda014884860e6fde60ed55",
+      "page_count": 2,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b24",
+      "entry_number": 82,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B24 — Never Filed",
+      "filed_on": "2026-08-13",
+      "title": "Counterfactual Post-Dissolution Release Order",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B24: Counterfactual Post-Dissolution Release Order. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b24-post-dissolution-release-order.pdf",
+      "asset_sha256": "5d8b9216a43d387242f6c38c2e9a5fc4d03a223d93a3d1d8a5e0db4622365323",
+      "page_count": 1,
+      "sealed": false
+    },
+    {
+      "entry_id": "ca4m4.blueember.record.entry.b25",
+      "entry_number": 83,
+      "docket_id": "ca4m4.blueember.docket.counterfactual-branches",
+      "entry_label": "Counterfactual Branch B25 — Never Filed",
+      "filed_on": "2026-08-13",
+      "title": "Counterfactual Post-Dissolution Mandate",
+      "actor": "Fictional Fourth Circuit exercise clerk",
+      "description": "Counterfactual appellate document B25: Counterfactual Post-Dissolution Mandate. This training branch was never filed and never occurred on the actual docket.",
+      "tags": [
+        "counterfactual_appellate_branch",
+        "never_filed",
+        "never_occurred_on_actual_docket"
+      ],
+      "asset_path": "objects/b25-post-dissolution-mandate.pdf",
+      "asset_sha256": "17d64ac2fb9c0f66783237ceaa6d1cf91962e865b5f143b220f66ecdefd932e1",
+      "page_count": 2,
+      "sealed": false
+    }
+  ],
+  "page_anchors": [
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja1",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 1,
+      "citation_label": "JA1"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja2",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 2,
+      "citation_label": "JA2"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja3",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 3,
+      "citation_label": "JA3"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja4",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 4,
+      "citation_label": "JA4"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja5",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 5,
+      "citation_label": "JA5"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja6",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 6,
+      "citation_label": "JA6"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja7",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 7,
+      "citation_label": "JA7"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja8",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 8,
+      "citation_label": "JA8"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja9",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 9,
+      "citation_label": "JA9"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja10",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 10,
+      "citation_label": "JA10"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja11",
+      "entry_id": "ca4m4.blueember.record.entry.l01",
+      "page_number": 11,
+      "citation_label": "JA11"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja12",
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "page_number": 1,
+      "citation_label": "JA12"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja13",
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "page_number": 2,
+      "citation_label": "JA13"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja14",
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "page_number": 3,
+      "citation_label": "JA14"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja15",
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "page_number": 4,
+      "citation_label": "JA15"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja16",
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "page_number": 5,
+      "citation_label": "JA16"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja17",
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "page_number": 6,
+      "citation_label": "JA17"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja18",
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "page_number": 7,
+      "citation_label": "JA18"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja19",
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "page_number": 8,
+      "citation_label": "JA19"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja20",
+      "entry_id": "ca4m4.blueember.record.entry.l02",
+      "page_number": 9,
+      "citation_label": "JA20"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja21",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 1,
+      "citation_label": "JA21"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja22",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 2,
+      "citation_label": "JA22"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja23",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 3,
+      "citation_label": "JA23"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja24",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 4,
+      "citation_label": "JA24"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja25",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 5,
+      "citation_label": "JA25"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja26",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 6,
+      "citation_label": "JA26"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja27",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 7,
+      "citation_label": "JA27"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja28",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 8,
+      "citation_label": "JA28"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja29",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 9,
+      "citation_label": "JA29"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja30",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 10,
+      "citation_label": "JA30"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja31",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 11,
+      "citation_label": "JA31"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja32",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 12,
+      "citation_label": "JA32"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja33",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 13,
+      "citation_label": "JA33"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja34",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 14,
+      "citation_label": "JA34"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja35",
+      "entry_id": "ca4m4.blueember.record.entry.l03",
+      "page_number": 15,
+      "citation_label": "JA35"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja36",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 1,
+      "citation_label": "JA36"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja37",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 2,
+      "citation_label": "JA37"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja38",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 3,
+      "citation_label": "JA38"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja39",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 4,
+      "citation_label": "JA39"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja40",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 5,
+      "citation_label": "JA40"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja41",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 6,
+      "citation_label": "JA41"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja42",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 7,
+      "citation_label": "JA42"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja43",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 8,
+      "citation_label": "JA43"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja44",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 9,
+      "citation_label": "JA44"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja45",
+      "entry_id": "ca4m4.blueember.record.entry.l04",
+      "page_number": 10,
+      "citation_label": "JA45"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja46",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 1,
+      "citation_label": "JA46"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja47",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 2,
+      "citation_label": "JA47"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja48",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 3,
+      "citation_label": "JA48"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja49",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 4,
+      "citation_label": "JA49"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja50",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 5,
+      "citation_label": "JA50"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja51",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 6,
+      "citation_label": "JA51"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja52",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 7,
+      "citation_label": "JA52"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja53",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 8,
+      "citation_label": "JA53"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja54",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 9,
+      "citation_label": "JA54"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja55",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 10,
+      "citation_label": "JA55"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja56",
+      "entry_id": "ca4m4.blueember.record.entry.l05",
+      "page_number": 11,
+      "citation_label": "JA56"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja57",
+      "entry_id": "ca4m4.blueember.record.entry.l06",
+      "page_number": 1,
+      "citation_label": "JA57"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja58",
+      "entry_id": "ca4m4.blueember.record.entry.l06",
+      "page_number": 2,
+      "citation_label": "JA58"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja59",
+      "entry_id": "ca4m4.blueember.record.entry.l06",
+      "page_number": 3,
+      "citation_label": "JA59"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja60",
+      "entry_id": "ca4m4.blueember.record.entry.l06",
+      "page_number": 4,
+      "citation_label": "JA60"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja61",
+      "entry_id": "ca4m4.blueember.record.entry.l06",
+      "page_number": 5,
+      "citation_label": "JA61"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja62",
+      "entry_id": "ca4m4.blueember.record.entry.l06",
+      "page_number": 6,
+      "citation_label": "JA62"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja63",
+      "entry_id": "ca4m4.blueember.record.entry.l06",
+      "page_number": 7,
+      "citation_label": "JA63"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja64",
+      "entry_id": "ca4m4.blueember.record.entry.l06",
+      "page_number": 8,
+      "citation_label": "JA64"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja65",
+      "entry_id": "ca4m4.blueember.record.entry.l07",
+      "page_number": 1,
+      "citation_label": "JA65"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja66",
+      "entry_id": "ca4m4.blueember.record.entry.l07",
+      "page_number": 2,
+      "citation_label": "JA66"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja67",
+      "entry_id": "ca4m4.blueember.record.entry.l07",
+      "page_number": 3,
+      "citation_label": "JA67"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja68",
+      "entry_id": "ca4m4.blueember.record.entry.l07",
+      "page_number": 4,
+      "citation_label": "JA68"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja69",
+      "entry_id": "ca4m4.blueember.record.entry.l07",
+      "page_number": 5,
+      "citation_label": "JA69"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja70",
+      "entry_id": "ca4m4.blueember.record.entry.l07",
+      "page_number": 6,
+      "citation_label": "JA70"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja71",
+      "entry_id": "ca4m4.blueember.record.entry.l08",
+      "page_number": 1,
+      "citation_label": "JA71"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja72",
+      "entry_id": "ca4m4.blueember.record.entry.l08",
+      "page_number": 2,
+      "citation_label": "JA72"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja73",
+      "entry_id": "ca4m4.blueember.record.entry.l08",
+      "page_number": 3,
+      "citation_label": "JA73"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja74",
+      "entry_id": "ca4m4.blueember.record.entry.l08",
+      "page_number": 4,
+      "citation_label": "JA74"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja75",
+      "entry_id": "ca4m4.blueember.record.entry.l08",
+      "page_number": 5,
+      "citation_label": "JA75"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja76",
+      "entry_id": "ca4m4.blueember.record.entry.l08",
+      "page_number": 6,
+      "citation_label": "JA76"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja77",
+      "entry_id": "ca4m4.blueember.record.entry.l08",
+      "page_number": 7,
+      "citation_label": "JA77"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja78",
+      "entry_id": "ca4m4.blueember.record.entry.l08",
+      "page_number": 8,
+      "citation_label": "JA78"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja79",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 1,
+      "citation_label": "JA79"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja80",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 2,
+      "citation_label": "JA80"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja81",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 3,
+      "citation_label": "JA81"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja82",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 4,
+      "citation_label": "JA82"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja83",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 5,
+      "citation_label": "JA83"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja84",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 6,
+      "citation_label": "JA84"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja85",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 7,
+      "citation_label": "JA85"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja86",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 8,
+      "citation_label": "JA86"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja87",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 9,
+      "citation_label": "JA87"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja88",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 10,
+      "citation_label": "JA88"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja89",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 11,
+      "citation_label": "JA89"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja90",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 12,
+      "citation_label": "JA90"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja91",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 13,
+      "citation_label": "JA91"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja92",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 14,
+      "citation_label": "JA92"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja93",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 15,
+      "citation_label": "JA93"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja94",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 16,
+      "citation_label": "JA94"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja95",
+      "entry_id": "ca4m4.blueember.record.entry.l09",
+      "page_number": 17,
+      "citation_label": "JA95"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja96",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 1,
+      "citation_label": "JA96"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja97",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 2,
+      "citation_label": "JA97"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja98",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 3,
+      "citation_label": "JA98"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja99",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 4,
+      "citation_label": "JA99"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja100",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 5,
+      "citation_label": "JA100"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja101",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 6,
+      "citation_label": "JA101"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja102",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 7,
+      "citation_label": "JA102"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja103",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 8,
+      "citation_label": "JA103"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja104",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 9,
+      "citation_label": "JA104"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja105",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 10,
+      "citation_label": "JA105"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja106",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 11,
+      "citation_label": "JA106"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja107",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 12,
+      "citation_label": "JA107"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja108",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 13,
+      "citation_label": "JA108"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja109",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 14,
+      "citation_label": "JA109"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja110",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 15,
+      "citation_label": "JA110"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja111",
+      "entry_id": "ca4m4.blueember.record.entry.l10",
+      "page_number": 16,
+      "citation_label": "JA111"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja112",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 1,
+      "citation_label": "JA112"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja113",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 2,
+      "citation_label": "JA113"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja114",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 3,
+      "citation_label": "JA114"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja115",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 4,
+      "citation_label": "JA115"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja116",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 5,
+      "citation_label": "JA116"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja117",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 6,
+      "citation_label": "JA117"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja118",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 7,
+      "citation_label": "JA118"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja119",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 8,
+      "citation_label": "JA119"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja120",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 9,
+      "citation_label": "JA120"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja121",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 10,
+      "citation_label": "JA121"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja122",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 11,
+      "citation_label": "JA122"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja123",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 12,
+      "citation_label": "JA123"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja124",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 13,
+      "citation_label": "JA124"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja125",
+      "entry_id": "ca4m4.blueember.record.entry.l11",
+      "page_number": 14,
+      "citation_label": "JA125"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja126",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 1,
+      "citation_label": "JA126"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja127",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 2,
+      "citation_label": "JA127"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja128",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 3,
+      "citation_label": "JA128"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja129",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 4,
+      "citation_label": "JA129"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja130",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 5,
+      "citation_label": "JA130"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja131",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 6,
+      "citation_label": "JA131"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja132",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 7,
+      "citation_label": "JA132"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja133",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 8,
+      "citation_label": "JA133"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja134",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 9,
+      "citation_label": "JA134"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja135",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 10,
+      "citation_label": "JA135"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja136",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 11,
+      "citation_label": "JA136"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja137",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 12,
+      "citation_label": "JA137"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja138",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 13,
+      "citation_label": "JA138"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja139",
+      "entry_id": "ca4m4.blueember.record.entry.l12",
+      "page_number": 14,
+      "citation_label": "JA139"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja140",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 1,
+      "citation_label": "JA140"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja141",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 2,
+      "citation_label": "JA141"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja142",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 3,
+      "citation_label": "JA142"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja143",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 4,
+      "citation_label": "JA143"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja144",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 5,
+      "citation_label": "JA144"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja145",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 6,
+      "citation_label": "JA145"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja146",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 7,
+      "citation_label": "JA146"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja147",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 8,
+      "citation_label": "JA147"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja148",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 9,
+      "citation_label": "JA148"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja149",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 10,
+      "citation_label": "JA149"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja150",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 11,
+      "citation_label": "JA150"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja151",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 12,
+      "citation_label": "JA151"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja152",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 13,
+      "citation_label": "JA152"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja153",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 14,
+      "citation_label": "JA153"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja154",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 15,
+      "citation_label": "JA154"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja155",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 16,
+      "citation_label": "JA155"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja156",
+      "entry_id": "ca4m4.blueember.record.entry.l13",
+      "page_number": 17,
+      "citation_label": "JA156"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja157",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 1,
+      "citation_label": "JA157"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja158",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 2,
+      "citation_label": "JA158"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja159",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 3,
+      "citation_label": "JA159"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja160",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 4,
+      "citation_label": "JA160"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja161",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 5,
+      "citation_label": "JA161"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja162",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 6,
+      "citation_label": "JA162"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja163",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 7,
+      "citation_label": "JA163"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja164",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 8,
+      "citation_label": "JA164"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja165",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 9,
+      "citation_label": "JA165"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja166",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 10,
+      "citation_label": "JA166"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja167",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 11,
+      "citation_label": "JA167"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja168",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 12,
+      "citation_label": "JA168"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja169",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 13,
+      "citation_label": "JA169"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja170",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 14,
+      "citation_label": "JA170"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja171",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 15,
+      "citation_label": "JA171"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja172",
+      "entry_id": "ca4m4.blueember.record.entry.l14",
+      "page_number": 16,
+      "citation_label": "JA172"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja173",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 1,
+      "citation_label": "JA173"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja174",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 2,
+      "citation_label": "JA174"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja175",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 3,
+      "citation_label": "JA175"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja176",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 4,
+      "citation_label": "JA176"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja177",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 5,
+      "citation_label": "JA177"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja178",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 6,
+      "citation_label": "JA178"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja179",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 7,
+      "citation_label": "JA179"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja180",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 8,
+      "citation_label": "JA180"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja181",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 9,
+      "citation_label": "JA181"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja182",
+      "entry_id": "ca4m4.blueember.record.entry.l15",
+      "page_number": 10,
+      "citation_label": "JA182"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja183",
+      "entry_id": "ca4m4.blueember.record.entry.l16",
+      "page_number": 1,
+      "citation_label": "JA183"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja184",
+      "entry_id": "ca4m4.blueember.record.entry.l16",
+      "page_number": 2,
+      "citation_label": "JA184"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja185",
+      "entry_id": "ca4m4.blueember.record.entry.l16",
+      "page_number": 3,
+      "citation_label": "JA185"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja186",
+      "entry_id": "ca4m4.blueember.record.entry.l16",
+      "page_number": 4,
+      "citation_label": "JA186"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja187",
+      "entry_id": "ca4m4.blueember.record.entry.l16",
+      "page_number": 5,
+      "citation_label": "JA187"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja188",
+      "entry_id": "ca4m4.blueember.record.entry.l16",
+      "page_number": 6,
+      "citation_label": "JA188"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja189",
+      "entry_id": "ca4m4.blueember.record.entry.l16",
+      "page_number": 7,
+      "citation_label": "JA189"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja190",
+      "entry_id": "ca4m4.blueember.record.entry.l16",
+      "page_number": 8,
+      "citation_label": "JA190"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja191",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 1,
+      "citation_label": "JA191"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja192",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 2,
+      "citation_label": "JA192"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja193",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 3,
+      "citation_label": "JA193"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja194",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 4,
+      "citation_label": "JA194"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja195",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 5,
+      "citation_label": "JA195"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja196",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 6,
+      "citation_label": "JA196"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja197",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 7,
+      "citation_label": "JA197"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja198",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 8,
+      "citation_label": "JA198"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja199",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 9,
+      "citation_label": "JA199"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja200",
+      "entry_id": "ca4m4.blueember.record.entry.l17",
+      "page_number": 10,
+      "citation_label": "JA200"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja201",
+      "entry_id": "ca4m4.blueember.record.entry.l18",
+      "page_number": 1,
+      "citation_label": "JA201"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja202",
+      "entry_id": "ca4m4.blueember.record.entry.l18",
+      "page_number": 2,
+      "citation_label": "JA202"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja203",
+      "entry_id": "ca4m4.blueember.record.entry.l18",
+      "page_number": 3,
+      "citation_label": "JA203"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja204",
+      "entry_id": "ca4m4.blueember.record.entry.l18",
+      "page_number": 4,
+      "citation_label": "JA204"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja205",
+      "entry_id": "ca4m4.blueember.record.entry.l18",
+      "page_number": 5,
+      "citation_label": "JA205"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja206",
+      "entry_id": "ca4m4.blueember.record.entry.l18",
+      "page_number": 6,
+      "citation_label": "JA206"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja207",
+      "entry_id": "ca4m4.blueember.record.entry.l18",
+      "page_number": 7,
+      "citation_label": "JA207"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja208",
+      "entry_id": "ca4m4.blueember.record.entry.l18",
+      "page_number": 8,
+      "citation_label": "JA208"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja209",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 1,
+      "citation_label": "JA209"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja210",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 2,
+      "citation_label": "JA210"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja211",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 3,
+      "citation_label": "JA211"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja212",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 4,
+      "citation_label": "JA212"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja213",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 5,
+      "citation_label": "JA213"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja214",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 6,
+      "citation_label": "JA214"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja215",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 7,
+      "citation_label": "JA215"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja216",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 8,
+      "citation_label": "JA216"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja217",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 9,
+      "citation_label": "JA217"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja218",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 10,
+      "citation_label": "JA218"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja219",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 11,
+      "citation_label": "JA219"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja220",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 12,
+      "citation_label": "JA220"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja221",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 13,
+      "citation_label": "JA221"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja222",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 14,
+      "citation_label": "JA222"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja223",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 15,
+      "citation_label": "JA223"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja224",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 16,
+      "citation_label": "JA224"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja225",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 17,
+      "citation_label": "JA225"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja226",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 18,
+      "citation_label": "JA226"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja227",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 19,
+      "citation_label": "JA227"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja228",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 20,
+      "citation_label": "JA228"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja229",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 21,
+      "citation_label": "JA229"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja230",
+      "entry_id": "ca4m4.blueember.record.entry.l19",
+      "page_number": 22,
+      "citation_label": "JA230"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja231",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 1,
+      "citation_label": "JA231"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja232",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 2,
+      "citation_label": "JA232"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja233",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 3,
+      "citation_label": "JA233"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja234",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 4,
+      "citation_label": "JA234"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja235",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 5,
+      "citation_label": "JA235"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja236",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 6,
+      "citation_label": "JA236"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja237",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 7,
+      "citation_label": "JA237"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja238",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 8,
+      "citation_label": "JA238"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja239",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 9,
+      "citation_label": "JA239"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja240",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 10,
+      "citation_label": "JA240"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja241",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 11,
+      "citation_label": "JA241"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja242",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 12,
+      "citation_label": "JA242"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja243",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 13,
+      "citation_label": "JA243"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja244",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 14,
+      "citation_label": "JA244"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja245",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 15,
+      "citation_label": "JA245"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja246",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 16,
+      "citation_label": "JA246"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja247",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 17,
+      "citation_label": "JA247"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja248",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 18,
+      "citation_label": "JA248"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja249",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 19,
+      "citation_label": "JA249"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja250",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 20,
+      "citation_label": "JA250"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja251",
+      "entry_id": "ca4m4.blueember.record.entry.l20",
+      "page_number": 21,
+      "citation_label": "JA251"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja252",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 1,
+      "citation_label": "JA252"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja253",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 2,
+      "citation_label": "JA253"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja254",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 3,
+      "citation_label": "JA254"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja255",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 4,
+      "citation_label": "JA255"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja256",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 5,
+      "citation_label": "JA256"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja257",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 6,
+      "citation_label": "JA257"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja258",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 7,
+      "citation_label": "JA258"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja259",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 8,
+      "citation_label": "JA259"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja260",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 9,
+      "citation_label": "JA260"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja261",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 10,
+      "citation_label": "JA261"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja262",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 11,
+      "citation_label": "JA262"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja263",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 12,
+      "citation_label": "JA263"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja264",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 13,
+      "citation_label": "JA264"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja265",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 14,
+      "citation_label": "JA265"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja266",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 15,
+      "citation_label": "JA266"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja267",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 16,
+      "citation_label": "JA267"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja268",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 17,
+      "citation_label": "JA268"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja269",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 18,
+      "citation_label": "JA269"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja270",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 19,
+      "citation_label": "JA270"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja271",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 20,
+      "citation_label": "JA271"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja272",
+      "entry_id": "ca4m4.blueember.record.entry.l21",
+      "page_number": 21,
+      "citation_label": "JA272"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja273",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 1,
+      "citation_label": "JA273"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja274",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 2,
+      "citation_label": "JA274"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja275",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 3,
+      "citation_label": "JA275"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja276",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 4,
+      "citation_label": "JA276"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja277",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 5,
+      "citation_label": "JA277"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja278",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 6,
+      "citation_label": "JA278"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja279",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 7,
+      "citation_label": "JA279"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja280",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 8,
+      "citation_label": "JA280"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja281",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 9,
+      "citation_label": "JA281"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja282",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 10,
+      "citation_label": "JA282"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja283",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 11,
+      "citation_label": "JA283"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja284",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 12,
+      "citation_label": "JA284"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja285",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 13,
+      "citation_label": "JA285"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja286",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 14,
+      "citation_label": "JA286"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja287",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 15,
+      "citation_label": "JA287"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja288",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 16,
+      "citation_label": "JA288"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja289",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 17,
+      "citation_label": "JA289"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja290",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 18,
+      "citation_label": "JA290"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja291",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 19,
+      "citation_label": "JA291"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja292",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 20,
+      "citation_label": "JA292"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja293",
+      "entry_id": "ca4m4.blueember.record.entry.l22",
+      "page_number": 21,
+      "citation_label": "JA293"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja294",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 1,
+      "citation_label": "JA294"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja295",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 2,
+      "citation_label": "JA295"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja296",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 3,
+      "citation_label": "JA296"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja297",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 4,
+      "citation_label": "JA297"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja298",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 5,
+      "citation_label": "JA298"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja299",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 6,
+      "citation_label": "JA299"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja300",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 7,
+      "citation_label": "JA300"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja301",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 8,
+      "citation_label": "JA301"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja302",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 9,
+      "citation_label": "JA302"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja303",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 10,
+      "citation_label": "JA303"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja304",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 11,
+      "citation_label": "JA304"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja305",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 12,
+      "citation_label": "JA305"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja306",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 13,
+      "citation_label": "JA306"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja307",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 14,
+      "citation_label": "JA307"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja308",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 15,
+      "citation_label": "JA308"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja309",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 16,
+      "citation_label": "JA309"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja310",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 17,
+      "citation_label": "JA310"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja311",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 18,
+      "citation_label": "JA311"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja312",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 19,
+      "citation_label": "JA312"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja313",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 20,
+      "citation_label": "JA313"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja314",
+      "entry_id": "ca4m4.blueember.record.entry.l23",
+      "page_number": 21,
+      "citation_label": "JA314"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja315",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 1,
+      "citation_label": "JA315"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja316",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 2,
+      "citation_label": "JA316"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja317",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 3,
+      "citation_label": "JA317"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja318",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 4,
+      "citation_label": "JA318"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja319",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 5,
+      "citation_label": "JA319"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja320",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 6,
+      "citation_label": "JA320"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja321",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 7,
+      "citation_label": "JA321"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja322",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 8,
+      "citation_label": "JA322"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja323",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 9,
+      "citation_label": "JA323"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja324",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 10,
+      "citation_label": "JA324"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja325",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 11,
+      "citation_label": "JA325"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja326",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 12,
+      "citation_label": "JA326"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja327",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 13,
+      "citation_label": "JA327"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja328",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 14,
+      "citation_label": "JA328"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja329",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 15,
+      "citation_label": "JA329"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja330",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 16,
+      "citation_label": "JA330"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja331",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 17,
+      "citation_label": "JA331"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja332",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 18,
+      "citation_label": "JA332"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja333",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 19,
+      "citation_label": "JA333"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja334",
+      "entry_id": "ca4m4.blueember.record.entry.l24",
+      "page_number": 20,
+      "citation_label": "JA334"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja335",
+      "entry_id": "ca4m4.blueember.record.entry.l25",
+      "page_number": 1,
+      "citation_label": "JA335"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja336",
+      "entry_id": "ca4m4.blueember.record.entry.l25",
+      "page_number": 2,
+      "citation_label": "JA336"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja337",
+      "entry_id": "ca4m4.blueember.record.entry.l25",
+      "page_number": 3,
+      "citation_label": "JA337"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja338",
+      "entry_id": "ca4m4.blueember.record.entry.l25",
+      "page_number": 4,
+      "citation_label": "JA338"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja339",
+      "entry_id": "ca4m4.blueember.record.entry.l25",
+      "page_number": 5,
+      "citation_label": "JA339"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja340",
+      "entry_id": "ca4m4.blueember.record.entry.l26",
+      "page_number": 1,
+      "citation_label": "JA340"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja341",
+      "entry_id": "ca4m4.blueember.record.entry.l26",
+      "page_number": 2,
+      "citation_label": "JA341"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja342",
+      "entry_id": "ca4m4.blueember.record.entry.l26",
+      "page_number": 3,
+      "citation_label": "JA342"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja343",
+      "entry_id": "ca4m4.blueember.record.entry.l26",
+      "page_number": 4,
+      "citation_label": "JA343"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja344",
+      "entry_id": "ca4m4.blueember.record.entry.l26",
+      "page_number": 5,
+      "citation_label": "JA344"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja345",
+      "entry_id": "ca4m4.blueember.record.entry.l26",
+      "page_number": 6,
+      "citation_label": "JA345"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja346",
+      "entry_id": "ca4m4.blueember.record.entry.l27",
+      "page_number": 1,
+      "citation_label": "JA346"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja347",
+      "entry_id": "ca4m4.blueember.record.entry.l27",
+      "page_number": 2,
+      "citation_label": "JA347"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja348",
+      "entry_id": "ca4m4.blueember.record.entry.l27",
+      "page_number": 3,
+      "citation_label": "JA348"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja349",
+      "entry_id": "ca4m4.blueember.record.entry.l27",
+      "page_number": 4,
+      "citation_label": "JA349"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja350",
+      "entry_id": "ca4m4.blueember.record.entry.l27",
+      "page_number": 5,
+      "citation_label": "JA350"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja351",
+      "entry_id": "ca4m4.blueember.record.entry.l27",
+      "page_number": 6,
+      "citation_label": "JA351"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja352",
+      "entry_id": "ca4m4.blueember.record.entry.l28",
+      "page_number": 1,
+      "citation_label": "JA352"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja353",
+      "entry_id": "ca4m4.blueember.record.entry.l28",
+      "page_number": 2,
+      "citation_label": "JA353"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja354",
+      "entry_id": "ca4m4.blueember.record.entry.l28",
+      "page_number": 3,
+      "citation_label": "JA354"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja355",
+      "entry_id": "ca4m4.blueember.record.entry.l28",
+      "page_number": 4,
+      "citation_label": "JA355"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja356",
+      "entry_id": "ca4m4.blueember.record.entry.l28",
+      "page_number": 5,
+      "citation_label": "JA356"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja357",
+      "entry_id": "ca4m4.blueember.record.entry.l28",
+      "page_number": 6,
+      "citation_label": "JA357"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja358",
+      "entry_id": "ca4m4.blueember.record.entry.l29",
+      "page_number": 1,
+      "citation_label": "JA358"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja359",
+      "entry_id": "ca4m4.blueember.record.entry.l29",
+      "page_number": 2,
+      "citation_label": "JA359"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja360",
+      "entry_id": "ca4m4.blueember.record.entry.l29",
+      "page_number": 3,
+      "citation_label": "JA360"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja361",
+      "entry_id": "ca4m4.blueember.record.entry.l29",
+      "page_number": 4,
+      "citation_label": "JA361"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja362",
+      "entry_id": "ca4m4.blueember.record.entry.l29",
+      "page_number": 5,
+      "citation_label": "JA362"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja363",
+      "entry_id": "ca4m4.blueember.record.entry.l30",
+      "page_number": 1,
+      "citation_label": "JA363"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja364",
+      "entry_id": "ca4m4.blueember.record.entry.l30",
+      "page_number": 2,
+      "citation_label": "JA364"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja365",
+      "entry_id": "ca4m4.blueember.record.entry.l30",
+      "page_number": 3,
+      "citation_label": "JA365"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja366",
+      "entry_id": "ca4m4.blueember.record.entry.l30",
+      "page_number": 4,
+      "citation_label": "JA366"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja367",
+      "entry_id": "ca4m4.blueember.record.entry.l30",
+      "page_number": 5,
+      "citation_label": "JA367"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja368",
+      "entry_id": "ca4m4.blueember.record.entry.l31",
+      "page_number": 1,
+      "citation_label": "JA368"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja369",
+      "entry_id": "ca4m4.blueember.record.entry.l31",
+      "page_number": 2,
+      "citation_label": "JA369"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja370",
+      "entry_id": "ca4m4.blueember.record.entry.l31",
+      "page_number": 3,
+      "citation_label": "JA370"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja371",
+      "entry_id": "ca4m4.blueember.record.entry.l31",
+      "page_number": 4,
+      "citation_label": "JA371"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja372",
+      "entry_id": "ca4m4.blueember.record.entry.l31",
+      "page_number": 5,
+      "citation_label": "JA372"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja373",
+      "entry_id": "ca4m4.blueember.record.entry.l32",
+      "page_number": 1,
+      "citation_label": "JA373"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja374",
+      "entry_id": "ca4m4.blueember.record.entry.l32",
+      "page_number": 2,
+      "citation_label": "JA374"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja375",
+      "entry_id": "ca4m4.blueember.record.entry.l32",
+      "page_number": 3,
+      "citation_label": "JA375"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja376",
+      "entry_id": "ca4m4.blueember.record.entry.l32",
+      "page_number": 4,
+      "citation_label": "JA376"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja377",
+      "entry_id": "ca4m4.blueember.record.entry.l32",
+      "page_number": 5,
+      "citation_label": "JA377"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja378",
+      "entry_id": "ca4m4.blueember.record.entry.l33",
+      "page_number": 1,
+      "citation_label": "JA378"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja379",
+      "entry_id": "ca4m4.blueember.record.entry.l33",
+      "page_number": 2,
+      "citation_label": "JA379"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja380",
+      "entry_id": "ca4m4.blueember.record.entry.l33",
+      "page_number": 3,
+      "citation_label": "JA380"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja381",
+      "entry_id": "ca4m4.blueember.record.entry.l33",
+      "page_number": 4,
+      "citation_label": "JA381"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja382",
+      "entry_id": "ca4m4.blueember.record.entry.l33",
+      "page_number": 5,
+      "citation_label": "JA382"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja383",
+      "entry_id": "ca4m4.blueember.record.entry.l34",
+      "page_number": 1,
+      "citation_label": "JA383"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja384",
+      "entry_id": "ca4m4.blueember.record.entry.l34",
+      "page_number": 2,
+      "citation_label": "JA384"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja385",
+      "entry_id": "ca4m4.blueember.record.entry.l34",
+      "page_number": 3,
+      "citation_label": "JA385"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja386",
+      "entry_id": "ca4m4.blueember.record.entry.l35",
+      "page_number": 1,
+      "citation_label": "JA386"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja387",
+      "entry_id": "ca4m4.blueember.record.entry.l35",
+      "page_number": 2,
+      "citation_label": "JA387"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja388",
+      "entry_id": "ca4m4.blueember.record.entry.l35",
+      "page_number": 3,
+      "citation_label": "JA388"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja389",
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "page_number": 1,
+      "citation_label": "JA389"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja390",
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "page_number": 2,
+      "citation_label": "JA390"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja391",
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "page_number": 3,
+      "citation_label": "JA391"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja392",
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "page_number": 4,
+      "citation_label": "JA392"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja393",
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "page_number": 5,
+      "citation_label": "JA393"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja394",
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "page_number": 6,
+      "citation_label": "JA394"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja395",
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "page_number": 7,
+      "citation_label": "JA395"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja396",
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "page_number": 8,
+      "citation_label": "JA396"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja397",
+      "entry_id": "ca4m4.blueember.record.entry.l36",
+      "page_number": 9,
+      "citation_label": "JA397"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja398",
+      "entry_id": "ca4m4.blueember.record.entry.l37",
+      "page_number": 1,
+      "citation_label": "JA398"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja399",
+      "entry_id": "ca4m4.blueember.record.entry.l37",
+      "page_number": 2,
+      "citation_label": "JA399"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja400",
+      "entry_id": "ca4m4.blueember.record.entry.l37",
+      "page_number": 3,
+      "citation_label": "JA400"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja401",
+      "entry_id": "ca4m4.blueember.record.entry.l37",
+      "page_number": 4,
+      "citation_label": "JA401"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja402",
+      "entry_id": "ca4m4.blueember.record.entry.l37",
+      "page_number": 5,
+      "citation_label": "JA402"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja403",
+      "entry_id": "ca4m4.blueember.record.entry.l37",
+      "page_number": 6,
+      "citation_label": "JA403"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja404",
+      "entry_id": "ca4m4.blueember.record.entry.l37",
+      "page_number": 7,
+      "citation_label": "JA404"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja405",
+      "entry_id": "ca4m4.blueember.record.entry.l38",
+      "page_number": 1,
+      "citation_label": "JA405"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja406",
+      "entry_id": "ca4m4.blueember.record.entry.l38",
+      "page_number": 2,
+      "citation_label": "JA406"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja407",
+      "entry_id": "ca4m4.blueember.record.entry.l38",
+      "page_number": 3,
+      "citation_label": "JA407"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja408",
+      "entry_id": "ca4m4.blueember.record.entry.l38",
+      "page_number": 4,
+      "citation_label": "JA408"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja409",
+      "entry_id": "ca4m4.blueember.record.entry.l39",
+      "page_number": 1,
+      "citation_label": "JA409"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja410",
+      "entry_id": "ca4m4.blueember.record.entry.l39",
+      "page_number": 2,
+      "citation_label": "JA410"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja411",
+      "entry_id": "ca4m4.blueember.record.entry.l39",
+      "page_number": 3,
+      "citation_label": "JA411"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja412",
+      "entry_id": "ca4m4.blueember.record.entry.l39",
+      "page_number": 4,
+      "citation_label": "JA412"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja413",
+      "entry_id": "ca4m4.blueember.record.entry.l39",
+      "page_number": 5,
+      "citation_label": "JA413"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja414",
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "page_number": 1,
+      "citation_label": "JA414"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja415",
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "page_number": 2,
+      "citation_label": "JA415"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja416",
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "page_number": 3,
+      "citation_label": "JA416"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja417",
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "page_number": 4,
+      "citation_label": "JA417"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja418",
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "page_number": 5,
+      "citation_label": "JA418"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja419",
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "page_number": 6,
+      "citation_label": "JA419"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja420",
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "page_number": 7,
+      "citation_label": "JA420"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja421",
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "page_number": 8,
+      "citation_label": "JA421"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja422",
+      "entry_id": "ca4m4.blueember.record.entry.l40",
+      "page_number": 9,
+      "citation_label": "JA422"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja423",
+      "entry_id": "ca4m4.blueember.record.entry.l41",
+      "page_number": 1,
+      "citation_label": "JA423"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja424",
+      "entry_id": "ca4m4.blueember.record.entry.l41",
+      "page_number": 2,
+      "citation_label": "JA424"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja425",
+      "entry_id": "ca4m4.blueember.record.entry.l42",
+      "page_number": 1,
+      "citation_label": "JA425"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja426",
+      "entry_id": "ca4m4.blueember.record.entry.l42",
+      "page_number": 2,
+      "citation_label": "JA426"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja427",
+      "entry_id": "ca4m4.blueember.record.entry.l42",
+      "page_number": 3,
+      "citation_label": "JA427"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja428",
+      "entry_id": "ca4m4.blueember.record.entry.l42",
+      "page_number": 4,
+      "citation_label": "JA428"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja429",
+      "entry_id": "ca4m4.blueember.record.entry.l42",
+      "page_number": 5,
+      "citation_label": "JA429"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.ja430",
+      "entry_id": "ca4m4.blueember.record.entry.l42",
+      "page_number": 6,
+      "citation_label": "JA430"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa1",
+      "entry_id": "ca4m4.blueember.record.entry.a01",
+      "page_number": 1,
+      "citation_label": "PA1"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa2",
+      "entry_id": "ca4m4.blueember.record.entry.a01",
+      "page_number": 2,
+      "citation_label": "PA2"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa3",
+      "entry_id": "ca4m4.blueember.record.entry.a02",
+      "page_number": 1,
+      "citation_label": "PA3"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa4",
+      "entry_id": "ca4m4.blueember.record.entry.a02",
+      "page_number": 2,
+      "citation_label": "PA4"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa5",
+      "entry_id": "ca4m4.blueember.record.entry.a02",
+      "page_number": 3,
+      "citation_label": "PA5"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa6",
+      "entry_id": "ca4m4.blueember.record.entry.a03",
+      "page_number": 1,
+      "citation_label": "PA6"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa7",
+      "entry_id": "ca4m4.blueember.record.entry.a03",
+      "page_number": 2,
+      "citation_label": "PA7"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa8",
+      "entry_id": "ca4m4.blueember.record.entry.a03",
+      "page_number": 3,
+      "citation_label": "PA8"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa9",
+      "entry_id": "ca4m4.blueember.record.entry.a04",
+      "page_number": 1,
+      "citation_label": "PA9"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa10",
+      "entry_id": "ca4m4.blueember.record.entry.a04",
+      "page_number": 2,
+      "citation_label": "PA10"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa11",
+      "entry_id": "ca4m4.blueember.record.entry.a04",
+      "page_number": 3,
+      "citation_label": "PA11"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa12",
+      "entry_id": "ca4m4.blueember.record.entry.a04",
+      "page_number": 4,
+      "citation_label": "PA12"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa13",
+      "entry_id": "ca4m4.blueember.record.entry.a04",
+      "page_number": 5,
+      "citation_label": "PA13"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa14",
+      "entry_id": "ca4m4.blueember.record.entry.a05",
+      "page_number": 1,
+      "citation_label": "PA14"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa15",
+      "entry_id": "ca4m4.blueember.record.entry.a05",
+      "page_number": 2,
+      "citation_label": "PA15"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa16",
+      "entry_id": "ca4m4.blueember.record.entry.a05",
+      "page_number": 3,
+      "citation_label": "PA16"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa17",
+      "entry_id": "ca4m4.blueember.record.entry.a06",
+      "page_number": 1,
+      "citation_label": "PA17"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa18",
+      "entry_id": "ca4m4.blueember.record.entry.a06",
+      "page_number": 2,
+      "citation_label": "PA18"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa19",
+      "entry_id": "ca4m4.blueember.record.entry.a06",
+      "page_number": 3,
+      "citation_label": "PA19"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa20",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 1,
+      "citation_label": "PA20"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa21",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 2,
+      "citation_label": "PA21"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa22",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 3,
+      "citation_label": "PA22"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa23",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 4,
+      "citation_label": "PA23"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa24",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 5,
+      "citation_label": "PA24"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa25",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 6,
+      "citation_label": "PA25"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa26",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 7,
+      "citation_label": "PA26"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa27",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 8,
+      "citation_label": "PA27"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa28",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 9,
+      "citation_label": "PA28"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa29",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 10,
+      "citation_label": "PA29"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa30",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 11,
+      "citation_label": "PA30"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa31",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 12,
+      "citation_label": "PA31"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa32",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 13,
+      "citation_label": "PA32"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa33",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 14,
+      "citation_label": "PA33"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa34",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 15,
+      "citation_label": "PA34"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa35",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 16,
+      "citation_label": "PA35"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa36",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 17,
+      "citation_label": "PA36"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa37",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 18,
+      "citation_label": "PA37"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa38",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 19,
+      "citation_label": "PA38"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa39",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 20,
+      "citation_label": "PA39"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa40",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 21,
+      "citation_label": "PA40"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa41",
+      "entry_id": "ca4m4.blueember.record.entry.a07",
+      "page_number": 22,
+      "citation_label": "PA41"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa42",
+      "entry_id": "ca4m4.blueember.record.entry.a08",
+      "page_number": 1,
+      "citation_label": "PA42"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa43",
+      "entry_id": "ca4m4.blueember.record.entry.a08",
+      "page_number": 2,
+      "citation_label": "PA43"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa44",
+      "entry_id": "ca4m4.blueember.record.entry.a08",
+      "page_number": 3,
+      "citation_label": "PA44"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa45",
+      "entry_id": "ca4m4.blueember.record.entry.a08",
+      "page_number": 4,
+      "citation_label": "PA45"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa46",
+      "entry_id": "ca4m4.blueember.record.entry.a08",
+      "page_number": 5,
+      "citation_label": "PA46"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa47",
+      "entry_id": "ca4m4.blueember.record.entry.a08",
+      "page_number": 6,
+      "citation_label": "PA47"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa48",
+      "entry_id": "ca4m4.blueember.record.entry.a08",
+      "page_number": 7,
+      "citation_label": "PA48"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa49",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 1,
+      "citation_label": "PA49"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa50",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 2,
+      "citation_label": "PA50"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa51",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 3,
+      "citation_label": "PA51"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa52",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 4,
+      "citation_label": "PA52"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa53",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 5,
+      "citation_label": "PA53"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa54",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 6,
+      "citation_label": "PA54"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa55",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 7,
+      "citation_label": "PA55"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa56",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 8,
+      "citation_label": "PA56"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa57",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 9,
+      "citation_label": "PA57"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa58",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 10,
+      "citation_label": "PA58"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa59",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 11,
+      "citation_label": "PA59"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa60",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 12,
+      "citation_label": "PA60"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa61",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 13,
+      "citation_label": "PA61"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa62",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 14,
+      "citation_label": "PA62"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa63",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 15,
+      "citation_label": "PA63"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa64",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 16,
+      "citation_label": "PA64"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa65",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 17,
+      "citation_label": "PA65"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa66",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 18,
+      "citation_label": "PA66"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa67",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 19,
+      "citation_label": "PA67"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa68",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 20,
+      "citation_label": "PA68"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa69",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 21,
+      "citation_label": "PA69"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa70",
+      "entry_id": "ca4m4.blueember.record.entry.a09",
+      "page_number": 22,
+      "citation_label": "PA70"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa71",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 1,
+      "citation_label": "PA71"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa72",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 2,
+      "citation_label": "PA72"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa73",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 3,
+      "citation_label": "PA73"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa74",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 4,
+      "citation_label": "PA74"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa75",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 5,
+      "citation_label": "PA75"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa76",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 6,
+      "citation_label": "PA76"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa77",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 7,
+      "citation_label": "PA77"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa78",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 8,
+      "citation_label": "PA78"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa79",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 9,
+      "citation_label": "PA79"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa80",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 10,
+      "citation_label": "PA80"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa81",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 11,
+      "citation_label": "PA81"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa82",
+      "entry_id": "ca4m4.blueember.record.entry.a10",
+      "page_number": 12,
+      "citation_label": "PA82"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa83",
+      "entry_id": "ca4m4.blueember.record.entry.a11",
+      "page_number": 1,
+      "citation_label": "PA83"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa84",
+      "entry_id": "ca4m4.blueember.record.entry.a11",
+      "page_number": 2,
+      "citation_label": "PA84"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa85",
+      "entry_id": "ca4m4.blueember.record.entry.a12",
+      "page_number": 1,
+      "citation_label": "PA85"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa86",
+      "entry_id": "ca4m4.blueember.record.entry.a12",
+      "page_number": 2,
+      "citation_label": "PA86"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa87",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 1,
+      "citation_label": "PA87"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa88",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 2,
+      "citation_label": "PA88"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa89",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 3,
+      "citation_label": "PA89"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa90",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 4,
+      "citation_label": "PA90"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa91",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 5,
+      "citation_label": "PA91"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa92",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 6,
+      "citation_label": "PA92"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa93",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 7,
+      "citation_label": "PA93"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa94",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 8,
+      "citation_label": "PA94"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa95",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 9,
+      "citation_label": "PA95"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa96",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 10,
+      "citation_label": "PA96"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa97",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 11,
+      "citation_label": "PA97"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa98",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 12,
+      "citation_label": "PA98"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa99",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 13,
+      "citation_label": "PA99"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa100",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 14,
+      "citation_label": "PA100"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa101",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 15,
+      "citation_label": "PA101"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa102",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 16,
+      "citation_label": "PA102"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa103",
+      "entry_id": "ca4m4.blueember.record.entry.a13",
+      "page_number": 17,
+      "citation_label": "PA103"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa104",
+      "entry_id": "ca4m4.blueember.record.entry.a14",
+      "page_number": 1,
+      "citation_label": "PA104"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa105",
+      "entry_id": "ca4m4.blueember.record.entry.a14",
+      "page_number": 2,
+      "citation_label": "PA105"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa106",
+      "entry_id": "ca4m4.blueember.record.entry.a15",
+      "page_number": 1,
+      "citation_label": "PA106"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa107",
+      "entry_id": "ca4m4.blueember.record.entry.a16",
+      "page_number": 1,
+      "citation_label": "PA107"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa108",
+      "entry_id": "ca4m4.blueember.record.entry.a16",
+      "page_number": 2,
+      "citation_label": "PA108"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa109",
+      "entry_id": "ca4m4.blueember.record.entry.b01",
+      "page_number": 1,
+      "citation_label": "PA109"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa110",
+      "entry_id": "ca4m4.blueember.record.entry.b01",
+      "page_number": 2,
+      "citation_label": "PA110"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa111",
+      "entry_id": "ca4m4.blueember.record.entry.b01",
+      "page_number": 3,
+      "citation_label": "PA111"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa112",
+      "entry_id": "ca4m4.blueember.record.entry.b01",
+      "page_number": 4,
+      "citation_label": "PA112"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa113",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 1,
+      "citation_label": "PA113"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa114",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 2,
+      "citation_label": "PA114"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa115",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 3,
+      "citation_label": "PA115"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa116",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 4,
+      "citation_label": "PA116"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa117",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 5,
+      "citation_label": "PA117"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa118",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 6,
+      "citation_label": "PA118"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa119",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 7,
+      "citation_label": "PA119"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa120",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 8,
+      "citation_label": "PA120"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa121",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 9,
+      "citation_label": "PA121"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa122",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 10,
+      "citation_label": "PA122"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa123",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 11,
+      "citation_label": "PA123"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa124",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 12,
+      "citation_label": "PA124"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa125",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 13,
+      "citation_label": "PA125"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa126",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 14,
+      "citation_label": "PA126"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa127",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 15,
+      "citation_label": "PA127"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa128",
+      "entry_id": "ca4m4.blueember.record.entry.b02",
+      "page_number": 16,
+      "citation_label": "PA128"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa129",
+      "entry_id": "ca4m4.blueember.record.entry.b03",
+      "page_number": 1,
+      "citation_label": "PA129"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa130",
+      "entry_id": "ca4m4.blueember.record.entry.b03",
+      "page_number": 2,
+      "citation_label": "PA130"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa131",
+      "entry_id": "ca4m4.blueember.record.entry.b03",
+      "page_number": 3,
+      "citation_label": "PA131"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa132",
+      "entry_id": "ca4m4.blueember.record.entry.b03",
+      "page_number": 4,
+      "citation_label": "PA132"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa133",
+      "entry_id": "ca4m4.blueember.record.entry.b03",
+      "page_number": 5,
+      "citation_label": "PA133"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa134",
+      "entry_id": "ca4m4.blueember.record.entry.b03",
+      "page_number": 6,
+      "citation_label": "PA134"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa135",
+      "entry_id": "ca4m4.blueember.record.entry.b03",
+      "page_number": 7,
+      "citation_label": "PA135"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa136",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 1,
+      "citation_label": "PA136"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa137",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 2,
+      "citation_label": "PA137"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa138",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 3,
+      "citation_label": "PA138"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa139",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 4,
+      "citation_label": "PA139"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa140",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 5,
+      "citation_label": "PA140"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa141",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 6,
+      "citation_label": "PA141"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa142",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 7,
+      "citation_label": "PA142"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa143",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 8,
+      "citation_label": "PA143"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa144",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 9,
+      "citation_label": "PA144"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa145",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 10,
+      "citation_label": "PA145"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa146",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 11,
+      "citation_label": "PA146"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa147",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 12,
+      "citation_label": "PA147"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa148",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 13,
+      "citation_label": "PA148"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa149",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 14,
+      "citation_label": "PA149"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa150",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 15,
+      "citation_label": "PA150"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa151",
+      "entry_id": "ca4m4.blueember.record.entry.b04",
+      "page_number": 16,
+      "citation_label": "PA151"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa152",
+      "entry_id": "ca4m4.blueember.record.entry.b05",
+      "page_number": 1,
+      "citation_label": "PA152"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa153",
+      "entry_id": "ca4m4.blueember.record.entry.b05",
+      "page_number": 2,
+      "citation_label": "PA153"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa154",
+      "entry_id": "ca4m4.blueember.record.entry.b05",
+      "page_number": 3,
+      "citation_label": "PA154"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa155",
+      "entry_id": "ca4m4.blueember.record.entry.b05",
+      "page_number": 4,
+      "citation_label": "PA155"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa156",
+      "entry_id": "ca4m4.blueember.record.entry.b05",
+      "page_number": 5,
+      "citation_label": "PA156"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa157",
+      "entry_id": "ca4m4.blueember.record.entry.b05",
+      "page_number": 6,
+      "citation_label": "PA157"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa158",
+      "entry_id": "ca4m4.blueember.record.entry.b05",
+      "page_number": 7,
+      "citation_label": "PA158"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa159",
+      "entry_id": "ca4m4.blueember.record.entry.b05",
+      "page_number": 8,
+      "citation_label": "PA159"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa160",
+      "entry_id": "ca4m4.blueember.record.entry.b06",
+      "page_number": 1,
+      "citation_label": "PA160"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa161",
+      "entry_id": "ca4m4.blueember.record.entry.b06",
+      "page_number": 2,
+      "citation_label": "PA161"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa162",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 1,
+      "citation_label": "PA162"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa163",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 2,
+      "citation_label": "PA163"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa164",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 3,
+      "citation_label": "PA164"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa165",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 4,
+      "citation_label": "PA165"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa166",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 5,
+      "citation_label": "PA166"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa167",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 6,
+      "citation_label": "PA167"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa168",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 7,
+      "citation_label": "PA168"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa169",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 8,
+      "citation_label": "PA169"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa170",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 9,
+      "citation_label": "PA170"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa171",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 10,
+      "citation_label": "PA171"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa172",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 11,
+      "citation_label": "PA172"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa173",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 12,
+      "citation_label": "PA173"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa174",
+      "entry_id": "ca4m4.blueember.record.entry.b07",
+      "page_number": 13,
+      "citation_label": "PA174"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa175",
+      "entry_id": "ca4m4.blueember.record.entry.b08",
+      "page_number": 1,
+      "citation_label": "PA175"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa176",
+      "entry_id": "ca4m4.blueember.record.entry.b08",
+      "page_number": 2,
+      "citation_label": "PA176"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa177",
+      "entry_id": "ca4m4.blueember.record.entry.b09",
+      "page_number": 1,
+      "citation_label": "PA177"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa178",
+      "entry_id": "ca4m4.blueember.record.entry.b10",
+      "page_number": 1,
+      "citation_label": "PA178"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa179",
+      "entry_id": "ca4m4.blueember.record.entry.b10",
+      "page_number": 2,
+      "citation_label": "PA179"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa180",
+      "entry_id": "ca4m4.blueember.record.entry.b11",
+      "page_number": 1,
+      "citation_label": "PA180"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa181",
+      "entry_id": "ca4m4.blueember.record.entry.b11",
+      "page_number": 2,
+      "citation_label": "PA181"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa182",
+      "entry_id": "ca4m4.blueember.record.entry.b11",
+      "page_number": 3,
+      "citation_label": "PA182"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa183",
+      "entry_id": "ca4m4.blueember.record.entry.b11",
+      "page_number": 4,
+      "citation_label": "PA183"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa184",
+      "entry_id": "ca4m4.blueember.record.entry.b11",
+      "page_number": 5,
+      "citation_label": "PA184"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa185",
+      "entry_id": "ca4m4.blueember.record.entry.b11",
+      "page_number": 6,
+      "citation_label": "PA185"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa186",
+      "entry_id": "ca4m4.blueember.record.entry.b11",
+      "page_number": 7,
+      "citation_label": "PA186"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa187",
+      "entry_id": "ca4m4.blueember.record.entry.b11",
+      "page_number": 8,
+      "citation_label": "PA187"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa188",
+      "entry_id": "ca4m4.blueember.record.entry.b12",
+      "page_number": 1,
+      "citation_label": "PA188"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa189",
+      "entry_id": "ca4m4.blueember.record.entry.b12",
+      "page_number": 2,
+      "citation_label": "PA189"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa190",
+      "entry_id": "ca4m4.blueember.record.entry.b13",
+      "page_number": 1,
+      "citation_label": "PA190"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa191",
+      "entry_id": "ca4m4.blueember.record.entry.b14",
+      "page_number": 1,
+      "citation_label": "PA191"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa192",
+      "entry_id": "ca4m4.blueember.record.entry.b14",
+      "page_number": 2,
+      "citation_label": "PA192"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa193",
+      "entry_id": "ca4m4.blueember.record.entry.b15",
+      "page_number": 1,
+      "citation_label": "PA193"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa194",
+      "entry_id": "ca4m4.blueember.record.entry.b15",
+      "page_number": 2,
+      "citation_label": "PA194"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa195",
+      "entry_id": "ca4m4.blueember.record.entry.b15",
+      "page_number": 3,
+      "citation_label": "PA195"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa196",
+      "entry_id": "ca4m4.blueember.record.entry.b15",
+      "page_number": 4,
+      "citation_label": "PA196"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa197",
+      "entry_id": "ca4m4.blueember.record.entry.b15",
+      "page_number": 5,
+      "citation_label": "PA197"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa198",
+      "entry_id": "ca4m4.blueember.record.entry.b15",
+      "page_number": 6,
+      "citation_label": "PA198"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa199",
+      "entry_id": "ca4m4.blueember.record.entry.b16",
+      "page_number": 1,
+      "citation_label": "PA199"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa200",
+      "entry_id": "ca4m4.blueember.record.entry.b16",
+      "page_number": 2,
+      "citation_label": "PA200"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa201",
+      "entry_id": "ca4m4.blueember.record.entry.b16",
+      "page_number": 3,
+      "citation_label": "PA201"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa202",
+      "entry_id": "ca4m4.blueember.record.entry.b16",
+      "page_number": 4,
+      "citation_label": "PA202"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa203",
+      "entry_id": "ca4m4.blueember.record.entry.b16",
+      "page_number": 5,
+      "citation_label": "PA203"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa204",
+      "entry_id": "ca4m4.blueember.record.entry.b17",
+      "page_number": 1,
+      "citation_label": "PA204"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa205",
+      "entry_id": "ca4m4.blueember.record.entry.b17",
+      "page_number": 2,
+      "citation_label": "PA205"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa206",
+      "entry_id": "ca4m4.blueember.record.entry.b18",
+      "page_number": 1,
+      "citation_label": "PA206"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa207",
+      "entry_id": "ca4m4.blueember.record.entry.b19",
+      "page_number": 1,
+      "citation_label": "PA207"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa208",
+      "entry_id": "ca4m4.blueember.record.entry.b19",
+      "page_number": 2,
+      "citation_label": "PA208"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa209",
+      "entry_id": "ca4m4.blueember.record.entry.b20",
+      "page_number": 1,
+      "citation_label": "PA209"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa210",
+      "entry_id": "ca4m4.blueember.record.entry.b20",
+      "page_number": 2,
+      "citation_label": "PA210"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa211",
+      "entry_id": "ca4m4.blueember.record.entry.b20",
+      "page_number": 3,
+      "citation_label": "PA211"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa212",
+      "entry_id": "ca4m4.blueember.record.entry.b20",
+      "page_number": 4,
+      "citation_label": "PA212"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa213",
+      "entry_id": "ca4m4.blueember.record.entry.b20",
+      "page_number": 5,
+      "citation_label": "PA213"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa214",
+      "entry_id": "ca4m4.blueember.record.entry.b20",
+      "page_number": 6,
+      "citation_label": "PA214"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa215",
+      "entry_id": "ca4m4.blueember.record.entry.b21",
+      "page_number": 1,
+      "citation_label": "PA215"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa216",
+      "entry_id": "ca4m4.blueember.record.entry.b21",
+      "page_number": 2,
+      "citation_label": "PA216"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa217",
+      "entry_id": "ca4m4.blueember.record.entry.b21",
+      "page_number": 3,
+      "citation_label": "PA217"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa218",
+      "entry_id": "ca4m4.blueember.record.entry.b21",
+      "page_number": 4,
+      "citation_label": "PA218"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa219",
+      "entry_id": "ca4m4.blueember.record.entry.b21",
+      "page_number": 5,
+      "citation_label": "PA219"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa220",
+      "entry_id": "ca4m4.blueember.record.entry.b22",
+      "page_number": 1,
+      "citation_label": "PA220"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa221",
+      "entry_id": "ca4m4.blueember.record.entry.b22",
+      "page_number": 2,
+      "citation_label": "PA221"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa222",
+      "entry_id": "ca4m4.blueember.record.entry.b23",
+      "page_number": 1,
+      "citation_label": "PA222"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa223",
+      "entry_id": "ca4m4.blueember.record.entry.b23",
+      "page_number": 2,
+      "citation_label": "PA223"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa224",
+      "entry_id": "ca4m4.blueember.record.entry.b24",
+      "page_number": 1,
+      "citation_label": "PA224"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa225",
+      "entry_id": "ca4m4.blueember.record.entry.b25",
+      "page_number": 1,
+      "citation_label": "PA225"
+    },
+    {
+      "anchor_id": "ca4m4.blueember.anchor.pa226",
+      "entry_id": "ca4m4.blueember.record.entry.b25",
+      "page_number": 2,
+      "citation_label": "PA226"
+    }
+  ]
+}

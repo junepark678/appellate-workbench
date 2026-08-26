@@ -1,0 +1,346 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4m4.case.arm-agency",
+  "title": "A.R.M. v. Attorney General of the United States",
+  "procedure_profile_id": "ca4m4.arm.procedure.agency-review",
+  "record_id": "ca4m4.arm.record",
+  "actors": [
+    {
+      "actor_id": "ca4m4.arm.actor.petitioner",
+      "role_id": "us.ca4.role.initiating-party",
+      "display_name": "A.R.M. (fictional, initials only)",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.arm.actor.respondent",
+      "role_id": "us.ca4.role.responding-party",
+      "display_name": "Fictional Attorney General institutional respondent actor",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.arm.actor.ca4-clerk",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional Fourth Circuit exercise clerk",
+      "synthetic": true
+    },
+    {
+      "actor_id": "ca4m4.arm.actor.composite-panel",
+      "role_id": "us.ca4.role.court",
+      "display_name": "Fictional composite Fourth Circuit panel",
+      "synthetic": true
+    }
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4m4.arm.issue.record-composition",
+      "title": "Whether the admitted P-7 was omitted from the initial transmission and properly restored unchanged, while the genuinely new PA proffer remains outside the administrative record",
+      "authority_ids": [
+        "ca4m4.arm.authority.frap-16-record",
+        "ca4m4.arm.authority.usc-1252-record-limit"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar30",
+        "ca4m4.arm.anchor.ar33",
+        "ca4m4.arm.anchor.ar50",
+        "ca4m4.arm.anchor.ar117",
+        "ca4m4.arm.anchor.ar138",
+        "ca4m4.arm.anchor.ar164",
+        "ca4m4.arm.anchor.ar219",
+        "ca4m4.arm.anchor.ar220",
+        "ca4m4.arm.anchor.ar227",
+        "ca4m4.arm.anchor.ar229",
+        "ca4m4.arm.anchor.ar232",
+        "ca4m4.arm.anchor.ar233",
+        "ca4m4.arm.anchor.ar235",
+        "ca4m4.arm.anchor.ar237",
+        "ca4m4.arm.anchor.ar238",
+        "ca4m4.arm.anchor.pa1",
+        "ca4m4.arm.anchor.pa7",
+        "ca4m4.arm.anchor.pa8",
+        "ca4m4.arm.anchor.pa36",
+        "ca4m4.arm.anchor.pa53",
+        "ca4m4.arm.anchor.pa56",
+        "ca4m4.arm.anchor.pa58",
+        "ca4m4.arm.anchor.pa112",
+        "ca4m4.arm.anchor.pa113",
+        "ca4m4.arm.anchor.pa122"
+      ],
+      "target_ids": [
+        "ca4m4.arm.target.corrected-certified-record",
+        "ca4m4.arm.target.extra-record-proffer"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+      "title": "Whether the CAT analysis must assess the combined risk from Unit Four, Harbor League, and the linked return-identification pathway",
+      "authority_ids": [
+        "ca4m4.arm.authority.cfr-1208-cat-burden",
+        "ca4m4.arm.authority.cfr-1208-all-evidence",
+        "ca4m4.arm.authority.rodriguez-arias-aggregation"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar24",
+        "ca4m4.arm.anchor.ar25",
+        "ca4m4.arm.anchor.ar26",
+        "ca4m4.arm.anchor.ar27",
+        "ca4m4.arm.anchor.ar29",
+        "ca4m4.arm.anchor.ar50",
+        "ca4m4.arm.anchor.ar86",
+        "ca4m4.arm.anchor.ar137",
+        "ca4m4.arm.anchor.ar154",
+        "ca4m4.arm.anchor.ar159",
+        "ca4m4.arm.anchor.ar171",
+        "ca4m4.arm.anchor.ar186",
+        "ca4m4.arm.anchor.ar212",
+        "ca4m4.arm.anchor.pa63",
+        "ca4m4.arm.anchor.pa69",
+        "ca4m4.arm.anchor.pa72",
+        "ca4m4.arm.anchor.pa87",
+        "ca4m4.arm.anchor.pa105",
+        "ca4m4.arm.anchor.pa116",
+        "ca4m4.arm.anchor.pa117"
+      ],
+      "target_ids": [
+        "ca4m4.arm.target.aggregate-analysis"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.arm.issue.official-acquiescence",
+      "title": "Whether the recorded evidence of official detention, complaint routing, knowledge, and nonintervention is meaningfully considered under the acquiescence standard",
+      "authority_ids": [
+        "ca4m4.arm.authority.cfr-1208-torture-acquiescence",
+        "ca4m4.arm.authority.rodriguez-arias-consideration"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar28",
+        "ca4m4.arm.anchor.ar40",
+        "ca4m4.arm.anchor.ar44",
+        "ca4m4.arm.anchor.ar45",
+        "ca4m4.arm.anchor.ar47",
+        "ca4m4.arm.anchor.ar66",
+        "ca4m4.arm.anchor.ar71",
+        "ca4m4.arm.anchor.ar80",
+        "ca4m4.arm.anchor.ar87",
+        "ca4m4.arm.anchor.ar147",
+        "ca4m4.arm.anchor.ar148",
+        "ca4m4.arm.anchor.ar155",
+        "ca4m4.arm.anchor.ar172",
+        "ca4m4.arm.anchor.ar191",
+        "ca4m4.arm.anchor.ar192",
+        "ca4m4.arm.anchor.ar204",
+        "ca4m4.arm.anchor.ar205",
+        "ca4m4.arm.anchor.ar215",
+        "ca4m4.arm.anchor.pa63",
+        "ca4m4.arm.anchor.pa74",
+        "ca4m4.arm.anchor.pa75",
+        "ca4m4.arm.anchor.pa92",
+        "ca4m4.arm.anchor.pa103",
+        "ca4m4.arm.anchor.pa119"
+      ],
+      "target_ids": [
+        "ca4m4.arm.target.acquiescence-analysis"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.arm.issue.review-standard",
+      "title": "How the statutory fact-review standard and meaningful-consideration requirement apply without appellate first-instance factfinding",
+      "authority_ids": [
+        "ca4m4.arm.authority.usc-1252-review-standard",
+        "ca4m4.arm.authority.rodriguez-arias-consideration"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar31",
+        "ca4m4.arm.anchor.ar60",
+        "ca4m4.arm.anchor.ar72",
+        "ca4m4.arm.anchor.ar171",
+        "ca4m4.arm.anchor.ar172",
+        "ca4m4.arm.anchor.ar197",
+        "ca4m4.arm.anchor.ar200",
+        "ca4m4.arm.anchor.ar209",
+        "ca4m4.arm.anchor.ar212",
+        "ca4m4.arm.anchor.ar215",
+        "ca4m4.arm.anchor.ar216",
+        "ca4m4.arm.anchor.pa76",
+        "ca4m4.arm.anchor.pa77",
+        "ca4m4.arm.anchor.pa96",
+        "ca4m4.arm.anchor.pa106",
+        "ca4m4.arm.anchor.pa120",
+        "ca4m4.arm.anchor.pa121"
+      ],
+      "target_ids": [
+        "ca4m4.arm.target.meaningful-consideration"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.arm.issue.petition-timeliness",
+      "title": "Whether the February 11 day-29 petition tender, completed by the February 12 cure, satisfies Section 1252(b)(1), and how timely government invocation affects a day-31 petition",
+      "authority_ids": [
+        "ca4m4.arm.authority.usc-1252-deadline",
+        "ca4m4.arm.authority.riley-claims-processing",
+        "us.federal.authority.frap-15-agency-review",
+        "us.federal.authority.frap-36-judgment"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar211",
+        "ca4m4.arm.anchor.ar218",
+        "ca4m4.arm.anchor.ar219",
+        "ca4m4.arm.anchor.pa1",
+        "ca4m4.arm.anchor.pa9",
+        "ca4m4.arm.anchor.pa13",
+        "ca4m4.arm.anchor.pa25",
+        "ca4m4.arm.anchor.pa44",
+        "ca4m4.arm.anchor.pa114",
+        "ca4m4.arm.anchor.pa128",
+        "ca4m4.arm.anchor.pa140",
+        "ca4m4.arm.anchor.pa143",
+        "ca4m4.arm.anchor.pa148",
+        "ca4m4.arm.anchor.pa153"
+      ],
+      "target_ids": [
+        "ca4m4.arm.target.actual-timing-challenge"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.arm.issue.disposition-remedy",
+      "title": "Whether the petition should be granted, the CAT disposition vacated, and the matter remanded for agency application of the governing standards without appellate factfinding",
+      "authority_ids": [
+        "ca4m4.arm.authority.rodriguez-arias-consideration",
+        "us.federal.authority.frap-15-agency-review",
+        "us.federal.authority.frap-36-judgment"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.arm.anchor.ar171",
+        "ca4m4.arm.anchor.ar172",
+        "ca4m4.arm.anchor.ar216",
+        "ca4m4.arm.anchor.pa82",
+        "ca4m4.arm.anchor.pa108",
+        "ca4m4.arm.anchor.pa123"
+      ],
+      "target_ids": [
+        "ca4m4.arm.target.petition-for-review"
+      ]
+    }
+  ],
+  "authored_disposition_id": "ca4m4.arm.operation.issue-judgment",
+  "disposition_plans": [
+    {
+      "plan_id": "ca4m4.arm.disposition.authored-vacate-remand",
+      "finality": "final",
+      "digest": "cd104002da124bd64ba967deedde73be0d70b307e9ebcd760350b5b5c6eb95f2",
+      "components": [
+        {
+          "issue_id": "ca4m4.arm.issue.record-composition",
+          "target_id": "ca4m4.arm.target.corrected-certified-record",
+          "scope": "whole",
+          "action": "affirm",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.arm.authority.frap-16-record"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.arm.anchor.ar233",
+            "ca4m4.arm.anchor.ar237",
+            "ca4m4.arm.anchor.pa56"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.arm.issue.record-composition",
+          "target_id": "ca4m4.arm.target.extra-record-proffer",
+          "scope": "whole",
+          "action": "deny",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.arm.authority.usc-1252-record-limit"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.arm.anchor.ar235",
+            "ca4m4.arm.anchor.pa58"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+          "target_id": "ca4m4.arm.target.aggregate-analysis",
+          "scope": "whole",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.arm.authority.cfr-1208-all-evidence",
+            "ca4m4.arm.authority.rodriguez-arias-aggregation"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.arm.anchor.ar171",
+            "ca4m4.arm.anchor.ar212",
+            "ca4m4.arm.anchor.pa116"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.arm.issue.official-acquiescence",
+          "target_id": "ca4m4.arm.target.acquiescence-analysis",
+          "scope": "whole",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.arm.authority.cfr-1208-torture-acquiescence",
+            "ca4m4.arm.authority.rodriguez-arias-consideration"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.arm.anchor.ar172",
+            "ca4m4.arm.anchor.ar215",
+            "ca4m4.arm.anchor.pa119"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.arm.issue.review-standard",
+          "target_id": "ca4m4.arm.target.meaningful-consideration",
+          "scope": "whole",
+          "action": "vacate",
+          "remand": true,
+          "authority_ids": [
+            "ca4m4.arm.authority.rodriguez-arias-consideration",
+            "ca4m4.arm.authority.usc-1252-review-standard"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.arm.anchor.ar216",
+            "ca4m4.arm.anchor.pa120",
+            "ca4m4.arm.anchor.pa121"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.arm.issue.petition-timeliness",
+          "target_id": "ca4m4.arm.target.actual-timing-challenge",
+          "scope": "whole",
+          "action": "deny",
+          "remand": false,
+          "authority_ids": [
+            "ca4m4.arm.authority.riley-claims-processing",
+            "ca4m4.arm.authority.usc-1252-deadline"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.arm.anchor.ar211",
+            "ca4m4.arm.anchor.pa9",
+            "ca4m4.arm.anchor.pa13",
+            "ca4m4.arm.anchor.pa114"
+          ]
+        },
+        {
+          "issue_id": "ca4m4.arm.issue.disposition-remedy",
+          "target_id": "ca4m4.arm.target.petition-for-review",
+          "scope": "part",
+          "action": "grant",
+          "remand": true,
+          "authority_ids": [
+            "us.federal.authority.frap-15-agency-review",
+            "us.federal.authority.frap-36-judgment"
+          ],
+          "record_anchor_ids": [
+            "ca4m4.arm.anchor.pa82",
+            "ca4m4.arm.anchor.pa108",
+            "ca4m4.arm.anchor.pa123"
+          ]
+        }
+      ]
+    }
+  ],
+  "authored_disposition_plan_id": "ca4m4.arm.disposition.authored-vacate-remand"
+}

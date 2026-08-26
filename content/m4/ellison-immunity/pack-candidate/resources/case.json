@@ -1,0 +1,113 @@
+{
+  "schema_version": 2,
+  "resource_kind": "case",
+  "resource_id": "ca4m4.case.ellison-immunity",
+  "title": "Mara Ellison v. Officer Nolan Rusk",
+  "procedure_profile_id": "ca4m4.ellison.procedure.civil-collateral-order-appeal",
+  "record_id": "ca4m4.ellison.record",
+  "actors": [
+    {"actor_id":"ca4m4.ellison.actor.rusk","role_id":"us.ca4.role.initiating-party","display_name":"Officer Nolan Rusk (fictional)","synthetic":true},
+    {"actor_id":"ca4m4.ellison.actor.ellison","role_id":"us.ca4.role.responding-party","display_name":"Mara Ellison (fictional)","synthetic":true},
+    {"actor_id":"ca4m4.ellison.actor.alder-creek","role_id":"ca4m4.ellison.role.former-district-defendant","display_name":"City of Alder Creek (fictional former district-court defendant)","synthetic":true},
+    {"actor_id":"ca4m4.ellison.actor.district-court","role_id":"ca4m4.ellison.role.originating-court","display_name":"Fictional United States District Court for the Western District of Virginia","synthetic":true},
+    {"actor_id":"ca4m4.ellison.actor.ca4-clerk","role_id":"us.ca4.role.court","display_name":"Fictional Fourth Circuit exercise clerk","synthetic":true},
+    {"actor_id":"ca4m4.ellison.actor.composite-panel","role_id":"us.ca4.role.court","display_name":"Fictional composite Fourth Circuit panel","synthetic":true}
+  ],
+  "issues": [
+    {
+      "issue_id": "ca4m4.ellison.issue.collateral-order-boundary",
+      "title": "Whether the collateral-order doctrine permits review of Rusk's legal qualified-immunity defense while excluding his challenge to the district court's evidence-sufficiency assessment of the obstructed encounter",
+      "target_ids": ["ca4m4.ellison.target.factual-sufficiency-review"],
+      "authority_ids": [
+        "ca4m4.ellison.authority.johnson-evidence-sufficiency",
+        "ca4m4.ellison.authority.barricks-collateral-boundary"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.ellison.anchor.ja77","ca4m4.ellison.anchor.ja83","ca4m4.ellison.anchor.ja90","ca4m4.ellison.anchor.ja97",
+        "ca4m4.ellison.anchor.ja102","ca4m4.ellison.anchor.ja107","ca4m4.ellison.anchor.ja118","ca4m4.ellison.anchor.ja141",
+        "ca4m4.ellison.anchor.ja170","ca4m4.ellison.anchor.ja238","ca4m4.ellison.anchor.ja240","ca4m4.ellison.anchor.ja242",
+        "ca4m4.ellison.anchor.ja246","ca4m4.ellison.anchor.ja247","ca4m4.ellison.anchor.ja252","ca4m4.ellison.anchor.ja253",
+        "ca4m4.ellison.anchor.ja261","ca4m4.ellison.anchor.ja268",
+        "ca4m4.ellison.anchor.pa9","ca4m4.ellison.anchor.pa16","ca4m4.ellison.anchor.pa40","ca4m4.ellison.anchor.pa58",
+        "ca4m4.ellison.anchor.pa72","ca4m4.ellison.anchor.pa75","ca4m4.ellison.anchor.pa84","ca4m4.ellison.anchor.pa85",
+        "ca4m4.ellison.anchor.pa94","ca4m4.ellison.anchor.pa96","ca4m4.ellison.anchor.pa97","ca4m4.ellison.anchor.pa106"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.ellison.issue.assumed-facts-fourth-amendment",
+      "title": "Whether one five-second drive-stun cycle and a forcible descent were objectively unreasonable on the assumed facts that Ellison pulled from a painful wrist grip but did not strike, grab, flee, reach for equipment, or pose an immediate danger",
+      "target_ids": ["ca4m4.ellison.target.assumed-facts-fourth-amendment-denial"],
+      "authority_ids": [
+        "ca4m4.ellison.authority.section-1983",
+        "ca4m4.ellison.authority.graham-force-totality",
+        "ca4m4.ellison.authority.barricks-assumed-facts-law",
+        "ca4m4.ellison.authority.armstrong-proportional-danger",
+        "ca4m4.ellison.authority.smith-modest-movement-force",
+        "ca4m4.ellison.authority.meyers-changing-threat",
+        "ca4m4.ellison.authority.yates-nonthreatening-taser-notice"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.ellison.anchor.ja32","ca4m4.ellison.anchor.ja39","ca4m4.ellison.anchor.ja45","ca4m4.ellison.anchor.ja51",
+        "ca4m4.ellison.anchor.ja57","ca4m4.ellison.anchor.ja64","ca4m4.ellison.anchor.ja69","ca4m4.ellison.anchor.ja77",
+        "ca4m4.ellison.anchor.ja83","ca4m4.ellison.anchor.ja90","ca4m4.ellison.anchor.ja97","ca4m4.ellison.anchor.ja102",
+        "ca4m4.ellison.anchor.ja107","ca4m4.ellison.anchor.ja118","ca4m4.ellison.anchor.ja131","ca4m4.ellison.anchor.ja141",
+        "ca4m4.ellison.anchor.ja151","ca4m4.ellison.anchor.ja160","ca4m4.ellison.anchor.ja170","ca4m4.ellison.anchor.ja179",
+        "ca4m4.ellison.anchor.ja194","ca4m4.ellison.anchor.ja213","ca4m4.ellison.anchor.ja226","ca4m4.ellison.anchor.ja233",
+        "ca4m4.ellison.anchor.ja238","ca4m4.ellison.anchor.ja242","ca4m4.ellison.anchor.ja244","ca4m4.ellison.anchor.ja245",
+        "ca4m4.ellison.anchor.ja248","ca4m4.ellison.anchor.ja249","ca4m4.ellison.anchor.ja253",
+        "ca4m4.ellison.anchor.pa20","ca4m4.ellison.anchor.pa28","ca4m4.ellison.anchor.pa44","ca4m4.ellison.anchor.pa51",
+        "ca4m4.ellison.anchor.pa60","ca4m4.ellison.anchor.pa76","ca4m4.ellison.anchor.pa77","ca4m4.ellison.anchor.pa78",
+        "ca4m4.ellison.anchor.pa79","ca4m4.ellison.anchor.pa83","ca4m4.ellison.anchor.pa101"
+      ]
+    },
+    {
+      "issue_id": "ca4m4.ellison.issue.clearly-established-qualified-immunity",
+      "title": "Whether pre-February 3, 2025 precedent clearly established that the assumed single-cycle force was unlawful, with Barricks and Zorn used only as later analytic authorities and never as incident-date notice",
+      "target_ids": ["ca4m4.ellison.target.assumed-facts-qualified-immunity-denial"],
+      "authority_ids": [
+        "ca4m4.ellison.authority.barricks-collateral-boundary",
+        "ca4m4.ellison.authority.barricks-assumed-facts-law",
+        "ca4m4.ellison.authority.armstrong-proportional-danger",
+        "ca4m4.ellison.authority.armstrong-prospective-notice",
+        "ca4m4.ellison.authority.smith-modest-movement-force",
+        "ca4m4.ellison.authority.meyers-changing-threat",
+        "ca4m4.ellison.authority.yates-nonthreatening-taser-notice",
+        "ca4m4.ellison.authority.zorn-specificity-warning"
+      ],
+      "record_anchor_ids": [
+        "ca4m4.ellison.anchor.ja107","ca4m4.ellison.anchor.ja118","ca4m4.ellison.anchor.ja141","ca4m4.ellison.anchor.ja160",
+        "ca4m4.ellison.anchor.ja179","ca4m4.ellison.anchor.ja194","ca4m4.ellison.anchor.ja213","ca4m4.ellison.anchor.ja233",
+        "ca4m4.ellison.anchor.ja242","ca4m4.ellison.anchor.ja249","ca4m4.ellison.anchor.ja250","ca4m4.ellison.anchor.ja251",
+        "ca4m4.ellison.anchor.ja252","ca4m4.ellison.anchor.ja253",
+        "ca4m4.ellison.anchor.pa29","ca4m4.ellison.anchor.pa31","ca4m4.ellison.anchor.pa49","ca4m4.ellison.anchor.pa53",
+        "ca4m4.ellison.anchor.pa63","ca4m4.ellison.anchor.pa80","ca4m4.ellison.anchor.pa81","ca4m4.ellison.anchor.pa82",
+        "ca4m4.ellison.anchor.pa83","ca4m4.ellison.anchor.pa84","ca4m4.ellison.anchor.pa99","ca4m4.ellison.anchor.pa100",
+        "ca4m4.ellison.anchor.pa102","ca4m4.ellison.anchor.pa103","ca4m4.ellison.anchor.pa104","ca4m4.ellison.anchor.pa105",
+        "ca4m4.ellison.anchor.pa106","ca4m4.ellison.anchor.pa109","ca4m4.ellison.anchor.pa117"
+      ]
+    }
+  ],
+  "disposition_plans": [
+    {
+      "plan_id": "ca4m4.ellison.disposition.authored-mixed",
+      "finality": "final",
+      "digest": "d98cbd88077bb3415931f324c5fdca0e714a62bb3894279e8e5b269ccd66823c",
+      "components": [
+        {"issue_id":"ca4m4.ellison.issue.collateral-order-boundary","target_id":"ca4m4.ellison.target.factual-sufficiency-review","scope":"part","action":"dismiss","remand":false,"authority_ids":["ca4m4.ellison.authority.johnson-evidence-sufficiency","ca4m4.ellison.authority.barricks-collateral-boundary"],"record_anchor_ids":["ca4m4.ellison.anchor.ja238","ca4m4.ellison.anchor.ja240","ca4m4.ellison.anchor.ja246","ca4m4.ellison.anchor.ja247","ca4m4.ellison.anchor.ja252","ca4m4.ellison.anchor.ja253","ca4m4.ellison.anchor.pa72","ca4m4.ellison.anchor.pa75","ca4m4.ellison.anchor.pa84","ca4m4.ellison.anchor.pa85"]},
+        {"issue_id":"ca4m4.ellison.issue.assumed-facts-fourth-amendment","target_id":"ca4m4.ellison.target.assumed-facts-fourth-amendment-denial","scope":"part","action":"affirm","remand":false,"authority_ids":["ca4m4.ellison.authority.graham-force-totality","ca4m4.ellison.authority.barricks-assumed-facts-law","ca4m4.ellison.authority.armstrong-proportional-danger","ca4m4.ellison.authority.smith-modest-movement-force","ca4m4.ellison.authority.meyers-changing-threat","ca4m4.ellison.authority.yates-nonthreatening-taser-notice"],"record_anchor_ids":["ca4m4.ellison.anchor.ja32","ca4m4.ellison.anchor.ja51","ca4m4.ellison.anchor.ja69","ca4m4.ellison.anchor.ja77","ca4m4.ellison.anchor.ja83","ca4m4.ellison.anchor.ja90","ca4m4.ellison.anchor.ja97","ca4m4.ellison.anchor.ja107","ca4m4.ellison.anchor.ja118","ca4m4.ellison.anchor.ja141","ca4m4.ellison.anchor.ja151","ca4m4.ellison.anchor.ja160","ca4m4.ellison.anchor.ja179","ca4m4.ellison.anchor.ja238","ca4m4.ellison.anchor.ja242","ca4m4.ellison.anchor.ja248","ca4m4.ellison.anchor.ja249","ca4m4.ellison.anchor.ja253","ca4m4.ellison.anchor.pa76","ca4m4.ellison.anchor.pa77","ca4m4.ellison.anchor.pa78","ca4m4.ellison.anchor.pa79","ca4m4.ellison.anchor.pa83"]},
+        {"issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","target_id":"ca4m4.ellison.target.assumed-facts-qualified-immunity-denial","scope":"part","action":"affirm","remand":false,"authority_ids":["ca4m4.ellison.authority.barricks-assumed-facts-law","ca4m4.ellison.authority.armstrong-proportional-danger","ca4m4.ellison.authority.armstrong-prospective-notice","ca4m4.ellison.authority.smith-modest-movement-force","ca4m4.ellison.authority.meyers-changing-threat","ca4m4.ellison.authority.yates-nonthreatening-taser-notice","ca4m4.ellison.authority.zorn-specificity-warning"],"record_anchor_ids":["ca4m4.ellison.anchor.ja107","ca4m4.ellison.anchor.ja118","ca4m4.ellison.anchor.ja141","ca4m4.ellison.anchor.ja242","ca4m4.ellison.anchor.ja249","ca4m4.ellison.anchor.ja250","ca4m4.ellison.anchor.ja251","ca4m4.ellison.anchor.ja252","ca4m4.ellison.anchor.ja253","ca4m4.ellison.anchor.pa80","ca4m4.ellison.anchor.pa81","ca4m4.ellison.anchor.pa82","ca4m4.ellison.anchor.pa83","ca4m4.ellison.anchor.pa84"]}
+      ]
+    },
+    {
+      "plan_id": "ca4m4.ellison.disposition.counterfactual-qualified-immunity",
+      "finality": "final",
+      "digest": "6f1a4ce2280a21f41f085c72faa36fb4e72dcee09ea104d4867822bf1754b793",
+      "components": [
+        {"issue_id":"ca4m4.ellison.issue.collateral-order-boundary","target_id":"ca4m4.ellison.target.factual-sufficiency-review","scope":"part","action":"dismiss","remand":false,"authority_ids":["ca4m4.ellison.authority.johnson-evidence-sufficiency","ca4m4.ellison.authority.barricks-collateral-boundary"],"record_anchor_ids":["ca4m4.ellison.anchor.ja238","ca4m4.ellison.anchor.ja240","ca4m4.ellison.anchor.ja246","ca4m4.ellison.anchor.ja247","ca4m4.ellison.anchor.ja252","ca4m4.ellison.anchor.ja253","ca4m4.ellison.anchor.pa94","ca4m4.ellison.anchor.pa96","ca4m4.ellison.anchor.pa97","ca4m4.ellison.anchor.pa106"]},
+        {"issue_id":"ca4m4.ellison.issue.clearly-established-qualified-immunity","target_id":"ca4m4.ellison.target.assumed-facts-qualified-immunity-denial","scope":"part","action":"reverse","remand":true,"authority_ids":["ca4m4.ellison.authority.armstrong-proportional-danger","ca4m4.ellison.authority.armstrong-prospective-notice","ca4m4.ellison.authority.smith-modest-movement-force","ca4m4.ellison.authority.meyers-changing-threat","ca4m4.ellison.authority.yates-nonthreatening-taser-notice","ca4m4.ellison.authority.zorn-specificity-warning"],"record_anchor_ids":["ca4m4.ellison.anchor.ja107","ca4m4.ellison.anchor.ja118","ca4m4.ellison.anchor.ja141","ca4m4.ellison.anchor.ja242","ca4m4.ellison.anchor.ja249","ca4m4.ellison.anchor.ja250","ca4m4.ellison.anchor.ja251","ca4m4.ellison.anchor.ja252","ca4m4.ellison.anchor.ja253","ca4m4.ellison.anchor.pa99","ca4m4.ellison.anchor.pa100","ca4m4.ellison.anchor.pa102","ca4m4.ellison.anchor.pa103","ca4m4.ellison.anchor.pa104","ca4m4.ellison.anchor.pa105","ca4m4.ellison.anchor.pa106"]}
+      ]
+    }
+  ],
+  "authored_disposition_plan_id": "ca4m4.ellison.disposition.authored-mixed",
+  "authored_disposition_id": "ca4m4.ellison.operation.issue-actual-judgment"
+}

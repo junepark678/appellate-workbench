@@ -1,0 +1,444 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "ca4m4.arm.argument.counterfactual",
+  "case_id": "ca4m4.case.arm-agency",
+  "bench_configuration_id": "ca4m4.arm.bench.three-judge",
+  "total_seconds": 900,
+  "rebuttal_seconds": 90,
+  "permitted_issue_ids": [
+    "ca4m4.arm.issue.record-composition",
+    "ca4m4.arm.issue.aggregate-cat-risk",
+    "ca4m4.arm.issue.official-acquiescence",
+    "ca4m4.arm.issue.review-standard",
+    "ca4m4.arm.issue.petition-timeliness"
+  ],
+  "grounded_question_bank": {
+    "mode": "counterfactual_training",
+    "grounding_digest": "27f6387c45efb7ac62c798164dbd1a78cfc699bc8cc53a7c36b75e8a220e7124",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_ids": [
+          "workbench.topic.record-support",
+          "workbench.topic.remedy"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_ids": [
+          "workbench.topic.governing-authority",
+          "workbench.topic.remedy"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_ids": [
+          "workbench.topic.merits",
+          "workbench.topic.remedy"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_ids": [
+          "workbench.topic.standard-of-review",
+          "workbench.topic.remedy"
+        ]
+      },
+      {
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_ids": [
+          "workbench.topic.jurisdiction",
+          "workbench.topic.remedy"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-record-composition-premise-reversal",
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Assume P-7 had not been admitted or otherwise made part of the agency proceedings. Would Rule 16 permit correction, or would the request instead seek supplementation like the separate post-order PA proffer?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-premise-reversal-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.frap-16-record"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-premise-reversal-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-record-limit"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-premise-reversal-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar117"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-premise-reversal-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar233"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-premise-reversal-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa1"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-premise-reversal-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa36"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-record-composition-adverse-remedy",
+        "issue_id": "ca4m4.arm.issue.record-composition",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Assume the file audit could not establish that the restored P-7 was the same document presented below. What record may the court review, and what adverse disposition should follow on the correction and supplementation requests?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-adverse-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.frap-16-record"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-adverse-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-record-limit"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-adverse-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar235"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-adverse-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar237"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-adverse-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa7"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-adverse-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa56"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-record-composition-adverse-remedy-record-05",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa58"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-aggregate-risk-premise-reversal",
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_id": "workbench.topic.governing-authority",
+        "prompt": "Assume the three feared pathways were factually independent and the record supplied no link among them. How would Rodriguez-Arias still structure the combined probability inquiry when no source alone exceeds 50 percent?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-premise-reversal-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-cat-burden"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-premise-reversal-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-aggregation"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-premise-reversal-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar29"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-premise-reversal-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar86"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-premise-reversal-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar137"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-premise-reversal-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa87"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-aggregate-risk-adverse-remedy",
+        "issue_id": "ca4m4.arm.issue.aggregate-cat-risk",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Assume the agency expressly evaluates all three pathways together and explains why the combined risk remains below more-likely-than-not. Would the aggregation authorities alone still support vacatur, and what issue would remain for review?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-adverse-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-all-evidence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-adverse-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-aggregation"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-adverse-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar171"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-adverse-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar212"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-adverse-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa72"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-aggregate-risk-adverse-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa87"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-official-acquiescence-premise-reversal",
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Assume an independent office interviewed S.M., investigated the complaint, and took protective action. Which elements of awareness and breach would that reversed premise alter, and which record facts would remain relevant?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-premise-reversal-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-torture-acquiescence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-premise-reversal-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar66"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-premise-reversal-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar71"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-premise-reversal-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar148"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-premise-reversal-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa92"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-official-acquiescence-adverse-remedy",
+        "issue_id": "ca4m4.arm.issue.official-acquiescence",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Assume the agency meaningfully weighs the routing evidence and finds that the safeguards negate awareness or breach. Under the governing authorities, when would the acquiescence issue no longer warrant remand?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-adverse-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.cfr-1208-torture-acquiescence"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-adverse-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-adverse-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar172"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-adverse-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar215"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-adverse-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa74"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-official-acquiescence-adverse-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa92"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-review-standard-premise-reversal",
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_id": "workbench.topic.standard-of-review",
+        "prompt": "Assume the agency expressly addresses every central aggregation and acquiescence item but reaches the same denial. What question remains under the compelled-conclusion standard?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-premise-reversal-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-review-standard"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-premise-reversal-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-premise-reversal-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar216"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-premise-reversal-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa76"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-premise-reversal-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa96"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-review-standard-adverse-remedy",
+        "issue_id": "ca4m4.arm.issue.review-standard",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Assume a different inference seems stronger to the court, but the record does not compel it and the agency's explanation is reviewable. Why would affirmance, rather than factfinding or remand, be the adverse path?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-adverse-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-review-standard"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-adverse-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.rodriguez-arias-consideration"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-adverse-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar171"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-adverse-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar172"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-adverse-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa96"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-review-standard-adverse-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa106"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-petition-timeliness-premise-reversal",
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_id": "workbench.topic.jurisdiction",
+        "prompt": "Assume the petition was filed on day 31 and the Government did not invoke Section 1252(b)(1) by the show-cause deadline. Under Riley, why may the case proceed despite the late filing?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-premise-reversal-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-deadline"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-premise-reversal-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.riley-claims-processing"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-premise-reversal-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar211"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-premise-reversal-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar218"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-premise-reversal-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa128"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-premise-reversal-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa140"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-premise-reversal-record-05",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa153"
+          }
+        ]
+      },
+      {
+        "question_id": "ca4m4.arm.question.counterfactual-petition-timeliness-adverse-remedy",
+        "issue_id": "ca4m4.arm.issue.petition-timeliness",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "Assume a day-31 petition and a timely Government invocation of Section 1252(b)(1). Under Riley and the statute, why is dismissal the adverse path even though the deadline is nonjurisdictional?",
+        "grounding": [
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-adverse-remedy-authority-01",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.usc-1252-deadline"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-adverse-remedy-authority-02",
+            "kind": "authority",
+            "authority_id": "ca4m4.arm.authority.riley-claims-processing"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-adverse-remedy-record-01",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.ar211"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-adverse-remedy-record-02",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa128"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-adverse-remedy-record-03",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa140"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-adverse-remedy-record-04",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa143"
+          },
+          {
+            "grounding_id": "ca4m4.arm.grounding.counterfactual-petition-timeliness-adverse-remedy-record-05",
+            "kind": "record_page",
+            "anchor_id": "ca4m4.arm.anchor.pa148"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "pack_id": "us.ca4.m4.norvale-injunction",
+  "successor_version": "1.2.0",
+  "boundary": "appellate_workflow_and_multi_trace_realism_evidence",
+  "workflow_contract": {
+    "resource_id": "ca4m4.norvale.workflow.civil-injunction",
+    "source_path": "resources/workflow.candidate.json",
+    "sha256": "1b285f65a38c4be2a7bc8dbe29d3822aee2963d05019fbe5f79d5917272cc74a",
+    "stage_count": 16,
+    "operation_count": 90,
+    "filing_route_count": 13,
+    "filing_binding_count": 24,
+    "document_binding_count": 31,
+    "disposition_binding_count": 2,
+    "deadline_calculation_operation_count": 14,
+    "concrete_deadline_id_count": 14,
+    "logical_deadline_concept_count": 12,
+    "deficiency_count": 0
+  },
+  "trace_contract": {
+    "engine_revision": "appellate.realism-evidence.codec-replay-multi.v1",
+    "trace_count": 9,
+    "operation_union_count": 90,
+    "reject_operation_count": 9,
+    "rejection_reason": "nonconforming_filing",
+    "same_trace_same_filing_id_recovery_required": true,
+    "codec_decode_reencode_required": true,
+    "redecision_pass_count": 2,
+    "full_replay_pass_count": 2,
+    "per_trace_tamper_rejections": [
+      "sequence",
+      "legal_time",
+      "document_sha256"
+    ]
+  },
+  "planned_traces": [
+    {
+      "trace_id": "ca4m4.norvale.trace.actual",
+      "evidence_id": "ca4m4.norvale.evidence.trace.actual",
+      "canonical_trace_path": "traces/actual-through-mandate.json",
+      "classification": "actual_appellate_path",
+      "terminal_stage_id": "ca4m4.norvale.stage.terminated",
+      "terminal": true,
+      "terminal_result": "affirmed_in_part_limited_rule65_remand_mandate_issued"
+    },
+    {
+      "trace_id": "ca4m4.norvale.trace.rule8-threshold",
+      "evidence_id": "ca4m4.norvale.evidence.trace.rule8-threshold",
+      "canonical_trace_path": "traces/rule8-threshold-scoped-endpoint.json",
+      "classification": "counterfactual_appellate_branch",
+      "terminal_stage_id": "ca4m4.norvale.stage.appellate-stay",
+      "terminal": false,
+      "endpoint_scope": "scoped_nonterminal",
+      "terminal_result": "scoped_nonterminal_appellate_stay_endpoint_after_rule8_threshold_denial"
+    },
+    {
+      "trace_id": "ca4m4.norvale.trace.impracticability-denial",
+      "evidence_id": "ca4m4.norvale.evidence.trace.impracticability-denial",
+      "canonical_trace_path": "traces/impracticability-denial-scoped-endpoint.json",
+      "classification": "counterfactual_appellate_branch",
+      "terminal_stage_id": "ca4m4.norvale.stage.appellate-stay",
+      "terminal": false,
+      "endpoint_scope": "scoped_nonterminal",
+      "terminal_result": "scoped_nonterminal_appellate_stay_endpoint_after_impracticability_merits_denial"
+    },
+    {
+      "trace_id": "ca4m4.norvale.trace.stay-grant-dissolution",
+      "evidence_id": "ca4m4.norvale.evidence.trace.stay-grant-dissolution",
+      "canonical_trace_path": "traces/stay-grant-dissolution-scoped-endpoint.json",
+      "classification": "counterfactual_appellate_branch",
+      "terminal_stage_id": "ca4m4.norvale.stage.appellate-stay",
+      "terminal": false,
+      "endpoint_scope": "scoped_nonterminal",
+      "terminal_result": "scoped_nonterminal_appellate_stay_endpoint_after_temporary_stay_dissolution"
+    },
+    {
+      "trace_id": "ca4m4.norvale.trace.adverse-on-briefs",
+      "evidence_id": "ca4m4.norvale.evidence.trace.adverse-on-briefs",
+      "canonical_trace_path": "traces/adverse-on-briefs-through-mandate.json",
+      "classification": "counterfactual_appellate_branch",
+      "terminal_stage_id": "ca4m4.norvale.stage.terminated",
+      "terminal": true,
+      "terminal_result": "preliminary_injunction_reversed_and_remanded_mandate_issued"
+    },
+    {
+      "trace_id": "ca4m4.norvale.trace.rehearing-denial",
+      "evidence_id": "ca4m4.norvale.evidence.trace.rehearing-denial",
+      "canonical_trace_path": "traces/rehearing-denial-through-mandate.json",
+      "classification": "counterfactual_appellate_branch",
+      "terminal_stage_id": "ca4m4.norvale.stage.terminated",
+      "terminal": true,
+      "terminal_result": "mandate_issued_after_rehearing_denial"
+    },
+    {
+      "trace_id": "ca4m4.norvale.trace.mandate-stay-denial",
+      "evidence_id": "ca4m4.norvale.evidence.trace.mandate-stay-denial",
+      "canonical_trace_path": "traces/mandate-stay-denial-through-mandate.json",
+      "classification": "counterfactual_appellate_branch",
+      "terminal_stage_id": "ca4m4.norvale.stage.terminated",
+      "terminal": true,
+      "terminal_result": "mandate_issued_after_mandate_stay_denial"
+    },
+    {
+      "trace_id": "ca4m4.norvale.trace.mandate-stay-grant-blocked",
+      "evidence_id": "ca4m4.norvale.evidence.trace.mandate-stay-grant-blocked",
+      "canonical_trace_path": "traces/mandate-stay-grant-blocked.json",
+      "classification": "counterfactual_appellate_branch",
+      "terminal_stage_id": "ca4m4.norvale.stage.mandate-stayed",
+      "terminal": false,
+      "endpoint_scope": "blocked_state",
+      "terminal_result": "mandate_stayed"
+    },
+    {
+      "trace_id": "ca4m4.norvale.trace.dissolution-release",
+      "evidence_id": "ca4m4.norvale.evidence.trace.dissolution-release",
+      "canonical_trace_path": "traces/dissolution-release-through-mandate.json",
+      "classification": "counterfactual_appellate_branch",
+      "terminal_stage_id": "ca4m4.norvale.stage.terminated",
+      "terminal": true,
+      "terminal_result": "mandate_issued_after_stay_dissolution"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "resource_kind": "judge_profile",
+  "resource_id": "us.ca4.bench-profile.quill",
+  "display_name": "Composite Jurist Quill",
+  "profile_class": "fictional_composite",
+  "compatibility": {
+    "court_roles": ["appellate"],
+    "jurisdiction_ids": ["us.ca4"]
+  },
+  "interaction": {
+    "directness": 0.90,
+    "formality": 0.38,
+    "question_length": 0.18,
+    "interruption_frequency": 0.72,
+    "follow_up_depth": 0.55,
+    "hypothetical_frequency": 0.28,
+    "concession_recall": 0.76,
+    "record_pin_demand": 0.72,
+    "time_strictness": 0.90,
+    "issue_focus": [
+      {"topic_id": "workbench.topic.jurisdiction", "weight": 0.82},
+      {"topic_id": "workbench.topic.preservation", "weight": 0.78},
+      {"topic_id": "workbench.topic.record-support", "weight": 0.66}
+    ]
+  },
+  "voice": {
+    "register": "plain",
+    "cadence": "clipped",
+    "question_framing": "direct",
+    "address_convention": "counsel",
+    "verbosity": 0.18,
+    "sentence_complexity": 0.24,
+    "question_phrases": ["where is that preserved", "what is the answer"],
+    "interruption_phrases": ["one point at a time", "just the answer"],
+    "clarification_phrases": ["which page", "which rule"]
+  }
+}

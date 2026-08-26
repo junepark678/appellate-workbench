@@ -1,5 +1,9 @@
 # Product contract
 
+The platform boundary in [ADR 0001](adr/0001-native-offline-mvp.md) is binding on this
+contract; changes that add a server, account system, browser runtime, or network requirement
+must replace that accepted decision explicitly.
+
 ## MVP promise
 
 Appellate Workbench is a single-user, local-first native workstation in which a learner can
@@ -41,6 +45,11 @@ consistency; consequences; oral argument; bench differentiation; and provenance:
 Every shipped case must score at least 2 in every category. One gold case in each proceeding
 profile must score 3. A material legal error, impossible state, invented off-record fact, or
 unresolved citation blocks release regardless of averages.
+
+For schema-version-2 content, every nonzero score is machine-bound to the exact case dependency
+closure, resource/blob descriptors, replay journal evidence, record checks, and authority IDs.
+Self review cannot establish level 3; that requires a detached review pack pinned to the exact
+reviewed revision with attributable qualified reviewer metadata.
 
 ## Bench profiles
 

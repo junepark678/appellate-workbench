@@ -1,0 +1,109 @@
+{
+  "schema_version": 2,
+  "resource_kind": "argument_config",
+  "resource_id": "example.argument.fictional",
+  "case_id": "example.case.fictional",
+  "bench_configuration_id": "example.bench.fictional",
+  "total_seconds": 1800,
+  "rebuttal_seconds": 180,
+  "permitted_issue_ids": [
+    "example.issue.preservation",
+    "example.issue.prejudice"
+  ],
+  "grounded_question_bank": {
+    "mode": "actual_record",
+    "grounding_digest": "766b0a05b8d4c6ed2b05496f520bc34d11ade1d1d670f7dd6fb036c11a238c55",
+    "issue_topic_bindings": [
+      {
+        "issue_id": "example.issue.preservation",
+        "topic_ids": [
+          "workbench.topic.preservation",
+          "workbench.topic.record-support"
+        ]
+      },
+      {
+        "issue_id": "example.issue.prejudice",
+        "topic_ids": [
+          "workbench.topic.merits",
+          "workbench.topic.remedy"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "example.question.preservation",
+        "issue_id": "example.issue.preservation",
+        "topic_id": "workbench.topic.preservation",
+        "prompt": "Where did the appellant preserve the claimed error?",
+        "grounding": [
+          {
+            "grounding_id": "example.grounding.preservation-authority",
+            "kind": "authority",
+            "authority_id": "example.authority.rule-one"
+          },
+          {
+            "grounding_id": "example.grounding.preservation-brief",
+            "kind": "brief_page",
+            "entry_id": "example.record.brief-opening",
+            "page_number": 2
+          },
+          {
+            "grounding_id": "example.grounding.preservation-record",
+            "kind": "record_page",
+            "anchor_id": "example.record.anchor.ja2"
+          }
+        ]
+      },
+      {
+        "question_id": "example.question.record-support",
+        "issue_id": "example.issue.preservation",
+        "topic_id": "workbench.topic.record-support",
+        "prompt": "Which record page shows the objection and the trial court's response?",
+        "grounding": [
+          {
+            "grounding_id": "example.grounding.record-support-page",
+            "kind": "record_page",
+            "anchor_id": "example.record.anchor.ja2"
+          }
+        ]
+      },
+      {
+        "question_id": "example.question.prejudice",
+        "issue_id": "example.issue.prejudice",
+        "topic_id": "workbench.topic.merits",
+        "prompt": "Why did the asserted error affect the fictional merits?",
+        "grounding": [
+          {
+            "grounding_id": "example.grounding.prejudice-authority",
+            "kind": "authority",
+            "authority_id": "example.authority.rule-one"
+          },
+          {
+            "grounding_id": "example.grounding.prejudice-record",
+            "kind": "record_page",
+            "anchor_id": "example.record.anchor.ja2"
+          }
+        ]
+      },
+      {
+        "question_id": "example.question.remedy",
+        "issue_id": "example.issue.prejudice",
+        "topic_id": "workbench.topic.remedy",
+        "prompt": "What precise relief follows if the court agrees that prejudice is shown?",
+        "grounding": [
+          {
+            "grounding_id": "example.grounding.remedy-authority",
+            "kind": "authority",
+            "authority_id": "example.authority.rule-one"
+          },
+          {
+            "grounding_id": "example.grounding.remedy-brief",
+            "kind": "brief_page",
+            "entry_id": "example.record.brief-opening",
+            "page_number": 3
+          }
+        ]
+      }
+    ]
+  }
+}

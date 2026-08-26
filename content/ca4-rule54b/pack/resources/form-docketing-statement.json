@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "resource_kind": "form",
+  "resource_id": "ca4r54b.form.docketing-statement",
+  "filing_id": "ca4r54b.filing.docketing-statement",
+  "title": "Fourth Circuit Civil Appeal Docketing Statement",
+  "fields": [
+    {"field_id": "ca4r54b.field.docket-jurisdiction", "label": "District and appellate jurisdiction", "value_type": "long_text", "required": true},
+    {"field_id": "ca4r54b.field.docket-issues", "label": "Issues proposed on appeal", "value_type": "long_text", "required": true},
+    {"field_id": "ca4r54b.field.docket-transcript", "label": "Transcript order attached", "value_type": "boolean", "required": true}
+  ]
+}

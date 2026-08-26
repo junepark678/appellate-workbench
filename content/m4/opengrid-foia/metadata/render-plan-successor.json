@@ -1,0 +1,593 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "source_path": "documents/lower-record/l01-foia-request.md",
+      "output_path": "objects/l01-foia-request.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 1,
+      "title": "FOIA Request for Grid Sentinel Cyber-Response Playbooks"
+    },
+    {
+      "source_path": "documents/lower-record/l02-acknowledgment-clarification.md",
+      "output_path": "objects/l02-acknowledgment-clarification.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 7,
+      "title": "DOE Acknowledgment and Clarification Request"
+    },
+    {
+      "source_path": "documents/lower-record/l03-scope-clarification.md",
+      "output_path": "objects/l03-scope-clarification.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 10,
+      "title": "Scope Clarification and Preservation Correspondence"
+    },
+    {
+      "source_path": "documents/lower-record/l04-initial-determination.md",
+      "output_path": "objects/l04-initial-determination.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 15,
+      "title": "Initial Determination and Partial-Release Cover Letter"
+    },
+    {
+      "source_path": "documents/lower-record/l05-administrative-appeal-final-decision.md",
+      "output_path": "objects/l05-administrative-appeal-final-decision.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 21,
+      "title": "Administrative Appeal Packet and Final Agency Decision"
+    },
+    {
+      "source_path": "documents/lower-record/l06-complaint.md",
+      "output_path": "objects/l06-complaint.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 29,
+      "title": "Complaint for Declaratory and Injunctive Relief Under FOIA"
+    },
+    {
+      "source_path": "documents/lower-record/l07-doe-answer.md",
+      "output_path": "objects/l07-doe-answer.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 39,
+      "title": "DOE Answer"
+    },
+    {
+      "source_path": "documents/lower-record/l08-foia-officer-declaration.md",
+      "output_path": "objects/l08-foia-officer-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 47,
+      "title": "Declaration of DOE FOIA Officer on Request Processing"
+    },
+    {
+      "source_path": "documents/lower-record/l09-cyber-records-custodian-declaration.md",
+      "output_path": "objects/l09-cyber-records-custodian-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 55,
+      "title": "Declaration of Cyber Operations Records Custodian"
+    },
+    {
+      "source_path": "documents/lower-record/l10-search-method-declaration.md",
+      "output_path": "objects/l10-search-method-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 63,
+      "title": "Declaration on Repositories, Search Terms, and Deduplication"
+    },
+    {
+      "source_path": "documents/lower-record/l11-supplemental-search-declaration.md",
+      "output_path": "objects/l11-supplemental-search-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 70,
+      "title": "Supplemental Declaration on Re-Search and Segregability Review"
+    },
+    {
+      "source_path": "documents/lower-record/l12-public-vaughn-index.md",
+      "output_path": "objects/l12-public-vaughn-index.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 77,
+      "title": "Public Redacted Vaughn Index"
+    },
+    {
+      "source_path": "documents/lower-record/l13-sealed-vaughn-index.md",
+      "output_path": "objects/l13-sealed-vaughn-index.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 86,
+      "title": "Sealed Unredacted Vaughn Index"
+    },
+    {
+      "source_path": "documents/lower-record/l14-public-supplemental-vaughn.md",
+      "output_path": "objects/l14-public-supplemental-vaughn.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 95,
+      "title": "Public Redacted Supplemental Vaughn Index"
+    },
+    {
+      "source_path": "documents/lower-record/l15-sealed-supplemental-vaughn.md",
+      "output_path": "objects/l15-sealed-supplemental-vaughn.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 102,
+      "title": "Sealed Unredacted Supplemental Vaughn Index"
+    },
+    {
+      "source_path": "documents/lower-record/l16-public-decision-tree.md",
+      "output_path": "objects/l16-public-decision-tree.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 109,
+      "title": "Public Redacted Grid Sentinel Operational Decision Tree"
+    },
+    {
+      "source_path": "documents/lower-record/l17-sealed-decision-tree.md",
+      "output_path": "objects/l17-sealed-decision-tree.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 116,
+      "title": "Sealed Grid Sentinel Operational Decision Tree"
+    },
+    {
+      "source_path": "documents/lower-record/l18-public-escalation-matrix.md",
+      "output_path": "objects/l18-public-escalation-matrix.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 123,
+      "title": "Public Redacted Cyber-Incident Escalation Matrix"
+    },
+    {
+      "source_path": "documents/lower-record/l19-sealed-escalation-matrix.md",
+      "output_path": "objects/l19-sealed-escalation-matrix.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 130,
+      "title": "Sealed Cyber-Incident Escalation Matrix"
+    },
+    {
+      "source_path": "documents/lower-record/l20-public-playbook-appendix.md",
+      "output_path": "objects/l20-public-playbook-appendix.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 137,
+      "title": "Public Redacted Response-Coordination Playbook Appendix"
+    },
+    {
+      "source_path": "documents/lower-record/l21-sealed-playbook-appendix.md",
+      "output_path": "objects/l21-sealed-playbook-appendix.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 144,
+      "title": "Sealed Response-Coordination Playbook Appendix"
+    },
+    {
+      "source_path": "documents/lower-record/l22-public-open-grid-summary-judgment.md",
+      "output_path": "objects/l22-public-open-grid-summary-judgment.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 151,
+      "title": "Public Redacted Open Grid Motion and Memorandum for Summary Judgment"
+    },
+    {
+      "source_path": "documents/lower-record/l23-sealed-open-grid-summary-judgment.md",
+      "output_path": "objects/l23-sealed-open-grid-summary-judgment.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 163,
+      "title": "Sealed Highlighted Open Grid Motion and Memorandum for Summary Judgment"
+    },
+    {
+      "source_path": "documents/lower-record/l24-public-doe-cross-motion.md",
+      "output_path": "objects/l24-public-doe-cross-motion.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 175,
+      "title": "Public Redacted DOE Cross-Motion and Opposition"
+    },
+    {
+      "source_path": "documents/lower-record/l25-sealed-doe-cross-motion.md",
+      "output_path": "objects/l25-sealed-doe-cross-motion.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 188,
+      "title": "Sealed Highlighted DOE Cross-Motion and Opposition"
+    },
+    {
+      "source_path": "documents/lower-record/l26-public-open-grid-reply.md",
+      "output_path": "objects/l26-public-open-grid-reply.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 201,
+      "title": "Public Redacted Open Grid Reply and Cross-Opposition"
+    },
+    {
+      "source_path": "documents/lower-record/l27-sealed-open-grid-reply.md",
+      "output_path": "objects/l27-sealed-open-grid-reply.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 211,
+      "title": "Sealed Highlighted Open Grid Reply and Cross-Opposition"
+    },
+    {
+      "source_path": "documents/lower-record/l28-motion-to-seal.md",
+      "output_path": "objects/l28-motion-to-seal.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 221,
+      "title": "Consolidated Public Motion to Maintain Sealing"
+    },
+    {
+      "source_path": "documents/lower-record/l29-certificate-confidentiality.md",
+      "output_path": "objects/l29-certificate-confidentiality.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 227,
+      "title": "Certificate of Confidentiality and Sealed-Materials Chart"
+    },
+    {
+      "source_path": "documents/lower-record/l30-public-in-camera-declaration.md",
+      "output_path": "objects/l30-public-in-camera-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 231,
+      "title": "Public Redacted In-Camera Review Declaration"
+    },
+    {
+      "source_path": "documents/lower-record/l31-sealed-in-camera-declaration.md",
+      "output_path": "objects/l31-sealed-in-camera-declaration.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 237,
+      "title": "Sealed In-Camera Review Declaration"
+    },
+    {
+      "source_path": "documents/lower-record/l32-sealing-in-camera-order.md",
+      "output_path": "objects/l32-sealing-in-camera-order.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 243,
+      "title": "Order on Sealing and In-Camera Review"
+    },
+    {
+      "source_path": "documents/lower-record/l33-memorandum-opinion.md",
+      "output_path": "objects/l33-memorandum-opinion.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 250,
+      "title": "Memorandum Opinion and Order on Cross-Motions for Summary Judgment"
+    },
+    {
+      "source_path": "documents/lower-record/l34-final-judgment.md",
+      "output_path": "objects/l34-final-judgment.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 270,
+      "title": "Final Judgment"
+    },
+    {
+      "source_path": "documents/lower-record/l35-district-docket-report.md",
+      "output_path": "objects/l35-district-docket-report.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 272,
+      "title": "Certified District-Court Docket Report"
+    },
+    {
+      "source_path": "documents/lower-record/l36-notice-of-appeal.md",
+      "output_path": "objects/l36-notice-of-appeal.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 282,
+      "title": "Notice of Appeal"
+    },
+    {
+      "source_path": "documents/lower-record/l37-record-transmittal-index.md",
+      "output_path": "objects/l37-record-transmittal-index.pdf",
+      "page_label_prefix": "JA",
+      "page_label_start": 286,
+      "title": "Certified Record Transmittal and Index"
+    },
+    {
+      "source_path": "documents/appellate-actual/a01-case-opening-notice.md",
+      "output_path": "objects/a01-case-opening-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 1,
+      "title": "Case-Opening and Docketing Notice"
+    },
+    {
+      "source_path": "documents/appellate-actual/a02-docketing-statement.md",
+      "output_path": "objects/a02-docketing-statement.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 4,
+      "title": "Civil Appeal Docketing Statement"
+    },
+    {
+      "source_path": "documents/appellate-actual/a03-appearances-disclosures.md",
+      "output_path": "objects/a03-appearances-disclosures.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 10,
+      "title": "Appearances and Corporate Disclosure Statements"
+    },
+    {
+      "source_path": "documents/appellate-actual/a04-motion-limited-sealing.md",
+      "output_path": "objects/a04-motion-limited-sealing.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 13,
+      "title": "Public Motion for Limited Sealing on Appeal"
+    },
+    {
+      "source_path": "documents/appellate-actual/a05-certificate-confidentiality.md",
+      "output_path": "objects/a05-certificate-confidentiality.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 19,
+      "title": "Certificate of Confidentiality and Access List"
+    },
+    {
+      "source_path": "documents/appellate-actual/a06-public-opening-brief.md",
+      "output_path": "objects/a06-public-opening-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 23,
+      "title": "Public Redacted Opening Brief of Open Grid Archive"
+    },
+    {
+      "source_path": "documents/appellate-actual/a07-sealed-opening-brief.md",
+      "output_path": "objects/a07-sealed-opening-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 39,
+      "title": "Sealed Highlighted Opening Brief of Open Grid Archive"
+    },
+    {
+      "source_path": "documents/appellate-actual/a08-public-response-brief.md",
+      "output_path": "objects/a08-public-response-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 55,
+      "title": "Public Redacted Response Brief of DOE"
+    },
+    {
+      "source_path": "documents/appellate-actual/a09-sealed-response-brief.md",
+      "output_path": "objects/a09-sealed-response-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 71,
+      "title": "Sealed Highlighted Response Brief of DOE"
+    },
+    {
+      "source_path": "documents/appellate-actual/a10-public-reply-brief.md",
+      "output_path": "objects/a10-public-reply-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 87,
+      "title": "Public Redacted Reply Brief of Open Grid Archive"
+    },
+    {
+      "source_path": "documents/appellate-actual/a11-sealed-reply-brief.md",
+      "output_path": "objects/a11-sealed-reply-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 97,
+      "title": "Sealed Highlighted Reply Brief of Open Grid Archive"
+    },
+    {
+      "source_path": "documents/appellate-actual/a12-public-appendix-excerpts.md",
+      "output_path": "objects/a12-public-appendix-excerpts.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 107,
+      "title": "Public Redacted Joint Appendix Excerpts and Index"
+    },
+    {
+      "source_path": "documents/appellate-actual/a13-sealed-appendix-excerpts.md",
+      "output_path": "objects/a13-sealed-appendix-excerpts.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 113,
+      "title": "Sealed Joint Appendix Excerpts and Index"
+    },
+    {
+      "source_path": "documents/appellate-actual/a14-limited-sealing-order.md",
+      "output_path": "objects/a14-limited-sealing-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 119,
+      "title": "Order Granting Only Document-Specific Interim Sealing"
+    },
+    {
+      "source_path": "documents/appellate-actual/a15-argument-notice.md",
+      "output_path": "objects/a15-argument-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 124,
+      "title": "Oral Argument Calendar Notice"
+    },
+    {
+      "source_path": "documents/appellate-actual/a16-argument-held.md",
+      "output_path": "objects/a16-argument-held.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 127,
+      "title": "Oral Argument Held Entry"
+    },
+    {
+      "source_path": "documents/appellate-actual/a17-published-opinion.md",
+      "output_path": "objects/a17-published-opinion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 129,
+      "title": "Published Opinion Affirming in Part, Vacating in Part, and Remanding"
+    },
+    {
+      "source_path": "documents/appellate-actual/a18-judgment.md",
+      "output_path": "objects/a18-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 151,
+      "title": "Judgment"
+    },
+    {
+      "source_path": "documents/appellate-actual/a19-mandate.md",
+      "output_path": "objects/a19-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 154,
+      "title": "Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b01-corrected-premise.md",
+      "output_path": "objects/b01-corrected-premise.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 156,
+      "title": "Never-Filed Corrected-Record Premise and Isolation Notice"
+    },
+    {
+      "source_path": "documents/appellate-branches/b02-motion-limited-sealing.md",
+      "output_path": "objects/b02-motion-limited-sealing.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 164,
+      "title": "Never-Filed Counterfactual Motion for Limited Sealing"
+    },
+    {
+      "source_path": "documents/appellate-branches/b03-certificate-confidentiality.md",
+      "output_path": "objects/b03-certificate-confidentiality.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 170,
+      "title": "Never-Filed Counterfactual Certificate of Confidentiality"
+    },
+    {
+      "source_path": "documents/appellate-branches/b04-public-opening-brief.md",
+      "output_path": "objects/b04-public-opening-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 174,
+      "title": "Never-Filed Public Redacted Counterfactual Opening Brief"
+    },
+    {
+      "source_path": "documents/appellate-branches/b05-sealed-opening-brief.md",
+      "output_path": "objects/b05-sealed-opening-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 188,
+      "title": "Never-Filed Sealed Counterfactual Opening Brief"
+    },
+    {
+      "source_path": "documents/appellate-branches/b06-public-response-brief.md",
+      "output_path": "objects/b06-public-response-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 202,
+      "title": "Never-Filed Public Redacted Counterfactual Response Brief"
+    },
+    {
+      "source_path": "documents/appellate-branches/b07-sealed-response-brief.md",
+      "output_path": "objects/b07-sealed-response-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 216,
+      "title": "Never-Filed Sealed Counterfactual Response Brief"
+    },
+    {
+      "source_path": "documents/appellate-branches/b08-public-reply-brief.md",
+      "output_path": "objects/b08-public-reply-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 230,
+      "title": "Never-Filed Public Redacted Counterfactual Reply Brief"
+    },
+    {
+      "source_path": "documents/appellate-branches/b09-sealed-reply-brief.md",
+      "output_path": "objects/b09-sealed-reply-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 238,
+      "title": "Never-Filed Sealed Counterfactual Reply Brief"
+    },
+    {
+      "source_path": "documents/appellate-branches/b10-argument-notice.md",
+      "output_path": "objects/b10-argument-notice.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 246,
+      "title": "Never-Filed Counterfactual Oral Argument Notice"
+    },
+    {
+      "source_path": "documents/appellate-branches/b11-counterfactual-opinion.md",
+      "output_path": "objects/b11-counterfactual-opinion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 249,
+      "title": "Never-Filed Counterfactual Opinion Affirming Corrected Rulings"
+    },
+    {
+      "source_path": "documents/appellate-branches/b12-counterfactual-judgment.md",
+      "output_path": "objects/b12-counterfactual-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 267,
+      "title": "Never-Filed Counterfactual Judgment"
+    },
+    {
+      "source_path": "documents/appellate-branches/b13-rehearing-petition.md",
+      "output_path": "objects/b13-rehearing-petition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 270,
+      "title": "Never-Filed Petition for Panel and En Banc Rehearing"
+    },
+    {
+      "source_path": "documents/appellate-branches/b14-rehearing-response.md",
+      "output_path": "objects/b14-rehearing-response.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 280,
+      "title": "Never-Filed Response Ordered on Rehearing"
+    },
+    {
+      "source_path": "documents/appellate-branches/b15-rehearing-denial.md",
+      "output_path": "objects/b15-rehearing-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 288,
+      "title": "Never-Filed Order Denying Rehearing"
+    },
+    {
+      "source_path": "documents/appellate-branches/b16-post-denial-mandate.md",
+      "output_path": "objects/b16-post-denial-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 290,
+      "title": "Never-Filed Post-Denial Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b17-motion-stay-mandate.md",
+      "output_path": "objects/b17-motion-stay-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 292,
+      "title": "Never-Filed Motion to Stay Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b18-stay-opposition.md",
+      "output_path": "objects/b18-stay-opposition.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 300,
+      "title": "Never-Filed Opposition to Stay of Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b19-stay-denial.md",
+      "output_path": "objects/b19-stay-denial.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 307,
+      "title": "Never-Filed Order Denying Stay of Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b20-post-stay-denial-mandate.md",
+      "output_path": "objects/b20-post-stay-denial-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 310,
+      "title": "Never-Filed Post-Stay-Denial Mandate"
+    },
+    {
+      "source_path": "documents/appellate-branches/b21-rehearing-grant.md",
+      "output_path": "objects/b21-rehearing-grant.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 312,
+      "title": "Never-Filed Order Granting Panel Rehearing"
+    },
+    {
+      "source_path": "documents/appellate-branches/b22-mandate-stayed.md",
+      "output_path": "objects/b22-mandate-stayed.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 315,
+      "title": "Never-Filed Order Staying Mandate on Rehearing"
+    },
+    {
+      "source_path": "documents/appellate-branches/b23-supplemental-briefing-order.md",
+      "output_path": "objects/b23-supplemental-briefing-order.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 317,
+      "title": "Never-Filed Supplemental Briefing Order"
+    },
+    {
+      "source_path": "documents/appellate-branches/b24-public-supplemental-brief.md",
+      "output_path": "objects/b24-public-supplemental-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 320,
+      "title": "Never-Filed Public Redacted Joint Supplemental Brief"
+    },
+    {
+      "source_path": "documents/appellate-branches/b25-sealed-supplemental-brief.md",
+      "output_path": "objects/b25-sealed-supplemental-brief.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 330,
+      "title": "Never-Filed Sealed Joint Supplemental Brief"
+    },
+    {
+      "source_path": "documents/appellate-branches/b26-revised-opinion.md",
+      "output_path": "objects/b26-revised-opinion.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 340,
+      "title": "Never-Filed Revised Counterfactual Opinion After Rehearing"
+    },
+    {
+      "source_path": "documents/appellate-branches/b27-revised-judgment.md",
+      "output_path": "objects/b27-revised-judgment.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 360,
+      "title": "Never-Filed Revised Counterfactual Judgment"
+    },
+    {
+      "source_path": "documents/appellate-branches/b28-post-rehearing-mandate.md",
+      "output_path": "objects/b28-post-rehearing-mandate.pdf",
+      "page_label_prefix": "PA",
+      "page_label_start": 363,
+      "title": "Never-Filed Post-Rehearing Mandate"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 2,
+  "resource_kind": "procedure_profile",
+  "resource_id": "example.procedure.fictional",
+  "court_id": "example.court.fictional",
+  "proceeding_type": "civil_appeal",
+  "actor_roles": [
+    "example.role.appellant",
+    "example.role.appellee",
+    "example.role.court"
+  ],
+  "filing_catalog_id": "example.catalog.fictional",
+  "workflow_id": "example.workflow.fictional",
+  "authority_set_ids": [
+    "example.authorities.fictional"
+  ]
+}

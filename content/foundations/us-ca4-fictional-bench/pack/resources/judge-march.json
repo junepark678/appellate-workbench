@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "resource_kind": "judge_profile",
+  "resource_id": "us.ca4.bench-profile.march",
+  "display_name": "Composite Jurist March",
+  "profile_class": "fictional_composite",
+  "compatibility": {
+    "court_roles": ["appellate"],
+    "jurisdiction_ids": ["us.ca4"]
+  },
+  "interaction": {
+    "directness": 0.68,
+    "formality": 0.96,
+    "question_length": 0.62,
+    "interruption_frequency": 0.34,
+    "follow_up_depth": 0.78,
+    "hypothetical_frequency": 0.48,
+    "concession_recall": 0.88,
+    "record_pin_demand": 0.82,
+    "time_strictness": 0.78,
+    "issue_focus": [
+      {"topic_id": "workbench.topic.governing-authority", "weight": 0.92},
+      {"topic_id": "workbench.topic.standard-of-review", "weight": 0.88},
+      {"topic_id": "workbench.topic.preservation", "weight": 0.76}
+    ]
+  },
+  "voice": {
+    "register": "technical",
+    "cadence": "measured",
+    "question_framing": "socratic",
+    "address_convention": "counsel",
+    "verbosity": 0.62,
+    "sentence_complexity": 0.88,
+    "question_phrases": ["identify the doctrinal step on which that depends", "state the precise standard of review"],
+    "interruption_phrases": ["reserve the conclusion for a moment", "address the antecedent question"],
+    "clarification_phrases": ["distinguish the two doctrinal inquiries", "specify the source of that authority"]
+  }
+}

@@ -1,0 +1,2274 @@
+{
+  "schema_version": 2,
+  "resource_kind": "workflow",
+  "resource_id": "ca4m4.arm.workflow.agency-review",
+  "initial_stage_id": "ca4m4.arm.stage.opened",
+  "stages": [
+    "ca4m4.arm.stage.opened",
+    "ca4m4.arm.stage.timeliness",
+    "ca4m4.arm.stage.record",
+    "ca4m4.arm.stage.opening-briefing",
+    "ca4m4.arm.stage.response-briefing",
+    "ca4m4.arm.stage.reply-briefing",
+    "ca4m4.arm.stage.argument",
+    "ca4m4.arm.stage.submitted",
+    "ca4m4.arm.stage.rehearing",
+    "ca4m4.arm.stage.mandate-wait",
+    "ca4m4.arm.stage.mandate-stayed",
+    "ca4m4.arm.stage.mandate-issued",
+    "ca4m4.arm.stage.terminated"
+  ],
+  "operations": [
+    {
+      "operation_id": "ca4m4.arm.operation.enter-final-agency-order",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.usc-1252-deadline",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-15-agency-review"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.ar16",
+        "document_sha256": "30690da1b1f9e504ea8b845bf419f099559c709f11c1bc590b2c9498c2e490fe",
+        "expected_court_date": "2025-01-13",
+        "order_id": "ca4m4.arm.order.final-agency-order",
+        "disposition": "other"
+      },
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-petition-rule-deadline",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.usc-1252-deadline",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar",
+          "us.federal.authority.frap-15-agency-review"
+        ]
+      },
+      "deadline_days": 30,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.petition-rule",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.arm.order.final-agency-order",
+        "operation_id": "ca4m4.arm.operation.enter-final-agency-order"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.final-agency-order",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-final-agency-order",
+          "record_entry_id": "ca4m4.arm.record.ar16",
+          "document_sha256": "30690da1b1f9e504ea8b845bf419f099559c709f11c1bc590b2c9498c2e490fe"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.reject-opened",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25a-electronic-filing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-petition",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-15-agency-review",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.usc-1252-deadline",
+          "us.ca4.authority.local-rule-15b-agency-petitions"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.issue-petition-deficiency",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "issue_deficiency",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-45-failure-to-prosecute",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-25a-electronic-filing"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-petition-cure",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-45-failure-to-prosecute",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-petition-deficiency-notice",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-45-failure-to-prosecute",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-25a-electronic-filing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.a02",
+        "document_sha256": "2c3554659a805dc375b0283c4bd2407c3c6db81bfcc6884c3fef71448946f603",
+        "expected_court_date": "2025-02-11",
+        "order_id": "ca4m4.arm.order.petition-deficiency-notice",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.petition-cure",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-cured-petition-to-record",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-15-agency-review",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.usc-1252-deadline"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.record",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.agency-petition-for-review",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a03-cured-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-petition",
+          "record_entry_id": "ca4m4.arm.record.a03",
+          "document_sha256": "ce2f6cd5c33e1eef5b2afc78189a80626b8b4b240f0b9cc23530318948571a8d"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.petition-cure",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-day31-petition-to-timeliness",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.riley-claims-processing",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.usc-1252-deadline"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.timeliness",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.agency-petition-for-review",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.b01-day31-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-petition",
+          "record_entry_id": "ca4m4.arm.record.b01",
+          "document_sha256": "c8b6ea5c7d64a283eac66cfe96276a5b2842221c2429b8cb6b9f3fabe6f67c5c"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.petition-rule",
+          "status": "elapsed"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-uncured-deficiency-dismissal",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-45-failure-to-prosecute",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-25a-electronic-filing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.b05",
+        "document_sha256": "75423cda2ed9856d32e6bb49d7782d69adc4d240359f5a478f8b498dcc5ffbd5",
+        "expected_court_date": "2025-02-19",
+        "order_id": "ca4m4.arm.order.uncured-deficiency-dismissal",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.petition-deficiency-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-petition-deficiency-notice",
+          "record_entry_id": "ca4m4.arm.record.a02",
+          "document_sha256": "2c3554659a805dc375b0283c4bd2407c3c6db81bfcc6884c3fef71448946f603"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.agency-petition-for-review",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a03-cured-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-petition",
+          "record_entry_id": "ca4m4.arm.record.a03",
+          "document_sha256": "ce2f6cd5c33e1eef5b2afc78189a80626b8b4b240f0b9cc23530318948571a8d"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.petition-cure",
+          "status": "elapsed"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-uncured-deficiency-to-terminated",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-45-failure-to-prosecute",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-25a-electronic-filing"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.terminated",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.uncured-deficiency-dismissal",
+          "disposition": "granted",
+          "operation_id": "ca4m4.arm.operation.enter-uncured-deficiency-dismissal",
+          "record_entry_id": "ca4m4.arm.record.b05",
+          "document_sha256": "75423cda2ed9856d32e6bb49d7782d69adc4d240359f5a478f8b498dcc5ffbd5"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.reject-timeliness",
+      "stage_id": "ca4m4.arm.stage.timeliness",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25a-electronic-filing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-timeliness-motion",
+      "stage_id": "ca4m4.arm.stage.timeliness",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.riley-claims-processing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-timeliness-show-cause",
+      "stage_id": "ca4m4.arm.stage.timeliness",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.riley-claims-processing",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.usc-1252-deadline"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.b02",
+        "document_sha256": "a05ab1c75ae3167e120130888ccd223f25cfb822618d95ce60ccf41f475fb03d",
+        "expected_court_date": "2025-06-27",
+        "order_id": "ca4m4.arm.order.timeliness-show-cause",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.agency-petition-for-review",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.b01-day31-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-petition",
+          "record_entry_id": "ca4m4.arm.record.b01",
+          "document_sha256": "c8b6ea5c7d64a283eac66cfe96276a5b2842221c2429b8cb6b9f3fabe6f67c5c"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.petition-rule",
+          "status": "elapsed"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-show-cause-response",
+      "stage_id": "ca4m4.arm.stage.timeliness",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.riley-claims-processing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 10,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.show-cause-response",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.arm.order.timeliness-show-cause",
+        "operation_id": "ca4m4.arm.operation.enter-timeliness-show-cause"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.timeliness-show-cause",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-timeliness-show-cause",
+          "record_entry_id": "ca4m4.arm.record.b02",
+          "document_sha256": "a05ab1c75ae3167e120130888ccd223f25cfb822618d95ce60ccf41f475fb03d"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-day31-dismissal",
+      "stage_id": "ca4m4.arm.stage.timeliness",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.usc-1252-deadline",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.riley-claims-processing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.b04",
+        "document_sha256": "160aaea85258291e5fb50d986cc2f5d9e148087e35305c712d61fd125df0ea71",
+        "expected_court_date": "2025-07-08",
+        "order_id": "ca4m4.arm.order.day31-dismissal",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.timeliness-show-cause",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-timeliness-show-cause",
+          "record_entry_id": "ca4m4.arm.record.b02",
+          "document_sha256": "a05ab1c75ae3167e120130888ccd223f25cfb822618d95ce60ccf41f475fb03d"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.b03-government-invocation",
+          "accept_operation_id": "ca4m4.arm.operation.accept-timeliness-motion",
+          "record_entry_id": "ca4m4.arm.record.b03",
+          "document_sha256": "eafdf4f96240146c452132419d97d00c07a68ff15964ae54a63644391b3e8c37"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.show-cause-response",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-day31-dismissal-to-terminated",
+      "stage_id": "ca4m4.arm.stage.timeliness",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.usc-1252-deadline",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.riley-claims-processing"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.terminated",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.day31-dismissal",
+          "disposition": "granted",
+          "operation_id": "ca4m4.arm.operation.enter-day31-dismissal",
+          "record_entry_id": "ca4m4.arm.record.b04",
+          "document_sha256": "160aaea85258291e5fb50d986cc2f5d9e148087e35305c712d61fd125df0ea71"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-timeliness-forfeiture",
+      "stage_id": "ca4m4.arm.stage.timeliness",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.riley-claims-processing",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.usc-1252-deadline"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.b06",
+        "document_sha256": "aace594b5dcbed1b1b24721c4bf4ae09b2ad0aa09d3cc968ed9ca4aa8777e0f8",
+        "expected_court_date": "2025-07-08",
+        "order_id": "ca4m4.arm.order.timeliness-show-cause-discharge",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.timeliness-show-cause",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-timeliness-show-cause",
+          "record_entry_id": "ca4m4.arm.record.b02",
+          "document_sha256": "a05ab1c75ae3167e120130888ccd223f25cfb822618d95ce60ccf41f475fb03d"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.b03-government-invocation",
+          "accept_operation_id": "ca4m4.arm.operation.accept-timeliness-motion",
+          "record_entry_id": "ca4m4.arm.record.b03",
+          "document_sha256": "eafdf4f96240146c452132419d97d00c07a68ff15964ae54a63644391b3e8c37"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.show-cause-response",
+          "status": "elapsed"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-timeliness-forfeiture-to-record",
+      "stage_id": "ca4m4.arm.stage.timeliness",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.riley-claims-processing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-15-agency-review"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.record",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.timeliness-show-cause-discharge",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-timeliness-forfeiture",
+          "record_entry_id": "ca4m4.arm.record.b06",
+          "document_sha256": "aace594b5dcbed1b1b24721c4bf4ae09b2ad0aa09d3cc968ed9ca4aa8777e0f8"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.reject-record",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25a-electronic-filing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-agency-record",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-17-agency-record",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.frap-16-record"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-appearance",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-46c-appearance",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-docketing-statement",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-3b-docketing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-record-motion",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-27-motions",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-27-motions"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-docketing-notice",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-3b-docketing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-15-agency-review"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.a04",
+        "document_sha256": "1bf110a13b837251de8e609b4df53c6156cdaaa60531d8aed21ac5f6dd0be9a3",
+        "expected_court_date": "2025-02-13",
+        "order_id": "ca4m4.arm.order.docketing-notice",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.agency-petition-for-review",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a03-cured-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-petition",
+          "record_entry_id": "ca4m4.arm.record.a03",
+          "document_sha256": "ce2f6cd5c33e1eef5b2afc78189a80626b8b4b240f0b9cc23530318948571a8d"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-respondent-appearance",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-46c-appearance",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-3b-docketing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 5,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.respondent-appearance",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.arm.order.docketing-notice",
+        "operation_id": "ca4m4.arm.operation.enter-docketing-notice"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-docketing-notice",
+          "record_entry_id": "ca4m4.arm.record.a04",
+          "document_sha256": "1bf110a13b837251de8e609b4df53c6156cdaaa60531d8aed21ac5f6dd0be9a3"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-petitioner-appearance",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-46c-appearance",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-3b-docketing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.petitioner-appearance",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.arm.order.docketing-notice",
+        "operation_id": "ca4m4.arm.operation.enter-docketing-notice"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-docketing-notice",
+          "record_entry_id": "ca4m4.arm.record.a04",
+          "document_sha256": "1bf110a13b837251de8e609b4df53c6156cdaaa60531d8aed21ac5f6dd0be9a3"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-docketing-statement",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-3b-docketing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.docketing-statement",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.arm.order.docketing-notice",
+        "operation_id": "ca4m4.arm.operation.enter-docketing-notice"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.docketing-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-docketing-notice",
+          "record_entry_id": "ca4m4.arm.record.a04",
+          "document_sha256": "1bf110a13b837251de8e609b4df53c6156cdaaa60531d8aed21ac5f6dd0be9a3"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-record-correction-order",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.frap-16-record",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.usc-1252-record-limit"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.a12",
+        "document_sha256": "e4bd6f14f07ce01136e0ad003195763c3c67e10a2e536f1bb4ec1e9f56c476fe",
+        "expected_court_date": "2025-03-05",
+        "order_id": "ca4m4.arm.order.record-correction",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.agency-record",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.ar17-initial-certified-record",
+          "accept_operation_id": "ca4m4.arm.operation.accept-agency-record",
+          "record_entry_id": "ca4m4.arm.record.ar17",
+          "document_sha256": "571c61f6550b0a15115cdfd259900d94d511ca6e87778c28a1cafa6776b1c444"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.agency-record",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.ar18-corrected-certified-record",
+          "accept_operation_id": "ca4m4.arm.operation.accept-agency-record",
+          "record_entry_id": "ca4m4.arm.record.ar18",
+          "document_sha256": "942a41e6f42687acaf4289ec8bfa306340b52c100a6334fe77e19c48def4bb9d"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a07-correction-motion",
+          "accept_operation_id": "ca4m4.arm.operation.accept-record-motion",
+          "record_entry_id": "ca4m4.arm.record.a07",
+          "document_sha256": "b716be28692e1746c230166115cd133fb1809a640848ed9865a437fb4560972e"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.a10-record-motion-response",
+          "accept_operation_id": "ca4m4.arm.operation.accept-record-motion",
+          "record_entry_id": "ca4m4.arm.record.a10",
+          "document_sha256": "2940b72e7dc7ce0bbaae625ee2773ff0b8530dd0a0c1f4490305fe54708af45e"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a11-record-stipulation",
+          "accept_operation_id": "ca4m4.arm.operation.accept-record-motion",
+          "record_entry_id": "ca4m4.arm.record.a11",
+          "document_sha256": "a1db9dc3d6bf5df9c6705d40d9399ad993b0d39465044252f3fa393b3c8ec5ab"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-supplement-denial-order",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.usc-1252-record-limit",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.frap-16-record"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.a13",
+        "document_sha256": "6a7c7589877eb5e7da832e357fe459fcfe95b1fb9bdf79992235140705e2d3e9",
+        "expected_court_date": "2025-03-05",
+        "order_id": "ca4m4.arm.order.record-supplementation",
+        "disposition": "denied"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a06-supplement-motion",
+          "accept_operation_id": "ca4m4.arm.operation.accept-record-motion",
+          "record_entry_id": "ca4m4.arm.record.a06",
+          "document_sha256": "6a6f714afd5a1053ba936cee30082f769b056706198ba44814d2a663db86f70a"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.a10-record-motion-response",
+          "accept_operation_id": "ca4m4.arm.operation.accept-record-motion",
+          "record_entry_id": "ca4m4.arm.record.a10",
+          "document_sha256": "2940b72e7dc7ce0bbaae625ee2773ff0b8530dd0a0c1f4490305fe54708af45e"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-briefing-order",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.a14",
+        "document_sha256": "c3073495aee8ed1b7bd6d7bf6aa480c986881085bd864543800674026c1bb451",
+        "expected_court_date": "2025-03-06",
+        "order_id": "ca4m4.arm.order.briefing-schedule",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.record-correction",
+          "disposition": "granted",
+          "operation_id": "ca4m4.arm.operation.enter-record-correction-order",
+          "record_entry_id": "ca4m4.arm.record.a12",
+          "document_sha256": "e4bd6f14f07ce01136e0ad003195763c3c67e10a2e536f1bb4ec1e9f56c476fe"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.record-supplementation",
+          "disposition": "denied",
+          "operation_id": "ca4m4.arm.operation.enter-supplement-denial-order",
+          "record_entry_id": "ca4m4.arm.record.a13",
+          "document_sha256": "6a7c7589877eb5e7da832e357fe459fcfe95b1fb9bdf79992235140705e2d3e9"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-opening-brief",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.usc-1252-deadline",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time",
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 40,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.opening-brief",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.arm.order.record-correction",
+        "operation_id": "ca4m4.arm.operation.enter-record-correction-order"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.record-correction",
+          "disposition": "granted",
+          "operation_id": "ca4m4.arm.operation.enter-record-correction-order",
+          "record_entry_id": "ca4m4.arm.record.a12",
+          "document_sha256": "e4bd6f14f07ce01136e0ad003195763c3c67e10a2e536f1bb4ec1e9f56c476fe"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.briefing-schedule",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-briefing-order",
+          "record_entry_id": "ca4m4.arm.record.a14",
+          "document_sha256": "c3073495aee8ed1b7bd6d7bf6aa480c986881085bd864543800674026c1bb451"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-record-to-opening-briefing",
+      "stage_id": "ca4m4.arm.stage.record",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-31b-briefing-order",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.opening-briefing",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.briefing-schedule",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-briefing-order",
+          "record_entry_id": "ca4m4.arm.record.a14",
+          "document_sha256": "c3073495aee8ed1b7bd6d7bf6aa480c986881085bd864543800674026c1bb451"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.a05-respondent-appearance",
+          "accept_operation_id": "ca4m4.arm.operation.accept-appearance",
+          "record_entry_id": "ca4m4.arm.record.a05",
+          "document_sha256": "1fb3869986913a1a5a799a3d8f06398d77787f936a377edbe6530b7a1e148a48"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.appearance",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a08-petitioner-appearance",
+          "accept_operation_id": "ca4m4.arm.operation.accept-appearance",
+          "record_entry_id": "ca4m4.arm.record.a08",
+          "document_sha256": "23fa4485b90c718530e6308c94492129f3410f31bfc500977d8fb90be91af375"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.docketing-statement",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a09-docketing-statement",
+          "accept_operation_id": "ca4m4.arm.operation.accept-docketing-statement",
+          "record_entry_id": "ca4m4.arm.record.a09",
+          "document_sha256": "53f221286a490b65d2363d476c1a2f98701062705657ffded8f53ccc41d1c197"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.docketing-statement",
+          "status": "satisfied"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.opening-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.reject-opening-brief",
+      "stage_id": "ca4m4.arm.stage.opening-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25a-electronic-filing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-opening-brief",
+      "stage_id": "ca4m4.arm.stage.opening-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-response-brief",
+      "stage_id": "ca4m4.arm.stage.opening-briefing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 30,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-opening-to-response-briefing",
+      "stage_id": "ca4m4.arm.stage.opening-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.response-briefing",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a15-opening-brief",
+          "accept_operation_id": "ca4m4.arm.operation.accept-opening-brief",
+          "record_entry_id": "ca4m4.arm.record.a15",
+          "document_sha256": "a58b9a3f6bc0e4b2e365eb8378f43e5dbd230578edb9efc8832e1a3949439a9d"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.opening-brief",
+          "status": "satisfied"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.response-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.reject-response-brief",
+      "stage_id": "ca4m4.arm.stage.response-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25a-electronic-filing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-response-brief",
+      "stage_id": "ca4m4.arm.stage.response-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-reply-brief",
+      "stage_id": "ca4m4.arm.stage.response-briefing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "ca4m4.arm.authority.usc-1252-deadline",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-31-brief-time",
+          "us.ca4.authority.local-rule-31b-briefing-order",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 14,
+      "deadline_counting": "calendar_days",
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-response-to-reply-briefing",
+      "stage_id": "ca4m4.arm.stage.response-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.reply-briefing",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.a16-response-brief",
+          "accept_operation_id": "ca4m4.arm.operation.accept-response-brief",
+          "record_entry_id": "ca4m4.arm.record.a16",
+          "document_sha256": "a1e2becf8721e694cbfb058a9fa32574e2c3d0d413d56e48904486a8be2f8309"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.response-brief",
+          "status": "satisfied"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.reply-brief",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.reject-reply-brief",
+      "stage_id": "ca4m4.arm.stage.reply-briefing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25a-electronic-filing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-reply-brief",
+      "stage_id": "ca4m4.arm.stage.reply-briefing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-28-briefs",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-28-briefs"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-reply-to-argument",
+      "stage_id": "ca4m4.arm.stage.reply-briefing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-31-brief-time",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-31b-briefing-order"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.argument",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a17-reply-brief",
+          "accept_operation_id": "ca4m4.arm.operation.accept-reply-brief",
+          "record_entry_id": "ca4m4.arm.record.a17",
+          "document_sha256": "6f16c3556a1af1642c693b81efb31e6f8b8cec0d87aa24abc2ea98dcda13a4c6"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.reply-brief",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-argument-calendar-notice",
+      "stage_id": "ca4m4.arm.stage.argument",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.a18",
+        "document_sha256": "a43bea75c4a99128f8469c2e93446828bed9b619aa91b0d0eb63be9e05a3669f",
+        "expected_court_date": "2025-07-15",
+        "order_id": "ca4m4.arm.order.argument-calendar-notice",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a17-reply-brief",
+          "accept_operation_id": "ca4m4.arm.operation.accept-reply-brief",
+          "record_entry_id": "ca4m4.arm.record.a17",
+          "document_sha256": "6f16c3556a1af1642c693b81efb31e6f8b8cec0d87aa24abc2ea98dcda13a4c6"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.schedule-argument",
+      "stage_id": "ca4m4.arm.stage.argument",
+      "opcode": "schedule_argument",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-34-argument",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-34-argument"
+        ]
+      },
+      "expected_argument_date": "2025-08-05",
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.principal-brief",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.a17-reply-brief",
+          "accept_operation_id": "ca4m4.arm.operation.accept-reply-brief",
+          "record_entry_id": "ca4m4.arm.record.a17",
+          "document_sha256": "6f16c3556a1af1642c693b81efb31e6f8b8cec0d87aa24abc2ea98dcda13a4c6"
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.argument-calendar-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-argument-calendar-notice",
+          "record_entry_id": "ca4m4.arm.record.a18",
+          "document_sha256": "a43bea75c4a99128f8469c2e93446828bed9b619aa91b0d0eb63be9e05a3669f"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-argument-held-order",
+      "stage_id": "ca4m4.arm.stage.argument",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-34-argument",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-34-argument"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.a19",
+        "document_sha256": "4a21bda97202dff18bc4a44f20848a4d657d4752f71c296352ba8cdf04630d47",
+        "expected_court_date": "2025-08-05",
+        "order_id": "ca4m4.arm.order.argument-held",
+        "disposition": "other"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.argument-calendar-notice",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-argument-calendar-notice",
+          "record_entry_id": "ca4m4.arm.record.a18",
+          "document_sha256": "a43bea75c4a99128f8469c2e93446828bed9b619aa91b0d0eb63be9e05a3669f"
+        },
+        {
+          "kind": "argument_scheduled",
+          "scheduled": true
+        },
+        {
+          "kind": "argument_date_status",
+          "status": "reached"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-argument-to-submitted",
+      "stage_id": "ca4m4.arm.stage.argument",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-34-argument",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-34-argument"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.submitted",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.argument-held",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-argument-held-order",
+          "record_entry_id": "ca4m4.arm.record.a19",
+          "document_sha256": "4a21bda97202dff18bc4a44f20848a4d657d4752f71c296352ba8cdf04630d47"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.issue-judgment",
+      "stage_id": "ca4m4.arm.stage.submitted",
+      "opcode": "issue_judgment",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-36-judgment",
+        "supporting_authority_ids": [
+          "ca4m4.arm.authority.usc-1252-review-standard",
+          "ca4m4.arm.authority.cfr-1208-all-evidence",
+          "ca4m4.arm.authority.rodriguez-arias-aggregation",
+          "ca4m4.arm.authority.rodriguez-arias-consideration"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.rehearing",
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.a21",
+        "document_sha256": "e69fbaf48c1cbf81e1e875bc7754aa6ffff5f8a548571cab828b5998ec3e4cfe",
+        "expected_court_date": "2025-09-09"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.argument-held",
+          "disposition": "other",
+          "operation_id": "ca4m4.arm.operation.enter-argument-held-order",
+          "record_entry_id": "ca4m4.arm.record.a19",
+          "document_sha256": "4a21bda97202dff18bc4a44f20848a4d657d4752f71c296352ba8cdf04630d47"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.reject-rehearing",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "reject_filing",
+      "authority": {
+        "primary_authority_id": "us.ca4.authority.local-rule-25a-electronic-filing",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-25-filing-service"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-rehearing-petition",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.accept-stay-motion",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "accept_filing",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "authorized_role_ids": []
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-rehearing",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 45,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.rehearing",
+      "deadline_event_base": {
+        "kind": "judgment_occurred"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-ordinary-mandate",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "deadline_base_id": "ca4m4.arm.deadline.rehearing",
+      "produced_deadline_id": "ca4m4.arm.deadline.mandate-ordinary",
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.rehearing",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-rehearing-denial",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-40-rehearing",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-40-rehearing"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.b08",
+        "document_sha256": "4944aca6f747c049db30b0131cc063c43d0da549ae1895b121ccfbde348e838d",
+        "expected_court_date": "2025-11-07",
+        "order_id": "ca4m4.arm.order.rehearing-disposition",
+        "disposition": "denied"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.b07-rehearing-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-rehearing-petition",
+          "record_entry_id": "ca4m4.arm.record.b07",
+          "document_sha256": "c22b4c4a956a279dd9498fc123104fd9cadbfdf0e8ed9c71639c3f88641e82b7"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.rehearing",
+          "status": "satisfied"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-mandate-after-rehearing-denial",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.mandate-after-rehearing-denial",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.arm.order.rehearing-disposition",
+        "operation_id": "ca4m4.arm.operation.enter-rehearing-denial"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.rehearing-disposition",
+          "disposition": "denied",
+          "operation_id": "ca4m4.arm.operation.enter-rehearing-denial",
+          "record_entry_id": "ca4m4.arm.record.b08",
+          "document_sha256": "4944aca6f747c049db30b0131cc063c43d0da549ae1895b121ccfbde348e838d"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-stay-denial",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.b10",
+        "document_sha256": "c7da61d9bb9c8f13d30b632bcae0201d5301f4bb7aa6af93563b9cd45ca725b0",
+        "expected_court_date": "2025-11-05",
+        "order_id": "ca4m4.arm.order.mandate-stay-disposition",
+        "disposition": "denied"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.b09-stay-motion",
+          "accept_operation_id": "ca4m4.arm.operation.accept-stay-motion",
+          "record_entry_id": "ca4m4.arm.record.b09",
+          "document_sha256": "403482aa2242f550a6b4d7915433ba645447014b04e4ebff62508931d565f5bf"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.b07-rehearing-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-rehearing-petition",
+          "record_entry_id": "ca4m4.arm.record.b07",
+          "document_sha256": "c22b4c4a956a279dd9498fc123104fd9cadbfdf0e8ed9c71639c3f88641e82b7"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-mandate-after-stay-denial",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 7,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.mandate-after-stay-denial",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.arm.order.mandate-stay-disposition",
+        "operation_id": "ca4m4.arm.operation.enter-stay-denial"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.mandate-stay-disposition",
+          "disposition": "denied",
+          "operation_id": "ca4m4.arm.operation.enter-stay-denial",
+          "record_entry_id": "ca4m4.arm.record.b10",
+          "document_sha256": "c7da61d9bb9c8f13d30b632bcae0201d5301f4bb7aa6af93563b9cd45ca725b0"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.enter-stay-grant",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "enter_order",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.b11",
+        "document_sha256": "cb73ea5d36bb6e8dd8e03ef645e95e5f1124f2782d05420e68ad7c43aa220770",
+        "expected_court_date": "2025-10-30",
+        "order_id": "ca4m4.arm.order.mandate-stay-disposition",
+        "disposition": "granted"
+      },
+      "preconditions": [
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": true,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.b09-stay-motion",
+          "accept_operation_id": "ca4m4.arm.operation.accept-stay-motion",
+          "record_entry_id": "ca4m4.arm.record.b09",
+          "document_sha256": "403482aa2242f550a6b4d7915433ba645447014b04e4ebff62508931d565f5bf"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.b07-rehearing-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-rehearing-petition",
+          "record_entry_id": "ca4m4.arm.record.b07",
+          "document_sha256": "c22b4c4a956a279dd9498fc123104fd9cadbfdf0e8ed9c71639c3f88641e82b7"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.calculate-stay-expiration",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "calculate_deadline",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate",
+          "us.federal.authority.frap-26-calendar"
+        ]
+      },
+      "deadline_days": 90,
+      "deadline_counting": "calendar_days",
+      "produced_deadline_id": "ca4m4.arm.deadline.stay-expiration",
+      "deadline_event_base": {
+        "kind": "order_occurred",
+        "order_id": "ca4m4.arm.order.mandate-stay-disposition",
+        "operation_id": "ca4m4.arm.operation.enter-stay-grant"
+      },
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.mandate-stay-disposition",
+          "disposition": "granted",
+          "operation_id": "ca4m4.arm.operation.enter-stay-grant",
+          "record_entry_id": "ca4m4.arm.record.b11",
+          "document_sha256": "cb73ea5d36bb6e8dd8e03ef645e95e5f1124f2782d05420e68ad7c43aa220770"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-ordinary-mandate-wait",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.mandate-wait",
+      "preconditions": [
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.rehearing",
+          "status": "elapsed"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.b07-rehearing-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-rehearing-petition",
+          "record_entry_id": "ca4m4.arm.record.b07",
+          "document_sha256": "c22b4c4a956a279dd9498fc123104fd9cadbfdf0e8ed9c71639c3f88641e82b7"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.b09-stay-motion",
+          "accept_operation_id": "ca4m4.arm.operation.accept-stay-motion",
+          "record_entry_id": "ca4m4.arm.record.b09",
+          "document_sha256": "403482aa2242f550a6b4d7915433ba645447014b04e4ebff62508931d565f5bf"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-rehearing-denial-to-mandate-wait",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.mandate-wait",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.rehearing-disposition",
+          "disposition": "denied",
+          "operation_id": "ca4m4.arm.operation.enter-rehearing-denial",
+          "record_entry_id": "ca4m4.arm.record.b08",
+          "document_sha256": "4944aca6f747c049db30b0131cc063c43d0da549ae1895b121ccfbde348e838d"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.mandate-after-rehearing-denial",
+          "status": "open"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.b09-stay-motion",
+          "accept_operation_id": "ca4m4.arm.operation.accept-stay-motion",
+          "record_entry_id": "ca4m4.arm.record.b09",
+          "document_sha256": "403482aa2242f550a6b4d7915433ba645447014b04e4ebff62508931d565f5bf"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-stay-denial-to-mandate-wait",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.mandate-wait",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.mandate-stay-disposition",
+          "disposition": "denied",
+          "operation_id": "ca4m4.arm.operation.enter-stay-denial",
+          "record_entry_id": "ca4m4.arm.record.b10",
+          "document_sha256": "c7da61d9bb9c8f13d30b632bcae0201d5301f4bb7aa6af93563b9cd45ca725b0"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.mandate-after-stay-denial",
+          "status": "open"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.b07-rehearing-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-rehearing-petition",
+          "record_entry_id": "ca4m4.arm.record.b07",
+          "document_sha256": "c22b4c4a956a279dd9498fc123104fd9cadbfdf0e8ed9c71639c3f88641e82b7"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.advance-stay-grant-to-mandate-stayed",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "opcode": "advance_stage",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.mandate-stayed",
+      "preconditions": [
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.mandate-stay-disposition",
+          "disposition": "granted",
+          "operation_id": "ca4m4.arm.operation.enter-stay-grant",
+          "record_entry_id": "ca4m4.arm.record.b11",
+          "document_sha256": "cb73ea5d36bb6e8dd8e03ef645e95e5f1124f2782d05420e68ad7c43aa220770"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.stay-expiration",
+          "status": "open"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.issue-ordinary-mandate",
+      "stage_id": "ca4m4.arm.stage.mandate-wait",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.mandate-issued",
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.a22",
+        "document_sha256": "3339dfac8a0ac36442b8d39d589366eefbab69cdc5596f771668cf4d0324b7b7",
+        "expected_court_date": "2025-10-31"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.mandate-ordinary",
+          "status": "reached"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.b07-rehearing-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-rehearing-petition",
+          "record_entry_id": "ca4m4.arm.record.b07",
+          "document_sha256": "c22b4c4a956a279dd9498fc123104fd9cadbfdf0e8ed9c71639c3f88641e82b7"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.b09-stay-motion",
+          "accept_operation_id": "ca4m4.arm.operation.accept-stay-motion",
+          "record_entry_id": "ca4m4.arm.record.b09",
+          "document_sha256": "403482aa2242f550a6b4d7915433ba645447014b04e4ebff62508931d565f5bf"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.issue-mandate-after-rehearing-denial",
+      "stage_id": "ca4m4.arm.stage.mandate-wait",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.federal.authority.frap-40-rehearing",
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.mandate-issued",
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.b12",
+        "document_sha256": "1a1e1841cbf68e2d61292c7ef5dbdc2eadf015f6e4d33b6504666815c09196df",
+        "expected_court_date": "2025-11-14"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.rehearing-disposition",
+          "disposition": "denied",
+          "operation_id": "ca4m4.arm.operation.enter-rehearing-denial",
+          "record_entry_id": "ca4m4.arm.record.b08",
+          "document_sha256": "4944aca6f747c049db30b0131cc063c43d0da549ae1895b121ccfbde348e838d"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.mandate-ordinary",
+          "status": "reached"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.mandate-after-rehearing-denial",
+          "status": "reached"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.motion",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.respondent",
+          "filing_id": "ca4m4.arm.filing.b09-stay-motion",
+          "accept_operation_id": "ca4m4.arm.operation.accept-stay-motion",
+          "record_entry_id": "ca4m4.arm.record.b09",
+          "document_sha256": "403482aa2242f550a6b4d7915433ba645447014b04e4ebff62508931d565f5bf"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    },
+    {
+      "operation_id": "ca4m4.arm.operation.issue-mandate-after-stay-denial",
+      "stage_id": "ca4m4.arm.stage.mandate-wait",
+      "opcode": "issue_mandate",
+      "authority": {
+        "primary_authority_id": "us.federal.authority.frap-41-mandate",
+        "supporting_authority_ids": [
+          "us.ca4.authority.local-rule-41-mandate"
+        ]
+      },
+      "next_stage_id": "ca4m4.arm.stage.mandate-issued",
+      "document_binding": {
+        "record_entry_id": "ca4m4.arm.record.b13",
+        "document_sha256": "2f27c7fd8c181d15317d76fe9da71561906693b34084ce9c056241e660c8497c",
+        "expected_court_date": "2025-11-12"
+      },
+      "preconditions": [
+        {
+          "kind": "judgment_issued",
+          "issued": true
+        },
+        {
+          "kind": "order_instance",
+          "order_id": "ca4m4.arm.order.mandate-stay-disposition",
+          "disposition": "denied",
+          "operation_id": "ca4m4.arm.operation.enter-stay-denial",
+          "record_entry_id": "ca4m4.arm.record.b10",
+          "document_sha256": "c7da61d9bb9c8f13d30b632bcae0201d5301f4bb7aa6af93563b9cd45ca725b0"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.mandate-ordinary",
+          "status": "reached"
+        },
+        {
+          "kind": "deadline_status",
+          "deadline_id": "ca4m4.arm.deadline.mandate-after-stay-denial",
+          "status": "reached"
+        },
+        {
+          "kind": "filing_instance",
+          "filing_type_id": "us.ca4.filing.rehearing-petition",
+          "present": false,
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "filing_id": "ca4m4.arm.filing.b07-rehearing-petition",
+          "accept_operation_id": "ca4m4.arm.operation.accept-rehearing-petition",
+          "record_entry_id": "ca4m4.arm.record.b07",
+          "document_sha256": "c22b4c4a956a279dd9498fc123104fd9cadbfdf0e8ed9c71639c3f88641e82b7"
+        }
+      ],
+      "authorized_role_ids": [
+        "us.ca4.role.court"
+      ]
+    }
+  ],
+  "filing_routes": [
+    {
+      "filing_type_id": "us.ca4.filing.agency-petition-for-review",
+      "stage_id": "ca4m4.arm.stage.opened",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "required_field_ids": [
+        "us.ca4.field.agency-petition.caption",
+        "us.ca4.field.agency-petition.parties-seeking-review",
+        "us.ca4.field.agency-petition.agency",
+        "us.ca4.field.agency-petition.order-reference",
+        "us.ca4.field.agency-petition.order-copy-attached",
+        "us.ca4.field.agency-petition.respondent-names-addresses"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-petition",
+      "reject_operation_id": "ca4m4.arm.operation.reject-opened",
+      "deficiency_operation_id": "ca4m4.arm.operation.issue-petition-deficiency",
+      "deficiency_deadline": {
+        "deadline_id": "ca4m4.arm.deadline.petition-cure",
+        "operation_id": "ca4m4.arm.operation.calculate-petition-cure",
+        "id_mode": "exact",
+        "trigger_filing": {
+          "filing_id": "ca4m4.arm.filing.a01-deficient-petition",
+          "actor_id": "ca4m4.arm.actor.petitioner",
+          "record_entry_id": "ca4m4.arm.record.a01",
+          "document_sha256": "e8d4f32e69a878751f4a6da8726d99beb845726f656d08c8957e4db41efa4c42",
+          "expected_court_date": "2025-02-11"
+        }
+      },
+      "reject_after_deadline": false
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.arm.stage.timeliness",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-timeliness-motion",
+      "reject_operation_id": "ca4m4.arm.operation.reject-timeliness",
+      "satisfies_deadline_id": "ca4m4.arm.deadline.show-cause-response",
+      "reject_after_deadline": true
+    },
+    {
+      "filing_type_id": "us.ca4.filing.agency-record",
+      "stage_id": "ca4m4.arm.stage.record",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "required_field_ids": [
+        "us.ca4.field.agency-record.index",
+        "us.ca4.field.agency-record.certification"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-agency-record",
+      "reject_operation_id": "ca4m4.arm.operation.reject-record",
+      "reject_after_deadline": false
+    },
+    {
+      "filing_type_id": "us.ca4.filing.appearance",
+      "stage_id": "ca4m4.arm.stage.record",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "required_field_ids": [
+        "us.ca4.field.appearance.counsel-name",
+        "us.ca4.field.appearance.party-name",
+        "us.ca4.field.appearance.contact"
+      ],
+      "required_service_role_ids": [],
+      "accept_operation_id": "ca4m4.arm.operation.accept-appearance",
+      "reject_operation_id": "ca4m4.arm.operation.reject-record",
+      "reject_after_deadline": false
+    },
+    {
+      "filing_type_id": "us.ca4.filing.docketing-statement",
+      "stage_id": "ca4m4.arm.stage.record",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "required_field_ids": [
+        "us.ca4.field.docketing.jurisdiction",
+        "us.ca4.field.docketing.issues",
+        "us.ca4.field.docketing.related-cases"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-docketing-statement",
+      "reject_operation_id": "ca4m4.arm.operation.reject-record",
+      "satisfies_deadline_id": "ca4m4.arm.deadline.docketing-statement",
+      "reject_after_deadline": true
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.arm.stage.record",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-record-motion",
+      "reject_operation_id": "ca4m4.arm.operation.reject-record",
+      "reject_after_deadline": false
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.arm.stage.opening-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-opening-brief",
+      "reject_operation_id": "ca4m4.arm.operation.reject-opening-brief",
+      "accepted_deadline": {
+        "deadline_id": "ca4m4.arm.deadline.response-brief",
+        "operation_id": "ca4m4.arm.operation.calculate-response-brief"
+      },
+      "satisfies_deadline_id": "ca4m4.arm.deadline.opening-brief",
+      "reject_after_deadline": true
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.arm.stage.response-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-response-brief",
+      "reject_operation_id": "ca4m4.arm.operation.reject-response-brief",
+      "accepted_deadline": {
+        "deadline_id": "ca4m4.arm.deadline.reply-brief",
+        "operation_id": "ca4m4.arm.operation.calculate-reply-brief"
+      },
+      "satisfies_deadline_id": "ca4m4.arm.deadline.response-brief",
+      "reject_after_deadline": true
+    },
+    {
+      "filing_type_id": "us.ca4.filing.principal-brief",
+      "stage_id": "ca4m4.arm.stage.reply-briefing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.brief.issues",
+        "us.ca4.field.brief.argument",
+        "us.ca4.field.brief.record-citations",
+        "us.ca4.field.brief.authority-citations"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-reply-brief",
+      "reject_operation_id": "ca4m4.arm.operation.reject-reply-brief",
+      "satisfies_deadline_id": "ca4m4.arm.deadline.reply-brief",
+      "reject_after_deadline": true
+    },
+    {
+      "filing_type_id": "us.ca4.filing.rehearing-petition",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "authorized_role_ids": [
+        "us.ca4.role.initiating-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.rehearing.kind",
+        "us.ca4.field.rehearing.purpose-statement",
+        "us.ca4.field.rehearing.grounds"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-rehearing-petition",
+      "reject_operation_id": "ca4m4.arm.operation.reject-rehearing",
+      "satisfies_deadline_id": "ca4m4.arm.deadline.rehearing",
+      "reject_after_deadline": true
+    },
+    {
+      "filing_type_id": "us.ca4.filing.motion",
+      "stage_id": "ca4m4.arm.stage.rehearing",
+      "authorized_role_ids": [
+        "us.ca4.role.responding-party"
+      ],
+      "authorized_role_scope": "catalog_subset",
+      "required_field_ids": [
+        "us.ca4.field.motion.relief",
+        "us.ca4.field.motion.grounds",
+        "us.ca4.field.motion.party-position"
+      ],
+      "required_service_role_ids": [
+        "us.ca4.role.initiating-party",
+        "us.ca4.role.responding-party"
+      ],
+      "accept_operation_id": "ca4m4.arm.operation.accept-stay-motion",
+      "reject_operation_id": "ca4m4.arm.operation.reject-rehearing",
+      "reject_after_deadline": false
+    }
+  ],
+  "calendar": {
+    "holidays": [
+      "2025-01-01",
+      "2025-01-20",
+      "2025-02-17",
+      "2025-05-26",
+      "2025-06-19",
+      "2025-07-04",
+      "2025-09-01",
+      "2025-10-13",
+      "2025-11-11",
+      "2025-11-27",
+      "2025-12-25",
+      "2026-01-01",
+      "2026-01-19",
+      "2026-02-16",
+      "2026-05-25",
+      "2026-06-19",
+      "2026-07-03",
+      "2026-09-07",
+      "2026-10-12",
+      "2026-11-11",
+      "2026-11-26",
+      "2026-12-25",
+      "2027-01-01",
+      "2027-01-18",
+      "2027-02-15",
+      "2027-05-31",
+      "2027-06-18",
+      "2027-07-05",
+      "2027-09-06",
+      "2027-10-11",
+      "2027-11-11",
+      "2027-11-25",
+      "2027-12-24"
+    ]
+  }
+}

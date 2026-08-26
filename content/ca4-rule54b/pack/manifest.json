@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "pack_id": "us.ca4.rule54b.asterglen",
+  "version": "0.1.0",
+  "required_capabilities": [
+    {
+      "id": "workbench.pack.declarative-resources",
+      "version": 1
+    }
+  ],
+  "dependencies": [],
+  "blobs": [
+    {
+      "path": "assets/a01-docketing-notice.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 20564,
+      "sha256": "855feff657ad37339b1427df41179c9820c2af193e94456618eff1f83b092cf9"
+    },
+    {
+      "path": "assets/a02-docketing-statement.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 28892,
+      "sha256": "4a3c4319a79fb1067af9ea7cc29274e98dbcf5236a428183eea21c5dec34ac7f"
+    },
+    {
+      "path": "assets/a03-transcript-order.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 18272,
+      "sha256": "da8eb2c7c85afe8dc93315f6c96ebbfebb622b4c5f4d693d1e9b2bd7ef448db9"
+    },
+    {
+      "path": "assets/a10-appellant-opening-brief.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 43758,
+      "sha256": "e5743453ada83223c57033534819bc87abb2137a9742ff0a49f90be896d752b8"
+    },
+    {
+      "path": "assets/a11-appellees-response-brief.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 42810,
+      "sha256": "c8869e315c3fb903976fc0d74c1817f17b540bfbb5ed5badebbb14412b3c84e0"
+    },
+    {
+      "path": "assets/a12-joint-appendix.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 140514,
+      "sha256": "309956bf6f218a881a54365ccf2639f75c6c5360aa774c7e8b26c5479da8c872"
+    },
+    {
+      "path": "assets/a20-synthetic-opinion.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 29395,
+      "sha256": "99410cc25fdae987fd3abed29b65f7c45a6ef0a81bdad27f6b1412686645efc5"
+    },
+    {
+      "path": "assets/a21-synthetic-judgment.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 12053,
+      "sha256": "9db26bfb351a6966ac12898cc22e1dd590e0f4d4ff36c0302dae3a16ae3a2ff1"
+    },
+    {
+      "path": "assets/a22-synthetic-mandate.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 22653,
+      "sha256": "80d5130c6a3323690e854c03134ddf0519decd4040d9d400b2bd0961a2f696d4"
+    },
+    {
+      "path": "assets/d01-complaint.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 38895,
+      "sha256": "eac9e2d755d26be45e884bcb5d81f6b90aa6114a3b7b1b6759dc15b2bac3a56b"
+    },
+    {
+      "path": "assets/d08-answer-counterclaim.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 47956,
+      "sha256": "3d9fb53f0f8ef33c79177fb6ebeb9bfb6a643dc33f7c1ebe9268569e7806e027"
+    },
+    {
+      "path": "assets/d55-partial-summary-judgment-order.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 29898,
+      "sha256": "f946b1bb1615356a00e5c7e9e36f2a0047af88ae20585200ea3862bdd1c3a235"
+    },
+    {
+      "path": "assets/d57-rule-54b-motion.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 36107,
+      "sha256": "52a49b5af339cbb6b43c8c3457d93ba08310cfaa373b7e9986157fa833d28121"
+    },
+    {
+      "path": "assets/d58-rule-54b-response.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 37049,
+      "sha256": "eb2f971719e956ebc92d1d9d73b49f4b9a6d9aeed653f216f298c806b769056c"
+    },
+    {
+      "path": "assets/d59-rule-54b-order.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 16041,
+      "sha256": "debc15eeaa170801b8792282a629354a894c0e6b18dd6d463299feeb3bd44934"
+    },
+    {
+      "path": "assets/d60-partial-judgment.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 16578,
+      "sha256": "915cc40e0397a7431f01fdbcc3208ddf485ffb6366069286de3a276db420504a"
+    },
+    {
+      "path": "assets/d61-notice-of-appeal.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 19997,
+      "sha256": "d1d734ee228897bf5f91c2ed2c7b99cd5c6e5c1618b557ee8ae09111984f20f7"
+    },
+    {
+      "path": "assets/d62-certified-district-docket.pdf",
+      "media_type": "application/pdf",
+      "byte_size": 30903,
+      "sha256": "98ff6ae185349aae47e2e257a33f2f1a6a4920fde09b2046410d17a175d0109a"
+    }
+  ],
+  "contents": [
+    {
+      "id": "ca4r54b.argument.counterfactual",
+      "kind": "argument_config",
+      "schema_version": 1,
+      "path": "resources/argument-config.json",
+      "sha256": "41f80a231592b15fdb4f6ed602bf996a9ca47567200ecbe13b35009665d5bf03"
+    },
+    {
+      "id": "ca4r54b.authorities.2026-08-11",
+      "kind": "authority_set",
+      "schema_version": 1,
+      "path": "resources/authority-set.json",
+      "sha256": "3f1091b4c0adb5675f6ff7b4d82f814562560cb635df4429a72d999a6b0af0d5"
+    },
+    {
+      "id": "ca4r54b.bench.composite-three",
+      "kind": "bench_configuration",
+      "schema_version": 1,
+      "path": "resources/bench-configuration.json",
+      "sha256": "d66c070cdbd4d7a7bfa102540f4c4956c9afa2cd400723acc1f2fcec725850f3"
+    },
+    {
+      "id": "ca4r54b.case.asterglen",
+      "kind": "case",
+      "schema_version": 1,
+      "path": "resources/case.json",
+      "sha256": "5b4a85f0d12698121f8361305b1fb8ff69c13e2497bcd60d7c2c78139ae88b14"
+    },
+    {
+      "id": "ca4r54b.court.ca4",
+      "kind": "court",
+      "schema_version": 1,
+      "path": "resources/court.json",
+      "sha256": "c696fdd5e629adc90d37afc7a760142b2c613c35f026ab78e69acec40ff642f3"
+    },
+    {
+      "id": "ca4r54b.catalog.civil-appeal",
+      "kind": "filing_catalog",
+      "schema_version": 1,
+      "path": "resources/filing-catalog.json",
+      "sha256": "6cf5813d327fb4bdc67a6c5594fd4cffd8b73276fb4c2862ee7e078f54579788"
+    },
+    {
+      "id": "ca4r54b.form.docketing-statement",
+      "kind": "form",
+      "schema_version": 1,
+      "path": "resources/form-docketing-statement.json",
+      "sha256": "3fe2a2f788c8efa6848cb0c89c2523ef53124c0e426f712f1efa19ceb56f4376"
+    },
+    {
+      "id": "ca4r54b.form.notice-appeal",
+      "kind": "form",
+      "schema_version": 1,
+      "path": "resources/form-notice-appeal.json",
+      "sha256": "c8856bc7a0a681c178877bbde97a940ad9e0a45a660a04ed17df39f81ea8b926"
+    },
+    {
+      "id": "ca4r54b.form.opening-brief",
+      "kind": "form",
+      "schema_version": 1,
+      "path": "resources/form-opening-brief.json",
+      "sha256": "d831fd803c62a3d267bf360807e32a63da1cd9f664bb0a0f6ee8842dd0ae70e6"
+    },
+    {
+      "id": "ca4r54b.form.rehearing-petition",
+      "kind": "form",
+      "schema_version": 1,
+      "path": "resources/form-rehearing-petition.json",
+      "sha256": "07b86b7b1f536ff17619fccfce4af2c69db126bc5b1d86bd589f53e5a6db2531"
+    },
+    {
+      "id": "ca4r54b.form.response-brief",
+      "kind": "form",
+      "schema_version": 1,
+      "path": "resources/form-response-brief.json",
+      "sha256": "5aa61c0fa9bd83ec3cbc803565549e8788b8b4182bb227342723d2cc4be9b6d5"
+    },
+    {
+      "id": "ca4r54b.form.transcript-order",
+      "kind": "form",
+      "schema_version": 1,
+      "path": "resources/form-transcript-order.json",
+      "sha256": "f750c845166890dfe9bbcf2e64c4e0f3c56e181158361897cd8f46e07ce79294"
+    },
+    {
+      "id": "ca4r54b.judge.composite-alder",
+      "kind": "judge_profile",
+      "schema_version": 1,
+      "path": "resources/judge-alder.json",
+      "sha256": "d60699a1b8f44a4a5f15b97baad434e0796f6ea430649e9905758355cb009899"
+    },
+    {
+      "id": "ca4r54b.judge.composite-rowan",
+      "kind": "judge_profile",
+      "schema_version": 1,
+      "path": "resources/judge-rowan.json",
+      "sha256": "535ed33552b16ad80900718a508249122a764e7cc7da6faa9e784479c6c19f59"
+    },
+    {
+      "id": "ca4r54b.judge.composite-vale",
+      "kind": "judge_profile",
+      "schema_version": 1,
+      "path": "resources/judge-vale.json",
+      "sha256": "b6e50bc384b56bafa9cd9fdb454049451855e2eaadbdd81d8194f89045856c3e"
+    },
+    {
+      "id": "ca4r54b.procedure.civil-appeal",
+      "kind": "procedure_profile",
+      "schema_version": 1,
+      "path": "resources/procedure-profile.json",
+      "sha256": "7925cd69b7176635478601baa92b665ea5d4d39aebb1b0c450dcfa816adcb182"
+    },
+    {
+      "id": "ca4r54b.review.authoring-2026-08-11",
+      "kind": "realism_review",
+      "schema_version": 1,
+      "path": "resources/realism-review.json",
+      "sha256": "59fe4235d64d8ebdd5f6ab0a62d286ba317b6a69dc8e1a6b3b910fc3bbc493bf"
+    },
+    {
+      "id": "ca4r54b.record.asterglen",
+      "kind": "record",
+      "schema_version": 1,
+      "path": "resources/record.json",
+      "sha256": "5bd9818b5a1bfbd257669c703ca7fdebadbe007111635a7c8e21aaa9baa24a76"
+    },
+    {
+      "id": "ca4r54b.workflow.civil-rule54b",
+      "kind": "workflow",
+      "schema_version": 1,
+      "path": "resources/workflow.json",
+      "sha256": "34ec0b3eb5fec81be844b3665a90c0cc8ffb5964813cf43722dba99288e0ce35"
+    }
+  ]
+}

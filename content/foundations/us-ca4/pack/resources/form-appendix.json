@@ -1,0 +1,8 @@
+{
+  "schema_version": 2, "resource_kind": "form", "resource_id": "us.ca4.form.appendix",
+  "filing_id": "us.ca4.filing.appendix", "title": "Joint or Supplemental Appendix",
+  "fields": [
+    {"field_id": "us.ca4.field.appendix.contents", "label": "Record contents and designations", "value_type": "record_citation", "required": true},
+    {"field_id": "us.ca4.field.appendix.pagination", "label": "Pagination certification", "value_type": "boolean", "required": true}
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "format": "appellate-workbench-rendered-pdf-set",
+  "format_version": 1,
+  "case_id": "ca4r54b.case.asterglen",
+  "as_of": "2026-08-11",
+  "status": "rendered-searchable-and-pinned-in-pack-v0.1.0",
+  "pack_revision_sha256": "ff7a2e1195f9bd006e7df46c19675a3e07a4bd8975b1643a01adbc9cc4fd3424",
+  "artifact_evidence": {
+    "render_plan_path": "render-plan.json",
+    "inventory_path": "rendered/inventory.json",
+    "pack_directory": "pack",
+    "archive_path": "us-ca4-rule54b-asterglen-0.1.0.awpack",
+    "renderer_contract": "appellate.markdown-pdf.semantic-layout.v2",
+    "document_count": 18,
+    "page_count": 124,
+    "semantic_render_plan_repeatable": true,
+    "pdf_byte_deterministic_across_runs": false,
+    "pdf_byte_note": "QPdfWriter emits wall-clock information dates; this revision pins the actual PDF SHA-256 and byte size in the inventory, record, and manifest."
+  },
+  "global_render_constraints": {
+    "source_encoding": "UTF-8",
+    "paper": "US Letter",
+    "color": "black text on white background",
+    "fonts": "renderer-resolved generic serif and monospace; exact resolved families are recorded in renderer provenance",
+    "page_break_marker": "<!-- PAGE BREAK -->",
+    "header_required": "SYNTHETIC TRAINING RECORD or SYNTHETIC TRAINING OPINION/JUDGMENT/MANDATE",
+    "active_content_forbidden": true,
+    "external_links_forbidden": true,
+    "ocr_layer": "native text; do not rasterize",
+    "metadata_author": "Appellate Workbench synthetic content",
+    "must_not_claim_court_filing": true
+  },
+  "documents": [
+    {
+      "document_id": "ca4r54b.document.d01",
+      "source_path": "documents/d01-complaint.md",
+      "intended_pdf_path": "assets/d01-complaint.pdf",
+      "pdf_title": "Synthetic Complaint and Jury Demand",
+      "intended_page_count": 8,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.d08",
+      "source_path": "documents/d08-answer-counterclaim.md",
+      "intended_pdf_path": "assets/d08-answer-counterclaim.pdf",
+      "pdf_title": "Synthetic Answer, Defenses, and Counterclaim",
+      "intended_page_count": 11,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.d55",
+      "source_path": "documents/d55-partial-summary-judgment-order.md",
+      "intended_pdf_path": "assets/d55-partial-summary-judgment-order.pdf",
+      "pdf_title": "Synthetic Memorandum Order on Partial Summary Judgment",
+      "intended_page_count": 5,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.d57",
+      "source_path": "documents/d57-rule-54b-motion.md",
+      "intended_pdf_path": "assets/d57-rule-54b-motion.pdf",
+      "pdf_title": "Synthetic Motion for Entry Under Rule 54(b)",
+      "intended_page_count": 5,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.d58",
+      "source_path": "documents/d58-rule-54b-response.md",
+      "intended_pdf_path": "assets/d58-rule-54b-response.pdf",
+      "pdf_title": "Synthetic Opposition to Rule 54(b) Motion",
+      "intended_page_count": 6,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.d59",
+      "source_path": "documents/d59-rule-54b-order.md",
+      "intended_pdf_path": "assets/d59-rule-54b-order.pdf",
+      "pdf_title": "Synthetic Order Granting Rule 54(b) Motion",
+      "intended_page_count": 1,
+      "render_source_pages": [1],
+      "excluded_authoring_segment": "page 2 exercise annotation"
+    },
+    {
+      "document_id": "ca4r54b.document.d60",
+      "source_path": "documents/d60-partial-judgment.md",
+      "intended_pdf_path": "assets/d60-partial-judgment.pdf",
+      "pdf_title": "Synthetic Partial Judgment",
+      "intended_page_count": 1,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.d61",
+      "source_path": "documents/d61-notice-of-appeal.md",
+      "intended_pdf_path": "assets/d61-notice-of-appeal.pdf",
+      "pdf_title": "Synthetic Notice of Appeal",
+      "intended_page_count": 2,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.d62",
+      "source_path": "documents/d62-certified-district-docket.md",
+      "intended_pdf_path": "assets/d62-certified-district-docket.pdf",
+      "pdf_title": "Synthetic Certified District Docket Entries",
+      "intended_page_count": 4,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.a01",
+      "source_path": "documents/a01-docketing-notice.md",
+      "intended_pdf_path": "assets/a01-docketing-notice.pdf",
+      "pdf_title": "Synthetic Fourth Circuit Notice of Docketing",
+      "intended_page_count": 3,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.a02",
+      "source_path": "documents/a02-docketing-statement.md",
+      "intended_pdf_path": "assets/a02-docketing-statement.pdf",
+      "pdf_title": "Synthetic Civil Appeal Docketing Statement",
+      "intended_page_count": 4,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.a03",
+      "source_path": "documents/a03-transcript-order.md",
+      "intended_pdf_path": "assets/a03-transcript-order.pdf",
+      "pdf_title": "Synthetic Transcript Order Certification",
+      "intended_page_count": 2,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.a10",
+      "source_path": "documents/a10-appellant-opening-brief.md",
+      "intended_pdf_path": "assets/a10-appellant-opening-brief.pdf",
+      "pdf_title": "Synthetic Opening Brief of Appellant",
+      "intended_page_count": 8,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.a11",
+      "source_path": "documents/a11-appellees-response-brief.md",
+      "intended_pdf_path": "assets/a11-appellees-response-brief.pdf",
+      "pdf_title": "Synthetic Response Brief of Appellees",
+      "intended_page_count": 8,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.a12",
+      "source_path": "metadata/joint-appendix.json",
+      "intended_pdf_path": "assets/a12-joint-appendix.pdf",
+      "pdf_title": "Synthetic Joint Appendix",
+      "intended_page_count": 47,
+      "render_source_pages": "assemble ten ordered segments according to render-plan.json and metadata/joint-appendix.json",
+      "printed_searchable_page_labels": "JA1-JA47"
+    },
+    {
+      "document_id": "ca4r54b.document.a20",
+      "source_path": "documents/a20-synthetic-opinion.md",
+      "intended_pdf_path": "assets/a20-synthetic-opinion.pdf",
+      "pdf_title": "Synthetic Exercise Opinion — Dismissed and Remanded",
+      "intended_page_count": 6,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.a21",
+      "source_path": "documents/a21-synthetic-judgment.md",
+      "intended_pdf_path": "assets/a21-synthetic-judgment.pdf",
+      "pdf_title": "Synthetic Appellate Judgment",
+      "intended_page_count": 1,
+      "render_source_pages": "all"
+    },
+    {
+      "document_id": "ca4r54b.document.a22",
+      "source_path": "documents/a22-synthetic-mandate.md",
+      "intended_pdf_path": "assets/a22-synthetic-mandate.pdf",
+      "pdf_title": "Synthetic Mandate",
+      "intended_page_count": 2,
+      "render_source_pages": "all"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "resource_kind": "form",
+  "resource_id": "ca4r54b.form.response-brief",
+  "filing_id": "ca4r54b.filing.response-brief",
+  "title": "Appellee Response Brief",
+  "fields": [
+    {"field_id": "ca4r54b.field.response-jurisdiction", "label": "Jurisdictional response", "value_type": "long_text", "required": true},
+    {"field_id": "ca4r54b.field.response-argument", "label": "Argument", "value_type": "long_text", "required": true}
+  ]
+}
