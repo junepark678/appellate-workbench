@@ -3,7 +3,9 @@
 #include "appellate/model/record_access.hpp"
 #include "appellate/model/workflow_command.hpp"
 #include "appellate/packs/runtime_pack.hpp"
+#include "workflow_action_planner.hpp"
 
+#include <QByteArray>
 #include <QDate>
 #include <QDateTime>
 #include <QMainWindow>
@@ -20,7 +22,9 @@
 #include <vector>
 
 class QAction;
+class QCheckBox;
 class QComboBox;
+class QFormLayout;
 class QLabel;
 class QListWidget;
 class QLineEdit;
@@ -68,6 +72,7 @@ struct WorkflowLegalClockReading final {
 
 using WorkflowLegalClock = std::function<std::expected<WorkflowLegalClockReading, QString>(
     const QDate& selected_court_date)>;
+using WorkflowRecordedAtClock = std::function<QString()>;
 using OralElapsedClock = std::function<std::chrono::seconds()>;
 using OralRecordedAtClock = std::function<QString()>;
 
@@ -99,7 +104,8 @@ class MainWindow final : public QMainWindow {
         QString record_access_database_path = {},
         std::shared_ptr<WorkflowLaunchProvider> workflow_launch_provider = {},
         WorkflowLegalClock workflow_legal_clock = {}, OralElapsedClock oral_elapsed_clock = {},
-        OralRecordedAtClock oral_recorded_at_clock = {});
+        OralRecordedAtClock oral_recorded_at_clock = {},
+        WorkflowRecordedAtClock workflow_recorded_at_clock = {});
     ~MainWindow() override;
 
     MainWindow(const MainWindow&) = delete;
@@ -150,6 +156,11 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] QPushButton* openWorkflowButton() const noexcept;
     [[nodiscard]] QPushButton* advanceWorkflowButton() const noexcept;
     [[nodiscard]] QLineEdit* workflowCourtDateEditor() const noexcept;
+    [[nodiscard]] QComboBox* workflowActionSelector() const noexcept;
+    [[nodiscard]] QLabel* workflowActionDescriptionLabel() const noexcept;
+    [[nodiscard]] QLabel* workflowActionPreviewLabel() const noexcept;
+    [[nodiscard]] QWidget* workflowFilingForm() const noexcept;
+    [[nodiscard]] QComboBox* workflowCureSelector() const noexcept;
     [[nodiscard]] QMenu* recordAccessMenu() const noexcept;
     [[nodiscard]] QString recordAccessDatabasePath() const;
     [[nodiscard]] const app::WorkflowSessionController* workflowSessionController() const noexcept;
@@ -164,10 +175,14 @@ class MainWindow final : public QMainWindow {
         QAction* revoke_action{};
     };
 
-    struct WorkflowAdvanceChoice final {
-        const model::WorkflowOperation* operation{};
-        const model::CaseActor* actor{};
-        std::optional<model::AdvanceWorkflowStage> command;
+    struct WorkflowFieldEditorBinding final {
+        model::FilingFieldId field_id;
+        QLineEdit* editor{};
+    };
+
+    struct WorkflowServiceEditorBinding final {
+        model::ActorId actor_id;
+        QCheckBox* editor{};
     };
 
     void buildUi();
@@ -190,19 +205,24 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] bool selectedCaseHasLoadedRecord() const;
     [[nodiscard]] bool selectedCaseHasLoadedWorkflow() const;
     [[nodiscard]] bool selectedCaseHasLoadedArgument() const;
-    [[nodiscard]] WorkflowAdvanceChoice
-    currentWorkflowAdvanceChoice(const WorkflowLegalClockReading& reading) const;
     [[nodiscard]] auto sampleWorkflowLegalClock() const
         -> std::expected<WorkflowLegalClockReading, QString>;
+    [[nodiscard]] std::optional<app::WorkflowActionOption> selectedWorkflowAction() const;
+    [[nodiscard]] auto draftWorkflowCommand(const app::WorkflowActionOption& option) const
+        -> std::expected<model::WorkflowCommand, QString>;
+    [[nodiscard]] auto materializeWorkflowDocument(const packs::RuntimeCase& runtime_case,
+                                                   const app::WorkflowActionOption& option) const
+        -> std::expected<std::optional<QByteArray>, QString>;
+    void rebuildWorkflowActions(
+        const std::expected<WorkflowLegalClockReading, QString>& preview_reading);
+    void rebuildWorkflowFilingForm();
+    void clearWorkflowFilingForm();
+    void renderWorkflowActionPreview();
     void renderWorkflowStatus();
-    void
-    renderWorkflowStatus(const std::expected<WorkflowLegalClockReading, QString>& preview_reading);
     void updateCaseSelection(int row);
     void updateArgumentSelection(int row);
     void updateProfileSelection(int row);
     void updateActionStates();
-    void
-    updateActionStates(const std::expected<WorkflowLegalClockReading, QString>& preview_reading);
     void showError(const QString& message);
     void showStatus(const QString& message);
 
@@ -222,6 +242,7 @@ class MainWindow final : public QMainWindow {
     std::shared_ptr<OralArgumentLaunchProvider> oral_argument_launch_provider_;
     std::shared_ptr<WorkflowLaunchProvider> workflow_launch_provider_;
     WorkflowLegalClock workflow_legal_clock_;
+    WorkflowRecordedAtClock workflow_recorded_at_clock_;
     OralElapsedClock oral_elapsed_clock_;
     OralRecordedAtClock oral_recorded_at_clock_;
     std::shared_ptr<RecordAccessTransitionProvider> record_access_transition_provider_;
@@ -238,6 +259,8 @@ class MainWindow final : public QMainWindow {
     QLabel* record_summary_label_{};
     QLabel* bench_summary_label_{};
     QLabel* workflow_status_label_{};
+    QLabel* workflow_action_description_label_{};
+    QLabel* workflow_action_preview_label_{};
     QWidget* startup_onboarding_{};
     QWidget* pack_browser_content_{};
     QPushButton* welcome_open_directory_button_{};
@@ -250,6 +273,14 @@ class MainWindow final : public QMainWindow {
     int argument_detail_tab_index_{};
     int profile_detail_tab_index_{};
     QLineEdit* workflow_court_date_editor_{};
+    QWidget* workflow_action_workspace_{};
+    QComboBox* workflow_action_selector_{};
+    QWidget* workflow_filing_form_{};
+    QFormLayout* workflow_filing_form_layout_{};
+    QComboBox* workflow_cure_selector_{};
+    std::vector<WorkflowFieldEditorBinding> workflow_field_editors_;
+    std::vector<WorkflowServiceEditorBinding> workflow_service_editors_;
+    std::vector<app::WorkflowActionOption> workflow_action_options_;
     QPushButton* open_record_button_{};
     QPushButton* open_workflow_button_{};
     QPushButton* advance_workflow_button_{};

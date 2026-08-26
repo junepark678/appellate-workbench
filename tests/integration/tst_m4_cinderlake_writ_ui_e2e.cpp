@@ -760,7 +760,7 @@ void CinderLakeWritUiE2eTest::exportsInstallsReplaysAndExercisesWorkflowArgument
         QVERIFY(
             window.workflowStatusLabel()->text().contains(QStringLiteral("29 persisted events")));
         QVERIFY2(window.workflowStatusLabel()->text().contains(
-                     QStringLiteral("No currently eligible authored AdvanceStage")),
+                     QStringLiteral("No currently eligible authored workflow action")),
                  qPrintable(window.workflowStatusLabel()->text()));
         QVERIFY(!window.advanceWorkflowAction()->isEnabled());
 
@@ -993,7 +993,7 @@ void CinderLakeWritUiE2eTest::exportsInstallsReplaysAndExercisesWorkflowArgument
         QVERIFY(
             window.workflowStatusLabel()->text().contains(QStringLiteral("6 persisted events")));
         QVERIFY2(window.workflowStatusLabel()->text().contains(
-                     QStringLiteral("No currently eligible authored AdvanceStage")),
+                     QStringLiteral("No currently eligible authored workflow action")),
                  qPrintable(window.workflowStatusLabel()->text()));
         QVERIFY(!window.advanceWorkflowAction()->isEnabled());
 

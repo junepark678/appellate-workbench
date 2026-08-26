@@ -10,9 +10,11 @@
 #include "oral_argument_workspace.hpp"
 #include "record_workspace.hpp"
 #include "workflow_action_planner.hpp"
+#include "workflow_launch_provider.hpp"
 #include "workflow_session_controller.hpp"
 
 #include <QByteArrayView>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QCryptographicHash>
 #include <QDir>
@@ -21,9 +23,11 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QPdfSearchModel>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QTableWidget>
 #include <QTemporaryDir>
 #include <QTest>
@@ -86,6 +90,7 @@ constexpr auto oral_engine_revision = "engine.oral.asterglen-v02-e2e.1";
 
 struct FrozenWorkflowStep final {
     model::WorkflowCommand command;
+    std::vector<model::WorkflowEvent> events;
     std::optional<QByteArray> document_bytes;
 };
 
@@ -126,6 +131,20 @@ struct FrozenWorkflowStep final {
         if (!session_matches) {
             return std::unexpected(QStringLiteral("Trace session identity drifted"));
         }
+        std::vector<model::WorkflowEvent> events;
+        for (const auto& encoded :
+             value.toObject().value(QStringLiteral("events_base64")).toArray()) {
+            const auto event_bytes = QByteArray::fromBase64(encoded.toString().toLatin1());
+            const auto event = storage::decodeWorkflowEvent(QByteArrayView(event_bytes));
+            if (!event || storage::encodeWorkflowEvent(*event) != event_bytes) {
+                return std::unexpected(QStringLiteral("Canonical trace event cannot round-trip"));
+            }
+            events.push_back(*event);
+        }
+        if (events.empty()) {
+            return std::unexpected(QStringLiteral("Canonical trace command has no event"));
+        }
+
         std::optional<QByteArray> asset_bytes;
         if (const auto digest = commandDocumentDigest(*command); digest.has_value()) {
             const auto entry = std::ranges::find(record.docket_entries, *digest,
@@ -143,7 +162,7 @@ struct FrozenWorkflowStep final {
                 return std::unexpected(QStringLiteral("Trace document bytes have wrong digest"));
             }
         }
-        steps.push_back(FrozenWorkflowStep{*command, std::move(asset_bytes)});
+        steps.push_back(FrozenWorkflowStep{*command, std::move(events), std::move(asset_bytes)});
     }
     return steps;
 }
@@ -155,6 +174,46 @@ struct FrozenWorkflowStep final {
     state.current_stage_id = runtime_case.workflow.initial_stage_id;
     return state;
 }
+
+class PersistedWorkflowProvider final : public ui::WorkflowLaunchProvider {
+  public:
+    PersistedWorkflowProvider(model::WorkflowState initial, model::PackRevision expected_revision,
+                              QString asset_root, std::unique_ptr<storage::SessionStore> store)
+        : initial_(std::move(initial)), expected_revision_(std::move(expected_revision)),
+          asset_root_(std::move(asset_root)), store_(std::move(store)) {}
+
+    [[nodiscard]] auto openWorkflow(const packs::ResolvedPack& resolved,
+                                    const model::CaseId& case_id)
+        -> std::expected<std::unique_ptr<app::WorkflowSessionController>,
+                         app::WorkflowSessionError> override {
+        if (resolved.root().revision != expected_revision_ ||
+            case_id != model::CaseId{"ca4r54b.case.asterglen"} ||
+            resolved.resourceOwner(initial_.workflow_id.value) !=
+                std::optional<model::PackRevision>{expected_revision_}) {
+            return std::unexpected(app::WorkflowSessionError{
+                app::WorkflowSessionErrorCode::InvalidConfiguration,
+                QStringLiteral("Workflow launch lost exact Asterglen v0.2 ownership")});
+        }
+        auto connection = store_->forkConnection();
+        if (!connection) {
+            return std::unexpected(app::WorkflowSessionError{
+                app::WorkflowSessionErrorCode::SessionStoreFailure, connection.error().message});
+        }
+        ++open_attempts_;
+        return app::WorkflowSessionController::reopen(
+            case_id, initial_, storage::AssetStore(asset_root_), std::move(*connection),
+            QString::fromLatin1(workflow_engine_revision), resolved);
+    }
+
+    [[nodiscard]] int openAttempts() const noexcept { return open_attempts_; }
+
+  private:
+    model::WorkflowState initial_;
+    model::PackRevision expected_revision_;
+    QString asset_root_;
+    std::unique_ptr<storage::SessionStore> store_;
+    int open_attempts_{};
+};
 
 class PersistedLaunchProvider final : public ui::OralArgumentLaunchProvider {
   public:
@@ -334,9 +393,6 @@ void AsterglenRule54bV02UiE2eTest::coinstallsReplaysAndExercisesActualAndBranchW
     QCOMPARE(runtime_case.workflow.operations.size(), std::size_t{81});
     QCOMPARE(runtime_case.workflow.filing_routes.size(), std::size_t{11});
     QCOMPARE(runtime_case.definition.disposition_plans.size(), std::size_t{3});
-    const auto record_owner = resolved->resourceOwner(runtime_case.record.id.value);
-    QVERIFY(record_owner.has_value());
-
     const auto initial = initialWorkflowState(runtime_case);
     const auto actual_trace = loadActualTrace(runtime_case.record);
     QVERIFY2(actual_trace.has_value(), actual_trace ? "" : qPrintable(actual_trace.error()));
@@ -359,88 +415,167 @@ void AsterglenRule54bV02UiE2eTest::coinstallsReplaysAndExercisesActualAndBranchW
     QCOMPARE(wrong_document.error().code, app::WorkflowSessionErrorCode::DocumentDigestMismatch);
     QCOMPARE((*workflow)->state(), initial);
     QVERIFY((*workflow)->journal().empty());
+    (*workflow).reset();
 
-    for (std::size_t index = 0; index < actual_trace->size(); ++index) {
-        const auto& step = actual_trace->at(index);
-        const auto expected_action_key = app::workflowActionKey(step.command);
-        const auto available_actions =
-            app::eligibleWorkflowActions(runtime_case, (*workflow)->state());
-        const auto planned = std::ranges::find(available_actions, expected_action_key,
-                                               &app::WorkflowActionOption::key);
-        QVERIFY2(planned != available_actions.end(), qPrintable(expected_action_key));
-        QCOMPARE(app::workflowActionKey(planned->command), expected_action_key);
-        QCOMPARE(planned->document_sha256, commandDocumentDigest(step.command));
+    model::WorkflowState workflow_state_before;
+    std::vector<model::WorkflowJournalEntry> workflow_journal_before;
+    {
+        auto workflow_provider_store = storage::SessionStore::open(database_path);
+        QVERIFY2(workflow_provider_store.has_value(),
+                 workflow_provider_store ? ""
+                                         : qPrintable(workflow_provider_store.error().message));
+        auto workflow_provider = std::make_shared<PersistedWorkflowProvider>(
+            initial, expected_root, asset_root, std::move(*workflow_provider_store));
+        int recorded_at_index = 0;
+        const ui::WorkflowLegalClock legal_clock =
+            [](const QDate& court_date) -> std::expected<ui::WorkflowLegalClockReading, QString> {
+            return ui::WorkflowLegalClockReading{
+                QDateTime::fromString(QStringLiteral("2026-02-04T12:00:00Z"), Qt::ISODate),
+                court_date};
+        };
+        const ui::WorkflowRecordedAtClock recorded_at_clock = [&recorded_at_index] {
+            return QStringLiteral("2026-08-12T19:%1:00Z")
+                .arg(recorded_at_index++, 2, 10, QLatin1Char('0'));
+        };
+        const auto open_workflow_window =
+            [&]() -> std::expected<std::unique_ptr<ui::MainWindow>, QString> {
+            auto candidate = std::make_unique<ui::MainWindow>(
+                QString{}, catalog_root, nullptr, std::shared_ptr<ui::OralArgumentLaunchProvider>{},
+                std::shared_ptr<ui::RecordAccessTransitionProvider>{}, QString{}, workflow_provider,
+                legal_clock, ui::OralElapsedClock{}, ui::OralRecordedAtClock{}, recorded_at_clock);
+            const auto loaded = candidate->loadSource(v2_archive);
+            if (!loaded) {
+                return std::unexpected(loaded.error());
+            }
+            candidate->show();
+            if (!QTest::qWaitForWindowExposed(candidate.get())) {
+                return std::unexpected(QStringLiteral("Workflow window was not exposed"));
+            }
+            candidate->workflowCourtDateEditor()->setText(QStringLiteral("2026-02-04"));
+            candidate->caseDetailsTabs()->setCurrentIndex(1);
+            const auto opened = candidate->openSelectedWorkflow();
+            if (!opened) {
+                return std::unexpected(opened.error());
+            }
+            return candidate;
+        };
 
-        auto submitted_command = planned->command;
-        if (std::holds_alternative<model::SubmitWorkflowFiling>(step.command)) {
-            auto* filing = std::get_if<model::SubmitWorkflowFiling>(&submitted_command);
-            const auto* oracle = std::get_if<model::SubmitWorkflowFiling>(&step.command);
-            QVERIFY(filing != nullptr);
-            QVERIFY(oracle != nullptr);
-            QCOMPARE(filing->fields.size(), planned->required_filing_fields.size());
-            QVERIFY(std::ranges::all_of(filing->fields,
-                                        [](const auto& field) { return field.value.empty(); }));
-            filing->fields = oracle->fields;
-            filing->served_actors = oracle->served_actors;
-            filing->cures_deficiency_id = oracle->cures_deficiency_id;
+        auto opened_window = open_workflow_window();
+        QVERIFY2(opened_window.has_value(), opened_window ? "" : qPrintable(opened_window.error()));
+        auto window = std::move(*opened_window);
+        QCOMPARE(window->workflowSessionController()->state(), initial);
+        int filing_submissions = 0;
+        int direct_submissions = 0;
+        int rejected_filings = 0;
+
+        for (std::size_t index = 0; index < actual_trace->size(); ++index) {
+            const auto& step = actual_trace->at(index);
+            const auto expected_action_key = app::workflowActionKey(step.command);
+            auto* selector = window->workflowActionSelector();
+            const auto action_index =
+                selector->findData(expected_action_key, Qt::UserRole, Qt::MatchExactly);
+            QVERIFY2(action_index >= 0, qPrintable(expected_action_key));
+            selector->setCurrentIndex(action_index);
+            QCOMPARE(selector->currentData(Qt::UserRole).toString(), expected_action_key);
+
+            if (const auto* filing = std::get_if<model::SubmitWorkflowFiling>(&step.command)) {
+                ++filing_submissions;
+                QVERIFY(window->workflowFilingForm()->isVisible());
+                for (const auto& field : filing->fields) {
+                    const auto field_id = QString::fromStdString(field.id.value);
+                    auto* editor = window->workflowFilingForm()->findChild<QLineEdit*>(
+                        QStringLiteral("workflowField.%1").arg(field_id));
+                    QVERIFY2(editor != nullptr, qPrintable(field_id));
+                    editor->setText(QString::fromStdString(field.value));
+                }
+                for (auto* service : window->workflowFilingForm()->findChildren<QCheckBox*>()) {
+                    service->setChecked(false);
+                }
+                for (const auto& actor : filing->served_actors) {
+                    const auto actor_id = QString::fromStdString(actor.value);
+                    auto* service = window->workflowFilingForm()->findChild<QCheckBox*>(
+                        QStringLiteral("workflowService.%1").arg(actor_id));
+                    QVERIFY2(service != nullptr, qPrintable(actor_id));
+                    service->setChecked(true);
+                }
+                auto* cure_selector = window->workflowCureSelector();
+                QVERIFY(cure_selector != nullptr);
+                const auto cure = filing->cures_deficiency_id.has_value()
+                                      ? QString::fromStdString(filing->cures_deficiency_id->value)
+                                      : QString{};
+                const auto cure_index =
+                    cure_selector->findData(cure, Qt::UserRole, Qt::MatchExactly);
+                QVERIFY2(cure_index >= 0, qPrintable(cure));
+                cure_selector->setCurrentIndex(cure_index);
+            } else {
+                ++direct_submissions;
+            }
+
+            QVERIFY(window->workflowActionPreviewLabel()->text().startsWith(
+                QStringLiteral("Authored consequence")));
+            QVERIFY(window->advanceWorkflowButton()->isEnabled());
+            const auto commands_before = window->workflowSessionController()->journal().size();
+            if (index == 0) {
+                selector->setFocus();
+                QTest::keyClick(selector, Qt::Key_Return, Qt::ControlModifier);
+            } else {
+                QTest::mouseClick(window->advanceWorkflowButton(), Qt::LeftButton);
+            }
+            QCOMPARE(window->workflowSessionController()->journal().size(), commands_before + 1);
+            const auto& actual_entry = window->workflowSessionController()->journal().back();
+            auto normalized_command = actual_entry.command;
+            const auto oracle_command_id = std::visit(
+                [](const auto& command) { return command.header.command_id; }, step.command);
+            std::visit([&](auto& command) { command.header.command_id = oracle_command_id; },
+                       normalized_command);
+            QCOMPARE(normalized_command, step.command);
+
+            auto normalized_events = actual_entry.events;
+            for (auto& event : normalized_events) {
+                std::visit([&](auto& concrete) { concrete.header.command_id = oracle_command_id; },
+                           event);
+            }
+            QCOMPARE(normalized_events, step.events);
+            rejected_filings +=
+                static_cast<int>(std::ranges::count_if(actual_entry.events, [](const auto& event) {
+                    return std::holds_alternative<model::WorkflowFilingRejected>(event);
+                }));
+
+            if (index == 3 || index == 17) {
+                const auto persisted_state = window->workflowSessionController()->state();
+                const auto persisted_journal = window->workflowSessionController()->journal();
+                window.reset();
+                opened_window = open_workflow_window();
+                QVERIFY2(opened_window.has_value(),
+                         opened_window ? "" : qPrintable(opened_window.error()));
+                window = std::move(*opened_window);
+                QCOMPARE(window->workflowSessionController()->state(), persisted_state);
+                QCOMPARE(window->workflowSessionController()->journal(), persisted_journal);
+            }
         }
-
-        auto normalized = submitted_command;
-        const auto oracle_command_id =
-            std::visit([](const auto& command) { return command.header.command_id; }, step.command);
-        std::visit([&](auto& command) { command.header.command_id = oracle_command_id; },
-                   normalized);
-        QCOMPARE(normalized, step.command);
-
-        std::optional<QByteArray> installed_document;
-        if (planned->document_sha256.has_value()) {
-            QVERIFY(planned->record_entry_id.has_value());
-            const auto entry = std::ranges::find_if(
-                runtime_case.record.docket_entries, [&](const auto& candidate) {
-                    return candidate.id.value == *planned->record_entry_id;
-                });
-            QVERIFY(entry != runtime_case.record.docket_entries.end());
-            QVERIFY(!entry->sealed);
-            QCOMPARE(entry->asset_sha256, *planned->document_sha256);
-            const auto materialized =
-                (*catalog)->materializeBlob(*resolved, *record_owner, entry->asset_path);
-            QVERIFY2(materialized.has_value(),
-                     materialized ? "" : qPrintable(materialized.error().message));
-            QFile installed(materialized->local_path);
-            QVERIFY(installed.open(QIODevice::ReadOnly));
-            installed_document = installed.readAll();
-            QCOMPARE(sha256(QByteArrayView(*installed_document)).toStdString(),
-                     *planned->document_sha256);
-            QVERIFY(step.document_bytes.has_value());
-            QCOMPARE(*installed_document, *step.document_bytes);
-        }
-        std::optional<QByteArrayView> document_view;
-        if (installed_document.has_value()) {
-            document_view = QByteArrayView(*installed_document);
-        }
-        const auto submitted =
-            (*workflow)->submit(submitted_command, document_view,
-                                QStringLiteral("2026-08-12T19:%1:00Z")
-                                    .arg(static_cast<int>(index), 2, 10, QLatin1Char('0')));
-        QVERIFY2(submitted.has_value(), submitted ? "" : qPrintable(submitted.error().message));
+        QCOMPARE(filing_submissions, 14);
+        QCOMPARE(direct_submissions, 23);
+        QCOMPARE(rejected_filings, 6);
+        QCOMPARE(workflow_provider->openAttempts(), 3);
+        QCOMPARE(window->workflowSessionController()->state().current_stage_id,
+                 model::WorkflowStageId{"ca4r54b.stage.terminated"});
+        QVERIFY(window->workflowSessionController()->state().judgment_disposition.has_value());
+        const auto* disposition = std::get_if<model::DispositionPlan>(
+            &*window->workflowSessionController()->state().judgment_disposition);
+        QVERIFY(disposition != nullptr);
+        QCOMPARE(disposition->id,
+                 model::DispositionPlanId{"ca4r54b.disposition.authored-dismissal"});
+        QCOMPARE(window->workflowSessionController()->journal().size(), std::size_t{37});
+        QCOMPARE(window->workflowSessionController()->snapshot().sequence, qint64{40});
+        QCOMPARE(window->workflowSessionController()->snapshot().commands.size(), std::size_t{37});
+        QCOMPARE(window->workflowSessionController()->snapshot().events.size(), std::size_t{40});
+        QCOMPARE(window->workflowSessionController()->snapshot().asset_references.size(),
+                 std::size_t{17});
+        workflow_state_before = window->workflowSessionController()->state();
+        workflow_journal_before = window->workflowSessionController()->journal();
     }
-    QCOMPARE((*workflow)->state().current_stage_id,
-             model::WorkflowStageId{"ca4r54b.stage.terminated"});
-    QVERIFY((*workflow)->state().judgment_disposition.has_value());
-    const auto* disposition =
-        std::get_if<model::DispositionPlan>(&*(*workflow)->state().judgment_disposition);
-    QVERIFY(disposition != nullptr);
-    QCOMPARE(disposition->id, model::DispositionPlanId{"ca4r54b.disposition.authored-dismissal"});
-    QCOMPARE((*workflow)->journal().size(), std::size_t{37});
-    QCOMPARE((*workflow)->snapshot().sequence, qint64{40});
-    QCOMPARE((*workflow)->snapshot().commands.size(), std::size_t{37});
-    QCOMPARE((*workflow)->snapshot().events.size(), std::size_t{40});
-    QCOMPARE((*workflow)->snapshot().asset_references.size(), std::size_t{17});
-    const auto workflow_state_before = (*workflow)->state();
-    const auto workflow_journal_before = (*workflow)->journal();
     const std::string legal_state_digest =
         "da2038d9c6d3cc486af66db69b4eeea17de497685856290a439f81bfc0efd715";
-    (*workflow).reset();
 
     auto provider_store = storage::SessionStore::open(database_path);
     QVERIFY2(provider_store.has_value(),

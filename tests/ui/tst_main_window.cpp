@@ -30,6 +30,7 @@
 #include <QPdfWriter>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QShortcut>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QTabWidget>
@@ -1206,8 +1207,22 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
         QVERIFY(action->text().contains(u'&'));
         QVERIFY(!action->property("accessibleName").toString().isEmpty());
         QVERIFY(!action->statusTip().isEmpty());
-        QVERIFY(!action->shortcut().isEmpty());
+        if (action == window.advanceWorkflowAction()) {
+            QVERIFY(action->shortcut().isEmpty());
+        } else {
+            QVERIFY(!action->shortcut().isEmpty());
+        }
         QVERIFY(!action->icon().isNull());
+    }
+    const auto* workflow_action_workspace =
+        window.findChild<QWidget*>(QStringLiteral("workflowActionWorkspace"));
+    QVERIFY(workflow_action_workspace != nullptr);
+    const auto workflow_shortcuts = workflow_action_workspace->findChildren<QShortcut*>();
+    QCOMPARE(workflow_shortcuts.size(), 2);
+    for (const auto* shortcut : workflow_shortcuts) {
+        QCOMPARE(shortcut->context(), Qt::WidgetWithChildrenShortcut);
+        QVERIFY(shortcut->key() == QKeySequence(QStringLiteral("Ctrl+Return")) ||
+                shortcut->key() == QKeySequence(QStringLiteral("Ctrl+Enter")));
     }
     QVERIFY(window.openDirectoryAction()->text().size() <= 24);
     QVERIFY(window.installArchiveAction()->text().size() <= 24);

@@ -10,6 +10,7 @@
 #include "workflow_session_controller.hpp"
 
 #include <QAction>
+#include <QComboBox>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QDirIterator>
@@ -631,10 +632,11 @@ void MainWindowLocalSessionsTest::asterglenWorkflowActionPersistsAndReopensThrou
         window.caseDetailsTabs()->setCurrentIndex(1);
         QTest::mouseClick(window.openWorkflowButton(), Qt::LeftButton);
         QTRY_VERIFY(window.workflowSessionController() != nullptr);
-        QVERIFY(window.workflowStatusLabel()->text().contains(
+        QVERIFY(window.workflowActionDescriptionLabel()->text().contains(
             QStringLiteral("ca4r54b.operation.advance-docketed")));
-        QVERIFY(window.workflowStatusLabel()->text().contains(
+        QVERIFY(window.workflowActionDescriptionLabel()->text().contains(
             QStringLiteral("ca4r54b.actor.ca4-clerk")));
+        QVERIFY(window.workflowActionSelector()->count() >= 1);
         QVERIFY(window.advanceWorkflowAction()->isEnabled());
         const auto samples_before_transition = legal_clock_samples;
         window.advanceWorkflowAction()->trigger();
@@ -646,9 +648,10 @@ void MainWindowLocalSessionsTest::asterglenWorkflowActionPersistsAndReopensThrou
         QCOMPARE(window.workflowSessionController()->snapshot().commands.size(), std::size_t{1});
         QCOMPARE(QString::fromStdString(window.workflowSessionController()->state().session_id),
                  QString::fromLatin1(expected_asterglen_workflow_session));
-        QCOMPARE(window.workflowSessionController()->snapshot().commands.front().command_id,
-                 QString::fromLatin1(expected_asterglen_workflow_session) +
-                     QStringLiteral(".command.1.ca4r54b.operation.advance-docketed"));
+        QVERIFY(
+            window.workflowSessionController()->snapshot().commands.front().command_id.startsWith(
+                QString::fromLatin1(expected_asterglen_workflow_session) +
+                QStringLiteral(".command.1.")));
         QCOMPARE(window.workflowSessionController()->snapshot().events.size(), std::size_t{1});
         const auto decoded = storage::decodeWorkflowCommand(
             window.workflowSessionController()->snapshot().commands.front().payload_json);
@@ -683,10 +686,10 @@ void MainWindowLocalSessionsTest::asterglenWorkflowActionPersistsAndReopensThrou
     QVERIFY(sameSnapshot(reopened.workflowSessionController()->snapshot(), persisted));
     QCOMPARE(reopened.workflowSessionController()->state().current_stage_id.value,
              std::string("ca4r54b.stage.docketed"));
-    QVERIFY(reopened.workflowStatusLabel()->text().contains(
+    QVERIFY(reopened.workflowActionDescriptionLabel()->text().contains(
         QStringLiteral("ca4r54b.operation.advance-initial-requirements")));
-    QVERIFY(
-        reopened.workflowStatusLabel()->text().contains(QStringLiteral("ca4r54b.actor.ca4-clerk")));
+    QVERIFY(reopened.workflowActionDescriptionLabel()->text().contains(
+        QStringLiteral("ca4r54b.actor.ca4-clerk")));
     QVERIFY(reopened.advanceWorkflowAction()->isEnabled());
     QVERIFY(reopened.loadSource(fixture(u"full-resource-pack-v2")).has_value());
     QCOMPARE(reopened.workflowSessionController(), nullptr);
@@ -784,9 +787,9 @@ void MainWindowLocalSessionsTest::
     QTest::mouseClick(window.openWorkflowButton(), Qt::LeftButton);
     QTRY_VERIFY(window.workflowSessionController() != nullptr);
     QCOMPARE(legal_clock_samples, samples_before_open + 1);
-    QVERIFY(window.workflowStatusLabel()->text().contains(
+    QVERIFY(window.workflowActionDescriptionLabel()->text().contains(
         QStringLiteral("example.operation.zzz-eligible")));
-    QVERIFY(!window.workflowStatusLabel()->text().contains(
+    QVERIFY(!window.workflowActionDescriptionLabel()->text().contains(
         QStringLiteral("example.operation.aaa-blocked")));
     QVERIFY(window.advanceWorkflowButton()->isEnabled());
     legal_clock_mode = LegalClockMode::Eligible;
@@ -797,12 +800,14 @@ void MainWindowLocalSessionsTest::
 
     legal_clock_mode = LegalClockMode::Failure;
     const auto samples_before_clock_failure = legal_clock_samples;
-    QTest::mouseClick(window.advanceWorkflowButton(), Qt::LeftButton);
+    window.workflowCourtDateEditor()->clear();
+    window.workflowCourtDateEditor()->setText(QStringLiteral("2026-08-11"));
     QCOMPARE(legal_clock_samples, samples_before_clock_failure + 1);
     QVERIFY(!window.advanceWorkflowButton()->isEnabled());
     QVERIFY(window.workflowStatusLabel()->text().contains(
         QStringLiteral("Injected legal clock failure")));
-    QVERIFY(window.errorLabel()->text().contains(QStringLiteral("Injected legal clock failure")));
+    QTest::mouseClick(window.advanceWorkflowButton(), Qt::LeftButton);
+    QCOMPARE(legal_clock_samples, samples_before_clock_failure + 1);
     QVERIFY(sameSnapshot(window.workflowSessionController()->snapshot(), unchanged_snapshot));
     auto rows_after_rejection = databaseRows(paths.database_path, session_id);
     QVERIFY2(rows_after_rejection.has_value(),
@@ -813,17 +818,19 @@ void MainWindowLocalSessionsTest::
     window.workflowCourtDateEditor()->clear();
     window.workflowCourtDateEditor()->setText(QStringLiteral("2026-08-11"));
     QVERIFY(window.advanceWorkflowButton()->isEnabled());
-    QVERIFY(window.workflowStatusLabel()->text().contains(
+    QVERIFY(window.workflowActionDescriptionLabel()->text().contains(
         QStringLiteral("example.operation.zzz-eligible")));
 
     legal_clock_mode = LegalClockMode::Backdated;
     const auto samples_before_none_eligible = legal_clock_samples;
-    QTest::mouseClick(window.advanceWorkflowButton(), Qt::LeftButton);
+    window.workflowCourtDateEditor()->clear();
+    window.workflowCourtDateEditor()->setText(QStringLiteral("2026-08-11"));
     QCOMPARE(legal_clock_samples, samples_before_none_eligible + 1);
     QVERIFY(!window.advanceWorkflowButton()->isEnabled());
     QVERIFY(window.workflowStatusLabel()->text().contains(
-        QStringLiteral("No currently eligible authored AdvanceStage")));
-    QVERIFY(window.errorLabel()->text().contains(QStringLiteral("No currently eligible")));
+        QStringLiteral("No currently eligible authored workflow action")));
+    QTest::mouseClick(window.advanceWorkflowButton(), Qt::LeftButton);
+    QCOMPARE(legal_clock_samples, samples_before_none_eligible + 1);
     QVERIFY(sameSnapshot(window.workflowSessionController()->snapshot(), unchanged_snapshot));
     rows_after_rejection = databaseRows(paths.database_path, session_id);
     QVERIFY2(rows_after_rejection.has_value(),
@@ -849,7 +856,7 @@ void MainWindowLocalSessionsTest::
 
     QVERIFY(!window.advanceWorkflowButton()->isEnabled());
     QVERIFY(window.workflowStatusLabel()->text().contains(
-        QStringLiteral("No currently eligible authored AdvanceStage")));
+        QStringLiteral("No currently eligible authored workflow action")));
     const auto completed_snapshot = window.workflowSessionController()->snapshot();
     const auto completed_rows = databaseRows(paths.database_path, session_id);
     QVERIFY2(completed_rows.has_value(), completed_rows ? "" : qPrintable(completed_rows.error()));
@@ -860,7 +867,7 @@ void MainWindowLocalSessionsTest::
     QVERIFY(sameSnapshot(window.workflowSessionController()->snapshot(), completed_snapshot));
     const auto rejected = window.advanceSelectedWorkflow();
     QVERIFY(!rejected.has_value());
-    QVERIFY(rejected.error().contains(QStringLiteral("No currently eligible")));
+    QVERIFY(rejected.error().contains(QStringLiteral("Select a currently eligible")));
     QCOMPARE(legal_clock_samples, samples_before_disabled_click + 1);
     QVERIFY(sameSnapshot(window.workflowSessionController()->snapshot(), completed_snapshot));
     rows_after_rejection = databaseRows(paths.database_path, session_id);
