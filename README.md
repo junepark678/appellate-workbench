@@ -144,6 +144,11 @@ The CLI emits one compact, schema-versioned JSON object to stdout on success and
 failure. `template` never overwrites an existing destination. See the
 [pack contract and CLI reference](docs/spec/PACKS.md) before editing a generated pack.
 
+Use the [installed operator guide](docs/OPERATIONS.md) for the authoritative Qt local-data tree,
+paired create-only `.awsessions` transfer, fictional/composite profile editing, sealed-record
+limits, Linux private-state/quarantine policy, and the exact boundary between implemented sync
+primitives and missing product integration.
+
 Start with [the product contract](docs/PRODUCT.md), [the architecture](docs/ARCHITECTURE.md),
 and the accepted decisions:
 

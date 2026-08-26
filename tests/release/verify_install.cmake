@@ -18,6 +18,7 @@ set(
     "docs/APPELLATE_EVENT_CATALOG.md"
     "docs/ARCHITECTURE.md"
     "docs/INDEPENDENT_REVIEW.md"
+    "docs/OPERATIONS.md"
     "docs/PARITY_INVENTORY.md"
     "docs/PRODUCT.md"
     "docs/REALISM_MATRIX.md"
@@ -26,7 +27,10 @@ set(
     "docs/adr/0002-declarative-pack-trust-boundary.md"
     "docs/adr/0003-bench-profile-boundary.md"
     "docs/content/M4_CASE_MATRIX.md"
+    "docs/spec/BENCH_PROFILES.md"
     "docs/spec/PACKS.md"
+    "docs/spec/SEALED_RECORDS.md"
+    "docs/spec/SYNC.md"
 )
 list(SORT _appellate_expected_documentation_files)
 set(
@@ -105,7 +109,32 @@ function(_appellate_assert_documentation_tree prefix label)
 
         file(READ "${_installed_file}" _markdown)
         string(REGEX REPLACE "[ \t\r\n]+" " " _normalized_markdown "${_markdown}")
-        if(_relative_path STREQUAL "docs/INDEPENDENT_REVIEW.md")
+        if(_relative_path STREQUAL "docs/OPERATIONS.md")
+            set(
+                _required_operations_literals
+                "The ordinary desktop performs no telemetry, analytics, crash upload, update check, or network request."
+                "`QStandardPaths::AppLocalDataLocation` is the authoritative default local-state root."
+                "Import is create-only: it never overwrites or merges an existing session."
+                "The exact pinned pack closure must already be installed in the importing desktop's local catalog."
+                "The checksum is unkeyed SHA-256: it detects corruption but provides neither authentication nor encryption."
+                "There is no production OS secret-store adapter, remote provider, coordinator-to-SQLite bridge, background service, or application UI."
+                "Exact private-state enforcement is Linux-only."
+                "The backing filesystem must support `O_TMPFILE` for CAS staging and descriptor-bound publication."
+                "This is cooperative same-UID protection, not a filesystem sandbox."
+                "Quarantine tombstones are permanent by design: the application never automatically unlinks or reuses them."
+                "An interrupted directory publication may separately leave an inert `.appellate-directory-stage-*.tmp` directory"
+            )
+            foreach(_required_literal IN LISTS _required_operations_literals)
+                string(FIND "${_normalized_markdown}" "${_required_literal}" _literal_index)
+                if(_literal_index EQUAL -1)
+                    message(
+                        FATAL_ERROR
+                        "${label} operator documentation omits required text: "
+                        "${_required_literal}"
+                    )
+                endif()
+            endforeach()
+        elseif(_relative_path STREQUAL "docs/INDEPENDENT_REVIEW.md")
             set(
                 _required_independent_review_literals
                 "appellate-pack prepare-independent-review <catalog> <subject-pack-id> <subject-version> <subject-digest> <case-id> <new-handoff-directory>"
@@ -204,10 +233,18 @@ function(_appellate_assert_documentation_tree prefix label)
     endforeach()
     foreach(_required_link_edge IN ITEMS
             "README.md|docs/INDEPENDENT_REVIEW.md"
+            "README.md|docs/OPERATIONS.md"
             "README.md|docs/spec/PACKS.md"
             "docs/INDEPENDENT_REVIEW.md|docs/spec/PACKS.md"
+            "docs/OPERATIONS.md|docs/INDEPENDENT_REVIEW.md"
+            "docs/OPERATIONS.md|docs/RELEASE.md"
+            "docs/OPERATIONS.md|docs/spec/BENCH_PROFILES.md"
+            "docs/OPERATIONS.md|docs/spec/PACKS.md"
+            "docs/OPERATIONS.md|docs/spec/SEALED_RECORDS.md"
+            "docs/OPERATIONS.md|docs/spec/SYNC.md"
             "docs/spec/PACKS.md|docs/INDEPENDENT_REVIEW.md"
             "docs/RELEASE.md|docs/INDEPENDENT_REVIEW.md"
+            "docs/RELEASE.md|docs/OPERATIONS.md"
     )
         if(NOT _required_link_edge IN_LIST _observed_local_link_edges)
             message(

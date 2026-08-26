@@ -61,6 +61,7 @@ set(
     "docs/APPELLATE_EVENT_CATALOG.md"
     "docs/ARCHITECTURE.md"
     "docs/INDEPENDENT_REVIEW.md"
+    "docs/OPERATIONS.md"
     "docs/PARITY_INVENTORY.md"
     "docs/PRODUCT.md"
     "docs/REALISM_MATRIX.md"
@@ -69,7 +70,10 @@ set(
     "docs/adr/0002-declarative-pack-trust-boundary.md"
     "docs/adr/0003-bench-profile-boundary.md"
     "docs/content/M4_CASE_MATRIX.md"
+    "docs/spec/BENCH_PROFILES.md"
     "docs/spec/PACKS.md"
+    "docs/spec/SEALED_RECORDS.md"
+    "docs/spec/SYNC.md"
 )
 list(SORT _expected_archive_documentation_entries)
 set(

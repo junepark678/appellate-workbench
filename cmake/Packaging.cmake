@@ -362,6 +362,10 @@ install(
     DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
 )
 install(
+    FILES "${PROJECT_SOURCE_DIR}/docs/OPERATIONS.md"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
+)
+install(
     FILES "${PROJECT_SOURCE_DIR}/docs/PARITY_INVENTORY.md"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs"
 )
@@ -394,7 +398,11 @@ install(
     DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs/content"
 )
 install(
-    FILES "${PROJECT_SOURCE_DIR}/docs/spec/PACKS.md"
+    FILES
+        "${PROJECT_SOURCE_DIR}/docs/spec/BENCH_PROFILES.md"
+        "${PROJECT_SOURCE_DIR}/docs/spec/PACKS.md"
+        "${PROJECT_SOURCE_DIR}/docs/spec/SEALED_RECORDS.md"
+        "${PROJECT_SOURCE_DIR}/docs/spec/SYNC.md"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/appellate-workbench/docs/spec"
 )
 

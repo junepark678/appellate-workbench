@@ -76,6 +76,7 @@ README.md
 docs/APPELLATE_EVENT_CATALOG.md
 docs/ARCHITECTURE.md
 docs/INDEPENDENT_REVIEW.md
+docs/OPERATIONS.md
 docs/PARITY_INVENTORY.md
 docs/PRODUCT.md
 docs/REALISM_MATRIX.md
@@ -84,16 +85,20 @@ docs/adr/0001-native-offline-mvp.md
 docs/adr/0002-declarative-pack-trust-boundary.md
 docs/adr/0003-bench-profile-boundary.md
 docs/content/M4_CASE_MATRIX.md
+docs/spec/BENCH_PROFILES.md
 docs/spec/PACKS.md
+docs/spec/SEALED_RECORDS.md
+docs/spec/SYNC.md
 ```
 
-There is no flattened root-level `ARCHITECTURE.md`, `INDEPENDENT_REVIEW.md`, `PACKS.md`,
-`PRODUCT.md`, `REALISM_MATRIX.md`, or `RELEASE.md`. Installed-prefix and extracted-archive gates
-require the exact documentation tree, ordinary non-symlink files, byte equality with the source,
-and a closed set of resolving relative Markdown links. The
+There is no flattened root-level `ARCHITECTURE.md`, `INDEPENDENT_REVIEW.md`, `OPERATIONS.md`,
+`PACKS.md`, `PRODUCT.md`, `REALISM_MATRIX.md`, or `RELEASE.md`. Installed-prefix and
+extracted-archive gates require the exact documentation tree, ordinary non-symlink files, byte
+equality with the source, and a closed set of resolving relative Markdown links. The
 [detached independent-review operator guide](INDEPENDENT_REVIEW.md) and
-[pack contract](spec/PACKS.md) are therefore available with the binaries after relocation, without
-relying on a source checkout.
+[general operator guide](OPERATIONS.md), together with its installed pack, bench-profile,
+sealed-record, and sync specifications, are therefore available with the binaries after relocation
+without relying on a source checkout.
 
 The Linux bundle deliberately contains only the X11/XWayland (`qxcb`) and headless (`qoffscreen`)
 Qt platform plugins, plus the SQLite driver. Native Wayland and all other Qt plugin families are
@@ -119,9 +124,11 @@ The File menu's schema-1 `.awsessions` flow is the portable, document-bearing bo
 workflow and oral-argument sessions. Export first verifies the complete database/CAS pair, exact
 installed revision closures, supported engine identities, and deterministic workflow/oral replay.
 It then publishes one owner-only `0600` file without overwriting. Import accepts only a bounded
-regular non-symlink file, repeats all validation, and creates new session IDs plus their exact CAS
-objects as one paired operation. A conflict or validation failure leaves both target stores
-unchanged.
+regular non-symlink file, repeats all validation, requires every archived session ID to be absent,
+and creates those sessions plus their exact CAS objects as one paired operation. A conflict or
+validation failure leaves pre-existing live session and CAS names unchanged, although guarded
+rollback or recovery may retain the private tombstones documented in the
+[general operator guide](OPERATIONS.md).
 
 An `.awsessions` file contains every current workflow/oral snapshot in that local provider and the
 exact bytes of every referenced CAS document. It excludes installed packs, authoring sources,
