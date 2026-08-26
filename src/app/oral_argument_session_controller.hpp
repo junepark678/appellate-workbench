@@ -96,6 +96,16 @@ class OralArgumentSessionController final {
            const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<OralArgumentSessionController>, OralArgumentSessionError>;
 
+    // Reuses the exact canonical opening/answer codec and engine redecision checks without opening
+    // or changing a SessionStore. The legal-state digest must come from a separately validated
+    // workflow snapshot in the same archive.
+    [[nodiscard]] static auto validateSnapshotForReplay(
+        const model::CaseId& case_id,
+        const packs::RuntimeArgumentConfigId& argument_configuration_id,
+        std::string legal_state_digest, const storage::SessionSnapshot& snapshot,
+        const QString& expected_engine_revision, const packs::ResolvedPack& resolved_pack)
+        -> std::expected<void, OralArgumentSessionError>;
+
     [[nodiscard]] auto submit(QString command_id, const model::CounselAnswer& answer,
                               const QString& recorded_at_utc)
         -> std::expected<OralArgumentSubmissionResult, OralArgumentSessionError>;

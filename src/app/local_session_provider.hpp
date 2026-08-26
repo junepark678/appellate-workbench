@@ -1,6 +1,7 @@
 #pragma once
 
 #include "oral_argument_launch_provider.hpp"
+#include "session_archive_provider.hpp"
 #include "workflow_launch_provider.hpp"
 
 #include "appellate/storage/session_store.hpp"
@@ -26,6 +27,7 @@ struct LocalSessionPaths final {
 [[nodiscard]] QString workflowLegalStateDigest(const storage::SessionSnapshot& snapshot);
 
 class LocalSessionProvider final : public OralArgumentLaunchProvider,
+                                   public SessionArchiveProvider,
                                    public WorkflowLaunchProvider {
   public:
     using UtcClock = std::function<QDateTime()>;
@@ -44,6 +46,22 @@ class LocalSessionProvider final : public OralArgumentLaunchProvider,
                             const packs::RuntimeArgumentConfigId& argument_configuration_id)
         -> std::expected<std::unique_ptr<app::OralArgumentSessionController>,
                          app::OralArgumentSessionError> override;
+
+    [[nodiscard]] auto exportAll() const
+        -> std::expected<QByteArray, SessionArchiveProviderError> override;
+
+    [[nodiscard]] auto read(QByteArrayView archive) const
+        -> std::expected<storage::SessionArchiveReplayContents,
+                         SessionArchiveProviderError> override;
+
+    [[nodiscard]] auto
+    validate(const storage::SessionArchiveReplayContents& contents,
+             std::span<const packs::ResolvedPack* const> available_closures) const
+        -> std::expected<ValidatedSessionArchive, SessionArchiveProviderError> override;
+
+    [[nodiscard]] auto import(QByteArrayView archive,
+                              std::span<const packs::ResolvedPack* const> available_closures)
+        -> std::expected<storage::SessionArchiveManifest, SessionArchiveProviderError> override;
 
     [[nodiscard]] const LocalSessionPaths& paths() const noexcept;
 

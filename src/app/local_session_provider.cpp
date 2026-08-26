@@ -1,23 +1,34 @@
 #include "local_session_provider.hpp"
 
+#include "resolved_session_pins.hpp"
+
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/storage/asset_store.hpp"
+#include "appellate/storage/session_archive.hpp"
 
 #include <QByteArray>
 #include <QByteArrayView>
 #include <QCryptographicHash>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QStandardPaths>
+#include <QTemporaryDir>
 
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
+#include <limits>
+#include <map>
+#include <optional>
 #include <ranges>
+#include <set>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 namespace appellate::ui {
 namespace {
@@ -27,6 +38,132 @@ constexpr auto oral_session_domain = "appellate-workbench-local-oral-session-v1"
 constexpr auto legal_state_domain = "appellate-workbench-workflow-legal-state-v2";
 constexpr auto workflow_engine_revision = "engine.workflow.local.v1";
 constexpr auto oral_engine_revision = "engine.oral.local.v1";
+
+enum class ArchivedSessionFamily { Workflow, OralArgument };
+
+struct ClosureCandidate final {
+    const packs::ResolvedPack* resolved_pack{};
+    std::vector<storage::RevisionPin> pins;
+    std::optional<packs::RuntimePack> runtime;
+};
+
+struct ValidatedWorkflowArchiveSession final {
+    const ClosureCandidate* closure{};
+    const packs::RuntimeCase* runtime_case{};
+    QString legal_state_digest;
+};
+
+[[nodiscard]] auto archiveProviderFail(SessionArchiveProviderErrorCode code, QString message)
+    -> std::unexpected<SessionArchiveProviderError> {
+    return std::unexpected(SessionArchiveProviderError{code, std::move(message), std::nullopt});
+}
+
+[[nodiscard]] auto archiveStorageFail(QStringView operation,
+                                      const storage::SessionArchiveError& error)
+    -> std::unexpected<SessionArchiveProviderError> {
+    return std::unexpected(SessionArchiveProviderError{
+        SessionArchiveProviderErrorCode::ArchiveFailure,
+        QStringLiteral("%1: %2").arg(operation, error.message), error.code});
+}
+
+[[nodiscard]] auto archivedSessionFamily(const storage::SessionSnapshot& snapshot)
+    -> std::expected<ArchivedSessionFamily, SessionArchiveProviderError> {
+    if (snapshot.session_id.startsWith(QLatin1StringView("workflow.session."))) {
+        if (snapshot.engine_revision != QLatin1StringView(workflow_engine_revision)) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::UnsupportedSession,
+                QStringLiteral("Workflow session %1 uses unsupported engine %2")
+                    .arg(snapshot.session_id, snapshot.engine_revision));
+        }
+        return ArchivedSessionFamily::Workflow;
+    }
+    if (snapshot.session_id.startsWith(QLatin1StringView("oral.argument.session."))) {
+        if (snapshot.engine_revision != QLatin1StringView(oral_engine_revision)) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::UnsupportedSession,
+                QStringLiteral("Oral-argument session %1 uses unsupported engine %2")
+                    .arg(snapshot.session_id, snapshot.engine_revision));
+        }
+        return ArchivedSessionFamily::OralArgument;
+    }
+    return archiveProviderFail(
+        SessionArchiveProviderErrorCode::UnsupportedSession,
+        QStringLiteral("Archive session %1 is not a supported Workflow/Oral session")
+            .arg(snapshot.session_id));
+}
+
+[[nodiscard]] auto validateReplayManifest(const storage::SessionArchiveReplayContents& contents)
+    -> std::expected<void, SessionArchiveProviderError> {
+    if (contents.manifest.sessions.size() != contents.sessions.size() ||
+        contents.manifest.asset_digests.size() != static_cast<qsizetype>(contents.assets.size())) {
+        return archiveProviderFail(
+            SessionArchiveProviderErrorCode::InvalidArgument,
+            QStringLiteral("Archive replay contents do not match their manifest"));
+    }
+    for (std::size_t index = 0; index < contents.sessions.size(); ++index) {
+        const auto& declared = contents.manifest.sessions[index];
+        const auto& snapshot = contents.sessions[index];
+        if (declared.session_id != snapshot.session_id ||
+            declared.engine_revision != snapshot.engine_revision ||
+            declared.authority_contract != snapshot.authority_contract ||
+            declared.sequence != snapshot.sequence ||
+            declared.created_at_utc != snapshot.created_at_utc || declared.pins != snapshot.pins ||
+            declared.command_count != snapshot.commands.size() ||
+            declared.event_count != snapshot.events.size() ||
+            declared.docket_count != snapshot.docket.size() ||
+            declared.asset_reference_count != snapshot.asset_references.size()) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::InvalidArgument,
+                QStringLiteral("Archive replay session %1 differs from its manifest")
+                    .arg(snapshot.session_id));
+        }
+    }
+    qint64 total_asset_bytes = 0;
+    for (qsizetype index = 0; index < contents.manifest.asset_digests.size(); ++index) {
+        const auto& asset = contents.assets[static_cast<std::size_t>(index)];
+        if (contents.manifest.asset_digests[index] != asset.digest ||
+            asset.bytes.size() > std::numeric_limits<qint64>::max() - total_asset_bytes) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::InvalidArgument,
+                QStringLiteral("Archive replay assets differ from their manifest"));
+        }
+        total_asset_bytes += asset.bytes.size();
+    }
+    if (total_asset_bytes != contents.manifest.total_asset_bytes) {
+        return archiveProviderFail(
+            SessionArchiveProviderErrorCode::InvalidArgument,
+            QStringLiteral("Archive replay asset size differs from its manifest"));
+    }
+    return {};
+}
+
+[[nodiscard]] auto matchingClosure(std::vector<ClosureCandidate>& candidates,
+                                   const std::vector<storage::RevisionPin>& required_pins)
+    -> std::expected<ClosureCandidate*, SessionArchiveProviderError> {
+    const auto found = std::ranges::find(candidates, required_pins, &ClosureCandidate::pins);
+    if (found == candidates.end()) {
+        return archiveProviderFail(
+            SessionArchiveProviderErrorCode::IncompatibleRevisionPins,
+            QStringLiteral("An archived session's entire ordered revision-pin vector does not "
+                           "equal any available resolved-pack closure"));
+    }
+    return &*found;
+}
+
+[[nodiscard]] auto runtimeFor(ClosureCandidate& candidate)
+    -> std::expected<const packs::RuntimePack*, SessionArchiveProviderError> {
+    if (!candidate.runtime.has_value()) {
+        auto runtime = packs::loadRuntimePack(*candidate.resolved_pack);
+        if (!runtime) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::IncompatibleRevisionPins,
+                QStringLiteral("An exact archived closure has no valid runtime projection: %1")
+                    .arg(QString::fromStdString(runtime.error().message)));
+        }
+        candidate.runtime = std::move(*runtime);
+    }
+    return &*candidate.runtime;
+}
 
 void appendUint64(QByteArray& output, std::uint64_t value) {
     std::array<char, 8> bytes{};
@@ -467,6 +604,236 @@ auto LocalSessionProvider::open(const packs::ResolvedPack& resolved_pack,
     return app::OralArgumentSessionController::create(
         session_id, case_id, argument_configuration_id, legal_state_digest.toStdString(),
         std::move(*store), QString::fromLatin1(oral_engine_revision), *created_at, resolved_pack);
+}
+
+auto LocalSessionProvider::exportAll() const
+    -> std::expected<QByteArray, SessionArchiveProviderError> {
+    storage::AssetStore asset_store(paths_.asset_root);
+    auto archive = storage::SessionArchive::exportSessions(*owner_store_, asset_store);
+    if (!archive) {
+        return archiveStorageFail(u"Cannot export Workflow/Oral sessions", archive.error());
+    }
+    return *archive;
+}
+
+auto LocalSessionProvider::read(QByteArrayView archive) const
+    -> std::expected<storage::SessionArchiveReplayContents, SessionArchiveProviderError> {
+    auto contents = storage::SessionArchive::readForReplay(archive);
+    if (!contents) {
+        return archiveStorageFail(u"Cannot read Workflow/Oral session archive", contents.error());
+    }
+    return *contents;
+}
+
+auto LocalSessionProvider::validate(const storage::SessionArchiveReplayContents& contents,
+                                    std::span<const packs::ResolvedPack* const> available_closures)
+    const -> std::expected<ValidatedSessionArchive, SessionArchiveProviderError> {
+    if (const auto coherent = validateReplayManifest(contents); !coherent) {
+        return std::unexpected(coherent.error());
+    }
+
+    std::vector<ClosureCandidate> candidates;
+    candidates.reserve(available_closures.size());
+    for (const auto* closure : available_closures) {
+        if (closure == nullptr) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::InvalidArgument,
+                QStringLiteral("Available resolved-pack closures must not contain null entries"));
+        }
+        auto pins = app::revisionPinsForSession(*closure);
+        if (std::ranges::find(candidates, pins, &ClosureCandidate::pins) != candidates.end()) {
+            continue;
+        }
+        candidates.push_back(ClosureCandidate{closure, std::move(pins), std::nullopt});
+    }
+
+    struct SessionBinding final {
+        ArchivedSessionFamily family;
+        ClosureCandidate* closure{};
+    };
+    std::vector<SessionBinding> bindings;
+    bindings.reserve(contents.sessions.size());
+    std::set<const ClosureCandidate*> used_closures;
+    for (const auto& snapshot : contents.sessions) {
+        const auto family = archivedSessionFamily(snapshot);
+        if (!family) {
+            return std::unexpected(family.error());
+        }
+        auto closure = matchingClosure(candidates, snapshot.pins);
+        if (!closure) {
+            return std::unexpected(closure.error());
+        }
+        bindings.push_back(SessionBinding{*family, *closure});
+        used_closures.insert(*closure);
+    }
+
+    QTemporaryDir replay_root;
+    if (!replay_root.isValid() ||
+        !QFile::setPermissions(replay_root.path(), QFileDevice::ReadOwner |
+                                                       QFileDevice::WriteOwner |
+                                                       QFileDevice::ExeOwner)) {
+        return archiveProviderFail(
+            SessionArchiveProviderErrorCode::TemporaryAssetStoreFailure,
+            QStringLiteral("Cannot create a private temporary replay asset store"));
+    }
+    storage::AssetStore replay_asset_store(
+        QDir(replay_root.path()).filePath(QStringLiteral("assets")));
+    for (const auto& asset : contents.assets) {
+        const auto stored = replay_asset_store.put(QByteArrayView(asset.bytes));
+        if (!stored) {
+            return archiveProviderFail(SessionArchiveProviderErrorCode::TemporaryAssetStoreFailure,
+                                       QStringLiteral("Cannot materialize replay asset %1: %2")
+                                           .arg(asset.digest, stored.error().message));
+        }
+        if (stored->sha256 != asset.digest) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::TemporaryAssetStoreFailure,
+                QStringLiteral("Replay asset %1 differs from its declared digest")
+                    .arg(asset.digest));
+        }
+    }
+
+    std::vector<ValidatedWorkflowArchiveSession> validated_workflows;
+    validated_workflows.reserve(contents.sessions.size());
+    for (std::size_t index = 0; index < contents.sessions.size(); ++index) {
+        if (bindings[index].family != ArchivedSessionFamily::Workflow) {
+            continue;
+        }
+        const auto& snapshot = contents.sessions[index];
+        auto runtime = runtimeFor(*bindings[index].closure);
+        if (!runtime) {
+            return std::unexpected(runtime.error());
+        }
+        const packs::RuntimeCase* matched_case = nullptr;
+        for (const auto& runtime_case : (*runtime)->cases) {
+            if (workflowSessionId(*bindings[index].closure->resolved_pack, runtime_case) !=
+                snapshot.session_id) {
+                continue;
+            }
+            if (matched_case != nullptr) {
+                return archiveProviderFail(
+                    SessionArchiveProviderErrorCode::ReplayFailure,
+                    QStringLiteral("Workflow session %1 has an ambiguous runtime identity")
+                        .arg(snapshot.session_id));
+            }
+            matched_case = &runtime_case;
+        }
+        if (matched_case == nullptr) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::ReplayFailure,
+                QStringLiteral("Workflow session %1 does not identify any case in its exact "
+                               "resolved closure")
+                    .arg(snapshot.session_id));
+        }
+
+        model::WorkflowState initial_state;
+        initial_state.session_id = snapshot.session_id.toStdString();
+        initial_state.workflow_id = matched_case->workflow.id;
+        initial_state.current_stage_id = matched_case->workflow.initial_stage_id;
+        initial_state.next_event_sequence = 1;
+        const auto replayed = app::WorkflowSessionController::validateSnapshotForReplay(
+            matched_case->definition.id, initial_state, replay_asset_store, snapshot,
+            QString::fromLatin1(workflow_engine_revision), *bindings[index].closure->resolved_pack);
+        if (!replayed) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::ReplayFailure,
+                QStringLiteral("Workflow session %1 failed exact semantic replay: %2")
+                    .arg(snapshot.session_id, replayed.error().message));
+        }
+        validated_workflows.push_back(ValidatedWorkflowArchiveSession{
+            bindings[index].closure, matched_case, workflowLegalStateDigest(snapshot)});
+    }
+
+    for (std::size_t index = 0; index < contents.sessions.size(); ++index) {
+        if (bindings[index].family != ArchivedSessionFamily::OralArgument) {
+            continue;
+        }
+        const auto& snapshot = contents.sessions[index];
+        const ValidatedWorkflowArchiveSession* matched_workflow = nullptr;
+        const packs::RuntimeArgumentConfiguration* matched_argument = nullptr;
+        for (const auto& workflow : validated_workflows) {
+            if (workflow.closure != bindings[index].closure) {
+                continue;
+            }
+            for (const auto& argument : workflow.runtime_case->argument_configurations) {
+                if (oralSessionId(*bindings[index].closure->resolved_pack,
+                                  workflow.runtime_case->definition.id, argument.id,
+                                  workflow.legal_state_digest) != snapshot.session_id) {
+                    continue;
+                }
+                if (matched_argument != nullptr) {
+                    return archiveProviderFail(
+                        SessionArchiveProviderErrorCode::ReplayFailure,
+                        QStringLiteral("Oral-argument session %1 has an ambiguous runtime identity")
+                            .arg(snapshot.session_id));
+                }
+                matched_workflow = &workflow;
+                matched_argument = &argument;
+            }
+        }
+        if (matched_workflow == nullptr || matched_argument == nullptr) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::ReplayFailure,
+                QStringLiteral("Oral-argument session %1 is not bound to an exact argument "
+                               "configuration and a validated workflow snapshot in this archive")
+                    .arg(snapshot.session_id));
+        }
+        const auto replayed = app::OralArgumentSessionController::validateSnapshotForReplay(
+            matched_workflow->runtime_case->definition.id, matched_argument->id,
+            matched_workflow->legal_state_digest.toStdString(), snapshot,
+            QString::fromLatin1(oral_engine_revision), *bindings[index].closure->resolved_pack);
+        if (!replayed) {
+            return archiveProviderFail(
+                SessionArchiveProviderErrorCode::ReplayFailure,
+                QStringLiteral("Oral-argument session %1 failed exact semantic replay: %2")
+                    .arg(snapshot.session_id, replayed.error().message));
+        }
+    }
+
+    std::map<std::pair<QString, QString>, storage::RevisionPin> available_pins;
+    for (const auto* closure : used_closures) {
+        for (const auto& pin : closure->pins) {
+            const auto key = std::pair{pin.pack_id, pin.version};
+            const auto [found, inserted] = available_pins.emplace(key, pin);
+            if (!inserted && found->second.digest != pin.digest) {
+                return archiveProviderFail(
+                    SessionArchiveProviderErrorCode::IncompatibleRevisionPins,
+                    QStringLiteral("Available exact closures disagree on revision %1 %2")
+                        .arg(pin.pack_id, pin.version));
+            }
+        }
+    }
+    ValidatedSessionArchive validated{contents.manifest, {}};
+    validated.available_revision_pins.reserve(available_pins.size());
+    for (const auto& [key, pin] : available_pins) {
+        static_cast<void>(key);
+        validated.available_revision_pins.push_back(pin);
+    }
+    return validated;
+}
+
+auto LocalSessionProvider::import(QByteArrayView archive,
+                                  std::span<const packs::ResolvedPack* const> available_closures)
+    -> std::expected<storage::SessionArchiveManifest, SessionArchiveProviderError> {
+    auto contents = read(archive);
+    if (!contents) {
+        return std::unexpected(contents.error());
+    }
+    auto validated = validate(*contents, available_closures);
+    if (!validated) {
+        return std::unexpected(validated.error());
+    }
+
+    storage::SessionArchiveImportOptions options;
+    options.available_revision_pins = validated->available_revision_pins;
+    storage::AssetStore asset_store(paths_.asset_root);
+    const auto imported =
+        storage::SessionArchive::importSessions(archive, *owner_store_, asset_store, options);
+    if (!imported) {
+        return archiveStorageFail(u"Cannot create imported Workflow/Oral sessions",
+                                  imported.error());
+    }
+    return validated->manifest;
 }
 
 const LocalSessionPaths& LocalSessionProvider::paths() const noexcept { return paths_; }

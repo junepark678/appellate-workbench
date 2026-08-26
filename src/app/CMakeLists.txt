@@ -70,6 +70,7 @@ qt_add_library(
     oral_argument_launch_provider.hpp
     oral_argument_workspace.cpp
     oral_argument_workspace.hpp
+    session_archive_provider.hpp
     workflow_launch_provider.hpp
 )
 add_library(appellate::desktop_ui ALIAS appellate_desktop_ui)

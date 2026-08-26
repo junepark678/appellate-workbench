@@ -709,6 +709,51 @@ WorkflowSessionController::reopen(model::CaseId case_id, model::WorkflowState in
                        *authority_contract, resolved_pack.root().manifest_schema_version);
 }
 
+std::expected<void, WorkflowSessionError> WorkflowSessionController::validateSnapshotForReplay(
+    const model::CaseId& case_id, const model::WorkflowState& initial_state,
+    const storage::AssetStore& replay_asset_store, const storage::SessionSnapshot& snapshot,
+    const QString& expected_engine_revision, const packs::ResolvedPack& resolved_pack) {
+    if (!validText(expected_engine_revision)) {
+        return fail(WorkflowSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("An expected engine revision is required"));
+    }
+    const auto runtime = packs::loadRuntimePack(resolved_pack);
+    if (!runtime) {
+        return fail(WorkflowSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("Cannot project the resolved pack: %1")
+                        .arg(QString::fromStdString(runtime.error().message)));
+    }
+    const auto selected = std::ranges::find(
+        runtime->cases, case_id, [](const auto& candidate) { return candidate.definition.id; });
+    if (selected == runtime->cases.end()) {
+        return fail(WorkflowSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("The resolved pack does not contain the selected case"));
+    }
+    const auto authority_contract = authorityContractFor(selected->workflow);
+    if (!authority_contract.has_value()) {
+        return fail(WorkflowSessionErrorCode::InvalidConfiguration,
+                    QStringLiteral("The resolved workflow mixes authority contracts"));
+    }
+    const auto expected_pins = normalizePins(revisionPinsForSession(resolved_pack),
+                                             WorkflowSessionErrorCode::InvalidConfiguration,
+                                             resolved_pack.root().manifest_schema_version);
+    if (!expected_pins) {
+        return std::unexpected(expected_pins.error());
+    }
+    if (const auto valid =
+            validateInitialConfiguration(selected->workflow, selected->definition, initial_state);
+        !valid) {
+        return std::unexpected(valid.error());
+    }
+    const auto restored = restoreSnapshot(selected->workflow, selected->definition, initial_state,
+                                          snapshot, replay_asset_store, expected_engine_revision,
+                                          *expected_pins, *authority_contract);
+    if (!restored) {
+        return std::unexpected(restored.error());
+    }
+    return {};
+}
+
 std::expected<WorkflowSubmissionResult, WorkflowSessionError>
 WorkflowSessionController::submit(const model::WorkflowCommand& command,
                                   std::optional<QByteArrayView> document_bytes,

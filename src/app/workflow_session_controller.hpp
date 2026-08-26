@@ -92,6 +92,14 @@ class WorkflowSessionController final {
            QString expected_engine_revision, const packs::ResolvedPack& resolved_pack)
         -> std::expected<std::unique_ptr<WorkflowSessionController>, WorkflowSessionError>;
 
+    // Reuses the exact reopen codec/redecision checks against caller-owned archive content without
+    // opening or changing a SessionStore. Referenced documents are read from replay_asset_store.
+    [[nodiscard]] static auto validateSnapshotForReplay(
+        const model::CaseId& case_id, const model::WorkflowState& initial_state,
+        const storage::AssetStore& replay_asset_store, const storage::SessionSnapshot& snapshot,
+        const QString& expected_engine_revision, const packs::ResolvedPack& resolved_pack)
+        -> std::expected<void, WorkflowSessionError>;
+
     [[nodiscard]] auto submit(const model::WorkflowCommand& command,
                               std::optional<QByteArrayView> document_bytes,
                               const QString& recorded_at_utc)

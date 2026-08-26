@@ -799,6 +799,37 @@ OralArgumentSessionController::reopen(
                                 resolved_pack.root().manifest_schema_version);
 }
 
+std::expected<void, OralArgumentSessionError>
+OralArgumentSessionController::validateSnapshotForReplay(
+    const model::CaseId& case_id, const packs::RuntimeArgumentConfigId& argument_configuration_id,
+    std::string legal_state_digest, const storage::SessionSnapshot& snapshot,
+    const QString& expected_engine_revision, const packs::ResolvedPack& resolved_pack) {
+    const auto definition = deriveCanonicalDefinition(case_id, argument_configuration_id,
+                                                      legal_state_digest, resolved_pack);
+    if (!definition) {
+        return std::unexpected(definition.error());
+    }
+    const auto expected_pins = normalizePins(revisionPinsForSession(resolved_pack),
+                                             OralArgumentSessionErrorCode::InvalidConfiguration,
+                                             resolved_pack.root().manifest_schema_version);
+    if (!expected_pins) {
+        return std::unexpected(expected_pins.error());
+    }
+    const auto initial =
+        validateCanonicalDefinitions(snapshot.session_id, expected_engine_revision, *definition,
+                                     OralArgumentSessionErrorCode::InvalidConfiguration);
+    if (!initial) {
+        return std::unexpected(initial.error());
+    }
+    const auto validated =
+        validateCanonicalSnapshot(snapshot.session_id, expected_engine_revision, *expected_pins,
+                                  *definition, *initial, snapshot);
+    if (!validated) {
+        return std::unexpected(validated.error());
+    }
+    return {};
+}
+
 std::expected<OralArgumentSubmissionResult, OralArgumentSessionError>
 OralArgumentSessionController::submit(QString command_id, const model::CounselAnswer& answer,
                                       const QString& recorded_at_utc) {

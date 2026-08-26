@@ -398,6 +398,7 @@ class MainWindowLocalSessionsTest final : public QObject {
     void missingProviderIsVisibleAndDisabled();
     void unsafePathsAndNewerSchemaFailWithoutFallback();
     void independentProviderFailsPromptlyAndLaterReopens();
+    void archiveProviderReplaysBeforeCreateOnlyImport();
     void pinAndEngineMismatchFailWithoutDatabaseOrCasMutation();
 };
 
@@ -1097,6 +1098,199 @@ void MainWindowLocalSessionsTest::independentProviderFailsPromptlyAndLaterReopen
     owner->reset();
     const auto reopened = ui::LocalSessionProvider::create(paths, clock);
     QVERIFY2(reopened.has_value(), reopened ? "" : qPrintable(reopened.error()));
+}
+
+void MainWindowLocalSessionsTest::archiveProviderReplaysBeforeCreateOnlyImport() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto pack_archive = temporary.filePath(QStringLiteral("grounded.awpack"));
+    const auto packed =
+        packs::PackArchive::exportDirectory(fixture(u"full-resource-pack-v2"), pack_archive);
+    QVERIFY2(packed.has_value(), packed ? "" : qPrintable(packed.error().message));
+    const auto catalog = packs::PackCatalog::open(temporary.filePath(QStringLiteral("catalog")));
+    QVERIFY2(catalog.has_value(), catalog ? "" : qPrintable(catalog.error().message));
+    const auto installed =
+        (*catalog)->installArchive(pack_archive, QStringLiteral("2026-08-11T00:00:00Z"));
+    QVERIFY2(installed.has_value(), installed ? "" : qPrintable(installed.error().message));
+    const auto resolved = (*catalog)->loadResolved(installed->revision);
+    QVERIFY2(resolved.has_value(), resolved ? "" : qPrintable(resolved.error().message));
+    const auto runtime = packs::loadRuntimePack(*resolved);
+    QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+    QCOMPARE(runtime->cases.size(), std::size_t{1});
+    const auto& runtime_case = runtime->cases.front();
+    QVERIFY(!runtime_case.argument_configurations.empty());
+    const auto argument_id = runtime_case.argument_configurations.front().id;
+
+    const auto clock = [] {
+        return QDateTime::fromString(QStringLiteral("2026-08-11T10:00:00Z"), Qt::ISODate);
+    };
+    const ui::LocalSessionPaths source_paths{
+        temporary.filePath(QStringLiteral("source/sessions.sqlite")),
+        temporary.filePath(QStringLiteral("source/assets")),
+    };
+    const auto source = ui::LocalSessionProvider::create(source_paths, clock);
+    QVERIFY2(source.has_value(), source ? "" : qPrintable(source.error()));
+    auto workflow = (*source)->openWorkflow(*resolved, runtime_case.definition.id);
+    QVERIFY2(workflow.has_value(), workflow ? "" : qPrintable(workflow.error().message));
+    const auto workflow_id = QString::fromStdString((*workflow)->state().session_id);
+    const QByteArray document("archive provider document-bearing workflow bytes");
+    const auto filing = model::SubmitWorkflowFiling{
+        model::WorkflowCommandHeader{
+            workflow_id.toStdString(),
+            model::WorkflowCommandId{workflow_id.toStdString() +
+                                     ".command.1.example.operation.accept-notice"},
+            model::ActorId{"example.actor.appellant"},
+            at(2026, 8U, 11U, 11),
+        },
+        model::WorkflowFilingId{"example.filing.archive-provider"},
+        model::FilingTypeId{"example.filing.notice"},
+        sha256(document).toStdString(),
+        {model::WorkflowFieldValue{model::FilingFieldId{"example.field.caption"},
+                                   "Archive provider caption"}},
+        {model::ActorId{"example.actor.appellee"}},
+        std::nullopt,
+    };
+    const auto filed = (*workflow)->submit(model::WorkflowCommand{filing}, QByteArrayView(document),
+                                           QStringLiteral("2026-08-11T11:00:00Z"));
+    QVERIFY2(filed.has_value(), filed ? "" : qPrintable(filed.error().message));
+    QVERIFY(filed->asset.has_value());
+    const auto document_digest = filed->asset->sha256;
+    const auto workflow_snapshot = (*workflow)->snapshot();
+    const auto original_command = workflow_snapshot.commands.front().payload_json;
+    QVERIFY(original_command.contains("example.filing.archive-provider"));
+    (*workflow).reset();
+
+    auto oral = (*source)->open(*resolved, runtime_case.definition.id, argument_id);
+    QVERIFY2(oral.has_value(), oral ? "" : qPrintable(oral.error().message));
+    const auto oral_snapshot = (*oral)->snapshot();
+    QVERIFY(oral_snapshot.session_id.startsWith(QStringLiteral("oral.argument.session.")));
+    (*oral).reset();
+
+    const auto valid_archive = (*source)->exportAll();
+    QVERIFY2(valid_archive.has_value(),
+             valid_archive ? "" : qPrintable(valid_archive.error().message));
+    const auto valid_contents = (*source)->read(*valid_archive);
+    QVERIFY2(valid_contents.has_value(),
+             valid_contents ? "" : qPrintable(valid_contents.error().message));
+    QCOMPARE(valid_contents->manifest.sessions.size(), std::size_t{2});
+    QCOMPARE(valid_contents->manifest.asset_digests, QStringList{document_digest});
+    QCOMPARE(valid_contents->manifest.total_asset_bytes, document.size());
+
+    const ui::LocalSessionPaths target_paths{
+        temporary.filePath(QStringLiteral("target/sessions.sqlite")),
+        temporary.filePath(QStringLiteral("target/assets")),
+    };
+    const auto target = ui::LocalSessionProvider::create(target_paths, clock);
+    QVERIFY2(target.has_value(), target ? "" : qPrintable(target.error()));
+    const auto empty_target = (*target)->exportAll();
+    QVERIFY2(empty_target.has_value(),
+             empty_target ? "" : qPrintable(empty_target.error().message));
+    const std::array<const packs::ResolvedPack*, 1> exact_closure{&*resolved};
+    const auto still_empty = [&] {
+        const auto current = (*target)->exportAll();
+        QVERIFY2(current.has_value(), current ? "" : qPrintable(current.error().message));
+        QCOMPARE(*current, *empty_target);
+    };
+
+    auto forged_command = original_command;
+    forged_command.replace("example.filing.archive-provider", "example.filing.forged-provider");
+    QVERIFY(forged_command != original_command);
+    const auto changed_command = executeSql(
+        source_paths.database_path,
+        QStringLiteral("UPDATE command_log SET payload_json=? WHERE session_id=? AND command_id=?"),
+        {forged_command, workflow_id, workflow_snapshot.commands.front().command_id});
+    QVERIFY2(changed_command.has_value(),
+             changed_command ? "" : qPrintable(changed_command.error()));
+    const auto semantic_archive = (*source)->exportAll();
+    QVERIFY2(semantic_archive.has_value(),
+             semantic_archive ? "" : qPrintable(semantic_archive.error().message));
+    const auto semantic_rejected = (*target)->import(*semantic_archive, exact_closure);
+    QVERIFY(!semantic_rejected.has_value());
+    QCOMPARE(semantic_rejected.error().code, ui::SessionArchiveProviderErrorCode::ReplayFailure);
+    still_empty();
+    QVERIFY(
+        executeSql(source_paths.database_path,
+                   QStringLiteral(
+                       "UPDATE command_log SET payload_json=? WHERE session_id=? AND command_id=?"),
+                   {original_command, workflow_id, workflow_snapshot.commands.front().command_id})
+            .has_value());
+
+    QVERIFY(executeSql(source_paths.database_path,
+                       QStringLiteral("UPDATE sessions SET engine_revision=? WHERE session_id=?"),
+                       {QStringLiteral("engine.workflow.future.v999"), workflow_id})
+                .has_value());
+    const auto unknown_engine_archive = (*source)->exportAll();
+    QVERIFY2(unknown_engine_archive.has_value(),
+             unknown_engine_archive ? "" : qPrintable(unknown_engine_archive.error().message));
+    const auto unknown_engine_rejected = (*target)->import(*unknown_engine_archive, exact_closure);
+    QVERIFY(!unknown_engine_rejected.has_value());
+    QCOMPARE(unknown_engine_rejected.error().code,
+             ui::SessionArchiveProviderErrorCode::UnsupportedSession);
+    still_empty();
+    QVERIFY(executeSql(source_paths.database_path,
+                       QStringLiteral("UPDATE sessions SET engine_revision=? WHERE session_id=?"),
+                       {QStringLiteral("engine.workflow.local.v1"), workflow_id})
+                .has_value());
+
+    const auto gold_installed = (*catalog)->installArchive(QStringLiteral(APPELLATE_GOLD_ARCHIVE),
+                                                           QStringLiteral("2026-08-11T00:01:00Z"));
+    QVERIFY2(gold_installed.has_value(),
+             gold_installed ? "" : qPrintable(gold_installed.error().message));
+    const auto gold_resolved = (*catalog)->loadResolved(gold_installed->revision);
+    QVERIFY2(gold_resolved.has_value(),
+             gold_resolved ? "" : qPrintable(gold_resolved.error().message));
+    QCOMPARE(gold_resolved->revisionsByPackId().size(), std::size_t{1});
+    const auto& unrelated_revision = gold_resolved->revisionsByPackId().front();
+    QVERIFY(unrelated_revision.id.value != resolved->revisionsByPackId().front().id.value);
+    QVERIFY(
+        executeSql(source_paths.database_path,
+                   QStringLiteral("INSERT INTO session_pins(session_id, pack_id, version, digest) "
+                                  "VALUES(?, ?, ?, ?)"),
+                   {workflow_id, QString::fromStdString(unrelated_revision.id.value),
+                    QString::fromStdString(unrelated_revision.version),
+                    QString::fromStdString(unrelated_revision.digest)})
+            .has_value());
+    const auto mixed_pins_archive = (*source)->exportAll();
+    QVERIFY2(mixed_pins_archive.has_value(),
+             mixed_pins_archive ? "" : qPrintable(mixed_pins_archive.error().message));
+    const std::array<const packs::ResolvedPack*, 2> separate_closures{&*resolved, &*gold_resolved};
+    const auto mixed_pins_rejected = (*target)->import(*mixed_pins_archive, separate_closures);
+    QVERIFY(!mixed_pins_rejected.has_value());
+    QCOMPARE(mixed_pins_rejected.error().code,
+             ui::SessionArchiveProviderErrorCode::IncompatibleRevisionPins);
+    still_empty();
+
+    const auto imported = (*target)->import(*valid_archive, exact_closure);
+    QVERIFY2(imported.has_value(), imported ? "" : qPrintable(imported.error().message));
+    QCOMPARE(imported->sessions.size(), std::size_t{2});
+    QCOMPARE(imported->archive_sha256, valid_contents->manifest.archive_sha256);
+    const auto imported_document =
+        storage::AssetStore(target_paths.asset_root).read(document_digest);
+    QVERIFY2(imported_document.has_value(),
+             imported_document ? "" : qPrintable(imported_document.error().message));
+    QCOMPARE(*imported_document, document);
+
+    auto restored_workflow = (*target)->openWorkflow(*resolved, runtime_case.definition.id);
+    QVERIFY2(restored_workflow.has_value(),
+             restored_workflow ? "" : qPrintable(restored_workflow.error().message));
+    QVERIFY(sameSnapshot((*restored_workflow)->snapshot(), workflow_snapshot));
+    (*restored_workflow).reset();
+    auto restored_oral = (*target)->open(*resolved, runtime_case.definition.id, argument_id);
+    QVERIFY2(restored_oral.has_value(),
+             restored_oral ? "" : qPrintable(restored_oral.error().message));
+    QVERIFY(sameSnapshot((*restored_oral)->snapshot(), oral_snapshot));
+    (*restored_oral).reset();
+
+    const auto imported_state = (*target)->exportAll();
+    QVERIFY2(imported_state.has_value(),
+             imported_state ? "" : qPrintable(imported_state.error().message));
+    const auto conflict = (*target)->import(*valid_archive, exact_closure);
+    QVERIFY(!conflict.has_value());
+    QVERIFY(conflict.error().storage_code == storage::SessionArchiveErrorCode::SessionConflict);
+    const auto after_conflict = (*target)->exportAll();
+    QVERIFY2(after_conflict.has_value(),
+             after_conflict ? "" : qPrintable(after_conflict.error().message));
+    QCOMPARE(*after_conflict, *imported_state);
 }
 
 void MainWindowLocalSessionsTest::pinAndEngineMismatchFailWithoutDatabaseOrCasMutation() {
