@@ -305,6 +305,7 @@ find_program(_appellate_ldd NAMES ldd REQUIRED)
 find_program(_appellate_readelf NAMES readelf REQUIRED)
 find_program(_appellate_id NAMES id REQUIRED)
 find_program(_appellate_stat NAMES stat REQUIRED)
+find_program(_appellate_git NAMES git REQUIRED)
 
 execute_process(
     COMMAND "${_appellate_id}" -u
@@ -1008,14 +1009,80 @@ string(JSON _compatibility_schema GET "${_compatibility_json}" schema_version)
 string(JSON _compatibility_os GET "${_compatibility_json}" platform operating_system)
 string(JSON _compatibility_arch GET "${_compatibility_json}" platform architecture)
 string(JSON _declared_glibc_floor GET "${_compatibility_json}" platform glibc_floor)
+string(JSON _declared_source_revision GET "${_compatibility_json}" application source_revision)
+string(JSON _declared_source_epoch_type TYPE "${_compatibility_json}" application source_epoch)
+string(JSON _declared_source_epoch GET "${_compatibility_json}" application source_epoch)
+string(
+    JSON _session_store_schema
+    GET "${_compatibility_json}" compatibility session_store_schema_version
+)
 string(
     JSON _session_archive_schema
     GET "${_compatibility_json}" compatibility session_archive_schema_version
 )
 string(JSON _declared_pack_count LENGTH "${_compatibility_json}" bundled_packs)
+function(_appellate_assert_compatibility_versions field)
+    set(_expected_versions ${ARGN})
+    string(
+        JSON _declared_version_count
+        LENGTH "${_compatibility_json}" compatibility "${field}"
+    )
+    list(LENGTH _expected_versions _expected_version_count)
+    if(NOT _declared_version_count EQUAL _expected_version_count)
+        message(FATAL_ERROR "Compatibility field ${field} has the wrong version count")
+    endif()
+    set(_declared_versions)
+    math(EXPR _last_version_index "${_declared_version_count} - 1")
+    foreach(_version_index RANGE 0 ${_last_version_index})
+        string(
+            JSON _declared_version_type
+            TYPE "${_compatibility_json}" compatibility "${field}" ${_version_index}
+        )
+        string(
+            JSON _declared_version
+            GET "${_compatibility_json}" compatibility "${field}" ${_version_index}
+        )
+        if(NOT _declared_version_type STREQUAL "NUMBER")
+            message(FATAL_ERROR "Compatibility field ${field} contains a nonnumeric version")
+        endif()
+        list(APPEND _declared_versions "${_declared_version}")
+    endforeach()
+    if(NOT _declared_versions STREQUAL _expected_versions)
+        message(FATAL_ERROR "Compatibility field ${field} versions differ")
+    endif()
+endfunction()
+_appellate_assert_compatibility_versions(pack_schema_versions 1 2)
+_appellate_assert_compatibility_versions(workflow_persistence_schema_versions 1 2 3 4 5)
+_appellate_assert_compatibility_versions(oral_argument_persistence_schema_versions 1 2)
+
+string(LENGTH "${_declared_source_revision}" _declared_source_revision_length)
+execute_process(
+    COMMAND "${_appellate_git}" rev-parse --verify "${_declared_source_revision}^{commit}"
+    WORKING_DIRECTORY "${APPELLATE_SOURCE_DIR}"
+    RESULT_VARIABLE _declared_revision_result
+    OUTPUT_VARIABLE _resolved_declared_revision
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _declared_revision_error
+)
+execute_process(
+    COMMAND "${_appellate_git}" show -s --format=%ct "${_declared_source_revision}^{commit}"
+    WORKING_DIRECTORY "${APPELLATE_SOURCE_DIR}"
+    RESULT_VARIABLE _declared_epoch_result
+    OUTPUT_VARIABLE _resolved_declared_epoch
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _declared_epoch_error
+)
 if(NOT _compatibility_schema EQUAL 1 OR NOT _compatibility_os STREQUAL "linux" OR
-   NOT _compatibility_arch STREQUAL "x86_64" OR NOT _session_archive_schema EQUAL 1 OR
-   NOT _declared_pack_count EQUAL 13)
+   NOT _compatibility_arch STREQUAL "x86_64" OR NOT _session_store_schema EQUAL 3 OR
+   NOT _session_archive_schema EQUAL 1 OR NOT _declared_pack_count EQUAL 13 OR
+   NOT _declared_source_revision_length EQUAL 40 OR
+   NOT _declared_source_revision MATCHES "^[0-9a-f]+$" OR
+   NOT _declared_source_epoch_type STREQUAL "NUMBER" OR
+   NOT _declared_source_epoch MATCHES "^[0-9]+$" OR
+   NOT _declared_revision_result EQUAL 0 OR
+   NOT _resolved_declared_revision STREQUAL _declared_source_revision OR
+   NOT _declared_epoch_result EQUAL 0 OR
+   NOT _resolved_declared_epoch STREQUAL _declared_source_epoch)
     message(FATAL_ERROR "The installed compatibility manifest does not match the bundle")
 endif()
 

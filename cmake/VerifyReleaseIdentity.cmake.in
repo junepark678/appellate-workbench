@@ -1,12 +1,48 @@
 set(_appellate_allow_development "@APPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE@")
 set(_appellate_expected_revision "@APPELLATE_RELEASE_SOURCE_REVISION@")
+set(_appellate_expected_epoch "@APPELLATE_RELEASE_SOURCE_EPOCH@")
 set(_appellate_expected_tag "v@PROJECT_VERSION@")
 set(_appellate_expected_fingerprint "@APPELLATE_RELEASE_SIGNING_FINGERPRINT@")
+
+if(NOT _appellate_expected_epoch MATCHES "^[0-9]+$")
+    message(FATAL_ERROR "The configured release source epoch is not a Unix timestamp")
+endif()
+execute_process(
+    COMMAND
+        "@GIT_EXECUTABLE@" rev-parse --verify
+        "${_appellate_expected_revision}^{commit}"
+    WORKING_DIRECTORY "@PROJECT_SOURCE_DIR@"
+    RESULT_VARIABLE _appellate_epoch_revision_result
+    OUTPUT_VARIABLE _appellate_epoch_revision
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _appellate_epoch_revision_error
+)
+execute_process(
+    COMMAND
+        "@GIT_EXECUTABLE@" show -s --format=%ct
+        "${_appellate_expected_revision}^{commit}"
+    WORKING_DIRECTORY "@PROJECT_SOURCE_DIR@"
+    RESULT_VARIABLE _appellate_epoch_result
+    OUTPUT_VARIABLE _appellate_actual_epoch
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _appellate_epoch_error
+)
+if(NOT _appellate_epoch_revision_result EQUAL 0 OR
+   NOT _appellate_epoch_revision STREQUAL _appellate_expected_revision OR
+   NOT _appellate_epoch_result EQUAL 0 OR
+   NOT _appellate_actual_epoch STREQUAL _appellate_expected_epoch)
+    message(
+        FATAL_ERROR
+        "Release source epoch does not match the exact configured commit: "
+        "${_appellate_epoch_revision_error}${_appellate_epoch_error}"
+    )
+endif()
+set(ENV{SOURCE_DATE_EPOCH} "${_appellate_expected_epoch}")
 
 if(_appellate_allow_development)
     set(
         CPACK_PACKAGE_FILE_NAME
-        "appellate-workbench-@PROJECT_VERSION@-linux-x86_64-development-unverified"
+        "@APPELLATE_DEVELOPMENT_PACKAGE_FILE_NAME@"
     )
     message(
         AUTHOR_WARNING

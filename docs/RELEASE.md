@@ -19,15 +19,15 @@ cmake --preset release \
   -DAPPELLATE_GLIBC_FLOOR=<oldest-tested-glibc-version> \
   -DAPPELLATE_RELEASE_SIGNING_FINGERPRINT=<40-hex-signing-key-fingerprint>
 cmake --build --preset release
-ctest --preset release
-ctest --test-dir build/release -L packaging --output-on-failure
+ctest --preset release -LE packaging
+ctest --preset packaging
 cpack --config build/release/CPackConfig.cmake
 ```
 
 The example glibc value is not a promise for arbitrary builds. The compatibility manifest in
 each artifact records the configured floor, compiler, Qt version, application version, supported
-pack/persistence versions, source revision, and exact bundled pack hashes and byte sizes. A
-release must be built and smoke-tested on the declared floor before publication.
+pack/persistence versions, source revision, exact commit epoch, and exact bundled pack hashes and
+byte sizes. A release must be built and smoke-tested on the declared floor before publication.
 
 CPack emits one `.tar.zst` bundle and a sibling SHA-256 checksum. Package publication also
 requires a detached signature made outside the build tree with the maintainer's protected
@@ -38,6 +38,32 @@ version tag, an invalid tag signature, or a signature from a key other than the 
 fingerprint. For local packaging mechanics only,
 `-DAPPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE=ON` produces an artifact and manifest marked
 `development-unverified`; that artifact name is forced and it must never be published.
+
+## Same-image archive reproducibility
+
+The reproducibility gate requires the real source worktree to be clean and its `HEAD` to equal the
+configured source revision. It makes a local, network-independent Git snapshot at that exact
+commit, then configures two initially absent, differently named Release build directories from
+the snapshot with the same compiler, generator, Qt, glibc floor, commit epoch, and explicitly
+unverified-development inputs. Tests are disabled in those nested builds to prevent recursion.
+Both builds and both CPack runs execute with `TZ=UTC`, `LC_ALL=C.UTF-8`, and the commit-derived
+`SOURCE_DATE_EPOCH`; the gate requires the resulting `.tar.zst` files and their sibling `.sha256`
+files to be byte-identical. It rechecks both the real worktree and snapshot provenance afterward,
+and controlled phase failures remove the randomized sentinel-owned scratch root.
+
+To rerun only this serial gate on the pinned release build image after committing all source
+changes:
+
+```sh
+ctest --test-dir build/release -R '^linux_archive_reproducibility$' --output-on-failure
+```
+
+The archive uses a fixed Zstandard compression level, one compression thread, UID/GID zero, and
+fixed `0755` implicit-directory permissions. This is evidence for two clean builds on the same
+pinned image and filesystem. It is not a cross-toolchain, cross-CMake/libarchive/Zstandard, or
+cross-platform reproducibility guarantee. The nested artifacts are conspicuously
+`development-unverified`; the ordinary clean signed-tag and publication gates still apply to a
+release artifact.
 
 ## Installed layout and relocation
 
@@ -67,6 +93,13 @@ archive gates require the exact 13-path `.awpack` allowlist, so neither a genera
 an undeclared pack can enter the artifact. Extracting the top-level directory is installation;
 removing that directory is uninstallation. User databases, catalog objects, and settings live
 under the platform data/config directories and are deliberately not deleted with the program.
+
+The direct install verifier performs the identical same-version installation twice and requires
+the program tree's content, modes, and symlink targets plus preexisting XDG data to remain
+unchanged. Both the direct-prefix and extracted-archive paths then explicitly remove only the
+top-level program directory and prove that populated external application state is unchanged.
+This is repeat-installation and explicit-uninstallation evidence, not upgrade evidence. A true
+upgrade gate requires a genuine earlier signed release artifact.
 
 Operator documentation is installed without flattening below
 `share/doc/appellate-workbench`. Its exact relative allowlist is:

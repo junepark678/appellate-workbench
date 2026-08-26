@@ -47,6 +47,12 @@ set(
     CACHE STRING
     "Exact source revision recorded in the release compatibility manifest"
 )
+set(
+    APPELLATE_RELEASE_SOURCE_EPOCH
+    ""
+    CACHE STRING
+    "Unix epoch of the exact release source commit"
+)
 if(APPELLATE_RELEASE_SOURCE_REVISION STREQUAL "")
     execute_process(
         COMMAND git rev-parse HEAD
@@ -68,11 +74,61 @@ if(NOT _appellate_revision_length EQUAL 40 OR
     message(FATAL_ERROR "APPELLATE_RELEASE_SOURCE_REVISION must be a lowercase SHA-1 commit ID")
 endif()
 
+execute_process(
+    COMMAND
+        "${GIT_EXECUTABLE}" rev-parse --verify
+        "${APPELLATE_RELEASE_SOURCE_REVISION}^{commit}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    RESULT_VARIABLE _appellate_release_commit_result
+    OUTPUT_VARIABLE _appellate_release_commit
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _appellate_release_commit_error
+)
+if(NOT _appellate_release_commit_result EQUAL 0 OR
+   NOT _appellate_release_commit STREQUAL APPELLATE_RELEASE_SOURCE_REVISION)
+    message(
+        FATAL_ERROR
+        "APPELLATE_RELEASE_SOURCE_REVISION must resolve to its exact commit: "
+        "${_appellate_release_commit_error}"
+    )
+endif()
+execute_process(
+    COMMAND
+        "${GIT_EXECUTABLE}" show -s --format=%ct
+        "${APPELLATE_RELEASE_SOURCE_REVISION}^{commit}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    RESULT_VARIABLE _appellate_release_epoch_result
+    OUTPUT_VARIABLE _appellate_release_commit_epoch
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE _appellate_release_epoch_error
+)
+if(NOT _appellate_release_epoch_result EQUAL 0 OR
+   NOT _appellate_release_commit_epoch MATCHES "^[0-9]+$")
+    message(
+        FATAL_ERROR
+        "The exact release commit has no valid Unix epoch: ${_appellate_release_epoch_error}"
+    )
+endif()
+if(APPELLATE_RELEASE_SOURCE_EPOCH STREQUAL "")
+    set(APPELLATE_RELEASE_SOURCE_EPOCH "${_appellate_release_commit_epoch}")
+elseif(NOT APPELLATE_RELEASE_SOURCE_EPOCH MATCHES "^[0-9]+$" OR
+       NOT APPELLATE_RELEASE_SOURCE_EPOCH STREQUAL _appellate_release_commit_epoch)
+    message(
+        FATAL_ERROR
+        "APPELLATE_RELEASE_SOURCE_EPOCH must equal the exact commit epoch "
+        "${_appellate_release_commit_epoch}"
+    )
+endif()
+
 if(APPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE)
     set(APPELLATE_RELEASE_IDENTITY_STATUS "development-unverified")
 else()
     set(APPELLATE_RELEASE_IDENTITY_STATUS "signed-tag-required")
 endif()
+set(
+    APPELLATE_DEVELOPMENT_PACKAGE_FILE_NAME
+    "appellate-workbench-${PROJECT_VERSION}-linux-x86_64-development-unverified"
+)
 
 set(
     APPELLATE_GLIBC_FLOOR
@@ -462,19 +518,23 @@ set(CPACK_PACKAGE_VENDOR "Appellate Workbench")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Local-first native appellate practice simulator")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 if(APPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE)
-    set(
-        CPACK_PACKAGE_FILE_NAME
-        "appellate-workbench-${PROJECT_VERSION}-linux-x86_64-development-unverified"
-    )
+    set(CPACK_PACKAGE_FILE_NAME "${APPELLATE_DEVELOPMENT_PACKAGE_FILE_NAME}")
 else()
     set(CPACK_PACKAGE_FILE_NAME "appellate-workbench-${PROJECT_VERSION}-linux-x86_64")
 endif()
 set(APPELLATE_BINARY_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}")
 set(CPACK_PACKAGE_CHECKSUM "SHA256")
 set(CPACK_MONOLITHIC_INSTALL ON)
+set(CPACK_ARCHIVE_COMPRESSION_LEVEL 19)
 set(CPACK_ARCHIVE_THREADS 1)
 set(CPACK_ARCHIVE_UID 0)
 set(CPACK_ARCHIVE_GID 0)
+set(
+    CPACK_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE
+)
 set(CPACK_VERBATIM_VARIABLES YES)
 set(
     CPACK_PROJECT_CONFIG_FILE
@@ -517,5 +577,32 @@ if(BUILD_TESTING)
         PROPERTIES
             LABELS "e2e;ui;local;packaging"
             TIMEOUT 1800
+    )
+
+    add_test(
+        NAME linux_archive_reproducibility
+        COMMAND
+            "${CMAKE_COMMAND}"
+            "-DAPPELLATE_BUILD_ROOT=${PROJECT_BINARY_DIR}"
+            "-DAPPELLATE_CMAKE_GENERATOR=${CMAKE_GENERATOR}"
+            "-DAPPELLATE_CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}"
+            "-DAPPELLATE_CPACK_EXECUTABLE=${CMAKE_CPACK_COMMAND}"
+            "-DAPPELLATE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            "-DAPPELLATE_GIT_EXECUTABLE=${GIT_EXECUTABLE}"
+            "-DAPPELLATE_GLIBC_FLOOR=${APPELLATE_GLIBC_FLOOR}"
+            "-DAPPELLATE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+            "-DAPPELLATE_PACKAGE_FILE_NAME=${APPELLATE_DEVELOPMENT_PACKAGE_FILE_NAME}"
+            "-DAPPELLATE_QT6_DIR=${Qt6_DIR}"
+            "-DAPPELLATE_RELEASE_SOURCE_EPOCH=${APPELLATE_RELEASE_SOURCE_EPOCH}"
+            "-DAPPELLATE_RELEASE_SOURCE_REVISION=${APPELLATE_RELEASE_SOURCE_REVISION}"
+            "-DAPPELLATE_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+            -P "${PROJECT_SOURCE_DIR}/tests/release/verify_reproducible_archive.cmake"
+    )
+    set_tests_properties(
+        linux_archive_reproducibility
+        PROPERTIES
+            LABELS "local;packaging;reproducibility"
+            RUN_SERIAL TRUE
+            TIMEOUT 10800
     )
 endif()

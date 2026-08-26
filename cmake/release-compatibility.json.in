@@ -2,7 +2,8 @@
   "schema_version": 1,
   "application": {
     "version": "@PROJECT_VERSION@",
-    "source_revision": "@APPELLATE_RELEASE_SOURCE_REVISION@"
+    "source_revision": "@APPELLATE_RELEASE_SOURCE_REVISION@",
+    "source_epoch": @APPELLATE_RELEASE_SOURCE_EPOCH@
   },
   "release_identity": {
     "status": "@APPELLATE_RELEASE_IDENTITY_STATUS@",
@@ -22,9 +23,9 @@
   },
   "compatibility": {
     "pack_schema_versions": [1, 2],
-    "workflow_persistence_schema_versions": [1, 2, 3],
+    "workflow_persistence_schema_versions": [1, 2, 3, 4, 5],
     "oral_argument_persistence_schema_versions": [1, 2],
-    "session_store_schema_version": 2,
+    "session_store_schema_version": 3,
     "session_archive_schema_version": 1
   },
   "bundled_packs": [
