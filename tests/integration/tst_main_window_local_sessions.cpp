@@ -628,6 +628,7 @@ void MainWindowLocalSessionsTest::asterglenWorkflowActionPersistsAndReopensThrou
         QVERIFY(window.openWorkflowAction()->isEnabled());
         QVERIFY(!window.advanceWorkflowAction()->isEnabled());
         window.workflowCourtDateEditor()->setText(QStringLiteral("2026-08-11"));
+        window.caseDetailsTabs()->setCurrentIndex(1);
         QTest::mouseClick(window.openWorkflowButton(), Qt::LeftButton);
         QTRY_VERIFY(window.workflowSessionController() != nullptr);
         QVERIFY(window.workflowStatusLabel()->text().contains(
@@ -779,6 +780,7 @@ void MainWindowLocalSessionsTest::
 
     legal_clock_mode = LegalClockMode::Alternating;
     const auto samples_before_open = legal_clock_samples;
+    window.caseDetailsTabs()->setCurrentIndex(1);
     QTest::mouseClick(window.openWorkflowButton(), Qt::LeftButton);
     QTRY_VERIFY(window.workflowSessionController() != nullptr);
     QCOMPARE(legal_clock_samples, samples_before_open + 1);

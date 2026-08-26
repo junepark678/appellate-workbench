@@ -136,6 +136,7 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] OralArgumentWorkspace* oralArgumentWorkspace() const noexcept;
     [[nodiscard]] RecordWorkspace* recordWorkspace() const noexcept;
     [[nodiscard]] QTabWidget* workspaceTabs() const noexcept;
+    [[nodiscard]] QTabWidget* caseDetailsTabs() const noexcept;
 
     [[nodiscard]] QAction* openDirectoryAction() const noexcept;
     [[nodiscard]] QAction* installArchiveAction() const noexcept;
@@ -243,9 +244,16 @@ class MainWindow final : public QMainWindow {
     QPushButton* welcome_install_archive_button_{};
     QPushButton* welcome_import_profile_button_{};
     std::vector<QWidget*> pack_only_widgets_;
+    QTabWidget* case_details_tabs_{};
+    int overview_detail_tab_index_{};
+    int workflow_detail_tab_index_{};
+    int argument_detail_tab_index_{};
+    int profile_detail_tab_index_{};
     QLineEdit* workflow_court_date_editor_{};
+    QPushButton* open_record_button_{};
     QPushButton* open_workflow_button_{};
     QPushButton* advance_workflow_button_{};
+    QPushButton* open_oral_argument_button_{};
     QListWidget* case_list_{};
     QComboBox* argument_configuration_selector_{};
     QLabel* argument_launch_boundary_label_{};

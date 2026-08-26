@@ -39,6 +39,7 @@
 #include <QStandardPaths>
 #include <QStatusBar>
 #include <QStringList>
+#include <QStyle>
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include <QVariant>
@@ -332,6 +333,7 @@ void MainWindow::buildUi() {
     welcome_install_archive_button_->setAccessibleName(QStringLiteral("Install local pack"));
     welcome_install_archive_button_->setAccessibleDescription(
         QStringLiteral("Choose and install a local Appellate Workbench pack archive"));
+    welcome_install_archive_button_->setIcon(install_archive_action_->icon());
     welcome_open_directory_button_ =
         new QPushButton(QStringLiteral("Open authoring &folder…"), onboarding_group);
     welcome_open_directory_button_->setObjectName(QStringLiteral("welcomeOpenPackDirectoryButton"));
@@ -339,6 +341,7 @@ void MainWindow::buildUi() {
         QStringLiteral("Open local authoring pack folder"));
     welcome_open_directory_button_->setAccessibleDescription(
         QStringLiteral("Choose and validate a local authoring pack directory"));
+    welcome_open_directory_button_->setIcon(open_directory_action_->icon());
     welcome_import_profile_button_ =
         new QPushButton(QStringLiteral("Import &profile…"), onboarding_group);
     welcome_import_profile_button_->setObjectName(QStringLiteral("welcomeImportProfileButton"));
@@ -346,6 +349,7 @@ void MainWindow::buildUi() {
         QStringLiteral("Import fictional composite profile"));
     welcome_import_profile_button_->setAccessibleDescription(
         QStringLiteral("Open the profile editor with a local fictional composite profile"));
+    welcome_import_profile_button_->setIcon(import_profile_action_->icon());
     onboarding_buttons->addWidget(welcome_install_archive_button_);
     onboarding_buttons->addWidget(welcome_open_directory_button_);
     onboarding_buttons->addWidget(welcome_import_profile_button_);
@@ -429,7 +433,6 @@ void MainWindow::buildUi() {
     summary_layout->addWidget(procedure_summary_label_);
     summary_layout->addWidget(record_summary_label_);
     summary_layout->addWidget(bench_summary_label_);
-    details_layout->addWidget(summary_group);
 
     auto* workflow_group = new QGroupBox(QStringLiteral("Local workflow session"), details);
     workflow_group->setObjectName(QStringLiteral("localWorkflowSessionGroup"));
@@ -459,22 +462,21 @@ void MainWindow::buildUi() {
     court_date_label->setBuddy(workflow_court_date_editor_);
     workflow_layout->addWidget(court_date_label);
     workflow_layout->addWidget(workflow_court_date_editor_);
-    open_workflow_button_ =
-        new QPushButton(QStringLiteral("&Open or resume workflow"), workflow_group);
+    open_workflow_button_ = new QPushButton(QStringLiteral("Open &workflow"), workflow_group);
     open_workflow_button_->setObjectName(QStringLiteral("openSelectedWorkflowButton"));
     open_workflow_button_->setAccessibleName(QStringLiteral("Open or resume selected workflow"));
     open_workflow_button_->setAccessibleDescription(
         QStringLiteral("Open the exact installed workflow using crash-safe local session storage"));
+    open_workflow_button_->setIcon(open_workflow_action_->icon());
     workflow_layout->addWidget(open_workflow_button_);
-    advance_workflow_button_ =
-        new QPushButton(QStringLiteral("Persist next authored stage &transition"), workflow_group);
+    advance_workflow_button_ = new QPushButton(QStringLiteral("&Advance workflow"), workflow_group);
     advance_workflow_button_->setObjectName(QStringLiteral("advanceSelectedWorkflowButton"));
     advance_workflow_button_->setAccessibleName(
         QStringLiteral("Persist next authored workflow stage transition"));
     advance_workflow_button_->setAccessibleDescription(QStringLiteral(
         "Submit the exact displayed operation and actor as one persisted workflow command"));
+    advance_workflow_button_->setIcon(advance_workflow_action_->icon());
     workflow_layout->addWidget(advance_workflow_button_);
-    details_layout->addWidget(workflow_group);
 
     auto* profile_label =
         new QLabel(QStringLiteral("Selected &fictional/composite profile"), details);
@@ -492,21 +494,23 @@ void MainWindow::buildUi() {
         "Choose an exact installed-pack actual-record or counterfactual configuration"));
     argument_configuration_selector_->setEnabled(false);
     argument_label->setBuddy(argument_configuration_selector_);
-    details_layout->addWidget(argument_label);
-    details_layout->addWidget(argument_configuration_selector_);
 
     argument_launch_boundary_label_ = new QLabel(details);
     configureSummaryLabel(*argument_launch_boundary_label_,
                           QStringLiteral("oralArgumentLaunchBoundary"),
                           QStringLiteral("Oral argument launch boundary"));
-    argument_launch_boundary_label_->setText(
+    const auto argument_launch_boundary =
         oral_argument_launch_provider_
-            ? QStringLiteral("A workflow-authoritative local session provider is available. "
-                             "Launch uses only the exact installed closure and selected IDs.")
+            ? QStringLiteral("Launch uses only the exact installed closure and selected IDs.")
             : QStringLiteral("Oral argument launch is disabled until the application supplies a "
                              "workflow-authoritative local session provider; this UI never "
-                             "invents legal-state or disposition pins."));
-    details_layout->addWidget(argument_launch_boundary_label_);
+                             "invents legal-state or disposition pins.");
+    argument_launch_boundary_label_->setText(
+        oral_argument_launch_provider_
+            ? QStringLiteral("Grounded launch is available for this installed configuration.")
+            : QStringLiteral("Oral argument is unavailable for this pack source."));
+    argument_launch_boundary_label_->setAccessibleDescription(argument_launch_boundary);
+    argument_launch_boundary_label_->setToolTip(argument_launch_boundary);
 
     profile_selector_ = new QComboBox(details);
     profile_selector_->setObjectName(QStringLiteral("profileSelector"));
@@ -515,12 +519,76 @@ void MainWindow::buildUi() {
         QStringLiteral("Choose a fictional/composite profile from the selected case bench"));
     profile_selector_->setEnabled(false);
     profile_label->setBuddy(profile_selector_);
-    details_layout->addWidget(profile_label);
-    details_layout->addWidget(profile_selector_);
 
     profile_editor_ = new BenchProfileEditor(details);
     profile_editor_->setEnabled(false);
-    details_layout->addWidget(profile_editor_, 1);
+
+    case_details_tabs_ = new QTabWidget(details);
+    case_details_tabs_->setObjectName(QStringLiteral("caseDetailsTabs"));
+    case_details_tabs_->setAccessibleName(QStringLiteral("Selected case task areas"));
+    case_details_tabs_->setDocumentMode(true);
+
+    auto* overview_page = new QWidget(case_details_tabs_);
+    overview_page->setObjectName(QStringLiteral("caseOverviewPage"));
+    overview_page->setAccessibleName(QStringLiteral("Selected case overview"));
+    auto* overview_layout = new QVBoxLayout(overview_page);
+    overview_layout->addWidget(summary_group);
+    open_record_button_ = new QPushButton(QStringLiteral("Open &record"), overview_page);
+    open_record_button_->setObjectName(QStringLiteral("openSelectedRecordButton"));
+    open_record_button_->setAccessibleName(QStringLiteral("Open selected installed record"));
+    open_record_button_->setAccessibleDescription(
+        QStringLiteral("Verify and open the selected case record from local installed storage"));
+    open_record_button_->setIcon(open_record_action_->icon());
+    overview_layout->addWidget(open_record_button_);
+    overview_layout->addStretch(1);
+    overview_detail_tab_index_ =
+        case_details_tabs_->addTab(overview_page, QStringLiteral("&Overview"));
+
+    auto* workflow_page = new QWidget(case_details_tabs_);
+    workflow_page->setObjectName(QStringLiteral("caseWorkflowPage"));
+    workflow_page->setAccessibleName(QStringLiteral("Selected case workflow"));
+    auto* workflow_page_layout = new QVBoxLayout(workflow_page);
+    workflow_page_layout->addWidget(workflow_group);
+    workflow_page_layout->addStretch(1);
+    workflow_detail_tab_index_ =
+        case_details_tabs_->addTab(workflow_page, QStringLiteral("&Workflow"));
+
+    auto* argument_page = new QWidget(case_details_tabs_);
+    argument_page->setObjectName(QStringLiteral("caseArgumentPage"));
+    argument_page->setAccessibleName(QStringLiteral("Selected case oral argument"));
+    auto* argument_page_layout = new QVBoxLayout(argument_page);
+    argument_page_layout->addWidget(argument_label);
+    argument_page_layout->addWidget(argument_configuration_selector_);
+    argument_page_layout->addWidget(argument_launch_boundary_label_);
+    open_oral_argument_button_ =
+        new QPushButton(QStringLiteral("Start oral &argument"), argument_page);
+    open_oral_argument_button_->setObjectName(QStringLiteral("openSelectedOralArgumentButton"));
+    open_oral_argument_button_->setAccessibleName(
+        QStringLiteral("Start selected grounded oral argument"));
+    open_oral_argument_button_->setAccessibleDescription(
+        QStringLiteral("Open the exact selected actual-record or counterfactual configuration"));
+    open_oral_argument_button_->setIcon(open_oral_argument_action_->icon());
+    argument_page_layout->addWidget(open_oral_argument_button_);
+    argument_page_layout->addStretch(1);
+    argument_detail_tab_index_ =
+        case_details_tabs_->addTab(argument_page, QStringLiteral("Oral &Argument"));
+
+    auto* profile_page = new QWidget(case_details_tabs_);
+    profile_page->setObjectName(QStringLiteral("caseProfilePage"));
+    profile_page->setAccessibleName(QStringLiteral("Fictional composite bench profile"));
+    auto* profile_page_layout = new QVBoxLayout(profile_page);
+    profile_page_layout->addWidget(profile_label);
+    profile_page_layout->addWidget(profile_selector_);
+    profile_page_layout->addWidget(profile_editor_, 1);
+    profile_detail_tab_index_ =
+        case_details_tabs_->addTab(profile_page, QStringLiteral("&Bench Profile"));
+
+    details_layout->addWidget(case_details_tabs_, 1);
+
+    connect(open_record_button_, &QPushButton::clicked, this,
+            [this] { static_cast<void>(openSelectedRecord()); });
+    connect(open_oral_argument_button_, &QPushButton::clicked, this,
+            [this] { static_cast<void>(openSelectedOralArgument()); });
 
     splitter->addWidget(browser);
     splitter->addWidget(details_scroll);
@@ -591,71 +659,73 @@ void MainWindow::buildFileMenu() {
     file_menu->setObjectName(QStringLiteral("fileMenu"));
     file_menu->setAccessibleName(QStringLiteral("File menu"));
 
-    open_directory_action_ =
-        file_menu->addAction(QStringLiteral("&Open Authoring Pack Directory\u2026"));
+    open_directory_action_ = file_menu->addAction(QStringLiteral("Open Authoring &Folder\u2026"));
     configureAction(*open_directory_action_, QStringLiteral("openPackDirectoryAction"),
                     QStringLiteral("Open authoring pack directory"),
                     QStringLiteral("Open and strictly validate an authoring pack directory"));
     open_directory_action_->setShortcut(QKeySequence::Open);
+    open_directory_action_->setIcon(style()->standardIcon(QStyle::SP_DirOpenIcon));
 
-    install_archive_action_ = file_menu->addAction(QStringLiteral("&Install Pack Archive\u2026"));
+    install_archive_action_ = file_menu->addAction(QStringLiteral("&Install Pack\u2026"));
     configureAction(*install_archive_action_, QStringLiteral("installPackArchiveAction"),
                     QStringLiteral("Install pack archive"),
                     QStringLiteral("Install and load a local .awpack archive"));
     install_archive_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+O")));
+    install_archive_action_->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
 
-    open_record_action_ = file_menu->addAction(QStringLiteral("Open Selected &Record"));
+    open_record_action_ = file_menu->addAction(QStringLiteral("Open &Record"));
     configureAction(
         *open_record_action_, QStringLiteral("openSelectedRecordAction"),
         QStringLiteral("Open selected installed case record"),
         QStringLiteral("Verify public record PDFs and apply persisted local disclosure access"));
     open_record_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+R")));
+    open_record_action_->setIcon(style()->standardIcon(QStyle::SP_FileIcon));
 
-    open_workflow_action_ =
-        file_menu->addAction(QStringLiteral("Open or Resume Selected &Workflow"));
+    open_workflow_action_ = file_menu->addAction(QStringLiteral("Open &Workflow"));
     configureAction(
         *open_workflow_action_, QStringLiteral("openSelectedWorkflowAction"),
         QStringLiteral("Open or resume selected workflow"),
         QStringLiteral("Open the exact persisted local workflow for the selected case"));
     open_workflow_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+W")));
+    open_workflow_action_->setIcon(style()->standardIcon(QStyle::SP_DialogApplyButton));
 
-    advance_workflow_action_ =
-        file_menu->addAction(QStringLiteral("Persist Next Workflow Stage &Transition"));
+    advance_workflow_action_ = file_menu->addAction(QStringLiteral("&Advance Workflow"));
     configureAction(*advance_workflow_action_, QStringLiteral("advanceSelectedWorkflowAction"),
                     QStringLiteral("Persist next authored workflow stage transition"),
                     QStringLiteral("Submit the exact displayed operation and actor"));
     advance_workflow_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Alt+Right")));
+    advance_workflow_action_->setIcon(style()->standardIcon(QStyle::SP_ArrowForward));
 
-    open_oral_argument_action_ =
-        file_menu->addAction(QStringLiteral("Open Selected Oral &Argument"));
+    open_oral_argument_action_ = file_menu->addAction(QStringLiteral("Start Oral &Argument"));
     configureAction(
         *open_oral_argument_action_, QStringLiteral("openSelectedOralArgumentAction"),
         QStringLiteral("Open selected oral argument configuration"),
         QStringLiteral("Open the exact grounded configuration through the authoritative local "
                        "session provider"));
     open_oral_argument_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+A")));
+    open_oral_argument_action_->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     file_menu->addSeparator();
 
-    import_profile_action_ =
-        file_menu->addAction(QStringLiteral("&Import Fictional/composite Profile\u2026"));
+    import_profile_action_ = file_menu->addAction(QStringLiteral("&Import Profile\u2026"));
     configureAction(*import_profile_action_, QStringLiteral("importProfileAction"),
                     QStringLiteral("Import fictional/composite profile"),
                     QStringLiteral("Import a strict schema-v1 fictional/composite profile"));
     import_profile_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+I")));
+    import_profile_action_->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
 
-    clone_profile_action_ =
-        file_menu->addAction(QStringLiteral("&Clone Fictional/composite Profile\u2026"));
+    clone_profile_action_ = file_menu->addAction(QStringLiteral("&Clone Profile\u2026"));
     configureAction(*clone_profile_action_, QStringLiteral("cloneProfileAction"),
                     QStringLiteral("Clone fictional/composite profile"),
                     QStringLiteral("Clone the edited fictional/composite profile under a new ID"));
     clone_profile_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+C")));
+    clone_profile_action_->setIcon(style()->standardIcon(QStyle::SP_FileDialogNewFolder));
 
-    export_profile_action_ =
-        file_menu->addAction(QStringLiteral("&Export Fictional/composite Profile\u2026"));
+    export_profile_action_ = file_menu->addAction(QStringLiteral("&Export Profile\u2026"));
     configureAction(*export_profile_action_, QStringLiteral("exportProfileAction"),
                     QStringLiteral("Export fictional/composite profile"),
                     QStringLiteral("Export without overwriting an existing path"));
     export_profile_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+S")));
+    export_profile_action_->setIcon(style()->standardIcon(QStyle::SP_DialogSaveButton));
 
     connect(open_directory_action_, &QAction::triggered, this, [this] {
         const auto path = QFileDialog::getExistingDirectory(
@@ -922,6 +992,11 @@ auto MainWindow::importProfile(const QString& path) -> std::expected<void, QStri
         startup_onboarding_->setVisible(false);
         pack_browser_content_->setVisible(true);
         workspace_tabs_->setTabText(browser_tab_index_, QStringLiteral("&Profile"));
+        case_details_tabs_->setTabVisible(overview_detail_tab_index_, false);
+        case_details_tabs_->setTabVisible(workflow_detail_tab_index_, false);
+        case_details_tabs_->setTabVisible(argument_detail_tab_index_, false);
+        case_details_tabs_->setTabVisible(profile_detail_tab_index_, true);
+        case_details_tabs_->setCurrentIndex(profile_detail_tab_index_);
     }
     updateActionStates();
     showStatus(QStringLiteral("Imported fictional/composite profile."));
@@ -1202,6 +1277,11 @@ void MainWindow::commitRuntime(packs::RuntimePack runtime, const QString& source
     for (auto* widget : pack_only_widgets_) {
         widget->setVisible(true);
     }
+    case_details_tabs_->setTabVisible(overview_detail_tab_index_, true);
+    case_details_tabs_->setTabVisible(workflow_detail_tab_index_, true);
+    case_details_tabs_->setTabVisible(argument_detail_tab_index_, true);
+    case_details_tabs_->setTabVisible(profile_detail_tab_index_, true);
+    case_details_tabs_->setCurrentIndex(overview_detail_tab_index_);
 
     {
         const QSignalBlocker blocker(case_list_);
@@ -1783,6 +1863,8 @@ void MainWindow::updateActionStates(
         selected_row >= 0 && static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size();
     open_record_action_->setEnabled(can_open_record);
     open_record_action_->setVisible(can_open_record);
+    open_record_button_->setEnabled(can_open_record);
+    open_record_button_->setVisible(can_open_record);
     const auto can_open_workflow =
         workflow_launch_provider_ != nullptr && installed_pack_.has_value() &&
         runtime_pack_.has_value() && selected_row >= 0 &&
@@ -1790,6 +1872,7 @@ void MainWindow::updateActionStates(
     open_workflow_action_->setEnabled(can_open_workflow);
     open_workflow_action_->setVisible(can_open_workflow);
     open_workflow_button_->setEnabled(can_open_workflow);
+    open_workflow_button_->setVisible(can_open_workflow);
     const auto workflow_choice =
         preview_reading ? currentWorkflowAdvanceChoice(*preview_reading) : WorkflowAdvanceChoice{};
     const auto can_advance_workflow = workflow_choice.operation != nullptr &&
@@ -1798,19 +1881,40 @@ void MainWindow::updateActionStates(
     advance_workflow_action_->setEnabled(can_advance_workflow);
     advance_workflow_action_->setVisible(can_advance_workflow);
     advance_workflow_button_->setEnabled(can_advance_workflow);
+    advance_workflow_button_->setVisible(can_advance_workflow);
     bool can_open_argument = false;
+    bool has_argument_configuration = false;
     if (oral_argument_launch_provider_ && installed_pack_ && runtime_pack_ && selected_row >= 0 &&
         argument_configuration_selector_->currentIndex() >= 0 &&
         static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size()) {
         const auto& runtime_case = runtime_pack_->cases.at(static_cast<std::size_t>(selected_row));
         const auto argument_index =
             static_cast<std::size_t>(argument_configuration_selector_->currentIndex());
+        has_argument_configuration = !runtime_case.argument_configurations.empty();
         can_open_argument = argument_index < runtime_case.argument_configurations.size() &&
                             runtime_case.argument_configurations.at(argument_index)
                                 .grounded_question_bank.has_value();
+    } else if (runtime_pack_ && selected_row >= 0 &&
+               static_cast<std::size_t>(selected_row) < runtime_pack_->cases.size()) {
+        has_argument_configuration =
+            !runtime_pack_->cases.at(static_cast<std::size_t>(selected_row))
+                 .argument_configurations.empty();
     }
     open_oral_argument_action_->setEnabled(can_open_argument);
     open_oral_argument_action_->setVisible(can_open_argument);
+    open_oral_argument_button_->setEnabled(can_open_argument);
+    open_oral_argument_button_->setVisible(can_open_argument);
+
+    const auto has_runtime = runtime_pack_.has_value();
+    case_details_tabs_->setTabVisible(overview_detail_tab_index_, has_runtime);
+    case_details_tabs_->setTabVisible(workflow_detail_tab_index_, can_open_workflow);
+    case_details_tabs_->setTabVisible(argument_detail_tab_index_,
+                                      has_runtime && has_argument_configuration);
+    case_details_tabs_->setTabVisible(profile_detail_tab_index_, has_profile || has_runtime);
+    if (!case_details_tabs_->isTabVisible(case_details_tabs_->currentIndex())) {
+        case_details_tabs_->setCurrentIndex(has_runtime ? overview_detail_tab_index_
+                                                        : profile_detail_tab_index_);
+    }
 
     const auto record_access_active =
         record_access_controller_ != nullptr && selectedCaseHasLoadedRecord();
@@ -1898,6 +2002,8 @@ OralArgumentWorkspace* MainWindow::oralArgumentWorkspace() const noexcept {
 }
 
 QTabWidget* MainWindow::workspaceTabs() const noexcept { return workspace_tabs_; }
+
+QTabWidget* MainWindow::caseDetailsTabs() const noexcept { return case_details_tabs_; }
 
 QAction* MainWindow::openDirectoryAction() const noexcept { return open_directory_action_; }
 

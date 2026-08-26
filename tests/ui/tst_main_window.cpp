@@ -555,10 +555,20 @@ void MainWindowTest::startupOnboardingDefersDenseWorkspace() {
     QVERIFY(!onboarding->isVisibleTo(&window));
     QVERIFY(content->isVisibleTo(&window));
     QVERIFY(window.caseList()->isVisibleTo(&window));
-    QVERIFY(window.profileEditor()->isVisibleTo(&window));
     QVERIFY(details_scroll->isVisibleTo(&window));
     QVERIFY(details_scroll->viewport()->height() > 0);
     QVERIFY(window.workspaceTabs()->tabText(0).contains(QStringLiteral("Cases")));
+    QCOMPARE(window.caseDetailsTabs()->count(), 4);
+    QVERIFY(!window.caseDetailsTabs()->accessibleName().isEmpty());
+    QCOMPARE(window.caseDetailsTabs()->currentIndex(), 0);
+    QVERIFY(window.caseDetailsTabs()->isTabVisible(0));
+    QVERIFY(!window.caseDetailsTabs()->isTabVisible(1));
+    QVERIFY(window.caseDetailsTabs()->isTabVisible(2));
+    QVERIFY(window.caseDetailsTabs()->isTabVisible(3));
+    QVERIFY(!window.profileEditor()->isVisibleTo(&window));
+    window.caseDetailsTabs()->setCurrentIndex(3);
+    QCoreApplication::processEvents();
+    QVERIFY(window.profileEditor()->isVisibleTo(&window));
     QVERIFY(!window.workspaceTabs()->isTabVisible(record_index));
     QVERIFY(!window.workspaceTabs()->isTabVisible(argument_index));
 }
@@ -690,9 +700,17 @@ void MainWindowTest::installedRecordActionOpensSearchablePdf() {
     QCOMPARE(window.openRecordAction()->shortcut(), QKeySequence(QStringLiteral("Ctrl+R")));
     QVERIFY(!window.openRecordAction()->property("accessibleName").toString().isEmpty());
     QVERIFY(!window.workspaceTabs()->accessibleName().isEmpty());
+    auto* open_record_button =
+        window.findChild<QPushButton*>(QStringLiteral("openSelectedRecordButton"));
+    QVERIFY(open_record_button != nullptr);
+    QVERIFY(open_record_button->isEnabled());
+    QVERIFY(!open_record_button->isHidden());
+    QVERIFY(!open_record_button->icon().isNull());
+    QVERIFY(!open_record_button->accessibleName().isEmpty());
+    QVERIFY(!open_record_button->accessibleDescription().isEmpty());
 
     QVERIFY(QFile::remove(archive_path));
-    window.openRecordAction()->trigger();
+    open_record_button->click();
     QVERIFY2(window.errorLabel()->text().isEmpty(), qPrintable(window.errorLabel()->text()));
 
     auto* workspace = window.recordWorkspace();
@@ -704,6 +722,12 @@ void MainWindowTest::installedRecordActionOpensSearchablePdf() {
     QVERIFY(!workspace->accessibleName().isEmpty());
     workspace->setDocumentSearch(QStringLiteral("Fictional Final Order - Page 2"));
     QTRY_COMPARE_WITH_TIMEOUT(workspace->documentSearchResultCount(), 1, 10'000);
+
+    const auto record_index = window.workspaceTabs()->indexOf(workspace);
+    QVERIFY(record_index >= 0);
+    QVERIFY(window.workspaceTabs()->isTabVisible(record_index));
+    window.caseList()->setCurrentRow(-1);
+    QVERIFY(!window.workspaceTabs()->isTabVisible(record_index));
 }
 
 void MainWindowTest::recordFailuresPreserveLastGoodWorkspace() {
@@ -1173,6 +1197,7 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
         window.openDirectoryAction(),    window.installArchiveAction(),
         window.importProfileAction(),    window.cloneProfileAction(),
         window.exportProfileAction(),    window.openRecordAction(),
+        window.openWorkflowAction(),     window.advanceWorkflowAction(),
         window.openOralArgumentAction(),
     };
     for (const auto* action : actions) {
@@ -1182,7 +1207,14 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
         QVERIFY(!action->property("accessibleName").toString().isEmpty());
         QVERIFY(!action->statusTip().isEmpty());
         QVERIFY(!action->shortcut().isEmpty());
+        QVERIFY(!action->icon().isNull());
     }
+    QVERIFY(window.openDirectoryAction()->text().size() <= 24);
+    QVERIFY(window.installArchiveAction()->text().size() <= 24);
+    QVERIFY(window.openRecordAction()->text().size() <= 24);
+    QVERIFY(window.openWorkflowAction()->text().size() <= 24);
+    QVERIFY(window.advanceWorkflowAction()->text().size() <= 24);
+    QVERIFY(window.openOralArgumentAction()->text().size() <= 24);
 
     const auto loaded = window.loadSource(fixture(QStringLiteral("full-resource-pack")));
     if (!loaded) {
@@ -1203,8 +1235,10 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(window.profileSelector()->focusPolicy() != Qt::NoFocus);
     const auto* boundary = window.findChild<QLabel*>(QStringLiteral("oralArgumentLaunchBoundary"));
     QVERIFY(boundary != nullptr);
-    QVERIFY(boundary->text().contains(QStringLiteral("disabled")));
-    QVERIFY(boundary->text().contains(QStringLiteral("never invents")));
+    QVERIFY(boundary->text().contains(QStringLiteral("unavailable")));
+    QVERIFY(boundary->accessibleDescription().contains(QStringLiteral("disabled")));
+    QVERIFY(boundary->accessibleDescription().contains(QStringLiteral("never invents")));
+    QCOMPARE(boundary->toolTip(), boundary->accessibleDescription());
 
     const auto export_path = QDir(state.path()).filePath(QStringLiteral("profile.json"));
     QVERIFY(window.exportProfile(export_path).has_value());
