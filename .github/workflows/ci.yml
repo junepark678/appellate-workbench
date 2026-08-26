@@ -40,6 +40,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends \
             build-essential \
+            curl \
             g++-14 \
             fonts-dejavu-core \
             libarchive-dev \
@@ -69,6 +70,47 @@ jobs:
             pkg-config \
             python3-venv \
             uidmap
+
+      - name: Install libarchive
+        shell: bash
+        env:
+          LIBARCHIVE_SHA256: 888c934f9d95648ecb9163dc8e23ab80a476ecb81a8f1154704a227b5b676dde
+          LIBARCHIVE_VERSION: 3.8.9
+        run: |
+          archive="$RUNNER_TEMP/libarchive-$LIBARCHIVE_VERSION.tar.xz"
+          source="$RUNNER_TEMP/libarchive-$LIBARCHIVE_VERSION"
+          build="$RUNNER_TEMP/libarchive-build"
+          prefix="$RUNNER_TEMP/libarchive"
+
+          curl --fail --location --silent --show-error \
+            "https://libarchive.org/downloads/libarchive-$LIBARCHIVE_VERSION.tar.xz" \
+            --output "$archive"
+          printf '%s  %s\n' "$LIBARCHIVE_SHA256" "$archive" | sha256sum --check
+          tar --extract --file "$archive" --directory "$RUNNER_TEMP"
+          cmake \
+            -S "$source" \
+            -B "$build" \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER="$CC" \
+            -DCMAKE_INSTALL_PREFIX="$prefix" \
+            -DCMAKE_INSTALL_LIBDIR=lib \
+            -DENABLE_CAT=OFF \
+            -DENABLE_CPIO=OFF \
+            -DENABLE_TAR=OFF \
+            -DENABLE_TEST=OFF \
+            -DENABLE_UNZIP=OFF
+          cmake --build "$build" --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
+          cmake --install "$build"
+
+          test -f "$prefix/include/archive.h"
+          test -f "$prefix/lib/libarchive.so"
+          printf '%s\n' \
+            "CMAKE_PREFIX_PATH=$prefix${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" \
+            "LD_LIBRARY_PATH=$prefix/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+            "LIBARCHIVE_ROOT=$prefix" \
+            "PKG_CONFIG_PATH=$prefix/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}" \
+            >> "$GITHUB_ENV"
 
       - name: Install Qt
         shell: bash
@@ -111,12 +153,25 @@ jobs:
           cmake --version
           ninja --version
           "$CXX" --version
+          archive_version="$(pkg-config --modversion libarchive)"
+          printf 'libarchive %s\n' "$archive_version"
+          test "$archive_version" = 3.8.9
           qt_version="$(qmake -query QT_VERSION)"
           printf 'Qt %s\n' "$qt_version"
           test "$qt_version" = 6.11.1
 
       - name: Configure
-        run: cmake --preset dev -DAPPELLATE_WARNINGS_AS_ERRORS=ON
+        run: |
+          cmake --preset dev \
+            -DAPPELLATE_WARNINGS_AS_ERRORS=ON \
+            -DLibArchive_INCLUDE_DIR="$LIBARCHIVE_ROOT/include" \
+            -DLibArchive_LIBRARY="$LIBARCHIVE_ROOT/lib/libarchive.so"
+          grep --fixed-strings --line-regexp \
+            "LibArchive_INCLUDE_DIR:PATH=$LIBARCHIVE_ROOT/include" \
+            build/dev/CMakeCache.txt
+          grep --fixed-strings --line-regexp \
+            "LibArchive_LIBRARY:FILEPATH=$LIBARCHIVE_ROOT/lib/libarchive.so" \
+            build/dev/CMakeCache.txt
 
       - name: Build
         run: cmake --build --preset dev
