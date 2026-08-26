@@ -124,5 +124,4 @@ jobs:
       - name: Test
         run: |
           ulimit -n 65536
-          install -d -m 700 /tmp/appellate-workbench-ci
-          TMPDIR=/tmp/appellate-workbench-ci ctest --preset dev --no-tests=error
+          TMPDIR=/tmp ctest --preset dev --no-tests=error
