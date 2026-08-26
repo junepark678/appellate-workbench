@@ -40,6 +40,53 @@ set(
     CACHE STRING
     "Expected OpenPGP signing-key fingerprint for the exact release tag"
 )
+set(
+    APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD
+    OFF
+    CACHE BOOL
+    "Internal marker for a fresh signed-release candidate build"
+)
+set(
+    APPELLATE_SIGNED_RELEASE_ROOT
+    ""
+    CACHE PATH
+    "Internal sentinel-owned signed-release staging root"
+)
+set(
+    APPELLATE_SIGNED_RELEASE_TOKEN
+    ""
+    CACHE STRING
+    "Internal signed-release CPack invocation token"
+)
+mark_as_advanced(
+    APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD
+    APPELLATE_SIGNED_RELEASE_ROOT
+    APPELLATE_SIGNED_RELEASE_TOKEN
+)
+if(NOT APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD STREQUAL "ON" AND
+   NOT APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD STREQUAL "OFF")
+    message(FATAL_ERROR "APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD must be exactly ON or OFF")
+endif()
+if(APPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE AND
+   APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD)
+    message(FATAL_ERROR "A signed-release inner build cannot allow unverified packaging")
+endif()
+if(APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD)
+    string(LENGTH "${APPELLATE_SIGNED_RELEASE_TOKEN}" _appellate_signed_token_length)
+    get_filename_component(
+        _appellate_signed_root_absolute "${APPELLATE_SIGNED_RELEASE_ROOT}" ABSOLUTE
+    )
+    if(NOT _appellate_signed_token_length EQUAL 32 OR
+       NOT APPELLATE_SIGNED_RELEASE_TOKEN MATCHES "^[0-9a-f]+$" OR
+       _appellate_signed_root_absolute STREQUAL "" OR
+       _appellate_signed_root_absolute STREQUAL "/" OR
+       NOT _appellate_signed_root_absolute STREQUAL APPELLATE_SIGNED_RELEASE_ROOT)
+        message(FATAL_ERROR "Signed-release inner build identity inputs are malformed")
+    endif()
+elseif(NOT APPELLATE_SIGNED_RELEASE_ROOT STREQUAL "" OR
+       NOT APPELLATE_SIGNED_RELEASE_TOKEN STREQUAL "")
+    message(FATAL_ERROR "Signed-release root/token are forbidden outside the inner driver")
+endif()
 
 set(
     APPELLATE_RELEASE_SOURCE_REVISION
@@ -517,10 +564,19 @@ set(CPACK_PACKAGE_NAME "appellate-workbench")
 set(CPACK_PACKAGE_VENDOR "Appellate Workbench")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Local-first native appellate practice simulator")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(
+    APPELLATE_SIGNED_PACKAGE_FILE_NAME
+    "appellate-workbench-${PROJECT_VERSION}-linux-x86_64"
+)
 if(APPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE)
     set(CPACK_PACKAGE_FILE_NAME "${APPELLATE_DEVELOPMENT_PACKAGE_FILE_NAME}")
+elseif(APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD)
+    set(CPACK_PACKAGE_FILE_NAME "${APPELLATE_SIGNED_PACKAGE_FILE_NAME}")
 else()
-    set(CPACK_PACKAGE_FILE_NAME "appellate-workbench-${PROJECT_VERSION}-linux-x86_64")
+    set(
+        CPACK_PACKAGE_FILE_NAME
+        "appellate-workbench-${PROJECT_VERSION}-linux-x86_64-production-cpack-disabled"
+    )
 endif()
 set(APPELLATE_BINARY_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}")
 set(CPACK_PACKAGE_CHECKSUM "SHA256")
@@ -543,6 +599,35 @@ set(
 
 include(CPack)
 
+if(NOT APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD)
+    add_custom_target(
+        signed_release_candidate
+        COMMAND
+            "${CMAKE_COMMAND}"
+            "-DAPPELLATE_ARCHIVE_BUILD_MODE=SIGNED_CANDIDATE"
+            "-DAPPELLATE_BUILD_ROOT=${PROJECT_BINARY_DIR}"
+            "-DAPPELLATE_CMAKE_GENERATOR=${CMAKE_GENERATOR}"
+            "-DAPPELLATE_CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}"
+            "-DAPPELLATE_CPACK_EXECUTABLE=${CMAKE_CPACK_COMMAND}"
+            "-DAPPELLATE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+            "-DAPPELLATE_GIT_EXECUTABLE=${GIT_EXECUTABLE}"
+            "-DAPPELLATE_GLIBC_FLOOR=${APPELLATE_GLIBC_FLOOR}"
+            "-DAPPELLATE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+            "-DAPPELLATE_PACKAGE_FILE_NAME=${APPELLATE_SIGNED_PACKAGE_FILE_NAME}"
+            "-DAPPELLATE_PROJECT_VERSION=${PROJECT_VERSION}"
+            "-DAPPELLATE_QT6_DIR=${Qt6_DIR}"
+            "-DAPPELLATE_RELEASE_CANDIDATE_ROOT=${PROJECT_BINARY_DIR}/release-candidates"
+            "-DAPPELLATE_RELEASE_SIGNING_FINGERPRINT=${APPELLATE_RELEASE_SIGNING_FINGERPRINT}"
+            "-DAPPELLATE_RELEASE_SOURCE_EPOCH=${APPELLATE_RELEASE_SOURCE_EPOCH}"
+            "-DAPPELLATE_RELEASE_SOURCE_REVISION=${APPELLATE_RELEASE_SOURCE_REVISION}"
+            "-DAPPELLATE_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+            -P "${PROJECT_SOURCE_DIR}/tests/release/verify_reproducible_archive.cmake"
+        COMMENT "Creating a fresh exact-commit signed release candidate"
+        USES_TERMINAL
+        VERBATIM
+    )
+endif()
+
 if(BUILD_TESTING)
     add_test(
         NAME linux_bundle_smoke
@@ -560,18 +645,31 @@ if(BUILD_TESTING)
             TIMEOUT 1800
     )
 
-    add_test(
-        NAME linux_archive_smoke
-        COMMAND
-            "${CMAKE_COMMAND}"
-            "-DAPPELLATE_BUILD_DIR=${PROJECT_BINARY_DIR}"
-            "-DAPPELLATE_CPACK_EXECUTABLE=${CMAKE_CPACK_COMMAND}"
-            "-DAPPELLATE_PACKAGE_FILE_NAME=${APPELLATE_BINARY_PACKAGE_FILE_NAME}"
-            "-DAPPELLATE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
-            "-DAPPELLATE_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
-            "-DAPPELLATE_VERIFY_INSTALL_SCRIPT=${PROJECT_SOURCE_DIR}/tests/release/verify_install.cmake"
-            -P "${PROJECT_SOURCE_DIR}/tests/release/verify_archive.cmake"
-    )
+    if(APPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE)
+        add_test(
+            NAME linux_archive_smoke
+            COMMAND
+                "${CMAKE_COMMAND}"
+                "-DAPPELLATE_BUILD_DIR=${PROJECT_BINARY_DIR}"
+                "-DAPPELLATE_CPACK_EXECUTABLE=${CMAKE_CPACK_COMMAND}"
+                "-DAPPELLATE_PACKAGE_FILE_NAME=${APPELLATE_BINARY_PACKAGE_FILE_NAME}"
+                "-DAPPELLATE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+                "-DAPPELLATE_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+                "-DAPPELLATE_VERIFY_INSTALL_SCRIPT=${PROJECT_SOURCE_DIR}/tests/release/verify_install.cmake"
+                -P "${PROJECT_SOURCE_DIR}/tests/release/verify_archive.cmake"
+        )
+    else()
+        add_test(
+            NAME linux_archive_smoke
+            COMMAND
+                "${CMAKE_COMMAND}"
+                "-DAPPELLATE_BUILD_DIR=${PROJECT_BINARY_DIR}"
+                "-DAPPELLATE_CPACK_EXECUTABLE=${CMAKE_CPACK_COMMAND}"
+                "-DAPPELLATE_PACKAGE_FILE_NAME=${APPELLATE_BINARY_PACKAGE_FILE_NAME}"
+                -P
+                "${PROJECT_SOURCE_DIR}/tests/release/verify_direct_production_cpack_rejected.cmake"
+        )
+    endif()
     set_tests_properties(
         linux_archive_smoke
         PROPERTIES

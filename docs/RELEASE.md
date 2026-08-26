@@ -17,11 +17,12 @@ with the exact tag commit and with the oldest glibc version used by the release 
 cmake --preset release \
   -DAPPELLATE_RELEASE_SOURCE_REVISION="$(git rev-parse HEAD)" \
   -DAPPELLATE_GLIBC_FLOOR=<oldest-tested-glibc-version> \
-  -DAPPELLATE_RELEASE_SIGNING_FINGERPRINT=<40-hex-signing-key-fingerprint>
+  -DAPPELLATE_RELEASE_SIGNING_FINGERPRINT=<40-hex-signing-key-fingerprint> \
+  -DAPPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE=ON
 cmake --build --preset release
 ctest --preset release -LE packaging
 ctest --preset packaging
-cpack --config build/release/CPackConfig.cmake
+cmake --build --preset release --target signed_release_candidate
 ```
 
 The example glibc value is not a promise for arbitrary builds. The compatibility manifest in
@@ -29,15 +30,37 @@ each artifact records the configured floor, compiler, Qt version, application ve
 pack/persistence versions, source revision, exact commit epoch, and exact bundled pack hashes and
 byte sizes. A release must be built and smoke-tested on the declared floor before publication.
 
-CPack emits one `.tar.zst` bundle and a sibling SHA-256 checksum. Package publication also
-requires a detached signature made outside the build tree with the maintainer's protected
-release key. Signing credentials never belong in this repository or a CMake cache.
+The signed target ignores every executable and generated file in the outer `build/release` tree.
+It clones the exact commit into a local snapshot that retains the annotated version tag, removes
+the clone's remote, and creates two initially absent Release build trees. Each CPack invocation
+must present its own configured run token and prove that its source, build, and artifact directory
+are exact ordinary children of the randomized sentinel-owned root. Both production archives and
+checksums must be byte-identical, and the real worktree and isolated snapshot must still resolve
+the same tag, commit, and signing fingerprint after both builds.
 
-CPack independently refuses a dirty tree, a source-revision mismatch, a missing or misplaced
-version tag, an invalid tag signature, or a signature from a key other than the configured
-fingerprint. For local packaging mechanics only,
+Only after those checks does the target prune the snapshot and build scratch, revalidate the
+candidate-parent inode and sentinel, and atomically rename the whole staging directory without
+replacement to a unique child of `build/release/release-candidates`. The final eligibility
+mutation atomically renames its pending marker to `BUILD_COMPLETE`; a crash before that point can
+leave an incomplete unique directory, but never an eligible candidate. A completed directory
+contains exactly the `.tar.zst`, its sibling `.sha256`, `candidate.json`, `BUILD_COMPLETE`, and the
+candidate-root sentinel. The manifest binds the ordinary single-link archive to its version,
+exact source revision and epoch, tag fingerprint, byte size, and SHA-256. There is no shared
+`latest` path and a failed rerun cannot replace or masquerade as an earlier candidate. Use only the
+exact candidate path printed by a successful target invocation.
+
+Direct production CPack from the mutable outer build is disabled. For local packaging mechanics,
 `-DAPPELLATE_ALLOW_UNVERIFIED_DEVELOPMENT_PACKAGE=ON` produces an artifact and manifest marked
-`development-unverified`; that artifact name is forced and it must never be published.
+`development-unverified`; that artifact name is forced and it must never be published. The signed
+candidate still requires a detached artifact signature made outside the build tree with the
+maintainer's protected release key before publication. Signing credentials never belong in this
+repository or a CMake cache.
+
+The internal run tokens and fixed sentinels prevent accidental use of stale outer-build outputs;
+they are coordination receipts, not secrets or a security boundary against a hostile process
+running as the same user. The gate also does not defend a compromised compiler, Qt/CMake/CPack
+installation, host, or edited build scripts. The mandatory external artifact signature and
+controlled release image remain separate publication requirements.
 
 ## Same-image archive reproducibility
 
@@ -62,8 +85,8 @@ The archive uses a fixed Zstandard compression level, one compression thread, UI
 fixed `0755` implicit-directory permissions. This is evidence for two clean builds on the same
 pinned image and filesystem. It is not a cross-toolchain, cross-CMake/libarchive/Zstandard, or
 cross-platform reproducibility guarantee. The nested artifacts are conspicuously
-`development-unverified`; the ordinary clean signed-tag and publication gates still apply to a
-release artifact.
+`development-unverified`; the signed-candidate target independently repeats the two-build check
+with production identity before any archive becomes eligible for external signing.
 
 ## Installed layout and relocation
 

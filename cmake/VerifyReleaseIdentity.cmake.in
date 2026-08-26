@@ -3,6 +3,11 @@ set(_appellate_expected_revision "@APPELLATE_RELEASE_SOURCE_REVISION@")
 set(_appellate_expected_epoch "@APPELLATE_RELEASE_SOURCE_EPOCH@")
 set(_appellate_expected_tag "v@PROJECT_VERSION@")
 set(_appellate_expected_fingerprint "@APPELLATE_RELEASE_SIGNING_FINGERPRINT@")
+set(_appellate_internal_signed_build "@APPELLATE_INTERNAL_SIGNED_RELEASE_BUILD@")
+set(_appellate_signed_release_root "@APPELLATE_SIGNED_RELEASE_ROOT@")
+set(_appellate_signed_release_token "@APPELLATE_SIGNED_RELEASE_TOKEN@")
+set(_appellate_configured_source "@PROJECT_SOURCE_DIR@")
+set(_appellate_configured_build "@PROJECT_BINARY_DIR@")
 
 if(NOT _appellate_expected_epoch MATCHES "^[0-9]+$")
     message(FATAL_ERROR "The configured release source epoch is not a Unix timestamp")
@@ -49,6 +54,116 @@ if(_appellate_allow_development)
         "Creating an explicitly unverified development package; it is not publishable"
     )
     return()
+endif()
+
+if(NOT _appellate_internal_signed_build STREQUAL "ON")
+    message(
+        FATAL_ERROR
+        "Direct production CPack is disabled; use the signed_release_candidate target"
+    )
+endif()
+string(LENGTH "${_appellate_signed_release_token}" _appellate_token_length)
+if(DEFINED APPELLATE_SIGNED_RELEASE_RUN_TOKEN)
+    set(_appellate_runtime_token "${APPELLATE_SIGNED_RELEASE_RUN_TOKEN}")
+else()
+    set(_appellate_runtime_token "")
+endif()
+if(NOT _appellate_token_length EQUAL 32 OR
+   NOT _appellate_signed_release_token MATCHES "^[0-9a-f]+$" OR
+   NOT _appellate_runtime_token STREQUAL _appellate_signed_release_token)
+    message(FATAL_ERROR "Signed release CPack invocation token is missing or invalid")
+endif()
+
+get_filename_component(
+    _appellate_signed_release_root_absolute "${_appellate_signed_release_root}" ABSOLUTE
+)
+get_filename_component(
+    _appellate_signed_release_root_name "${_appellate_signed_release_root_absolute}" NAME
+)
+set(_appellate_root_sentinel
+    "${_appellate_signed_release_root_absolute}/.appellate-release-root")
+if(_appellate_signed_release_root_absolute STREQUAL "" OR
+   _appellate_signed_release_root_absolute STREQUAL "/" OR
+   NOT _appellate_signed_release_root_absolute STREQUAL _appellate_signed_release_root OR
+   NOT _appellate_signed_release_root_name MATCHES
+       "^[.]signed-release-staging-[0-9a-f]+$" OR
+   IS_SYMLINK "${_appellate_signed_release_root_absolute}" OR
+   NOT IS_DIRECTORY "${_appellate_signed_release_root_absolute}" OR
+   IS_SYMLINK "${_appellate_root_sentinel}" OR
+   NOT EXISTS "${_appellate_root_sentinel}" OR
+   IS_DIRECTORY "${_appellate_root_sentinel}")
+    message(FATAL_ERROR "Signed release staging root is missing, broad, or replaced")
+endif()
+file(READ "${_appellate_root_sentinel}" _appellate_root_sentinel_text)
+if(NOT _appellate_root_sentinel_text STREQUAL "appellate-signed-release-root\n")
+    message(FATAL_ERROR "Signed release staging root sentinel changed")
+endif()
+
+set(
+    _appellate_expected_snapshot
+    "${_appellate_signed_release_root_absolute}/exact-source-snapshot"
+)
+if(_appellate_configured_build STREQUAL
+   "${_appellate_signed_release_root_absolute}/first-clean-build")
+    set(
+        _appellate_expected_artifacts
+        "${_appellate_signed_release_root_absolute}/first-artifacts"
+    )
+elseif(_appellate_configured_build STREQUAL
+       "${_appellate_signed_release_root_absolute}/second-clean-build-with-distinct-path-length")
+    set(
+        _appellate_expected_artifacts
+        "${_appellate_signed_release_root_absolute}/second-artifacts"
+    )
+else()
+    message(FATAL_ERROR "Signed release build is not an exact staging-root child")
+endif()
+if(NOT _appellate_configured_source STREQUAL _appellate_expected_snapshot OR
+   NOT DEFINED CPACK_PACKAGE_DIRECTORY OR
+   NOT CPACK_PACKAGE_DIRECTORY STREQUAL _appellate_expected_artifacts OR
+   IS_SYMLINK "${_appellate_configured_source}" OR
+   NOT IS_DIRECTORY "${_appellate_configured_source}" OR
+   IS_SYMLINK "${_appellate_configured_build}" OR
+   NOT IS_DIRECTORY "${_appellate_configured_build}" OR
+   IS_SYMLINK "${_appellate_expected_artifacts}" OR
+   NOT IS_DIRECTORY "${_appellate_expected_artifacts}")
+    message(FATAL_ERROR "Signed release source, build, or artifact containment is invalid")
+endif()
+set(
+    _appellate_artifact_sentinel
+    "${_appellate_expected_artifacts}/.appellate-signed-artifact-directory"
+)
+if(IS_SYMLINK "${_appellate_artifact_sentinel}" OR
+   NOT EXISTS "${_appellate_artifact_sentinel}" OR
+   IS_DIRECTORY "${_appellate_artifact_sentinel}")
+    message(FATAL_ERROR "Signed release artifact directory sentinel is missing or replaced")
+endif()
+file(READ "${_appellate_artifact_sentinel}" _appellate_artifact_sentinel_text)
+if(NOT _appellate_artifact_sentinel_text STREQUAL
+   "appellate-signed-artifact-directory\n")
+    message(FATAL_ERROR "Signed release artifact directory sentinel changed")
+endif()
+file(REAL_PATH "${_appellate_signed_release_root_absolute}" _appellate_root_real)
+file(REAL_PATH "${_appellate_configured_source}" _appellate_source_real)
+file(REAL_PATH "${_appellate_configured_build}" _appellate_build_real)
+file(REAL_PATH "${_appellate_expected_artifacts}" _appellate_artifacts_real)
+get_filename_component(_appellate_source_real_parent "${_appellate_source_real}" DIRECTORY)
+get_filename_component(_appellate_build_real_parent "${_appellate_build_real}" DIRECTORY)
+get_filename_component(_appellate_artifacts_real_parent "${_appellate_artifacts_real}" DIRECTORY)
+if(NOT _appellate_source_real_parent STREQUAL _appellate_root_real OR
+   NOT _appellate_build_real_parent STREQUAL _appellate_root_real OR
+   NOT _appellate_artifacts_real_parent STREQUAL _appellate_root_real OR
+   NOT _appellate_source_real STREQUAL _appellate_expected_snapshot OR
+   NOT _appellate_build_real STREQUAL _appellate_configured_build OR
+   NOT _appellate_artifacts_real STREQUAL _appellate_expected_artifacts)
+    message(FATAL_ERROR "Signed release staging paths escape their real root")
+endif()
+if(NOT CPACK_GENERATOR STREQUAL "TZST" OR
+   NOT CPACK_PACKAGE_FILE_NAME STREQUAL
+       "appellate-workbench-@PROJECT_VERSION@-linux-x86_64" OR
+   NOT CPACK_PACKAGE_VERSION STREQUAL "@PROJECT_VERSION@" OR
+   NOT CPACK_PACKAGE_CHECKSUM STREQUAL "SHA256")
+    message(FATAL_ERROR "Signed release CPack identity or generator was overridden")
 endif()
 
 string(LENGTH "${_appellate_expected_fingerprint}" _appellate_fingerprint_length)
