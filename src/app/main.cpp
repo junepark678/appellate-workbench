@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
         local_sessions ? std::shared_ptr<appellate::ui::LocalSessionProvider>{*local_sessions}
                        : std::shared_ptr<appellate::ui::LocalSessionProvider>{};
     appellate::ui::MainWindow window({}, parser.value(QStringLiteral("catalog")), nullptr, provider,
-                                     {}, {}, provider);
+                                     {}, {}, provider, {}, {}, {}, {}, provider);
     if (!pack_source.isEmpty()) {
         const auto loaded = window.loadSource(pack_source);
         if (!loaded) {

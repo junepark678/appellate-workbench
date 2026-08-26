@@ -70,6 +70,8 @@ qt_add_library(
     oral_argument_launch_provider.hpp
     oral_argument_workspace.cpp
     oral_argument_workspace.hpp
+    session_archive_file.cpp
+    session_archive_file.hpp
     session_archive_provider.hpp
     workflow_launch_provider.hpp
 )

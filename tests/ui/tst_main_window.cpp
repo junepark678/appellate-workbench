@@ -1181,6 +1181,8 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(window.importProfileAction()->isEnabled());
     QVERIFY(!window.cloneProfileAction()->isEnabled());
     QVERIFY(!window.exportProfileAction()->isEnabled());
+    QVERIFY(!window.exportSessionArchiveAction()->isEnabled());
+    QVERIFY(!window.importSessionArchiveAction()->isEnabled());
     QVERIFY(!window.openRecordAction()->isEnabled());
     QVERIFY(!window.openOralArgumentAction()->isEnabled());
     QVERIFY(window.openDirectoryAction()->isVisible());
@@ -1188,6 +1190,8 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(window.importProfileAction()->isVisible());
     QVERIFY(!window.cloneProfileAction()->isVisible());
     QVERIFY(!window.exportProfileAction()->isVisible());
+    QVERIFY(!window.exportSessionArchiveAction()->isVisible());
+    QVERIFY(!window.importSessionArchiveAction()->isVisible());
     QVERIFY(!window.openRecordAction()->isVisible());
     QVERIFY(!window.openWorkflowAction()->isVisible());
     QVERIFY(!window.advanceWorkflowAction()->isVisible());
@@ -1195,11 +1199,12 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(!window.recordAccessMenu()->menuAction()->isVisible());
 
     const std::array actions{
-        window.openDirectoryAction(),    window.installArchiveAction(),
-        window.importProfileAction(),    window.cloneProfileAction(),
-        window.exportProfileAction(),    window.openRecordAction(),
-        window.openWorkflowAction(),     window.advanceWorkflowAction(),
-        window.openOralArgumentAction(),
+        window.openDirectoryAction(),        window.installArchiveAction(),
+        window.importProfileAction(),        window.cloneProfileAction(),
+        window.exportProfileAction(),        window.openRecordAction(),
+        window.openWorkflowAction(),         window.advanceWorkflowAction(),
+        window.openOralArgumentAction(),     window.exportSessionArchiveAction(),
+        window.importSessionArchiveAction(),
     };
     for (const auto* action : actions) {
         QVERIFY(action != nullptr);
@@ -1230,6 +1235,18 @@ void MainWindowTest::actionsExposeAccessibleUsefulStates() {
     QVERIFY(window.openWorkflowAction()->text().size() <= 24);
     QVERIFY(window.advanceWorkflowAction()->text().size() <= 24);
     QVERIFY(window.openOralArgumentAction()->text().size() <= 24);
+    QCOMPARE(window.exportSessionArchiveAction()->text(),
+             QStringLiteral("&Export Workflow/Oral Sessions\u2026"));
+    QCOMPARE(window.importSessionArchiveAction()->text(),
+             QStringLiteral("&Import Workflow/Oral Sessions (Create Only)\u2026"));
+    QVERIFY(window.exportSessionArchiveAction()->statusTip().contains(
+        QStringLiteral("record-access state are excluded")));
+    QVERIFY(window.exportSessionArchiveAction()->statusTip().contains(
+        QStringLiteral("not authentication or encryption")));
+    QVERIFY(window.importSessionArchiveAction()->statusTip().contains(
+        QStringLiteral("never overwritten")));
+    QVERIFY(window.importSessionArchiveAction()->statusTip().contains(
+        QStringLiteral("does not authenticate or encrypt")));
 
     const auto loaded = window.loadSource(fixture(QStringLiteral("full-resource-pack")));
     if (!loaded) {

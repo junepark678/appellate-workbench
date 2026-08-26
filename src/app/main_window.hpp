@@ -52,6 +52,7 @@ class BenchProfileEditor;
 class OralArgumentLaunchProvider;
 class OralArgumentWorkspace;
 class RecordWorkspace;
+class SessionArchiveProvider;
 class WorkflowLaunchProvider;
 
 struct RecordAccessTransitionStamp final {
@@ -105,7 +106,8 @@ class MainWindow final : public QMainWindow {
         std::shared_ptr<WorkflowLaunchProvider> workflow_launch_provider = {},
         WorkflowLegalClock workflow_legal_clock = {}, OralElapsedClock oral_elapsed_clock = {},
         OralRecordedAtClock oral_recorded_at_clock = {},
-        WorkflowRecordedAtClock workflow_recorded_at_clock = {});
+        WorkflowRecordedAtClock workflow_recorded_at_clock = {},
+        std::shared_ptr<SessionArchiveProvider> session_archive_provider = {});
     ~MainWindow() override;
 
     MainWindow(const MainWindow&) = delete;
@@ -118,6 +120,8 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] auto cloneProfile(const QString& namespaced_id, const QString& display_name)
         -> std::expected<void, QString>;
     [[nodiscard]] auto exportProfile(const QString& path) -> std::expected<void, QString>;
+    [[nodiscard]] auto exportSessionArchive(const QString& path) -> std::expected<void, QString>;
+    [[nodiscard]] auto importSessionArchive(const QString& path) -> std::expected<void, QString>;
     [[nodiscard]] auto openSelectedRecord() -> std::expected<void, QString>;
     [[nodiscard]] auto openSelectedWorkflow() -> std::expected<void, QString>;
     [[nodiscard]] auto advanceSelectedWorkflow() -> std::expected<void, QString>;
@@ -149,6 +153,8 @@ class MainWindow final : public QMainWindow {
     [[nodiscard]] QAction* importProfileAction() const noexcept;
     [[nodiscard]] QAction* cloneProfileAction() const noexcept;
     [[nodiscard]] QAction* exportProfileAction() const noexcept;
+    [[nodiscard]] QAction* exportSessionArchiveAction() const noexcept;
+    [[nodiscard]] QAction* importSessionArchiveAction() const noexcept;
     [[nodiscard]] QAction* openRecordAction() const noexcept;
     [[nodiscard]] QAction* openWorkflowAction() const noexcept;
     [[nodiscard]] QAction* advanceWorkflowAction() const noexcept;
@@ -241,6 +247,7 @@ class MainWindow final : public QMainWindow {
     std::optional<packs::RuntimeArgumentConfigId> argument_configuration_id_;
     std::shared_ptr<OralArgumentLaunchProvider> oral_argument_launch_provider_;
     std::shared_ptr<WorkflowLaunchProvider> workflow_launch_provider_;
+    std::shared_ptr<SessionArchiveProvider> session_archive_provider_;
     WorkflowLegalClock workflow_legal_clock_;
     WorkflowRecordedAtClock workflow_recorded_at_clock_;
     OralElapsedClock oral_elapsed_clock_;
@@ -302,6 +309,8 @@ class MainWindow final : public QMainWindow {
     QAction* import_profile_action_{};
     QAction* clone_profile_action_{};
     QAction* export_profile_action_{};
+    QAction* export_session_archive_action_{};
+    QAction* import_session_archive_action_{};
     QAction* open_record_action_{};
     QAction* open_workflow_action_{};
     QAction* advance_workflow_action_{};

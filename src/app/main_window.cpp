@@ -10,6 +10,8 @@
 #include "oral_argument_launch_provider.hpp"
 #include "oral_argument_workspace.hpp"
 #include "record_workspace.hpp"
+#include "session_archive_file.hpp"
+#include "session_archive_provider.hpp"
 #include "session_controller.hpp"
 #include "workflow_action_planner.hpp"
 #include "workflow_launch_provider.hpp"
@@ -275,7 +277,7 @@ void configureSummaryLabel(QLabel& label, const QString& object_name,
 } // namespace
 
 MainWindow::MainWindow(const QString& source_path, const QString& catalog_root, QWidget* parent)
-    : MainWindow(source_path, catalog_root, parent, {}, {}, {}, {}, {}, {}, {}, {}) {}
+    : MainWindow(source_path, catalog_root, parent, {}, {}, {}, {}, {}, {}, {}, {}, {}) {}
 
 MainWindow::MainWindow(
     const QString& source_path, const QString& catalog_root, QWidget* parent,
@@ -284,9 +286,11 @@ MainWindow::MainWindow(
     QString record_access_database_path,
     std::shared_ptr<WorkflowLaunchProvider> workflow_launch_provider,
     WorkflowLegalClock workflow_legal_clock, OralElapsedClock oral_elapsed_clock,
-    OralRecordedAtClock oral_recorded_at_clock, WorkflowRecordedAtClock workflow_recorded_at_clock)
+    OralRecordedAtClock oral_recorded_at_clock, WorkflowRecordedAtClock workflow_recorded_at_clock,
+    std::shared_ptr<SessionArchiveProvider> session_archive_provider)
     : QMainWindow(parent), oral_argument_launch_provider_(std::move(oral_argument_launch_provider)),
       workflow_launch_provider_(std::move(workflow_launch_provider)),
+      session_archive_provider_(std::move(session_archive_provider)),
       workflow_legal_clock_(std::move(workflow_legal_clock)),
       workflow_recorded_at_clock_(std::move(workflow_recorded_at_clock)),
       oral_elapsed_clock_(std::move(oral_elapsed_clock)),
@@ -817,6 +821,31 @@ void MainWindow::buildFileMenu() {
     open_oral_argument_action_->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     file_menu->addSeparator();
 
+    export_session_archive_action_ =
+        file_menu->addAction(QStringLiteral("&Export Workflow/Oral Sessions\u2026"));
+    configureAction(
+        *export_session_archive_action_, QStringLiteral("exportSessionArchiveAction"),
+        QStringLiteral("Export Workflow and Oral session archive"),
+        QStringLiteral("Create a private no-overwrite archive with Workflow/Oral sessions and "
+                       "exact CAS documents; installed packs and record-access state are excluded; "
+                       "the unkeyed checksum detects corruption but is not authentication or "
+                       "encryption"));
+    export_session_archive_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Alt+S")));
+    export_session_archive_action_->setIcon(style()->standardIcon(QStyle::SP_DialogSaveButton));
+
+    import_session_archive_action_ =
+        file_menu->addAction(QStringLiteral("&Import Workflow/Oral Sessions (Create Only)\u2026"));
+    configureAction(
+        *import_session_archive_action_, QStringLiteral("importSessionArchiveAction"),
+        QStringLiteral("Import Workflow and Oral sessions without overwrite"),
+        QStringLiteral("Create new Workflow/Oral sessions only after exact installed-pack replay; "
+                       "existing sessions are never overwritten, record-access state is excluded, "
+                       "and the unkeyed checksum detects corruption but does not authenticate or "
+                       "encrypt the archive"));
+    import_session_archive_action_->setShortcut(QKeySequence(QStringLiteral("Ctrl+Alt+O")));
+    import_session_archive_action_->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
+    file_menu->addSeparator();
+
     import_profile_action_ = file_menu->addAction(QStringLiteral("&Import Profile\u2026"));
     configureAction(*import_profile_action_, QStringLiteral("importProfileAction"),
                     QStringLiteral("Import fictional/composite profile"),
@@ -869,6 +898,33 @@ void MainWindow::buildFileMenu() {
             [this] { static_cast<void>(advanceSelectedWorkflow()); });
     connect(open_oral_argument_action_, &QAction::triggered, this,
             [this] { static_cast<void>(openSelectedOralArgument()); });
+    connect(export_session_archive_action_, &QAction::triggered, this, [this] {
+        const auto path = QFileDialog::getSaveFileName(
+            this, QStringLiteral("Export Workflow/Oral Sessions"),
+            QStringLiteral("appellate-workflow-oral-sessions.awsessions"),
+            QStringLiteral("Workflow/Oral session archives (*.awsessions)"));
+        if (path.isEmpty()) {
+            return;
+        }
+        const auto exported = exportSessionArchive(path);
+        if (!exported) {
+            QMessageBox::critical(this, QStringLiteral("Session Archive Export Failed"),
+                                  exported.error());
+        }
+    });
+    connect(import_session_archive_action_, &QAction::triggered, this, [this] {
+        const auto path = QFileDialog::getOpenFileName(
+            this, QStringLiteral("Import Workflow/Oral Sessions (Create Only)"), {},
+            QStringLiteral("Workflow/Oral session archives (*.awsessions)"));
+        if (path.isEmpty()) {
+            return;
+        }
+        const auto imported = importSessionArchive(path);
+        if (!imported) {
+            QMessageBox::critical(this, QStringLiteral("Session Archive Import Failed"),
+                                  imported.error());
+        }
+    });
     connect(import_profile_action_, &QAction::triggered, this, [this] {
         const auto path =
             QFileDialog::getOpenFileName(this, QStringLiteral("Import Fictional/composite Profile"),
@@ -1141,6 +1197,109 @@ auto MainWindow::exportProfile(const QString& path) -> std::expected<void, QStri
         return std::unexpected(exported.error().message);
     }
     showStatus(QStringLiteral("Exported fictional/composite profile without overwriting."));
+    return {};
+}
+
+auto MainWindow::exportSessionArchive(const QString& path) -> std::expected<void, QString> {
+    const auto reject = [this](QString message) -> std::expected<void, QString> {
+        showError(message);
+        return std::unexpected(std::move(message));
+    };
+    if (!session_archive_provider_) {
+        return reject(QStringLiteral("No production Workflow/Oral session archive provider is "
+                                     "available"));
+    }
+    const auto archive = session_archive_provider_->exportAll();
+    if (!archive) {
+        return reject(archive.error().message);
+    }
+    const auto inspected = session_archive_provider_->read(QByteArrayView(*archive));
+    if (!inspected) {
+        return reject(inspected.error().message);
+    }
+    if (inspected->manifest.sessions.empty()) {
+        return reject(QStringLiteral("There are no Workflow/Oral sessions to export"));
+    }
+    if (const auto published = SessionArchiveFile::publish(QByteArrayView(*archive), path);
+        !published) {
+        return reject(published.error());
+    }
+    showStatus(
+        QStringLiteral("Exported %1 Workflow/Oral session(s) and %2 exact CAS document(s) "
+                       "without overwriting. Installed packs and record-access state were not "
+                       "included; the archive is not encrypted or authenticated.")
+            .arg(static_cast<qulonglong>(inspected->manifest.sessions.size()))
+            .arg(inspected->manifest.asset_digests.size()));
+    return {};
+}
+
+auto MainWindow::importSessionArchive(const QString& path) -> std::expected<void, QString> {
+    const auto reject = [this](QString message) -> std::expected<void, QString> {
+        showError(message);
+        return std::unexpected(std::move(message));
+    };
+    if (!session_archive_provider_) {
+        return reject(QStringLiteral("No production Workflow/Oral session archive provider is "
+                                     "available"));
+    }
+    if (!catalog_) {
+        return reject(QStringLiteral(
+            "Workflow/Oral sessions can import only with an available installed-pack catalog"));
+    }
+    const auto archive = SessionArchiveFile::read(path);
+    if (!archive) {
+        return reject(archive.error());
+    }
+    const auto inspected = session_archive_provider_->read(QByteArrayView(*archive));
+    if (!inspected) {
+        return reject(inspected.error().message);
+    }
+    if (inspected->manifest.sessions.empty()) {
+        return reject(QStringLiteral("An empty Workflow/Oral session archive cannot be imported"));
+    }
+
+    const auto installed = catalog_->list();
+    if (!installed) {
+        return reject(QStringLiteral("Installed pack revisions cannot be listed: %1")
+                          .arg(installed.error().message));
+    }
+    std::vector<packs::ResolvedPack> closures;
+    closures.reserve(installed->size());
+    for (const auto& pack : *installed) {
+        const auto required =
+            std::ranges::any_of(inspected->sessions, [&](const storage::SessionSnapshot& session) {
+                return std::ranges::any_of(session.pins, [&](const storage::RevisionPin& pin) {
+                    return pin.pack_id == utf8(pack.revision.id.value) &&
+                           pin.version == utf8(pack.revision.version) &&
+                           pin.digest == utf8(pack.revision.digest);
+                });
+            });
+        if (!required) {
+            continue;
+        }
+        auto closure = catalog_->loadResolved(pack.revision);
+        if (!closure) {
+            return reject(QStringLiteral("Installed pack closure %1 %2 cannot be loaded: %3")
+                              .arg(utf8(pack.revision.id.value), utf8(pack.revision.version),
+                                   closure.error().message));
+        }
+        closures.push_back(std::move(*closure));
+    }
+    std::vector<const packs::ResolvedPack*> closure_pointers;
+    closure_pointers.reserve(closures.size());
+    for (const auto& closure : closures) {
+        closure_pointers.push_back(&closure);
+    }
+    const auto imported =
+        session_archive_provider_->import(QByteArrayView(*archive), closure_pointers);
+    if (!imported) {
+        return reject(imported.error().message);
+    }
+    showStatus(
+        QStringLiteral("Created %1 imported Workflow/Oral session(s) after exact installed-pack "
+                       "replay; no existing session was overwritten. Record-access state was not "
+                       "included.")
+            .arg(static_cast<qulonglong>(imported->sessions.size())));
     return {};
 }
 
@@ -2298,6 +2457,12 @@ void MainWindow::updateActionStates() {
     clone_profile_action_->setVisible(has_profile);
     export_profile_action_->setEnabled(has_profile);
     export_profile_action_->setVisible(has_profile);
+    const auto can_export_sessions = session_archive_provider_ != nullptr;
+    export_session_archive_action_->setEnabled(can_export_sessions);
+    export_session_archive_action_->setVisible(can_export_sessions);
+    const auto can_import_sessions = can_export_sessions && catalog_ != nullptr;
+    import_session_archive_action_->setEnabled(can_import_sessions);
+    import_session_archive_action_->setVisible(can_import_sessions);
     const auto selected_row = case_list_->currentRow();
     const auto can_open_record =
         catalog_ != nullptr && installed_pack_.has_value() && runtime_pack_.has_value() &&
@@ -2469,6 +2634,14 @@ QAction* MainWindow::importProfileAction() const noexcept { return import_profil
 QAction* MainWindow::cloneProfileAction() const noexcept { return clone_profile_action_; }
 
 QAction* MainWindow::exportProfileAction() const noexcept { return export_profile_action_; }
+
+QAction* MainWindow::exportSessionArchiveAction() const noexcept {
+    return export_session_archive_action_;
+}
+
+QAction* MainWindow::importSessionArchiveAction() const noexcept {
+    return import_session_archive_action_;
+}
 
 QAction* MainWindow::openRecordAction() const noexcept { return open_record_action_; }
 

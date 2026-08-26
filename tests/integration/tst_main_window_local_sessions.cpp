@@ -7,6 +7,7 @@
 #include "local_session_provider.hpp"
 #include "main_window.hpp"
 #include "oral_argument_workspace.hpp"
+#include "session_archive_file.hpp"
 #include "workflow_session_controller.hpp"
 
 #include <QAction>
@@ -23,6 +24,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -42,6 +44,10 @@
 #include <string>
 #include <variant>
 #include <vector>
+
+#ifdef Q_OS_UNIX
+#include <sys/stat.h>
+#endif
 
 namespace {
 
@@ -399,6 +405,7 @@ class MainWindowLocalSessionsTest final : public QObject {
     void unsafePathsAndNewerSchemaFailWithoutFallback();
     void independentProviderFailsPromptlyAndLaterReopens();
     void archiveProviderReplaysBeforeCreateOnlyImport();
+    void mainWindowArchiveFileRoundTripsAcrossFreshState();
     void pinAndEngineMismatchFailWithoutDatabaseOrCasMutation();
 };
 
@@ -885,6 +892,10 @@ void MainWindowLocalSessionsTest::missingProviderIsVisibleAndDisabled() {
     QVERIFY(!window.openWorkflowButton()->isEnabled());
     QVERIFY(!window.advanceWorkflowAction()->isEnabled());
     QVERIFY(!window.advanceWorkflowButton()->isEnabled());
+    QVERIFY(!window.exportSessionArchiveAction()->isEnabled());
+    QVERIFY(!window.exportSessionArchiveAction()->isVisible());
+    QVERIFY(!window.importSessionArchiveAction()->isEnabled());
+    QVERIFY(!window.importSessionArchiveAction()->isVisible());
 }
 
 void MainWindowLocalSessionsTest::unsafePathsAndNewerSchemaFailWithoutFallback() {
@@ -1162,8 +1173,22 @@ void MainWindowLocalSessionsTest::archiveProviderReplaysBeforeCreateOnlyImport()
 
     auto oral = (*source)->open(*resolved, runtime_case.definition.id, argument_id);
     QVERIFY2(oral.has_value(), oral ? "" : qPrintable(oral.error().message));
+    const auto& oral_opening = (*oral)->state().journal.back().bench;
+    QVERIFY(oral_opening.question.has_value());
+    const auto* oral_question =
+        std::get_if<model::AuthoredQuestionSelection>(&oral_opening.question->selection);
+    QVERIFY(oral_question != nullptr);
+    const auto answered =
+        (*oral)->submit((*oral)->sessionId() + QStringLiteral(".answer-2"),
+                        model::CounselAnswer{model::CounselActKind::Answer,
+                                             "Archive provider replayed this grounded answer",
+                                             oral_opening.question->issue_id,
+                                             groundingIds(*oral_question), 1.0, 1s},
+                        QStringLiteral("2026-08-11T11:00:01Z"));
+    QVERIFY2(answered.has_value(), answered ? "" : qPrintable(answered.error().message));
     const auto oral_snapshot = (*oral)->snapshot();
     QVERIFY(oral_snapshot.session_id.startsWith(QStringLiteral("oral.argument.session.")));
+    QCOMPARE(oral_snapshot.commands.size(), std::size_t{2});
     (*oral).reset();
 
     const auto valid_archive = (*source)->exportAll();
@@ -1291,6 +1316,278 @@ void MainWindowLocalSessionsTest::archiveProviderReplaysBeforeCreateOnlyImport()
     QVERIFY2(after_conflict.has_value(),
              after_conflict ? "" : qPrintable(after_conflict.error().message));
     QCOMPARE(*after_conflict, *imported_state);
+}
+
+void MainWindowLocalSessionsTest::mainWindowArchiveFileRoundTripsAcrossFreshState() {
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto pack_archive = temporary.filePath(QStringLiteral("portable-grounded.awpack"));
+    const auto packed =
+        packs::PackArchive::exportDirectory(fixture(u"full-resource-pack-v2"), pack_archive);
+    QVERIFY2(packed.has_value(), packed ? "" : qPrintable(packed.error().message));
+    const auto catalog_root = temporary.filePath(QStringLiteral("portable-catalog"));
+    auto catalog = packs::PackCatalog::open(catalog_root);
+    QVERIFY2(catalog.has_value(), catalog ? "" : qPrintable(catalog.error().message));
+    const auto installed =
+        (*catalog)->installArchive(pack_archive, QStringLiteral("2026-08-11T00:00:00Z"));
+    QVERIFY2(installed.has_value(), installed ? "" : qPrintable(installed.error().message));
+    const auto resolved = (*catalog)->loadResolved(installed->revision);
+    QVERIFY2(resolved.has_value(), resolved ? "" : qPrintable(resolved.error().message));
+    const auto runtime = packs::loadRuntimePack(*resolved);
+    QVERIFY2(runtime.has_value(), runtime ? "" : runtime.error().message.c_str());
+    QCOMPARE(runtime->cases.size(), std::size_t{1});
+    const auto& runtime_case = runtime->cases.front();
+    QVERIFY(!runtime_case.argument_configurations.empty());
+    const auto argument_id = runtime_case.argument_configurations.front().id;
+    catalog->reset();
+
+    const auto clock = [] {
+        return QDateTime::fromString(QStringLiteral("2026-08-11T10:00:00Z"), Qt::ISODate);
+    };
+    const ui::LocalSessionPaths source_paths{
+        temporary.filePath(QStringLiteral("portable-source/sessions.sqlite")),
+        temporary.filePath(QStringLiteral("portable-source/assets")),
+    };
+    auto source_provider = ui::LocalSessionProvider::create(source_paths, clock);
+    QVERIFY2(source_provider.has_value(),
+             source_provider ? "" : qPrintable(source_provider.error()));
+    auto workflow = (*source_provider)->openWorkflow(*resolved, runtime_case.definition.id);
+    QVERIFY2(workflow.has_value(), workflow ? "" : qPrintable(workflow.error().message));
+    const auto workflow_id = QString::fromStdString((*workflow)->state().session_id);
+    const QByteArray document("MainWindow portable document-bearing workflow bytes");
+    const auto filing = model::SubmitWorkflowFiling{
+        model::WorkflowCommandHeader{
+            workflow_id.toStdString(),
+            model::WorkflowCommandId{workflow_id.toStdString() +
+                                     ".command.1.example.operation.accept-notice"},
+            model::ActorId{"example.actor.appellant"},
+            at(2026, 8U, 11U, 11),
+        },
+        model::WorkflowFilingId{"example.filing.main-window-portable"},
+        model::FilingTypeId{"example.filing.notice"},
+        sha256(document).toStdString(),
+        {model::WorkflowFieldValue{model::FilingFieldId{"example.field.caption"},
+                                   "MainWindow portable caption"}},
+        {model::ActorId{"example.actor.appellee"}},
+        std::nullopt,
+    };
+    const auto filed = (*workflow)->submit(model::WorkflowCommand{filing}, QByteArrayView(document),
+                                           QStringLiteral("2026-08-11T11:00:00Z"));
+    QVERIFY2(filed.has_value(), filed ? "" : qPrintable(filed.error().message));
+    QVERIFY(filed->asset.has_value());
+    const auto document_digest = filed->asset->sha256;
+    const auto workflow_snapshot = (*workflow)->snapshot();
+    (*workflow).reset();
+
+    auto oral = (*source_provider)->open(*resolved, runtime_case.definition.id, argument_id);
+    QVERIFY2(oral.has_value(), oral ? "" : qPrintable(oral.error().message));
+    const auto& opening = (*oral)->state().journal.back().bench;
+    QVERIFY(opening.question.has_value());
+    const auto* question =
+        std::get_if<model::AuthoredQuestionSelection>(&opening.question->selection);
+    QVERIFY(question != nullptr);
+    const auto submitted = (*oral)->submit(
+        (*oral)->sessionId() + QStringLiteral(".answer-2"),
+        model::CounselAnswer{model::CounselActKind::Answer,
+                             "MainWindow archive retained this grounded answer",
+                             opening.question->issue_id, groundingIds(*question), 1.0, 1s},
+        QStringLiteral("2026-08-11T11:00:01Z"));
+    QVERIFY2(submitted.has_value(), submitted ? "" : qPrintable(submitted.error().message));
+    const auto oral_state = (*oral)->state();
+    const auto oral_snapshot = (*oral)->snapshot();
+    (*oral).reset();
+
+    const auto session_archive = temporary.filePath(QStringLiteral("portable.awsessions"));
+    QByteArray source_archive_bytes;
+    QString source_transcript;
+    {
+        ui::MainWindow source_window(pack_archive, catalog_root, nullptr, *source_provider, {}, {},
+                                     *source_provider, {}, {}, {}, {}, *source_provider);
+        QVERIFY(source_window.exportSessionArchiveAction()->isEnabled());
+        QVERIFY(source_window.exportSessionArchiveAction()->isVisible());
+        QVERIFY(source_window.importSessionArchiveAction()->isEnabled());
+        QVERIFY(source_window.importSessionArchiveAction()->isVisible());
+        QVERIFY(source_window.openSelectedWorkflow().has_value());
+        QVERIFY(source_window.openSelectedOralArgument().has_value());
+        QVERIFY(source_window.workflowSessionController() != nullptr);
+        QVERIFY(source_window.oralArgumentWorkspace()->isReady());
+        QVERIFY(
+            sameSnapshot(source_window.workflowSessionController()->snapshot(), workflow_snapshot));
+        QCOMPARE(*source_window.oralArgumentWorkspace()->sessionState(), oral_state);
+        source_transcript = source_window.oralArgumentWorkspace()->transcriptView()->toPlainText();
+        QVERIFY(source_transcript.contains(
+            QStringLiteral("MainWindow archive retained this grounded answer")));
+
+#ifdef Q_OS_UNIX
+        const auto previous_mask = ::umask(0000);
+        const auto exported = source_window.exportSessionArchive(session_archive);
+        static_cast<void>(::umask(previous_mask));
+#else
+        const auto exported = source_window.exportSessionArchive(session_archive);
+#endif
+        QVERIFY2(exported.has_value(), exported ? "" : qPrintable(exported.error()));
+#ifdef Q_OS_UNIX
+        struct stat archive_metadata{};
+        QCOMPARE(::stat(QFile::encodeName(session_archive).constData(), &archive_metadata), 0);
+        QCOMPARE(archive_metadata.st_mode & static_cast<mode_t>(0777), static_cast<mode_t>(0600));
+#endif
+        const auto exported_bytes = ui::SessionArchiveFile::read(session_archive);
+        QVERIFY2(exported_bytes.has_value(),
+                 exported_bytes ? "" : qPrintable(exported_bytes.error()));
+        source_archive_bytes = *exported_bytes;
+
+        const auto overwrite = source_window.exportSessionArchive(session_archive);
+        QVERIFY(!overwrite.has_value());
+        const auto after_overwrite = ui::SessionArchiveFile::read(session_archive);
+        QVERIFY2(after_overwrite.has_value(),
+                 after_overwrite ? "" : qPrintable(after_overwrite.error()));
+        QCOMPARE(*after_overwrite, *exported_bytes);
+
+        const auto sentinel = temporary.filePath(QStringLiteral("archive-sentinel"));
+        QFile sentinel_file(sentinel);
+        QVERIFY(sentinel_file.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+        QCOMPARE(sentinel_file.write("archive sentinel"), qint64{16});
+        sentinel_file.close();
+        const auto linked_destination =
+            temporary.filePath(QStringLiteral("linked-destination.awsessions"));
+        QVERIFY(QFile::link(sentinel, linked_destination));
+        const auto linked_export = source_window.exportSessionArchive(linked_destination);
+        QVERIFY(!linked_export.has_value());
+        QVERIFY(sentinel_file.open(QIODevice::ReadOnly));
+        QCOMPARE(sentinel_file.readAll(), QByteArray("archive sentinel"));
+        sentinel_file.close();
+
+        QVERIFY(
+            sameSnapshot(source_window.workflowSessionController()->snapshot(), workflow_snapshot));
+        QCOMPARE(*source_window.oralArgumentWorkspace()->sessionState(), oral_state);
+        QCOMPARE(source_window.oralArgumentWorkspace()->transcriptView()->toPlainText(),
+                 source_transcript);
+    }
+    source_provider->reset();
+
+    const ui::LocalSessionPaths target_paths{
+        temporary.filePath(QStringLiteral("portable-target/sessions.sqlite")),
+        temporary.filePath(QStringLiteral("portable-target/assets")),
+    };
+    auto target_provider = ui::LocalSessionProvider::create(target_paths, clock);
+    QVERIFY2(target_provider.has_value(),
+             target_provider ? "" : qPrintable(target_provider.error()));
+    {
+        ui::MainWindow target_window(pack_archive, catalog_root, nullptr, *target_provider, {}, {},
+                                     *target_provider, {}, {}, {}, {}, *target_provider);
+        const auto imported = target_window.importSessionArchive(session_archive);
+        QVERIFY2(imported.has_value(), imported ? "" : qPrintable(imported.error()));
+        const auto restored_document =
+            storage::AssetStore(target_paths.asset_root).read(document_digest);
+        QVERIFY2(restored_document.has_value(),
+                 restored_document ? "" : qPrintable(restored_document.error().message));
+        QCOMPARE(*restored_document, document);
+        auto restored_oral =
+            (*target_provider)->open(*resolved, runtime_case.definition.id, argument_id);
+        QVERIFY2(restored_oral.has_value(),
+                 restored_oral ? "" : qPrintable(restored_oral.error().message));
+        QVERIFY(sameSnapshot((*restored_oral)->snapshot(), oral_snapshot));
+        (*restored_oral).reset();
+        QVERIFY(target_window.openSelectedWorkflow().has_value());
+        QVERIFY(target_window.openSelectedOralArgument().has_value());
+        QVERIFY(
+            sameSnapshot(target_window.workflowSessionController()->snapshot(), workflow_snapshot));
+        QCOMPARE(*target_window.oralArgumentWorkspace()->sessionState(), oral_state);
+        QCOMPARE(target_window.oralArgumentWorkspace()->transcriptView()->toPlainText(),
+                 source_transcript);
+
+        const auto target_before_conflict = (*target_provider)->exportAll();
+        QVERIFY2(target_before_conflict.has_value(),
+                 target_before_conflict ? "" : qPrintable(target_before_conflict.error().message));
+        QCOMPARE(*target_before_conflict, source_archive_bytes);
+        const auto conflict = target_window.importSessionArchive(session_archive);
+        QVERIFY(!conflict.has_value());
+        const auto target_after_conflict = (*target_provider)->exportAll();
+        QVERIFY2(target_after_conflict.has_value(),
+                 target_after_conflict ? "" : qPrintable(target_after_conflict.error().message));
+        QCOMPARE(*target_after_conflict, *target_before_conflict);
+        QVERIFY(
+            sameSnapshot(target_window.workflowSessionController()->snapshot(), workflow_snapshot));
+        QCOMPARE(*target_window.oralArgumentWorkspace()->sessionState(), oral_state);
+        QCOMPARE(target_window.oralArgumentWorkspace()->transcriptView()->toPlainText(),
+                 source_transcript);
+    }
+    target_provider->reset();
+
+    auto restarted_provider = ui::LocalSessionProvider::create(target_paths, clock);
+    QVERIFY2(restarted_provider.has_value(),
+             restarted_provider ? "" : qPrintable(restarted_provider.error()));
+    {
+        ui::MainWindow restarted(pack_archive, catalog_root, nullptr, *restarted_provider, {}, {},
+                                 *restarted_provider, {}, {}, {}, {}, *restarted_provider);
+        QVERIFY(restarted.openSelectedWorkflow().has_value());
+        QVERIFY(restarted.openSelectedOralArgument().has_value());
+        auto restarted_oral =
+            (*restarted_provider)->open(*resolved, runtime_case.definition.id, argument_id);
+        QVERIFY2(restarted_oral.has_value(),
+                 restarted_oral ? "" : qPrintable(restarted_oral.error().message));
+        QVERIFY(sameSnapshot((*restarted_oral)->snapshot(), oral_snapshot));
+        (*restarted_oral).reset();
+        QVERIFY(sameSnapshot(restarted.workflowSessionController()->snapshot(), workflow_snapshot));
+        QCOMPARE(*restarted.oralArgumentWorkspace()->sessionState(), oral_state);
+        QCOMPARE(restarted.oralArgumentWorkspace()->transcriptView()->toPlainText(),
+                 source_transcript);
+    }
+    restarted_provider->reset();
+
+    const ui::LocalSessionPaths rejected_paths{
+        temporary.filePath(QStringLiteral("portable-rejected/sessions.sqlite")),
+        temporary.filePath(QStringLiteral("portable-rejected/assets")),
+    };
+    auto rejected_provider = ui::LocalSessionProvider::create(rejected_paths, clock);
+    QVERIFY2(rejected_provider.has_value(),
+             rejected_provider ? "" : qPrintable(rejected_provider.error()));
+    ui::MainWindow rejected_window(pack_archive, catalog_root, nullptr, *rejected_provider, {}, {},
+                                   *rejected_provider, {}, {}, {}, {}, *rejected_provider);
+    const auto empty_state = (*rejected_provider)->exportAll();
+    QVERIFY2(empty_state.has_value(), empty_state ? "" : qPrintable(empty_state.error().message));
+    const auto empty_export_path = temporary.filePath(QStringLiteral("empty.awsessions"));
+    const auto empty_export = rejected_window.exportSessionArchive(empty_export_path);
+    QVERIFY(!empty_export.has_value());
+    QVERIFY(!QFileInfo::exists(empty_export_path));
+
+    const auto linked_input = temporary.filePath(QStringLiteral("linked-input.awsessions"));
+    QVERIFY(QFile::link(session_archive, linked_input));
+    const auto linked_import = rejected_window.importSessionArchive(linked_input);
+    QVERIFY(!linked_import.has_value());
+    auto after_linked_import = (*rejected_provider)->exportAll();
+    QVERIFY2(after_linked_import.has_value(),
+             after_linked_import ? "" : qPrintable(after_linked_import.error().message));
+    QCOMPARE(*after_linked_import, *empty_state);
+
+    const auto oversized_path = temporary.filePath(QStringLiteral("oversized.awsessions"));
+    QFile oversized(oversized_path);
+    QVERIFY(oversized.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+    QVERIFY(oversized.resize(ui::SessionArchiveFile::maximum_bytes + 1));
+    oversized.close();
+    const auto oversized_import = rejected_window.importSessionArchive(oversized_path);
+    QVERIFY(!oversized_import.has_value());
+    QVERIFY(oversized_import.error().contains(QStringLiteral("512 MiB")));
+    const auto after_oversized_import = (*rejected_provider)->exportAll();
+    QVERIFY2(after_oversized_import.has_value(),
+             after_oversized_import ? "" : qPrintable(after_oversized_import.error().message));
+    QCOMPARE(*after_oversized_import, *empty_state);
+
+#ifdef Q_OS_UNIX
+    const auto fifo_path = temporary.filePath(QStringLiteral("archive-input.fifo"));
+    QCOMPARE(::mkfifo(QFile::encodeName(fifo_path).constData(), 0600), 0);
+    QElapsedTimer fifo_timer;
+    fifo_timer.start();
+    const auto fifo_import = rejected_window.importSessionArchive(fifo_path);
+    const auto fifo_elapsed = fifo_timer.elapsed();
+    QVERIFY(!fifo_import.has_value());
+    QVERIFY2(fifo_elapsed < 2000,
+             qPrintable(QStringLiteral("FIFO rejection took %1 ms").arg(fifo_elapsed)));
+    const auto after_fifo_import = (*rejected_provider)->exportAll();
+    QVERIFY2(after_fifo_import.has_value(),
+             after_fifo_import ? "" : qPrintable(after_fifo_import.error().message));
+    QCOMPARE(*after_fifo_import, *empty_state);
+#endif
 }
 
 void MainWindowLocalSessionsTest::pinAndEngineMismatchFailWithoutDatabaseOrCasMutation() {
