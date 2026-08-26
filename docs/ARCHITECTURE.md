@@ -38,6 +38,12 @@ rendered utterances, not merely a model seed.
 Wall-clock and randomness enter through explicit interfaces and are recorded. Given the same
 versions, initial state, seed, and user choices, the legal event trace is identical.
 
+Portable schema-1 session archives pair current workflow/oral snapshots with their exact referenced
+CAS bytes. Export and create-only import are bounded, deterministic operations. The product layer
+requires an exact installed resolved-pack closure and replays every supported engine before either
+publishing an archive or changing the target stores. The unkeyed archive digest detects corruption,
+not authenticity, and record-access state remains outside this workflow/oral boundary.
+
 ## Pack trust boundary
 
 MVP packs are immutable, declarative data. A manifest names a schema version, namespaced pack

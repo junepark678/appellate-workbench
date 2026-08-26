@@ -14,7 +14,9 @@ contains strict declarative-pack validation and immutable installation, a native
 browser, a deterministic legal workflow engine, crash-safe SQLite/event-log and content-addressed
 storage, a searchable native PDF record workspace, and exact save/replay tests. Installed pack
 PDFs are verified into local content-addressed storage and can be reopened without the original
-archive. The GitHub milestones define the remaining route to the content-complete MVP.
+archive. The desktop can also export and create-only import a validated workflow/oral session
+archive with its exact referenced documents; installed packs and record-access state remain
+separate. The GitHub milestones define the remaining route to the content-complete MVP.
 
 The content target deliberately retains the useful breadth of the earlier prototype:
 

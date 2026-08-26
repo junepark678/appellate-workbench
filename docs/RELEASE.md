@@ -115,11 +115,30 @@ no-follow identity checks reject ordinary path replacement, but a malicious proc
 same user can still race SQLite's pathname-based reopen behavior outside the cooperative lock. Do
 not place the state directory where another same-UID process is untrusted.
 
-`SessionStore::backupTo` is a database-only, session-metadata backup operation. It rejects a
-snapshot containing asset references; the MVP does not yet provide a paired database-plus-CAS
-backup format. A current-schema, asset-free restore receives a fresh authoritative store identity
-and can bind only to a fresh empty asset store. A backup must therefore never be described as a
-document-bearing case export.
+The File menu's schema-1 `.awsessions` flow is the portable, document-bearing boundary for
+workflow and oral-argument sessions. Export first verifies the complete database/CAS pair, exact
+installed revision closures, supported engine identities, and deterministic workflow/oral replay.
+It then publishes one owner-only `0600` file without overwriting. Import accepts only a bounded
+regular non-symlink file, repeats all validation, and creates new session IDs plus their exact CAS
+objects as one paired operation. A conflict or validation failure leaves both target stores
+unchanged.
+
+An `.awsessions` file contains every current workflow/oral snapshot in that local provider and the
+exact bytes of every referenced CAS document. It excludes installed packs, authoring sources,
+fictional-profile exports, the separate record-access database and journal, and optional sync
+state. The exact pinned packs must already be installed on the importing device. Its unkeyed
+SHA-256 envelope detects corruption; it provides neither authentication nor encryption, so the
+file must be handled as potentially sensitive untrusted input.
+
+Oral sessions are bound to a digest of the workflow head that launched them. Schema 1 proves that
+binding only when the matching workflow snapshot is present in the same archive. If a workflow is
+advanced after an oral session was created, the older oral session and newer current workflow head
+are not portable together; export fails before creating a file rather than weakening replay.
+
+`SessionStore::backupTo` remains a separate database-only, session-metadata recovery primitive. It
+rejects a snapshot containing asset references. A current-schema, asset-free restore receives a
+fresh authoritative store identity and can bind only to a fresh empty asset store. This legacy
+backup must never be described as the paired `.awsessions` product export.
 
 The automated `linux_bundle_smoke` test installs into a fresh prefix and independently checks all
 13 manifest entries against their exact IDs, versions, archive hashes, root revisions, sizes,

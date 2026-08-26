@@ -749,9 +749,14 @@ string(JSON _compatibility_schema GET "${_compatibility_json}" schema_version)
 string(JSON _compatibility_os GET "${_compatibility_json}" platform operating_system)
 string(JSON _compatibility_arch GET "${_compatibility_json}" platform architecture)
 string(JSON _declared_glibc_floor GET "${_compatibility_json}" platform glibc_floor)
+string(
+    JSON _session_archive_schema
+    GET "${_compatibility_json}" compatibility session_archive_schema_version
+)
 string(JSON _declared_pack_count LENGTH "${_compatibility_json}" bundled_packs)
 if(NOT _compatibility_schema EQUAL 1 OR NOT _compatibility_os STREQUAL "linux" OR
-   NOT _compatibility_arch STREQUAL "x86_64" OR NOT _declared_pack_count EQUAL 13)
+   NOT _compatibility_arch STREQUAL "x86_64" OR NOT _session_archive_schema EQUAL 1 OR
+   NOT _declared_pack_count EQUAL 13)
     message(FATAL_ERROR "The installed compatibility manifest does not match the bundle")
 endif()
 
