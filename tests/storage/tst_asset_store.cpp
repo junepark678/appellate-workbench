@@ -3,6 +3,7 @@
 #include <QBuffer>
 #include <QCryptographicHash>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QTemporaryDir>
 #include <QTest>
@@ -11,6 +12,10 @@
 
 #if defined(Q_OS_UNIX)
 #include <unistd.h>
+#endif
+
+#if defined(Q_OS_LINUX)
+#include <sys/stat.h>
 #endif
 
 namespace {
@@ -30,10 +35,36 @@ class AssetStoreTest final : public QObject {
     void lockMoveAssignmentTransfersOwnershipSafely();
     void rejectsHardLinkedFinalObjectWithoutChangingAlias();
     void rejectsHardLinkedPublicationLockWithoutChangingAlias();
+    void createsExactPrivateLayoutUnderHostileUmask_data();
+    void createsExactPrivateLayoutUnderHostileUmask();
+    void rejectsUnsafePreexistingModesWithoutRepair();
+    void rejectsFifoObjectWithoutBlocking();
 };
 
 using appellate::storage::AssetStore;
 using appellate::storage::AssetStoreErrorCode;
+
+#if defined(Q_OS_LINUX)
+class ScopedUmask final {
+  public:
+    explicit ScopedUmask(mode_t value) noexcept : previous_(::umask(value)) {}
+    ~ScopedUmask() { static_cast<void>(::umask(previous_)); }
+
+  private:
+    mode_t previous_{};
+};
+
+[[nodiscard]] mode_t exactMode(const QString& path) {
+    struct stat status{};
+    return ::lstat(QFile::encodeName(path).constData(), &status) == 0
+               ? static_cast<mode_t>(status.st_mode & 07777)
+               : static_cast<mode_t>(~0U);
+}
+
+[[nodiscard]] bool chmodExact(const QString& path, mode_t mode) {
+    return ::chmod(QFile::encodeName(path).constData(), mode) == 0;
+}
+#endif
 
 [[nodiscard]] QString digestOf(QByteArrayView bytes) {
     return QString::fromLatin1(
@@ -132,6 +163,9 @@ void AssetStoreTest::interruptedTemporaryFileIsNotAddressable() {
     QVERIFY(directory.isValid());
     AssetStore store(directory.path(), 1024);
     QVERIFY(QDir().mkpath(store.objectsDirectory()));
+    QVERIFY(QFile::setPermissions(store.objectsDirectory(), QFileDevice::ReadOwner |
+                                                                QFileDevice::WriteOwner |
+                                                                QFileDevice::ExeOwner));
 
     const QByteArray contents("interrupted");
     QFile temporary(
@@ -191,6 +225,8 @@ void AssetStoreTest::retainedDirectoryHandlesDefeatPathSwap() {
     const auto root = QDir(parent.path()).filePath(QStringLiteral("cas"));
     const auto retained_root = QDir(parent.path()).filePath(QStringLiteral("cas-retained"));
     QVERIFY(QDir{}.mkpath(root));
+    QVERIFY(QFile::setPermissions(root, QFileDevice::ReadOwner | QFileDevice::WriteOwner |
+                                            QFileDevice::ExeOwner));
     AssetStore store(root, 1024);
     const auto first = store.put(QByteArrayLiteral("first"));
     QVERIFY(first.has_value());
@@ -297,6 +333,144 @@ void AssetStoreTest::rejectsHardLinkedPublicationLockWithoutChangingAlias() {
     QVERIFY(alias.open(QIODevice::ReadOnly));
     QCOMPARE(alias.readAll(), before);
     alias.close();
+#endif
+}
+
+void AssetStoreTest::createsExactPrivateLayoutUnderHostileUmask_data() {
+    QTest::addColumn<unsigned int>("mask");
+    QTest::newRow("fully-permissive") << 0000U;
+    QTest::newRow("fully-restrictive") << 0777U;
+}
+
+void AssetStoreTest::createsExactPrivateLayoutUnderHostileUmask() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Exact CAS permission enforcement is Linux-only");
+#else
+    QFETCH(unsigned int, mask);
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto root = QDir(controller.path()).filePath(QStringLiteral("assets"));
+    const QByteArray contents("private-cas-object");
+    {
+        const ScopedUmask hostile(static_cast<mode_t>(mask));
+        AssetStore store(root, 1024);
+        const auto stored = store.put(contents);
+        if (!stored) {
+            QFAIL(qPrintable(stored.error().message));
+        }
+        auto lock = store.acquireLock();
+        QVERIFY(lock.has_value());
+
+        QCOMPARE(exactMode(root), static_cast<mode_t>(0700));
+        QCOMPARE(exactMode(store.objectsDirectory()), static_cast<mode_t>(0700));
+        QCOMPARE(exactMode(QDir(root).filePath(QStringLiteral(".cas.lock"))),
+                 static_cast<mode_t>(0600));
+        QCOMPARE(exactMode(QDir(store.objectsDirectory()).filePath(stored->sha256)),
+                 static_cast<mode_t>(0600));
+    }
+#endif
+}
+
+void AssetStoreTest::rejectsUnsafePreexistingModesWithoutRepair() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Exact CAS permission enforcement is Linux-only");
+#else
+    {
+        QTemporaryDir controller;
+        QVERIFY(controller.isValid());
+        const auto root = QDir(controller.path()).filePath(QStringLiteral("assets"));
+        QVERIFY(QDir{}.mkpath(root));
+        QVERIFY(chmodExact(root, 0755));
+        AssetStore store(root, 1024);
+        const auto result = store.put(QByteArrayLiteral("must-not-write"));
+        QVERIFY(!result.has_value());
+        QCOMPARE(exactMode(root), static_cast<mode_t>(0755));
+        QVERIFY(QDir(root).entryList(QDir::AllEntries | QDir::NoDotAndDotDot).isEmpty());
+    }
+    {
+        QTemporaryDir controller;
+        QVERIFY(controller.isValid());
+        AssetStore store(QDir(controller.path()).filePath(QStringLiteral("assets")), 1024);
+        const QByteArray bytes("permission-bound-object");
+        const auto stored = store.put(bytes);
+        QVERIFY(stored.has_value());
+        const auto object_path = QDir(store.objectsDirectory()).filePath(stored->sha256);
+        QVERIFY(chmodExact(object_path, 0644));
+        const auto before = [&] {
+            QFile object(object_path);
+            return object.open(QIODevice::ReadOnly) ? object.readAll() : QByteArray{};
+        }();
+        const auto loaded = store.read(stored->sha256);
+        QVERIFY(!loaded.has_value());
+        QCOMPARE(loaded.error().code, AssetStoreErrorCode::CorruptObject);
+        QCOMPARE(exactMode(object_path), static_cast<mode_t>(0644));
+        QFile after(object_path);
+        QVERIFY(after.open(QIODevice::ReadOnly));
+        QCOMPARE(after.readAll(), before);
+    }
+    {
+        QTemporaryDir controller;
+        QVERIFY(controller.isValid());
+        const auto root = QDir(controller.path()).filePath(QStringLiteral("assets"));
+        AssetStore store(root, 1024);
+        {
+            auto first = store.acquireLock();
+            QVERIFY(first.has_value());
+        }
+        const auto lock_path = QDir(root).filePath(QStringLiteral(".cas.lock"));
+        QVERIFY(chmodExact(lock_path, 0644));
+        const auto second = store.acquireLock();
+        QVERIFY(!second.has_value());
+        QCOMPARE(exactMode(lock_path), static_cast<mode_t>(0644));
+    }
+    {
+        QTemporaryDir controller;
+        QVERIFY(controller.isValid());
+        const auto root = QDir(controller.path()).filePath(QStringLiteral("assets"));
+        AssetStore store(root, 1024);
+        const auto stored = store.put(QByteArrayLiteral("retained-private-object"));
+        QVERIFY(stored.has_value());
+        const auto before_entries =
+            QDir(store.objectsDirectory()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot);
+        QVERIFY(chmodExact(store.objectsDirectory(), 0755));
+        const auto rejected_objects = store.put(QByteArrayLiteral("must-not-publish"));
+        QVERIFY(!rejected_objects.has_value());
+        QCOMPARE(rejected_objects.error().code, AssetStoreErrorCode::InvalidConfiguration);
+        QCOMPARE(exactMode(store.objectsDirectory()), static_cast<mode_t>(0755));
+        QCOMPARE(QDir(store.objectsDirectory()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot),
+                 before_entries);
+        QVERIFY(chmodExact(store.objectsDirectory(), 0700));
+        QVERIFY(chmodExact(root, 0755));
+        const auto rejected_root = store.read(stored->sha256);
+        QVERIFY(!rejected_root.has_value());
+        QCOMPARE(rejected_root.error().code, AssetStoreErrorCode::InvalidConfiguration);
+        QCOMPARE(exactMode(root), static_cast<mode_t>(0755));
+        QVERIFY(chmodExact(root, 0700));
+    }
+#endif
+}
+
+void AssetStoreTest::rejectsFifoObjectWithoutBlocking() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("FIFO rejection is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto root = QDir(controller.path()).filePath(QStringLiteral("assets"));
+    AssetStore store(root, 1024);
+    QVERIFY(store.put(QByteArrayLiteral("seed-object")).has_value());
+    const auto fifo_digest = QString(64, QLatin1Char('a'));
+    const auto fifo_path = QDir(store.objectsDirectory()).filePath(fifo_digest);
+    QVERIFY(::mkfifo(QFile::encodeName(fifo_path).constData(), 0600) == 0);
+    QVERIFY(chmodExact(fifo_path, 0600));
+
+    QElapsedTimer elapsed;
+    elapsed.start();
+    const auto rejected = store.read(fifo_digest);
+    QVERIFY(!rejected.has_value());
+    QVERIFY2(elapsed.elapsed() < 1'000, "FIFO validation blocked unexpectedly");
+    QCOMPARE(rejected.error().code, AssetStoreErrorCode::CorruptObject);
+    QCOMPARE(exactMode(fifo_path), static_cast<mode_t>(0600));
 #endif
 }
 

@@ -3,12 +3,14 @@ qt_add_library(
     src/asset_store.cpp
     src/event_codec.cpp
     src/oral_argument_codec.cpp
+    src/private_state.cpp
     src/session_archive.cpp
     src/sqlite_session_store.cpp
     src/workflow_codec.cpp
     include/appellate/storage/asset_store.hpp
     include/appellate/storage/event_codec.hpp
     include/appellate/storage/oral_argument_codec.hpp
+    include/appellate/storage/detail/private_state.hpp
     include/appellate/storage/session_archive.hpp
     include/appellate/storage/session_store.hpp
     include/appellate/storage/workflow_codec.hpp

@@ -1,5 +1,6 @@
-#include "appellate/storage/session_store.hpp"
 #include "appellate/storage/asset_store.hpp"
+#include "appellate/storage/detail/private_state.hpp"
+#include "appellate/storage/session_store.hpp"
 #include "strict_json_scan.hpp"
 
 #include <QDateTime>
@@ -35,6 +36,7 @@
 #include <fcntl.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
 #elif defined(Q_OS_WIN)
@@ -701,6 +703,11 @@ struct CooperativeDatabaseLock final {
 
 QMutex cooperative_lock_registry_mutex;
 QHash<QString, std::weak_ptr<CooperativeDatabaseLock>> cooperative_lock_registry;
+
+[[nodiscard]] bool sameOwnedRegularFileBinding(int descriptor, int parent_descriptor,
+                                               const QByteArray& name);
+[[nodiscard]] bool quarantineFreshRegularFile(int descriptor, int parent_descriptor,
+                                              const QByteArray& name);
 #endif
 
 struct DatabasePreflight final {
@@ -729,6 +736,24 @@ struct DatabasePreflight final {
         }
     };
 
+    struct FreshFile final {
+        QByteArray name;
+        int descriptor{-1};
+
+        FreshFile(QByteArray value, int retained_descriptor)
+            : name(std::move(value)), descriptor(retained_descriptor) {}
+        FreshFile(const FreshFile&) = delete;
+        FreshFile& operator=(const FreshFile&) = delete;
+        FreshFile(FreshFile&& other) noexcept
+            : name(std::move(other.name)), descriptor(std::exchange(other.descriptor, -1)) {}
+        FreshFile& operator=(FreshFile&&) = delete;
+        ~FreshFile() {
+            if (descriptor >= 0) {
+                static_cast<void>(::close(descriptor));
+            }
+        }
+    };
+
     int parent_descriptor{-1};
     int database_anchor_descriptor{-1};
     std::shared_ptr<CooperativeDatabaseLock> cooperative_lock;
@@ -738,6 +763,8 @@ struct DatabasePreflight final {
     std::optional<Identity> wal_identity;
     std::optional<Identity> shm_identity;
     std::optional<Identity> journal_identity;
+    std::vector<FreshFile> fresh_sidecars;
+    bool cleanup_fresh_files{true};
 #endif
 
     DatabasePreflight() = default;
@@ -749,24 +776,45 @@ struct DatabasePreflight final {
           private_snapshot_directory(std::move(other.private_snapshot_directory)),
           created_by_this_open(other.created_by_this_open)
 #if defined(Q_OS_UNIX)
-          , parent_descriptor(std::exchange(other.parent_descriptor, -1)),
+          ,
+          parent_descriptor(std::exchange(other.parent_descriptor, -1)),
           database_anchor_descriptor(std::exchange(other.database_anchor_descriptor, -1)),
           cooperative_lock(std::move(other.cooperative_lock)),
-          database_name(std::move(other.database_name)),
-          parent_identity(other.parent_identity), database_identity(other.database_identity),
-          wal_identity(other.wal_identity),
-          shm_identity(other.shm_identity), journal_identity(other.journal_identity)
+          database_name(std::move(other.database_name)), parent_identity(other.parent_identity),
+          database_identity(other.database_identity), wal_identity(other.wal_identity),
+          shm_identity(other.shm_identity), journal_identity(other.journal_identity),
+          fresh_sidecars(std::move(other.fresh_sidecars)),
+          cleanup_fresh_files(std::exchange(other.cleanup_fresh_files, false))
 #endif
     {}
     DatabasePreflight& operator=(DatabasePreflight&&) = delete;
     ~DatabasePreflight() {
 #if defined(Q_OS_UNIX)
+        if (cleanup_fresh_files && parent_descriptor >= 0) {
+            for (auto sidecar = fresh_sidecars.rbegin(); sidecar != fresh_sidecars.rend();
+                 ++sidecar) {
+                static_cast<void>(quarantineFreshRegularFile(sidecar->descriptor, parent_descriptor,
+                                                             sidecar->name));
+            }
+            if (created_by_this_open) {
+                static_cast<void>(quarantineFreshRegularFile(database_anchor_descriptor,
+                                                             parent_descriptor, database_name));
+            }
+            static_cast<void>(::fsync(parent_descriptor));
+        }
         if (parent_descriptor >= 0) {
             static_cast<void>(::close(parent_descriptor));
         }
         if (database_anchor_descriptor >= 0) {
             static_cast<void>(::close(database_anchor_descriptor));
         }
+#endif
+    }
+
+    void acceptFreshFiles() {
+#if defined(Q_OS_UNIX)
+        cleanup_fresh_files = false;
+        fresh_sidecars.clear();
 #endif
     }
 };
@@ -797,66 +845,331 @@ struct SessionStoreLifetimeLease final {
 
 [[nodiscard]] auto openAbsoluteDirectoryNoFollow(const QString& absolute_path)
     -> std::expected<int, StoreError> {
-    if (!QDir::isAbsolutePath(absolute_path) || absolute_path.contains(QChar::Null)) {
-        return fail(StoreErrorCode::OpenFailed,
-                    QStringLiteral("Database parent path must be absolute and NUL-free"));
+    const auto descriptor = detail::openPrivateStateController(absolute_path);
+    return descriptor ? std::expected<int, StoreError>{*descriptor}
+                      : fail(StoreErrorCode::OpenFailed, descriptor.error());
+}
+
+[[nodiscard]] bool sameOwnedRegularFileBinding(int descriptor, int parent_descriptor,
+                                               const QByteArray& name) {
+    struct stat held{};
+    struct stat named{};
+    return descriptor >= 0 && ::fstat(descriptor, &held) == 0 &&
+           ::fstatat(parent_descriptor, name.constData(), &named, AT_SYMLINK_NOFOLLOW) == 0 &&
+           S_ISREG(held.st_mode) && S_ISREG(named.st_mode) && held.st_dev == named.st_dev &&
+           held.st_ino == named.st_ino && held.st_uid == ::geteuid() &&
+           named.st_uid == ::geteuid() && held.st_nlink == 1 && named.st_nlink == 1;
+}
+
+[[nodiscard]] int renameNoReplace(int parent_descriptor, const QByteArray& source_name,
+                                  const QByteArray& destination_name) {
+#if defined(Q_OS_LINUX) && defined(SYS_renameat2)
+    int result{};
+    do {
+        result =
+            static_cast<int>(::syscall(SYS_renameat2, parent_descriptor, source_name.constData(),
+                                       parent_descriptor, destination_name.constData(), 1U));
+    } while (result != 0 && errno == EINTR);
+    return result;
+#else
+    Q_UNUSED(parent_descriptor);
+    Q_UNUSED(source_name);
+    Q_UNUSED(destination_name);
+    errno = ENOTSUP;
+    return -1;
+#endif
+}
+
+[[nodiscard]] bool quarantineFreshRegularFile(int descriptor, int parent_descriptor,
+                                              const QByteArray& name) {
+    if (!sameOwnedRegularFileBinding(descriptor, parent_descriptor, name)) {
+        return false;
     }
-    auto flags = O_RDONLY | O_DIRECTORY | O_NOFOLLOW;
+    const auto quarantine_name = QByteArrayLiteral(".appellate-quarantine-") +
+                                 QUuid::createUuid().toByteArray(QUuid::Id128) +
+                                 QByteArrayLiteral(".tmp");
+    // Never unlink or roll back this detach: either the retained fresh inode or a same-UID raced
+    // replacement remains preserved under the reserved tombstone name.
+    if (renameNoReplace(parent_descriptor, name, quarantine_name) == 0) {
+        int synced{};
+        do {
+            synced = ::fsync(parent_descriptor);
+        } while (synced != 0 && errno == EINTR);
+        return synced == 0;
+    }
+    return false;
+}
+
+constexpr QByteArrayView database_initialization_payload("appellate-session-initializing-v1\n");
+
+[[nodiscard]] QByteArray databaseInitializationMarkerName(const QByteArray& database_name) {
+    return QByteArrayLiteral(".") + database_name + QByteArrayLiteral(".appellate-initializing");
+}
+
+[[nodiscard]] auto validateDatabaseInitializationMarker(int descriptor, int parent_descriptor,
+                                                        const QByteArray& marker_name)
+    -> std::expected<void, StoreError> {
+    if (const auto private_file =
+            detail::validatePrivateStateFileBinding(descriptor, parent_descriptor, marker_name);
+        !private_file) {
+        return fail(StoreErrorCode::OpenFailed,
+                    QStringLiteral("Database initialization marker is unsafe: %1")
+                        .arg(private_file.error()));
+    }
+    struct stat status{};
+    if (::fstat(descriptor, &status) != 0 ||
+        status.st_size != database_initialization_payload.size()) {
+        return fail(StoreErrorCode::OpenFailed,
+                    QStringLiteral("Database initialization marker is malformed"));
+    }
+    QByteArray marker(database_initialization_payload.size(), Qt::Uninitialized);
+    qsizetype offset{};
+    while (offset < marker.size()) {
+        ssize_t count{};
+        do {
+            count = ::pread(descriptor, marker.data() + offset,
+                            static_cast<std::size_t>(marker.size() - offset), offset);
+        } while (count < 0 && errno == EINTR);
+        if (count <= 0) {
+            return fail(StoreErrorCode::OpenFailed,
+                        QStringLiteral("Database initialization marker is incomplete"));
+        }
+        offset += count;
+    }
+    if (marker != database_initialization_payload) {
+        return fail(StoreErrorCode::OpenFailed,
+                    QStringLiteral("Database initialization marker is malformed"));
+    }
+    return {};
+}
+
+[[nodiscard]] auto openDatabaseInitializationMarker(int parent_descriptor,
+                                                    const QByteArray& database_name)
+    -> std::expected<std::optional<int>, StoreError> {
+    const auto marker_name = databaseInitializationMarkerName(database_name);
+    auto flags = O_RDONLY | O_NOFOLLOW | O_NONBLOCK;
 #ifdef O_CLOEXEC
     flags |= O_CLOEXEC;
 #endif
-    auto descriptor = ::open("/", flags);
+    const auto descriptor = ::openat(parent_descriptor, marker_name.constData(), flags);
+    if (descriptor < 0 && errno == ENOENT) {
+        return std::optional<int>{};
+    }
     if (descriptor < 0) {
-        return fail(StoreErrorCode::OpenFailed, systemError(u"Anchor filesystem root"));
+        return fail(StoreErrorCode::OpenFailed,
+                    systemError(u"Open database initialization marker"));
     }
-    const auto components = QDir::cleanPath(absolute_path).split(u'/', Qt::SkipEmptyParts);
-    for (const auto& component : components) {
-        if (component == QStringLiteral(".") || component == QStringLiteral("..") ||
-            component.contains(QChar::Null)) {
-            static_cast<void>(::close(descriptor));
-            return fail(StoreErrorCode::OpenFailed,
-                        QStringLiteral("Database parent contains an unsafe path component"));
-        }
-        const auto encoded = QFile::encodeName(component);
-        const auto child = ::openat(descriptor, encoded.constData(), flags);
-        const auto saved_errno = errno;
+    if (const auto validated =
+            validateDatabaseInitializationMarker(descriptor, parent_descriptor, marker_name);
+        !validated) {
         static_cast<void>(::close(descriptor));
-        if (child < 0) {
-            errno = saved_errno;
-            return fail(StoreErrorCode::OpenFailed,
-                        systemError(u"Anchor database parent component"));
-        }
-        descriptor = child;
+        return std::unexpected(validated.error());
     }
-    return descriptor;
+    return std::optional<int>{descriptor};
+}
+
+[[nodiscard]] auto publishDatabaseInitializationMarker(int parent_descriptor,
+                                                       const QByteArray& database_name)
+    -> std::expected<void, StoreError> {
+    const auto existing = openDatabaseInitializationMarker(parent_descriptor, database_name);
+    if (!existing) {
+        return std::unexpected(existing.error());
+    }
+    if (existing->has_value()) {
+        static_cast<void>(::close(**existing));
+        return {};
+    }
+#if !defined(O_TMPFILE) || !defined(AT_EMPTY_PATH)
+    return fail(StoreErrorCode::OpenFailed,
+                QStringLiteral("Atomic database initialization markers are unavailable"));
+#else
+    auto flags = O_TMPFILE | O_RDWR;
+#ifdef O_CLOEXEC
+    flags |= O_CLOEXEC;
+#endif
+    const auto descriptor = ::openat(parent_descriptor, ".", flags, 0600);
+    if (descriptor < 0) {
+        return fail(StoreErrorCode::OpenFailed,
+                    systemError(u"Create database initialization marker"));
+    }
+    if (const auto normalized = detail::normalizeNewPrivateStateFile(descriptor, 0); !normalized) {
+        static_cast<void>(::close(descriptor));
+        return fail(StoreErrorCode::OpenFailed, normalized.error());
+    }
+    qsizetype offset{};
+    while (offset < database_initialization_payload.size()) {
+        ssize_t count{};
+        do {
+            count = ::pwrite(
+                descriptor, database_initialization_payload.data() + offset,
+                static_cast<std::size_t>(database_initialization_payload.size() - offset), offset);
+        } while (count < 0 && errno == EINTR);
+        if (count <= 0) {
+            const auto message = systemError(u"Write database initialization marker");
+            static_cast<void>(::close(descriptor));
+            return fail(StoreErrorCode::OpenFailed, message);
+        }
+        offset += count;
+    }
+    if (::fsync(descriptor) != 0) {
+        const auto message = systemError(u"Flush database initialization marker");
+        static_cast<void>(::close(descriptor));
+        return fail(StoreErrorCode::OpenFailed, message);
+    }
+    const auto marker_name = databaseInitializationMarkerName(database_name);
+    if (::linkat(descriptor, "", parent_descriptor, marker_name.constData(), AT_EMPTY_PATH) != 0) {
+        const auto link_errno = errno;
+        static_cast<void>(::close(descriptor));
+        if (link_errno == EEXIST) {
+            const auto raced = openDatabaseInitializationMarker(parent_descriptor, database_name);
+            if (!raced || !raced->has_value()) {
+                return raced ? fail(StoreErrorCode::OpenFailed,
+                                    QStringLiteral("Database initialization marker race is unsafe"))
+                             : std::unexpected(raced.error());
+            }
+            static_cast<void>(::close(**raced));
+            return {};
+        }
+        errno = link_errno;
+        return fail(StoreErrorCode::OpenFailed,
+                    systemError(u"Publish database initialization marker"));
+    }
+    const auto validated =
+        validateDatabaseInitializationMarker(descriptor, parent_descriptor, marker_name);
+    static_cast<void>(::close(descriptor));
+    if (!validated) {
+        return std::unexpected(validated.error());
+    }
+    if (::fsync(parent_descriptor) != 0) {
+        return fail(StoreErrorCode::OpenFailed,
+                    systemError(u"Flush published database initialization marker"));
+    }
+    return {};
+#endif
+}
+
+[[nodiscard]] auto clearDatabaseInitializationMarker(int parent_descriptor,
+                                                     const QByteArray& database_name)
+    -> std::expected<void, StoreError> {
+    const auto marker = openDatabaseInitializationMarker(parent_descriptor, database_name);
+    if (!marker) {
+        return std::unexpected(marker.error());
+    }
+    if (!marker->has_value()) {
+        return {};
+    }
+    const auto marker_name = databaseInitializationMarkerName(database_name);
+    const auto quarantined = quarantineFreshRegularFile(**marker, parent_descriptor, marker_name);
+    static_cast<void>(::close(**marker));
+    if (!quarantined) {
+        return fail(StoreErrorCode::OpenFailed,
+                    QStringLiteral("Cannot retire database initialization marker"));
+    }
+    return {};
+}
+
+[[nodiscard]] auto recoverInterruptedDatabaseInitialization(DatabasePreflight& preflight)
+    -> std::expected<bool, StoreError> {
+    if (!preflight.cooperative_lock || preflight.cooperative_lock->descriptor < 0) {
+        return false;
+    }
+    const auto marker =
+        openDatabaseInitializationMarker(preflight.parent_descriptor, preflight.database_name);
+    if (!marker) {
+        return std::unexpected(marker.error());
+    }
+    if (!marker->has_value()) {
+        return false;
+    }
+    static_cast<void>(::close(**marker));
+    for (const auto& name : {
+             preflight.database_name + QByteArrayLiteral("-journal"),
+             preflight.database_name + QByteArrayLiteral("-wal"),
+             preflight.database_name + QByteArrayLiteral("-shm"),
+             preflight.database_name,
+         }) {
+        auto flags = O_RDONLY | O_NOFOLLOW | O_NONBLOCK;
+#ifdef O_CLOEXEC
+        flags |= O_CLOEXEC;
+#endif
+        const auto descriptor = ::openat(preflight.parent_descriptor, name.constData(), flags);
+        if (descriptor < 0 && errno == ENOENT) {
+            continue;
+        }
+        if (descriptor < 0 ||
+            !sameOwnedRegularFileBinding(descriptor, preflight.parent_descriptor, name)) {
+            if (descriptor >= 0) {
+                static_cast<void>(::close(descriptor));
+            }
+            return fail(StoreErrorCode::OpenFailed,
+                        QStringLiteral("Interrupted database initialization residue is unsafe"));
+        }
+        const auto quarantined =
+            quarantineFreshRegularFile(descriptor, preflight.parent_descriptor, name);
+        static_cast<void>(::close(descriptor));
+        if (!quarantined) {
+            return fail(StoreErrorCode::OpenFailed,
+                        QStringLiteral("Cannot quarantine interrupted database initialization"));
+        }
+    }
+    if (::fsync(preflight.parent_descriptor) != 0) {
+        return fail(StoreErrorCode::OpenFailed,
+                    systemError(u"Flush interrupted database initialization recovery"));
+    }
+    if (const auto cleared =
+            clearDatabaseInitializationMarker(preflight.parent_descriptor, preflight.database_name);
+        !cleared) {
+        return std::unexpected(cleared.error());
+    }
+    return true;
 }
 
 [[nodiscard]] auto identityAt(int parent_descriptor, const QByteArray& name)
     -> std::expected<std::optional<DatabasePreflight::Identity>, StoreError> {
-    struct stat status {};
-    if (::fstatat(parent_descriptor, name.constData(), &status, AT_SYMLINK_NOFOLLOW) != 0) {
+    auto flags = O_RDONLY | O_NOFOLLOW | O_NONBLOCK;
+#ifdef O_CLOEXEC
+    flags |= O_CLOEXEC;
+#endif
+    const auto descriptor = ::openat(parent_descriptor, name.constData(), flags);
+    if (descriptor < 0) {
         if (errno == ENOENT) {
             return std::optional<DatabasePreflight::Identity>{};
         }
         return fail(StoreErrorCode::OpenFailed, systemError(u"Inspect database file"));
     }
-    if (!S_ISREG(status.st_mode) || status.st_nlink != 1) {
+    if (const auto private_file =
+            detail::validatePrivateStateFileBinding(descriptor, parent_descriptor, name);
+        !private_file) {
+        static_cast<void>(::close(descriptor));
         return fail(StoreErrorCode::OpenFailed,
-                    QStringLiteral(
-                        "Database and sidecar paths must be single-link regular no-follow files"));
+                    QStringLiteral("Database or sidecar permissions are unsafe: %1")
+                        .arg(private_file.error()));
     }
+    struct stat status{};
+    if (::fstat(descriptor, &status) != 0) {
+        const auto message = systemError(u"Inspect private database file");
+        static_cast<void>(::close(descriptor));
+        return fail(StoreErrorCode::OpenFailed, message);
+    }
+    static_cast<void>(::close(descriptor));
     return std::optional<DatabasePreflight::Identity>{identityFromStat(status)};
 }
 
 [[nodiscard]] auto openAnchoredFile(int parent_descriptor, const QByteArray& name)
     -> std::expected<int, StoreError> {
-    auto flags = O_RDONLY | O_NOFOLLOW;
+    auto flags = O_RDONLY | O_NOFOLLOW | O_NONBLOCK;
 #ifdef O_CLOEXEC
     flags |= O_CLOEXEC;
 #endif
     const auto descriptor = ::openat(parent_descriptor, name.constData(), flags);
     if (descriptor < 0) {
         return fail(StoreErrorCode::OpenFailed, systemError(u"Open database snapshot source"));
+    }
+    if (const auto private_file =
+            detail::validatePrivateStateFileBinding(descriptor, parent_descriptor, name);
+        !private_file) {
+        static_cast<void>(::close(descriptor));
+        return fail(StoreErrorCode::OpenFailed, private_file.error());
     }
     return descriptor;
 }
@@ -872,24 +1185,85 @@ struct SessionStoreLifetimeLease final {
                     QStringLiteral("Session state is already open in this process"));
     }
     const auto lock_name = QByteArray(".") + database_name + QByteArray(".appellate-open.lock");
-    auto flags = O_CREAT | O_RDWR | O_NOFOLLOW;
+    auto flags = O_RDWR | O_NOFOLLOW | O_NONBLOCK;
 #ifdef O_CLOEXEC
     flags |= O_CLOEXEC;
 #endif
-    const auto descriptor = ::openat(parent_descriptor, lock_name.constData(), flags, 0600);
+    auto descriptor = ::openat(parent_descriptor, lock_name.constData(), flags);
+    if (descriptor < 0 && errno == ENOENT) {
+#if defined(Q_OS_LINUX) && defined(O_TMPFILE) && defined(AT_EMPTY_PATH)
+        auto temporary_flags = O_TMPFILE | O_RDWR | O_NONBLOCK;
+#ifdef O_CLOEXEC
+        temporary_flags |= O_CLOEXEC;
+#endif
+        descriptor = ::openat(parent_descriptor, ".", temporary_flags, 0600);
+        if (descriptor < 0) {
+            return fail(StoreErrorCode::OpenFailed,
+                        systemError(u"Create staged database preflight lock"));
+        }
+        if (const auto private_file = detail::normalizeNewPrivateStateFile(descriptor, 0);
+            !private_file) {
+            static_cast<void>(::close(descriptor));
+            return fail(StoreErrorCode::OpenFailed, private_file.error());
+        }
+        int synced{};
+        do {
+            synced = ::fsync(descriptor);
+        } while (synced != 0 && errno == EINTR);
+        if (synced != 0) {
+            const auto message = systemError(u"Flush staged database preflight lock");
+            static_cast<void>(::close(descriptor));
+            return fail(StoreErrorCode::OpenFailed, message);
+        }
+        int linked{};
+        do {
+            linked =
+                ::linkat(descriptor, "", parent_descriptor, lock_name.constData(), AT_EMPTY_PATH);
+        } while (linked != 0 && errno == EINTR);
+        if (linked == 0) {
+            do {
+                synced = ::fsync(parent_descriptor);
+            } while (synced != 0 && errno == EINTR);
+            if (synced != 0) {
+                const auto message = systemError(u"Flush published database preflight lock");
+                static_cast<void>(::close(descriptor));
+                return fail(StoreErrorCode::OpenFailed, message);
+            }
+        } else {
+            const auto link_errno = errno;
+            static_cast<void>(::close(descriptor));
+            if (link_errno != EEXIST) {
+                errno = link_errno;
+                return fail(StoreErrorCode::OpenFailed,
+                            systemError(u"Publish database preflight lock"));
+            }
+            descriptor = ::openat(parent_descriptor, lock_name.constData(), flags);
+        }
+#else
+        return fail(StoreErrorCode::OpenFailed,
+                    QStringLiteral("Atomic database preflight locks are unavailable"));
+#endif
+    }
     if (descriptor < 0) {
         return fail(StoreErrorCode::OpenFailed,
                     systemError(u"Open database preflight lock"));
     }
-    struct stat status {};
-    if (::fstat(descriptor, &status) != 0 || !S_ISREG(status.st_mode) ||
-        status.st_nlink != 1) {
+    const auto private_file = detail::validatePrivateStateFileDescriptor(descriptor, 1);
+    if (!private_file ||
+        !detail::validatePrivateStateFileBinding(descriptor, parent_descriptor, lock_name)) {
         static_cast<void>(::close(descriptor));
         return fail(StoreErrorCode::OpenFailed,
-                    QStringLiteral("Database preflight lock is not a regular file"));
+                    private_file ? QStringLiteral("Database preflight lock binding is unsafe")
+                                 : private_file.error());
     }
-    if (::flock(descriptor, LOCK_EX | LOCK_NB) != 0) {
+    int flock_result{};
+    do {
+        flock_result = ::flock(descriptor, LOCK_EX | LOCK_NB);
+    } while (flock_result != 0 && errno == EINTR);
+    if (flock_result != 0) {
         const auto lock_errno = errno;
+        // Once published, even a lock created by this attempt may have been opened or acquired by
+        // another process. No flock-failure branch may detach that process's coordination name.
         static_cast<void>(::close(descriptor));
         if (lock_errno == EACCES || lock_errno == EAGAIN) {
             return fail(StoreErrorCode::StateInUse,
@@ -899,6 +1273,15 @@ struct SessionStoreLifetimeLease final {
         errno = lock_errno;
         return fail(StoreErrorCode::OpenFailed,
                     systemError(u"Acquire database preflight lock"));
+    }
+    if (const auto private_lock =
+            detail::validatePrivateStateFileBinding(descriptor, parent_descriptor, lock_name);
+        !private_lock) {
+        static_cast<void>(::flock(descriptor, LOCK_UN));
+        static_cast<void>(::close(descriptor));
+        return fail(StoreErrorCode::OpenFailed,
+                    QStringLiteral("Database preflight lock changed while acquiring it: %1")
+                        .arg(private_lock.error()));
     }
     struct stat locked_status {};
     struct stat named_status {};
@@ -983,8 +1366,62 @@ struct SessionStoreLifetimeLease final {
     return identityFromStat(status);
 }
 
+[[nodiscard]] auto reserveFreshSidecar(DatabasePreflight& preflight, QByteArrayView suffix,
+                                       std::optional<DatabasePreflight::Identity>& identity)
+    -> std::expected<void, StoreError> {
+    if (identity.has_value()) {
+        return {};
+    }
+    const auto name = preflight.database_name + suffix;
+    auto flags = O_CREAT | O_EXCL | O_RDWR | O_NOFOLLOW | O_NONBLOCK;
+#ifdef O_CLOEXEC
+    flags |= O_CLOEXEC;
+#endif
+    const auto descriptor = ::openat(preflight.parent_descriptor, name.constData(), flags, 0600);
+    if (descriptor < 0) {
+        return fail(StoreErrorCode::OpenFailed, systemError(u"Reserve private SQLite sidecar"));
+    }
+    preflight.fresh_sidecars.emplace_back(name, descriptor);
+    if (const auto private_file = detail::normalizeNewPrivateStateFile(descriptor, 1);
+        !private_file) {
+        return fail(StoreErrorCode::OpenFailed, private_file.error());
+    }
+    if (const auto bound =
+            detail::validatePrivateStateFileBinding(descriptor, preflight.parent_descriptor, name);
+        !bound) {
+        return fail(StoreErrorCode::OpenFailed, bound.error());
+    }
+    const auto reserved_identity = descriptorIdentity(descriptor);
+    if (!reserved_identity) {
+        return std::unexpected(reserved_identity.error());
+    }
+    identity = *reserved_identity;
+    return {};
+}
+
+[[nodiscard]] auto reserveFreshSidecars(DatabasePreflight& preflight)
+    -> std::expected<void, StoreError> {
+    for (auto reservation : {
+             std::pair{QByteArrayView("-journal"), &preflight.journal_identity},
+             std::pair{QByteArrayView("-wal"), &preflight.wal_identity},
+             std::pair{QByteArrayView("-shm"), &preflight.shm_identity},
+         }) {
+        if (const auto reserved =
+                reserveFreshSidecar(preflight, reservation.first, *reservation.second);
+            !reserved) {
+            return reserved;
+        }
+    }
+    return {};
+}
+
 [[nodiscard]] auto revalidatePreflight(const DatabasePreflight& preflight)
     -> std::expected<void, StoreError> {
+    if (const auto private_parent =
+            detail::validatePrivateStateControllerDescriptor(preflight.parent_descriptor);
+        !private_parent) {
+        return fail(StoreErrorCode::OpenFailed, private_parent.error());
+    }
     const auto current_parent = descriptorIdentity(preflight.parent_descriptor);
     if (!current_parent || current_parent->device != preflight.parent_identity.device ||
         current_parent->inode != preflight.parent_identity.inode) {
@@ -1018,6 +1455,11 @@ struct SessionStoreLifetimeLease final {
 
 [[nodiscard]] auto revalidateOpenedDatabaseIdentity(const DatabasePreflight& preflight)
     -> std::expected<void, StoreError> {
+    if (const auto private_parent =
+            detail::validatePrivateStateControllerDescriptor(preflight.parent_descriptor);
+        !private_parent) {
+        return fail(StoreErrorCode::OpenFailed, private_parent.error());
+    }
     const auto current_parent = descriptorIdentity(preflight.parent_descriptor);
     if (!current_parent || current_parent->device != preflight.parent_identity.device ||
         current_parent->inode != preflight.parent_identity.inode) {
@@ -1038,19 +1480,49 @@ struct SessionStoreLifetimeLease final {
     return {};
 }
 
+[[nodiscard]] auto validateFreshSidecarsAfterOpen(const DatabasePreflight& preflight)
+    -> std::expected<void, StoreError> {
+    for (const auto& sidecar : preflight.fresh_sidecars) {
+        const auto current = identityAt(preflight.parent_descriptor, sidecar.name);
+        if (!current) {
+            return std::unexpected(current.error());
+        }
+        if (current->has_value() &&
+            !detail::validatePrivateStateFileBinding(sidecar.descriptor,
+                                                     preflight.parent_descriptor, sidecar.name)) {
+            return fail(StoreErrorCode::OpenFailed,
+                        QStringLiteral("SQLite replaced a sidecar reserved by this open attempt"));
+        }
+    }
+    return {};
+}
+
 [[nodiscard]] auto revalidateLifetimeLease(const DatabasePreflight& preflight)
     -> std::expected<void, StoreError> {
     if (!preflight.cooperative_lock || preflight.parent_descriptor < 0 ||
-        preflight.database_anchor_descriptor < 0 ||
+        preflight.database_anchor_descriptor < 0 || preflight.cooperative_lock->descriptor < 0 ||
         !preflight.database_identity.has_value()) {
         return fail(StoreErrorCode::OpenFailed,
                     QStringLiteral("SessionStore lifetime lease is incomplete"));
+    }
+    if (const auto private_parent =
+            detail::validatePrivateStateControllerDescriptor(preflight.parent_descriptor);
+        !private_parent) {
+        return fail(StoreErrorCode::OpenFailed, private_parent.error());
     }
     const auto current_parent = descriptorIdentity(preflight.parent_descriptor);
     if (!current_parent || current_parent->device != preflight.parent_identity.device ||
         current_parent->inode != preflight.parent_identity.inode) {
         return fail(StoreErrorCode::OpenFailed,
                     QStringLiteral("Anchored database parent changed during owner lifetime"));
+    }
+    const auto lock_name =
+        QByteArray(".") + preflight.database_name + QByteArray(".appellate-open.lock");
+    if (const auto private_lock = detail::validatePrivateStateFileBinding(
+            preflight.cooperative_lock->descriptor, preflight.parent_descriptor, lock_name);
+        !private_lock) {
+        return fail(StoreErrorCode::OpenFailed,
+                    QStringLiteral("Database lifetime lock changed: %1").arg(private_lock.error()));
     }
     struct stat anchored_main {};
     if (::fstat(preflight.database_anchor_descriptor, &anchored_main) != 0 ||
@@ -1152,19 +1624,24 @@ struct SessionStoreLifetimeLease final {
     }
     const auto existing_lock_name =
         QByteArray(".") + preflight.database_name + QByteArray(".appellate-open.lock");
-    struct stat existing_lock_status {};
-    const auto existing_lock =
-        ::fstatat(preflight.parent_descriptor, existing_lock_name.constData(),
-                  &existing_lock_status, AT_SYMLINK_NOFOLLOW) == 0;
-    if (!existing_lock && errno != ENOENT) {
-        return fail(StoreErrorCode::OpenFailed,
-                    systemError(u"Inspect database cooperative lock"));
+    const auto existing_lock_identity = identityAt(preflight.parent_descriptor, existing_lock_name);
+    if (!existing_lock_identity) {
+        return std::unexpected(existing_lock_identity.error());
     }
-    if (existing_lock &&
-        (!S_ISREG(existing_lock_status.st_mode) || existing_lock_status.st_nlink != 1)) {
-        return fail(StoreErrorCode::OpenFailed,
-                    QStringLiteral(
-                        "Database cooperative lock is not a single-link regular file"));
+    const auto existing_lock = existing_lock_identity->has_value();
+    const auto initialization_marker =
+        openDatabaseInitializationMarker(preflight.parent_descriptor, preflight.database_name);
+    if (!initialization_marker) {
+        return std::unexpected(initialization_marker.error());
+    }
+    const auto interrupted_initialization = initialization_marker->has_value();
+    if (interrupted_initialization) {
+        static_cast<void>(::close(**initialization_marker));
+    }
+    if (interrupted_initialization && !acquire_cooperative_lock) {
+        return fail(
+            StoreErrorCode::OpenFailed,
+            QStringLiteral("Interrupted database initialization requires an exclusive owner"));
     }
     if (acquire_cooperative_lock && existing_lock && !preflight.cooperative_lock) {
         const auto cooperative_lock = acquireDatabaseOpenLock(
@@ -1173,6 +1650,25 @@ struct SessionStoreLifetimeLease final {
             return std::unexpected(cooperative_lock.error());
         }
         preflight.cooperative_lock = *cooperative_lock;
+    }
+    if (acquire_cooperative_lock && interrupted_initialization && !preflight.cooperative_lock) {
+        const auto cooperative_lock = acquireDatabaseOpenLock(
+            preflight.parent_descriptor, preflight.database_name, preflight.original_path);
+        if (!cooperative_lock) {
+            return std::unexpected(cooperative_lock.error());
+        }
+        preflight.cooperative_lock = *cooperative_lock;
+    }
+    if (acquire_cooperative_lock && preflight.cooperative_lock) {
+        const auto recovered = recoverInterruptedDatabaseInitialization(preflight);
+        if (!recovered) {
+            return std::unexpected(recovered.error());
+        }
+        if (*recovered) {
+            return preflightExistingDatabase(path, full_integrity, require_standalone,
+                                             acquire_cooperative_lock,
+                                             std::move(preflight.cooperative_lock));
+        }
     }
     const auto initial_database =
         identityAt(preflight.parent_descriptor, preflight.database_name);
@@ -1194,6 +1690,31 @@ struct SessionStoreLifetimeLease final {
     preflight.wal_identity = *initial_wal;
     preflight.shm_identity = *initial_shm;
     preflight.journal_identity = *initial_journal;
+
+    const auto transient_fresh_state =
+        (preflight.database_identity.has_value() && preflight.database_identity->size == 0) ||
+        ((!preflight.database_identity.has_value() || preflight.database_identity->size == 0) &&
+         (preflight.wal_identity.has_value() || preflight.shm_identity.has_value() ||
+          preflight.journal_identity.has_value()));
+    if (acquire_cooperative_lock && !preflight.cooperative_lock && transient_fresh_state) {
+        // A fresh winner may have created its lock just after our first lock inspection and then
+        // reserved the zero-byte main/sidecars we observed. Recheck without creating anything;
+        // if the lock appeared, either report its active owner or restart validation while holding
+        // it. This keeps a concurrent first open bounded without weakening corrupt-file rejection.
+        const auto raced_lock = identityAt(preflight.parent_descriptor, existing_lock_name);
+        if (!raced_lock) {
+            return std::unexpected(raced_lock.error());
+        }
+        if (raced_lock->has_value()) {
+            const auto cooperative_lock = acquireDatabaseOpenLock(
+                preflight.parent_descriptor, preflight.database_name, preflight.original_path);
+            if (!cooperative_lock) {
+                return std::unexpected(cooperative_lock.error());
+            }
+            return preflightExistingDatabase(path, full_integrity, require_standalone,
+                                             acquire_cooperative_lock, *cooperative_lock);
+        }
+    }
 
     if (preflight.database_identity.has_value() && preflight.database_identity->size == 0) {
         return fail(StoreErrorCode::MigrationFailed,
@@ -1378,6 +1899,17 @@ struct SessionStoreLifetimeLease final {
     }
 
     if (!preflight.database_identity.has_value()) {
+        if (acquire_cooperative_lock) {
+            if (!preflight.cooperative_lock) {
+                return fail(StoreErrorCode::OpenFailed,
+                            QStringLiteral("Fresh database initialization has no exclusive owner"));
+            }
+            if (const auto marker = publishDatabaseInitializationMarker(preflight.parent_descriptor,
+                                                                        preflight.database_name);
+                !marker) {
+                return std::unexpected(marker.error());
+            }
+        }
         auto flags = O_CREAT | O_EXCL | O_RDWR | O_NOFOLLOW;
 #ifdef O_CLOEXEC
         flags |= O_CLOEXEC;
@@ -1388,14 +1920,22 @@ struct SessionStoreLifetimeLease final {
             return fail(StoreErrorCode::OpenFailed,
                         systemError(u"Atomically reserve new session database"));
         }
+        preflight.database_anchor_descriptor = descriptor;
+        preflight.created_by_this_open = true;
+        if (const auto private_file = detail::normalizeNewPrivateStateFile(descriptor, 1);
+            !private_file) {
+            return fail(StoreErrorCode::OpenFailed, private_file.error());
+        }
+        if (const auto private_binding = detail::validatePrivateStateFileBinding(
+                descriptor, preflight.parent_descriptor, preflight.database_name);
+            !private_binding) {
+            return fail(StoreErrorCode::OpenFailed, private_binding.error());
+        }
         const auto created_identity = descriptorIdentity(descriptor);
         if (!created_identity) {
-            static_cast<void>(::close(descriptor));
             return std::unexpected(created_identity.error());
         }
         preflight.database_identity = *created_identity;
-        preflight.database_anchor_descriptor = descriptor;
-        preflight.created_by_this_open = true;
     } else {
         const auto anchored = openAnchoredFile(preflight.parent_descriptor,
                                                preflight.database_name);
@@ -1412,6 +1952,14 @@ struct SessionStoreLifetimeLease final {
     }
     if (const auto stable = revalidatePreflight(preflight); !stable) {
         return std::unexpected(stable.error());
+    }
+    if (acquire_cooperative_lock) {
+        if (const auto reserved = reserveFreshSidecars(preflight); !reserved) {
+            return std::unexpected(reserved.error());
+        }
+        if (const auto stable = revalidatePreflight(preflight); !stable) {
+            return std::unexpected(stable.error());
+        }
     }
 #if defined(Q_OS_LINUX)
     preflight.sqlite_path =
@@ -1706,12 +2254,29 @@ void SessionStore::closeConnection() {
 
 std::expected<std::unique_ptr<SessionStore>, StoreError>
 SessionStore::open(const QString& database_path) {
+    return open(database_path, {});
+}
+
+std::expected<std::unique_ptr<SessionStore>, StoreError>
+SessionStore::open(const QString& database_path, const detail::SessionStoreOpenHooks& hooks) {
     if (database_path.isEmpty()) {
         return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Database path is empty"));
     }
     auto preflight = preflightExistingDatabase(database_path);
     if (!preflight) {
         return std::unexpected(preflight.error());
+    }
+    if (hooks.after_private_preflight) {
+        try {
+            hooks.after_private_preflight(preflight->original_path);
+        } catch (...) {
+            return fail(StoreErrorCode::OpenFailed,
+                        QStringLiteral("Session database open hook failed"));
+        }
+    }
+    if (hooks.reject_after_private_preflight) {
+        return fail(StoreErrorCode::OpenFailed,
+                    QStringLiteral("Session database open was interrupted after preflight"));
     }
 
     auto store = std::unique_ptr<SessionStore>(new SessionStore(
@@ -1751,6 +2316,12 @@ SessionStore::open(const QString& database_path) {
     if (auto migrated = store->migrate(); !migrated) {
         return std::unexpected(migrated.error());
     }
+#if defined(Q_OS_UNIX)
+    if (const auto validated = validateFreshSidecarsAfterOpen(*preflight); !validated) {
+        store->closeConnection();
+        return std::unexpected(validated.error());
+    }
+#endif
     if (auto schema = validateApplicationSchema(store->database_, false); !schema) {
         return std::unexpected(schema.error());
     }
@@ -1758,9 +2329,17 @@ SessionStore::open(const QString& database_path) {
     if (const auto stable = revalidateLifetimeLease(*preflight); !stable) {
         return std::unexpected(stable.error());
     }
+    if (preflight->created_by_this_open) {
+        if (const auto retired = clearDatabaseInitializationMarker(preflight->parent_descriptor,
+                                                                   preflight->database_name);
+            !retired) {
+            return std::unexpected(retired.error());
+        }
+    }
 #endif
     preflight->private_snapshot_directory.reset();
     preflight->private_snapshot_path.clear();
+    preflight->acceptFreshFiles();
     store->lifetime_lease_ =
         std::make_shared<SessionStoreLifetimeLease>(std::move(*preflight));
     store->may_fork_ = true;
@@ -1808,9 +2387,28 @@ SessionStore::forkConnection() const {
         child->closeConnection();
         return std::unexpected(configured.error());
     }
+#if defined(Q_OS_UNIX)
+    if (const auto stable = revalidateLifetimeLease(lease->preflight); !stable) {
+        child->closeConnection();
+        return std::unexpected(stable.error());
+    }
+#endif
     child->lifetime_lease_ = lease;
     child->may_fork_ = false;
     return child;
+}
+
+std::expected<void, StoreError> SessionStore::validateActiveLease() const {
+    if (!database_.isOpen() || !lifetime_lease_) {
+        return fail(StoreErrorCode::OpenFailed,
+                    QStringLiteral("SessionStore has no active private-state lease"));
+    }
+#if defined(Q_OS_UNIX)
+    const auto lease = std::static_pointer_cast<SessionStoreLifetimeLease>(lifetime_lease_);
+    return revalidateLifetimeLease(lease->preflight);
+#else
+    return {};
+#endif
 }
 
 std::expected<void, StoreError> SessionStore::configure() {
@@ -1979,6 +2577,9 @@ std::expected<qint64, StoreError> SessionStore::append(const QString& session_id
 }
 
 std::expected<QString, StoreError> SessionStore::assetStoreIdentity() const {
+    if (const auto lease = validateActiveLease(); !lease) {
+        return std::unexpected(lease.error());
+    }
     QSqlQuery identity_query(database_);
     if (!identity_query.exec(QStringLiteral(
             "SELECT identity FROM store_identity WHERE singleton=1"))) {
@@ -2187,6 +2788,11 @@ std::expected<qint64, StoreError> SessionStore::appendWithStagedAsset(
 }
 
 std::expected<void, StoreError> SessionStore::recoverAssetStore(AssetStore& asset_store) {
+    return recoverAssetStore(asset_store, {});
+}
+
+std::expected<void, StoreError>
+SessionStore::recoverAssetStore(AssetStore& asset_store, const detail::AssetRecoveryHooks& hooks) {
     if (auto begun = beginImmediate(); !begun) {
         return begun;
     }
@@ -2235,7 +2841,7 @@ std::expected<void, StoreError> SessionStore::recoverAssetStore(AssetStore& asse
                         .arg(lock.error().message));
     }
     if (const auto recovered =
-            asset_store.recoverPairedObjects(*database_identity, *lock, digests);
+            asset_store.recoverPairedObjects(*database_identity, *lock, digests, &hooks);
         !recovered) {
         rollback();
         return fail(recovered.error().code == AssetStoreErrorCode::InvalidConfiguration
@@ -2249,6 +2855,9 @@ std::expected<void, StoreError> SessionStore::recoverAssetStore(AssetStore& asse
 
 std::expected<SessionSnapshot, StoreError>
 SessionStore::loadSession(const QString& session_id) const {
+    if (const auto lease = validateActiveLease(); !lease) {
+        return std::unexpected(lease.error());
+    }
     QSqlQuery session(database_);
     session.prepare(QStringLiteral(
         "SELECT engine_revision, authority_contract, sequence, created_at_utc FROM sessions "
@@ -2349,6 +2958,9 @@ SessionStore::loadSession(const QString& session_id) const {
 }
 
 std::expected<void, StoreError> SessionStore::backupTo(const QString& backup_path) const {
+    if (const auto lease = validateActiveLease(); !lease) {
+        return std::unexpected(lease.error());
+    }
     if (backup_path.isEmpty()) {
         return fail(StoreErrorCode::InvalidArgument, QStringLiteral("Backup path is empty"));
     }
@@ -2433,6 +3045,9 @@ std::expected<void, StoreError> SessionStore::backupTo(const QString& backup_pat
                     QStringLiteral("Cannot durably flush database backup"));
     }
     backup_file.close();
+    if (const auto lease = validateActiveLease(); !lease) {
+        return std::unexpected(lease.error());
+    }
     if (!QFile::rename(staged_path, absolute_backup)) {
         return fail(StoreErrorCode::BackupFailed,
                     QStringLiteral("Cannot atomically publish database backup"));
@@ -2552,6 +3167,9 @@ std::expected<void, StoreError> SessionStore::restoreBackup(const QString& backu
 }
 
 int SessionStore::schemaVersion() const {
+    if (const auto lease = validateActiveLease(); !lease) {
+        return -1;
+    }
     QSqlQuery query(database_);
     if (!query.exec(QStringLiteral("SELECT COALESCE(MAX(version), 0) FROM schema_migrations")) ||
         !query.next()) {
@@ -2561,13 +3179,28 @@ int SessionStore::schemaVersion() const {
 }
 
 std::expected<void, StoreError> SessionStore::beginImmediate() {
+    if (lifetime_lease_) {
+        if (const auto lease = validateActiveLease(); !lease) {
+            return lease;
+        }
+    }
     return execStatement(database_, QStringLiteral("BEGIN IMMEDIATE"), StoreErrorCode::QueryFailed,
                          QStringLiteral("begin transaction"));
 }
 
 std::expected<void, StoreError> SessionStore::commit() {
-    return execStatement(database_, QStringLiteral("COMMIT"), StoreErrorCode::QueryFailed,
-                         QStringLiteral("commit transaction"));
+    if (lifetime_lease_) {
+        if (const auto lease = validateActiveLease(); !lease) {
+            rollback();
+            return lease;
+        }
+    }
+    auto committed = execStatement(database_, QStringLiteral("COMMIT"), StoreErrorCode::QueryFailed,
+                                   QStringLiteral("commit transaction"));
+    if (!committed) {
+        rollback();
+    }
+    return committed;
 }
 
 void SessionStore::rollback() {

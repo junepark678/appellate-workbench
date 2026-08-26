@@ -6,10 +6,15 @@
 #include <QStringList>
 
 #include <expected>
+#include <functional>
 #include <memory>
 #include <vector>
 
 namespace appellate::storage {
+
+namespace detail {
+struct AssetRecoveryHooks;
+}
 
 class AssetStore;
 class AssetStoreLock;
@@ -34,6 +39,17 @@ struct StoreError final {
     StoreErrorCode code;
     QString message;
 };
+
+namespace detail {
+
+// Deterministic barrier for proving failure cleanup against namespace replacement. Production
+// callers use the hook-free open() overload.
+struct SessionStoreOpenHooks final {
+    std::function<void(const QString&)> after_private_preflight;
+    bool reject_after_private_preflight{};
+};
+
+} // namespace detail
 
 struct RevisionPin final {
     QString pack_id;
@@ -128,6 +144,9 @@ class SessionStore final {
     [[nodiscard]] static std::expected<std::unique_ptr<SessionStore>, StoreError>
     open(const QString& database_path);
 
+    [[nodiscard]] static std::expected<std::unique_ptr<SessionStore>, StoreError>
+    open(const QString& database_path, const detail::SessionStoreOpenHooks& hooks);
+
     // Creates an intentional in-process child connection under this owner's retained validated
     // lifetime lease. Public open() remains exclusive; child connections cannot fork again.
     [[nodiscard]] std::expected<std::unique_ptr<SessionStore>, StoreError>
@@ -153,10 +172,14 @@ class SessionStore final {
                           const CommitBatch& batch, AssetStore& asset_store,
                           StagedAsset& staged_asset);
 
-    // With both the SQLite write reservation and the CAS lock held, removes abandoned staging
+    // With both the SQLite write reservation and the CAS lock held, quarantines abandoned staging
     // names and immutable objects that have no reference from any persisted session. Missing or
-    // corrupt referenced objects fail closed.
+    // corrupt referenced objects fail closed. Physical quarantine reclamation is deliberately
+    // outside this transaction.
     [[nodiscard]] std::expected<void, StoreError> recoverAssetStore(AssetStore& asset_store);
+
+    [[nodiscard]] std::expected<void, StoreError>
+    recoverAssetStore(AssetStore& asset_store, const detail::AssetRecoveryHooks& hooks);
 
     [[nodiscard]] std::expected<SessionSnapshot, StoreError>
     loadSession(const QString& session_id) const;
@@ -174,6 +197,7 @@ class SessionStore final {
 
     [[nodiscard]] std::expected<void, StoreError> configure();
     [[nodiscard]] std::expected<void, StoreError> migrate();
+    [[nodiscard]] std::expected<void, StoreError> validateActiveLease() const;
     [[nodiscard]] std::expected<void, StoreError> beginImmediate();
     [[nodiscard]] std::expected<QString, StoreError> assetStoreIdentity() const;
     [[nodiscard]] std::expected<void, StoreError>

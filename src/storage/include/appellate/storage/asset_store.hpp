@@ -7,12 +7,25 @@
 #include <QStringView>
 
 #include <expected>
+#include <functional>
 #include <memory>
 #include <optional>
 
 class QIODevice;
 
 namespace appellate::storage {
+
+namespace detail {
+
+// Deterministic, non-reentrant fault/race barriers for exercising recovery's namespace
+// guarantees. Production callers use the hook-free SessionStore entry point. Exceptions are
+// contained and reported as recovery failures.
+struct AssetRecoveryHooks final {
+    std::function<void(qsizetype, const QString&)> before_quarantine;
+    std::function<bool(qsizetype, const QString&)> permit_quarantine;
+};
+
+} // namespace detail
 
 class SessionArchive;
 
@@ -75,13 +88,11 @@ class StagedAsset final {
   private:
     friend class AssetStore;
     friend class SessionStore;
-    StagedAsset(int objects_descriptor, int file_descriptor, QByteArray temporary_name,
-                QString sha256, qint64 size);
+    StagedAsset(int objects_descriptor, int file_descriptor, QString sha256, qint64 size);
     void reset() noexcept;
 
     int objects_descriptor_{-1};
     int file_descriptor_{-1};
-    QByteArray temporary_name_;
     QString sha256_;
     qint64 size_{};
     bool finalized_{};
@@ -126,7 +137,8 @@ class AssetStore final {
         -> std::expected<bool, AssetStoreError>;
     [[nodiscard]] auto recoverPairedObjects(QStringView database_identity,
                                             const AssetStoreLock& lock,
-                                            const QStringList& referenced_digests) const
+                                            const QStringList& referenced_digests,
+                                            const detail::AssetRecoveryHooks* hooks = nullptr) const
         -> std::expected<void, AssetStoreError>;
     [[nodiscard]] auto identity(const AssetStoreLock& lock) const
         -> std::expected<std::optional<QString>, AssetStoreError>;

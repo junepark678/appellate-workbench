@@ -383,6 +383,22 @@ set_tests_properties(
 )
 
 qt_add_executable(
+    tst_local_session_permissions
+    integration/tst_local_session_permissions.cpp
+)
+target_link_libraries(
+    tst_local_session_permissions
+    PRIVATE
+        appellate::desktop_ui
+        appellate::project_warnings
+        appellate::project_sanitizers
+        Qt6::Test
+)
+target_compile_features(tst_local_session_permissions PRIVATE cxx_std_26)
+add_test(NAME local_session_permissions COMMAND tst_local_session_permissions)
+set_tests_properties(local_session_permissions PROPERTIES LABELS "integration;local;security")
+
+qt_add_executable(
     tst_desktop_command_line
     integration/tst_desktop_command_line.cpp
 )

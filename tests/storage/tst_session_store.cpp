@@ -16,11 +16,16 @@
 #include <QTest>
 #include <QUuid>
 
+#include <algorithm>
 #include <limits>
 
 #if defined(Q_OS_UNIX)
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
+
+#if defined(Q_OS_LINUX)
+#include <sys/stat.h>
 #endif
 
 namespace {
@@ -80,6 +85,9 @@ class SessionStoreTest final : public QObject {
     void persistsRecordAccessAcrossCloseAndReopen();
     void createsSessionAndInitialBatchAtomically();
     void recoversUnreferencedFinalAndStagingCrashStates();
+    void recoveryInterruptionLeavesCommitForwardTombstonesAndRetries();
+    void recoveryReplacementIsPreservedInQuarantine();
+    void recoveryRejectsReferencedFinalReplacement();
     void corruptOrphanFailsRecoveryWithoutCleanup();
     void missingReferencedAssetFailsRecoveryBeforeCleanup();
     void authoritativeDatabaseIdentityHealsOnlyMissingCasMarker();
@@ -93,6 +101,15 @@ class SessionStoreTest final : public QObject {
     void cooperativeLockBlocksAnotherAppellateProcess();
     void ownerForksShareLeaseAndOutliveOwnerSafely();
     void simultaneousFreshAndLegacyNoLockOpenHaveOneBoundedWinner();
+    void createsExactPrivateFilesUnderHostileUmask_data();
+    void createsExactPrivateFilesUnderHostileUmask();
+    void freshSidecarReservationsDoNotLeaveHotJournal();
+    void crashedFreshInitializationRecoversInOneRetry();
+    void failedFreshOpenQuarantinesOwnedArtifacts();
+    void failedFreshOpenPreservesRacedReplacement();
+    void rejectsUnsafePreexistingDatabaseAndLockWithoutRepair();
+    void failedCommitLeaseValidationRollsBackTransaction();
+    void rejectsFifoDatabaseWithoutBlockingOrArtifacts();
     void cooperativeLockHelper();
     void cooperativeRaceHelper();
 };
@@ -153,6 +170,34 @@ struct FileImage final {
     return images;
 }
 
+[[nodiscard]] bool makeOwnerOnly(const QString& path) {
+    return QFile::setPermissions(path, QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+}
+
+#if defined(Q_OS_LINUX)
+class ScopedUmask final {
+  public:
+    explicit ScopedUmask(mode_t value) noexcept : previous_(::umask(value)) {}
+    ScopedUmask(const ScopedUmask&) = delete;
+    ScopedUmask& operator=(const ScopedUmask&) = delete;
+    ~ScopedUmask() { static_cast<void>(::umask(previous_)); }
+
+  private:
+    mode_t previous_{};
+};
+
+[[nodiscard]] mode_t exactMode(const QString& path) {
+    struct stat status{};
+    return ::lstat(QFile::encodeName(path).constData(), &status) == 0
+               ? static_cast<mode_t>(status.st_mode & 07777)
+               : static_cast<mode_t>(~0U);
+}
+
+[[nodiscard]] bool chmodExact(const QString& path, mode_t mode) {
+    return ::chmod(QFile::encodeName(path).constData(), mode) == 0;
+}
+#endif
+
 [[nodiscard]] QString databaseIdentity(const QString& path) {
     const auto connection =
         QStringLiteral("identity-check-%1")
@@ -199,7 +244,7 @@ struct FileImage final {
         database = QSqlDatabase{};
     }
     QSqlDatabase::removeDatabase(connection);
-    return created;
+    return created && makeOwnerOnly(path);
 }
 
 [[nodiscard]] bool createLegacyDatabase(const QString& path) {
@@ -250,7 +295,7 @@ struct FileImage final {
         database = QSqlDatabase{};
     }
     QSqlDatabase::removeDatabase(connection);
-    return created;
+    return created && makeOwnerOnly(path);
 }
 
 [[nodiscard]] bool upgradeLegacyDatabaseToV2(const QString& path) {
@@ -434,6 +479,7 @@ void SessionStoreTest::refusesMalformedDatabaseWithoutMutation() {
     QVERIFY(file.open(QIODevice::WriteOnly));
     QCOMPARE(file.write(malformed), malformed.size());
     file.close();
+    QVERIFY(makeOwnerOnly(path));
 
     const auto opened = SessionStore::open(path);
     QVERIFY(!opened.has_value());
@@ -452,6 +498,7 @@ void SessionStoreTest::refusesPreexistingZeroByteDatabaseWithoutMutation() {
     QFile zero(path);
     QVERIFY(zero.open(QIODevice::WriteOnly | QIODevice::NewOnly));
     zero.close();
+    QVERIFY(makeOwnerOnly(path));
     const auto before = databaseImages(path);
 
     const auto opened = SessionStore::open(path);
@@ -476,6 +523,7 @@ void SessionStoreTest::refusesPreexistingSchemaEmptySqliteWithoutMutation() {
         database = QSqlDatabase{};
     }
     QSqlDatabase::removeDatabase(connection);
+    QVERIFY(makeOwnerOnly(path));
     QVERIFY(QFileInfo(path).size() >= 4096);
     const auto before = databaseImages(path);
 
@@ -551,6 +599,7 @@ void SessionStoreTest::refusesUnrelatedSqliteWithoutMutation() {
         database = QSqlDatabase{};
     }
     QSqlDatabase::removeDatabase(connection);
+    QVERIFY(makeOwnerOnly(path));
     const auto before = databaseImages(path);
 
     const auto opened = SessionStore::open(path);
@@ -1618,6 +1667,7 @@ void SessionStoreTest::recoversUnreferencedFinalAndStagingCrashStates() {
     QVERIFY(staging.open(QIODevice::WriteOnly | QIODevice::NewOnly));
     QCOMPARE(staging.write("abandoned"), qint64{9});
     staging.close();
+    QVERIFY(makeOwnerOnly(staging_path));
 
     const auto recovered = (*store)->recoverAssetStore(assets);
     if (!recovered) {
@@ -1627,6 +1677,178 @@ void SessionStoreTest::recoversUnreferencedFinalAndStagingCrashStates() {
     const auto absent = assets.read(orphan->sha256);
     QVERIFY(!absent.has_value());
     QCOMPARE(absent.error().code, appellate::storage::AssetStoreErrorCode::NotFound);
+    const auto quarantines = QDir(assets.objectsDirectory())
+                                 .entryList({QStringLiteral(".asset-quarantine-*.tmp")},
+                                            QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot);
+    QCOMPARE(quarantines.size(), 2);
+#if defined(Q_OS_LINUX)
+    for (const auto& name : quarantines) {
+        QCOMPARE(exactMode(QDir(assets.objectsDirectory()).filePath(name)),
+                 static_cast<mode_t>(0600));
+    }
+#endif
+}
+
+void SessionStoreTest::recoveryInterruptionLeavesCommitForwardTombstonesAndRetries() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Descriptor-bound CAS quarantine is Linux-only");
+#else
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto database_path = temporary.filePath(QStringLiteral("recovery-fault.sqlite"));
+    const auto asset_root = temporary.filePath(QStringLiteral("assets"));
+    appellate::storage::AssetStore assets(asset_root, 1024);
+    auto store = SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    QVERIFY((*store)->recoverAssetStore(assets).has_value());
+
+    QStringList candidates;
+    for (const auto& name :
+         {QStringLiteral(".asset-first.tmp"), QStringLiteral(".asset-second.tmp")}) {
+        const auto path = QDir(assets.objectsDirectory()).filePath(name);
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+        QCOMPARE(file.write(QFile::encodeName(name)), static_cast<qint64>(name.size()));
+        file.close();
+        QVERIFY(makeOwnerOnly(path));
+        candidates.push_back(path);
+    }
+    appellate::storage::detail::AssetRecoveryHooks hooks;
+    hooks.permit_quarantine = [](qsizetype index, const QString&) { return index != 1; };
+    const auto interrupted = (*store)->recoverAssetStore(assets, hooks);
+    QVERIFY(!interrupted.has_value());
+    QCOMPARE(QDir(assets.objectsDirectory())
+                 .entryList({QStringLiteral(".asset-quarantine-*.tmp")},
+                            QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot)
+                 .size(),
+             1);
+    QCOMPARE(std::ranges::count_if(candidates,
+                                   [](const QString& path) { return QFileInfo::exists(path); }),
+             1);
+
+    QVERIFY((*store)->recoverAssetStore(assets).has_value());
+    for (const auto& path : candidates) {
+        QVERIFY(!QFileInfo::exists(path));
+    }
+    QCOMPARE(QDir(assets.objectsDirectory())
+                 .entryList({QStringLiteral(".asset-quarantine-*.tmp")},
+                            QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot)
+                 .size(),
+             2);
+#endif
+}
+
+void SessionStoreTest::recoveryReplacementIsPreservedInQuarantine() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Descriptor-bound CAS quarantine is Linux-only");
+#else
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto database_path = temporary.filePath(QStringLiteral("recovery-race.sqlite"));
+    const auto asset_root = temporary.filePath(QStringLiteral("assets"));
+    appellate::storage::AssetStore assets(asset_root, 1024);
+    auto store = SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    QVERIFY((*store)->recoverAssetStore(assets).has_value());
+
+    const auto candidate_name = QStringLiteral(".asset-raced.tmp");
+    const auto candidate_path = QDir(assets.objectsDirectory()).filePath(candidate_name);
+    QFile candidate(candidate_path);
+    QVERIFY(candidate.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+    QCOMPARE(candidate.write("original-garbage"), qint64{16});
+    candidate.close();
+    QVERIFY(makeOwnerOnly(candidate_path));
+    const auto displaced_path = temporary.filePath(QStringLiteral("displaced-original"));
+
+    appellate::storage::detail::AssetRecoveryHooks hooks;
+    hooks.before_quarantine = [&](qsizetype, const QString& name) {
+        QCOMPARE(name, candidate_name);
+        QVERIFY(QFile::rename(candidate_path, displaced_path));
+        QFile replacement(candidate_path);
+        QVERIFY(replacement.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+        QCOMPARE(replacement.write("raced-replacement"), qint64{17});
+        replacement.close();
+        QVERIFY(makeOwnerOnly(candidate_path));
+    };
+    const auto rejected = (*store)->recoverAssetStore(assets, hooks);
+    QVERIFY(!rejected.has_value());
+    QVERIFY(!QFileInfo::exists(candidate_path));
+    QCOMPARE(fileImage(displaced_path).bytes, QByteArrayLiteral("original-garbage"));
+    const auto quarantines = QDir(assets.objectsDirectory())
+                                 .entryList({QStringLiteral(".asset-quarantine-*.tmp")},
+                                            QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot);
+    QCOMPARE(quarantines.size(), 1);
+    QCOMPARE(fileImage(QDir(assets.objectsDirectory()).filePath(quarantines.front())).bytes,
+             QByteArrayLiteral("raced-replacement"));
+#endif
+}
+
+void SessionStoreTest::recoveryRejectsReferencedFinalReplacement() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Descriptor-bound referenced-final recovery is Linux-only");
+#else
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto database_path =
+        temporary.filePath(QStringLiteral("recovery-referenced-race.sqlite"));
+    const auto asset_root = temporary.filePath(QStringLiteral("assets"));
+    appellate::storage::AssetStore assets(asset_root, 1024);
+    auto store = SessionStore::open(database_path);
+    QVERIFY(store.has_value());
+    QVERIFY((*store)
+                ->createSession(QStringLiteral("referenced.race.session"),
+                                QStringLiteral("engine.workflow.v1"),
+                                QStringLiteral("2026-08-26T00:00:00Z"), pins(),
+                                SessionAuthorityContract::CanonicalV2)
+                .has_value());
+    const auto original_bytes = QByteArrayLiteral("referenced-final-original");
+    auto staged = assets.stage(original_bytes);
+    QVERIFY(staged.has_value());
+    const auto digest_name = staged->sha256();
+    auto batch = singleAssetFiling(QStringLiteral("referenced.race.command"), digest_name);
+    QVERIFY((*store)
+                ->appendWithStagedAsset(QStringLiteral("referenced.race.session"), 0, batch, assets,
+                                        *staged)
+                .has_value());
+
+    const auto candidate_name = QStringLiteral(".asset-trigger.tmp");
+    const auto candidate_path = QDir(assets.objectsDirectory()).filePath(candidate_name);
+    QFile candidate(candidate_path);
+    QVERIFY(candidate.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+    QCOMPARE(candidate.write("trigger"), qint64{7});
+    candidate.close();
+    QVERIFY(makeOwnerOnly(candidate_path));
+    const auto final_path = QDir(assets.objectsDirectory()).filePath(digest_name);
+    const auto displaced_path = temporary.filePath(QStringLiteral("displaced-referenced-final"));
+
+    appellate::storage::detail::AssetRecoveryHooks hooks;
+    hooks.before_quarantine = [&](qsizetype, const QString& name) {
+        QCOMPARE(name, candidate_name);
+        QVERIFY(QFile::rename(final_path, displaced_path));
+        QFile replacement(final_path);
+        QVERIFY(replacement.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+        QCOMPARE(replacement.write("corrupt-replacement"), qint64{19});
+        replacement.close();
+        QVERIFY(makeOwnerOnly(final_path));
+    };
+    const auto rejected = (*store)->recoverAssetStore(assets, hooks);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, StoreErrorCode::QueryFailed);
+    QCOMPARE(fileImage(final_path).bytes, QByteArrayLiteral("corrupt-replacement"));
+    QCOMPARE(fileImage(displaced_path).bytes, original_bytes);
+    const auto corrupt_read = assets.read(digest_name);
+    QVERIFY(!corrupt_read.has_value());
+
+    const auto snapshot = (*store)->loadSession(QStringLiteral("referenced.race.session"));
+    QVERIFY(snapshot.has_value());
+    QCOMPARE(snapshot->asset_references.size(), std::size_t{1});
+    QCOMPARE(snapshot->asset_references.front().digest, digest_name);
+
+    QVERIFY(QFile::remove(final_path));
+    QVERIFY(QFile::rename(displaced_path, final_path));
+    QVERIFY((*store)->recoverAssetStore(assets).has_value());
+    QCOMPARE(*assets.read(digest_name), original_bytes);
+#endif
 }
 
 void SessionStoreTest::corruptOrphanFailsRecoveryWithoutCleanup() {
@@ -1648,6 +1870,7 @@ void SessionStoreTest::corruptOrphanFailsRecoveryWithoutCleanup() {
     QVERIFY(staging.open(QIODevice::WriteOnly | QIODevice::NewOnly));
     QCOMPARE(staging.write("staging"), qint64{7});
     staging.close();
+    QVERIFY(makeOwnerOnly(staging_path));
     const auto corrupt_path =
         QDir(assets.objectsDirectory()).filePath(corrupt_orphan->sha256);
     QFile corrupted(corrupt_path);
@@ -1884,6 +2107,7 @@ void SessionStoreTest::pairValidationFailurePreservesEveryCasEntry() {
     QVERIFY(valid.open(QIODevice::WriteOnly | QIODevice::NewOnly));
     QCOMPARE(valid.write("valid-temp"), qint64{10});
     valid.close();
+    QVERIFY(makeOwnerOnly(valid_temp));
     const auto outside_path = outside.filePath(QStringLiteral("outside-temp"));
     QFile outside_file(outside_path);
     QVERIFY(outside_file.open(QIODevice::WriteOnly | QIODevice::NewOnly));
@@ -2050,6 +2274,7 @@ void SessionStoreTest::recoveryValidationFailurePreservesEarlierCleanupCandidate
     QVERIFY(valid.open(QIODevice::WriteOnly | QIODevice::NewOnly));
     QCOMPARE(valid.write("valid-temp"), qint64{10});
     valid.close();
+    QVERIFY(makeOwnerOnly(valid_temp));
     const auto outside_path = outside.filePath(QStringLiteral("outside-temp"));
     QFile outside_file(outside_path);
     QVERIFY(outside_file.open(QIODevice::WriteOnly | QIODevice::NewOnly));
@@ -2322,7 +2547,24 @@ void SessionStoreTest::simultaneousFreshAndLegacyNoLockOpenHaveOneBoundedWinner(
         QFile start(start_path);
         QVERIFY(start.open(QIODevice::WriteOnly | QIODevice::NewOnly));
         start.close();
-        QTRY_VERIFY_WITH_TIMEOUT(QFileInfo::exists(result_a) && QFileInfo::exists(result_b), 10'000);
+        QElapsedTimer result_wait;
+        result_wait.start();
+        while ((!QFileInfo::exists(result_a) || !QFileInfo::exists(result_b)) &&
+               result_wait.elapsed() < 10'000) {
+            QTest::qWait(10);
+        }
+        if (!QFileInfo::exists(result_a) || !QFileInfo::exists(result_b)) {
+            QFile release(release_path);
+            if (release.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
+                release.close();
+            }
+            static_cast<void>(child_a.waitForFinished(5'000));
+            static_cast<void>(child_b.waitForFinished(5'000));
+            const auto diagnostics =
+                child_a.readAllStandardOutput() + child_a.readAllStandardError() +
+                child_b.readAllStandardOutput() + child_b.readAllStandardError();
+            QFAIL(qPrintable(QString::fromLocal8Bit(diagnostics)));
+        }
 
         auto read_file = [](const QString& file_path) {
             QFile input(file_path);
@@ -2355,6 +2597,314 @@ void SessionStoreTest::simultaneousFreshAndLegacyNoLockOpenHaveOneBoundedWinner(
             QFAIL(qPrintable(reopened.error().message));
         }
     }
+#endif
+}
+
+void SessionStoreTest::createsExactPrivateFilesUnderHostileUmask_data() {
+    QTest::addColumn<unsigned int>("mask");
+    QTest::newRow("fully-permissive") << 0000U;
+    QTest::newRow("fully-restrictive") << 0777U;
+}
+
+void SessionStoreTest::createsExactPrivateFilesUnderHostileUmask() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Exact session-store permission enforcement is Linux-only");
+#else
+    QFETCH(unsigned int, mask);
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto path = controller.filePath(QStringLiteral("private.sqlite"));
+    const auto lock_path =
+        controller.filePath(QStringLiteral(".private.sqlite.appellate-open.lock"));
+    {
+        const ScopedUmask hostile(static_cast<mode_t>(mask));
+        auto opened = SessionStore::open(path);
+        if (!opened) {
+            QFAIL(qPrintable(opened.error().message));
+        }
+        QCOMPARE(exactMode(path), static_cast<mode_t>(0600));
+        QCOMPARE(exactMode(lock_path), static_cast<mode_t>(0600));
+        QVERIFY(QFileInfo::exists(path + QStringLiteral("-wal")));
+        QVERIFY(QFileInfo::exists(path + QStringLiteral("-shm")));
+        QCOMPARE(exactMode(path + QStringLiteral("-wal")), static_cast<mode_t>(0600));
+        QCOMPARE(exactMode(path + QStringLiteral("-shm")), static_cast<mode_t>(0600));
+    }
+#endif
+}
+
+void SessionStoreTest::freshSidecarReservationsDoNotLeaveHotJournal() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Private SQLite sidecar reservation is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto path = controller.filePath(QStringLiteral("sidecars.sqlite"));
+    const auto journal_path = path + QStringLiteral("-journal");
+    const auto verify_no_hot_journal = [&] {
+        const QFileInfo journal(journal_path);
+        return !journal.exists() ||
+               (journal.size() == 0 && exactMode(journal_path) == static_cast<mode_t>(0600));
+    };
+    {
+        auto opened = SessionStore::open(path);
+        if (!opened) {
+            QFAIL(qPrintable(opened.error().message));
+        }
+        QCOMPARE((*opened)->schemaVersion(), 3);
+        QVERIFY(verify_no_hot_journal());
+    }
+    QVERIFY(verify_no_hot_journal());
+    {
+        auto reopened = SessionStore::open(path);
+        if (!reopened) {
+            QFAIL(qPrintable(reopened.error().message));
+        }
+        QCOMPARE((*reopened)->schemaVersion(), 3);
+        QVERIFY(verify_no_hot_journal());
+    }
+#endif
+}
+
+void SessionStoreTest::crashedFreshInitializationRecoversInOneRetry() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Crash-safe fresh database initialization is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto path = controller.filePath(QStringLiteral("crashed-fresh.sqlite"));
+    const auto marker_path =
+        controller.filePath(QStringLiteral(".crashed-fresh.sqlite.appellate-initializing"));
+
+    const auto child = ::fork();
+    QVERIFY(child >= 0);
+    if (child == 0) {
+        appellate::storage::detail::SessionStoreOpenHooks hooks;
+        hooks.after_private_preflight = [](const QString&) { ::_exit(0); };
+        static_cast<void>(SessionStore::open(path, hooks));
+        ::_exit(91);
+    }
+    int status{};
+    QVERIFY(::waitpid(child, &status, 0) == child);
+    QVERIFY(WIFEXITED(status));
+    QCOMPARE(WEXITSTATUS(status), 0);
+    QVERIFY(QFileInfo::exists(marker_path));
+    QVERIFY(QFileInfo::exists(path));
+    QCOMPARE(QFileInfo(path).size(), qint64{0});
+
+    auto retried = SessionStore::open(path);
+    if (!retried) {
+        QFAIL(qPrintable(retried.error().message));
+    }
+    QCOMPARE((*retried)->schemaVersion(), 3);
+    QVERIFY(!QFileInfo::exists(marker_path));
+    QCOMPARE(exactMode(path), static_cast<mode_t>(0600));
+    const auto quarantines = QDir(controller.path())
+                                 .entryList({QStringLiteral(".appellate-quarantine-*.tmp")},
+                                            QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot);
+    QVERIFY(quarantines.size() >= 5);
+#endif
+}
+
+void SessionStoreTest::failedFreshOpenQuarantinesOwnedArtifacts() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Commit-forward fresh-file quarantine is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto path = controller.filePath(QStringLiteral("failed-fresh.sqlite"));
+    const auto lock_path =
+        controller.filePath(QStringLiteral(".failed-fresh.sqlite.appellate-open.lock"));
+    appellate::storage::detail::SessionStoreOpenHooks hooks;
+    hooks.reject_after_private_preflight = true;
+    const auto rejected = SessionStore::open(path, hooks);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, StoreErrorCode::OpenFailed);
+    for (const auto& suffix :
+         {QString{}, QStringLiteral("-journal"), QStringLiteral("-wal"), QStringLiteral("-shm")}) {
+        QVERIFY(!QFileInfo::exists(path + suffix));
+    }
+    QVERIFY(QFileInfo::exists(lock_path));
+    QCOMPARE(exactMode(lock_path), static_cast<mode_t>(0600));
+    const auto quarantines = QDir(controller.path())
+                                 .entryList({QStringLiteral(".appellate-quarantine-*.tmp")},
+                                            QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot);
+    QCOMPARE(quarantines.size(), 4);
+    for (const auto& name : quarantines) {
+        QCOMPARE(exactMode(controller.filePath(name)), static_cast<mode_t>(0600));
+    }
+    auto retried = SessionStore::open(path);
+    if (!retried) {
+        QFAIL(qPrintable(retried.error().message));
+    }
+    QCOMPARE((*retried)->schemaVersion(), 3);
+#endif
+}
+
+void SessionStoreTest::failedFreshOpenPreservesRacedReplacement() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Commit-forward fresh-file quarantine is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto path = controller.filePath(QStringLiteral("raced-fresh.sqlite"));
+    const auto lock_path =
+        controller.filePath(QStringLiteral(".raced-fresh.sqlite.appellate-open.lock"));
+    const auto wal_path = path + QStringLiteral("-wal");
+    const auto displaced_path = controller.filePath(QStringLiteral("displaced-wal"));
+    appellate::storage::detail::SessionStoreOpenHooks hooks;
+    hooks.after_private_preflight = [&](const QString& opened_path) {
+        QCOMPARE(opened_path, path);
+        QVERIFY(QFile::rename(wal_path, displaced_path));
+        QFile replacement(wal_path);
+        QVERIFY(replacement.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+        QCOMPARE(replacement.write("replacement-wal"), qint64{15});
+        replacement.close();
+        QVERIFY(makeOwnerOnly(wal_path));
+    };
+    hooks.reject_after_private_preflight = true;
+    const auto rejected = SessionStore::open(path, hooks);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(fileImage(wal_path).bytes, QByteArrayLiteral("replacement-wal"));
+    QCOMPARE(fileImage(displaced_path).bytes, QByteArray{});
+    QCOMPARE(exactMode(wal_path), static_cast<mode_t>(0600));
+    QCOMPARE(exactMode(displaced_path), static_cast<mode_t>(0600));
+    QVERIFY(!QFileInfo::exists(path));
+    QVERIFY(!QFileInfo::exists(path + QStringLiteral("-journal")));
+    QVERIFY(!QFileInfo::exists(path + QStringLiteral("-shm")));
+    QVERIFY(QFileInfo::exists(lock_path));
+    QCOMPARE(exactMode(lock_path), static_cast<mode_t>(0600));
+#endif
+}
+
+void SessionStoreTest::rejectsUnsafePreexistingDatabaseAndLockWithoutRepair() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Exact session-store permission enforcement is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto path = controller.filePath(QStringLiteral("unsafe.sqlite"));
+    const auto lock_path =
+        controller.filePath(QStringLiteral(".unsafe.sqlite.appellate-open.lock"));
+    {
+        auto initialized = SessionStore::open(path);
+        QVERIFY(initialized.has_value());
+    }
+
+    QVERIFY(chmodExact(path, 0644));
+    const auto unsafe_database_before = databaseImages(path);
+    const auto rejected_database = SessionStore::open(path);
+    QVERIFY(!rejected_database.has_value());
+    QCOMPARE(rejected_database.error().code, StoreErrorCode::OpenFailed);
+    QCOMPARE(exactMode(path), static_cast<mode_t>(0644));
+    QCOMPARE(databaseImages(path), unsafe_database_before);
+
+    QVERIFY(chmodExact(path, 0600));
+    const auto wal_path = path + QStringLiteral("-wal");
+    QFile unsafe_wal(wal_path);
+    QVERIFY(unsafe_wal.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+    QCOMPARE(unsafe_wal.write("unsafe-sidecar"), qint64{14});
+    unsafe_wal.close();
+    QVERIFY(chmodExact(wal_path, 0644));
+    const auto unsafe_wal_before = databaseImages(path);
+    const auto rejected_wal = SessionStore::open(path);
+    QVERIFY(!rejected_wal.has_value());
+    QCOMPARE(rejected_wal.error().code, StoreErrorCode::OpenFailed);
+    QCOMPARE(exactMode(wal_path), static_cast<mode_t>(0644));
+    QCOMPARE(databaseImages(path), unsafe_wal_before);
+    QVERIFY(QFile::remove(wal_path));
+
+    QVERIFY(chmodExact(lock_path, 0644));
+    const auto unsafe_lock_before = databaseImages(path);
+    const auto rejected_lock = SessionStore::open(path);
+    QVERIFY(!rejected_lock.has_value());
+    QCOMPARE(rejected_lock.error().code, StoreErrorCode::OpenFailed);
+    QCOMPARE(exactMode(lock_path), static_cast<mode_t>(0644));
+    QCOMPARE(databaseImages(path), unsafe_lock_before);
+
+    QVERIFY(chmodExact(lock_path, 0600));
+    auto held = SessionStore::open(path);
+    QVERIFY(held.has_value());
+    QVERIFY((*held)
+                ->createSession(QStringLiteral("lease.session"), QStringLiteral("engine.lease.v1"),
+                                QStringLiteral("2026-08-26T00:00:00Z"), pins())
+                .has_value());
+    QVERIFY(chmodExact(lock_path, 0644));
+    const auto rejected_load = (*held)->loadSession(QStringLiteral("lease.session"));
+    QVERIFY(!rejected_load.has_value());
+    QCOMPARE(rejected_load.error().code, StoreErrorCode::OpenFailed);
+    const auto rejected_write =
+        (*held)->createSession(QStringLiteral("lease.rejected"), QStringLiteral("engine.lease.v1"),
+                               QStringLiteral("2026-08-26T00:00:00Z"), pins());
+    QVERIFY(!rejected_write.has_value());
+    QCOMPARE(rejected_write.error().code, StoreErrorCode::OpenFailed);
+    QCOMPARE((*held)->schemaVersion(), -1);
+    const auto rejected_fork = (*held)->forkConnection();
+    QVERIFY(!rejected_fork.has_value());
+    QCOMPARE(rejected_fork.error().code, StoreErrorCode::OpenFailed);
+    QCOMPARE(exactMode(lock_path), static_cast<mode_t>(0644));
+    QVERIFY(chmodExact(lock_path, 0600));
+#endif
+}
+
+void SessionStoreTest::failedCommitLeaseValidationRollsBackTransaction() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("Continuous session-store lease enforcement is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto path = controller.filePath(QStringLiteral("lease-commit.sqlite"));
+    const auto lock_path =
+        controller.filePath(QStringLiteral(".lease-commit.sqlite.appellate-open.lock"));
+    appellate::storage::AssetStore assets(controller.filePath(QStringLiteral("lease-assets")),
+                                          1024);
+    auto store = SessionStore::open(path);
+    QVERIFY(store.has_value());
+    QVERIFY((*store)->recoverAssetStore(assets).has_value());
+    const auto candidate_path =
+        QDir(assets.objectsDirectory()).filePath(QStringLiteral(".asset-lease-trigger.tmp"));
+    QFile candidate(candidate_path);
+    QVERIFY(candidate.open(QIODevice::WriteOnly | QIODevice::NewOnly));
+    QCOMPARE(candidate.write("lease-trigger"), qint64{13});
+    candidate.close();
+    QVERIFY(makeOwnerOnly(candidate_path));
+
+    appellate::storage::detail::AssetRecoveryHooks hooks;
+    hooks.before_quarantine = [&](qsizetype, const QString&) {
+        QVERIFY(chmodExact(lock_path, 0644));
+    };
+    const auto rejected = (*store)->recoverAssetStore(assets, hooks);
+    QVERIFY(!rejected.has_value());
+    QCOMPARE(rejected.error().code, StoreErrorCode::OpenFailed);
+    QVERIFY(chmodExact(lock_path, 0600));
+
+    const auto next_transaction = (*store)->createSession(
+        QStringLiteral("lease.commit.retry"), QStringLiteral("engine.lease.v1"),
+        QStringLiteral("2026-08-26T00:00:00Z"), pins());
+    if (!next_transaction) {
+        QFAIL(qPrintable(next_transaction.error().message));
+    }
+#endif
+}
+
+void SessionStoreTest::rejectsFifoDatabaseWithoutBlockingOrArtifacts() {
+#if !defined(Q_OS_LINUX)
+    QSKIP("FIFO rejection is Linux-only");
+#else
+    QTemporaryDir controller;
+    QVERIFY(controller.isValid());
+    const auto path = controller.filePath(QStringLiteral("fifo.sqlite"));
+    const auto lock_path = controller.filePath(QStringLiteral(".fifo.sqlite.appellate-open.lock"));
+    QVERIFY(::mkfifo(QFile::encodeName(path).constData(), 0600) == 0);
+    QVERIFY(chmodExact(path, 0600));
+
+    QElapsedTimer elapsed;
+    elapsed.start();
+    const auto rejected = SessionStore::open(path);
+    QVERIFY(!rejected.has_value());
+    QVERIFY2(elapsed.elapsed() < 1'000, "FIFO validation blocked unexpectedly");
+    QCOMPARE(rejected.error().code, StoreErrorCode::OpenFailed);
+    QCOMPARE(exactMode(path), static_cast<mode_t>(0600));
+    QVERIFY(!QFileInfo::exists(lock_path));
 #endif
 }
 

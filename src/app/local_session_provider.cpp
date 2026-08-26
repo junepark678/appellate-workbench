@@ -4,6 +4,7 @@
 
 #include "appellate/packs/runtime_pack.hpp"
 #include "appellate/storage/asset_store.hpp"
+#include "appellate/storage/detail/private_state.hpp"
 #include "appellate/storage/session_archive.hpp"
 
 #include <QByteArray>
@@ -29,6 +30,10 @@
 #include <string_view>
 #include <utility>
 #include <vector>
+
+#if defined(Q_OS_UNIX)
+#include <unistd.h>
+#endif
 
 namespace appellate::ui {
 namespace {
@@ -283,33 +288,44 @@ void appendClosure(QByteArray& output, const packs::ResolvedPack& resolved_pack)
 
 [[nodiscard]] bool containsNull(const QString& path) { return path.contains(QChar::Null); }
 
-[[nodiscard]] auto validateDirectoryTarget(const QString& path, QStringView description)
+void closePrivateDirectory(int descriptor) {
+#if defined(Q_OS_UNIX)
+    if (descriptor >= 0) {
+        static_cast<void>(::close(descriptor));
+    }
+#else
+    Q_UNUSED(descriptor);
+#endif
+}
+
+[[nodiscard]] auto ensurePrivateDirectory(const QString& path, const QString& boundary,
+                                          QStringView description) -> std::expected<void, QString> {
+    const auto opened = storage::detail::ensurePrivateStateDirectory(path, boundary);
+    if (!opened) {
+        return std::unexpected(QStringLiteral("%1 is unsafe: %2").arg(description, opened.error()));
+    }
+    closePrivateDirectory(*opened);
+    return {};
+}
+
+[[nodiscard]] auto validateProspectivePrivateDirectory(const QString& path, QStringView description)
     -> std::expected<void, QString> {
     auto candidate = path;
-    while (true) {
-        const QFileInfo info(candidate);
-        if (info.isSymbolicLink()) {
-            return std::unexpected(
-                QStringLiteral("%1 must not contain symbolic links").arg(description));
-        }
-        if (info.exists()) {
-            if (!info.isDir()) {
-                return std::unexpected(
-                    QStringLiteral("%1 parent is not a directory").arg(description));
-            }
-            if (QDir::cleanPath(info.canonicalFilePath()) != candidate) {
-                return std::unexpected(
-                    QStringLiteral("%1 must have a canonical local path").arg(description));
-            }
-            return {};
-        }
-        const auto parent = QDir::cleanPath(info.absoluteDir().absolutePath());
+    while (!QFileInfo::exists(candidate)) {
+        const auto parent = QDir::cleanPath(QFileInfo(candidate).absoluteDir().absolutePath());
         if (parent == candidate) {
             return std::unexpected(
                 QStringLiteral("%1 has no usable directory ancestor").arg(description));
         }
         candidate = parent;
     }
+    const auto opened = candidate == path ? storage::detail::openPrivateStateDirectory(candidate)
+                                          : storage::detail::openPrivateStateController(candidate);
+    if (!opened) {
+        return std::unexpected(QStringLiteral("%1 is unsafe: %2").arg(description, opened.error()));
+    }
+    closePrivateDirectory(*opened);
+    return {};
 }
 
 [[nodiscard]] auto canonicalProspectivePath(const QString& path)
@@ -392,26 +408,16 @@ void appendClosure(QByteArray& output, const packs::ResolvedPack& resolved_pack)
         return std::unexpected(
             QStringLiteral("Local session asset path is not a canonical directory"));
     }
-    if (const auto database_parent = validateDirectoryTarget(
-            QDir::cleanPath(database_info.absoluteDir().absolutePath()), u"Local session database");
-        !database_parent) {
-        return std::unexpected(database_parent.error());
+    const auto database_parent = QDir::cleanPath(database_info.absoluteDir().absolutePath());
+    if (const auto validated =
+            validateProspectivePrivateDirectory(paths.asset_root, u"Local session asset store");
+        !validated) {
+        return std::unexpected(validated.error());
     }
-    if (const auto asset_parent = validateDirectoryTarget(
-            asset_info.exists() ? paths.asset_root
-                                : QDir::cleanPath(asset_info.absoluteDir().absolutePath()),
-            u"Local session asset store");
-        !asset_parent) {
-        return std::unexpected(asset_parent.error());
-    }
-    if (!QDir{}.mkpath(database_info.absolutePath())) {
-        return std::unexpected(
-            QStringLiteral("Local session database directory cannot be created"));
-    }
-    if (const auto created_database_parent = validateDirectoryTarget(
-            QDir::cleanPath(database_info.absoluteDir().absolutePath()), u"Local session database");
-        !created_database_parent) {
-        return std::unexpected(created_database_parent.error());
+    if (const auto secured = ensurePrivateDirectory(database_parent, database_parent,
+                                                    u"Local session database directory");
+        !secured) {
+        return std::unexpected(secured.error());
     }
 
     return paths;
@@ -471,7 +477,24 @@ auto LocalSessionProvider::fromStandardPaths(UtcClock clock)
         return std::unexpected(
             QStringLiteral("Application-local data has no safe absolute filesystem path"));
     }
-    const auto sessions = QDir(root).filePath(QStringLiteral("sessions"));
+    auto private_boundary = root;
+    const auto generic =
+        QDir::cleanPath(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation));
+    const auto clean_root = QDir::cleanPath(root);
+    if (!generic.isEmpty() && QDir::isAbsolutePath(generic) &&
+        clean_root.startsWith(generic + u'/')) {
+        const auto suffix = clean_root.sliced(generic.size() + 1);
+        const auto first_component = suffix.section(u'/', 0, 0);
+        if (!first_component.isEmpty()) {
+            private_boundary = QDir(generic).filePath(first_component);
+        }
+    }
+    if (const auto secured = ensurePrivateDirectory(clean_root, QDir::cleanPath(private_boundary),
+                                                    u"Application-local data directory");
+        !secured) {
+        return std::unexpected(secured.error());
+    }
+    const auto sessions = QDir(clean_root).filePath(QStringLiteral("sessions"));
     return create(LocalSessionPaths{QDir(sessions).filePath(QStringLiteral("sessions.sqlite")),
                                     QDir(sessions).filePath(QStringLiteral("assets"))},
                   std::move(clock));
@@ -496,13 +519,10 @@ auto LocalSessionProvider::create(LocalSessionPaths paths, UtcClock clock)
             QStringLiteral("Local session owner cannot retain its validated database lease: %1")
                 .arg(owner_store.error().message));
     }
-    if (!QDir{}.mkpath(prepared->asset_root)) {
-        return std::unexpected(QStringLiteral("Local session asset directory cannot be created"));
-    }
-    if (const auto created_asset_root =
-            validateDirectoryTarget(prepared->asset_root, u"Local session asset store");
-        !created_asset_root) {
-        return std::unexpected(created_asset_root.error());
+    if (const auto secured = ensurePrivateDirectory(prepared->asset_root, prepared->asset_root,
+                                                    u"Local session asset store");
+        !secured) {
+        return std::unexpected(secured.error());
     }
     storage::AssetStore asset_store(prepared->asset_root);
     if (const auto recovered = (*owner_store)->recoverAssetStore(asset_store); !recovered) {
