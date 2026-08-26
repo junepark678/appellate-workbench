@@ -407,6 +407,163 @@ function(_appellate_capture_tree_fingerprint root label output_variable)
     set("${output_variable}" "${_fingerprint}" PARENT_SCOPE)
 endfunction()
 
+function(_appellate_capture_installed_tree_fingerprint root label output_variable)
+    if(IS_SYMLINK "${root}" OR NOT IS_DIRECTORY "${root}")
+        message(FATAL_ERROR "${label} fingerprint root is not an ordinary directory: ${root}")
+    endif()
+
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E env "LC_ALL=C"
+            "${_appellate_stat}" "--format=%F|%u|%a|%h" -- "${root}"
+        RESULT_VARIABLE _root_stat_result
+        OUTPUT_VARIABLE _root_metadata
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if(NOT _root_stat_result EQUAL 0 OR NOT _root_metadata MATCHES "^directory[|]")
+        message(FATAL_ERROR "${label} cannot fingerprint its root directory")
+    endif()
+
+    file(
+        GLOB_RECURSE _entries
+        LIST_DIRECTORIES TRUE
+        RELATIVE "${root}"
+        "${root}/*"
+    )
+    list(SORT _entries)
+    set(_fingerprint_material "D|2e|${_root_metadata}\n")
+    foreach(_entry IN LISTS _entries)
+        if(_entry MATCHES "[|\r\n]")
+            message(FATAL_ERROR "${label} fingerprint encountered an unsafe entry name")
+        endif()
+        string(HEX "${_entry}" _entry_hex)
+        set(_path "${root}/${_entry}")
+        execute_process(
+            COMMAND
+                "${CMAKE_COMMAND}" -E env "LC_ALL=C"
+                "${_appellate_stat}" "--format=%F|%u|%a|%h" -- "${_path}"
+            RESULT_VARIABLE _stat_result
+            OUTPUT_VARIABLE _metadata
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+        if(NOT _stat_result EQUAL 0)
+            message(FATAL_ERROR "${label} cannot fingerprint entry: ${_entry}")
+        endif()
+
+        if(IS_SYMLINK "${_path}")
+            if(NOT _metadata MATCHES "^symbolic link[|]")
+                message(FATAL_ERROR "${label} symlink metadata differs: ${_entry}")
+            endif()
+            file(READ_SYMLINK "${_path}" _link_target)
+            string(HEX "${_link_target}" _link_target_hex)
+            string(APPEND _fingerprint_material
+                "L|${_entry_hex}|${_metadata}|${_link_target_hex}\n")
+        elseif(IS_DIRECTORY "${_path}")
+            if(NOT _metadata MATCHES "^directory[|]")
+                message(FATAL_ERROR "${label} directory metadata differs: ${_entry}")
+            endif()
+            string(APPEND _fingerprint_material "D|${_entry_hex}|${_metadata}\n")
+        elseif(_metadata MATCHES "^regular file[|]")
+            file(SIZE "${_path}" _size)
+            file(SHA256 "${_path}" _sha256)
+            string(APPEND _fingerprint_material
+                "F|${_entry_hex}|${_metadata}|${_size}|${_sha256}\n")
+        else()
+            message(FATAL_ERROR "${label} encountered an unsupported entry type: ${_entry}")
+        endif()
+    endforeach()
+    string(SHA256 _fingerprint "${_fingerprint_material}")
+    set("${output_variable}" "${_fingerprint}" PARENT_SCOPE)
+endfunction()
+
+function(_appellate_install_same_version build_dir prefix label)
+    execute_process(
+        COMMAND "${CMAKE_COMMAND}" --install "${build_dir}" --prefix "${prefix}"
+        RESULT_VARIABLE _install_result
+        OUTPUT_VARIABLE _install_output
+        ERROR_VARIABLE _install_error
+    )
+    if(NOT _install_result EQUAL 0)
+        message(FATAL_ERROR "${label} failed:\n${_install_output}\n${_install_error}")
+    endif()
+endfunction()
+
+function(_appellate_remove_relocated_program_prefix verifier_root target)
+    get_filename_component(_root_absolute "${verifier_root}" ABSOLUTE)
+    get_filename_component(_target_absolute "${target}" ABSOLUTE)
+    get_filename_component(_target_parent "${_target_absolute}" DIRECTORY)
+    get_filename_component(_target_name "${_target_absolute}" NAME)
+    set(_verifier_sentinel "${_root_absolute}/.appellate-install-verifier-root")
+
+    if(_root_absolute STREQUAL "" OR _root_absolute STREQUAL "/" OR
+       IS_SYMLINK "${_root_absolute}" OR NOT IS_DIRECTORY "${_root_absolute}" OR
+       IS_SYMLINK "${_verifier_sentinel}" OR NOT EXISTS "${_verifier_sentinel}" OR
+       IS_DIRECTORY "${_verifier_sentinel}")
+        message(FATAL_ERROR "Explicit uninstallation requires an ordinary sentinel-controlled root")
+    endif()
+    execute_process(
+        COMMAND
+            "${CMAKE_COMMAND}" -E env "LC_ALL=C"
+            "${_appellate_stat}" "--format=%F|%h" -- "${_verifier_sentinel}"
+        RESULT_VARIABLE _sentinel_stat_result
+        OUTPUT_VARIABLE _sentinel_metadata
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if(NOT _sentinel_stat_result EQUAL 0 OR
+       NOT _sentinel_metadata STREQUAL "regular file|1")
+        message(FATAL_ERROR "Explicit uninstallation verifier sentinel is not single-link regular")
+    endif()
+    file(READ "${_verifier_sentinel}" _sentinel_text)
+    if(NOT _sentinel_text STREQUAL "appellate-install-verifier-root\n")
+        message(FATAL_ERROR "Explicit uninstallation verifier sentinel differs")
+    endif()
+    if(NOT _target_parent STREQUAL _root_absolute OR NOT _target_name STREQUAL "relocated" OR
+       NOT _target_absolute STREQUAL "${_root_absolute}/relocated" OR
+       IS_SYMLINK "${_target_absolute}" OR NOT IS_DIRECTORY "${_target_absolute}")
+        message(FATAL_ERROR "Explicit uninstallation target is not the exact immediate-child relocated prefix")
+    endif()
+
+    file(REAL_PATH "${_root_absolute}" _root_real)
+    file(REAL_PATH "${_target_absolute}" _target_real)
+    get_filename_component(_target_real_parent "${_target_real}" DIRECTORY)
+    if(_root_real STREQUAL "" OR _root_real STREQUAL "/" OR
+       NOT _target_real_parent STREQUAL _root_real OR
+       NOT _target_real STREQUAL "${_root_real}/relocated")
+        message(FATAL_ERROR "Explicit uninstallation target escapes the verifier root")
+    endif()
+
+    foreach(_identity_file IN ITEMS
+            "${_target_absolute}/bin/Appellate Workbench"
+            "${_target_absolute}/share/appellate-workbench/compatibility.json"
+    )
+        if(IS_SYMLINK "${_identity_file}" OR NOT EXISTS "${_identity_file}" OR
+           IS_DIRECTORY "${_identity_file}")
+            message(FATAL_ERROR "Explicit uninstallation target lacks an ordinary bundle identity file")
+        endif()
+        execute_process(
+            COMMAND
+                "${CMAKE_COMMAND}" -E env "LC_ALL=C"
+                "${_appellate_stat}" "--format=%F|%h" -- "${_identity_file}"
+            RESULT_VARIABLE _identity_stat_result
+            OUTPUT_VARIABLE _identity_metadata
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+        if(NOT _identity_stat_result EQUAL 0 OR
+           NOT _identity_metadata STREQUAL "regular file|1")
+            message(FATAL_ERROR "Explicit uninstallation bundle identity is not single-link regular")
+        endif()
+    endforeach()
+
+    file(REMOVE_RECURSE "${_target_absolute}")
+    if(EXISTS "${_target_absolute}" OR IS_SYMLINK "${_target_absolute}")
+        message(FATAL_ERROR "Explicit bundle uninstallation did not remove the program prefix")
+    endif()
+endfunction()
+
 function(_appellate_assert_no_transient_residue root label)
     if(NOT IS_DIRECTORY "${root}")
         message(FATAL_ERROR "${label} residue root is missing: ${root}")
@@ -526,21 +683,86 @@ endif()
 set(_relocated "${_root}/relocated")
 set(_runtime "${_root}/runtime")
 set(_catalog "${_root}/catalog")
+set(_installed_offline_state "${_root}/installed-offline-e2e")
+set(_installed_offline_data_home "${_installed_offline_state}/data")
+set(_repeat_install_external_state
+    "${_installed_offline_data_home}/.appellate-repeat-install-state-proof")
+set(_repeat_install_state_sentinel
+    "${_repeat_install_external_state}/preserve-on-repeat-install-and-uninstall.txt")
 file(MAKE_DIRECTORY "${_runtime}")
 file(
     CHMOD "${_runtime}"
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
 )
+if(EXISTS "${_repeat_install_external_state}" OR
+   IS_SYMLINK "${_repeat_install_external_state}")
+    message(FATAL_ERROR "Dedicated external state unexpectedly already exists")
+endif()
+file(MAKE_DIRECTORY
+    "${_installed_offline_state}"
+    "${_installed_offline_data_home}"
+    "${_repeat_install_external_state}"
+)
+file(
+    CHMOD "${_installed_offline_state}" "${_installed_offline_data_home}"
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+)
+file(
+    CHMOD "${_repeat_install_external_state}"
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+)
+file(WRITE "${_repeat_install_state_sentinel}"
+    "external-app-state-must-survive-repeat-install-and-uninstall\n")
+file(
+    CHMOD "${_repeat_install_state_sentinel}"
+    PERMISSIONS OWNER_READ OWNER_WRITE
+)
+_appellate_assert_private_directory(
+    "${_repeat_install_external_state}" "Dedicated external state"
+)
+_appellate_assert_private_file(
+    "${_repeat_install_state_sentinel}" "Dedicated external state sentinel"
+)
+_appellate_capture_installed_tree_fingerprint(
+    "${_repeat_install_external_state}" "Dedicated external state before installation"
+    _repeat_install_state_initial_fingerprint
+)
 
 if(NOT DEFINED APPELLATE_BUNDLE_PREFIX)
-    execute_process(
-        COMMAND "${CMAKE_COMMAND}" --install "${APPELLATE_BUILD_DIR}" --prefix "${_prefix}"
-        RESULT_VARIABLE _install_result
-        OUTPUT_VARIABLE _install_output
-        ERROR_VARIABLE _install_error
+    _appellate_install_same_version(
+        "${APPELLATE_BUILD_DIR}" "${_prefix}" "Initial bundle installation"
     )
-    if(NOT _install_result EQUAL 0)
-        message(FATAL_ERROR "Install failed:\n${_install_output}\n${_install_error}")
+    _appellate_capture_installed_tree_fingerprint(
+        "${_prefix}" "Initial installed bundle" _initial_installed_bundle_fingerprint
+    )
+    _appellate_capture_installed_tree_fingerprint(
+        "${_repeat_install_external_state}" "Dedicated external state after initial installation"
+        _repeat_install_state_after_initial_fingerprint
+    )
+    if(NOT _repeat_install_state_after_initial_fingerprint STREQUAL
+           _repeat_install_state_initial_fingerprint)
+        message(FATAL_ERROR "Initial bundle installation changed external application state")
+    endif()
+
+    _appellate_install_same_version(
+        "${APPELLATE_BUILD_DIR}" "${_prefix}" "Same-version repeat installation"
+    )
+    _appellate_capture_installed_tree_fingerprint(
+        "${_prefix}" "Same-version repeat installed bundle"
+        _repeat_installed_bundle_fingerprint
+    )
+    _appellate_capture_installed_tree_fingerprint(
+        "${_repeat_install_external_state}"
+        "Dedicated external state after same-version repeat installation"
+        _repeat_install_state_after_repeat_fingerprint
+    )
+    if(NOT _repeat_installed_bundle_fingerprint STREQUAL
+           _initial_installed_bundle_fingerprint)
+        message(FATAL_ERROR "Same-version repeat installation changed the installed bundle")
+    endif()
+    if(NOT _repeat_install_state_after_repeat_fingerprint STREQUAL
+           _repeat_install_state_initial_fingerprint)
+        message(FATAL_ERROR "Same-version repeat installation changed external application state")
     endif()
 endif()
 
@@ -2597,6 +2819,51 @@ foreach(_reported_plugin_path IN LISTS _reported_plugin_paths)
 endforeach()
 if(_offscreen_plugin_index LESS 0)
     message(FATAL_ERROR "Relocated desktop did not load only the bundled offscreen plugin")
+endif()
+
+if(IS_SYMLINK "${_installed_offline_state}" OR
+   NOT IS_DIRECTORY "${_installed_offline_state}" OR
+   IS_SYMLINK "${_installed_offline_state}/data" OR
+   NOT IS_DIRECTORY "${_installed_offline_state}/data" OR
+   IS_SYMLINK "${_installed_offline_state}/catalog" OR
+   NOT IS_DIRECTORY "${_installed_offline_state}/catalog")
+    message(FATAL_ERROR "Installed offline E2E did not leave ordinary external application state")
+endif()
+_appellate_capture_tree_fingerprint(
+    "${_installed_offline_state}" "Installed offline E2E state before explicit uninstallation"
+    _installed_offline_state_before_uninstall
+)
+_appellate_capture_installed_tree_fingerprint(
+    "${_repeat_install_external_state}"
+    "Dedicated external state before explicit uninstallation"
+    _repeat_install_state_before_uninstall
+)
+if(NOT _repeat_install_state_before_uninstall STREQUAL
+       _repeat_install_state_initial_fingerprint)
+    message(FATAL_ERROR "Bundle verification changed the dedicated external application state")
+endif()
+if(EXISTS "${_prefix}" OR IS_SYMLINK "${_prefix}")
+    message(FATAL_ERROR "Original bundle prefix unexpectedly remained after relocation")
+endif()
+
+_appellate_remove_relocated_program_prefix("${_root}" "${_relocated}")
+
+_appellate_capture_tree_fingerprint(
+    "${_installed_offline_state}" "Installed offline E2E state after explicit uninstallation"
+    _installed_offline_state_after_uninstall
+)
+_appellate_capture_installed_tree_fingerprint(
+    "${_repeat_install_external_state}"
+    "Dedicated external state after explicit uninstallation"
+    _repeat_install_state_after_uninstall
+)
+if(NOT _installed_offline_state_after_uninstall STREQUAL
+       _installed_offline_state_before_uninstall)
+    message(FATAL_ERROR "Explicit bundle uninstallation changed installed offline E2E state")
+endif()
+if(NOT _repeat_install_state_after_uninstall STREQUAL
+       _repeat_install_state_before_uninstall)
+    message(FATAL_ERROR "Explicit bundle uninstallation changed dedicated external application state")
 endif()
 
 file(READ "${_root}/.appellate-install-verifier-root" _verifier_root_sentinel)
