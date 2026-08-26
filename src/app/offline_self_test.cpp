@@ -61,7 +61,7 @@ constexpr auto expected_imported_revision =
 constexpr auto expected_bundled_workflow_session =
     "workflow.session.5f62a8255168bf9cabfe35af7e09ad86d368dcbd37683cc5206010f170e8db70";
 constexpr auto expected_bundled_workflow_digest =
-    "20272ca1834c9738a9d40d97b882d18c6115245856a3d9737096e732fc115fbb";
+    "6adc6f9435f2d1e57b6825e830570715cf6e9baeb867bc39e3aa5315835e7580";
 constexpr auto expected_imported_workflow_session =
     "workflow.session.16a9ac9c6f55f8a2390d031e64de8f2deb23f46e34e37a5a5aa87d5e9e3a0df2";
 constexpr auto expected_imported_workflow_digest =
@@ -99,6 +99,10 @@ constexpr auto expected_oral_transcript =
     return WorkflowLegalClockReading{
         QDateTime::fromString(QStringLiteral("2026-08-11T11:00:00Z"), Qt::ISODate),
         selected_court_date};
+}
+
+[[nodiscard]] QString fixedWorkflowRecordedAtClock() {
+    return QStringLiteral("2026-08-11T11:00:00Z");
 }
 
 [[nodiscard]] std::chrono::seconds fixedOralElapsedClock() { return 1s; }
@@ -268,7 +272,7 @@ auto runOfflineSelfTest(QApplication& application, const QString& catalog_root,
                             .arg(provider.error()));
         }
         MainWindow window({}, catalog_root, nullptr, *provider, {}, {}, *provider,
-                          fixedWorkflowLegalClock);
+                          fixedWorkflowLegalClock, {}, {}, fixedWorkflowRecordedAtClock);
         const auto loaded = window.loadSource(bundled_workflow_pack);
         if (!loaded || window.currentRuntime() == nullptr ||
             window.currentRuntime()->cases.size() != 1) {
@@ -285,13 +289,14 @@ auto runOfflineSelfTest(QApplication& application, const QString& catalog_root,
         window.workflowCourtDateEditor()->setText(QStringLiteral("2026-08-11"));
         window.openWorkflowButton()->click();
         application.processEvents();
+        const auto action_description = window.workflowActionDescriptionLabel()->text();
         if (window.workflowSessionController() == nullptr ||
-            !window.workflowStatusLabel()->text().contains(
-                QString::fromLatin1(asterglen_advance_operation)) ||
-            !window.workflowStatusLabel()->text().contains(
-                QString::fromLatin1(asterglen_advance_actor))) {
-            return fail(QStringLiteral("Bundled exact transition is not visible: %1")
-                            .arg(window.errorLabel()->text()));
+            !action_description.contains(QString::fromLatin1(asterglen_advance_operation)) ||
+            !action_description.contains(QString::fromLatin1(asterglen_advance_actor))) {
+            return fail(QStringLiteral("Bundled exact authored action is not visible: status=%1; "
+                                       "action=%2; error=%3")
+                            .arg(window.workflowStatusLabel()->text(), action_description,
+                                 window.errorLabel()->text()));
         }
         bundled_session_id =
             QString::fromStdString(window.workflowSessionController()->state().session_id);
@@ -333,7 +338,7 @@ auto runOfflineSelfTest(QApplication& application, const QString& catalog_root,
             return fail(provider.error());
         }
         MainWindow reopened({}, catalog_root, nullptr, *provider, {}, {}, *provider,
-                            fixedWorkflowLegalClock);
+                            fixedWorkflowLegalClock, {}, {}, fixedWorkflowRecordedAtClock);
         const auto loaded = reopened.loadSource(bundled_workflow_pack);
         if (loaded) {
             reopened.openWorkflowAction()->trigger();
@@ -356,7 +361,7 @@ auto runOfflineSelfTest(QApplication& application, const QString& catalog_root,
             return fail(provider.error());
         }
         MainWindow importer({}, catalog_root, nullptr, *provider, {}, {}, *provider,
-                            fixedWorkflowLegalClock);
+                            fixedWorkflowLegalClock, {}, {}, fixedWorkflowRecordedAtClock);
         const auto loaded = importer.loadSource(imported_grounded_pack);
         if (!loaded || importer.currentRuntime() == nullptr ||
             importer.currentRuntime()->cases.size() != 1) {
@@ -517,7 +522,7 @@ auto runOfflineSelfTest(QApplication& application, const QString& catalog_root,
         }
         MainWindow oral_window({}, catalog_root, nullptr, *provider, {}, {}, *provider,
                                fixedWorkflowLegalClock, fixedOralElapsedClock,
-                               fixedOralRecordedAtClock);
+                               fixedOralRecordedAtClock, fixedWorkflowRecordedAtClock);
         const auto loaded = oral_window.loadSource(imported_grounded_pack);
         const auto index = loaded ? argumentIndex(oral_window, imported_argument_id) : -1;
         if (!loaded || index < 0) {
@@ -588,7 +593,7 @@ auto runOfflineSelfTest(QApplication& application, const QString& catalog_root,
         }
         MainWindow reopened({}, catalog_root, nullptr, *provider, {}, {}, *provider,
                             fixedWorkflowLegalClock, fixedOralElapsedClock,
-                            fixedOralRecordedAtClock);
+                            fixedOralRecordedAtClock, fixedWorkflowRecordedAtClock);
         const auto loaded = reopened.loadSource(imported_grounded_pack);
         const auto index = loaded ? argumentIndex(reopened, imported_argument_id) : -1;
         if (!loaded || index < 0) {

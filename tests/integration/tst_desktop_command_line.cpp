@@ -175,7 +175,7 @@ void DesktopCommandLineTest::offlineSelfTestImportsGroundedPackAndReopensLocalSe
     QCOMPARE(output.value(QStringLiteral("bundled_workflow_created_at_utc")).toString(),
              QStringLiteral("2026-08-11T10:00:00Z"));
     QCOMPARE(output.value(QStringLiteral("bundled_workflow_digest")).toString(),
-             QStringLiteral("20272ca1834c9738a9d40d97b882d18c6115245856a3d9737096e732fc115fbb"));
+             QStringLiteral("6adc6f9435f2d1e57b6825e830570715cf6e9baeb867bc39e3aa5315835e7580"));
     QCOMPARE(output.value(QStringLiteral("bundled_workflow_session_id")).toString(),
              QStringLiteral("workflow.session."
                             "5f62a8255168bf9cabfe35af7e09ad86d368dcbd37683cc5206010f170e8db70"));
