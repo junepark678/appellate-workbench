@@ -8,6 +8,7 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QTest>
+#include <QWidget>
 
 #include <array>
 #include <chrono>
@@ -261,6 +262,15 @@ class OralArgumentWorkspaceTest final : public QObject {
     Q_OBJECT
 
   private slots:
+    void initTestCase() {
+        if (!qEnvironmentVariableIsSet("APPELLATE_TEST_REQUIRE_2X_DPR")) {
+            return;
+        }
+
+        QWidget probe;
+        QCOMPARE(probe.devicePixelRatioF(), 2.0);
+    }
+
     void rendersExactActualQuestionAndTypedGrounding();
     void counterfactualModeMakesIsolationExplicit();
     void answerEditorRemainsUsableAtMinimumLayout();

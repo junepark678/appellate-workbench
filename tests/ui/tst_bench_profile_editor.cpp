@@ -15,6 +15,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 #include <QVariant>
+#include <QWidget>
 
 #include <array>
 #include <string>
@@ -26,6 +27,15 @@ class BenchProfileEditorTest final : public QObject {
     Q_OBJECT
 
   private slots:
+    void initTestCase() {
+        if (!qEnvironmentVariableIsSet("APPELLATE_TEST_REQUIRE_2X_DPR")) {
+            return;
+        }
+
+        QWidget probe;
+        QCOMPARE(probe.devicePixelRatioF(), 2.0);
+    }
+
     void strictCodecRoundTripsSchemaV1();
     void cloneEditsEveryStructuredControl();
     void rejectsMalformedAndNonFictionalDocuments();

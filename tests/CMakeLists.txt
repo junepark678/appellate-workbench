@@ -524,6 +524,14 @@ target_link_libraries(
 target_compile_features(tst_bench_profile_editor PRIVATE cxx_std_26)
 add_test(NAME bench_profile_editor COMMAND tst_bench_profile_editor)
 set_tests_properties(bench_profile_editor PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+add_test(NAME bench_profile_editor_high_dpi COMMAND tst_bench_profile_editor)
+set_tests_properties(
+    bench_profile_editor_high_dpi
+    PROPERTIES
+        ENVIRONMENT
+            "QT_QPA_PLATFORM=offscreen;QT_SCALE_FACTOR=2;APPELLATE_TEST_REQUIRE_2X_DPR=1"
+        LABELS "ui;local;high-dpi"
+)
 
 qt_add_executable(tst_record_workspace ui/tst_record_workspace.cpp)
 target_link_libraries(
@@ -537,6 +545,14 @@ target_link_libraries(
 target_compile_features(tst_record_workspace PRIVATE cxx_std_26)
 add_test(NAME record_workspace COMMAND tst_record_workspace)
 set_tests_properties(record_workspace PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+add_test(NAME record_workspace_high_dpi COMMAND tst_record_workspace)
+set_tests_properties(
+    record_workspace_high_dpi
+    PROPERTIES
+        ENVIRONMENT
+            "QT_QPA_PLATFORM=offscreen;QT_SCALE_FACTOR=2;APPELLATE_TEST_REQUIRE_2X_DPR=1"
+        LABELS "ui;local;high-dpi"
+)
 
 qt_add_executable(
     tst_installed_record_workspace
@@ -582,6 +598,14 @@ set_tests_properties(
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
         LABELS "ui;local"
 )
+add_test(NAME main_window_high_dpi COMMAND tst_main_window)
+set_tests_properties(
+    main_window_high_dpi
+    PROPERTIES
+        ENVIRONMENT
+            "QT_QPA_PLATFORM=offscreen;QT_SCALE_FACTOR=2;APPELLATE_TEST_REQUIRE_2X_DPR=1"
+        LABELS "ui;local;high-dpi"
+)
 
 qt_add_executable(
     tst_oral_argument_workspace
@@ -602,6 +626,14 @@ set_tests_properties(
     PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
         LABELS "ui;local"
+)
+add_test(NAME oral_argument_workspace_high_dpi COMMAND tst_oral_argument_workspace)
+set_tests_properties(
+    oral_argument_workspace_high_dpi
+    PROPERTIES
+        ENVIRONMENT
+            "QT_QPA_PLATFORM=offscreen;QT_SCALE_FACTOR=2;APPELLATE_TEST_REQUIRE_2X_DPR=1"
+        LABELS "ui;local;high-dpi"
 )
 
 qt_add_executable(

@@ -38,6 +38,7 @@
 #include <QTest>
 #include <QUuid>
 #include <QVariant>
+#include <QWidget>
 
 #include <algorithm>
 #include <array>
@@ -71,6 +72,15 @@ class MainWindowTest final : public QObject {
     Q_OBJECT
 
   private slots:
+    void initTestCase() {
+        if (!qEnvironmentVariableIsSet("APPELLATE_TEST_REQUIRE_2X_DPR")) {
+            return;
+        }
+
+        QWidget probe;
+        QCOMPARE(probe.devicePixelRatioF(), 2.0);
+    }
+
     void loadsValidAuthoringDirectory();
     void startupOnboardingDefersDenseWorkspace();
     void installsAndLoadsArchiveInInjectedCatalog();

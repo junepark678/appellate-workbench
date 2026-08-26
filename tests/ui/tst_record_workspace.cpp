@@ -17,6 +17,7 @@
 #include <QTableView>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QWidget>
 
 #include <cstddef>
 #include <utility>
@@ -48,6 +49,15 @@ class RecordWorkspaceTest final : public QObject {
     Q_OBJECT
 
   private slots:
+    void initTestCase() {
+        if (!qEnvironmentVariableIsSet("APPELLATE_TEST_REQUIRE_2X_DPR")) {
+            return;
+        }
+
+        QWidget probe;
+        QCOMPARE(probe.devicePixelRatioF(), 2.0);
+    }
+
     void filtersMetadataAndSearchesPdfText();
     void fixturePageCountMatchesRecordDeclaration();
     void navigatesStableAnchorAcrossMultipagePdf();

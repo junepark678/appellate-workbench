@@ -92,6 +92,19 @@
       }
     },
     {
+      "name": "high-dpi",
+      "displayName": "2x high-DPI UI tests",
+      "configurePreset": "dev",
+      "filter": {
+        "include": {
+          "label": "high-dpi"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "packaging",
       "displayName": "Local Linux install and relocation tests",
       "configurePreset": "release",
