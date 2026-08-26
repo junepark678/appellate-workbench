@@ -39,31 +39,76 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends \
+            build-essential \
             g++-14 \
             fonts-dejavu-core \
             libarchive-dev \
             libgl1-mesa-dev \
+            libgstreamer-gl1.0-0 \
+            libpulse-dev \
             libsodium-dev \
+            libxcb-cursor0 \
+            libxcb-glx0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-render0 \
+            libxcb-shape0 \
+            libxcb-shm0 \
+            libxcb-sync1 \
+            libxcb-util1 \
+            libxcb-xfixes0 \
+            libxcb-xinerama0 \
+            libxcb-xkb-dev \
+            libxcb1 \
+            libxkbcommon-dev \
+            libxkbcommon-x11-0 \
             ninja-build \
             pkg-config \
+            python3-venv \
             uidmap
 
       - name: Install Qt
-        uses: jurplel/install-qt-action/action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
-        with:
-          version: "6.11.1"
-          modules: qtpdf
-          install-deps: true
-          cache: false
-          aqtversion: "==3.3.0"
-          py7zrversion: "==1.0.0"
+        shell: bash
+        run: |
+          python3 -m venv "$RUNNER_TEMP/aqt"
+          "$RUNNER_TEMP/aqt/bin/python" -m pip install \
+            --disable-pip-version-check \
+            --no-input \
+            --no-cache-dir \
+            "aqtinstall==3.3.0" \
+            "py7zr==1.0.0" \
+            "setuptools==80.9.0"
+          "$RUNNER_TEMP/aqt/bin/aqt" install-qt \
+            linux \
+            desktop \
+            6.11.1 \
+            linux_gcc_64 \
+            --outputdir "$RUNNER_TEMP/Qt" \
+            --modules qtpdf
+
+          qt_root="$RUNNER_TEMP/Qt/6.11.1/gcc_64"
+          test -x "$qt_root/bin/qmake"
+          printf '%s\n' "$qt_root/bin" >> "$GITHUB_PATH"
+          printf '%s\n' \
+            "CMAKE_PREFIX_PATH=$qt_root" \
+            "LD_LIBRARY_PATH=$qt_root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+            "PKG_CONFIG_PATH=$qt_root/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}" \
+            "QML2_IMPORT_PATH=$qt_root/qml" \
+            "QT_PLUGIN_PATH=$qt_root/plugins" \
+            "QT_ROOT_DIR=$qt_root" \
+            >> "$GITHUB_ENV"
 
       - name: Report toolchain
         run: |
           cmake --version
           ninja --version
           "$CXX" --version
-          qmake -query QT_VERSION
+          qt_version="$(qmake -query QT_VERSION)"
+          printf 'Qt %s\n' "$qt_version"
+          test "$qt_version" = 6.11.1
 
       - name: Configure
         run: cmake --preset dev -DAPPELLATE_WARNINGS_AS_ERRORS=ON
