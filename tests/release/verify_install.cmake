@@ -396,7 +396,8 @@ function(_appellate_capture_tree_fingerprint root label output_variable)
                 OUTPUT_STRIP_TRAILING_WHITESPACE
                 ERROR_QUIET
             )
-            if(NOT _stat_result EQUAL 0 OR NOT _metadata MATCHES "^regular file[|]")
+            if(NOT _stat_result EQUAL 0 OR
+               NOT _metadata MATCHES "^(regular file|regular empty file)[|]")
                 message(FATAL_ERROR "${label} cannot fingerprint regular file: ${_entry}")
             endif()
             file(SIZE "${_path}" _size)
@@ -466,7 +467,7 @@ function(_appellate_capture_installed_tree_fingerprint root label output_variabl
                 message(FATAL_ERROR "${label} directory metadata differs: ${_entry}")
             endif()
             string(APPEND _fingerprint_material "D|${_entry_hex}|${_metadata}\n")
-        elseif(_metadata MATCHES "^regular file[|]")
+        elseif(_metadata MATCHES "^(regular file|regular empty file)[|]")
             file(SIZE "${_path}" _size)
             file(SHA256 "${_path}" _sha256)
             string(APPEND _fingerprint_material
