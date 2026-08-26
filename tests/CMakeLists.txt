@@ -134,7 +134,17 @@ target_link_libraries(
 target_compile_definitions(tst_pack_cli PRIVATE APPELLATE_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 target_compile_features(tst_pack_cli PRIVATE cxx_std_26)
 add_test(NAME pack_cli COMMAND tst_pack_cli)
-set_tests_properties(pack_cli PROPERTIES ENVIRONMENT "QTEST_FUNCTION_TIMEOUT=900000")
+if(APPELLATE_ENABLE_ASAN OR APPELLATE_ENABLE_UBSAN)
+    set(_appellate_pack_cli_function_timeout_ms 3600000)
+    set_tests_properties(pack_cli PROPERTIES TIMEOUT 7200)
+else()
+    set(_appellate_pack_cli_function_timeout_ms 900000)
+endif()
+set_tests_properties(
+    pack_cli
+    PROPERTIES ENVIRONMENT
+               "QTEST_FUNCTION_TIMEOUT=${_appellate_pack_cli_function_timeout_ms}"
+)
 
 qt_add_executable(
     tst_independent_review_publisher
