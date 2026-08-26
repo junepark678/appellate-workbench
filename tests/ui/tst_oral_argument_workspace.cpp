@@ -1,6 +1,7 @@
 #include "oral_argument_workspace.hpp"
 
 #include <QComboBox>
+#include <QCoreApplication>
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QPushButton>
@@ -262,6 +263,7 @@ class OralArgumentWorkspaceTest final : public QObject {
   private slots:
     void rendersExactActualQuestionAndTypedGrounding();
     void counterfactualModeMakesIsolationExplicit();
+    void answerEditorRemainsUsableAtMinimumLayout();
     void controlReturnSubmitsExactSelectionsWithInjectedClocks();
     void validationAndControllerErrorsPreserveDraftAndSession();
     void rejectsNoncanonicalSession();
@@ -273,8 +275,11 @@ void OralArgumentWorkspaceTest::rendersExactActualQuestionAndTypedGrounding() {
 
     QVERIFY(workspace.isReady());
     QVERIFY(workspace.modeLabel()->text().contains(QStringLiteral("Actual record")));
-    QVERIFY(workspace.isolationNoticeLabel()->text().contains(QStringLiteral("immutable legal")));
     QVERIFY(workspace.isolationNoticeLabel()->text().contains(QStringLiteral("cannot change")));
+    QVERIFY(workspace.isolationNoticeLabel()->accessibleDescription().contains(
+        QStringLiteral("immutable legal")));
+    QCOMPARE(workspace.isolationNoticeLabel()->toolTip(),
+             workspace.isolationNoticeLabel()->accessibleDescription());
     QVERIFY(workspace.judgeLabel()->text().contains(QStringLiteral("Justice Cedar")));
     QVERIFY(workspace.judgeLabel()->text().contains(QStringLiteral("fictional/composite"),
                                                     Qt::CaseInsensitive));
@@ -348,9 +353,40 @@ void OralArgumentWorkspaceTest::counterfactualModeMakesIsolationExplicit() {
     QVERIFY(workspace.modeLabel()->text().contains(QStringLiteral("Counterfactual training")));
     QVERIFY(workspace.isolationNoticeLabel()->text().contains(
         QStringLiteral("isolated from the actual-record workflow")));
-    QVERIFY(workspace.isolationNoticeLabel()->text().contains(QStringLiteral("journals")));
-    QVERIFY(workspace.isolationNoticeLabel()->text().contains(QStringLiteral("snapshots")));
     QVERIFY(workspace.isolationNoticeLabel()->text().contains(QStringLiteral("disposition")));
+    QVERIFY(workspace.isolationNoticeLabel()->accessibleDescription().contains(
+        QStringLiteral("journals")));
+    QVERIFY(workspace.isolationNoticeLabel()->accessibleDescription().contains(
+        QStringLiteral("snapshots")));
+}
+
+void OralArgumentWorkspaceTest::answerEditorRemainsUsableAtMinimumLayout() {
+    OralArgumentWorkspace workspace(std::make_unique<FakeWorkspaceSession>());
+    workspace.resize(840, 600);
+    workspace.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&workspace));
+
+    const auto require_layout = [&workspace] {
+        QCoreApplication::processEvents();
+        auto* editor = workspace.answerEditor();
+        const auto minimum_viewport_height = editor->fontMetrics().lineSpacing() * 5;
+        QVERIFY2(editor->viewport()->height() >= minimum_viewport_height,
+                 qPrintable(QStringLiteral("answer viewport %1 is below five-line minimum %2")
+                                .arg(editor->viewport()->height())
+                                .arg(minimum_viewport_height)));
+        const QRect mapped(editor->mapTo(&workspace, QPoint{}), editor->size());
+        QVERIFY(workspace.rect().contains(mapped));
+        QVERIFY(editor->visibleRegion().contains(editor->rect()));
+    };
+    require_layout();
+
+    workspace.resize(1180, 780);
+    require_layout();
+
+    workspace.answerEditor()->setFocus();
+    QVERIFY(workspace.answerEditor()->hasFocus());
+    QTest::keyClick(workspace.answerEditor(), Qt::Key_Tab);
+    QTRY_VERIFY(workspace.submitButton()->hasFocus());
 }
 
 void OralArgumentWorkspaceTest::controlReturnSubmitsExactSelectionsWithInjectedClocks() {

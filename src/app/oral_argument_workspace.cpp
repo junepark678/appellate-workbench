@@ -4,14 +4,15 @@
 #include <QComboBox>
 #include <QDateTime>
 #include <QFont>
-#include <QFormLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QKeySequence>
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QShortcut>
+#include <QSizePolicy>
 #include <QSplitter>
 #include <QStringList>
 #include <QTableWidget>
@@ -87,6 +88,19 @@ class ControllerWorkspaceSession final : public OralArgumentWorkspaceSession {
             "Counterfactual training is isolated from the actual-record workflow. Practice "
             "answers cannot change workflow decisions, journals, snapshots, or the authored "
             "disposition.");
+    }
+    return QStringLiteral("Simulation isolation mode is unavailable.");
+}
+
+[[nodiscard]] QString isolationSummary(model::OralArgumentMode mode) {
+    switch (mode) {
+    case model::OralArgumentMode::ActualRecord:
+        return QStringLiteral(
+            "Practice answers cannot change the workflow or authored disposition.");
+    case model::OralArgumentMode::CounterfactualTraining:
+        return QStringLiteral(
+            "Counterfactual practice is isolated from the actual-record workflow; answers cannot "
+            "change the workflow or authored disposition.");
     }
     return QStringLiteral("Simulation isolation mode is unavailable.");
 }
@@ -269,19 +283,42 @@ void OralArgumentWorkspace::buildUi() {
         "grounding"));
 
     auto* outer = new QVBoxLayout(this);
-    auto* heading = new QLabel(QStringLiteral("Oral Argument"), this);
+    auto* header = new QWidget(this);
+    header->setObjectName(QStringLiteral("oralArgumentHeader"));
+    header->setAccessibleName(QStringLiteral("Oral argument mode and clocks"));
+    auto* header_layout = new QHBoxLayout(header);
+    header_layout->setContentsMargins(0, 0, 0, 0);
+    auto* heading = new QLabel(QStringLiteral("Oral Argument"), header);
     heading->setObjectName(QStringLiteral("oralArgumentHeading"));
     heading->setAccessibleName(QStringLiteral("Oral argument heading"));
     QFont heading_font = heading->font();
     heading_font.setPointSize(18);
     heading_font.setBold(true);
     heading->setFont(heading_font);
-    outer->addWidget(heading);
+    header_layout->addWidget(heading);
+    header_layout->addStretch(1);
 
-    mode_label_ = new QLabel(this);
+    mode_label_ = new QLabel(header);
     configureLabel(*mode_label_, QStringLiteral("oralArgumentMode"),
                    QStringLiteral("Oral argument mode"));
-    outer->addWidget(mode_label_);
+    header_layout->addWidget(mode_label_);
+
+    auto* principal_clock_caption = new QLabel(QStringLiteral("Principal"), header);
+    principal_clock_caption->setAccessibleName(QStringLiteral("Principal clock label"));
+    header_layout->addWidget(principal_clock_caption);
+    principal_clock_label_ = new QLabel(header);
+    configureLabel(*principal_clock_label_, QStringLiteral("principalClock"),
+                   QStringLiteral("Principal argument time remaining"));
+    header_layout->addWidget(principal_clock_label_);
+
+    auto* rebuttal_clock_caption = new QLabel(QStringLiteral("Rebuttal"), header);
+    rebuttal_clock_caption->setAccessibleName(QStringLiteral("Rebuttal clock label"));
+    header_layout->addWidget(rebuttal_clock_caption);
+    rebuttal_clock_label_ = new QLabel(header);
+    configureLabel(*rebuttal_clock_label_, QStringLiteral("rebuttalClock"),
+                   QStringLiteral("Rebuttal time remaining"));
+    header_layout->addWidget(rebuttal_clock_label_);
+    outer->addWidget(header);
 
     isolation_notice_label_ = new QLabel(this);
     configureLabel(*isolation_notice_label_, QStringLiteral("oralArgumentIsolationNotice"),
@@ -289,20 +326,6 @@ void OralArgumentWorkspace::buildUi() {
     isolation_notice_label_->setStyleSheet(
         QStringLiteral("background: palette(alternate-base); padding: 6px; font-weight: 600;"));
     outer->addWidget(isolation_notice_label_);
-
-    auto* clocks = new QWidget(this);
-    clocks->setObjectName(QStringLiteral("oralArgumentClocks"));
-    clocks->setAccessibleName(QStringLiteral("Oral argument clocks"));
-    auto* clock_layout = new QFormLayout(clocks);
-    principal_clock_label_ = new QLabel(clocks);
-    configureLabel(*principal_clock_label_, QStringLiteral("principalClock"),
-                   QStringLiteral("Principal argument time remaining"));
-    rebuttal_clock_label_ = new QLabel(clocks);
-    configureLabel(*rebuttal_clock_label_, QStringLiteral("rebuttalClock"),
-                   QStringLiteral("Rebuttal time remaining"));
-    clock_layout->addRow(QStringLiteral("Principal remaining:"), principal_clock_label_);
-    clock_layout->addRow(QStringLiteral("Rebuttal remaining:"), rebuttal_clock_label_);
-    outer->addWidget(clocks);
 
     auto* split = new QSplitter(Qt::Vertical, this);
     split->setObjectName(QStringLiteral("oralArgumentSplitter"));
@@ -393,6 +416,10 @@ void OralArgumentWorkspace::buildUi() {
     answer_editor_->setAccessibleDescription(
         QStringLiteral("Enter counsel's answer; press Control Return to submit"));
     answer_editor_->setPlaceholderText(QStringLiteral("Answer the bench's exact question…"));
+    answer_editor_->setTabChangesFocus(true);
+    answer_editor_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    answer_editor_->setMinimumHeight(answer_editor_->fontMetrics().lineSpacing() * 5 +
+                                     answer_editor_->frameWidth() * 2 + 12);
     answer_layout->addWidget(answer_editor_);
 
     submit_button_ = new QPushButton(QStringLiteral("&Submit answer"), answer_group);
@@ -422,6 +449,10 @@ void OralArgumentWorkspace::renderUnavailable(const QString& message) {
     ready_ = false;
     mode_label_->setText(QStringLiteral("Mode: Unavailable"));
     isolation_notice_label_->setText(QStringLiteral("No canonical oral-argument session is open."));
+    isolation_notice_label_->setAccessibleDescription(
+        QStringLiteral("No canonical oral-argument session is open."));
+    isolation_notice_label_->setToolTip(
+        QStringLiteral("No canonical oral-argument session is open."));
     judge_label_->setText(QStringLiteral("Fictional/composite judge: Unavailable"));
     act_label_->setText(QStringLiteral("Bench act: Unavailable"));
     issue_label_->setText(QStringLiteral("Issue: Unavailable"));
@@ -457,7 +488,10 @@ void OralArgumentWorkspace::renderSession() {
 
     const auto mode = definition->question_bank.mode;
     mode_label_->setText(QStringLiteral("Mode: %1").arg(modeName(mode)));
-    isolation_notice_label_->setText(isolationNotice(mode));
+    const auto full_isolation_notice = isolationNotice(mode);
+    isolation_notice_label_->setText(isolationSummary(mode));
+    isolation_notice_label_->setAccessibleDescription(full_isolation_notice);
+    isolation_notice_label_->setToolTip(full_isolation_notice);
     principal_clock_label_->setText(formattedClock(state.principal_remaining));
     rebuttal_clock_label_->setText(formattedClock(state.rebuttal_remaining));
 
